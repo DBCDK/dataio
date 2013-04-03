@@ -76,13 +76,13 @@ DailyTest Server
 
 Server der skal deployes til, på daglig basis 
 
-[ ] Få server
+[x] Få server (ivsp197.dbc.dk)
 [ ] hostnavn (daily.dataio.dbc.dk)
-[ ] Debian 6
-[ ] installeret Glassfish
-[ ] installeret glu-agent
-[ ] installeret java 6 (til glu agenten)
-[ ] installeret java 7 (til resten af java-miljøet)
+[x] Debian 6
+[x] installeret Glassfish
+[x] installeret glu-agent
+[x] installeret java 6 (til glu agenten)
+[x] installeret java 7 (til resten af java-miljøet)
 
 Production Server
 =================

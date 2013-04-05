@@ -5,11 +5,15 @@
 package dk.dbc.dataio.gui.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.DeckLayoutPanel;
+import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.RootLayoutPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
  * Main entry point.
@@ -18,27 +22,54 @@ import com.google.gwt.event.dom.client.ClickHandler;
  */
 public class MainEntryPoint implements EntryPoint {
 
-    /**
-     * Creates a new instance of MainEntryPoint
-     */
-    public MainEntryPoint() {
-    }
+    final static String GUIID_NAVIGATION_MENU_BUTTON_CREATION = "navigationbuttoncreation";
+    final static String GUIID_NAVIGATION_MENU_BUTTON_VIEW_AND_DELETION = "navigationbuttonviewanddelete";
+    private DeckLayoutPanel contentPanel = new DeckLayoutPanel();
 
+    private DataContentObject dataContentObject = new DataContentObject();
+    
     /**
      * The entry point method, called automatically by loading a module that
      * declares an implementing class as an entry-point
      */
     public void onModuleLoad() {
-        final Label label = new Label("Hello, GWT!!!");
-        final Button button = new Button("Click me!");
+        final DockLayoutPanel masterPanel = new DockLayoutPanel(Style.Unit.PX);
+        final VerticalPanel navigationPanel = new VerticalPanel();
+        final Button button1 = new Button("Opret");
+        button1.getElement().setId(GUIID_NAVIGATION_MENU_BUTTON_CREATION);
+        button1.addClickHandler(new ButtonHandler(0));
+        final Button button2 = new Button("Se");
+        button2.getElement().setId(GUIID_NAVIGATION_MENU_BUTTON_VIEW_AND_DELETION);
+        button2.addClickHandler(new ButtonHandler(1));
+
+        final Label headerLabel = new Label("DataIO");
+        masterPanel.addNorth(headerLabel, 20);
+
+        navigationPanel.add(button1);
+        navigationPanel.add(button2);
+        masterPanel.addWest(navigationPanel, 220);
+
+        ViewPage viewPage = new ViewPage(dataContentObject);
         
-        button.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
-                label.setVisible(!label.isVisible());
-            }
-        });
-        
-        RootPanel.get().add(button);
-        RootPanel.get().add(label);
+        contentPanel.add(new CreationPage(dataContentObject, viewPage));
+        contentPanel.add(viewPage);
+        contentPanel.showWidget(0);
+
+        masterPanel.add(contentPanel);
+        RootLayoutPanel.get().add(masterPanel);
+    }
+
+    private class ButtonHandler implements ClickHandler {
+
+        private int subPanelIndex;
+
+        public ButtonHandler(int subPanelIndex) {
+            this.subPanelIndex = subPanelIndex;
+        }
+
+        @Override
+        public void onClick(ClickEvent event) {
+            contentPanel.showWidget(subPanelIndex);
+        }
     }
 }

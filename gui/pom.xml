@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>dataio</artifactId>
+        <groupId>dk.dbc</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>dataio-gui</artifactId>
+    <name>dataio-gui</name>
+    <packaging>war</packaging>
+
+    <properties>
+        <gwt.version>2.5.0</gwt.version>
+        <runTarget>welcomeGWT.html</runTarget>
+	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.gwt</groupId>
@@ -14,18 +31,20 @@
             <version>${gwt.version}</version>
             <scope>provided</scope>
         </dependency>
-    </dependencies>
-    <parent>
-        <artifactId>dataio</artifactId>
-        <groupId>dk.dbc</groupId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
-    <artifactId>dataio-gui</artifactId>
-    <properties>
-        <gwt.version>2.5.0</gwt.version>
-        <runTarget>welcomeGWT.html</runTarget>
-    </properties>
-    <build>
+
+         <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>2.31.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-chrome-driver</artifactId>
+            <version>2.31.0</version>
+        </dependency>
+   </dependencies>
+
+   <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
@@ -42,7 +61,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>gwt-maven-plugin</artifactId>
-                <version>2.5.0</version>
+                <version>${gwt.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -73,8 +92,96 @@
                     </tasks>
                 </configuration>
             </plugin>
+
+
+            <plugin>
+	      <!-- Helper plugin for reserving an unused random port for the jetty 
+		   server for the selenium tests -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>reserve-network-port</id>
+                        <goals>
+                            <goal>reserve-network-port</goal>
+                        </goals>
+                        <phase>pre-integration-test</phase>
+                        <configuration>
+                            <portNames>
+                                <portName>jetty.port</portName>
+                                <portName>jetty.port.shutdown</portName>
+                            </portNames>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+	      <!-- jetty server plugin used to start a jetty-server during selelium/integration test -->
+                <groupId>org.mortbay.jetty</groupId>
+                <artifactId>maven-jetty-plugin</artifactId>
+                <version>6.1.26</version>
+                <executions>
+                    <execution>
+                        <id>start-jetty</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>deploy-war</goal>
+                        </goals>
+                        <configuration>
+                            <connectors>
+                                <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+                                    <port>${jetty.port}</port>
+                                </connector>
+                            </connectors>
+                             <scanIntervalSeconds>5</scanIntervalSeconds>
+                            <daemon>true</daemon>
+                            <webApp>${project.build.directory}/${project.build.finalName}</webApp>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-jetty</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                        <configuration>
+                            <stopKey>foo</stopKey>
+                            <stopPort>${jetty.port.shutdown}</stopPort>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <webAppConfig>
+                        <contextPath>/${project.name}</contextPath>
+                    </webAppConfig>
+                </configuration>
+            </plugin>
+
+            <plugin>
+	      <!-- Integrationtest plugin - just like the surefire plugin, 
+		   but this plugin handles other test files (typically 
+		   testfiles containing IT) -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.13</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <id>integration-test</id>
+                    </execution>
+                </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <jetty.port>${jetty.port}</jetty.port>
+                    </systemPropertyVariables>                   
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
-    <name>dataio-gui</name>
-    <packaging>war</packaging>
 </project>

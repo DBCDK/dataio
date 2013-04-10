@@ -51,7 +51,7 @@ public class MainEntryPoint implements EntryPoint {
 
         ViewPage viewPage = new ViewPage(dataContentObject);
         
-        contentPanel.add(new CreationPage(dataContentObject, viewPage));
+        contentPanel.add(new FlowCreationWidget(dataContentObject, viewPage));
         contentPanel.add(viewPage);
 
         masterPanel.add(contentPanel);

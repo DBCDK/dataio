@@ -16,12 +16,16 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  *
  * @author damkjaer
  */
-class CreationPage extends VerticalPanel {
+class FlowCreationWidget extends VerticalPanel {
    
-    final static String GUIID_WIDGET_FLOW_CREATION = "flowcreationwidget";
-    
+
     // Constants
-    final static String GUIID_CREATION_TEXT_AREA = "creationtextarea";
+    final static String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
+    final static String GUIID_FLOW_CREATION_NAME_TEXT_BOX = "flowcreationnametextbox";
+    final static String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";
+    final static String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
+    final static String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
+    final static String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Tillykke du har gemt";
     private static final int CREATION_TEXT_MAX_LENGTH = 160;
 
     // Local variables
@@ -31,8 +35,8 @@ class CreationPage extends VerticalPanel {
     private final Button saveButton = new Button("Gem");
 
    
-    public CreationPage(final DataContentObject dataContentObject, final ViewPage viewPage) {
-        getElement().setId(GUIID_WIDGET_FLOW_CREATION);
+    public FlowCreationWidget(final DataContentObject dataContentObject, final ViewPage viewPage) {
+        getElement().setId(GUIID_FLOW_CREATION_WIDGET);
         setUpFlowDescriptionPanel();
         add(flowDescriptionPanel);
         saveButton.addClickHandler(new ClickHandler() {
@@ -55,6 +59,6 @@ class CreationPage extends VerticalPanel {
         flowDescriptionTextArea.setCharacterWidth(40);
         flowDescriptionTextArea.setVisibleLines(4);
         flowDescriptionTextArea.getElement().setAttribute("Maxlength", String.valueOf(CREATION_TEXT_MAX_LENGTH));
-        flowDescriptionTextArea.getElement().setId(GUIID_CREATION_TEXT_AREA);
+        flowDescriptionTextArea.getElement().setId(GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
     }
 }

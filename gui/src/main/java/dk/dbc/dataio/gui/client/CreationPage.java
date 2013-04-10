@@ -18,6 +18,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 class CreationPage extends VerticalPanel {
    
+    final static String GUIID_WIDGET_FLOW_CREATION = "flowcreationwidget";
+    
     // Constants
     final static String GUIID_CREATION_TEXT_AREA = "creationtextarea";
     private static final int CREATION_TEXT_MAX_LENGTH = 160;
@@ -30,6 +32,7 @@ class CreationPage extends VerticalPanel {
 
    
     public CreationPage(final DataContentObject dataContentObject, final ViewPage viewPage) {
+        getElement().setId(GUIID_WIDGET_FLOW_CREATION);
         setUpFlowDescriptionPanel();
         add(flowDescriptionPanel);
         saveButton.addClickHandler(new ClickHandler() {

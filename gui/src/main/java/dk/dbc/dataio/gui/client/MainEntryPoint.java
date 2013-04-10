@@ -22,7 +22,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class MainEntryPoint implements EntryPoint {
 
-    final static String GUIID_NAVIGATION_MENU_BUTTON_CREATION = "navigationbuttoncreation";
+    final static String GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION = "navigationbuttoncreation";
     final static String GUIID_NAVIGATION_MENU_BUTTON_VIEW_AND_DELETION = "navigationbuttonviewanddelete";
     private DeckLayoutPanel contentPanel = new DeckLayoutPanel();
 
@@ -36,7 +36,7 @@ public class MainEntryPoint implements EntryPoint {
         final DockLayoutPanel masterPanel = new DockLayoutPanel(Style.Unit.PX);
         final VerticalPanel navigationPanel = new VerticalPanel();
         final Button button1 = new Button("Opret");
-        button1.getElement().setId(GUIID_NAVIGATION_MENU_BUTTON_CREATION);
+        button1.getElement().setId(GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION);
         button1.addClickHandler(new ButtonHandler(0));
         final Button button2 = new Button("Se");
         button2.getElement().setId(GUIID_NAVIGATION_MENU_BUTTON_VIEW_AND_DELETION);
@@ -53,7 +53,6 @@ public class MainEntryPoint implements EntryPoint {
         
         contentPanel.add(new CreationPage(dataContentObject, viewPage));
         contentPanel.add(viewPage);
-        contentPanel.showWidget(0);
 
         masterPanel.add(contentPanel);
         RootLayoutPanel.get().add(masterPanel);

@@ -13,8 +13,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import static org.junit.Assert.*;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
-
+import org.openqa.selenium.ie.InternetExplorerDriver;
 
 public class SeleniumTestIT {
 
@@ -31,6 +32,8 @@ public class SeleniumTestIT {
     @Before
 	public void setUp() {
         driver = new FirefoxDriver();
+        // driver = new ChromeDriver();
+        // driver = new InternetExplorerDriver();
         driver.get(APP_URL);
         driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
     }
@@ -42,7 +45,7 @@ public class SeleniumTestIT {
 
     @Test
 	public void testFlowCreationNavigationButtonIsVisible() throws InterruptedException, Exception {
-        WebElement element = driver.findElement(By.id(MainEntryPoint.GUIID_NAVIGATION_MENU_BUTTON_CREATION));
+        WebElement element = driver.findElement(By.id(MainEntryPoint.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
         assertTrue(element.isDisplayed());
     }
 

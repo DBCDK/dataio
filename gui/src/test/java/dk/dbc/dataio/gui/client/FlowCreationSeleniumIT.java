@@ -9,10 +9,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-
 import java.util.concurrent.TimeUnit;
-
 import static org.junit.Assert.assertEquals;
+import org.openqa.selenium.Alert;
 
 public class FlowCreationSeleniumIT {
 
@@ -139,6 +138,34 @@ public class FlowCreationSeleniumIT {
         assertEquals("", saveResultLabel.getAttribute("value"));
     }
 
+    @Ignore
+    @Test
+    public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() {
+        navigateToFlowCreationContext();
+        WebElement nameInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
+        nameInputField.sendKeys("a");
+        WebElement saveButton = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_BUTTON));
+        saveButton.click();
+        Alert alert = driver.switchTo().alert();
+        String s = alert.getText();
+        alert.accept();
+        assertEquals(FlowCreationWidget.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
+    }
+
+    @Ignore
+    @Test
+    public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() {
+        navigateToFlowCreationContext();
+        WebElement descriptionInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
+        descriptionInputField.sendKeys("b");
+        WebElement saveButton = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_BUTTON));
+        saveButton.click();
+        Alert alert = driver.switchTo().alert();
+        String s = alert.getText();
+        alert.accept();
+        assertEquals(FlowCreationWidget.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
+    }
+
     private void navigateToFlowCreationContext() {
         WebElement element = driver.findElement(By.id(MainEntryPoint.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
         element.click();
@@ -152,5 +179,4 @@ public class FlowCreationSeleniumIT {
         WebElement saveButton = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_BUTTON));
         saveButton.click();
     }
-
 }

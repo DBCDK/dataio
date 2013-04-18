@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 class FlowCreationWidget extends VerticalPanel {
@@ -18,8 +19,11 @@ class FlowCreationWidget extends VerticalPanel {
     private static final int FLOW_CREATION_DESCRIPTION_MAX_LENGTH = 160;
     static final String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     // Local variables
+    private final HorizontalPanel flowNamePanel = new HorizontalPanel();
+    private final Label flowNameLabel = new Label("Flownavn");
+    private final TextBox flowNameTextBox = new TextBox();
     private final HorizontalPanel flowDescriptionPanel = new HorizontalPanel();
-    private final Label flowDescriptionLabel = new Label("Skriv noget tekst. Max " + FLOW_CREATION_DESCRIPTION_MAX_LENGTH + " tegn");
+    private final Label flowDescriptionLabel = new Label("Beskrivelse");
     private final TextArea flowDescriptionTextArea = new TextArea();
 
     public FlowCreationWidget() {
@@ -27,9 +31,17 @@ class FlowCreationWidget extends VerticalPanel {
 
         // Example of how a flow description text area could be set up
         setUpFlowDescriptionPanel();
+        setUpFlowNamePanel();
         // This class extends VerticalPanel and can therefore use 
         // methods in a VerticalPanel directly:
+        add(flowNamePanel);
         add(flowDescriptionPanel);
+    }
+
+    private void setUpFlowNamePanel() {
+        flowNamePanel.add(flowNameLabel);
+        flowNameTextBox.getElement().setId(GUIID_FLOW_CREATION_NAME_TEXT_BOX);
+        flowNamePanel.add(flowNameTextBox);
     }
 
     private void setUpFlowDescriptionPanel() {

@@ -49,7 +49,6 @@ public class FlowCreationSeleniumIT {
         assertEquals(true, widget.isDisplayed());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationNameInputFieldIsVisible() {
         navigateToFlowCreationContext();
@@ -57,7 +56,6 @@ public class FlowCreationSeleniumIT {
         assertEquals(true, element.isDisplayed());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationNameInputField_InsertAndRead() {
         final String fieldValue = "test of unicode content æøåÆØÅ";

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
@@ -25,17 +26,22 @@ class FlowCreationWidget extends VerticalPanel {
     private final HorizontalPanel flowDescriptionPanel = new HorizontalPanel();
     private final Label flowDescriptionLabel = new Label("Beskrivelse");
     private final TextArea flowDescriptionTextArea = new TextArea();
+    private final HorizontalPanel flowSavePanel = new HorizontalPanel();
+    private final Button flowSaveButton = new Button("Gem");
+    private final Label flowSaveResultLabel = new Label("");
 
     public FlowCreationWidget() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
 
         // Example of how a flow description text area could be set up
-        setUpFlowDescriptionPanel();
         setUpFlowNamePanel();
+        setUpFlowDescriptionPanel();
+        setUpFlowSavePanel();
         // This class extends VerticalPanel and can therefore use 
         // methods in a VerticalPanel directly:
         add(flowNamePanel);
         add(flowDescriptionPanel);
+        add(flowSavePanel);
     }
 
     private void setUpFlowNamePanel() {
@@ -56,5 +62,12 @@ class FlowCreationWidget extends VerticalPanel {
         // MaxLength is an attribute on a textarea, and can be set with setAttribute():
         flowDescriptionTextArea.getElement().setAttribute("Maxlength", String.valueOf(FLOW_CREATION_DESCRIPTION_MAX_LENGTH));
         flowDescriptionTextArea.getElement().setId(GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
+    }
+
+    private void setUpFlowSavePanel() {
+        flowSaveResultLabel.getElement().setId(GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
+        flowSavePanel.add(flowSaveResultLabel);
+        flowSaveButton.getElement().setId(GUIID_FLOW_CREATION_SAVE_BUTTON);
+        flowSavePanel.add(flowSaveButton);
     }
 }

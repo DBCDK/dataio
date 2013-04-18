@@ -84,7 +84,6 @@ public class FlowCreationSeleniumIT {
         assertEquals(sameTextWithExactly160Chars, element.getAttribute("value"));
     }
 
-    @Ignore
     @Test
     public void testFlowCreationSaveButtonIsVisible() {
         navigateToFlowCreationContext();
@@ -92,13 +91,12 @@ public class FlowCreationSeleniumIT {
         assertEquals(true, element.isDisplayed());
     }
 
-    @Ignore
     @Test
-    public void testFlowCreationSaveResultLabelIsVisibleAndEmptyAsDefault() throws Exception {
+    public void testFlowCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() throws Exception {
         navigateToFlowCreationContext();
         WebElement element = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
-        assertEquals(true, element.isDisplayed());
-        assertEquals("", element.getAttribute("value"));
+        assertEquals(false, element.isDisplayed());
+        assertEquals("", element.getText());
     }
 
     @Ignore

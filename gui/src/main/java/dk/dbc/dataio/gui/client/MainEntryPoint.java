@@ -20,6 +20,9 @@ public class MainEntryPoint implements EntryPoint {
     final static String CONTEXT_HEADER = "DBC DATAINDSYSTEM";
     final static String GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION = "navigationbuttoncreation";
     final static String GUIID_NAVIGATION_MENU_BUTTON_VIEW_AND_DELETION = "navigationbuttonviewanddelete";
+
+    final Label headerLabel = new Label(CONTEXT_HEADER);
+
     private DeckLayoutPanel contentPanel = new DeckLayoutPanel();
 
     /**
@@ -34,7 +37,6 @@ public class MainEntryPoint implements EntryPoint {
         button1.getElement().setId(GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION);
         button1.addClickHandler(new ButtonHandler(0));
 
-        final Label headerLabel = new Label(CONTEXT_HEADER);
         headerLabel.setStyleName("header-label");
         masterPanel.addNorth(headerLabel, 20);
 
@@ -58,6 +60,7 @@ public class MainEntryPoint implements EntryPoint {
         @Override
         public void onClick(ClickEvent event) {
             contentPanel.showWidget(subPanelIndex);
+            headerLabel.setText(CONTEXT_HEADER + " > " + FlowCreationWidget.CONTEXT_HEADER);
         }
     }
 }

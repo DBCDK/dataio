@@ -107,7 +107,6 @@ public class FlowCreationSeleniumIT {
         assertEquals(FlowCreationWidget.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();
@@ -115,10 +114,9 @@ public class FlowCreationSeleniumIT {
         WebElement saveResultLabel = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
         WebElement nameInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
         nameInputField.sendKeys("a");
-        assertEquals("", saveResultLabel.getAttribute("value"));
+        assertEquals("", saveResultLabel.getText());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();
@@ -126,10 +124,9 @@ public class FlowCreationSeleniumIT {
         WebElement saveResultLabel = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
         WebElement descriptionInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
         descriptionInputField.sendKeys("b");
-        assertEquals("", saveResultLabel.getAttribute("value"));
+        assertEquals("", saveResultLabel.getText());
     }
 
-    @Ignore
     @Test
     public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() {
         navigateToFlowCreationContext();
@@ -143,7 +140,6 @@ public class FlowCreationSeleniumIT {
         assertEquals(FlowCreationWidget.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }
 
-    @Ignore
     @Test
     public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() {
         navigateToFlowCreationContext();

@@ -2,6 +2,9 @@ package dk.dbc.dataio.gui.client;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.KeyDownEvent;
+import com.google.gwt.event.dom.client.KeyDownHandler;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -49,6 +52,7 @@ class FlowCreationWidget extends VerticalPanel {
     private void setUpFlowNamePanel() {
         flowNamePanel.add(flowNameLabel);
         flowNameTextBox.getElement().setId(GUIID_FLOW_CREATION_NAME_TEXT_BOX);
+        flowNameTextBox.addKeyDownHandler(new InputFieldKeyDownHandler());
         flowNamePanel.add(flowNameTextBox);
     }
 
@@ -64,6 +68,7 @@ class FlowCreationWidget extends VerticalPanel {
         // MaxLength is an attribute on a textarea, and can be set with setAttribute():
         flowDescriptionTextArea.getElement().setAttribute("Maxlength", String.valueOf(FLOW_CREATION_DESCRIPTION_MAX_LENGTH));
         flowDescriptionTextArea.getElement().setId(GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
+        flowDescriptionTextArea.addKeyDownHandler(new InputFieldKeyDownHandler());
     }
 
     private void setUpFlowSavePanel() {
@@ -82,8 +87,17 @@ class FlowCreationWidget extends VerticalPanel {
             String descriptionValue = flowDescriptionTextArea.getValue();
             if(!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
                 flowSaveResultLabel.setText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+            } else {
+                Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             }
 
+        }
+    }
+
+    private class InputFieldKeyDownHandler implements KeyDownHandler {
+        @Override
+        public void onKeyDown(KeyDownEvent keyDownEvent) {
+            flowSaveResultLabel.setText("");
         }
     }
 

@@ -21,7 +21,7 @@ class FlowCreationWidget extends VerticalPanel {
     final static String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";
     final static String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
     final static String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
-    final static String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Tillykke du har gemt";
+    final static String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     private static final int FLOW_CREATION_DESCRIPTION_MAX_LENGTH = 160;
     static final String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     // Local variables

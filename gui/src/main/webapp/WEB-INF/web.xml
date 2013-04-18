@@ -6,6 +6,6 @@
         </session-timeout>
     </session-config>
     <welcome-file-list>
-        <welcome-file>welcomeGWT.html</welcome-file>
+        <welcome-file>gui.html</welcome-file>
     </welcome-file-list>
 </web-app>

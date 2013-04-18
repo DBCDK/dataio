@@ -35,6 +35,7 @@ public class MainEntryPoint implements EntryPoint {
         button1.addClickHandler(new ButtonHandler(0));
 
         final Label headerLabel = new Label(CONTEXT_HEADER);
+        headerLabel.setStyleName("header-label");
         masterPanel.addNorth(headerLabel, 20);
 
         navigationPanel.add(button1);

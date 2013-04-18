@@ -99,13 +99,12 @@ public class FlowCreationSeleniumIT {
         assertEquals("", element.getText());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
         WebElement saveResultLabel = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
-        assertEquals(FlowCreationWidget.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getAttribute("value"));
+        assertEquals(FlowCreationWidget.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
 
     @Ignore

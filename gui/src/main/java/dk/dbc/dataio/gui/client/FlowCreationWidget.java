@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -68,6 +70,22 @@ class FlowCreationWidget extends VerticalPanel {
         flowSaveResultLabel.getElement().setId(GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
         flowSavePanel.add(flowSaveResultLabel);
         flowSaveButton.getElement().setId(GUIID_FLOW_CREATION_SAVE_BUTTON);
+        flowSaveButton.addClickHandler(new SaveButtonHandler());
         flowSavePanel.add(flowSaveButton);
     }
+
+    private class SaveButtonHandler implements ClickHandler {
+
+        @Override
+        public void onClick(ClickEvent event) {
+            String nameValue = flowNameTextBox.getValue();
+            String descriptionValue = flowDescriptionTextArea.getValue();
+            if(!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
+                flowSaveResultLabel.setText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+            }
+
+        }
+    }
+
+
 }

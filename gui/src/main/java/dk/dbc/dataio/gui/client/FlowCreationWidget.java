@@ -8,6 +8,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 class FlowCreationWidget extends VerticalPanel {
 
     // Constants (These are not private since we use them in the selenium tests)
+    final static String CONTEXT_HEADER = "Flow - opsætning";
     final static String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
     final static String GUIID_FLOW_CREATION_NAME_TEXT_BOX = "flowcreationnametextbox";
     final static String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";

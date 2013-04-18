@@ -36,14 +36,12 @@ public class FlowCreationSeleniumIT {
         driver.quit();
     }
 
-    @Ignore
     @Test
     public void testFlowCreationNavigationItemIsVisible() {
         WebElement element = driver.findElement(By.id(MainEntryPoint.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
         assertEquals(true, element.isDisplayed());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationNavigationItemIsClickable() throws Exception {
         navigateToFlowCreationContext();
@@ -70,7 +68,6 @@ public class FlowCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    @Ignore
     @Test
     public void testFlowCreationDescriptionInputFieldIsVisible() {
         navigateToFlowCreationContext();
@@ -78,7 +75,6 @@ public class FlowCreationSeleniumIT {
         assertEquals(true, element.isDisplayed());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationDescriptionInputField_InsertAndRead() {
         final String textWithMoreThan160Chars = "Dette er et stykke tekst som indeholder æøå og ÆØÅ. Formålet med teksten er hovedsagligt at være mere end 160 tegn lang, på en måde så der ikke er gentagelser i indholdet af teksten";

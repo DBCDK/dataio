@@ -36,7 +36,7 @@ public class FlowsBean {
     }
 
     /**
-     * Creates new flow with data POST'ed as JSON and stores it in the
+     * Creates new flow with data POST'ed as JSON and persists it in the
      * underlying data store
      *
      * @param flowData flow data as JSON string

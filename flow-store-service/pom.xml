@@ -13,6 +13,54 @@
 
   <artifactId>dataio-flow-store-service</artifactId>
   <name>dataio-flow-store-service</name>
+  <packaging>war</packaging>
+
+  <properties>
+    <javaee.api.version>6.0</javaee.api.version>
+  </properties>
+
+  <build>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+      </plugin>
+
+      <!-- Run application in embedded glassfish with:
+              mvn clean package embedded-glassfish:run
+      -->
+      <plugin>
+        <groupId>org.glassfish</groupId>
+        <artifactId>maven-embedded-glassfish-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <name>flow-store</name>
+          <app>${project.build.directory}/${build.finalName}.war</app>
+          <port>8080</port>
+          <autoDelete>true</autoDelete>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>${javaee.api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
 
 
 </project>

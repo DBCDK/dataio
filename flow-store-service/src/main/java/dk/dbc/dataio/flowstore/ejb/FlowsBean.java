@@ -1,9 +1,12 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.flowstore.entity.Flow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -21,6 +24,9 @@ import java.net.URI;
 @Path("flows")
 public class FlowsBean {
     private static final Logger log = LoggerFactory.getLogger(FlowsBean.class);
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     /**
      * GET method simply returning a plain test. Direct browser to
@@ -49,10 +55,11 @@ public class FlowsBean {
     public Response createFlow(String flowData) {
         log.trace("Called with: '{}'", flowData);
 
-        // Todo: insert content into database and retrieve generated id
-        long id = 42;
+        Flow flow = new Flow();
+        flow.setData(flowData);
+        entityManager.persist(flow);
 
-        return Response.created(URI.create("/" + id)).build();
+        return Response.created(URI.create("/" + flow.getId())).build();
     }
 
 }

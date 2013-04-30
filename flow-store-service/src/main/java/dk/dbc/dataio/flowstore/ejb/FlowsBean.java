@@ -58,6 +58,7 @@ public class FlowsBean {
         Flow flow = new Flow();
         flow.setData(flowData);
         entityManager.persist(flow);
+        entityManager.flush();
 
         return Response.created(URI.create("/" + flow.getId())).build();
     }

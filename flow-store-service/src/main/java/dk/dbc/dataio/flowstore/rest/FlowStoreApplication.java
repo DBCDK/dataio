@@ -22,6 +22,7 @@ public class FlowStoreApplication extends Application {
         final Set<Class<?>> classes = new HashSet<>();
         log.debug("Registering {} resource", FlowsBean.class.getName());
         classes.add(FlowsBean.class);
+        classes.add(PersistenceMapper.class);
         return classes;
     }
 }

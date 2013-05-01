@@ -38,12 +38,19 @@
       <plugin>
         <groupId>org.glassfish</groupId>
         <artifactId>maven-embedded-glassfish-plugin</artifactId>
-        <version>3.1</version>
+        <version>3.1.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.2-1002.jdbc4</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <name>flow-store</name>
           <app>${project.build.directory}/${build.finalName}.war</app>
-          <port>8080</port>
           <autoDelete>true</autoDelete>
+          <configFile>${basedir}/domain.xml</configFile>
         </configuration>
       </plugin>
 

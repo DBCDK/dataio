@@ -5,12 +5,16 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import dk.dbc.dataio.gui.client.model.Flow;
+import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
 
 class FlowCreationWidget extends VerticalPanel {
 
@@ -34,6 +38,8 @@ class FlowCreationWidget extends VerticalPanel {
     private final HorizontalPanel flowSavePanel = new HorizontalPanel();
     private final Button flowSaveButton = new Button("Gem");
     private final Label flowSaveResultLabel = new Label("");
+
+    private FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
 
     public FlowCreationWidget() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
@@ -86,7 +92,21 @@ class FlowCreationWidget extends VerticalPanel {
             String nameValue = flowNameTextBox.getValue();
             String descriptionValue = flowDescriptionTextArea.getValue();
             if(!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
-                flowSaveResultLabel.setText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+                Flow flow = new Flow();
+                flow.setFlowname(nameValue);
+                flow.setDescription(descriptionValue);
+                flowStoreProxy.createFlow(flow, new AsyncCallback<Void>() {
+                    @Override
+                    public void onFailure(Throwable e) {
+                        String errorClassName = e.getClass().getName();
+                        Window.alert("Error: " + errorClassName + " - " + e.getMessage());
+                    }
+
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        flowSaveResultLabel.setText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+                    }
+                });
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             }

@@ -99,6 +99,7 @@ public class FlowCreationSeleniumIT {
         assertEquals("", element.getText());
     }
 
+    @Ignore
     @Test
     public void testFlowCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
         navigateToFlowCreationContext();
@@ -117,6 +118,7 @@ public class FlowCreationSeleniumIT {
         assertEquals("", saveResultLabel.getText());
     }
 
+    @Ignore
     @Test
     public void testFlowCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();

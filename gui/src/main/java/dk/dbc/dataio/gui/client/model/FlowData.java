@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.model;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-public class Flow implements IsSerializable {
+public class FlowData implements IsSerializable {
     public String flowname;
     public String description;
 

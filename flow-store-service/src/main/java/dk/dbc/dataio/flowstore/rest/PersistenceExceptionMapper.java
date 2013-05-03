@@ -13,8 +13,6 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
 
     @Override
     public Response toResponse(PersistenceException e) {
-        //String message = JSONObject.escape(e.getMessage());
-        //return Response.status(Response.Status.BAD_REQUEST).entity(String.format("{\"message\": \"%s\"}", message)).type(MediaType.APPLICATION_JSON).build();
         return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
     }
 

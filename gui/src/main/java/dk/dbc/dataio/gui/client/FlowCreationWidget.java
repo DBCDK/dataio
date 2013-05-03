@@ -12,7 +12,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import dk.dbc.dataio.gui.client.model.Flow;
+import dk.dbc.dataio.gui.client.model.FlowData;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
 
@@ -92,10 +92,10 @@ class FlowCreationWidget extends VerticalPanel {
             String nameValue = flowNameTextBox.getValue();
             String descriptionValue = flowDescriptionTextArea.getValue();
             if(!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
-                Flow flow = new Flow();
-                flow.setFlowname(nameValue);
-                flow.setDescription(descriptionValue);
-                flowStoreProxy.createFlow(flow, new AsyncCallback<Void>() {
+                FlowData flowData = new FlowData();
+                flowData.setFlowname(nameValue);
+                flowData.setDescription(descriptionValue);
+                flowStoreProxy.createFlow(flowData, new AsyncCallback<Void>() {
                     @Override
                     public void onFailure(Throwable e) {
                         String errorClassName = e.getClass().getName();

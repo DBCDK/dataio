@@ -6,7 +6,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
-import dk.dbc.dataio.gui.client.model.Flow;
+import dk.dbc.dataio.gui.client.model.FlowData;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
@@ -27,8 +27,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createFlow(Flow flow) throws NullPointerException, IllegalStateException {
-        ClientResponse response = webResource.path("flows").type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flow);
+    public void createFlow(FlowData flowData) throws NullPointerException, IllegalStateException {
+        ClientResponse response = webResource.path("flows").type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowData);
         if(response.getClientResponseStatus() == ClientResponse.Status.BAD_REQUEST) {
             throw new IllegalStateException(response.getEntity(String.class));
         }

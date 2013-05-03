@@ -25,4 +25,12 @@ public class FlowStoreApplication extends Application {
         classes.add(PersistenceExceptionMapper.class);
         return classes;
     }
+
+    @Override
+    public Set<Object> getSingletons() {
+        HashSet<Object> singletons = new HashSet<>();
+        // use Jackson to do JSON serialization with JAX-RS
+        singletons.add(new org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider());
+        return singletons;
+    }
 }

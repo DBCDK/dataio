@@ -51,11 +51,14 @@
       <property name="DatabaseName" value="sun-appserv-samples"></property>
       <property name="connectionAttributes" value=";create=true"></property>
     </jdbc-connection-pool>
-    <jdbc-connection-pool pool-resize-quantity="1" datasource-classname="org.h2.jdbcx.JdbcDataSource" max-pool-size="5" res-type="javax.sql.DataSource" steady-pool-size="0" statement-timeout-in-seconds="60" name="flowStoreDbPool">
-      <property name="driverClass" value="org.h2.Driver"/>
-      <property name="URL" value="jdbc:h2:mem:flow_store"/>
-      <property name="User" value="root"/>
-      <property name="Password" value="root"/>
+    <jdbc-connection-pool pool-resize-quantity="1" datasource-classname="org.postgresql.ds.PGSimpleDataSource" max-pool-size="5" res-type="javax.sql.DataSource" steady-pool-size="0" statement-timeout-in-seconds="60" name="flowStoreDbPool">
+      <property name="URL" value="jdbc:postgresql://localhost:5432/flow_store"></property>
+      <property name="driverClass" value="org.postgresql.Driver"></property>
+      <property name="Password" value="test"></property>
+      <property name="portNumber" value="5432"></property>
+      <property name="databaseName" value="flow_store"></property>
+      <property name="User" value="test"></property>
+      <property name="serverName" value="localhost"></property>
     </jdbc-connection-pool>
     <jdbc-resource pool-name="flowStoreDbPool" jndi-name="jdbc/flowStoreDb"></jdbc-resource>
   </resources>

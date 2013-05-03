@@ -1,10 +1,13 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonRawValue;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 /**
@@ -16,21 +19,34 @@ import javax.persistence.Table;
 @Table(name="flows")
 public class Flow {
     @Id
-    @SequenceGenerator(name="FLOWS_ID_SEQ", sequenceName="flows_id_seq", allocationSize=1)
-    @GeneratedValue(strategy=GenerationType.IDENTITY, generator="FLOWS_ID_SEQ")
+    @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
 
+    @Column(columnDefinition="TEXT NOT NULL")
     private String data;
+
+    @Column(name="flowname_idx", columnDefinition="TEXT NOT NULL UNIQUE")
+    private String flownameIndexValue;
 
     public Long getId() {
         return id;
     }
 
+    @JsonRawValue
     public String getData() {
         return data;
     }
 
     public void setData(String data) {
         this.data = data;
+    }
+
+    @JsonIgnore
+    public String getFlownameIndexValue() {
+        return flownameIndexValue;
+    }
+
+    public void setFlownameIndexValue(String flownameIndexValue) {
+        this.flownameIndexValue = flownameIndexValue;
     }
 }

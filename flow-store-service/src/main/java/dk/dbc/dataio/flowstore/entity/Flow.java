@@ -1,7 +1,8 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonRawValue;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -38,15 +39,17 @@ public class Flow {
     }
 
     public void setData(String data) {
+        extractIndexValuesFromData(data);
         this.data = data;
     }
 
-    @JsonIgnore
-    public String getFlownameIndexValue() {
+    String getFlownameIndexValue() {
         return flownameIndexValue;
     }
 
-    public void setFlownameIndexValue(String flownameIndexValue) {
-        this.flownameIndexValue = flownameIndexValue;
+    private void extractIndexValuesFromData(String flowData) {
+        JSONObject obj = (JSONObject) JSONValue.parse(flowData);
+        flownameIndexValue = obj.get("flowname").toString();
     }
+
 }

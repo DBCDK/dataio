@@ -1,8 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.flowstore.entity.Flow;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,16 +67,10 @@ public class FlowsBean {
 
         Flow flow = new Flow();
         flow.setData(flowData);
-        flow.setFlownameIndexValue(extractFlownameIndexValue(flowData));
+        //flow.setFlownameIndexValue(extractFlownameIndexValue(flowData));
         entityManager.persist(flow);
         entityManager.flush();
 
         return Response.created(URI.create("/" + flow.getId())).build();
     }
-
-    private String extractFlownameIndexValue(String flowData) {
-        JSONObject obj = (JSONObject) JSONValue.parse(flowData);
-        return obj.get("flowname").toString();
-    }
-
 }

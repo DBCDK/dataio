@@ -20,12 +20,13 @@
     </properties>
 
     <dependencies>
-        <!--dependency>
+        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-flow-store-service</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>war</type>
-        </dependency-->
+	    <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.google.gwt</groupId>
             <artifactId>gwt-servlet</artifactId>
@@ -142,12 +143,23 @@
                 <groupId>org.glassfish.embedded</groupId>
                 <artifactId>maven-embedded-glassfish-plugin</artifactId>
                 <version>3.1.2.2</version>
+		<dependencies>
+		  <dependency>
+		    <groupId>com.h2database</groupId>
+		    <artifactId>h2</artifactId>
+		    <version>1.3.171</version>
+		  </dependency>
+		</dependencies>
                 <configuration>
                     <goalPrefix>embedded-glassfish</goalPrefix>
                     <app>${project.build.directory}/${project.build.finalName}</app>
                     <autoDelete>true</autoDelete>
                     <port>${glassfish.port}</port>
                     <contextRoot>${project.name}</contextRoot>
+                    <systemProperties>
+                        <property>flowStoreURL=http://localhost:${glassfish.port}/flow-store</property>
+                    </systemProperties>
+		    <!--configFile>${basedir}/domain_with_h2.xml</configFile-->
                 </configuration>
 
                 <executions>
@@ -164,6 +176,18 @@
                         <goals>
                             <goal>deploy</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>flowstore-deploy</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+			<configuration>
+                            <app>../flow-store-service/target/dataio-flow-store-service-1.0-SNAPSHOT.war</app>
+                            <contextRoot>flow-store</contextRoot>
+                            <name>flowstore</name>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>glassfish-undeploy</id>

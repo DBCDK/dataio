@@ -24,7 +24,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
         Client httpClient = Client.create(clientConfig);
 	// todo: Change the below to be configurable
-        webResource = httpClient.resource("http://localhost:8080/flow-store");
+	String flowStoreUrl = System.getProperty("flowStoreURL");
+	if(flowStoreUrl == null || flowStoreUrl.isEmpty()) {
+	    flowStoreUrl = "http://localhost:8080/flow-store";
+	}
+	webResource = httpClient.resource(flowStoreUrl);
     }
 
     @Override

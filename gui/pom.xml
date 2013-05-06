@@ -20,13 +20,13 @@
     </properties>
 
     <dependencies>
-        <dependency>
+        <!--dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dataio-flow-store-service</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>war</type>
-	    <!--scope>test</scope-->
-        </dependency>
+	    <scope>test</scope>
+        </dependency-->
         <dependency>
             <groupId>com.google.gwt</groupId>
             <artifactId>gwt-servlet</artifactId>
@@ -177,7 +177,7 @@
                             <goal>deploy</goal>
                         </goals>
                     </execution>
-                    <execution>
+                    <!--execution>
                         <id>flowstore-deploy</id>
                         <phase>pre-integration-test</phase>
                         <goals>
@@ -188,7 +188,7 @@
                             <contextRoot>flow-store</contextRoot>
                             <name>flowstore</name>
                         </configuration>
-                    </execution>
+                    </execution-->
                     <execution>
                         <id>glassfish-undeploy</id>
                         <phase>post-integration-test</phase>

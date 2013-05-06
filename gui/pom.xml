@@ -15,10 +15,16 @@
     <properties>
         <gwt.version>2.5.0</gwt.version>
         <runTarget>welcomeGWT.html</runTarget>
-	<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>
+        <!--dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-flow-store-service</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>war</type>
+        </dependency-->
         <dependency>
             <groupId>com.google.gwt</groupId>
             <artifactId>gwt-servlet</artifactId>
@@ -31,20 +37,20 @@
             <version>${gwt.version}</version>
             <scope>provided</scope>
         </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-client</artifactId>
-        <version>1.17.1</version>
-      </dependency>
         <dependency>
-	        <groupId>com.sun.jersey</groupId>
-	        <artifactId>jersey-bundle</artifactId>
-	        <version>1.17.1</version>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.17.1</version>
         </dependency>
         <dependency>
-	        <groupId>org.codehaus.jackson</groupId>
-	        <artifactId>jackson-jaxrs</artifactId>
-	        <version>1.9.12</version>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-bundle</artifactId>
+            <version>1.17.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-jaxrs</artifactId>
+            <version>1.9.12</version>
         </dependency>
 
         <dependency>
@@ -57,21 +63,21 @@
             <artifactId>selenium-chrome-driver</artifactId>
             <version>2.31.0</version>
         </dependency>
-   </dependencies>
+    </dependencies>
 
-   <build>
+    <build>
         <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.0</version>
-            <configuration>
-              <source>1.6</source>
-              <target>1.6</target>
-              <showDeprecation>true</showDeprecation>
-              <showWarnings>true</showWarnings>
-            </configuration>
-          </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -110,8 +116,8 @@
 
 
             <plugin>
-	      <!-- Helper plugin for reserving an unused random port for the jetty 
-		   server for the selenium tests -->
+                <!-- Helper plugin for reserving an unused random port for the glassfish 
+                server for the selenium tests -->
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>1.7</version>
@@ -124,8 +130,7 @@
                         <phase>pre-integration-test</phase>
                         <configuration>
                             <portNames>
-                                <portName>jetty.port</portName>
-                                <portName>jetty.port.shutdown</portName>
+                                <portName>glassfish.port</portName>
                             </portNames>
                         </configuration>
                     </execution>
@@ -133,51 +138,53 @@
             </plugin>
 
             <plugin>
-	      <!-- jetty server plugin used to start a jetty-server during selelium/integration test -->
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>maven-jetty-plugin</artifactId>
-                <version>6.1.26</version>
+                <groupId>org.glassfish.embedded</groupId>
+                <artifactId>maven-embedded-glassfish-plugin</artifactId>
+                <version>3.1.2.2</version>
+                <configuration>
+                    <goalPrefix>embedded-glassfish</goalPrefix>
+                    <app>${project.build.directory}/${project.build.finalName}</app>
+                    <autoDelete>true</autoDelete>
+                    <port>${glassfish.port}</port>
+                    <contextRoot>${project.name}</contextRoot>
+                </configuration>
+
                 <executions>
                     <execution>
-                        <id>start-jetty</id>
+                        <id>start-glassfish</id>
                         <phase>pre-integration-test</phase>
                         <goals>
-                            <goal>deploy-war</goal>
+                            <goal>start</goal>
                         </goals>
-                        <configuration>
-                            <connectors>
-                                <connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
-                                    <port>${jetty.port}</port>
-                                </connector>
-                            </connectors>
-                             <scanIntervalSeconds>5</scanIntervalSeconds>
-                            <daemon>true</daemon>
-                            <webApp>${project.build.directory}/${project.build.finalName}</webApp>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>stop-jetty</id>
+                        <id>glassfish-deploy</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>glassfish-undeploy</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>undeploy</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-glassfish</id>
                         <phase>post-integration-test</phase>
                         <goals>
                             <goal>stop</goal>
                         </goals>
-                        <configuration>
-                            <stopKey>foo</stopKey>
-                            <stopPort>${jetty.port.shutdown}</stopPort>
-                        </configuration>
                     </execution>
-                </executions>
-                <configuration>
-                    <webAppConfig>
-                        <contextPath>/${project.name}</contextPath>
-                    </webAppConfig>
-                </configuration>
+                </executions> 
             </plugin>
 
             <plugin>
-	      <!-- Integrationtest plugin - just like the surefire plugin, 
-		   but this plugin handles other test files (typically 
-		   testfiles containing IT) -->
+                <!-- Integrationtest plugin - just like the surefire plugin, 
+                but this plugin handles other test files (typically 
+                testfiles containing IT) -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.13</version>
@@ -192,7 +199,7 @@
                 </executions>
                 <configuration>
                     <systemPropertyVariables>
-                        <jetty.port>${jetty.port}</jetty.port>
+                        <glassfish.port>${glassfish.port}</glassfish.port>
                     </systemPropertyVariables>                   
                 </configuration>
             </plugin>

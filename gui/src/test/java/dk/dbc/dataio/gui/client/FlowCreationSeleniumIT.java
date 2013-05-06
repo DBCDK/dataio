@@ -20,8 +20,8 @@ public class FlowCreationSeleniumIT {
 
     @BeforeClass
     public static void setUpClass() {
-        String jettyPort = System.getProperty("jetty.port");
-        APP_URL = "http://localhost:" + jettyPort + "/dataio-gui/gui.html";
+        String glassfishPort = System.getProperty("glassfish.port");
+        APP_URL = "http://localhost:" + glassfishPort + "/dataio-gui/gui.html";
     }
 
     @Before

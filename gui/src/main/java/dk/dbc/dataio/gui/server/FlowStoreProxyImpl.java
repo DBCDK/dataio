@@ -23,6 +23,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         clientConfig.getClasses().add(JacksonJsonProvider.class);
 
         Client httpClient = Client.create(clientConfig);
+	// todo: Change the below to be configurable
         webResource = httpClient.resource("http://localhost:8080/flow-store");
     }
 

@@ -38,7 +38,17 @@ public class Flow {
         return data;
     }
 
-    public void setData(String data) {
+    /**
+     * Sets data content as JSON string while extracting special
+     * index values
+     *
+     * @param data flow data as JSON string
+     *
+     * @throws InvalidJsonException when given invalid (null-valued, empty-valued or non-json)
+     *                              JSON string, or if JSON object does not contain 'flowname'
+     *                              member with non-empty value
+     */
+    public void setData(String data) throws InvalidJsonException {
         extractIndexValuesFromData(data);
         this.data = data;
     }
@@ -47,9 +57,26 @@ public class Flow {
         return flownameIndexValue;
     }
 
-    private void extractIndexValuesFromData(String flowData) {
+    private void extractIndexValuesFromData(String flowData) throws InvalidJsonException {
+        if(flowData == null) {
+            throw new InvalidJsonException("flowData can not be null");
+        }
         JSONObject obj = (JSONObject) JSONValue.parse(flowData);
-        flownameIndexValue = obj.get("flowname").toString();
+        if(obj == null) {
+            throw new InvalidJsonException(flowData);
+        }
+        flownameIndexValue = extractJsonMemberAsString(obj, "flowname");
     }
 
+    private String extractJsonMemberAsString(JSONObject obj, String memberName) throws InvalidJsonException {
+        Object valueObject = obj.get(memberName);
+        if(valueObject == null) {
+            throw new InvalidJsonException(String.format("%s member not found", memberName));
+        }
+        String value = valueObject.toString();
+        if(value.isEmpty()) {
+            throw new InvalidJsonException(String.format("%s member must be non-empty", memberName));
+        }
+        return value;
+    }
 }

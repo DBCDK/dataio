@@ -1,34 +1,42 @@
-package dk.dbc.dataio.gui.client;
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dk.dbc.dataio.gui.views;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import dk.dbc.dataio.gui.client.model.FlowData;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
 
-class FlowCreationWidget extends VerticalPanel {
 
+/**
+ *
+ * @author slf
+ */
+public class FlowEditViewImpl extends VerticalPanel implements FlowEditView {
     // Constants (These are not private since we use them in the selenium tests)
-    final static String CONTEXT_HEADER = "Flow - opsætning";
-    final static String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
-    final static String GUIID_FLOW_CREATION_NAME_TEXT_BOX = "flowcreationnametextbox";
-    final static String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";
-    final static String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
-    final static String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
-    final static String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
+    public final static String CONTEXT_HEADER = "Flow - opsætning";
+    public final static String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
+    public final static String GUIID_FLOW_CREATION_NAME_TEXT_BOX = "flowcreationnametextbox";
+    public final static String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";
+    public final static String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
+    public final static String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
+    public final static String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     private static final int FLOW_CREATION_DESCRIPTION_MAX_LENGTH = 160;
-    static final String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
+    public static final String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
+    
     // Local variables
+    private Presenter presenter;
     private final HorizontalPanel flowNamePanel = new HorizontalPanel();
     private final Label flowNameLabel = new Label("Flownavn");
     private final TextBox flowNameTextBox = new TextBox();
@@ -40,8 +48,8 @@ class FlowCreationWidget extends VerticalPanel {
     private final Label flowSaveResultLabel = new Label("");
 
     private FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
-
-    public FlowCreationWidget() {
+    
+    public FlowEditViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
 
         // Example of how a flow description text area could be set up
@@ -92,21 +100,7 @@ class FlowCreationWidget extends VerticalPanel {
             String nameValue = flowNameTextBox.getValue();
             String descriptionValue = flowDescriptionTextArea.getValue();
             if(!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
-                FlowData flowData = new FlowData();
-                flowData.setFlowname(nameValue);
-                flowData.setDescription(descriptionValue);
-                flowStoreProxy.createFlow(flowData, new AsyncCallback<Void>() {
-                    @Override
-                    public void onFailure(Throwable e) {
-                        String errorClassName = e.getClass().getName();
-                        Window.alert("Error: " + errorClassName + " - " + e.getMessage());
-                    }
-
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        flowSaveResultLabel.setText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
-                    }
-                });
+                presenter.saveFlow(flowNameTextBox.getValue(), flowDescriptionTextArea.getValue());
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             }
@@ -120,6 +114,29 @@ class FlowCreationWidget extends VerticalPanel {
             flowSaveResultLabel.setText("");
         }
     }
+    
+    @Override
+    public void setPresenter(Presenter presenter) {
+		this.presenter = presenter;
+    }
 
+    @Override
+    public void setData(String name, String description) {
+        // set data
+    }
 
+    @Override
+    public void displayError(String message) {
+        Window.alert("Error: " + message);
+    }
+
+    @Override
+    public void displaySuccess(String message) {
+        flowSaveResultLabel.setText(message);
+    }
+
+    public void refresh() {
+
+    }
+    
 }

@@ -14,5 +14,13 @@
 
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
 
-    <!-- Do not define servlets here, use web.xml -->
+	<replace-with class="dk.dbc.dataio.gui.util.ClientFactoryImpl">
+		<when-type-is class="dk.dbc.dataio.gui.util.ClientFactory" />
+	</replace-with>
+    
+    <source path="client" />
+    <source path="presenters" />
+    <source path="util" />
+    <source path="views" />
+
 </module>

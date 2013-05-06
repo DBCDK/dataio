@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.views.FlowEditViewImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -45,14 +46,14 @@ public class FlowCreationSeleniumIT {
     @Test
     public void testFlowCreationNavigationItemIsClickable() throws Exception {
         navigateToFlowCreationContext();
-        WebElement widget = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_WIDGET));
+        WebElement widget = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_WIDGET));
         assertEquals(true, widget.isDisplayed());
     }
 
     @Test
     public void testFlowCreationNameInputFieldIsVisible() {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
+        WebElement element = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
         assertEquals(true, element.isDisplayed());
     }
 
@@ -61,7 +62,7 @@ public class FlowCreationSeleniumIT {
         final String fieldValue = "test of unicode content æøåÆØÅ";
 
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
+        WebElement element = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
         element.sendKeys(fieldValue);
         assertEquals(fieldValue, element.getAttribute("value"));
     }
@@ -69,7 +70,7 @@ public class FlowCreationSeleniumIT {
     @Test
     public void testFlowCreationDescriptionInputFieldIsVisible() {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement element = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
         assertEquals(true, element.isDisplayed());
     }
 
@@ -79,7 +80,7 @@ public class FlowCreationSeleniumIT {
         final String sameTextWithExactly160Chars = textWithMoreThan160Chars.substring(0, 160);
 
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement element = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
         element.sendKeys(textWithMoreThan160Chars);
         assertEquals(sameTextWithExactly160Chars, element.getAttribute("value"));
     }
@@ -87,14 +88,14 @@ public class FlowCreationSeleniumIT {
     @Test
     public void testFlowCreationSaveButtonIsVisible() {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_BUTTON));
+        WebElement element = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         assertEquals(true, element.isDisplayed());
     }
 
     @Test
     public void testFlowCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() throws Exception {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
+        WebElement element = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
         assertEquals(false, element.isDisplayed());
         assertEquals("", element.getText());
     }
@@ -104,16 +105,16 @@ public class FlowCreationSeleniumIT {
     public void testFlowCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
-        assertEquals(FlowCreationWidget.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
+        WebElement saveResultLabel = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
+        assertEquals(FlowEditViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
 
     @Test
     public void testFlowCreationNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
-        WebElement nameInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
+        WebElement saveResultLabel = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
+        WebElement nameInputField = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
         nameInputField.sendKeys("a");
         assertEquals("", saveResultLabel.getText());
     }
@@ -123,8 +124,8 @@ public class FlowCreationSeleniumIT {
     public void testFlowCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
-        WebElement descriptionInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement saveResultLabel = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
+        WebElement descriptionInputField = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
         descriptionInputField.sendKeys("b");
         assertEquals("", saveResultLabel.getText());
     }
@@ -132,27 +133,27 @@ public class FlowCreationSeleniumIT {
     @Test
     public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() {
         navigateToFlowCreationContext();
-        WebElement nameInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
+        WebElement nameInputField = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
         nameInputField.sendKeys("a");
-        WebElement saveButton = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_BUTTON));
+        WebElement saveButton = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         saveButton.click();
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
         alert.accept();
-        assertEquals(FlowCreationWidget.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
+        assertEquals(FlowEditViewImpl.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }
 
     @Test
     public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() {
         navigateToFlowCreationContext();
-        WebElement descriptionInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement descriptionInputField = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
         descriptionInputField.sendKeys("b");
-        WebElement saveButton = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_BUTTON));
+        WebElement saveButton = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         saveButton.click();
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
         alert.accept();
-        assertEquals(FlowCreationWidget.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
+        assertEquals(FlowEditViewImpl.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }
 
     private void navigateToFlowCreationContext() {
@@ -161,11 +162,11 @@ public class FlowCreationSeleniumIT {
     }
 
     private void insertTextInInputFieldsAndClickSaveButton() {
-        WebElement nameInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
+        WebElement nameInputField = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
         nameInputField.sendKeys("a");
-        WebElement descriptionInputField = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement descriptionInputField = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
         descriptionInputField.sendKeys("b");
-        WebElement saveButton = driver.findElement(By.id(FlowCreationWidget.GUIID_FLOW_CREATION_SAVE_BUTTON));
+        WebElement saveButton = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         saveButton.click();
     }
 }

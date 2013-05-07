@@ -177,7 +177,7 @@
                             <goal>deploy</goal>
                         </goals>
                     </execution>
-                    <!--execution>
+                    <execution>
                         <id>flowstore-deploy</id>
                         <phase>pre-integration-test</phase>
                         <goals>
@@ -188,7 +188,7 @@
                             <contextRoot>flow-store</contextRoot>
                             <name>flowstore</name>
                         </configuration>
-                    </execution-->
+                    </execution>
                     <execution>
                         <id>glassfish-undeploy</id>
                         <phase>post-integration-test</phase>

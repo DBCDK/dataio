@@ -14,7 +14,7 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     public void init() throws ServletException {
         super.init();
 
-        // ToDo: System.getProperty hack used for test purposes, plus figure out how to do context.xml like configurations with glassfish
+        // ToDo: System.getProperty hack used for test purposes, plus figure out how to read values from custom JNDI resources instead
         String flowStoreServiceEndpoint = System.getProperty("flowStoreURL");
 	    if(flowStoreServiceEndpoint == null || flowStoreServiceEndpoint.isEmpty()) {
             ServletContext context = getServletContext();

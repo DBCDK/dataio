@@ -15,7 +15,12 @@ import javax.ws.rs.core.MediaType;
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     private final WebResource webResource;
 
-    public FlowStoreProxyImpl() {
+    /**
+     * Class constructor
+     *
+     * @param serviceEndpoint base URL of flow store web-service to be proxied
+     */
+    public FlowStoreProxyImpl(String serviceEndpoint) {
         ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
 
@@ -23,12 +28,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         clientConfig.getClasses().add(JacksonJsonProvider.class);
 
         Client httpClient = Client.create(clientConfig);
-	// todo: Change the below to be configurable
-	String flowStoreUrl = System.getProperty("flowStoreURL");
-	if(flowStoreUrl == null || flowStoreUrl.isEmpty()) {
-	    flowStoreUrl = "http://localhost:8080/flow-store";
-	}
-	webResource = httpClient.resource(flowStoreUrl);
+
+        webResource = httpClient.resource(serviceEndpoint);
     }
 
     @Override

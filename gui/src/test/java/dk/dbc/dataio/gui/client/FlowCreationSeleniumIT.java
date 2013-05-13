@@ -2,24 +2,31 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.views.FlowEditViewImpl;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import java.util.concurrent.TimeUnit;
-import static org.junit.Assert.assertEquals;
-import org.openqa.selenium.Alert;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
 
 public class FlowCreationSeleniumIT {
 
     private static WebDriver driver;
     private static String APP_URL;
+    private static Connection conn;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -27,7 +34,12 @@ public class FlowCreationSeleniumIT {
         APP_URL = "http://localhost:" + glassfishPort + "/dataio-gui/gui.html";
 
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:"+System.getProperty("h2.port")+"/mem:flow_store", "root", "root");
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:"+System.getProperty("h2.port")+"/mem:flow_store", "root", "root");
+        conn.setAutoCommit(true);
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws SQLException {
         conn.close();
     }
 
@@ -39,7 +51,8 @@ public class FlowCreationSeleniumIT {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws SQLException {
+        clearDbTables();
         driver.quit();
     }
 
@@ -106,11 +119,12 @@ public class FlowCreationSeleniumIT {
         assertEquals("", element.getText());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
+        WebDriverWait wait = new WebDriverWait(driver, 2);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL),FlowEditViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
         WebElement saveResultLabel = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
         assertEquals(FlowEditViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
@@ -125,7 +139,6 @@ public class FlowCreationSeleniumIT {
         assertEquals("", saveResultLabel.getText());
     }
 
-    @Ignore
     @Test
     public void testFlowCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();
@@ -174,5 +187,14 @@ public class FlowCreationSeleniumIT {
         descriptionInputField.sendKeys("b");
         WebElement saveButton = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         saveButton.click();
+    }
+
+    private void clearDbTables() throws SQLException {
+        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM flows");
+        try {
+            deleteStmt.executeUpdate();
+        } finally {
+            deleteStmt.close();
+        }
     }
 }

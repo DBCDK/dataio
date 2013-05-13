@@ -56,7 +56,8 @@
     </jdbc-connection-pool>
     <jdbc-connection-pool pool-resize-quantity="1" datasource-classname="org.h2.jdbcx.JdbcDataSource" max-pool-size="5" res-type="javax.sql.DataSource" steady-pool-size="0" statement-timeout-in-seconds="60" name="flowStoreDbPool">
       <property name="driverClass" value="org.h2.Driver"/>
-      <property name="URL" value="jdbc:h2:mem:flow_store"/>
+      <property name="connectionAttributes" value=";create=true" />
+      <property name="URL" value="jdbc:h2:tcp://localhost:${h2.port}/mem:flow_store"/>
       <property name="User" value="root"/>
       <property name="Password" value="root"/>
     </jdbc-connection-pool>

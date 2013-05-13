@@ -14,15 +14,21 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import org.openqa.selenium.Alert;
 
+import java.sql.*;
+
 public class FlowCreationSeleniumIT {
 
     private static WebDriver driver;
     private static String APP_URL;
 
     @BeforeClass
-    public static void setUpClass() {
+    public static void setUpClass() throws ClassNotFoundException, SQLException {
         String glassfishPort = System.getProperty("glassfish.port");
         APP_URL = "http://localhost:" + glassfishPort + "/dataio-gui/gui.html";
+
+        Class.forName("org.h2.Driver");
+        Connection conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:"+System.getProperty("h2.port")+"/mem:flow_store", "root", "root");
+        conn.close();
     }
 
     @Before

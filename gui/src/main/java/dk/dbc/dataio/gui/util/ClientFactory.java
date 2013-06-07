@@ -12,6 +12,8 @@ import dk.dbc.dataio.gui.views.FlowEditView;
  * @author slf
  */
 public interface ClientFactory {
-	EventBus getEventBus();
+
+    EventBus getEventBus();
+
     FlowEditView getFlowEditView();
 }

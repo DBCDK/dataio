@@ -13,6 +13,7 @@ import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import javax.ws.rs.core.MediaType;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
+
     private final WebResource webResource;
 
     /**
@@ -35,7 +36,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public void createFlow(FlowData flowData) throws NullPointerException, IllegalStateException {
         ClientResponse response = webResource.path("flows").type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowData);
-        if(response.getClientResponseStatus() == ClientResponse.Status.BAD_REQUEST) {
+        if (response.getClientResponseStatus() == ClientResponse.Status.BAD_REQUEST) {
             throw new IllegalStateException(response.getEntity(String.class));
         }
     }

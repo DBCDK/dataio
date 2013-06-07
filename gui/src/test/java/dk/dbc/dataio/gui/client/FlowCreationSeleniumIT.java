@@ -34,7 +34,7 @@ public class FlowCreationSeleniumIT {
         APP_URL = "http://localhost:" + glassfishPort + "/dataio-gui/gui.html";
 
         Class.forName("org.h2.Driver");
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:"+System.getProperty("h2.port")+"/mem:flow_store", "root", "root");
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + System.getProperty("h2.port") + "/mem:flow_store", "root", "root");
         conn.setAutoCommit(true);
     }
 
@@ -123,8 +123,8 @@ public class FlowCreationSeleniumIT {
     public void testFlowCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebDriverWait wait = new WebDriverWait(driver, 2);
-        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL),FlowEditViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
+        WebDriverWait wait = new WebDriverWait(driver, 4);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL), FlowEditViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
         WebElement saveResultLabel = driver.findElement(By.id(FlowEditViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
         assertEquals(FlowEditViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }

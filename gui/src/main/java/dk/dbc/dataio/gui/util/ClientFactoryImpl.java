@@ -14,25 +14,20 @@ import dk.dbc.dataio.gui.views.FlowEditViewImpl;
  * @author slf
  */
 public class ClientFactoryImpl implements ClientFactory {
-	private final EventBus eventBus = new SimpleEventBus();
 
+    private final EventBus eventBus = new SimpleEventBus();
     // Models
-	
-	// Views
-	private FlowEditView flowEditView = new FlowEditViewImpl();
+    // Views
+    private FlowEditView flowEditView = new FlowEditViewImpl();
 
     // Presenters
-
-    
     @Override
-	public EventBus getEventBus() {
-		return eventBus;
-	}
+    public EventBus getEventBus() {
+        return eventBus;
+    }
 
     @Override
     public FlowEditView getFlowEditView() {
         return flowEditView;
     }
-
-
 }

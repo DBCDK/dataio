@@ -16,7 +16,7 @@ import dk.dbc.dataio.gui.views.FlowEditViewImpl;
  * @author slf
  */
 public class FlowEditActivity implements FlowEditView.Presenter {
-    final FlowEditView view;
+    private final FlowEditView view;
     private FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
 
     public FlowEditActivity(FlowEditView flowEditView) {

@@ -25,21 +25,20 @@ public class MainEntryPoint implements EntryPoint {
     final static String CONTEXT_HEADER = "DBC DATAINDSYSTEM";
     final static String GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION = "navigationbuttoncreation";
     final static String GUIID_NAVIGATION_MENU_BUTTON_VIEW_AND_DELETION = "navigationbuttonviewanddelete";
-
     private MasterPanel masterPanel = new MasterPanel(Style.Unit.PX, "master-layout");
     private HeaderLabelPanel headerLabel = new HeaderLabelPanel(CONTEXT_HEADER, "header-layout");
     private NavigationPanel navigationPanel = new NavigationPanel("navigation-layout");
     private ContentPanel contentPanel = new ContentPanel("content-layout");
-    
+
     /**
      * The entry point method, called automatically by loading a module that
      * declares an implementing class as an entry-point
      */
     @Override
     public void onModuleLoad() {
-		ClientFactory clientFactory = GWT.create(ClientFactory.class);
+        ClientFactory clientFactory = GWT.create(ClientFactory.class);
 
-		// Start ActivityManager for the main widget with our ActivityMapper
+        // Start ActivityManager for the main widget with our ActivityMapper
 //		ActivityMapper activityMapper = new AppActivityMapper(clientFactory);
 
         FlowEditView flowEditView = clientFactory.getFlowEditView();
@@ -53,6 +52,7 @@ public class MainEntryPoint implements EntryPoint {
     }
 
     private class HeaderLabelPanel extends Label {
+
         public HeaderLabelPanel(String label, String styleName) {
             super();
             setStylePrimaryName(styleName);
@@ -61,6 +61,7 @@ public class MainEntryPoint implements EntryPoint {
     }
 
     private class MasterPanel extends DockLayoutPanel {
+
         public MasterPanel(Style.Unit unit, String styleName) {
             super(unit);
             setStylePrimaryName(styleName);
@@ -68,24 +69,31 @@ public class MainEntryPoint implements EntryPoint {
     }
 
     private class ContentPanel extends DeckLayoutPanel {
+
         public ContentPanel(String styleName) {
             setStylePrimaryName(styleName);
         }
     }
 
     private class NavigationPanel extends VerticalPanel {
+
         Button button = new Button(FlowEditViewImpl.CONTEXT_HEADER);
+
         public NavigationPanel(String styleName) {
-    		setStylePrimaryName(styleName);
+            setStylePrimaryName(styleName);
             add(button);
             button.getElement().setId(GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION);
             button.addClickHandler(new ButtonHandler(0));
         }
+
         private class ButtonHandler implements ClickHandler {
+
             private int subPanelIndex;
+
             public ButtonHandler(int subPanelIndex) {
                 this.subPanelIndex = subPanelIndex;
             }
+
             @Override
             public void onClick(ClickEvent event) {
                 contentPanel.showWidget(subPanelIndex);
@@ -93,5 +101,4 @@ public class MainEntryPoint implements EntryPoint {
             }
         }
     }
-    
 }

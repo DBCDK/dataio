@@ -18,13 +18,13 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
 
-
 /**
  *
  * @author slf
  */
 public class FlowEditViewImpl extends VerticalPanel implements FlowEditView {
     // Constants (These are not private since we use them in the selenium tests)
+
     public final static String CONTEXT_HEADER = "Flow - opsætning";
     public final static String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
     public final static String GUIID_FLOW_CREATION_NAME_TEXT_BOX = "flowcreationnametextbox";
@@ -32,92 +32,110 @@ public class FlowEditViewImpl extends VerticalPanel implements FlowEditView {
     public final static String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
     public final static String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
     public final static String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
+    public final static String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     private static final int FLOW_CREATION_DESCRIPTION_MAX_LENGTH = 160;
-    public static final String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
-    
     // Local variables
     private Presenter presenter;
-    private final HorizontalPanel flowNamePanel = new HorizontalPanel();
-    private final Label flowNameLabel = new Label("Flownavn");
-    private final TextBox flowNameTextBox = new TextBox();
-    private final HorizontalPanel flowDescriptionPanel = new HorizontalPanel();
-    private final Label flowDescriptionLabel = new Label("Beskrivelse");
-    private final TextArea flowDescriptionTextArea = new TextArea();
-    private final HorizontalPanel flowSavePanel = new HorizontalPanel();
-    private final Button flowSaveButton = new Button("Gem");
-    private final Label flowSaveResultLabel = new Label("");
-
+    private final FlowNamePanel flowNamePanel = new FlowNamePanel();
+    private final FlowDescriptionPanel flowDescriptionPanel = new FlowDescriptionPanel();
+    private final FlowSavePanel flowSavePanel = new FlowSavePanel();
     private FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
-    
+
     public FlowEditViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
-
-        // Example of how a flow description text area could be set up
-        setUpFlowNamePanel();
-        setUpFlowDescriptionPanel();
-        setUpFlowSavePanel();
-        // This class extends VerticalPanel and can therefore use 
-        // methods in a VerticalPanel directly:
         add(flowNamePanel);
         add(flowDescriptionPanel);
         add(flowSavePanel);
     }
 
-    private void setUpFlowNamePanel() {
-        flowNamePanel.add(flowNameLabel);
-        flowNameTextBox.getElement().setId(GUIID_FLOW_CREATION_NAME_TEXT_BOX);
-        flowNameTextBox.addKeyDownHandler(new InputFieldKeyDownHandler());
-        flowNamePanel.add(flowNameTextBox);
+    private class FlowNamePanel extends HorizontalPanel {
+
+        private final Label label = new Label("Flownavn");
+        private final TextBox textBox = new TextBox();
+
+        public FlowNamePanel() {
+            super();
+            add(label);
+            textBox.getElement().setId(GUIID_FLOW_CREATION_NAME_TEXT_BOX);
+            textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
+            add(textBox);
+        }
+
+        public String getText() {
+            return textBox.getValue();
+        }
     }
 
-    private void setUpFlowDescriptionPanel() {
-        flowDescriptionPanel.add(flowDescriptionLabel);
-        setUpFlowDescriptionTextArea();
-        flowDescriptionPanel.add(flowDescriptionTextArea);
+    private class FlowDescriptionPanel extends HorizontalPanel {
+
+        private final Label flowDescriptionLabel = new Label("Beskrivelse");
+        private final TextArea flowDescriptionTextArea = new FlowDescriptionTextArea();
+
+        public FlowDescriptionPanel() {
+            add(flowDescriptionLabel);
+            add(flowDescriptionTextArea);
+        }
+
+        public String getText() {
+            return flowDescriptionTextArea.getValue();
+        }
+
+        private class FlowDescriptionTextArea extends TextArea {
+
+            public FlowDescriptionTextArea() {
+                super();
+                setCharacterWidth(40);
+                setVisibleLines(4);
+                getElement().setAttribute("Maxlength", String.valueOf(FLOW_CREATION_DESCRIPTION_MAX_LENGTH));
+                getElement().setId(GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
+                addKeyDownHandler(new InputFieldKeyDownHandler());
+            }
+        }
     }
 
-    private void setUpFlowDescriptionTextArea() {
-        flowDescriptionTextArea.setCharacterWidth(40);
-        flowDescriptionTextArea.setVisibleLines(4);
-        // MaxLength is an attribute on a textarea, and can be set with setAttribute():
-        flowDescriptionTextArea.getElement().setAttribute("Maxlength", String.valueOf(FLOW_CREATION_DESCRIPTION_MAX_LENGTH));
-        flowDescriptionTextArea.getElement().setId(GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
-        flowDescriptionTextArea.addKeyDownHandler(new InputFieldKeyDownHandler());
-    }
+    private class FlowSavePanel extends HorizontalPanel {
 
-    private void setUpFlowSavePanel() {
-        flowSaveResultLabel.getElement().setId(GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
-        flowSavePanel.add(flowSaveResultLabel);
-        flowSaveButton.getElement().setId(GUIID_FLOW_CREATION_SAVE_BUTTON);
-        flowSaveButton.addClickHandler(new SaveButtonHandler());
-        flowSavePanel.add(flowSaveButton);
+        private final Button flowSaveButton = new Button("Gem");
+        private final Label flowSaveResultLabel = new Label("");
+
+        public FlowSavePanel() {
+            flowSaveResultLabel.getElement().setId(GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
+            add(flowSaveResultLabel);
+            flowSaveButton.getElement().setId(GUIID_FLOW_CREATION_SAVE_BUTTON);
+            flowSaveButton.addClickHandler(new SaveButtonHandler());
+            add(flowSaveButton);
+        }
+
+        public void setStatusText(String statusText) {
+            flowSaveResultLabel.setText(statusText);
+        }
     }
 
     private class SaveButtonHandler implements ClickHandler {
 
         @Override
         public void onClick(ClickEvent event) {
-            String nameValue = flowNameTextBox.getValue();
-            String descriptionValue = flowDescriptionTextArea.getValue();
-            if(!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
-                presenter.saveFlow(flowNameTextBox.getValue(), flowDescriptionTextArea.getValue());
+            String nameValue = flowNamePanel.getText();
+            String descriptionValue = flowDescriptionPanel.getText();
+            if (!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
+                presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText());
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             }
-
         }
     }
 
     private class InputFieldKeyDownHandler implements KeyDownHandler {
+
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
-            flowSaveResultLabel.setText("");
+            flowSavePanel.setStatusText("");
         }
     }
-    
+
     @Override
     public void setPresenter(Presenter presenter) {
-		this.presenter = presenter;
+        this.presenter = presenter;
     }
 
     @Override
@@ -132,11 +150,9 @@ public class FlowEditViewImpl extends VerticalPanel implements FlowEditView {
 
     @Override
     public void displaySuccess(String message) {
-        flowSaveResultLabel.setText(message);
+        flowSavePanel.setStatusText(message);
     }
 
     public void refresh() {
-
     }
-    
 }

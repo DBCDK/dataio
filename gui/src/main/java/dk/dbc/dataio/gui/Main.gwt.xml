@@ -12,15 +12,19 @@
     <!-- <inherits name="com.google.gwt.user.theme.chrome.Chrome"/> -->
     <!-- <inherits name="com.google.gwt.user.theme.dark.Dark"/> -->
 
+    <inherits name="com.google.gwt.activity.Activity" />
+    <inherits name="com.google.gwt.place.Place" />
+    
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
-
+    
 	<replace-with class="dk.dbc.dataio.gui.util.ClientFactoryImpl">
 		<when-type-is class="dk.dbc.dataio.gui.util.ClientFactory" />
 	</replace-with>
     
     <source path="client" />
-    <source path="presenters" />
+    <source path="activities" />
     <source path="util" />
     <source path="views" />
-
+    <source path="places" />
+    
 </module>

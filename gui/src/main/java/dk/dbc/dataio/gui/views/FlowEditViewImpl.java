@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package dk.dbc.dataio.gui.views;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -134,7 +130,7 @@ public class FlowEditViewImpl extends VerticalPanel implements FlowEditView {
     }
 
     @Override
-    public void setPresenter(Presenter presenter) {
+    public void setPresenter(Presenter presenter) { 
         this.presenter = presenter;
     }
 
@@ -153,6 +149,7 @@ public class FlowEditViewImpl extends VerticalPanel implements FlowEditView {
         flowSavePanel.setStatusText(message);
     }
 
+    @Override
     public void refresh() {
     }
 }

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.views.MainPanel;
 import dk.dbc.dataio.gui.views.FlowEditViewImpl;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,7 +59,7 @@ public class FlowCreationSeleniumIT {
 
     @Test
     public void testFlowCreationNavigationItemIsVisible() {
-        WebElement element = driver.findElement(By.id(MainEntryPoint.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
+        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
         assertEquals(true, element.isDisplayed());
     }
 
@@ -176,7 +177,7 @@ public class FlowCreationSeleniumIT {
     }
 
     private void navigateToFlowCreationContext() {
-        WebElement element = driver.findElement(By.id(MainEntryPoint.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
+        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
         element.click();
     }
 

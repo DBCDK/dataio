@@ -3,12 +3,11 @@ package dk.dbc.dataio.gui.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.gui.client.model.FlowData;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowStoreProxy {
 

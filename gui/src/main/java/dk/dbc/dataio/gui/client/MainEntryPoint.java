@@ -1,48 +1,40 @@
 package dk.dbc.dataio.gui.client;
 
+import com.google.gwt.activity.shared.ActivityManager;
+import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.place.shared.Place;
-import com.google.gwt.user.client.ui.RootPanel;
-import dk.dbc.dataio.gui.places.FlowEditPlace;
+import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.place.shared.PlaceHistoryHandler;
+import com.google.gwt.user.client.ui.RootLayoutPanel;
+import com.google.web.bindery.event.shared.EventBus;
+import dk.dbc.dataio.gui.client.activities.AppActivityMapper;
+import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.util.ClientFactory;
-import dk.dbc.dataio.gui.views.MainPanel;
-import dk.dbc.dataio.gui.activities.FlowEditActivity;
+import dk.dbc.dataio.gui.client.views.MainPanel;
 
 public class MainEntryPoint implements EntryPoint {
-    final ClientFactory clientFactory;
-    final private MainPanel appPanel;
-    final private Place defaultPlace;
-
-    public MainEntryPoint() {
-        clientFactory = GWT.create(ClientFactory.class);
-        appPanel = new MainPanel(clientFactory);
-        defaultPlace = new FlowEditPlace("Hallo der...");
-    }
+    final ClientFactory clientFactory = GWT.create(ClientFactory.class);
+    final private MainPanel appPanel = new MainPanel(clientFactory);
 
     @Override
     public void onModuleLoad() {
-        //Indtil Activity Manageren starter den:
-        FlowEditActivity flowEditActivity = new FlowEditActivity((FlowEditPlace) defaultPlace, clientFactory);
-        //flowEditActivity.start(appPanel, (EventBus) clientFactory.getEventBus());
-        
-//        EventBus eventBus = clientFactory.getEventBus();
-//        PlaceController placeController = clientFactory.getPlaceController();
-//
-//        // Start ActivityManager for the main widget with our ActivityMapper
-//        ActivityMapper activityMapper = new AppActivityMapper(clientFactory);
-//        ActivityManager activityManager = new ActivityManager(activityMapper, eventBus);
-//        activityManager.setDisplay(appPanel);
-//        
-//        // Start PlaceHistoryHandler with our PlaceHistoryMapper
-//        AppPlaceHistoryMapper historyMapper= GWT.create(AppPlaceHistoryMapper.class);
-//        PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
-//        historyHandler.register(placeController, eventBus, defaultPlace);
+        EventBus eventBus = clientFactory.getEventBus();
+        PlaceController placeController = clientFactory.getPlaceController();
 
-        RootPanel.get().add(appPanel);
-        // Goes to the place represented on URL else default place
-//        historyHandler.handleCurrentHistory();
+        // Start ActivityManager for the main widget with our ActivityMapper
+        ActivityMapper activityMapper = new AppActivityMapper(clientFactory);
+        ActivityManager activityManager = new ActivityManager(activityMapper, eventBus);
+        activityManager.setDisplay(appPanel.contentPanel);
+
+        // Start PlaceHistoryHandler with our PlaceHistoryMapper
+        AppPlaceHistoryMapper historyMapper= GWT.create(AppPlaceHistoryMapper.class);
+        PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
+        historyHandler.register(placeController, eventBus, null);
+        historyHandler.handleCurrentHistory();
+
+        // Show the root panel
+        RootLayoutPanel.get().add(appPanel);
     }
 
 }

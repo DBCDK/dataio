@@ -2,44 +2,40 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package dk.dbc.dataio.gui.activities;
+package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.FlowData;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
-import dk.dbc.dataio.gui.views.FlowEditView;
-import dk.dbc.dataio.gui.views.FlowEditViewImpl;
-import dk.dbc.dataio.gui.places.FlowEditPlace;
+import dk.dbc.dataio.gui.client.views.FlowCreateView;
+import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 
 /**
  *
  * @author slf
  */
-public class FlowEditActivity extends AbstractActivity implements FlowEditView.Presenter {
-    FlowEditPlace place;
+public class CreateFlowActivity extends AbstractActivity implements FlowCreateView.Presenter {
     ClientFactory clientFactory;
     private FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
 
-    public FlowEditActivity(FlowEditPlace place, ClientFactory clientFactory) {
-        this.place = place;
+    public CreateFlowActivity(FlowCreatePlace place, ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
-        this.clientFactory.getFlowEditView().setPresenter(this);
     }
 
     @Override
     public void reload() {
-		this.clientFactory.getFlowEditView().refresh();
+		this.clientFactory.getFlowCreateView().refresh();
     }
 
     @Override
     public void saveFlow(String name, String description) {
-        final FlowEditView view = this.clientFactory.getFlowEditView();
+        final FlowCreateView view = this.clientFactory.getFlowCreateView();
 
         FlowData flowData = new FlowData();
         flowData.setFlowname(name);
@@ -53,16 +49,19 @@ public class FlowEditActivity extends AbstractActivity implements FlowEditView.P
 
             @Override
             public void onSuccess(Void aVoid) {
-                view.displaySuccess(FlowEditViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+                view.displaySuccess(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
             }
         });
     }
 
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        FlowEditView flowEditView = clientFactory.getFlowEditView();
-        flowEditView.setPresenter(this);
-        containerWidget.setWidget(flowEditView.asWidget());
+        FlowCreateView flowCreateView = clientFactory.getFlowCreateView();
+        flowCreateView.setPresenter(this);
+        containerWidget.setWidget(flowCreateView.asWidget());
     }
     
+//    public void goTo(Place place) {
+//        clientFactory.getPlaceController().goTo(place);
+//    }
 }

@@ -8,9 +8,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import dk.dbc.dataio.gui.client.model.FlowData;
 import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-
 import javax.ws.rs.core.MediaType;
+import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
 

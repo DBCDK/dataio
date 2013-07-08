@@ -1,9 +1,9 @@
-package dk.dbc.dataio.gui.activities;
+package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.place.shared.Place;
-import dk.dbc.dataio.gui.places.FlowEditPlace;
+import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -20,8 +20,9 @@ public class AppActivityMapper implements ActivityMapper {
 
     @Override
     public Activity getActivity(Place place) {
-        if (place instanceof FlowEditPlace)
-            return new FlowEditActivity((FlowEditPlace) place, clientFactory);
+        if (place instanceof FlowCreatePlace) {
+            return new CreateFlowActivity((FlowCreatePlace) place, clientFactory);
+        }
         return null;
     }
 }

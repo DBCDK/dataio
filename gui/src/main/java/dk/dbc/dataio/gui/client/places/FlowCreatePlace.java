@@ -6,6 +6,7 @@ package dk.dbc.dataio.gui.client.places;
 
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
+import com.google.gwt.place.shared.Prefix;
 
 /**
  *
@@ -26,6 +27,7 @@ public class FlowCreatePlace extends Place {
         return flowCreateName;
     }
 
+    @Prefix("CreateFlow")
     public static class Tokenizer implements PlaceTokenizer<FlowCreatePlace> {
         @Override
         public String getToken(FlowCreatePlace place) {

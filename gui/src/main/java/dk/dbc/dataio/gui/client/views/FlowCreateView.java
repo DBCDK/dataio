@@ -4,12 +4,27 @@
  */
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.user.client.ui.IsWidget;
+
 /**
  *
  * @author slf
  */
-public interface FlowCreateView extends ContentView {
+public interface FlowCreateView extends IsWidget {
 
     public void setData(String name, String description);
+
+    void displayError(String message);
+
+    void displaySuccess(String message);
+
+    void refresh();
+
+    void setPresenter(Presenter presenter);
+
+    public static interface Presenter {
+        void reload();
+        public void saveFlow(String name, String description);
+    }
 
 }

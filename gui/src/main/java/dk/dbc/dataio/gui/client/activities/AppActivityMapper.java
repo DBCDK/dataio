@@ -4,6 +4,7 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -22,6 +23,9 @@ public class AppActivityMapper implements ActivityMapper {
     public Activity getActivity(Place place) {
         if (place instanceof FlowCreatePlace) {
             return new CreateFlowActivity((FlowCreatePlace) place, clientFactory);
+        }
+        if (place instanceof SubmitterCreatePlace) {
+            return new CreateSubmitterActivity((SubmitterCreatePlace) place, clientFactory);
         }
         return null;
     }

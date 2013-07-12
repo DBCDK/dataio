@@ -9,6 +9,8 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
+import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 
 
 /**
@@ -18,6 +20,7 @@ import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 public class ClientFactoryImpl implements ClientFactory {
     private final EventBus eventBus = new SimpleEventBus();
     private FlowCreateView flowCreateView = new FlowCreateViewImpl();
+    private SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
     private PlaceController placeController = new PlaceController(eventBus);
 
     @Override
@@ -28,6 +31,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public FlowCreateView getFlowCreateView() {
         return flowCreateView;
+    }
+
+    @Override
+    public SubmitterCreateView getSubmitterCreateView() {
+        return submitterCreateView;
     }
 
     @Override

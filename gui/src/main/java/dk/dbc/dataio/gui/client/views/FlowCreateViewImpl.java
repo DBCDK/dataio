@@ -11,9 +11,6 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
-import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.views.ContentView.Presenter;
 
 /**
  *
@@ -36,7 +33,6 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     private final FlowNamePanel flowNamePanel = new FlowNamePanel();
     private final FlowDescriptionPanel flowDescriptionPanel = new FlowDescriptionPanel();
     private final FlowSavePanel flowSavePanel = new FlowSavePanel();
-    private FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
 
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);

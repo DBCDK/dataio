@@ -5,12 +5,14 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimpleLayoutPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -19,8 +21,8 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  */
 public class MainPanel extends DockLayoutPanel {
     final static String CONTEXT_HEADER = "DBC DATAINDSYSTEM";
-    public final static String GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION = "navigationbuttoncreation";
-    final static String GUIID_NAVIGATION_MENU_BUTTON_VIEW_AND_DELETION = "navigationbuttonviewanddelete";
+    public final static String GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION = "navigationbuttonflowcreation";
+    public final static String GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION = "navigationbuttonsubmittercreation";
     final static String GUIID_MAIN_PANEL_LAYOUT = "main-panel-layout";
     
     private HeaderLabelPanel headerLabel = new HeaderLabelPanel(CONTEXT_HEADER, "header-panel-layout");
@@ -48,6 +50,7 @@ public class MainPanel extends DockLayoutPanel {
     private Place newPlace(int index) {
         switch (index) {
             case 0: return new FlowCreatePlace();
+            case 1: return new SubmitterCreatePlace();
             // ...
             default: return null;
         }
@@ -57,6 +60,7 @@ public class MainPanel extends DockLayoutPanel {
         public NavigationPanel(String styleName) {
             setStylePrimaryName(styleName);
             add(new NavigationButton(0, FlowCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
+            add(new NavigationButton(1, SubmitterCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
             // ...
         }
     }

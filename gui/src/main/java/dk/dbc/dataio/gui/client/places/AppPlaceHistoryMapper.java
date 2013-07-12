@@ -5,6 +5,7 @@ import com.google.gwt.place.shared.WithTokenizers;
 
 @WithTokenizers({
     FlowCreatePlace.Tokenizer.class,
+    SubmitterCreatePlace.Tokenizer.class,
 })
 
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper

@@ -2,16 +2,10 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
@@ -20,6 +14,13 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
 
 public class SubmitterCreationSeleniumIT {
 
@@ -30,7 +31,7 @@ public class SubmitterCreationSeleniumIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         String glassfishPort = System.getProperty("glassfish.port");
-        APP_URL = "http://localhost:" + glassfishPort + "/dataio-gui/gui.html";
+        APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
 
         Class.forName("org.h2.Driver");
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + System.getProperty("h2.port") + "/mem:submitter_store", "root", "root");

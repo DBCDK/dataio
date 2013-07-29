@@ -80,6 +80,23 @@
     <build>
         <plugins>
 
+          <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>classbundle</id>
+                <goals><goal>jar</goal></goals>
+                <phase>package</phase>
+                <configuration>
+                  <classifier>classbundle</classifier>
+                  <includes>
+                    <include>**/*</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

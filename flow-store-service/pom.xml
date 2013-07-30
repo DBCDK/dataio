@@ -15,10 +15,6 @@
   <name>dataio-flow-store-service</name>
   <packaging>war</packaging>
 
-  <properties>
-    <javaee.api.version>6.0</javaee.api.version>
-  </properties>
-
   <build>
 
     <plugins>
@@ -36,9 +32,9 @@
               mvn clean package embedded-glassfish:run
       -->
       <plugin>
-        <groupId>org.glassfish</groupId>
+        <groupId>org.glassfish.embedded</groupId>
         <artifactId>maven-embedded-glassfish-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>${glassfish.version}</version>
         <dependencies>
           <dependency>
             <groupId>org.postgresql</groupId>
@@ -55,7 +51,7 @@
           <name>flow-store</name>
           <app>${project.build.directory}/${build.finalName}.war</app>
           <autoDelete>true</autoDelete>
-          <configFile>${basedir}/domain_with_h2.xml</configFile>
+          <configFile>${basedir}/domain-4.0.xml</configFile>
         </configuration>
       </plugin>
 

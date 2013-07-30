@@ -132,7 +132,7 @@
       <plugin>
         <groupId>org.glassfish.embedded</groupId>
         <artifactId>maven-embedded-glassfish-plugin</artifactId>
-        <version>3.1.2.2</version>
+        <version>${glassfish.version}</version>
         <dependencies>
           <dependency>
             <groupId>com.h2database</groupId>
@@ -148,7 +148,7 @@
           <systemProperties>
             <property>flowStoreURL=http://localhost:${glassfish.port}/flow-store</property>
           </systemProperties>
-          <configFile>${project.build.directory}/integrationtest-resources/domain.xml</configFile>
+          <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
         </configuration>
 
         <executions>

@@ -16,7 +16,6 @@
   <packaging>war</packaging>
 
   <build>
-
     <plugins>
 
       <plugin>
@@ -28,35 +27,7 @@
         </configuration>
       </plugin>
 
-      <!-- Run application in embedded glassfish with:
-              mvn clean package embedded-glassfish:run
-      -->
-      <plugin>
-        <groupId>org.glassfish.embedded</groupId>
-        <artifactId>maven-embedded-glassfish-plugin</artifactId>
-        <version>${glassfish.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.2-1002-jdbc4</version>
-          </dependency>
-          <dependency>
-	          <groupId>com.h2database</groupId>
-	          <artifactId>h2</artifactId>
-	          <version>1.3.171</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <name>flow-store</name>
-          <app>${project.build.directory}/${build.finalName}.war</app>
-          <autoDelete>true</autoDelete>
-          <configFile>${basedir}/domain-4.0.xml</configFile>
-        </configuration>
-      </plugin>
-
     </plugins>
-
   </build>
 
   <dependencies>

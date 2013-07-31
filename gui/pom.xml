@@ -16,7 +16,17 @@
     <gwt.version>2.5.0</gwt.version>
     <runTarget>gui.html</runTarget>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
+ </properties>
+
+ <profiles>
+   <profile>
+     <id>dev</id>
+     <properties>
+       <developmentFlowStoreURLProperty>-DflowStoreURL=http://localhost:8080/flow-store</developmentFlowStoreURLProperty>
+     </properties>
+   </profile>
+ </profiles>
+
 
   <dependencies>
     <dependency>
@@ -98,6 +108,7 @@
           </execution>
         </executions>
         <configuration>
+	  <extraJvmArgs>${developmentFlowStoreURLProperty}</extraJvmArgs>
           <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
         </configuration>
       </plugin>

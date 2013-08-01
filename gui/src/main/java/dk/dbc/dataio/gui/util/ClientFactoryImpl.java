@@ -1,27 +1,22 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package dk.dbc.dataio.gui.util;
 
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 
 
-/**
- *
- * @author slf
- */
 public class ClientFactoryImpl implements ClientFactory {
     private final EventBus eventBus = new SimpleEventBus();
-    private FlowCreateView flowCreateView = new FlowCreateViewImpl();
-    private SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
-    private PlaceController placeController = new PlaceController(eventBus);
+    private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
+    private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
+    private final PlaceController placeController = new PlaceController(eventBus);
+    private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
 
     @Override
     public EventBus getEventBus() {
@@ -41,5 +36,10 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public PlaceController getPlaceController() {
         return placeController;
+    }
+
+    @Override
+    public FlowStoreProxyAsync getFlowStoreProxyAsync() {
+        return flowStoreProxyAsync;
     }
 }

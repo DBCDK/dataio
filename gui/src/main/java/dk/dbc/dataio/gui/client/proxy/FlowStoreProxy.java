@@ -8,7 +8,7 @@ import dk.dbc.dataio.gui.client.model.FlowData;
 @RemoteServiceRelativePath("FlowStoreProxy")
 public interface FlowStoreProxy extends RemoteService {
 
-    public void createFlow(FlowData flowData) throws NullPointerException, IllegalStateException;
+    void createFlow(FlowData flowData) throws NullPointerException, IllegalStateException;
 
     public static class Factory {
 

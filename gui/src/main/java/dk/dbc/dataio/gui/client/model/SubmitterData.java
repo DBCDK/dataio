@@ -3,25 +3,24 @@ package dk.dbc.dataio.gui.client.model;
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 public class SubmitterData implements IsSerializable {
+    private String name;
+    private String number;
+    private String description;
 
-    public String submittername;
-    public String submitternumber;
-    public String description;
-
-    public void setSubmitterName(String name) {
-        this.submittername = name;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getSubmitterName() {
-        return submittername;
+    public String getName() {
+        return name;
     }
 
-    public void setSubmitterNumber(String number) {
-        this.submitternumber = number;
+    public void setNumber(String number) {
+        this.number = number;
     }
 
-    public String getSubmitterNumber() {
-        return submitternumber;
+    public String getNumber() {
+        return number;
     }
 
     public void setDescription(String description) {

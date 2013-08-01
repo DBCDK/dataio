@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.proxy;
+package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;

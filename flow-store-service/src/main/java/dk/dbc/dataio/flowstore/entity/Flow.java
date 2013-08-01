@@ -17,17 +17,17 @@ import javax.persistence.Table;
  * given as JSON string
  */
 @Entity
-@Table(name="flows")
+@Table(name = "flows")
 public class Flow {
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(columnDefinition="TEXT NOT NULL")
+    @Column(columnDefinition = "TEXT NOT NULL")
     private String data;
 
-    @Column(name="flowname_idx", columnDefinition="TEXT NOT NULL UNIQUE")
-    private String flownameIndexValue;
+    @Column(name = "name_idx", columnDefinition = "TEXT NOT NULL UNIQUE")
+    private String nameIndexValue;
 
     public Long getId() {
         return id;
@@ -53,28 +53,28 @@ public class Flow {
         this.data = data;
     }
 
-    String getFlownameIndexValue() {
-        return flownameIndexValue;
+    String getNameIndexValue() {
+        return nameIndexValue;
     }
 
     private void extractIndexValuesFromData(String flowData) throws InvalidJsonException {
-        if(flowData == null) {
+        if (flowData == null) {
             throw new InvalidJsonException("flowData can not be null");
         }
         JSONObject obj = (JSONObject) JSONValue.parse(flowData);
-        if(obj == null) {
+        if (obj == null) {
             throw new InvalidJsonException(flowData);
         }
-        flownameIndexValue = extractJsonMemberAsString(obj, "flowname");
+        nameIndexValue = extractJsonMemberAsString(obj, "name");
     }
 
     private String extractJsonMemberAsString(JSONObject obj, String memberName) throws InvalidJsonException {
         Object valueObject = obj.get(memberName);
-        if(valueObject == null) {
+        if (valueObject == null) {
             throw new InvalidJsonException(String.format("%s member not found", memberName));
         }
         String value = valueObject.toString();
-        if(value.isEmpty()) {
+        if (value.isEmpty()) {
             throw new InvalidJsonException(String.format("%s member must be non-empty", memberName));
         }
         return value;

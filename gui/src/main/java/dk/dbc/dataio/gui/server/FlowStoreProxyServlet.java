@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.gui.client.model.FlowData;
-import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletException;

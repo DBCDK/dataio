@@ -3,16 +3,15 @@ package dk.dbc.dataio.gui.client.model;
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 public class FlowData implements IsSerializable {
+    private String name;
+    private String description;
 
-    public String flowname;
-    public String description;
-
-    public void setFlowname(String flowname) {
-        this.flowname = flowname;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getFlowname() {
-        return flowname;
+    public String getName() {
+        return name;
     }
 
     public void setDescription(String description) {

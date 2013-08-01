@@ -7,7 +7,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.FlowData;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
-import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -40,7 +40,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
     @Override
     public void saveFlow(String name, String description) {
         final FlowData flowData = new FlowData();
-        flowData.setFlowname(name);
+        flowData.setName(name);
         flowData.setDescription(description);
 
         flowStoreProxy.createFlow(flowData, new AsyncCallback<Void>() {

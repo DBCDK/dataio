@@ -7,7 +7,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import dk.dbc.dataio.gui.client.model.FlowData;
-import dk.dbc.dataio.gui.client.proxy.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import javax.ws.rs.core.MediaType;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 

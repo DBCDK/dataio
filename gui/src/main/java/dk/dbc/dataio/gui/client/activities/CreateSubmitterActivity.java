@@ -6,7 +6,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.SubmitterData;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
-import dk.dbc.dataio.gui.client.proxy.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -39,8 +39,8 @@ public class CreateSubmitterActivity extends AbstractActivity implements Submitt
     @Override
     public void saveSubmitter(String name, String number, String description) {
         final SubmitterData submitterData = new SubmitterData();
-        submitterData.setSubmitterName(name);
-        submitterData.setSubmitterNumber(number);
+        submitterData.setName(name);
+        submitterData.setNumber(number);
         submitterData.setDescription(description);
 
         submitterCreateView.displaySuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);   // NB: Midlertidig - erstattes af kald til proxy (se herunder)

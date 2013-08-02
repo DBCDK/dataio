@@ -1,8 +1,9 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.flowstore.util.json.JsonException;
+import dk.dbc.dataio.flowstore.util.json.JsonUtil;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.annotate.JsonRawValue;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,11 +45,11 @@ public class Flow {
      *
      * @param data flow data as JSON string
      *
-     * @throws InvalidJsonException when given invalid (null-valued, empty-valued or non-json)
-     *                              JSON string, or if JSON object does not contain 'flowname'
-     *                              member with non-empty value
+     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
+     *                       JSON string, or if JSON object does not contain 'name'
+     *                       member with non-empty text value
      */
-    public void setData(String data) throws InvalidJsonException {
+    public void setData(String data) throws JsonException {
         extractIndexValuesFromData(data);
         this.data = data;
     }
@@ -57,26 +58,8 @@ public class Flow {
         return nameIndexValue;
     }
 
-    private void extractIndexValuesFromData(String flowData) throws InvalidJsonException {
-        if (flowData == null) {
-            throw new InvalidJsonException("flowData can not be null");
-        }
-        JSONObject obj = (JSONObject) JSONValue.parse(flowData);
-        if (obj == null) {
-            throw new InvalidJsonException(flowData);
-        }
-        nameIndexValue = extractJsonMemberAsString(obj, "name");
-    }
-
-    private String extractJsonMemberAsString(JSONObject obj, String memberName) throws InvalidJsonException {
-        Object valueObject = obj.get(memberName);
-        if (valueObject == null) {
-            throw new InvalidJsonException(String.format("%s member not found", memberName));
-        }
-        String value = valueObject.toString();
-        if (value.isEmpty()) {
-            throw new InvalidJsonException(String.format("%s member must be non-empty", memberName));
-        }
-        return value;
+    private void extractIndexValuesFromData(String flowData) throws JsonException {
+        final JsonNode json = JsonUtil.getJsonRoot(flowData);
+        nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "flow.name");
     }
 }

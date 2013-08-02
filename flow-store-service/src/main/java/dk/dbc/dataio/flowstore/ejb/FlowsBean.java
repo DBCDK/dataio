@@ -1,7 +1,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.flowstore.entity.Flow;
-import dk.dbc.dataio.flowstore.entity.InvalidJsonException;
+import dk.dbc.dataio.flowstore.util.json.JsonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,13 +68,13 @@ public class FlowsBean {
      * @return a HTTP 201 response with a Location header containing the
      * URL value of the newly created resource
      *
-     * @throws InvalidJsonException when given invalid (null-valued, empty-valued or non-json)
-     *                              JSON string, or if JSON object does not contain required
-     *                              members
+     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
+     *                       JSON string, or if JSON object does not contain required
+     *                       members
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response createFlow(String flowData) throws InvalidJsonException {
+    public Response createFlow(String flowData) throws JsonException {
         log.trace("Called with: '{}'", flowData);
 
         Flow flow = new Flow();

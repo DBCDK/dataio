@@ -33,7 +33,7 @@ public class FileSystemJobStore implements JobStore {
         log.info("Creating job in {}", jobPath);
         createDirectory(FileSystems.getDefault().getPath(storePath.toString(), Long.toString(jobId)));
 
-        return new Job(jobId);
+        return new Job(jobId, dataObjectPath);
     }
 
     private boolean canUseExistingStorePath(Path storePath) throws JobStoreException {

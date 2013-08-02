@@ -9,7 +9,7 @@ public class Engine {
     private static final Logger log = LoggerFactory.getLogger(Engine.class);
 
     public Job insertIntoJobStore(Path dataObjectPath, String flowInfoJson, JobStore jobStore) throws JobStoreException {
-        return jobStore.createJob(dataObjectPath, null);
+        return jobStore.createJob(dataObjectPath, new FlowInfo(flowInfoJson));
     }
 
     public Job chunkify(Job job, JobStore jobStore) {

@@ -1,5 +1,7 @@
 package dk.dbc.dataio.engine;
 
-public class JobStore {
-    
+import java.nio.file.Path;
+
+interface JobStore {
+    Job createJob(Path dataObjectPath, FlowInfo flowInfo) throws JobStoreException;
 }

@@ -1,9 +1,12 @@
 package dk.dbc.dataio.engine;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,9 +36,21 @@ public class FileSystemJobStore implements JobStore {
         log.info("Creating job in {}", jobPath);
         createDirectory(FileSystems.getDefault().getPath(storePath.toString(), Long.toString(jobId)));
 
+        storeFlowInfoInJob(jobPath, flowInfo);
+        
         return new Job(jobId, dataObjectPath);
     }
 
+    private void storeFlowInfoInJob(Path jobPath, FlowInfo flowInfo) {
+        File flowInfoFile = new File(jobPath.toString()+File.separator+"flowinfo.json");
+        log.info("Creating FlowInfo json-file: " + flowInfoFile.getAbsolutePath());
+        try(BufferedWriter bw = Files.newBufferedWriter(flowInfoFile.toPath(), Charset.forName("UTF-8"))) {
+          bw.write(flowInfo.getData());
+        } catch(IOException ex) {
+            log.warn("Exception caught when trying to write FlowInfo: {}", flowInfo.getData(), ex);
+        }
+    }
+    
     private boolean canUseExistingStorePath(Path storePath) throws JobStoreException {
         if (Files.exists(storePath)) {
             if (!Files.isDirectory(storePath)) {

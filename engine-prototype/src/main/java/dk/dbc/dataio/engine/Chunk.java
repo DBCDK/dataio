@@ -1,10 +1,19 @@
 package dk.dbc.dataio.engine;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Chunk {
 
-    public static final int RECORDS_PER_CHUNK = 10; 
-
+    public static final int MAX_RECORDS_PER_CHUNK = 10; 
+    private final List<String> chunks = new ArrayList<>(MAX_RECORDS_PER_CHUNK);
+    private int positionCounter = 0;
+    
     void addRecord(String record) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if(positionCounter < MAX_RECORDS_PER_CHUNK) {
+            chunks.add(record);
+        } else {
+            throw new IndexOutOfBoundsException();
+        }
     }
 }

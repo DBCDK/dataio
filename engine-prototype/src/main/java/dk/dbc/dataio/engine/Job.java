@@ -22,8 +22,4 @@ public class Job {
     public Path getOriginalDataPath() {
         return originalDataPath;
     }
-
-    public void addChunk(Chunk chunk) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }

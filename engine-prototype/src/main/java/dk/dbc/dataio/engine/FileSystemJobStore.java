@@ -61,4 +61,10 @@ public class FileSystemJobStore implements JobStore {
     public static FileSystemJobStore newFileSystemJobStore(Path storePath) throws JobStoreException {
         return new FileSystemJobStore(storePath);
     }
-}
+
+    @Override
+    public void addChunk(Job job, Chunk chunk) throws JobStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+    }
+ }   

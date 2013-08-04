@@ -19,7 +19,7 @@ public class Engine {
         return jobStore.createJob(dataObjectPath, new FlowInfo(flowInfoJson));
     }
 
-    public Job chunkify(Job job, JobStore jobStore) {
+    public Job chunkify(Job job, JobStore jobStore) throws JobStoreException {
         Path path = job.getOriginalDataPath();
         List<Chunk> chunks = null;
         try {
@@ -28,7 +28,7 @@ public class Engine {
             System.err.println("An error occured: " + ex);
         }
         for (Chunk chunk : chunks) {
-            job.addChunk(chunk);
+            jobStore.addChunk(job, chunk);
         }
         return job;
     }
@@ -47,13 +47,14 @@ public class Engine {
      * @return 
      */
     private List<Chunk> splitByLine(Path path) throws IOException {
+        log.info("Got path: " + path.toString());
         List<Chunk> chunks = new ArrayList<>();
         BufferedReader br = Files.newBufferedReader(path, Charset.forName("UTF-8"));
         String line;
         int counter = 0; 
         Chunk chunk = new Chunk();
         while((line = br.readLine()) != null) {
-            if(counter < Chunk.RECORDS_PER_CHUNK) {
+            if(counter < Chunk.MAX_RECORDS_PER_CHUNK) {
                 chunk.addRecord(line);
             } else {
                 chunks.add(chunk);

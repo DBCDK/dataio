@@ -24,4 +24,5 @@ public class Job {
     public Path getOriginalDataPath() {
         return originalDataPath;
     }
+    
 }

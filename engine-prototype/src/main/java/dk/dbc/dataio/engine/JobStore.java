@@ -6,4 +6,6 @@ interface JobStore {
     Job createJob(Path dataObjectPath, FlowInfo flowInfo) throws JobStoreException;
     
     void addChunk(Job job, Chunk chunk) throws JobStoreException;
+
+    int getNumberOfChunksInJob(Job job) throws JobStoreException;
 }

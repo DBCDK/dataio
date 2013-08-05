@@ -34,6 +34,8 @@ public class Engine {
     }
 
     public Job process(Job job, JobStore jobStore) {
+        
+        
         return job;
     }
 
@@ -71,4 +73,14 @@ public class Engine {
         }
         return chunks;
     }
+
+
+    private void processChunk() {
+        
+    }
+    
+    private void processRecord() {
+        
+    }
+
 }

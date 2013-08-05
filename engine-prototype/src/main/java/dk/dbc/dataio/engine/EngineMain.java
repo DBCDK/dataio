@@ -12,7 +12,7 @@ public class EngineMain {
     private EngineMain() { }
 
     public static void main(String[] args) throws JobStoreException {
-        log.info("Program arguments 1: {} 2: {}, 3: {}", args[0], args[1], args[2]);
+        log.info("Program arguments store-location: {} data-object: {}, flow-info: {}", args[0], args[1], args[2]);
         final Path jobStorePath = FileSystems.getDefault().getPath(args[0]);
         final Path dataObjectPath = FileSystems.getDefault().getPath(args[1]);
         final String flowInfoJson = args[2];

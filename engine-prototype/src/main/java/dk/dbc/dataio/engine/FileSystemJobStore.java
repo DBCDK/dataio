@@ -49,7 +49,7 @@ public class FileSystemJobStore implements JobStore {
         final Path flowInfoPath =  FileSystems.getDefault().getPath(jobPath.toString(), "flowinfo.json");
         log.info("Creating FlowInfo json-file: {}", flowInfoPath);
         try(BufferedWriter bw = Files.newBufferedWriter(flowInfoPath, LOCAL_CHARSET)) {
-          bw.write(flowInfo.toJson());
+          bw.write(JsonUtil.toJson(flowInfo));
         } catch(IOException ex) {
             log.warn("Exception caught when trying to write FlowInfo: {}", flowInfo.getName(), ex);
         }
@@ -86,7 +86,7 @@ public class FileSystemJobStore implements JobStore {
         final Path chunkPath =  FileSystems.getDefault().getPath(getJobPath(job.getId()).toString(), String.format("%d.json", chunk.getId()));
         log.info("Creating chunk json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
-            bw.write(chunk.toJson());
+            bw.write(JsonUtil.toJson(chunk));
         } catch (IOException ex) {
             log.warn("Exception caught when trying to write chunk: {}", chunk.getId(), ex);
         }

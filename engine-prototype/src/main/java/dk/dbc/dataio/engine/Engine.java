@@ -98,16 +98,12 @@ public class Engine {
     
     private String processRecord(FlowInfo flowInfo, String record) {
         log.info("Record: {}", record);
-        return javascriptRecordHandler(record);
+        return javascriptRecordHandler(flowInfo, record);
     }
 
-    private String javascriptRecordHandler(String record) {
-        String javascript = 
-                "function convertToUpperCase(record) {" +
-                "  return record.toUpperCase();" +
-                "}";
-        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javascript);
-        Object res = scriptWrapper.callMethod("convertToUpperCase", new Object[]{record});
+    private String javascriptRecordHandler(FlowInfo flowInfo, String record) {
+        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(flowInfo.getComponents().get(0).getJavascript());
+        Object res = scriptWrapper.callMethod(flowInfo.getComponents().get(0).getInvocationMethod(), new Object[]{record});
         return (String)res;
     }
 }

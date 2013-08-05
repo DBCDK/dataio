@@ -36,6 +36,10 @@ public class Engine {
 
     public Job process(Job job, JobStore jobStore) throws JobStoreException {
         long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
+        for (int i = 0; i < numberOfChunks; i++) {
+            Chunk chunk = jobStore.getChunk(job, i);
+            ProcessChunkResult chunkResult = processChunk(chunk);
+        }
         log.info("Number of chunks for jobId [{}]: {}", job.getId(), numberOfChunks);
         return job;
     }
@@ -56,7 +60,7 @@ public class Engine {
         List<Chunk> chunks = new ArrayList<>();
         BufferedReader br = Files.newBufferedReader(path, Charset.forName("UTF-8"));
         String line;
-        long chunkId = 1;
+        long chunkId = 0;
         int counter = 0; 
         Chunk chunk = new Chunk(chunkId, job.getFlowInfo());
         while((line = br.readLine()) != null) {
@@ -76,12 +80,30 @@ public class Engine {
     }
 
 
-    private void processChunk() {
+    private ProcessChunkResult processChunk(Chunk chunk) {
+        log.info("Processing chunk: {}", chunk.getId());
+        FlowInfo flowInfo = chunk.getFlowInfo();
+        List<String> records = chunk.getRecords();
+
+        List<String> results = new ArrayList<>();
         
+        for(String record : records) {
+            String recordResult = processRecord(flowInfo, record);
+            results.add(recordResult);
+        }
+
+        return new ProcessChunkResult(chunk.getId(), results);
     }
     
-    private void processRecord() {
-        
+    private String processRecord(FlowInfo flowInfo, String record) {
+        log.info("Record: {}", record);
+        return temporaryRecordHandler(record);
     }
+
+    private String temporaryRecordHandler(String record) {
+        return record.toUpperCase();
+    }
+    
+    
 
 }

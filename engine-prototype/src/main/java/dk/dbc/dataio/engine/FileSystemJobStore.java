@@ -117,7 +117,7 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public void addChunkResult(Job job, ProcessChunkResult processChunkResult) throws JobStoreException {
-        final Path chunkPath =  FileSystems.getDefault().getPath(getJobPath(job.getId()).toString(), String.format("%d.res,json", processChunkResult.getId()));
+        final Path chunkPath =  FileSystems.getDefault().getPath(getJobPath(job.getId()).toString(), String.format("%d.res.json", processChunkResult.getId()));
         log.info("Creating chunk result json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
             bw.write(JsonUtil.toJson(processChunkResult));

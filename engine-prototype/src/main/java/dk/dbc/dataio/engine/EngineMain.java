@@ -16,5 +16,6 @@ public class EngineMain {
         final Engine engine = new Engine();
         Job job = engine.insertIntoJobStore(FileSystems.getDefault().getPath(args[1]), "{}", jobStore);
         engine.chunkify(job, jobStore);
+        engine.process(job, jobStore);
     }
 }

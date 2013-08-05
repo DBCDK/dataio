@@ -96,8 +96,10 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public int getNumberOfChunksInJob(Job job) throws JobStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public long getNumberOfChunksInJob(Job job) throws JobStoreException {
+        File chunkCounterFile = getChunkCounterFile(job.getId());
+        Long chunkCounterValue = readLongValueFromChunkCounterFile(chunkCounterFile);
+        return chunkCounterValue.longValue();
     }
 
     private File getChunkCounterFile(long jobId) {
@@ -113,11 +115,7 @@ public class FileSystemJobStore implements JobStore {
             throw new JobStoreException(msg);
         }
 
-        try(BufferedWriter bw = Files.newBufferedWriter(chunkCounterFile.toPath(), LOCAL_CHARSET)) {
-            bw.write("0");
-        } catch (IOException ex) {
-            log.warn("Could not create chunkCounterFile: {}", chunkCounterFile.toString(), ex);
-        }
+        writeLongValueToChunkCounterFile(chunkCounterFile, new Long(0));
         log.info("Created chunk counter file: {}", chunkCounterFile);    
     }
     
@@ -129,6 +127,12 @@ public class FileSystemJobStore implements JobStore {
             throw new JobStoreException(msg);
         }
 
+        Long chunkCounter = readLongValueFromChunkCounterFile(chunkCounterFile);
+        chunkCounter++;
+        writeLongValueToChunkCounterFile(chunkCounterFile, chunkCounter);
+    }
+
+    private Long readLongValueFromChunkCounterFile(File chunkCounterFile) {
         Long chunkCounter = null;
         try(BufferedReader br = Files.newBufferedReader(chunkCounterFile.toPath(), LOCAL_CHARSET)) {
             String value = br.readLine().trim();
@@ -137,9 +141,10 @@ public class FileSystemJobStore implements JobStore {
         } catch (IOException ex) {
             log.warn("Could not read from chunkCounterFile", ex);
         }
-        
-        chunkCounter++;
+        return chunkCounter;
+    }
 
+    private void writeLongValueToChunkCounterFile(File chunkCounterFile, Long chunkCounter) {
         try(BufferedWriter bw = Files.newBufferedWriter(chunkCounterFile.toPath(), LOCAL_CHARSET)) {
             bw.write(chunkCounter.toString());
         } catch (IOException ex) {

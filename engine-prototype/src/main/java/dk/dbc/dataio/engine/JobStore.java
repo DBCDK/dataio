@@ -7,5 +7,5 @@ interface JobStore {
     
     void addChunk(Job job, Chunk chunk) throws JobStoreException;
 
-    int getNumberOfChunksInJob(Job job) throws JobStoreException;
+    long getNumberOfChunksInJob(Job job) throws JobStoreException;
 }

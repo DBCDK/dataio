@@ -34,9 +34,9 @@ public class Engine {
         return job;
     }
 
-    public Job process(Job job, JobStore jobStore) {
-        
-        
+    public Job process(Job job, JobStore jobStore) throws JobStoreException {
+        long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
+        log.info("Number of chunks for jobId [{}]: {}", job.getId(), numberOfChunks);
         return job;
     }
 

@@ -24,6 +24,7 @@ public class Engine {
         List<Chunk> chunks = null;
         try {
             chunks = splitByLine(path, job);
+            log.info("Number of chunks: {}",  chunks.size());
         } catch (IOException ex) {
             System.err.println("An error occured: " + ex);
         }
@@ -65,7 +66,7 @@ public class Engine {
                 chunks.add(chunk);
                 chunk = new Chunk(++chunkId, job.getFlowInfo());
                 chunk.addRecord(line);
-                counter = 0;
+                counter = 1;
             }
         }
         if (counter != 0) {

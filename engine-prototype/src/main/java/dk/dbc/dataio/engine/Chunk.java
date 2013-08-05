@@ -54,8 +54,19 @@ public class Chunk {
         try {
             objectMapper.writeValue(stringWriter, this);
         } catch (IOException e) {
-            log.error("Exception caught when trying to map Chunk {} to JSON", id, e);
+            log.error("Exception caught when trying to marshall Chunk object {} to JSON", id, e);
         }
         return stringWriter.toString();
+    }
+
+    public static Chunk fromJson(String json) {
+        Chunk chunk = null;
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            chunk = objectMapper.readValue(json, Chunk.class);
+        } catch (IOException e) {
+            log.error("Exception caught when trying to unmarshall JSON {} to Chunk object", json, e);
+        }
+        return chunk;
     }
 }

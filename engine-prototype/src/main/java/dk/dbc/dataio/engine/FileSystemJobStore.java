@@ -1,9 +1,9 @@
 package dk.dbc.dataio.engine;
 
-import java.io.BufferedReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +11,6 @@ import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Level;
 
 public class FileSystemJobStore implements JobStore {
     private static final Logger log = LoggerFactory.getLogger(FileSystemJobStore.class);
@@ -50,9 +49,9 @@ public class FileSystemJobStore implements JobStore {
         final Path flowInfoPath =  FileSystems.getDefault().getPath(jobPath.toString(), "flowinfo.json");
         log.info("Creating FlowInfo json-file: {}", flowInfoPath);
         try(BufferedWriter bw = Files.newBufferedWriter(flowInfoPath, LOCAL_CHARSET)) {
-          bw.write(flowInfo.getData());
+          bw.write(flowInfo.toJson());
         } catch(IOException ex) {
-            log.warn("Exception caught when trying to write FlowInfo: {}", flowInfo.getData(), ex);
+            log.warn("Exception caught when trying to write FlowInfo: {}", flowInfo.getName(), ex);
         }
     }
     

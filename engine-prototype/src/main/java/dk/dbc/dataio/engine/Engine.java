@@ -16,7 +16,7 @@ public class Engine {
     private static final Logger log = LoggerFactory.getLogger(Engine.class);
 
     public Job insertIntoJobStore(Path dataObjectPath, String flowInfoJson, JobStore jobStore) throws JobStoreException {
-        return jobStore.createJob(dataObjectPath, new FlowInfo(flowInfoJson));
+        return jobStore.createJob(dataObjectPath, FlowInfo.fromJson(flowInfoJson));
     }
 
     public Job chunkify(Job job, JobStore jobStore) throws JobStoreException {

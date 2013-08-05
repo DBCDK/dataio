@@ -1,5 +1,7 @@
 package dk.dbc.dataio.engine;
 
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,11 @@ public class Chunk {
             log.error("Exception caught when trying to marshall Chunk object {} to JSON", id, e);
         }
         return stringWriter.toString();
+    }
+
+    @JsonCreator
+    public static Chunk createChunk(@JsonProperty("id") long id, @JsonProperty("flowInfo") FlowInfo flowInfo) {
+        return new Chunk(id, flowInfo);
     }
 
     public static Chunk fromJson(String json) {

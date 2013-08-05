@@ -36,11 +36,12 @@ public class Engine {
 
     public Job process(Job job, JobStore jobStore) throws JobStoreException {
         long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
+        log.info("Number of chunks for jobId [{}]: {}", job.getId(), numberOfChunks);
         for (int i = 0; i < numberOfChunks; i++) {
             Chunk chunk = jobStore.getChunk(job, i);
             ProcessChunkResult chunkResult = processChunk(chunk);
+            jobStore.addChunkResult(job, chunkResult);
         }
-        log.info("Number of chunks for jobId [{}]: {}", job.getId(), numberOfChunks);
         return job;
     }
 

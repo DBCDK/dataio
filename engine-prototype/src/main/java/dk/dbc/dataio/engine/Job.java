@@ -5,10 +5,12 @@ import java.nio.file.Path;
 public class Job {
     private final long id;
     private final Path originalDataPath;
-    
-    public Job(long id, Path originalDataPath) {
+    private final FlowInfo flowInfo;
+
+    public Job(long id, Path originalDataPath, FlowInfo flowInfo) {
         this.id = id;
         this.originalDataPath = originalDataPath;
+        this.flowInfo = flowInfo;
     }
 
     public long getId() {
@@ -16,7 +18,7 @@ public class Job {
     }
 
     public FlowInfo getFlowInfo() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return flowInfo;
     }
 
     public Path getOriginalDataPath() {

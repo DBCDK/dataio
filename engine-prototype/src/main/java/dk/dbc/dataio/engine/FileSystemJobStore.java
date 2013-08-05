@@ -1,10 +1,9 @@
 package dk.dbc.dataio.engine;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
@@ -38,13 +37,13 @@ public class FileSystemJobStore implements JobStore {
 
         storeFlowInfoInJob(jobPath, flowInfo);
         
-        return new Job(jobId, dataObjectPath);
+        return new Job(jobId, dataObjectPath, flowInfo);
     }
 
     private void storeFlowInfoInJob(Path jobPath, FlowInfo flowInfo) {
-        File flowInfoFile = new File(jobPath.toString()+File.separator+"flowinfo.json");
-        log.info("Creating FlowInfo json-file: " + flowInfoFile.getAbsolutePath());
-        try(BufferedWriter bw = Files.newBufferedWriter(flowInfoFile.toPath(), Charset.forName("UTF-8"))) {
+        final Path flowInfoPath =  FileSystems.getDefault().getPath(jobPath.toString(), "flowinfo.json");
+        log.info("Creating FlowInfo json-file: {}", flowInfoPath);
+        try(BufferedWriter bw = Files.newBufferedWriter(flowInfoPath, Charset.forName("UTF-8"))) {
           bw.write(flowInfo.getData());
         } catch(IOException ex) {
             log.warn("Exception caught when trying to write FlowInfo: {}", flowInfo.getData(), ex);
@@ -79,7 +78,12 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public void addChunk(Job job, Chunk chunk) throws JobStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-
+        final Path chunkPath =  FileSystems.getDefault().getPath(getJobPath(job.getId()).toString(), String.format("%d.json", chunk.getId()));
+        log.info("Creating chunk json-file: {}", chunkPath);
+        try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, Charset.forName("UTF-8"))) {
+            bw.write(chunk.toJson());
+        } catch (IOException ex) {
+            log.warn("Exception caught when trying to write chunk: {}", chunk.getId(), ex);
+        }
     }
  }   

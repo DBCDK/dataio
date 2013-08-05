@@ -1,12 +1,12 @@
 package dk.dbc.dataio.engine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class Engine {
         Path path = job.getOriginalDataPath();
         List<Chunk> chunks = null;
         try {
-            chunks = splitByLine(path);
+            chunks = splitByLine(path, job);
         } catch (IOException ex) {
             System.err.println("An error occured: " + ex);
         }
@@ -43,26 +43,30 @@ public class Engine {
 
     /**
      * Read file line by line and split it into Chunks
+     *
      * @param path
-     * @return 
+     * @param job
+     * @return
      */
-    private List<Chunk> splitByLine(Path path) throws IOException {
+    private List<Chunk> splitByLine(Path path, Job job) throws IOException {
         log.info("Got path: " + path.toString());
         List<Chunk> chunks = new ArrayList<>();
         BufferedReader br = Files.newBufferedReader(path, Charset.forName("UTF-8"));
         String line;
+        long chunkId = 1;
         int counter = 0; 
-        Chunk chunk = new Chunk();
+        Chunk chunk = new Chunk(chunkId, job.getFlowInfo());
         while((line = br.readLine()) != null) {
-            if(counter < Chunk.MAX_RECORDS_PER_CHUNK) {
+            if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
                 chunk.addRecord(line);
             } else {
                 chunks.add(chunk);
-                chunk = new Chunk();
+                chunk = new Chunk(++chunkId, job.getFlowInfo());
+                chunk.addRecord(line);
                 counter = 0;
             }
         }
-        if(counter != 0) {
+        if (counter != 0) {
             chunks.add(chunk);
         }
         return chunks;

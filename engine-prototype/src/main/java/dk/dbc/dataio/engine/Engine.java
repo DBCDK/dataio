@@ -98,13 +98,16 @@ public class Engine {
     
     private String processRecord(FlowInfo flowInfo, String record) {
         log.info("Record: {}", record);
-        return temporaryRecordHandler(record);
+        return javascriptRecordHandler(record);
     }
 
-    private String temporaryRecordHandler(String record) {
-        return record.toUpperCase();
+    private String javascriptRecordHandler(String record) {
+        String javascript = 
+                "function convertToUpperCase(record) {" +
+                "  return record.toUpperCase();" +
+                "}";
+        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javascript);
+        Object res = scriptWrapper.callMethod("convertToUpperCase", new Object[]{record});
+        return (String)res;
     }
-    
-    
-
 }

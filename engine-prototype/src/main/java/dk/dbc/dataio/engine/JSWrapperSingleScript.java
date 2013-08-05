@@ -14,7 +14,7 @@ public class JSWrapperSingleScript {
         FileSchemeHandler fsh = new FileSchemeHandler(".");
         mh.registerHandler("file", fsh);
         jsEnvironment = new Environment();
-        jsEnvironment.registerUseFunction(mh);
+        // jsEnvironment.registerUseFunction(mh);
 
         jsEnvironment.eval(jsScript);
     }

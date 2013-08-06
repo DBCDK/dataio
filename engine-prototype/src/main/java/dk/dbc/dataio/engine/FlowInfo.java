@@ -37,5 +37,9 @@ public class FlowInfo {
         public String getInvocationMethod() {
             return invocationMethod;
         }
+
+        public int getId() {
+            return id;
+        }
     }
 }

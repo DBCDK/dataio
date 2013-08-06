@@ -11,8 +11,8 @@ import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.activities.AppActivityMapper;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import dk.dbc.dataio.gui.client.views.MainPanel;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class MainEntryPoint implements EntryPoint {
     final ClientFactory clientFactory = GWT.create(ClientFactory.class);

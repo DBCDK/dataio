@@ -14,6 +14,8 @@
 
     <inherits name="com.google.gwt.activity.Activity" />
     <inherits name="com.google.gwt.place.Place" />
+
+    <inherits name="dk.dbc.dataio.engine.Model" />
     
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
     

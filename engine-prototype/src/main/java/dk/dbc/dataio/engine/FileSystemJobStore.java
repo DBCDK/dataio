@@ -11,7 +11,6 @@ import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Level;
 
 public class FileSystemJobStore implements JobStore {
     private static final Logger log = LoggerFactory.getLogger(FileSystemJobStore.class);
@@ -106,7 +105,7 @@ public class FileSystemJobStore implements JobStore {
                 sb.append(data);
             }
             log.info("Data: [{}]", sb.toString());
-            chunk = JsonUtil.fromJson(sb.toString(), Chunk.class);
+            chunk = JsonUtil.fromJson(sb.toString(), Chunk.class, JsonUtil.getMixIns());
         } catch (IOException ex) {
             String msg = "Could not read chunk file: " + i;
             log.error(msg);

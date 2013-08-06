@@ -1,19 +1,12 @@
 package dk.dbc.dataio.engine;
 
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Chunk {
     public static final int MAX_RECORDS_PER_CHUNK = 10;
-    private static final Logger log = LoggerFactory.getLogger(Chunk.class);
 
     private final List<String> records;
-
     private final long id;
     private final FlowInfo flowInfo;
 
@@ -48,10 +41,5 @@ public class Chunk {
 
     public List<String> getRecords() {
         return records;
-    }
-
-    @JsonCreator
-    public static Chunk createChunk(@JsonProperty("id") long id, @JsonProperty("flowInfo") FlowInfo flowInfo, @JsonProperty("records") List<String> records) {
-        return new Chunk(id, flowInfo, records);
     }
 }

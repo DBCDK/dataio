@@ -1,8 +1,6 @@
 package dk.dbc.dataio.engine;
 
 import java.util.List;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 public class FlowInfo {
     private final String name;
@@ -21,11 +19,6 @@ public class FlowInfo {
         return name;
     }
 
-    @JsonCreator
-    public static FlowInfo createFlowInfo(@JsonProperty("name") String name, @JsonProperty("components") List<Component> components) {
-        return new FlowInfo(name, components);
-    }
-    
     public static class Component {
         private final int id;
         private final String javascript;
@@ -43,13 +36,6 @@ public class FlowInfo {
 
         public String getInvocationMethod() {
             return invocationMethod;
-        }
-        
-        @JsonCreator
-        public static Component createComponent(@JsonProperty("id") int id,
-                @JsonProperty("javascript") String javascript,
-                @JsonProperty("invocationMethod") String invocationMethod) {
-            return new Component(id, javascript, invocationMethod);
         }
     }
 }

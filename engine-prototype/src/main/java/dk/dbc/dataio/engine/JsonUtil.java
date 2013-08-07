@@ -45,8 +45,10 @@ public class JsonUtil {
     public static Map<Class<?>, Class<?>> getMixIns() {
         if (mixIns == null) {
             mixIns = new HashMap<>();
-            mixIns.put(FlowInfo.class, FlowInfoJsonMixIn.class);
-            mixIns.put(FlowInfo.Component.class, FlowInfoJsonMixIn.ComponentJsonMixIn.class);
+            mixIns.put(Flow.class, FlowJsonMixIn.class);
+            mixIns.put(FlowContent.class, FlowContentJsonMixIn.class);
+            mixIns.put(FlowComponent.class, FlowComponentJsonMixIn.class);
+            mixIns.put(FlowComponentContent.class, FlowComponentContentJsonMixIn.class);
             mixIns.put(Chunk.class, ChunkJsonMixIn.class);
             mixIns.put(ProcessChunkResult.class, ProcessChunkResultJsonMixIn.class);
         }

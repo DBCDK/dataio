@@ -1,11 +1,19 @@
 package dk.dbc.dataio.engine;
 
+import java.io.Serializable;
 import java.util.List;
 
-class ProcessChunkResult {
+ /**
+ * ProcessChunkResult DTO class.
+ *
+ * In all essence objects of this class are immutable, but due to GWT serialization
+ * issues we cannot have final fields.
+ */
+class ProcessChunkResult implements Serializable {
+    private static final long serialVersionUID = -8494583387561924223L;
 
-    private final List<String> results;
-    private final long id;
+    private /* final */ List<String> results;
+    private /* final */ long id;
     
     ProcessChunkResult(long id, List<String> results) {
         this.id = id;
@@ -19,11 +27,4 @@ class ProcessChunkResult {
     public long getId() {
         return id;
     }
-
-    /*
-    @JsonCreator
-    public static ProcessChunkResult createProcessChunkResult(@JsonProperty("id") long id, @JsonProperty("records") List<String> results) {
-        return new ProcessChunkResult(id, results);
-    }
-    */
 }

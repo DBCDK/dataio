@@ -52,13 +52,15 @@
       <resource>
         <directory>src/main/java</directory>
         <includes>
-          <include>**/FlowInfo.java</include>
+          <include>**/Flow.java</include>
+          <include>**/FlowContent.java</include>
+          <include>**/FlowComponent.java</include>
+          <include>**/FlowComponentContent.java</include>
           <include>**/*.gwt.xml</include>
         </includes>
       </resource>
     </resources>
   </build>
-
 
   <dependencies>
     <dependency>

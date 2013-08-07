@@ -32,26 +32,26 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public Job createJob(Path dataObjectPath, FlowInfo flowInfo) throws JobStoreException {
+    public Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException {
         final long jobId = System.currentTimeMillis();
         final Path jobPath = getJobPath(jobId);
 
         log.info("Creating job in {}", jobPath);
         createDirectory(FileSystems.getDefault().getPath(storePath.toString(), Long.toString(jobId)));
 
-        storeFlowInfoInJob(jobPath, flowInfo);
+        storeFlowInfoInJob(jobPath, flow);
         createJobChunkCounterFile(jobId);
         
-        return new Job(jobId, dataObjectPath, flowInfo);
+        return new Job(jobId, dataObjectPath, flow);
     }
 
-    private void storeFlowInfoInJob(Path jobPath, FlowInfo flowInfo) {
-        final Path flowInfoPath =  FileSystems.getDefault().getPath(jobPath.toString(), "flowinfo.json");
-        log.info("Creating FlowInfo json-file: {}", flowInfoPath);
-        try(BufferedWriter bw = Files.newBufferedWriter(flowInfoPath, LOCAL_CHARSET)) {
-          bw.write(JsonUtil.toJson(flowInfo));
+    private void storeFlowInfoInJob(Path jobPath, Flow flow) {
+        final Path flowPath =  FileSystems.getDefault().getPath(jobPath.toString(), "flow.json");
+        log.info("Creating Flow json-file: {}", flowPath);
+        try(BufferedWriter bw = Files.newBufferedWriter(flowPath, LOCAL_CHARSET)) {
+          bw.write(JsonUtil.toJson(flow));
         } catch(IOException ex) {
-            log.warn("Exception caught when trying to write FlowInfo: {}", flowInfo.getName(), ex);
+            log.warn("Exception caught when trying to write Flow: {}", flow.getId(), ex);
         }
     }
     

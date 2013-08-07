@@ -7,5 +7,5 @@ import java.util.List;
 
 abstract class ChunkJsonMixIn {
     @JsonCreator
-    public ChunkJsonMixIn(@JsonProperty("id") long id, @JsonProperty("flowInfo") FlowInfo flowInfo, @JsonProperty("records") List<String> records) { }
+    public ChunkJsonMixIn(@JsonProperty("id") long id, @JsonProperty("flow") Flow flow, @JsonProperty("records") List<String> records) { }
 }

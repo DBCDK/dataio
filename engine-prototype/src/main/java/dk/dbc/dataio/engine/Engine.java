@@ -16,7 +16,7 @@ public class Engine {
     private static final Logger log = LoggerFactory.getLogger(Engine.class);
 
     public Job insertIntoJobStore(Path dataObjectPath, String flowInfoJson, JobStore jobStore) throws JobStoreException {
-        return jobStore.createJob(dataObjectPath, JsonUtil.fromJson(flowInfoJson, FlowInfo.class, JsonUtil.getMixIns()));
+        return jobStore.createJob(dataObjectPath, JsonUtil.fromJson(flowInfoJson, Flow.class, JsonUtil.getMixIns()));
     }
 
     public Job chunkify(Job job, JobStore jobStore) throws JobStoreException {
@@ -63,13 +63,13 @@ public class Engine {
         String line;
         long chunkId = 0;
         int counter = 0; 
-        Chunk chunk = new Chunk(chunkId, job.getFlowInfo());
+        Chunk chunk = new Chunk(chunkId, job.getFlow());
         while((line = br.readLine()) != null) {
             if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
                 chunk.addRecord(line);
             } else {
                 chunks.add(chunk);
-                chunk = new Chunk(++chunkId, job.getFlowInfo());
+                chunk = new Chunk(++chunkId, job.getFlow());
                 chunk.addRecord(line);
                 counter = 1;
             }
@@ -83,27 +83,27 @@ public class Engine {
 
     private ProcessChunkResult processChunk(Chunk chunk) {
         log.info("Processing chunk: {}", chunk.getId());
-        FlowInfo flowInfo = chunk.getFlowInfo();
+        Flow flow = chunk.getFlow();
         List<String> records = chunk.getRecords();
 
         List<String> results = new ArrayList<>();
         
         for(String record : records) {
-            String recordResult = processRecord(flowInfo, record);
+            String recordResult = processRecord(flow, record);
             results.add(recordResult);
         }
 
         return new ProcessChunkResult(chunk.getId(), results);
     }
     
-    private String processRecord(FlowInfo flowInfo, String record) {
+    private String processRecord(Flow flow, String record) {
         log.info("Record: {}", record);
-        return javascriptRecordHandler(flowInfo, record);
+        return javascriptRecordHandler(flow, record);
     }
 
-    private String javascriptRecordHandler(FlowInfo flowInfo, String record) {
-        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(flowInfo.getComponents().get(0).getJavascript());
-        Object res = scriptWrapper.callMethod(flowInfo.getComponents().get(0).getInvocationMethod(), new Object[]{record});
+    private String javascriptRecordHandler(Flow flow, String record) {
+        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(flow.getContent().getComponents().get(0).getContent().getJavascript());
+        Object res = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record});
         return (String)res;
     }
 }

@@ -3,7 +3,7 @@ package dk.dbc.dataio.engine;
 import java.nio.file.Path;
 
 interface JobStore {
-    Job createJob(Path dataObjectPath, FlowInfo flowInfo) throws JobStoreException;
+    Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException;
     
     void addChunk(Job job, Chunk chunk) throws JobStoreException;
 

@@ -1,24 +1,35 @@
 package dk.dbc.dataio.engine;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 
-public class Job {
-    private final long id;
-    private final Path originalDataPath;
-    private final FlowInfo flowInfo;
+/**
+ * Job DTO class.
+ *
+ * In all essence objects of this class are immutable, but due to GWT serialization
+ * issues we cannot have final fields.
+ *
+ * ToDo: Needs to be refactored if to be used directly in GWT GUI since we cannot use the Java7 Path construct.
+ */
+public class Job implements Serializable {
+    private static final long serialVersionUID = 592111006810833332L;
 
-    public Job(long id, Path originalDataPath, FlowInfo flowInfo) {
+    private /* final */ long id;
+    private /* final */ Path originalDataPath;
+    private /* final */ Flow flow;
+
+    public Job(long id, Path originalDataPath, Flow flow) {
         this.id = id;
         this.originalDataPath = originalDataPath;
-        this.flowInfo = flowInfo;
+        this.flow = flow;
     }
 
     public long getId() {
         return id;
     }
 
-    public FlowInfo getFlowInfo() {
-        return flowInfo;
+    public Flow getFlow() {
+        return flow;
     }
 
     public Path getOriginalDataPath() {

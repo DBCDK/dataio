@@ -3,12 +3,12 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
-import dk.dbc.dataio.gui.client.model.FlowData;
+import dk.dbc.dataio.engine.FlowContent;
 
 @RemoteServiceRelativePath("FlowStoreProxy")
 public interface FlowStoreProxy extends RemoteService {
 
-    void createFlow(FlowData flowData) throws NullPointerException, IllegalStateException;
+    void createFlow(FlowContent flowContent) throws NullPointerException, IllegalStateException;
 
     public static class Factory {
 

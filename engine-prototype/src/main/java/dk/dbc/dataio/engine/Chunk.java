@@ -8,7 +8,7 @@ import java.util.List;
  * Chunk DTO class.
  *
  * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields.
+ * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class Chunk implements Serializable {
     public static final int MAX_RECORDS_PER_CHUNK = 10;
@@ -17,6 +17,8 @@ public class Chunk implements Serializable {
     private /* final */ List<String> records;
     private /* final */ long id;
     private /* final */ Flow flow;
+
+    private Chunk() { }
 
     public Chunk(long id, Flow flow) {
         this(id, flow, new ArrayList<String>(MAX_RECORDS_PER_CHUNK));

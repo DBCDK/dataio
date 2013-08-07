@@ -6,13 +6,15 @@ import java.io.Serializable;
  * Flow DTO class.
  *
  * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields.
+ * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class Flow implements Serializable {
     private static final long serialVersionUID = -8809513217759455225L;
 
     private /* final */ long id;
     private /* final */ FlowContent content;
+
+    private Flow() { }
 
     public Flow(long id, FlowContent content) {
         this.id = id;

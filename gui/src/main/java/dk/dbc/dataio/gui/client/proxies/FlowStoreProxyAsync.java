@@ -1,9 +1,8 @@
 package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import dk.dbc.dataio.gui.client.model.FlowData;
+import dk.dbc.dataio.engine.FlowContent;
 
 public interface FlowStoreProxyAsync {
-
-    public void createFlow(FlowData flowData, AsyncCallback<Void> callback);
+    void createFlow(FlowContent flowContent, AsyncCallback<Void> callback);
 }

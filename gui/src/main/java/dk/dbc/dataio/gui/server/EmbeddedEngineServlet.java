@@ -32,8 +32,12 @@ public class EmbeddedEngineServlet extends RemoteServiceServlet implements Embed
 
     @Override
     public void executeJob(String dataPath, String flow) throws Exception {
+        flow = "{\"id\": \"0\", \"content\": {\"name\":\"unknown\", \"description\":\"Beskrivelse\", \"components\" : [ {\"id\" : \"0\", \"content\" : {\"javascript\": \"function convertToUpperCase(record) { return record.toUpperCase(); }\", \"invocationMethod\" : \"convertToUpperCase\"} } ] } }";
+        
         final Engine engine = new Engine();
         try {
+            log.info("dataPath: " + dataPath);
+            log.info("flow    : " + flow);
             final Job job = engine.insertIntoJobStore(FileSystems.getDefault().getPath(dataPath), flow, jobStore);
             engine.chunkify(job, jobStore);
             engine.process(job, jobStore);

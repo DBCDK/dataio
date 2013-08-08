@@ -14,7 +14,7 @@
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>EmbeddedEngine</servlet-name>
-    <url-pattern>/dk.dbc.dataio.gui.Main/EmbeddedEngine</url-pattern>
+    <url-pattern>/dk.dbc.dataio.gui.Engine/EmbeddedEngine</url-pattern>
   </servlet-mapping>
   <session-config>
         <session-timeout>

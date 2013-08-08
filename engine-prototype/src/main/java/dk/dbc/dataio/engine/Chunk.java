@@ -25,12 +25,12 @@ public class Chunk implements Serializable {
     }
 
     Chunk(long id, Flow flow, List<String> records) {
-        if (records.size() > MAX_RECORDS_PER_CHUNK) {
-            throw new IllegalArgumentException("Number of records exceeds MAX_RECORDS_PER_CHUNK");
-        }
         this.id = id;
         this.flow = flow;
         this.records = records;
+        if (this.records.size() > MAX_RECORDS_PER_CHUNK) {
+            throw new IllegalArgumentException("Number of records exceeds MAX_RECORDS_PER_CHUNK");
+        }
     }
     
     void addRecord(String record) {

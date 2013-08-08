@@ -1,6 +1,7 @@
 package dk.dbc.dataio.engine;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
  /**
@@ -19,7 +20,7 @@ class ProcessChunkResult implements Serializable {
     
     ProcessChunkResult(long id, List<String> results) {
         this.id = id;
-        this.results = results;
+        this.results = ModelUtil.asUnmodifiableList(new ArrayList<String>(results));
     }
 
     public List<String> getResults() {

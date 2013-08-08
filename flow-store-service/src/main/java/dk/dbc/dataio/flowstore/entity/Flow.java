@@ -25,7 +25,7 @@ public class Flow {
     private Long id;
 
     @Column(columnDefinition = "TEXT NOT NULL")
-    private String data;
+    private String content;
 
     @Column(name = "name_idx", columnDefinition = "TEXT NOT NULL UNIQUE")
     private String nameIndexValue;
@@ -35,23 +35,23 @@ public class Flow {
     }
 
     @JsonRawValue
-    public String getData() {
-        return data;
+    public String getContent() {
+        return content;
     }
 
     /**
      * Sets data content as JSON string while extracting special
      * index values
      *
-     * @param data flow data as JSON string
+     * @param content flow data as JSON string
      *
      * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
      *                       JSON string, or if JSON object does not contain 'name'
      *                       member with non-empty text value
      */
-    public void setData(String data) throws JsonException {
-        extractIndexValuesFromData(data);
-        this.data = data;
+    public void setContent(String content) throws JsonException {
+        extractIndexValuesFromData(content);
+        this.content = content;
     }
 
     String getNameIndexValue() {
@@ -60,6 +60,6 @@ public class Flow {
 
     private void extractIndexValuesFromData(String flowData) throws JsonException {
         final JsonNode json = JsonUtil.getJsonRoot(flowData);
-        nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "flow.name");
+        nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "flow.content.name");
     }
 }

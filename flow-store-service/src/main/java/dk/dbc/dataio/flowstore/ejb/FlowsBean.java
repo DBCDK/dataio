@@ -65,7 +65,7 @@ public class FlowsBean {
      * Creates new flow with data POST'ed as JSON and persists it in the
      * underlying data store
      *
-     * @param flowData flow data as JSON string
+     * @param flowContent flow data as JSON string
      *
      * @return a HTTP 201 response with a Location header containing the
      * URL value of the newly created resource
@@ -76,11 +76,11 @@ public class FlowsBean {
      */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response createFlow(String flowData) throws JsonException {
-        log.trace("Called with: '{}'", flowData);
+    public Response createFlow(String flowContent) throws JsonException {
+        log.trace("Called with: '{}'", flowContent);
 
-        Flow flow = new Flow();
-        flow.setData(flowData);
+        final Flow flow = new Flow();
+        flow.setContent(flowContent);
         entityManager.persist(flow);
         entityManager.flush();
 

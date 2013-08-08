@@ -1,6 +1,7 @@
 package dk.dbc.dataio.engine;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,7 +22,10 @@ public class FlowContent implements Serializable {
     public FlowContent(String name, String description, List<FlowComponent> components) {
         this.name = name;
         this.description = description;
-        this.components = components;
+        // We're not making a deep-copy here, but since FlowComponent is immutable
+        // (or as near as) this should be sufficient to ensure immutability of this
+        // class.
+        this.components = ModelUtil.asUnmodifiableList(new ArrayList<FlowComponent>(components));
     }
 
     public List<FlowComponent> getComponents() {

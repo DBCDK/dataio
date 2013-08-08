@@ -4,9 +4,17 @@
     <servlet-name>FlowStoreProxyServlet</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.FlowStoreProxyServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>EmbeddedEngine</servlet-name>
+    <servlet-class>dk.dbc.dataio.gui.server.EmbeddedEngineServlet</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>FlowStoreProxyServlet</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/FlowStoreProxy</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>EmbeddedEngine</servlet-name>
+    <url-pattern>/dk.dbc.dataio.gui.Main/EmbeddedEngine</url-pattern>
   </servlet-mapping>
   <session-config>
         <session-timeout>

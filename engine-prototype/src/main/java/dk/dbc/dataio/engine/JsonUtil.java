@@ -11,7 +11,15 @@ import java.util.Map;
 
 public class JsonUtil {
     private static final Logger log = LoggerFactory.getLogger(JsonUtil.class);
-    private static Map<Class<?>, Class<?>> mixIns = null;
+    private static Map<Class<?>, Class<?>> mixIns = new HashMap<>();
+    static {
+        mixIns.put(Flow.class, FlowJsonMixIn.class);
+        mixIns.put(FlowContent.class, FlowContentJsonMixIn.class);
+        mixIns.put(FlowComponent.class, FlowComponentJsonMixIn.class);
+        mixIns.put(FlowComponentContent.class, FlowComponentContentJsonMixIn.class);
+        mixIns.put(Chunk.class, ChunkJsonMixIn.class);
+        mixIns.put(ProcessChunkResult.class, ProcessChunkResultJsonMixIn.class);
+    }
 
     private JsonUtil() { }
 
@@ -43,15 +51,6 @@ public class JsonUtil {
     }
 
     public static Map<Class<?>, Class<?>> getMixIns() {
-        if (mixIns == null) {
-            mixIns = new HashMap<>();
-            mixIns.put(Flow.class, FlowJsonMixIn.class);
-            mixIns.put(FlowContent.class, FlowContentJsonMixIn.class);
-            mixIns.put(FlowComponent.class, FlowComponentJsonMixIn.class);
-            mixIns.put(FlowComponentContent.class, FlowComponentContentJsonMixIn.class);
-            mixIns.put(Chunk.class, ChunkJsonMixIn.class);
-            mixIns.put(ProcessChunkResult.class, ProcessChunkResultJsonMixIn.class);
-        }
         return mixIns;
     }
 }

@@ -26,6 +26,8 @@ public class FlowStoreApplication extends Application {
         return classes;
     }
 
+    // Hardening: JAX-RS/Jackson integration stopped working during glassfish3 to glassfish4 migration.
+    /*
     @Override
     public Set<Object> getSingletons() {
         HashSet<Object> singletons = new HashSet<>();
@@ -33,4 +35,5 @@ public class FlowStoreApplication extends Application {
         singletons.add(new org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider());
         return singletons;
     }
+    */
 }

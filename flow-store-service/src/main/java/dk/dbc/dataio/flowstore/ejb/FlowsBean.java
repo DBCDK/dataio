@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.util.json.JsonException;
+import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +56,9 @@ public class FlowsBean {
     @GET
     @Path("/{id}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Flow getFlow(@PathParam("id") Long id) {
-        return entityManager.getReference(Flow.class, id);
+    public String getFlow(@PathParam("id") Long id) throws JsonException {
+        final Flow flow = entityManager.find(Flow.class, id);
+        return JsonUtil.toJson(flow);
     }
 
     /**

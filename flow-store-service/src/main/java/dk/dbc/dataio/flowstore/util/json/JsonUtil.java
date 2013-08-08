@@ -4,6 +4,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.io.StringWriter;
 
 /**
  * This utility class provides convenience methods for JSON document handling.
@@ -59,5 +60,16 @@ public class JsonUtil {
             throw new JsonException(String.format("%s - member value was empty", message));
         }
         return value;
+    }
+
+    public static String toJson(Object object) throws JsonException {
+        final StringWriter stringWriter = new StringWriter();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(stringWriter, object);
+        } catch (IOException e) {
+            throw new JsonException(String.format("Exception caught when trying to marshall %s object to JSON", object.getClass().getName()), e);
+        }
+        return stringWriter.toString();
     }
 }

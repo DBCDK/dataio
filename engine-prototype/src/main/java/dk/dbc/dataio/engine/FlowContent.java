@@ -25,7 +25,11 @@ public class FlowContent implements Serializable {
         // We're not making a deep-copy here, but since FlowComponent is immutable
         // (or as near as) this should be sufficient to ensure immutability of this
         // class.
-        this.components = ModelUtil.asUnmodifiableList(new ArrayList<FlowComponent>(components));
+        if (components != null) {
+            this.components = ModelUtil.asUnmodifiableList(new ArrayList<FlowComponent>(components));
+        } else {
+            this.components = null;
+        }
     }
 
     public List<FlowComponent> getComponents() {

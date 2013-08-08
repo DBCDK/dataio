@@ -5,6 +5,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class FlowContentJsonMixIn {
     @JsonCreator
     public FlowContentJsonMixIn(@JsonProperty("name") String name,

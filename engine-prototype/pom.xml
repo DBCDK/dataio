@@ -57,6 +57,7 @@
           <include>**/FlowComponent.java</include>
           <include>**/FlowComponentContent.java</include>
           <include>**/ModelUtil.java</include>
+          <include>**/JavaScript.java</include>
           <include>**/*.gwt.xml</include>
         </includes>
       </resource>

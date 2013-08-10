@@ -4,6 +4,7 @@
     <include name="**/FlowContent.java"/>
     <include name="**/FlowComponent.java"/>
     <include name="**/FlowComponentContent.java"/>
+    <include name="**/JavaScript.java"/>
     <include name="**/ModelUtil.java"/>
   </source>
 </module>

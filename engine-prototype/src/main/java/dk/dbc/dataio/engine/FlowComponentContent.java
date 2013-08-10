@@ -1,6 +1,7 @@
 package dk.dbc.dataio.engine;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * FlowComponentContent DTO class.
@@ -11,13 +12,13 @@ import java.io.Serializable;
 public class FlowComponentContent implements Serializable {
     private static final long serialVersionUID = -290854497828809813L;
 
-    private /* final */ String javascript;
+    private /* final */ List<JavaScript> javascripts;
     private /* final */ String invocationMethod;
 
     private FlowComponentContent() { }
 
-    public FlowComponentContent(String javascript, String invocationMethod) {
-        this.javascript = javascript;
+    public FlowComponentContent(List<JavaScript> javascripts, String invocationMethod) {
+        this.javascripts = javascripts;
         this.invocationMethod = invocationMethod;
     }
 
@@ -25,7 +26,7 @@ public class FlowComponentContent implements Serializable {
         return invocationMethod;
     }
 
-    public String getJavascript() {
-        return javascript;
+    public List<JavaScript> getJavascripts() {
+        return javascripts;
     }
 }

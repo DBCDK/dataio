@@ -10,6 +10,7 @@ public class JSWrapperSingleScript {
 
     public JSWrapperSingleScript(String jsScript) {
 
+        
         ModuleHandler mh = new ModuleHandler();
         FileSchemeHandler fsh = new FileSchemeHandler(".");
         mh.registerHandler("file", fsh);

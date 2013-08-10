@@ -19,6 +19,7 @@ public class JsonUtil {
         mixIns.put(FlowComponentContent.class, FlowComponentContentJsonMixIn.class);
         mixIns.put(Chunk.class, ChunkJsonMixIn.class);
         mixIns.put(ProcessChunkResult.class, ProcessChunkResultJsonMixIn.class);
+        mixIns.put(JavaScript.class, JavaScriptJsonMixIn.class);
     }
 
     private JsonUtil() { }

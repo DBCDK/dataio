@@ -5,7 +5,7 @@ import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
- * This class is a companion to the FlowComponentContent DTO class.
+ * This class is a companion to the JavaScript DTO class.
  *
  * Think of this as a way to keep the DTO class "jackson-free" by mixing in annotations
  * to the DTO class during runtime.
@@ -13,11 +13,11 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * Method implementations of a MixIn class are ignored.
  */
 @SuppressWarnings("unused")
-public class FlowComponentContentJsonMixIn {
+public class JavaScriptJsonMixIn {
     /**
-     * Makes jackson runtime aware of non-default FlowComponentContent constructor.
+     * Makes jackson runtime aware of non-default JavaScript constructor.
      */
     @JsonCreator
-    public FlowComponentContentJsonMixIn(@JsonProperty("javascripts") List<JavaScript> javascripts,
-                                         @JsonProperty("invocationMethod") String invocationMethod) { }
+    public JavaScriptJsonMixIn(@JsonProperty("javascript") String javascript,
+                               @JsonProperty("moduleName") String moduleName) { }
 }

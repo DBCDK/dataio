@@ -3,13 +3,10 @@ package dk.dbc.dataio.flowstore.entity;
 import dk.dbc.dataio.flowstore.util.json.JsonException;
 import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.annotate.JsonRawValue;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 
 /**
@@ -19,46 +16,17 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "flows")
-public class Flow {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    @Column(columnDefinition = "TEXT NOT NULL")
-    private String content;
-
-    @Column(name = "name_idx", columnDefinition = "TEXT NOT NULL UNIQUE")
+public class Flow extends dk.dbc.dataio.flowstore.entity.Entity {
+    @Lob
+    @Column(name = "name_idx", nullable = false)
     private String nameIndexValue;
-
-    public Long getId() {
-        return id;
-    }
-
-    @JsonRawValue
-    public String getContent() {
-        return content;
-    }
-
-    /**
-     * Sets data content as JSON string while extracting special
-     * index values
-     *
-     * @param content flow data as JSON string
-     *
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
-     *                       JSON string, or if JSON object does not contain 'name'
-     *                       member with non-empty text value
-     */
-    public void setContent(String content) throws JsonException {
-        extractIndexValuesFromData(content);
-        this.content = content;
-    }
 
     String getNameIndexValue() {
         return nameIndexValue;
     }
 
-    private void extractIndexValuesFromData(String flowData) throws JsonException {
+    @Override
+    protected void extractIndexValuesFromContent(String flowData) throws JsonException {
         final JsonNode json = JsonUtil.getJsonRoot(flowData);
         nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "flow.content.name");
     }

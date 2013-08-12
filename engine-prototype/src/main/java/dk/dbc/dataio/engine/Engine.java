@@ -108,9 +108,12 @@ public class Engine {
     }
 
     private String javascriptRecordHandler(Flow flow, String record) {
-        String javascriptBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts().get(0).getJavascript();
-        String javascript = base64decode(javascriptBase64);
-        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javascript);
+        List<JavaScript> javascriptsBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts();
+        List<StringSourceSchemeHandler.Script> javascripts = new ArrayList<>();
+        for(JavaScript javascriptBase64 : javascriptsBase64) {
+            javascripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), base64decode(javascriptBase64.getJavascript())));
+        }
+        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javascripts);
         Object res = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record});
         return (String)res;
     }

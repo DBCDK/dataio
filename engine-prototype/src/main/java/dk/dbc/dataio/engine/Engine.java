@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
+
 public class Engine {
 
     private static final Logger log = LoggerFactory.getLogger(Engine.class);
@@ -65,12 +67,15 @@ public class Engine {
         int counter = 0; 
         Chunk chunk = new Chunk(chunkId, job.getFlow());
         while((line = br.readLine()) != null) {
+            log.info("======> Before [" + line + "]");
+            String base64line = base64encode(line);
+            log.info("======> After  [" + base64line + "]");
             if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
-                chunk.addRecord(line);
+                chunk.addRecord(base64line);
             } else {
                 chunks.add(chunk);
                 chunk = new Chunk(++chunkId, job.getFlow());
-                chunk.addRecord(line);
+                chunk.addRecord(base64line);
                 counter = 1;
             }
         }
@@ -89,8 +94,9 @@ public class Engine {
         List<String> results = new ArrayList<>();
         
         for(String record : records) {
-            String recordResult = processRecord(flow, record);
-            results.add(recordResult);
+            String recordResult = processRecord(flow, base64decode(record));
+            String recordResultBase64 = base64encode(recordResult);
+            results.add(recordResultBase64);
         }
 
         return new ProcessChunkResult(chunk.getId(), results);
@@ -106,4 +112,14 @@ public class Engine {
         Object res = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record});
         return (String)res;
     }
+    
+    
+    public static String base64encode(String dataToEncode) {
+        return Base64.encodeBase64String(dataToEncode.getBytes());
+    }
+
+    public static String base64decode(String dataToDecode) {
+        return new String(Base64.decodeBase64(dataToDecode));
+    }
+
 }

@@ -46,7 +46,7 @@ public class Entity {
     }
 
     public Date getVersion() {
-        return version;
+        return new Date(version.getTime());
     }
 
     @JsonRawValue

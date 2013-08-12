@@ -6,12 +6,12 @@ import java.util.Date;
  * Representation of Entity composite key (id, version)
  */
 public class EntityPrimaryKey {
-    private Long id;
-    private Date version;
+    private final Long id;
+    private final Date version;
 
     public EntityPrimaryKey(Long id, Date version) {
         this.id = id;
-        this.version = version;
+        this.version = new Date(version.getTime());
     }
 
     public Long getId() {
@@ -19,7 +19,7 @@ public class EntityPrimaryKey {
     }
 
     public Date getVersion() {
-        return version;
+        return new Date(version.getTime());
     }
 
     @Override

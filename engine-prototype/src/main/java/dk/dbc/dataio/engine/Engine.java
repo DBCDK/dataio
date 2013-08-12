@@ -108,7 +108,9 @@ public class Engine {
     }
 
     private String javascriptRecordHandler(Flow flow, String record) {
-        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(flow.getContent().getComponents().get(0).getContent().getJavascripts().get(0).getJavascript());
+        String javascriptBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts().get(0).getJavascript();
+        String javascript = base64decode(javascriptBase64);
+        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javascript);
         Object res = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record});
         return (String)res;
     }

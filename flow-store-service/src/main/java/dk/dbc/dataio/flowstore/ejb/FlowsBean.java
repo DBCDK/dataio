@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.flowstore.entity.Flow;
+import dk.dbc.dataio.flowstore.entity.*;
+import dk.dbc.dataio.flowstore.entity.Error;
 import dk.dbc.dataio.flowstore.util.json.JsonException;
 import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Date;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -32,33 +34,25 @@ public class FlowsBean {
     private EntityManager entityManager;
 
     /**
-     * GET method simply returning a plain test. Direct browser to
-     * http://localhost:port/flow-store/flows to test.
-     * This method exists for debug means only and will be removed in
-     * the near future.
-     * @return test string
-     */
-    /*
-    @GET
-    @Produces({MediaType.TEXT_PLAIN})
-    public String getText() {
-        return "a very testable value";
-    }
-    */
-
-    /**
      * Retrieves flow from underlying data store
      *
      * @param id flow identifier
+     * @param version flow version
      *
-     * @return a HTTP 200 response with flow content as JSON
+     * @return a HTTP 200 response with flow content as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
      */
     @GET
-    @Path("/{id}")
+    @Path("/{id}/{version}")
     @Produces({MediaType.APPLICATION_JSON})
-    public String getFlow(@PathParam("id") Long id) throws JsonException {
-        final Flow flow = entityManager.find(Flow.class, id);
-        return JsonUtil.toJson(flow);
+    public Response getFlow(@PathParam("id") Long id, @PathParam("version") Long version) throws JsonException {
+        EntityPrimaryKey pk = new EntityPrimaryKey(id, new Date(version));
+        final Flow flow = entityManager.find(Flow.class, pk);
+        if (flow == null) {
+            return buildResponse(Response.Status.NOT_FOUND, JsonUtil.toJson(new Error("not found")));
+        }
+        return buildResponse(Response.Status.OK, JsonUtil.toJson(flow));
     }
 
     /**
@@ -84,6 +78,11 @@ public class FlowsBean {
         entityManager.persist(flow);
         entityManager.flush();
 
-        return Response.created(URI.create("/" + flow.getId())).build();
+        return Response.created(URI.create(String.format("/%s/%d",
+                flow.getId(), flow.getVersion().getTime()))).build();
+    }
+
+    private static <T> Response buildResponse(Response.Status status, T entity) {
+        return Response.status(status).entity(entity).build();
     }
 }

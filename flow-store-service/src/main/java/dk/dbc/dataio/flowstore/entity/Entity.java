@@ -7,8 +7,13 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import java.util.Date;
 
 /**
  * Base class for flow store entities where id is auto
@@ -16,22 +21,42 @@ import javax.persistence.MappedSuperclass;
  * given as JSON string
  */
 @MappedSuperclass
+@IdClass(EntityPrimaryKey.class)
 public class Entity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    // Hardening: Is it problematic that we use a timestamp as version? It opens up a small window (millisecond granularity) for clashes during insert.
+    @Id
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
+    private Date version;
+
     @Lob
     @Column(nullable = false)
     private String content;
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Long getId() {
         return id;
     }
 
+    public Date getVersion() {
+        return version;
+    }
+
     @JsonRawValue
     public String getContent() {
         return content;
+    }
+
+    @PrePersist
+    private void onCreate() {
+        version = new Date();
     }
 
     /**

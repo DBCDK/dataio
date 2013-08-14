@@ -21,9 +21,10 @@ public class FlowStoreApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         final Set<Class<?>> classes = new HashSet<>();
-        for (Class clazz : new Class[] {FlowsBean.class, FlowComponentsBean.class} ) {
-            log.debug("Registering {} resource", clazz.getName());
-            classes.add(clazz);
+        classes.add(FlowsBean.class);
+        classes.add(FlowComponentsBean.class);
+        for (Class<?> clazz : classes) {
+            log.debug("Registered {} resource", clazz.getName());
         }
         classes.add(PersistenceExceptionMapper.class);
         return classes;

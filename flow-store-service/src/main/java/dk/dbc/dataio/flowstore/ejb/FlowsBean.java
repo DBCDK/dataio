@@ -1,7 +1,8 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.flowstore.entity.*;
+import dk.dbc.dataio.flowstore.entity.EntityPrimaryKey;
 import dk.dbc.dataio.flowstore.entity.Error;
+import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.util.json.JsonException;
 import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.slf4j.Logger;
@@ -16,8 +17,10 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Date;
 
@@ -69,8 +72,8 @@ public class FlowsBean {
      *                       members
      */
     @POST
-    @Consumes({MediaType.APPLICATION_JSON})
-    public Response createFlow(String flowContent) throws JsonException {
+    @Consumes({ MediaType.APPLICATION_JSON })
+    public Response createFlow(@Context UriInfo uriInfo, String flowContent) throws JsonException {
         log.trace("Called with: '{}'", flowContent);
 
         final Flow flow = new Flow();
@@ -78,8 +81,11 @@ public class FlowsBean {
         entityManager.persist(flow);
         entityManager.flush();
 
-        return Response.created(URI.create(String.format("/%s/%d",
-                flow.getId(), flow.getVersion().getTime()))).build();
+        final URI createdUri =  uriInfo.getAbsolutePathBuilder()
+                .path(String.valueOf(flow.getId()))
+                .path(String.valueOf(flow.getVersion().getTime()))
+                .build();
+        return Response.created(createdUri).build();
     }
 
     private static <T> Response buildResponse(Response.Status status, T entity) {

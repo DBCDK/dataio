@@ -18,6 +18,8 @@
     <module>gui-selenium</module>
   </modules>
 
+  <!-- Hardening: how do we get random ports for integration tests - embedded glassfish does not work with different ports across reactor modules -->
+
   <properties>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <glassfish.port>42001</glassfish.port>

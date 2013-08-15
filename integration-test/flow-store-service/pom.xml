@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>dataio-integration-test</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dataio-integration-test-flow-store-service</artifactId>
+  <name>dataio-integration-test-flow-store-service</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-integrationtest-resources</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/integrationtest-resources</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/../gui-selenium/src/test/resources</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.edugility</groupId>
+        <artifactId>h2-maven-plugin</artifactId>
+        <version>1.0</version>
+        <configuration>
+          <port>${h2.port}</port>
+        </configuration>
+        <executions>
+          <execution>
+            <id>h2-start</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>spawn</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>h2-stop</id>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.glassfish.embedded</groupId>
+        <artifactId>maven-embedded-glassfish-plugin</artifactId>
+        <version>${glassfish.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.1-901.jdbc4</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <app>${project.build.directory}/${project.build.finalName}</app>
+          <autoDelete>true</autoDelete>
+          <contextRoot>${project.name}</contextRoot>
+          <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
+        </configuration>
+
+        <executions>
+          <execution>
+            <id>start-glassfish</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flowstore-deploy</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>deploy</goal>
+            </goals>
+            <configuration>
+              <app>${basedir}/../../flow-store-service/target/dataio-flow-store-service-${version}.war</app>
+              <contextRoot>flow-store</contextRoot>
+              <name>flowstore</name>
+            </configuration>
+          </execution>
+          <execution>
+            <id>stop-glassfish</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <!-- Integrationtest plugin - just like the surefire plugin,
+        but this plugin handles other test files (typically
+        testfiles containing IT) -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.13</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <id>integration-test</id>
+          </execution>
+        </executions>
+        <configuration>
+          <systemPropertyVariables>
+            <glassfish.port>${glassfish.port}</glassfish.port>
+            <h2.port>${h2.port}</h2.port>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

@@ -14,11 +14,14 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>flow-store-service</module>
     <module>gui-selenium</module>
   </modules>
 
   <properties>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <glassfish.port>42001</glassfish.port>
+    <h2.port>42002</h2.port>
   </properties>
 
 </project>

@@ -97,9 +97,9 @@
       </activation>
       <build>
         <plugins>
+
+          <!--
           <plugin>
-            <!-- Helper plugin for reserving an unused random port for the glassfish
-            server for the selenium tests -->
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
             <version>1.7</version>
@@ -119,6 +119,8 @@
               </execution>
             </executions>
           </plugin>
+          -->
+
           <plugin>
             <groupId>org.glassfish.embedded</groupId>
             <artifactId>maven-embedded-glassfish-plugin</artifactId>

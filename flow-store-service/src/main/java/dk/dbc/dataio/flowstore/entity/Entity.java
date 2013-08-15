@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.flowstore.util.json.JsonException;
+import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.codehaus.jackson.annotate.JsonRawValue;
 
 import javax.persistence.Column;
@@ -60,26 +61,27 @@ public class Entity {
     }
 
     /**
-     * Sets data content as JSON string while extracting special
-     * index values
+     * Sets entity data content as JSON string doing any necessary pre-processing
+     * of the data
      *
-     * @param content flow data as JSON string
+     * @param content entity data as JSON string
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
-     *                       JSON string, or if JSON object does not contain 'name'
-     *                       member with non-empty text value
+     * @throws JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
      */
     public void setContent(String content) throws JsonException {
-        extractIndexValuesFromContent(content);
+        preProcessContent(content);
         this.content = content;
     }
 
     /**
-     * Extracts necessary index values from given data
+     * Performs any necessary pre-processing of given data. Can for example
+     * be specialized in sub class to do index value extraction.
      *
      * @param data entity content
      *
-     * @throws JsonException on failure to extract value from json data
+     * @throws JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
      */
-    protected void extractIndexValuesFromContent(String data) throws JsonException { }
+    protected void preProcessContent(String data) throws JsonException {
+        JsonUtil.getJsonRoot(data);
+    }
 }

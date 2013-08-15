@@ -26,7 +26,7 @@ public class Flow extends dk.dbc.dataio.flowstore.entity.Entity {
     }
 
     @Override
-    protected void extractIndexValuesFromContent(String flowData) throws JsonException {
+    protected void preProcessContent(String flowData) throws JsonException {
         final JsonNode json = JsonUtil.getJsonRoot(flowData);
         nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "flow.content.name");
     }

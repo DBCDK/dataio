@@ -1,9 +1,14 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FileUpload;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
@@ -12,21 +17,56 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class FlowComponentCreateViewImpl extends FormPanel implements FlowComponentCreateView {
 
+    // public Identifiers
     public static final String CONTEXT_HEADER = "Flow Komponent - opsætning";
     public static final String GUIID_FLOW_COMPONENT_CREATION_WIDGET = "flowcomponentcreationwidget";
     public static final String GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX = "flowcomponentcreationnametextbox";
     public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX = "flowcomponentcreationinvocationmethodtextbox";
-
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL = "flowcomponentcreationsaveresultlabel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON = "flowcomponentcreationsavebutton";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD = "flowcomponentcreationjavascriptfileupload";
+    public static final String FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
+    // private objects
     private FlowComponentCreatePresenter presenter;
     private VerticalPanel localPanel = new VerticalPanel();
     private FlowComponentNamePanel flowComponentNamePanel = new FlowComponentNamePanel();
+    private FlowComponentJavaScriptUploadPanel flowComponentJavaScriptUploadPanel = new FlowComponentJavaScriptUploadPanel();
     private FlowComponentInvocationMethodPanel flowComponentInvocationMethodPanel = new FlowComponentInvocationMethodPanel();
-    
+    private FlowComponentSavePanel flowComponentSavePanel = new FlowComponentSavePanel();
+
     public FlowComponentCreateViewImpl() {
+        super();
+
         getElement().setId(GUIID_FLOW_COMPONENT_CREATION_WIDGET);
-        add(localPanel);
+        setWidget(localPanel);
         localPanel.add(flowComponentNamePanel);
+        localPanel.add(flowComponentJavaScriptUploadPanel);
         localPanel.add(flowComponentInvocationMethodPanel);
+        localPanel.add(flowComponentSavePanel);
+
+        setAction(GWT.getModuleBaseURL() + "JavascriptUpload");
+        // Because we're going to add a FileUpload widget, we'll need to set the
+        // form to use the POST method, and multipart MIME encoding.
+        setEncoding(FormPanel.ENCODING_MULTIPART);
+        setMethod(FormPanel.METHOD_POST);
+
+        addSubmitHandler(new FormPanel.SubmitHandler() {
+            public void onSubmit(SubmitEvent event) {
+                // This event is fired just before the form is submitted. We can
+                // take this opportunity to perform validation.
+                flowComponentSavePanel.setStatusText("Processing...");
+            }
+        });
+
+        addSubmitCompleteHandler(new FormPanel.SubmitCompleteHandler() {
+            public void onSubmitComplete(SubmitCompleteEvent event) {
+                // When the form submission is successfully completed, this
+                // event is fired.
+                flowComponentSavePanel.setStatusText("Done");
+            }
+        });
+
+
     }
 
     @Override
@@ -58,11 +98,31 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             add(label);
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
+            textBox.setName("javascriptcomponentname");
             add(textBox);
         }
 
         public String getText() {
             return textBox.getValue();
+        }
+    }
+
+    private class FlowComponentJavaScriptUploadPanel extends HorizontalPanel {
+
+        private final Label label = new Label("Javascript");
+        private final String formFieldJavascriptFile = "javascriptfilename";
+        private final FileUpload fileUpload = new FileUpload();
+
+        public FlowComponentJavaScriptUploadPanel() {
+            super();
+            add(label);
+            fileUpload.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD);
+            fileUpload.setName(formFieldJavascriptFile);
+            add(fileUpload);
+        }
+
+        public String getFilename() {
+            return fileUpload.getFilename();
         }
     }
 
@@ -76,11 +136,55 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             add(label);
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
+            textBox.setName("javascriptinvocationmethod");
             add(textBox);
         }
 
         public String getText() {
             return textBox.getValue();
+        }
+    }
+
+    private class FlowComponentSavePanel extends HorizontalPanel {
+
+        private final Button flowComponentSaveButton = new Button("Gem");
+        private final Label flowComponentSaveResultLabel = new Label("");
+
+        public FlowComponentSavePanel() {
+            flowComponentSaveResultLabel.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
+            add(flowComponentSaveResultLabel);
+            flowComponentSaveButton.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
+            flowComponentSaveButton.addClickHandler(new SaveButtonHandler());
+            add(flowComponentSaveButton);
+        }
+
+        public void setStatusText(String statusText) {
+            flowComponentSaveResultLabel.setText(statusText);
+        }
+    }
+
+    private class SaveButtonHandler implements ClickHandler {
+
+        @Override
+        public void onClick(ClickEvent event) {
+            String nameValue = flowComponentNamePanel.getText();
+            String invocationMethodValue = flowComponentInvocationMethodPanel.getText();
+            String javascriptFileUploadValue = flowComponentJavaScriptUploadPanel.getFilename();
+            if (nameValue.isEmpty() || invocationMethodValue.isEmpty() || javascriptFileUploadValue.isEmpty()) {
+                Window.alert(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+            } else {
+                submit();
+            }
+
+            /*
+             String nameValue = flowNamePanel.getText();
+             String descriptionValue = flowDescriptionPanel.getText();
+             if (!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
+             presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText());
+             } else {
+             Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+             }
+             */
         }
     }
 

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-import dk.dbc.dataio.gui.client.tmpengine.EngineGUI;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -15,20 +14,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FlowComponentContentUploadServlet extends HttpServlet {
-    private static final Logger log = LoggerFactory.getLogger(FlowComponentContentUploadServlet.class);
 
+    private static final Logger log = LoggerFactory.getLogger(FlowComponentContentUploadServlet.class);
     private transient FlowStoreProxy flowStoreProxy;
 
     @Override
     public void init() throws ServletException {
         super.init();
 
-        String flowStoreServiceEndpoint = ServletUtil.getFlowStoreServiceEndpoint();
-        flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceEndpoint);
+        log.info("God Dammit, Alexis!");
+        //String flowStoreServiceEndpoint = ServletUtil.getFlowStoreServiceEndpoint();
+        //flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceEndpoint);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
+        log.info("Hullubulu");
+
 
         if (!ServletFileUpload.isMultipartContent(req)) {
             String errMsg = "Request did not have multipart content";
@@ -49,7 +51,7 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
                 log.error("Exception caught", e);
                 throw new ServletException(e);
             }
-            
+
         }
     }
 }

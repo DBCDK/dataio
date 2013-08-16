@@ -53,21 +53,37 @@ public class FlowComponentCreationSeleniumIT {
         driver.quit();
     }
 
-        @Test
-    public void testFlowCreationNavigationItemIsVisible() {
+    @Test
+    public void testFlowComponentCreationNavigationItemIsVisibleAndClickable() {
+        // Note: This should arguably be two separate tests, 
+        // but I think that keeping them as one test is acceptable since 
+        // we save one run of the WebDriver.
+
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
         assertEquals(true, element.isDisplayed());
-    }
 
-    @Test
-    public void testFlowCreationNavigationItemIsClickable() throws Exception {
-        navigateToFlowComponentCreationContext();
+        element.click();
         WebElement widget = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_WIDGET));
         assertEquals(true, widget.isDisplayed());
     }
 
+    @Test
+    public void testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
+        // Note: This should arguably be two separate tests, 
+        // but I think that keeping them as one test is acceptable since 
+        // we save one run of the WebDriver.
+
+        navigateToFlowComponentCreationContext();
+        WebElement element = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX));
+        assertEquals(true, element.isDisplayed());
+
+        final String fieldValue = "test of unicode content æøåÆØÅ";
+        element.sendKeys(fieldValue);
+        assertEquals(fieldValue, element.getAttribute("value"));
+    }
+
     
-    
+
     private void clearDbTables() throws SQLException {
 //        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM flows");
 //        try {

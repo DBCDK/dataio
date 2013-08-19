@@ -12,14 +12,20 @@ import java.util.List;
 public class FlowComponentContent implements Serializable {
     private static final long serialVersionUID = -290854497828809813L;
 
+    private /* final */ String name;
     private /* final */ List<JavaScript> javascripts;
     private /* final */ String invocationMethod;
 
     private FlowComponentContent() { }
 
-    public FlowComponentContent(List<JavaScript> javascripts, String invocationMethod) {
+    public FlowComponentContent(String name, List<JavaScript> javascripts, String invocationMethod) {
+        this.name = name;
         this.javascripts = javascripts;
         this.invocationMethod = invocationMethod;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getInvocationMethod() {

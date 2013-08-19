@@ -26,6 +26,9 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
     public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON = "flowcomponentcreationsavebutton";
     public static final String GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD = "flowcomponentcreationjavascriptfileupload";
     public static final String FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
+    public static final String FORM_FIELD_COMPONENT_NAME = "formfieldcomponentname";
+    public static final String FORM_FIELD_INVOCATION_METHOD = "formfieldinvocationmethod";
+    public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
     // private objects
     private FlowComponentCreatePresenter presenter;
     private VerticalPanel localPanel = new VerticalPanel();
@@ -98,7 +101,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             add(label);
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
-            textBox.setName("javascriptcomponentname");
+            textBox.setName(FORM_FIELD_COMPONENT_NAME);
             add(textBox);
         }
 
@@ -110,14 +113,13 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
     private class FlowComponentJavaScriptUploadPanel extends HorizontalPanel {
 
         private final Label label = new Label("Javascript");
-        private final String formFieldJavascriptFile = "javascriptfilename";
         private final FileUpload fileUpload = new FileUpload();
 
         public FlowComponentJavaScriptUploadPanel() {
             super();
             add(label);
             fileUpload.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD);
-            fileUpload.setName(formFieldJavascriptFile);
+            fileUpload.setName(FORM_FIELD_JAVASCRIPT_FILE_UPLOAD);
             add(fileUpload);
         }
 
@@ -136,7 +138,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             add(label);
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
-            textBox.setName("javascriptinvocationmethod");
+            textBox.setName(FORM_FIELD_INVOCATION_METHOD);
             add(textBox);
         }
 
@@ -175,16 +177,6 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             } else {
                 submit();
             }
-
-            /*
-             String nameValue = flowNamePanel.getText();
-             String descriptionValue = flowDescriptionPanel.getText();
-             if (!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
-             presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText());
-             } else {
-             Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
-             }
-             */
         }
     }
 

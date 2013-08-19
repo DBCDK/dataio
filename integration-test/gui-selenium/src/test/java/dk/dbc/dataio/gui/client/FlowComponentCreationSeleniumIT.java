@@ -186,6 +186,10 @@ public class FlowComponentCreationSeleniumIT {
 
         WebElement saveButton = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
         saveButton.click();
+
+        // Todo:
+        // Assert that correct text is set in result field
+        // Assert that a flowcomponent with the given name, filecontent(base64) and invocationmethod is set in the database.
     }
     
     private void clearDbTables() throws SQLException {

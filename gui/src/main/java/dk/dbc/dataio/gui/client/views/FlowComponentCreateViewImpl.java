@@ -70,8 +70,6 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
                 flowComponentSavePanel.setStatusText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
             }
         });
-
-
     }
 
     @Override

@@ -14,11 +14,11 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.TestUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT;
-import static dk.dbc.dataio.flowstore.TestUtil.clearDbTables;
-import static dk.dbc.dataio.flowstore.TestUtil.doPostWithJson;
-import static dk.dbc.dataio.flowstore.TestUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
-import static dk.dbc.dataio.flowstore.TestUtil.newDbConnection;
+import static dk.dbc.dataio.flowstore.ITUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT;
+import static dk.dbc.dataio.flowstore.ITUtil.clearDbTables;
+import static dk.dbc.dataio.flowstore.ITUtil.doPostWithJson;
+import static dk.dbc.dataio.flowstore.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.flowstore.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -44,7 +44,7 @@ public class FlowComponentsIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables(dbConnection, TestUtil.FLOW_COMPONENTS_TABLE_NAME);
+        clearDbTables(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_NAME);
     }
 
     /**
@@ -58,13 +58,13 @@ public class FlowComponentsIT {
     public void createComponent_Ok() throws SQLException {
         // When...
         final String flowComponentContent = "{\"name\": \"testComponentName\"}";
-        final Response response = doPostWithJson(restClient, flowComponentContent, baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = doPostWithJson(restClient, flowComponentContent, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
 
         // And ...
-        final TestUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
+        final ITUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
         final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT,
@@ -82,7 +82,7 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_ErrorWhenGivenInvalidJson() {
         // When...
-        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
@@ -96,7 +96,7 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_ErrorWhenGivenNull() {
         // When...
-        final Response response = doPostWithJson(restClient, null, baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = doPostWithJson(restClient, null, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
@@ -110,7 +110,7 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_ErrorWhenGivenEmpty() {
         // When...
-        final Response response = doPostWithJson(restClient, "", baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = doPostWithJson(restClient, "", baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));

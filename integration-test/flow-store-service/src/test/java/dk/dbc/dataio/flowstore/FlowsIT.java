@@ -18,11 +18,11 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.TestUtil.clearDbTables;
-import static dk.dbc.dataio.flowstore.TestUtil.doPostWithFormData;
-import static dk.dbc.dataio.flowstore.TestUtil.doPostWithJson;
-import static dk.dbc.dataio.flowstore.TestUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
-import static dk.dbc.dataio.flowstore.TestUtil.newDbConnection;
+import static dk.dbc.dataio.flowstore.ITUtil.clearDbTables;
+import static dk.dbc.dataio.flowstore.ITUtil.doPostWithFormData;
+import static dk.dbc.dataio.flowstore.ITUtil.doPostWithJson;
+import static dk.dbc.dataio.flowstore.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.flowstore.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -34,8 +34,8 @@ public class FlowsIT {
     private static Connection dbConnection;
     private static String baseUrl;
 
-    private final TestUtil.ResourceIdentifier flowRes = new TestUtil.ResourceIdentifier(0L, new Date().getTime());
-    private final TestUtil.ResourceIdentifier componentRes = new TestUtil.ResourceIdentifier(0L, new Date().getTime());
+    private final ITUtil.ResourceIdentifier flowRes = new ITUtil.ResourceIdentifier(0L, new Date().getTime());
+    private final ITUtil.ResourceIdentifier componentRes = new ITUtil.ResourceIdentifier(0L, new Date().getTime());
     private final String flowContent = "{\"name\":\"flowname\",\"components\":[]}";
     private final String componentContent = "{\"name\":\"componentName\"}";
 
@@ -53,7 +53,7 @@ public class FlowsIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables(dbConnection, TestUtil.FLOWS_TABLE_NAME, TestUtil.FLOW_COMPONENTS_TABLE_NAME);
+        clearDbTables(dbConnection, ITUtil.FLOWS_TABLE_NAME, ITUtil.FLOW_COMPONENTS_TABLE_NAME);
     }
 
     /**
@@ -67,17 +67,16 @@ public class FlowsIT {
     public void createFlow_Ok() throws SQLException {
         // When...
         final String flowContent = "{\"name\": \"testName\"}";
-        final Response response = doPostWithJson(restClient, flowContent, baseUrl, TestUtil.FLOWS_URL_PATH);
+        final Response response = doPostWithJson(restClient, flowContent, baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
 
         // And ...
-        final TestUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
+        final ITUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection,
-                String.format("SELECT content FROM %s WHERE id=? AND version=?", TestUtil.FLOWS_TABLE_NAME),
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOWS_TABLE_SELECT_CONTENT_STMT,
                 resId.getId(), new Date(resId.getVersion()));
 
         assertThat(rs.size(), is(1));
@@ -92,7 +91,7 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenInvalidJson() {
         // When...
-        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, TestUtil.FLOWS_URL_PATH);
+        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
@@ -106,7 +105,7 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenNull() {
         // When...
-        final Response response = doPostWithJson(restClient, null, baseUrl, TestUtil.FLOWS_URL_PATH);
+        final Response response = doPostWithJson(restClient, null, baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
@@ -120,7 +119,7 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenEmpty() {
         // When...
-        final Response response = doPostWithJson(restClient, "", baseUrl, TestUtil.FLOWS_URL_PATH);
+        final Response response = doPostWithJson(restClient, "", baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
@@ -134,7 +133,7 @@ public class FlowsIT {
     @Test
     public void addFlowComponent_ErrorWhenFlowNotFound() throws Exception {
         // Given...
-        JDBCUtil.update(dbConnection, TestUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
+        JDBCUtil.update(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
                 componentRes.getId(), new Date(componentRes.getVersion()), componentContent);
 
         // When...
@@ -142,7 +141,7 @@ public class FlowsIT {
         formData.add("id", componentRes.getId().toString());
         formData.add("version", componentRes.getVersion().toString());
         final Response response = doPostWithFormData(restClient, formData, baseUrl,
-                TestUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), TestUtil.FLOW_COMPONENTS_URL_PATH);
+                ITUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
@@ -156,7 +155,7 @@ public class FlowsIT {
     @Test
     public void addFlowComponent_ErrorWhenComponentNotFound() throws Exception {
         // Given...
-        JDBCUtil.update(dbConnection, TestUtil.FLOWS_TABLE_INSERT_STMT,
+        JDBCUtil.update(dbConnection, ITUtil.FLOWS_TABLE_INSERT_STMT,
                 flowRes.getId(), new Date(flowRes.getVersion()), flowContent, "indxval");
 
         // When...
@@ -164,7 +163,7 @@ public class FlowsIT {
         formData.add("id", componentRes.getId().toString());
         formData.add("version", componentRes.getVersion().toString());
         final Response response = doPostWithFormData(restClient, formData, baseUrl,
-                TestUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), TestUtil.FLOW_COMPONENTS_URL_PATH);
+                ITUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
@@ -180,9 +179,9 @@ public class FlowsIT {
     @Test
     public void addFlowComponent_Ok() throws Exception {
         // Given...
-        JDBCUtil.update(dbConnection, TestUtil.FLOWS_TABLE_INSERT_STMT,
+        JDBCUtil.update(dbConnection, ITUtil.FLOWS_TABLE_INSERT_STMT,
                 flowRes.getId(), new Date(flowRes.getVersion()), flowContent, "indxval");
-        JDBCUtil.update(dbConnection, TestUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
+        JDBCUtil.update(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
                 componentRes.getId(), new Date(componentRes.getVersion()), componentContent);
 
         // When...
@@ -190,21 +189,21 @@ public class FlowsIT {
         formData.add("id", componentRes.getId().toString());
         formData.add("version", componentRes.getVersion().toString());
         final Response response = doPostWithFormData(restClient, formData, baseUrl,
-                TestUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), TestUtil.FLOW_COMPONENTS_URL_PATH);
+                ITUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
 
         // And ...
-        final TestUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
+        final ITUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, TestUtil.FLOWS_TABLE_SELECT_CONTENT_STMT,
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOWS_TABLE_SELECT_CONTENT_STMT,
                 resId.getId(), new Date(resId.getVersion()));
 
         assertThat(rs.size(), is(1));
         final String createdContent = (String) rs.get(0).get(0);
-        final JsonNode createdContentNode = TestUtil.getJsonRoot(createdContent);
+        final JsonNode createdContentNode = ITUtil.getJsonRoot(createdContent);
         final ArrayNode createdContentComponentsNode = (ArrayNode) createdContentNode.get("components");
         assertThat(createdContentComponentsNode.size(), is(1));
         assertThat(createdContentComponentsNode.get(0).get("id").getLongValue(), is(componentRes.getId()));

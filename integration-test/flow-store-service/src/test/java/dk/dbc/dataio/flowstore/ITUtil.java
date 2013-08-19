@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Integration test utility
  */
-public class TestUtil {
+public class ITUtil {
     public static final String FLOWS_TABLE_NAME = "flows";
     public static final String FLOW_COMPONENTS_TABLE_NAME = "flow_components";
 
@@ -39,7 +39,7 @@ public class TestUtil {
     public static final String FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=? AND version=?", FLOW_COMPONENTS_TABLE_NAME);
 
-    private TestUtil() { }
+    private ITUtil() { }
 
     /**
      * @return new connection to underlying h2 database

@@ -29,6 +29,8 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
     public static final String FORM_FIELD_COMPONENT_NAME = "formfieldcomponentname";
     public static final String FORM_FIELD_INVOCATION_METHOD = "formfieldinvocationmethod";
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
+    public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
+    public static final String SAVE_RESULT_LABEL_PROCESSING_MESSAGE = "Opsætningen gemmes...";
     // private objects
     private FlowComponentCreatePresenter presenter;
     private VerticalPanel localPanel = new VerticalPanel();
@@ -57,7 +59,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             public void onSubmit(SubmitEvent event) {
                 // This event is fired just before the form is submitted. We can
                 // take this opportunity to perform validation.
-                flowComponentSavePanel.setStatusText("Processing...");
+                flowComponentSavePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
             }
         });
 
@@ -65,7 +67,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             public void onSubmitComplete(SubmitCompleteEvent event) {
                 // When the form submission is successfully completed, this
                 // event is fired.
-                flowComponentSavePanel.setStatusText("Done");
+                flowComponentSavePanel.setStatusText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
             }
         });
 
@@ -84,7 +86,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
 
     @Override
     public void displaySuccess(String message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        flowComponentSavePanel.setStatusText(message);
     }
 
     @Override
@@ -184,7 +186,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
 
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
-            //flowSavePanel.setStatusText("");
+            flowComponentSavePanel.setStatusText("");
         }
     }
 }

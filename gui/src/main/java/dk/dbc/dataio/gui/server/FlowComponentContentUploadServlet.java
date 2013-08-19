@@ -33,8 +33,6 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-
-        log.info("God Dammit, Alexis!");
         try {
             String flowStoreServiceEndpoint = ServletUtil.getFlowStoreServiceEndpoint();
             webResource = setupWebResource(flowStoreServiceEndpoint);
@@ -55,9 +53,6 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
-        log.info("Hullubulu");
-
-
         if (!ServletFileUpload.isMultipartContent(req)) {
             String errMsg = "Request did not have multipart content";
             log.error(errMsg);
@@ -107,11 +102,4 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
             throw new IllegalStateException(response.getEntity(String.class));
         }
     }
-
-    /*
-     @Override
-     public void createFlowComponent(FlowComponentContent flowComponentContent) {
-     flowStoreProxy.createFlowComponent(flowComponentContent);
-     }
-     */
 }

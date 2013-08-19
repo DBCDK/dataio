@@ -18,5 +18,6 @@ public class FlowComponentJsonMixIn {
      */
     @JsonCreator
     public FlowComponentJsonMixIn(@JsonProperty("id") long id,
+                                  @JsonProperty("version") long version,
                                   @JsonProperty("content") FlowComponentContent content) { }
 }

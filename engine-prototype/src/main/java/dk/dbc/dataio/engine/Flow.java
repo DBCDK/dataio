@@ -12,12 +12,14 @@ public class Flow implements Serializable {
     private static final long serialVersionUID = -8809513217759455225L;
 
     private /* final */ long id;
+    private /* final */ long version;
     private /* final */ FlowContent content;
 
     private Flow() { }
 
-    public Flow(long id, FlowContent content) {
+    public Flow(long id, long version, FlowContent content) {
         this.id = id;
+        this.version = version;
         this.content = content;
     }
 
@@ -25,7 +27,11 @@ public class Flow implements Serializable {
         return id;
     }
 
-    public FlowContent getContent() {
+     public long getVersion() {
+         return version;
+     }
+
+     public FlowContent getContent() {
         return content;
     }
 }

@@ -12,17 +12,23 @@ public class FlowComponent implements Serializable {
     private static final long serialVersionUID = 2743968388816680751L;
 
     private /* final */ long id;
+    private /* final */ long version;
     private /* final */ FlowComponentContent content;
 
     private FlowComponent() { }
 
-    public FlowComponent(long id, FlowComponentContent content) {
+    public FlowComponent(long id, long version, FlowComponentContent content) {
         this.id = id;
+        this.version = version;
         this.content = content;
     }
 
     public long getId() {
         return id;
+    }
+
+    public long getVersion() {
+        return version;
     }
 
     public FlowComponentContent getContent() {

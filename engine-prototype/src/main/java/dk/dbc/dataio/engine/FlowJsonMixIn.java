@@ -18,5 +18,6 @@ abstract class FlowJsonMixIn {
      */
     @JsonCreator
     public FlowJsonMixIn(@JsonProperty("id") long id,
+                         @JsonProperty("version") long version,
                          @JsonProperty("content") FlowContent content) { }
 }

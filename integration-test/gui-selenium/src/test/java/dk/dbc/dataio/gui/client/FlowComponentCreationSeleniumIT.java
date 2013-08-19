@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -16,6 +17,7 @@ import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -41,7 +43,7 @@ public class FlowComponentCreationSeleniumIT {
         APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
 
         Class.forName("org.h2.Driver");
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + System.getProperty("h2.port") + "/mem:submitter_store", "root", "root");
+        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + System.getProperty("h2.port") + "/mem:flow_store", "root", "root");
         conn.setAutoCommit(true);
     }
 
@@ -168,21 +170,46 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationContext();
         insertInputIntoInputElementsAndClickSaveButton();
 
-        WebDriverWait wait = new WebDriverWait(driver, 4);
+        WebDriverWait wait = new WebDriverWait(driver, 10);
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
         WebElement saveResultLabel = findSaveResultLabelElement();
         assertEquals(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
 
-    // Todo: Missing tests for assuring that result label is cleared when new data is inserted or chosen in fileupload.
-    
+    @Ignore
+    @Test
+    public void testFlowComponentCreationNameInputFieldUpdate_clearsSaveResultLabel() throws IOException {
+        navigateToFlowComponentCreationContext();
+        insertInputIntoInputElementsAndClickSaveButton();
+        findComponentNameElement().sendKeys("a");
+        assertEquals("", findSaveResultLabelElement().getText());
+    }
+
+    @Ignore
+    @Test
+    public void testFlowComponentCreationFileUploadUpdate_clearsSaveResultLabel() throws IOException {
+        navigateToFlowComponentCreationContext();
+        insertInputIntoInputElementsAndClickSaveButton();
+        findFileUploadElement().sendKeys("b");
+        assertEquals("", findSaveResultLabelElement().getText());
+    }
+
+    @Ignore
+    @Test
+    public void testFlowComponentCreationInvocationMethodInputfieldUpdate_clearsSaveResultLabel() throws IOException {
+        navigateToFlowComponentCreationContext();
+        insertInputIntoInputElementsAndClickSaveButton();
+        findInvocationMethodElement().sendKeys("c");
+        assertEquals("", findSaveResultLabelElement().getText());
+    }
+
     private void clearDbTables() throws SQLException {
-//        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM flows");
-//        try {
-//            deleteStmt.executeUpdate();
-//        } finally {
-//            deleteStmt.close();
-//        }
+        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM flow_components");
+        try {
+            deleteStmt.executeUpdate();
+        } finally {
+            deleteStmt.close();
+        }
     }
 
     private void navigateToFlowComponentCreationContext() {
@@ -197,26 +224,26 @@ public class FlowComponentCreationSeleniumIT {
     private WebElement findFileUploadElement() {
         return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD));
     }
-    
+
     private WebElement findInvocationMethodElement() {
         return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX));
     }
-    
+
     private WebElement findSaveButtonElement() {
         return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
     }
-    
+
     private WebElement findSaveResultLabelElement() {
         return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL));
     }
-            
+
     private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
         findComponentNameElement().sendKeys("testComponent");
         findFileUploadElement().sendKeys(createTemporaryJavascriptFile().getAbsolutePath());
         findInvocationMethodElement().sendKeys("f");
         findSaveButtonElement().click();
     }
-    
+
     private File createTemporaryJavascriptFile() throws IOException {
         final String javascript = "function f(s) { return s.toUpperCase(); }";
         final String javascriptFileName = "test.js";

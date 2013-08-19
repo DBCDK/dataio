@@ -6,6 +6,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
+import dk.dbc.dataio.engine.Engine;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.JavaScript;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
@@ -86,7 +87,7 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
                 throw new ServletException(e);
             }
 
-            JavaScript javascript = new JavaScript(javascriptString, "");
+            JavaScript javascript = new JavaScript(Engine.base64encode(javascriptString), "");
             FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, Arrays.asList(javascript), invocationMethod);
             createFlowComponent(flowComponentContent);
         }

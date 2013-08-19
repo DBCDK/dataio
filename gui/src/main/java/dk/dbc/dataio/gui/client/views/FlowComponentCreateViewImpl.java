@@ -61,7 +61,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             public void onSubmit(SubmitEvent event) {
                 // This event is fired just before the form is submitted. We can
                 // take this opportunity to perform validation.
-                flowComponentSavePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
+                // flowComponentSavePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
             }
         });
 

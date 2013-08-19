@@ -15,8 +15,10 @@ import javax.persistence.Table;
  * given as JSON string
  */
 @Entity
-@Table(name = "flows")
+@Table(name = Flow.TABLE_NAME)
 public class Flow extends dk.dbc.dataio.flowstore.entity.Entity {
+    public static final String TABLE_NAME = "flows";
+
     @Lob
     @Column(name = "name_idx", nullable = false)
     private String nameIndexValue;

@@ -134,7 +134,7 @@ public class FlowsIT {
     public void addFlowComponent_ErrorWhenFlowNotFound() throws Exception {
         // Given...
         JDBCUtil.update(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
-                componentRes.getId(), new Date(componentRes.getVersion()), componentContent);
+                componentRes.getId(), new Date(componentRes.getVersion()), componentContent, "indxval");
 
         // When...
         final MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
@@ -182,7 +182,7 @@ public class FlowsIT {
         JDBCUtil.update(dbConnection, ITUtil.FLOWS_TABLE_INSERT_STMT,
                 flowRes.getId(), new Date(flowRes.getVersion()), flowContent, "indxval");
         JDBCUtil.update(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
-                componentRes.getId(), new Date(componentRes.getVersion()), componentContent);
+                componentRes.getId(), new Date(componentRes.getVersion()), componentContent, "indxval");
 
         // When...
         final MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();

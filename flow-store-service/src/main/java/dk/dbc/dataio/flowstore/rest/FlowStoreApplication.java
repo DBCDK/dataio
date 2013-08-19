@@ -23,10 +23,10 @@ public class FlowStoreApplication extends Application {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(FlowsBean.class);
         classes.add(FlowComponentsBean.class);
-        for (Class<?> clazz : classes) {
-            log.debug("Registered {} resource", clazz.getName());
-        }
         classes.add(PersistenceExceptionMapper.class);
+        for (Class<?> clazz : classes) {
+            log.info("Registered {} resource", clazz.getName());
+        }
         return classes;
     }
 

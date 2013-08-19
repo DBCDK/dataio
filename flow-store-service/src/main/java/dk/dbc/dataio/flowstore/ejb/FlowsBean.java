@@ -38,12 +38,11 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsNewVersionOfEntity;
  * exposed by the '/{@code FLOWS_ENTRY_POINT}' entry point
  */
 @Stateless
-@Path("flows")
+@Path(FlowsBean.FLOWS_ENTRY_POINT)
 public class FlowsBean {
-    /** Main entry point for the flows collection
-     */
-    // Must match the value of the @Path annotation for this class.
     public static final String FLOWS_ENTRY_POINT = "flows";
+    public static final String FLOWS_RESOURCE_ENTRY_POINT = "/{id}/{version}";
+    public static final String FLOWS_RESOURCE_COMPONENTS_ENTRY_POINT = "/{id}/{version}/components";
 
     private static final Logger log = LoggerFactory.getLogger(FlowsBean.class);
 
@@ -63,7 +62,7 @@ public class FlowsBean {
      *         a HTTP 500 response in case of general error.
      */
     @GET
-    @Path("/{id}/{version}")
+    @Path(FLOWS_RESOURCE_ENTRY_POINT)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getFlow(@PathParam("id") Long id, @PathParam("version") Long version) throws JsonException {
         EntityPrimaryKey pk = new EntityPrimaryKey(id, new Date(version));
@@ -117,7 +116,7 @@ public class FlowsBean {
      * @throws JsonException when unable to handle entity content as JSON
      */
     @POST
-    @Path("/{id}/{version}/components")
+    @Path(FLOWS_RESOURCE_COMPONENTS_ENTRY_POINT)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addFlowComponent(@Context UriInfo uriInfo,
                                      @PathParam("id") Long flowId, @PathParam("version") Long flowVersion,

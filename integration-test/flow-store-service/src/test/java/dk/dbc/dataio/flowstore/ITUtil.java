@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -35,7 +37,7 @@ public class ITUtil {
     public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=? AND version=?", FLOWS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_INSERT_STMT = String.format(
-            "INSERT INTO %s (id, version, content) VALUES (?,?,?)", FLOW_COMPONENTS_TABLE_NAME);
+            "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOW_COMPONENTS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=? AND version=?", FLOW_COMPONENTS_TABLE_NAME);
 
@@ -109,6 +111,54 @@ public class ITUtil {
      */
     public static Response doPostWithFormData(Client restClient, MultivaluedMap<String, String> formData, String baseUrl, String... pathElements) {
         return doPost(restClient, Entity.form(formData), baseUrl, pathElements);
+    }
+
+    /**
+     * Issues GET request to endpoint constructed using given baseurl and path elements
+     *
+     * @param restClient RESTful web service client
+     * @param queryParameters query parameters to be added to request
+     * @param baseUrl base URL on the form http(s)://host:port/path
+     * @param pathElements additional path elements to be added to base URL
+     *
+     * @return server response
+     */
+    public static Response doGet(Client restClient, Map<String, Object> queryParameters, String baseUrl, String... pathElements)  {
+        WebTarget target = restClient.target(baseUrl);
+        for (String pathElement : pathElements) {
+            target = target.path(pathElement);
+        }
+        for (Map.Entry<String, Object> queryParameter : queryParameters.entrySet()) {
+            target = target.queryParam(queryParameter.getKey(), queryParameter.getValue());
+        }
+        return target.request().get();
+    }
+
+     /**
+     * Issues GET request to endpoint constructed using given baseurl and path elements
+     *
+     * @param restClient RESTful web service client
+     * @param baseUrl base URL on the form http(s)://host:port/path
+     * @param pathElements additional path elements to be added to base URL
+     *
+     * @return server response
+     */
+    public static Response doGet(Client restClient, String baseUrl, String... pathElements)  {
+        return doGet(restClient, new HashMap<String, Object>(), baseUrl, pathElements);
+    }
+
+    /**
+     * Issues GET request to endpoint constructed using given baseurl and path elements
+     *
+     * @param restClient RESTful web service client
+     * @param queryParameters query parameters to be added to request
+     * @param baseUrl base URL on the form http(s)://host:port/path
+     * @param pathElements additional path elements to be added to base URL
+     *
+     * @return server response
+     */
+    public static Response doGetWithQueryParameters(Client restClient, Map<String, Object> queryParameters, String baseUrl, String... pathElements)  {
+        return doGet(restClient, queryParameters, baseUrl, pathElements);
     }
 
     /**

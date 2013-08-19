@@ -1,6 +1,15 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.flowstore.util.json.JsonException;
+import dk.dbc.dataio.flowstore.util.json.JsonUtil;
+import org.codehaus.jackson.JsonNode;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
@@ -9,6 +18,27 @@ import javax.persistence.Table;
  * given as JSON string
  */
 @Entity
-@Table(name = "flow_components")
+@Table(name = FlowComponent.TABLE_NAME,
+    indexes = @Index(columnList = FlowComponent.NAME_INDEX_COLUMN))
+@NamedQueries({
+    @NamedQuery(name = FlowComponent.QUERY_FIND_ALL, query = "SELECT component FROM FlowComponent component ORDER BY component.nameIndexValue ASC")
+})
 public class FlowComponent extends dk.dbc.dataio.flowstore.entity.Entity {
+    public static final String TABLE_NAME = "flow_components";
+    public static final String QUERY_FIND_ALL = "FlowComponent.findAll";
+    static final String NAME_INDEX_COLUMN = "name_idx";
+
+    @Lob
+    @Column(name = NAME_INDEX_COLUMN, nullable = false)
+    private String nameIndexValue;
+
+    String getNameIndexValue() {
+        return nameIndexValue;
+    }
+
+    @Override
+    protected void preProcessContent(String componentData) throws JsonException {
+        final JsonNode json = JsonUtil.getJsonRoot(componentData);
+        nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "component.content.name");
+    }
 }

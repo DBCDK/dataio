@@ -2,24 +2,38 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.dataio.flowstore.util.json.JsonException;
+import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
+import java.util.List;
 
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.buildResponse;
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUri;
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsEntity;
+
+/**
+ * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
+ * exposed by the '/{@code FLOW_COMPONENTS_ENTRY_POINT}' entry point
+ */
 @Stateless
-@Path("components")
+@Path(FlowComponentsBean.FLOW_COMPONENTS_ENTRY_POINT)
 public class FlowComponentsBean {
+    public static final String FLOW_COMPONENTS_ENTRY_POINT = "components";
+
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
 
     @PersistenceContext
@@ -31,23 +45,31 @@ public class FlowComponentsBean {
      *
      * @param componentContent component data as JSON string
      *
-     * @return a HTTP 201 response with a Location header containing the
-     * URL value of the newly created resource
+     * @return a HTTP CREATED response with a Location header containing the URL value of the newly created resource
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JsonException {
         log.trace("Called with: '{}'", componentContent);
 
-        final FlowComponent component = new FlowComponent();
-        component.setContent(componentContent);
-        entityManager.persist(component);
+        final FlowComponent component = saveAsEntity(entityManager, FlowComponent.class, componentContent);
         entityManager.flush();
 
-        final URI createdUri =  uriInfo.getAbsolutePathBuilder()
-                .path(String.valueOf(component.getId()))
-                .path(String.valueOf(component.getVersion().getTime()))
-                .build();
-        return Response.created(createdUri).build();
+        return Response.created(getResourceUri(uriInfo.getAbsolutePathBuilder(), component)).build();
+    }
+
+    /**
+     * Returns list of all versions of all stored flow components sorted by name in ascending order
+     *
+     * @return a HTTP OK response with result list as JSON
+     *
+     * @throws JsonException on failure to create result list as JSON
+     */
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllComponents() throws JsonException {
+        final TypedQuery<FlowComponent> query = entityManager.createNamedQuery(FlowComponent.QUERY_FIND_ALL, FlowComponent.class);
+        final List<FlowComponent> results = query.getResultList();
+        return buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 }

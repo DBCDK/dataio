@@ -16,7 +16,6 @@ import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -25,6 +24,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class FlowComponentCreationSeleniumIT {
 
@@ -62,10 +63,15 @@ public class FlowComponentCreationSeleniumIT {
         driver.quit();
     }
 
+    // todo: Collect the following tests into one test:
+    //  * testFlowComponentCreationNavigationItemIsVisibleAndClickable
+    //  * testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead
+    //  * testFlowComponentCreationInvocationMethodInputFieldIsVisibleAndDataCanBeInsertedAndRead
+    //  * testFlowComponentCreationFileUploadIsVisibleAndFileCanBeChosenAndRead
+    //  * testFlowCreationSaveButtonIsVisible
     // Note: Many of these tests should arguably be two separate tests, 
     // but I think that keeping them as one test is acceptable since 
     // we save one run of the WebDriver.
-
     @Test
     public void testFlowComponentCreationNavigationItemIsVisibleAndClickable() {
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
@@ -79,7 +85,7 @@ public class FlowComponentCreationSeleniumIT {
     @Test
     public void testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
         navigateToFlowComponentCreationContext();
-        WebElement element = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX));
+        WebElement element = findComponentNameElement();
         assertEquals(true, element.isDisplayed());
 
         final String fieldValue = "test of unicode content æøåÆØÅ";
@@ -90,7 +96,7 @@ public class FlowComponentCreationSeleniumIT {
     @Test
     public void testFlowComponentCreationInvocationMethodInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
         navigateToFlowComponentCreationContext();
-        WebElement element = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX));
+        WebElement element = findInvocationMethodElement();
         assertEquals(true, element.isDisplayed());
 
         final String fieldValue = "test of unicode content æøåÆØÅ";
@@ -99,29 +105,30 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     @Test
-    public void testFlowComponentCreationFileUploadIsVisibleAndFileCanBeChosenAndRead() {
+    public void testFlowComponentCreationFileUploadIsVisibleAndFileNameCanBeChosenAndFileNameCanBeRetrievedFromWidget() throws IOException {
+        File javascript = createTemporaryJavascriptFile();
         navigateToFlowComponentCreationContext();
-        WebElement element = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD));
+        WebElement element = findFileUploadElement();
         assertEquals(true, element.isDisplayed());
 
-        String filename = "/tmp/tmptmp/test.txt";
-        element.sendKeys(filename);
-        assertEquals(filename, element.getAttribute("value"));
+        element.sendKeys(javascript.getAbsolutePath());
+        assertEquals(javascript.getAbsolutePath(), element.getAttribute("value"));
     }
 
     @Test
-    public void testFlowComponentCreation_missingComponentName_givesAlert() throws IOException {
+    public void testFlowComponentCreationSaveButtonIsVisible() {
+        navigateToFlowComponentCreationContext();
+        WebElement element = findSaveButtonElement();
+        assertEquals(true, element.isDisplayed());
+    }
+
+    @Test
+    public void testSaveButton_EmptyComponentNameInputField_DisplayErrorPopup() throws IOException {
         File javascriptFile = createTemporaryJavascriptFile();
         navigateToFlowComponentCreationContext();
-
-        WebElement fileUpload = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD));
-        fileUpload.sendKeys(javascriptFile.getAbsolutePath());
-
-        WebElement invocationMethod = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX));
-        invocationMethod.sendKeys("f");
-
-        WebElement saveButton = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findFileUploadElement().sendKeys(javascriptFile.getAbsolutePath());
+        findInvocationMethodElement().sendKeys("f");
+        findSaveButtonElement().click();
 
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
@@ -130,17 +137,11 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     @Test
-    public void testFlowComponentCreation_missingFileForUpload_givesAlert() throws IOException {
+    public void testSaveButton_MissingFileForUpload_DisplayErrorPopup() throws IOException {
         navigateToFlowComponentCreationContext();
-
-        WebElement componentName = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX));
-        componentName.sendKeys("testComponent");
-
-        WebElement invocationMethod = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX));
-        invocationMethod.sendKeys("f");
-
-        WebElement saveButton = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findComponentNameElement().sendKeys("testComponent");
+        findInvocationMethodElement().sendKeys("f");
+        findSaveButtonElement().click();
 
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
@@ -149,18 +150,12 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     @Test
-    public void testFlowComponentCreation_missingInvocationMethod_givesAlert() throws IOException {
+    public void testSaveButton_EmptyInvocationMethodInputField_DisplayErrorPopup() throws IOException {
         File javascriptFile = createTemporaryJavascriptFile();
         navigateToFlowComponentCreationContext();
-
-        WebElement componentName = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX));
-        componentName.sendKeys("testComponent");
-
-        WebElement fileUpload = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD));
-        fileUpload.sendKeys(javascriptFile.getAbsolutePath());
-
-        WebElement saveButton = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findComponentNameElement().sendKeys("testComponent");
+        findFileUploadElement().sendKeys(javascriptFile.getAbsolutePath());
+        findSaveButtonElement().click();
 
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
@@ -168,29 +163,18 @@ public class FlowComponentCreationSeleniumIT {
         assertEquals(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }
 
-    
-    @Ignore("Not completly implemented")
     @Test
-    public void testFlowComponentCreation_allInputCorrect_dataBaseIsUpdated() throws IOException {
-        File javascriptFile = createTemporaryJavascriptFile();
+    public void testFlowComponentCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws IOException {
         navigateToFlowComponentCreationContext();
+        insertInputIntoInputElementsAndClickSaveButton();
 
-        WebElement componentName = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX));
-        componentName.sendKeys("testComponent");
-
-        WebElement fileUpload = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD));
-        fileUpload.sendKeys(javascriptFile.getAbsolutePath());
-
-        WebElement invocationMethod = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX));
-        invocationMethod.sendKeys("f");
-
-        WebElement saveButton = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
-        saveButton.click();
-
-        // Todo:
-        // Assert that correct text is set in result field
-        // Assert that a flowcomponent with the given name, filecontent(base64) and invocationmethod is set in the database.
+        WebDriverWait wait = new WebDriverWait(driver, 4);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
+        WebElement saveResultLabel = findSaveResultLabelElement();
+        assertEquals(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
+
+    // Todo: Missing tests for assuring that result label is cleared when new data is inserted or chosen in fileupload.
     
     private void clearDbTables() throws SQLException {
 //        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM flows");
@@ -206,6 +190,33 @@ public class FlowComponentCreationSeleniumIT {
         element.click();
     }
 
+    private WebElement findComponentNameElement() {
+        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX));
+    }
+
+    private WebElement findFileUploadElement() {
+        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD));
+    }
+    
+    private WebElement findInvocationMethodElement() {
+        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX));
+    }
+    
+    private WebElement findSaveButtonElement() {
+        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
+    }
+    
+    private WebElement findSaveResultLabelElement() {
+        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL));
+    }
+            
+    private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
+        findComponentNameElement().sendKeys("testComponent");
+        findFileUploadElement().sendKeys(createTemporaryJavascriptFile().getAbsolutePath());
+        findInvocationMethodElement().sendKeys("f");
+        findSaveButtonElement().click();
+    }
+    
     private File createTemporaryJavascriptFile() throws IOException {
         final String javascript = "function f(s) { return s.toUpperCase(); }";
         final String javascriptFileName = "test.js";

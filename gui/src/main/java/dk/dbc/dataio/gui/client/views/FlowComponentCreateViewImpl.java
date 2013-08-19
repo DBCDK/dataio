@@ -1,6 +1,8 @@
 package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
@@ -121,6 +123,12 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             fileUpload.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD);
             fileUpload.setName(FORM_FIELD_JAVASCRIPT_FILE_UPLOAD);
             add(fileUpload);
+            fileUpload.addChangeHandler(new ChangeHandler() {
+                @Override
+                public void onChange(ChangeEvent event) {
+                    flowComponentSavePanel.setStatusText("");
+                }
+            });
         }
 
         public String getFilename() {

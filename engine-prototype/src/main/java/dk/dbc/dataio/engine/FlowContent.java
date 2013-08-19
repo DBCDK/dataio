@@ -2,6 +2,7 @@ package dk.dbc.dataio.engine;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public class FlowContent implements Serializable {
         if (components != null) {
             this.components = ModelUtil.asUnmodifiableList(new ArrayList<FlowComponent>(components));
         } else {
-            this.components = null;
+            this.components = Collections.emptyList();
         }
     }
 

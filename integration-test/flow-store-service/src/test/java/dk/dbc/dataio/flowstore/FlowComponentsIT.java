@@ -8,16 +8,17 @@ import org.junit.Test;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.flowstore.TestUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT;
+import static dk.dbc.dataio.flowstore.TestUtil.clearDbTables;
+import static dk.dbc.dataio.flowstore.TestUtil.doPostWithJson;
+import static dk.dbc.dataio.flowstore.TestUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.flowstore.TestUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -25,9 +26,6 @@ import static org.junit.Assert.assertThat;
  * Integration tests for the flow components collection part of the flow store service
  */
 public class FlowComponentsIT {
-    private static final String FLOW_COMPONENTS_TABLE_NAME = "flow_components";
-    private static final String COMPONENTS_URL_PATH = "components";
-
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
@@ -46,7 +44,7 @@ public class FlowComponentsIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables(dbConnection, FLOW_COMPONENTS_TABLE_NAME);
+        clearDbTables(dbConnection, TestUtil.FLOW_COMPONENTS_TABLE_NAME);
     }
 
     /**
@@ -59,25 +57,18 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_Ok() throws SQLException {
         // When...
-
         final String flowComponentContent = "{\"name\": \"testComponentName\"}";
-        final Response response = doPost(flowComponentContent);
+        final Response response = doPostWithJson(restClient, flowComponentContent, baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
 
         // And ...
-
-        final String[] locationHeaderValueParts = ((String) response.getHeaders().get("Location").get(0)).split("/");
-        final String createdId = locationHeaderValueParts[locationHeaderValueParts.length - 2];
-        final String createdVersion = locationHeaderValueParts[locationHeaderValueParts.length - 1];
+        final TestUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
-
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection,
-                String.format("SELECT content FROM %s WHERE id=? AND version=?", FLOW_COMPONENTS_TABLE_NAME),
-                createdId, new Date(Long.valueOf(createdVersion)));
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT,
+                resId.getId(), new Date(resId.getVersion()));
 
         assertThat(rs.size(), is(1));
         assertThat((String) rs.get(0).get(0), is(flowComponentContent));
@@ -91,11 +82,9 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_ErrorWhenGivenInvalidJson() {
         // When...
-
-        final Response response = doPost("<invalid json />");
+        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
     }
 
@@ -107,11 +96,9 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_ErrorWhenGivenNull() {
         // When...
-
-        final Response response = doPost(null);
+        final Response response = doPostWithJson(restClient, null, baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
     }
 
@@ -123,32 +110,9 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_ErrorWhenGivenEmpty() {
         // When...
-
-        final Response response = doPost("");
+        final Response response = doPostWithJson(restClient, "", baseUrl, TestUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
     }
-
-    private static Connection newDbConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection(
-                String.format("jdbc:h2:tcp://localhost:%s/mem:flow_store", System.getProperty("h2.port")),
-                "root", "root");
-        conn.setAutoCommit(true);
-        return conn;
-    }
-
-    private static void clearDbTables(Connection conn, String... tableNames) throws SQLException {
-        for (String tableName : tableNames) {
-            JDBCUtil.update(conn, String.format("DELETE FROM %s", tableName));
-        }
-    }
-
-    private static Response doPost(String data) {
-        final WebTarget target = restClient.target(baseUrl).path(COMPONENTS_URL_PATH);
-        return target.request().post(Entity.entity(data, MediaType.APPLICATION_JSON));
-    }
-
 }

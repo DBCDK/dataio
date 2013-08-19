@@ -1,6 +1,8 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ArrayNode;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -8,16 +10,19 @@ import org.junit.Test;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.flowstore.TestUtil.clearDbTables;
+import static dk.dbc.dataio.flowstore.TestUtil.doPostWithFormData;
+import static dk.dbc.dataio.flowstore.TestUtil.doPostWithJson;
+import static dk.dbc.dataio.flowstore.TestUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.flowstore.TestUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -25,12 +30,14 @@ import static org.junit.Assert.assertThat;
  * Integration tests for the flows collection part of the flow store service
  */
 public class FlowsIT {
-    private static final String FLOWS_TABLE_NAME = "flows";
-    private static final String FLOWS_URL_PATH = "flows";
-
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
+
+    private final TestUtil.ResourceIdentifier flowRes = new TestUtil.ResourceIdentifier(0L, new Date().getTime());
+    private final TestUtil.ResourceIdentifier componentRes = new TestUtil.ResourceIdentifier(0L, new Date().getTime());
+    private final String flowContent = "{\"name\":\"flowname\",\"components\":[]}";
+    private final String componentContent = "{\"name\":\"componentName\"}";
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -46,7 +53,7 @@ public class FlowsIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables(dbConnection, FLOWS_TABLE_NAME);
+        clearDbTables(dbConnection, TestUtil.FLOWS_TABLE_NAME, TestUtil.FLOW_COMPONENTS_TABLE_NAME);
     }
 
     /**
@@ -59,25 +66,19 @@ public class FlowsIT {
     @Test
     public void createFlow_Ok() throws SQLException {
         // When...
-
         final String flowContent = "{\"name\": \"testName\"}";
-        final Response response = doPost(flowContent);
+        final Response response = doPostWithJson(restClient, flowContent, baseUrl, TestUtil.FLOWS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
 
         // And ...
-
-        final String[] locationHeaderValueParts = ((String) response.getHeaders().get("Location").get(0)).split("/");
-        final String createdId = locationHeaderValueParts[locationHeaderValueParts.length - 2];
-        final String createdVersion = locationHeaderValueParts[locationHeaderValueParts.length - 1];
+        final TestUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
-
         final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection,
-                String.format("SELECT content FROM %s WHERE id=? AND version=?", FLOWS_TABLE_NAME),
-                createdId, new Date(Long.valueOf(createdVersion)));
+                String.format("SELECT content FROM %s WHERE id=? AND version=?", TestUtil.FLOWS_TABLE_NAME),
+                resId.getId(), new Date(resId.getVersion()));
 
         assertThat(rs.size(), is(1));
         assertThat((String) rs.get(0).get(0), is(flowContent));
@@ -91,11 +92,9 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenInvalidJson() {
         // When...
-
-        final Response response = doPost("<invalid json />");
+        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, TestUtil.FLOWS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
     }
 
@@ -107,11 +106,9 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenNull() {
         // When...
-
-        final Response response = doPost(null);
+        final Response response = doPostWithJson(restClient, null, baseUrl, TestUtil.FLOWS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
     }
 
@@ -123,32 +120,95 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenEmpty() {
         // When...
-
-        final Response response = doPost("");
+        final Response response = doPostWithJson(restClient, "", baseUrl, TestUtil.FLOWS_URL_PATH);
 
         // Then...
-
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
     }
 
-    private static Connection newDbConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection(
-                String.format("jdbc:h2:tcp://localhost:%s/mem:flow_store", System.getProperty("h2.port")),
-                "root", "root");
-        conn.setAutoCommit(true);
-        return conn;
+    /**
+     * Given: a deployed flow-store service containing flow component
+     * When: adding component to flow resource which do not exist
+     * Then: request returns with a NOT FOUND http status code
+     */
+    @Test
+    public void addFlowComponent_ErrorWhenFlowNotFound() throws Exception {
+        // Given...
+        JDBCUtil.update(dbConnection, TestUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
+                componentRes.getId(), new Date(componentRes.getVersion()), componentContent);
+
+        // When...
+        final MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+        formData.add("id", componentRes.getId().toString());
+        formData.add("version", componentRes.getVersion().toString());
+        final Response response = doPostWithFormData(restClient, formData, baseUrl,
+                TestUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), TestUtil.FLOW_COMPONENTS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
-    private static void clearDbTables(Connection conn, String... tableNames) throws SQLException {
-        for (String tableName : tableNames) {
-            JDBCUtil.update(conn, String.format("DELETE FROM %s", tableName));
-        }
+    /**
+     * Given: a deployed flow-store service containing flow
+     * When: adding non-existing component to flow
+     * Then: request returns with a PRECONDITION FAILED http status code
+     */
+    @Test
+    public void addFlowComponent_ErrorWhenComponentNotFound() throws Exception {
+        // Given...
+        JDBCUtil.update(dbConnection, TestUtil.FLOWS_TABLE_INSERT_STMT,
+                flowRes.getId(), new Date(flowRes.getVersion()), flowContent, "indxval");
+
+        // When...
+        final MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+        formData.add("id", componentRes.getId().toString());
+        formData.add("version", componentRes.getVersion().toString());
+        final Response response = doPostWithFormData(restClient, formData, baseUrl,
+                TestUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), TestUtil.FLOW_COMPONENTS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
     }
 
-    private static Response doPost(String data) {
-        final WebTarget target = restClient.target(baseUrl).path(FLOWS_URL_PATH);
-        return target.request().post(Entity.entity(data, MediaType.APPLICATION_JSON));
-    }
+    /**
+     * Given: a deployed flow-store service containing flow and flow component
+     * When: adding component to flow
+     * Then: request returns with a CREATED http status code
+     * And: request returns with a Location header pointing to the newly created version of the flow resource
+     * And: flow data with embedded component can be found in the underlying database
+     */
+    @Test
+    public void addFlowComponent_Ok() throws Exception {
+        // Given...
+        JDBCUtil.update(dbConnection, TestUtil.FLOWS_TABLE_INSERT_STMT,
+                flowRes.getId(), new Date(flowRes.getVersion()), flowContent, "indxval");
+        JDBCUtil.update(dbConnection, TestUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
+                componentRes.getId(), new Date(componentRes.getVersion()), componentContent);
 
+        // When...
+        final MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+        formData.add("id", componentRes.getId().toString());
+        formData.add("version", componentRes.getVersion().toString());
+        final Response response = doPostWithFormData(restClient, formData, baseUrl,
+                TestUtil.FLOWS_URL_PATH, flowRes.getId().toString(), flowRes.getVersion().toString(), TestUtil.FLOW_COMPONENTS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
+
+        // And ...
+        final TestUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
+
+        // And ...
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, TestUtil.FLOWS_TABLE_SELECT_CONTENT_STMT,
+                resId.getId(), new Date(resId.getVersion()));
+
+        assertThat(rs.size(), is(1));
+        final String createdContent = (String) rs.get(0).get(0);
+        final JsonNode createdContentNode = TestUtil.getJsonRoot(createdContent);
+        final ArrayNode createdContentComponentsNode = (ArrayNode) createdContentNode.get("components");
+        assertThat(createdContentComponentsNode.size(), is(1));
+        assertThat(createdContentComponentsNode.get(0).get("id").getLongValue(), is(componentRes.getId()));
+        assertThat(createdContentComponentsNode.get(0).get("version").getLongValue(), is(componentRes.getVersion()));
+        assertThat(createdContentComponentsNode.get(0).get("content").toString(), is(componentContent));
+    }
 }

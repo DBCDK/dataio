@@ -145,7 +145,7 @@ public class FileSystemJobStore implements JobStore {
             throw new JobStoreException(msg);
         }
 
-        writeLongValueToChunkCounterFile(chunkCounterFile, new Long(0));
+        writeLongValueToChunkCounterFile(chunkCounterFile, Long.valueOf(0));
         log.info("Created chunk counter file: {}", chunkCounterFile);    
     }
     
@@ -165,7 +165,11 @@ public class FileSystemJobStore implements JobStore {
     private Long readLongValueFromChunkCounterFile(File chunkCounterFile) {
         Long chunkCounter = null;
         try(BufferedReader br = Files.newBufferedReader(chunkCounterFile.toPath(), LOCAL_CHARSET)) {
-            String value = br.readLine().trim();
+            String value = br.readLine();
+            if(value == null) {
+                throw new NullPointerException("Value from ChunkCounterFile is null!");
+            }
+            value = value.trim();
             log.info("Reading count value :  [{}]", value);
             chunkCounter = Long.valueOf(value);
         } catch (IOException ex) {

@@ -63,26 +63,25 @@ public class FlowComponentCreationSeleniumIT {
         driver.quit();
     }
 
-    // todo: Collect the following tests into one test:
-    //  * testFlowComponentCreationNavigationItemIsVisibleAndClickable
-    //  * testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead
-    //  * testFlowComponentCreationInvocationMethodInputFieldIsVisibleAndDataCanBeInsertedAndRead
-    //  * testFlowComponentCreationFileUploadIsVisibleAndFileCanBeChosenAndRead
-    //  * testFlowCreationSaveButtonIsVisible
-    // Note: Many of these tests should arguably be two separate tests, 
-    // but I think that keeping them as one test is acceptable since 
-    // we save one run of the WebDriver.
     @Test
+    public void testInitialVisibililtyAndAccessabilityOfElements() throws IOException {
+        testFlowComponentCreationNavigationItemIsVisibleAndClickable();
+        testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
+        testFlowComponentCreationInvocationMethodInputFieldIsVisibleAndDataCanBeInsertedAndRead();
+        testFlowComponentCreationFileUploadIsVisibleAndFileNameCanBeChosenAndFileNameCanBeRetrievedFromWidget();
+        testFlowComponentCreationSaveButtonIsVisible();
+        testFlowComponentCreationSaveResultLabelIsVisibleAndEmpty();
+    }
+
     public void testFlowComponentCreationNavigationItemIsVisibleAndClickable() {
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
         assertEquals(true, element.isDisplayed());
-
         element.click();
+
         WebElement widget = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_WIDGET));
         assertEquals(true, widget.isDisplayed());
     }
 
-    @Test
     public void testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
         navigateToFlowComponentCreationContext();
         WebElement element = findComponentNameElement();
@@ -93,7 +92,6 @@ public class FlowComponentCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    @Test
     public void testFlowComponentCreationInvocationMethodInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
         navigateToFlowComponentCreationContext();
         WebElement element = findInvocationMethodElement();
@@ -104,7 +102,6 @@ public class FlowComponentCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    @Test
     public void testFlowComponentCreationFileUploadIsVisibleAndFileNameCanBeChosenAndFileNameCanBeRetrievedFromWidget() throws IOException {
         File javascript = createTemporaryJavascriptFile();
         navigateToFlowComponentCreationContext();
@@ -115,11 +112,17 @@ public class FlowComponentCreationSeleniumIT {
         assertEquals(javascript.getAbsolutePath(), element.getAttribute("value"));
     }
 
-    @Test
     public void testFlowComponentCreationSaveButtonIsVisible() {
         navigateToFlowComponentCreationContext();
         WebElement element = findSaveButtonElement();
         assertEquals(true, element.isDisplayed());
+    }
+
+    public void testFlowComponentCreationSaveResultLabelIsVisibleAndEmpty() {
+        navigateToFlowComponentCreationContext();
+        WebElement element = findSaveResultLabelElement();
+        assertEquals(false, element.isDisplayed());
+        assertEquals("", element.getText());
     }
 
     @Test

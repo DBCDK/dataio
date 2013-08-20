@@ -8,9 +8,11 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 
 public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView {
@@ -29,12 +31,14 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     private FlowCreatePresenter presenter;
     private final FlowNamePanel flowNamePanel = new FlowNamePanel();
     private final FlowDescriptionPanel flowDescriptionPanel = new FlowDescriptionPanel();
+    private final FlowComponentSelectionPanel flowComponentSelectionPanel = new FlowComponentSelectionPanel();
     private final FlowSavePanel flowSavePanel = new FlowSavePanel();
 
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
         add(flowNamePanel);
         add(flowDescriptionPanel);
+        add(flowComponentSelectionPanel);
         add(flowSavePanel);
     }
 
@@ -107,6 +111,12 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
         }
     }
 
+    private static class FlowComponentSelectionPanel extends DualList {
+
+        public FlowComponentSelectionPanel() {
+        }
+    }
+    
     private class FlowSavePanel extends HorizontalPanel {
 
         private final Button flowSaveButton = new Button("Gem");

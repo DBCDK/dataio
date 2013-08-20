@@ -16,6 +16,7 @@
   <modules>
     <module>flow-store-service</module>
     <module>gui-selenium</module>
+    <module>utils</module>
   </modules>
 
   <!-- Hardening: how do we get random ports for integration tests - embedded glassfish does not work with different ports across reactor modules -->

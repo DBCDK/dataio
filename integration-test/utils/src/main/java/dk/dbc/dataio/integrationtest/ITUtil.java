@@ -1,8 +1,10 @@
-package dk.dbc.dataio.flowstore;
+package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -17,10 +19,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 /**
  * Integration test utility
@@ -168,7 +166,7 @@ public class ITUtil {
      */
     public static List<Object> getHeaderAndAssertNotNull(Response response, String headerName) {
         final List<Object> header = response.getHeaders().get(headerName);
-        assertThat(header, is(notNullValue()));
+        Assert.assertThat(header, CoreMatchers.is(CoreMatchers.notNullValue()));
         return header;
     }
 
@@ -178,10 +176,10 @@ public class ITUtil {
      */
     public static ResourceIdentifier getResourceIdentifierFromLocationHeaderAndAssertHasValue(Response response) {
         final List<Object> locationHeader = getHeaderAndAssertNotNull(response, "Location");
-        assertThat(locationHeader.size(), is(1));
+        Assert.assertThat(locationHeader.size(), CoreMatchers.is(1));
 
         final String[] locationHeaderValueParts = ((String) locationHeader.get(0)).split("/");
-        assertThat(locationHeaderValueParts.length > 2, is(true));
+        Assert.assertThat(locationHeaderValueParts.length > 2, CoreMatchers.is(true));
 
         final String id = locationHeaderValueParts[locationHeaderValueParts.length - 2];
         final String version = locationHeaderValueParts[locationHeaderValueParts.length - 1];

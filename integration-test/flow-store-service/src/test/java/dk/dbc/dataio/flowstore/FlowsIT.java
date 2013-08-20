@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.junit.After;
@@ -18,12 +19,12 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.ITUtil.clearDbTables;
-import static dk.dbc.dataio.flowstore.ITUtil.doGet;
-import static dk.dbc.dataio.flowstore.ITUtil.doPostWithFormData;
-import static dk.dbc.dataio.flowstore.ITUtil.doPostWithJson;
-import static dk.dbc.dataio.flowstore.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
-import static dk.dbc.dataio.flowstore.ITUtil.newDbConnection;
+import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.doGet;
+import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithFormData;
+import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
+import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;

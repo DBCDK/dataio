@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.codehaus.jackson.node.ArrayNode;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -15,12 +16,11 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.ITUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT;
-import static dk.dbc.dataio.flowstore.ITUtil.clearDbTables;
-import static dk.dbc.dataio.flowstore.ITUtil.doGet;
-import static dk.dbc.dataio.flowstore.ITUtil.doPostWithJson;
-import static dk.dbc.dataio.flowstore.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
-import static dk.dbc.dataio.flowstore.ITUtil.newDbConnection;
+import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.doGet;
+import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
+import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -70,7 +70,7 @@ public class FlowComponentsIT {
         final ITUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT,
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT,
                 resId.getId(), new Date(resId.getVersion()));
 
         assertThat(rs.size(), is(1));

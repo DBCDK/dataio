@@ -32,26 +32,6 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     public void reload() {
 		flowComponentCreateView.refresh();
     }
-
-    /*
-    @Override
-    public void saveFlow(String name, String description) {
-        final FlowContent flowContent = new FlowContent(name, description, null);
-
-        flowStoreProxy.createFlow(flowContent, new AsyncCallback<Void>() {
-            @Override
-            public void onFailure(Throwable e) {
-                final String errorClassName = e.getClass().getName();
-                flowComponentCreateView.displayError(errorClassName + " - " + e.getMessage());
-            }
-
-            @Override
-            public void onSuccess(Void aVoid) {
-                flowComponentCreateView.displaySuccess(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
-            }
-        });
-    }
-*/
     
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {

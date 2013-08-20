@@ -59,8 +59,8 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
             log.error(errMsg);
             throw new ServletException(errMsg);
         } else {
-            FileItemFactory factory = new DiskFileItemFactory();
-            ServletFileUpload upload = new ServletFileUpload(factory);
+            FileItemFactory factory = new DiskFileItemFactory(); // Note: MemoryFileItemUpload???
+            ServletFileUpload upload = new ServletFileUpload(factory); // Factory???
 
             String componentName = null;
             String javascriptString = null;
@@ -70,13 +70,13 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
                 for (FileItem item : items) {
                     String fieldName = item.getFieldName();
                     if (fieldName.equals(FlowComponentCreateViewImpl.FORM_FIELD_COMPONENT_NAME)) {
-                        componentName = item.getString();
+                        componentName = getItemAsCharacterEncodedString(item);
                         log.info("Found ComponentName field: " + componentName);
                     } else if (fieldName.equals(FlowComponentCreateViewImpl.FORM_FIELD_INVOCATION_METHOD)) {
-                        invocationMethod = item.getString();
+                        invocationMethod = getItemAsCharacterEncodedString(item);
                         log.info("Found InvocationMethod field: " + invocationMethod);
                     } else if (fieldName.equals(FlowComponentCreateViewImpl.FORM_FIELD_JAVASCRIPT_FILE_UPLOAD)) {
-                        javascriptString = getFileItemAsString(item);
+                        javascriptString = getItemAsCharacterEncodedString(item);
                         log.info("Found Javascript field (content as string): " + javascriptString);
                     } else {
                         log.warn("Unknown field: [" + fieldName + "]");
@@ -93,13 +93,13 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
         }
     }
 
-    private String getFileItemAsString(FileItem item) throws UnsupportedEncodingException {
+    private String getItemAsCharacterEncodedString(FileItem item) throws UnsupportedEncodingException {
         return item.getString("UTF-8");
     }
 
     public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, IllegalStateException {
         final ClientResponse response = webResource.path("components").type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowComponentContent);
-        if (response.getClientResponseStatus() == ClientResponse.Status.BAD_REQUEST) {
+        if (response.getClientResponseStatus() != ClientResponse.Status.CREATED) {
             throw new IllegalStateException(response.getEntity(String.class));
         }
     }

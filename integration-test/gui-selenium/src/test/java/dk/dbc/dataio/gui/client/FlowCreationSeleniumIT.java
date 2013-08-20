@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -16,8 +17,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
@@ -33,10 +32,7 @@ public class FlowCreationSeleniumIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         String glassfishPort = System.getProperty("glassfish.port");
         APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
-
-        Class.forName("org.h2.Driver");
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + System.getProperty("h2.port") + "/mem:flow_store", "root", "root");
-        conn.setAutoCommit(true);
+        conn = ITUtil.newDbConnection();
     }
 
     @AfterClass
@@ -53,7 +49,7 @@ public class FlowCreationSeleniumIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables();
+        ITUtil.clearDbTables(conn, ITUtil.FLOWS_TABLE_NAME);
         driver.quit();
     }
 
@@ -188,14 +184,5 @@ public class FlowCreationSeleniumIT {
         descriptionInputField.sendKeys("b");
         WebElement saveButton = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         saveButton.click();
-    }
-
-    private void clearDbTables() throws SQLException {
-        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM flows");
-        try {
-            deleteStmt.executeUpdate();
-        } finally {
-            deleteStmt.close();
-        }
     }
 }

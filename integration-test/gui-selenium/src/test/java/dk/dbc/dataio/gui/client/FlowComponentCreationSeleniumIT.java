@@ -2,19 +2,9 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -29,6 +19,17 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+
 public class FlowComponentCreationSeleniumIT {
 
     private static WebDriver driver;
@@ -41,10 +42,7 @@ public class FlowComponentCreationSeleniumIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         String glassfishPort = System.getProperty("glassfish.port");
         APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
-
-        Class.forName("org.h2.Driver");
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + System.getProperty("h2.port") + "/mem:flow_store", "root", "root");
-        conn.setAutoCommit(true);
+        conn = ITUtil.newDbConnection();
     }
 
     @AfterClass
@@ -61,7 +59,7 @@ public class FlowComponentCreationSeleniumIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables();
+        ITUtil.clearDbTables(conn, ITUtil.FLOW_COMPONENTS_TABLE_NAME);
         driver.quit();
     }
 
@@ -201,15 +199,6 @@ public class FlowComponentCreationSeleniumIT {
         insertInputIntoInputElementsAndClickSaveButton();
         findInvocationMethodElement().sendKeys("c");
         assertEquals("", findSaveResultLabelElement().getText());
-    }
-
-    private void clearDbTables() throws SQLException {
-        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM flow_components");
-        try {
-            deleteStmt.executeUpdate();
-        } finally {
-            deleteStmt.close();
-        }
     }
 
     private void navigateToFlowComponentCreationContext() {

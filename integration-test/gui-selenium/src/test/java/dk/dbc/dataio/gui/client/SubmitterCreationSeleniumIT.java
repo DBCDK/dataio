@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -16,7 +17,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
@@ -32,10 +32,7 @@ public class SubmitterCreationSeleniumIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         String glassfishPort = System.getProperty("glassfish.port");
         APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
-
-        Class.forName("org.h2.Driver");
-        conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:" + System.getProperty("h2.port") + "/mem:submitter_store", "root", "root");
-        conn.setAutoCommit(true);
+        conn = ITUtil.newDbConnection();
     }
 
     @AfterClass
@@ -52,7 +49,7 @@ public class SubmitterCreationSeleniumIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables();
+        //ITUtil.clearDbTables(conn, ITUtil.SUBMITTERS_TABLE_NAME);
         driver.quit();
     }
 
@@ -226,14 +223,5 @@ public class SubmitterCreationSeleniumIT {
         descriptionInputField.sendKeys("c");
         WebElement saveButton = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON));
         saveButton.click();
-    }
-
-    private void clearDbTables() throws SQLException {
-//        PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM submitters");
-//        try {
-//            deleteStmt.executeUpdate();
-//        } finally {
-//            deleteStmt.close();
-//        }
     }
 }

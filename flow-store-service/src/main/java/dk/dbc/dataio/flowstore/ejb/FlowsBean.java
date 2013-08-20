@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -25,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Date;
+import java.util.List;
 
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.buildResponse;
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getEntity;
@@ -96,6 +98,21 @@ public class FlowsBean {
         entityManager.flush();
 
         return Response.created(getResourceUri(uriInfo.getAbsolutePathBuilder(), flow)).build();
+    }
+
+    /**
+     * Returns list of all versions of all stored flows sorted by name in ascending order
+     *
+     * @return a HTTP OK response with result list as JSON
+     *
+     * @throws JsonException on failure to create result list as JSON
+     */
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllFlows() throws JsonException {
+        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
+        final List<Flow> results = query.getResultList();
+        return buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 
     /**

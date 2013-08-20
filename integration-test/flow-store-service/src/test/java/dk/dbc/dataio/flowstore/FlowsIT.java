@@ -19,11 +19,13 @@ import java.util.Date;
 import java.util.List;
 
 import static dk.dbc.dataio.flowstore.ITUtil.clearDbTables;
+import static dk.dbc.dataio.flowstore.ITUtil.doGet;
 import static dk.dbc.dataio.flowstore.ITUtil.doPostWithFormData;
 import static dk.dbc.dataio.flowstore.ITUtil.doPostWithJson;
 import static dk.dbc.dataio.flowstore.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.flowstore.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -123,6 +125,65 @@ public class FlowsIT {
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing no flows
+     * When: GETing flow collection
+     * Then: request returns with a OK http status code
+     * And: request returns with empty list as JSON
+     */
+    @Test
+    public void findAllFlows_emptyResult() throws Exception {
+        // When...
+        final Response response = doGet(restClient, baseUrl, ITUtil.FLOWS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+
+        // And...
+        final String responseContent = response.readEntity(String.class);
+        assertThat(responseContent, is(notNullValue()));
+        final ArrayNode responseContentNode = (ArrayNode) ITUtil.getJsonRoot(responseContent);
+        assertThat(responseContentNode.size(), is(0));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing three flows
+     * When: GETing flow collection
+     * Then: request returns with a OK http status code
+     * And: request returns with list as JSON of flows sorted alphabetically by name
+     */
+    @Test
+    public void findAllFlows_Ok() throws Exception {
+        // Given...
+        final ITUtil.ResourceIdentifier sortsFirst = new ITUtil.ResourceIdentifier(1L, new Date().getTime());
+        final ITUtil.ResourceIdentifier sortsSecond = new ITUtil.ResourceIdentifier(2L, new Date().getTime());
+        final ITUtil.ResourceIdentifier sortsThird = new ITUtil.ResourceIdentifier(3L, new Date().getTime());
+
+        final String flowContent = "{}";
+
+        JDBCUtil.update(dbConnection, ITUtil.FLOWS_TABLE_INSERT_STMT,
+                sortsThird.getId(), new Date(sortsThird.getVersion()), flowContent, "c");
+        JDBCUtil.update(dbConnection, ITUtil.FLOWS_TABLE_INSERT_STMT,
+                sortsFirst.getId(), new Date(sortsFirst.getVersion()), flowContent, "a");
+        JDBCUtil.update(dbConnection, ITUtil.FLOWS_TABLE_INSERT_STMT,
+                sortsSecond.getId(), new Date(sortsSecond.getVersion()), flowContent, "b");
+
+        // When...
+        final Response response = doGet(restClient, baseUrl, ITUtil.FLOWS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+
+        // And...
+        final String responseContent = response.readEntity(String.class);
+        assertThat(responseContent, is(notNullValue()));
+        final ArrayNode responseContentNode = (ArrayNode) ITUtil.getJsonRoot(responseContent);
+        assertThat(responseContentNode.size(), is(3));
+        assertThat(responseContentNode.get(0).get("id").getLongValue(), is(sortsFirst.getId()));
+        assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond.getId()));
+        assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird.getId()));
     }
 
     /**

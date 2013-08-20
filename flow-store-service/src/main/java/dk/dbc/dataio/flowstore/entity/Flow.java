@@ -6,7 +6,10 @@ import org.codehaus.jackson.JsonNode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
@@ -15,9 +18,15 @@ import javax.persistence.Table;
  * given as JSON string
  */
 @Entity
-@Table(name = Flow.TABLE_NAME)
+@Table(name = Flow.TABLE_NAME,
+indexes = @Index(columnList = Flow.NAME_INDEX_COLUMN))
+@NamedQueries({
+    @NamedQuery(name = Flow.QUERY_FIND_ALL, query = "SELECT flow FROM Flow flow ORDER BY flow.nameIndexValue ASC")
+})
 public class Flow extends dk.dbc.dataio.flowstore.entity.Entity {
     public static final String TABLE_NAME = "flows";
+    public static final String QUERY_FIND_ALL = "Flow.findAll";
+    static final String NAME_INDEX_COLUMN = "name_idx";
 
     @Lob
     @Column(name = "name_idx", nullable = false)

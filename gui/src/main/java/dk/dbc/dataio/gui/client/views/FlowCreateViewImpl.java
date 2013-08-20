@@ -66,6 +66,11 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     public void refresh() {
     }
 
+    @Override
+    public void setAvailableItem(String name, String name0) {
+        flowComponentSelectionPanel.addAvailableItem(name, name0);
+    }
+
     private class FlowNamePanel extends HorizontalPanel {
 
         private final Label label = new Label("Flownavn");

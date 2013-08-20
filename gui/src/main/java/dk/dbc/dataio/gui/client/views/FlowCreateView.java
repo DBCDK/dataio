@@ -5,4 +5,6 @@ import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 
 public interface FlowCreateView extends IsWidget, View<FlowCreatePresenter> {
     void setData(String name, String description);
+
+    public void setAvailableItem(String name, String name0);
 }

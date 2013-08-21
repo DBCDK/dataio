@@ -36,6 +36,7 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
         super.init();
         try {
             String flowStoreServiceEndpoint = ServletUtil.getFlowStoreServiceEndpoint();
+            log.info("FlowStoreServiceEndpoint: " + flowStoreServiceEndpoint);
             webResource = setupWebResource(flowStoreServiceEndpoint);
         } catch (Exception ex) {
             log.error("Exception caught while initializing: ", ex);

@@ -12,5 +12,7 @@ public interface FlowStoreProxyAsync {
 
     void findAllComponents(AsyncCallback<List<FlowComponent>> async);
 
+    void findAllFlows(AsyncCallback<List<Flow>> async);
+    
     void addFlowComponentToFlow(Flow flow, FlowComponent flowComponent, AsyncCallback<Void> async);
 }

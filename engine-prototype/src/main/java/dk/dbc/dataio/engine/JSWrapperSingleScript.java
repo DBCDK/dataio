@@ -16,7 +16,12 @@ public class JSWrapperSingleScript {
         mh.registerHandler("string", sssh);
         mh.addSearchPath(new SchemeURI("string", "."));
         jsEnvironment = new Environment();
-        jsEnvironment.registerUseFunction(mh);
+        
+        // Removed use-function registration for now.
+        // When we get to use dependencies in javascripts, 
+        // this should be enabled again!
+
+        //jsEnvironment.registerUseFunction(mh);
 
         jsEnvironment.eval(javascripts.get(0).javascript);
     }

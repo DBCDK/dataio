@@ -21,12 +21,11 @@ import javax.ws.rs.core.MultivaluedMap;
 import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
+
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     private static final String FLOWS_ENTRY_POINT = "flows";
     private static final String FLOWS_COMPONENTS_ENTRY_POINT = "components";
-
     private final WebResource webResource;
-    
 
     /**
      * Class constructor
@@ -73,5 +72,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new IllegalStateException(response.getEntity(String.class));
         }
         return response.getEntity(new GenericType<List<FlowComponent>>() { });
+    }
+
+    @Override
+    public List<Flow> findAllFlows() throws Exception {
+        log.info("Find All Flows");
+        try {
+            final ClientResponse response = webResource.path(FLOWS_ENTRY_POINT).get(ClientResponse.class);
+            if (response.getClientResponseStatus() != ClientResponse.Status.OK) {
+                throw new IllegalStateException(response.getEntity(String.class));
+            }
+            return response.getEntity(new GenericType<List<Flow>>() {
+            });
+        } catch (Exception ex) {
+            log.error("Exception caught while retrieving all flows", ex);
+            throw ex;
+        }
     }
 }

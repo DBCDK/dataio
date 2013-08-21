@@ -4,19 +4,27 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.FileUpload;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import dk.dbc.dataio.engine.Flow;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EngineGUI extends DockLayoutPanel {
 
+    FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
     public static final String FORM_FIELD_DATA_FILE = "dataFile";
-    public static final String FORM_FIELD_FLOW_FILE = "flowFile";
-
+    public static final String FORM_FIELD_FLOW_ID = "formfieldflowid";
     private EngineFormPanel engineFormPanel = new EngineFormPanel();
     private FileNamePanel fileNamePanel = new FileNamePanel();
     private FlowPanel flowPanel = new FlowPanel();
@@ -25,10 +33,13 @@ public class EngineGUI extends DockLayoutPanel {
     public EngineGUI() {
         super(Style.Unit.PX);
 
+        getFlows();
+
         VerticalPanel vpanel = new VerticalPanel();
         vpanel.add(fileNamePanel);
         vpanel.add(flowPanel);
         vpanel.add(runFlowPanel);
+
 
         engineFormPanel.setWidget(vpanel);
         add(engineFormPanel);
@@ -40,7 +51,24 @@ public class EngineGUI extends DockLayoutPanel {
         return upload;
     }
 
+    public void getFlows() {
+        flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                runFlowPanel.setStatusText("Error!!!!");
+                Window.alert(caught.getMessage());
+            }
+
+            @Override
+            public void onSuccess(List<Flow> flows) {
+                runFlowPanel.setStatusText("Size: " + flows.size());
+                flowPanel.setFlows(flows);
+            }
+        });
+    }
+
     private class EngineFormPanel extends FormPanel {
+
         public EngineFormPanel() {
             super();
             // Point to service
@@ -69,6 +97,7 @@ public class EngineGUI extends DockLayoutPanel {
     }
 
     private class FileNamePanel extends HorizontalPanel {
+
         private final Label label = new Label("Filename");
         private final FileUpload upload = getFileUpload(FORM_FIELD_DATA_FILE);
 
@@ -84,20 +113,26 @@ public class EngineGUI extends DockLayoutPanel {
     }
 
     private class FlowPanel extends HorizontalPanel {
+
         private final Label label = new Label("Flow");
-        private final FileUpload upload = getFileUpload(FORM_FIELD_FLOW_FILE);
+        private final ListBox listBox = new ListBox();
 
         public FlowPanel() {
             super();
             add(label);
-            add(upload);
+            add(listBox);
+            listBox.setName(FORM_FIELD_FLOW_ID);
         }
 
-        public String getText() {
-            return upload.getFilename();
+        public void setFlows(List<Flow> flows) {
+            listBox.clear();
+            for (Flow flow : flows) {
+                String flowId = Long.toString(flow.getId()) + "-" + Long.toString(flow.getVersion());
+                listBox.addItem(flow.getContent().getName(), flowId);
+            }
         }
     }
-    
+
     private class RunFlowPanel extends HorizontalPanel {
 
         private final Label runFlowResultLabel = new Label("");

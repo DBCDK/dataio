@@ -1,5 +1,11 @@
 package dk.dbc.dataio.gui.server;
 
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
 import dk.dbc.dataio.engine.Engine;
 import dk.dbc.dataio.engine.FileSystemJobStore;
 import dk.dbc.dataio.engine.Job;
@@ -24,13 +30,15 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
+import javax.ws.rs.core.MediaType;
+import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 public class EmbeddedEngineServlet extends HttpServlet {
+
     private static final Logger log = LoggerFactory.getLogger(EmbeddedEngineServlet.class);
     private static final long serialVersionUID = 5701538885619048769L;
-
     private FileSystemJobStore jobStore;
+    private WebResource webResource;
 
     @Override
     public void init() throws ServletException {
@@ -41,11 +49,42 @@ public class EmbeddedEngineServlet extends HttpServlet {
         } catch (JobStoreException e) {
             throw new ServletException(e);
         }
+
+        try {
+            String flowStoreServiceEndpoint = ServletUtil.getFlowStoreServiceEndpoint();
+            log.info("FlowStoreServiceEndpoint: " + flowStoreServiceEndpoint);
+            webResource = setupWebResource(flowStoreServiceEndpoint);
+        } catch (Exception ex) {
+            log.error("Exception caught while initializing: ", ex);
+        }
+    }
+
+    private WebResource setupWebResource(String flowStoreServiceEndpoint) {
+        final ClientConfig clientConfig = new DefaultClientConfig();
+        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        // force client to use Jackson JAX-RS provider (one in org.codehaus.jackson.jaxrs)
+        clientConfig.getClasses().add(JacksonJsonProvider.class);
+        final Client httpClient = Client.create(clientConfig);
+
+        return httpClient.resource(flowStoreServiceEndpoint);
+    }
+
+    public String getFlow(long id, long version) throws NullPointerException, IllegalStateException {
+        try {
+            final ClientResponse response = webResource.path("flows/" + id + "/" + version).accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
+//        if (response.getClientResponseStatus() != ClientResponse.Status.) {
+//            throw new IllegalStateException(response.getEntity(String.class));
+//        }
+            log.info("Found something");
+            return response.getEntity(String.class);
+        } catch (Exception ex) {
+            log.error("Caught Exception: ", ex);
+            return "";
+        }
+        // return response.getEnt;
     }
 
     private void executeJob(String dataPath, String flow) throws Exception {
-        //flow = "{\"id\": \"0\", \"content\": {\"name\":\"unknown\", \"description\":\"Beskrivelse\", \"components\" : [ {\"id\" : \"0\", \"content\" : {\"javascript\": \"function convertToUpperCase(record) { return record.toUpperCase(); }\", \"invocationMethod\" : \"convertToUpperCase\"} } ] } }";
-        
         final Engine engine = new Engine();
         try {
             log.info("dataPath: " + dataPath);
@@ -61,7 +100,6 @@ public class EmbeddedEngineServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
         File dataFile = null;
-        File flowFile = null;
 
         // process only multipart requests
         if (ServletFileUpload.isMultipartContent(req)) {
@@ -72,30 +110,50 @@ public class EmbeddedEngineServlet extends HttpServlet {
 
             try {
                 // Parse the request
+                String flow = "";
                 List<FileItem> items = upload.parseRequest(req);
                 for (FileItem item : items) {
                     if (EngineGUI.FORM_FIELD_DATA_FILE.equals(item.getFieldName())) {
-                       dataFile = getItem(item);
-                    } else if (EngineGUI.FORM_FIELD_FLOW_FILE.equals(item.getFieldName())) {
-                        flowFile = getItem(item);
+                        dataFile = getItem(item);
+                    } else if (EngineGUI.FORM_FIELD_FLOW_ID.equals(item.getFieldName())) {
+                        String flowId = item.getString("UTF-8");
+                        log.info("flow index [{}]", flowId);
+                        FlowIdentifier flowIdentifier = new FlowIdentifier(flowId);
+                        flow = getFlow(flowIdentifier.id, flowIdentifier.version);
                     }
                     resp.flushBuffer();
                 }
 
-                executeJob(dataFile.getAbsolutePath(), getFileContentAsString(flowFile));
+                executeJob(dataFile.getAbsolutePath(), flow);
             } catch (Exception e) {
                 log.error("Exception caught", e);
                 throw new ServletException(e);
             } finally {
                 deleteFile(dataFile);
-                deleteFile(flowFile);
             }
         } else {
             String errMsg = "Request did not have multipart content";
             log.error(errMsg);
             throw new ServletException(errMsg);
         }
-     }
+    }
+
+    private class FlowIdentifier {
+
+        public final long id;
+        public final long version;
+
+        public FlowIdentifier(String flowIdentifierAsString) {
+            String[] flowIdComponents = flowIdentifierAsString.split("-");
+            if (flowIdComponents.length != 2 || flowIdComponents[0].isEmpty() || flowIdComponents[1].isEmpty()) {
+                String errMsg = "flowID is not legal: [" + flowIdentifierAsString + "]";
+                log.error(errMsg);
+                throw new IllegalArgumentException(errMsg);
+            }
+            this.id = Long.valueOf(flowIdComponents[0]);
+            this.version = Long.valueOf(flowIdComponents[1]);
+        }
+    }
 
     private File getItem(FileItem item) throws Exception {
         log.info("Accessing multi part item {} from field {}", item.getName(), item.getFieldName());
@@ -111,9 +169,5 @@ public class EmbeddedEngineServlet extends HttpServlet {
             log.info("Removing uploaded file {}", uploadedFile.getAbsolutePath());
             uploadedFile.delete();
         }
-    }
-
-    private static String getFileContentAsString(File uploadedFile) throws IOException {
-         return new String(Files.readAllBytes(uploadedFile.toPath()), Charset.forName("UTF-8"));
     }
 }

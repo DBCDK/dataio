@@ -18,6 +18,8 @@ public interface FlowStoreProxy extends RemoteService {
 
     List<FlowComponent> findAllComponents();
 
+    List<Flow> findAllFlows() throws Exception;
+    
     public static class Factory {
 
         private static FlowStoreProxyAsync asyncInstance = null;

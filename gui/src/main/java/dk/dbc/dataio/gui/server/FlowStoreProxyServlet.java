@@ -40,4 +40,9 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     public List<FlowComponent> findAllComponents() {
         return flowStoreProxy.findAllComponents();
     }
+    
+    @Override
+    public List<Flow> findAllFlows() throws Exception {
+        return flowStoreProxy.findAllFlows();
+    }
 }

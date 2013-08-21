@@ -13,7 +13,10 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents the create flow activity encompassing saving
@@ -23,7 +26,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
     private ClientFactory clientFactory;
     private FlowCreateView flowCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
-    private List<FlowComponent> availableComponents;
+    private Map<String, FlowComponent> availableComponents = new HashMap<String, FlowComponent>();
 
     public CreateFlowActivity(FlowCreatePlace place, ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
@@ -43,8 +46,12 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
 
     @Override
     public void saveFlow(String name, String description) {
+        final List<FlowComponent> flowComponents = new ArrayList<FlowComponent>();
+        for (String component : flowCreateView.getSelectedItems()) {
+            flowComponents.add(availableComponents.get(component));
+        }
+//        final FlowContent flowContent = new FlowContent(name, description, flowComponents);
         final FlowContent flowContent = new FlowContent(name, description, null);
-
         flowStoreProxy.createFlow(flowContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
@@ -63,19 +70,23 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowCreateView.asWidget());
+        flowCreateView.clearAvailableItems();
         flowStoreProxy.findAllComponents(new AsyncCallback<List<FlowComponent>>() {
             @Override
             public void onFailure(Throwable e) {
-                final String errorClassName = e.getClass().getName();
-                flowCreateView.displayError(errorClassName + " - " + e.getMessage());
+                flowCreateView.displayError(e.getClass().getName() + " - " + e.getMessage());
             }
 
             @Override
             public void onSuccess(List<FlowComponent> result) {
-                availableComponents = result;
-                for (FlowComponent component : availableComponents) {
-                    flowCreateView.setAvailableItem(component.getContent().getName(), component.getContent().getName());
-                    //Window.alert("Komponent: " + component.getContent().getName());
+                for (FlowComponent component : result) {
+                    String key = Long.toString(component.getId()) + "-" + Long.toString(component.getVersion());
+                    try {
+                        availableComponents.put(key, component);
+                        flowCreateView.setAvailableItem(component.getContent().getName(), key);
+                    } catch (Exception e) {
+                        flowCreateView.displayError(e.getClass().getName() + " - " + e.getMessage());
+                    }
                 }
             }
 

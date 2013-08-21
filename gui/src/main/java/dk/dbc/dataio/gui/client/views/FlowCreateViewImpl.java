@@ -8,12 +8,15 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView {
     // Constants (These are not all private since we use them in the selenium tests)
@@ -69,6 +72,21 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     @Override
     public void setAvailableItem(String name, String name0) {
         flowComponentSelectionPanel.addAvailableItem(name, name0);
+    }
+
+    @Override
+    public void clearAvailableItems() {
+        flowComponentSelectionPanel.clear();
+    }
+
+    @Override
+    public List<String> getSelectedItems() {
+        List<String> selectedItems = new ArrayList<String>();
+        Collection<Map.Entry<String, String>> selectedItemsFromPanel = flowComponentSelectionPanel.getSelectedItems();
+        for (Map.Entry<String, String> item : selectedItemsFromPanel) {
+            selectedItems.add(item.getKey());
+        }
+        return selectedItems;
     }
 
     private class FlowNamePanel extends HorizontalPanel {

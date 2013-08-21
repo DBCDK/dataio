@@ -20,11 +20,11 @@ class ProcessChunkResult implements Serializable {
     
     ProcessChunkResult(long id, List<String> results) {
         this.id = id;
-        this.results = ModelUtil.asUnmodifiableList(new ArrayList<String>(results));
+        this.results = new ArrayList<String>(results);
     }
 
     public List<String> getResults() {
-        return results;
+        return new ArrayList<String>(results);
     }
 
     public long getId() {

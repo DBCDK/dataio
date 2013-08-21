@@ -1,6 +1,7 @@
 package dk.dbc.dataio.engine;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ public class FlowComponentContent implements Serializable {
 
     public FlowComponentContent(String name, List<JavaScript> javascripts, String invocationMethod) {
         this.name = name;
-        this.javascripts = javascripts;
+        this.javascripts = new ArrayList<JavaScript>(javascripts);
         this.invocationMethod = invocationMethod;
     }
 
@@ -33,6 +34,6 @@ public class FlowComponentContent implements Serializable {
     }
 
     public List<JavaScript> getJavascripts() {
-        return javascripts;
+        return new ArrayList<JavaScript>(javascripts);
     }
 }

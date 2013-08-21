@@ -82,8 +82,7 @@ public class DualList extends HorizontalPanel {
      * Constructor
      */
     public DualList() {
-        right.setWidth("150px");
-        left.setWidth("150px");
+        this.addStyleName("dual-list-component-class");
         addItem.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
                 moveItems(left, right);

@@ -6,3 +6,7 @@
 .gwt-Button {
     font-size: 120%;
 }
+
+.dual-list-component-class select {
+    width: 12em;
+}

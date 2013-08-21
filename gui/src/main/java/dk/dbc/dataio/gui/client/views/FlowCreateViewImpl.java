@@ -70,13 +70,13 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     }
 
     @Override
-    public void setAvailableItem(String name, String name0) {
-        flowComponentSelectionPanel.addAvailableItem(name, name0);
+    public void setAvailableItem(String key, String value) {
+        flowComponentSelectionPanel.addAvailableItem(key, value);
     }
 
     @Override
     public void clearAvailableItems() {
-        flowComponentSelectionPanel.clear();
+        flowComponentSelectionPanel.clearItems();
     }
 
     @Override
@@ -91,12 +91,12 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
 
     private class FlowNamePanel extends HorizontalPanel {
 
-        private final Label label = new Label("Flownavn");
         private final TextBox textBox = new TextBox();
 
         public FlowNamePanel() {
             super();
-            add(label);
+            add(new Label("Flownavn"));
+            addStyleName("flow-name-panel");
             textBox.getElement().setId(GUIID_FLOW_CREATION_NAME_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
@@ -109,11 +109,11 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
 
     private class FlowDescriptionPanel extends HorizontalPanel {
 
-        private final Label flowDescriptionLabel = new Label("Beskrivelse");
         private final TextArea flowDescriptionTextArea = new FlowDescriptionTextArea();
 
         public FlowDescriptionPanel() {
-            add(flowDescriptionLabel);
+            add(new Label("Beskrivelse"));
+            addStyleName("flow-description-panel");
             add(flowDescriptionTextArea);
         }
 
@@ -134,11 +134,30 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
         }
     }
 
-    private static class FlowComponentSelectionPanel extends DualList {
+    
+    private static class FlowComponentSelectionPanel extends HorizontalPanel {
 
+        private final DualList flowComponentSelectionLists = new DualList();
+    
         public FlowComponentSelectionPanel() {
+            add(new Label("Flow komponenter"));
+            addStyleName("flow-component-selection-panel");
+            add(flowComponentSelectionLists);
+        }
+
+        private void clearItems() {
+            flowComponentSelectionLists.clear();
+        }
+
+        private void addAvailableItem(String key, String value) {
+            flowComponentSelectionLists.addAvailableItem(key, value);
+        }
+
+        private Collection<Map.Entry<String, String>> getSelectedItems() {
+            return flowComponentSelectionLists.getSelectedItems();
         }
     }
+    
     
     private class FlowSavePanel extends HorizontalPanel {
 
@@ -146,6 +165,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
         private final Label flowSaveResultLabel = new Label("");
 
         public FlowSavePanel() {
+            addStyleName("flow-save-panel");
             flowSaveResultLabel.getElement().setId(GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
             add(flowSaveResultLabel);
             flowSaveButton.getElement().setId(GUIID_FLOW_CREATION_SAVE_BUTTON);

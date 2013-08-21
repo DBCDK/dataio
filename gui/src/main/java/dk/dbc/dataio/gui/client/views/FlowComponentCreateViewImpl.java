@@ -101,6 +101,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentNamePanel() {
             super();
             add(label);
+            addStyleName("flow-component-name-panel");
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             textBox.setName(FORM_FIELD_COMPONENT_NAME);
@@ -120,6 +121,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentJavaScriptUploadPanel() {
             super();
             add(label);
+            addStyleName("flow-component-java-script-upload-panel");
             fileUpload.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD);
             fileUpload.setName(FORM_FIELD_JAVASCRIPT_FILE_UPLOAD);
             add(fileUpload);
@@ -144,6 +146,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentInvocationMethodPanel() {
             super();
             add(label);
+            addStyleName("flow-component-invocation-method-panel");
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             textBox.setName(FORM_FIELD_INVOCATION_METHOD);
@@ -163,6 +166,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentSavePanel() {
             flowComponentSaveResultLabel.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
             add(flowComponentSaveResultLabel);
+            addStyleName("flow-component-save-panel");
             flowComponentSaveButton.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
             flowComponentSaveButton.addClickHandler(new SaveButtonHandler());
             add(flowComponentSaveButton);

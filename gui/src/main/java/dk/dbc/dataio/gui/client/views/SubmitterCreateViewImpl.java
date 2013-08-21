@@ -73,6 +73,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
         public SubmitterNamePanel() {
             super();
             add(label);
+            addStyleName("submitter-name-panel");
             textBox.getElement().setId(GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX);
             textBox.addKeyDownHandler(new SubmitterCreateViewImpl.InputFieldKeyDownHandler());
             add(textBox);
@@ -91,6 +92,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
         public SubmitterNumberPanel() {
             super();
             add(label);
+            addStyleName("submitter-number-panel");
             textBox.getElement().setId(GUIID_SUBMITTER_CREATION_NUMBER_TEXT_BOX);
             textBox.addKeyDownHandler(new SubmitterCreateViewImpl.InputFieldKeyDownHandler());
             add(textBox);
@@ -108,6 +110,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
         public SubmitterDescriptionPanel() {
             add(submitterDescriptionLabel);
+            addStyleName("submitter-description-panel");
             add(submitterDescriptionTextArea);
         }
 
@@ -136,6 +139,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
         public SubmitterSavePanel() {
             submitterSaveResultLabel.getElement().setId(GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL);
             add(submitterSaveResultLabel);
+            addStyleName("submitter-save-panel");
             submitterSaveButton.getElement().setId(GUIID_SUBMITTER_CREATION_SAVE_BUTTON);
             submitterSaveButton.addClickHandler(new SubmitterCreateViewImpl.SaveButtonHandler());
             add(submitterSaveButton);

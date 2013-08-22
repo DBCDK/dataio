@@ -134,7 +134,7 @@ public class FlowCreationSeleniumIT {
         FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 3", "Script 3", "Invocation Method 3");
 
         navigateToFlowCreationContext();
-        WebElement componentSelection = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL));
+        //WebElement componentSelection = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL));
         //WebElement leftPane = componentSelection.findElement(By.className(DualList.DUAL_LIST_LEFT_SELECTION_PANE_CLASS));
         WebElement buttonLeft2Right = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));
         //WebElement buttonRight2Left = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_REMOVEITEM_ID));

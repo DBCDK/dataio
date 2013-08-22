@@ -60,6 +60,7 @@ public class Engine {
                 final ProcessChunkResult chunkResult = jobStore.getProcessChunkResult(job, i);
                 for (String encodedRecord : chunkResult.getResults()) {
                     writer.write(base64decode(encodedRecord));
+                    writer.newLine();
                 }
             }
         } catch (IOException e) {

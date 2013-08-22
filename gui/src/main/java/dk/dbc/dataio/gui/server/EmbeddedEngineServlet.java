@@ -16,6 +16,7 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FilenameUtils;
+import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,30 +24,33 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 
 public class EmbeddedEngineServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(EmbeddedEngineServlet.class);
     private static final long serialVersionUID = 5701538885619048769L;
+    private static final String jobStoreName = "dataio-job-store";
+    private Path jobStorePath;
     private FileSystemJobStore jobStore;
     private WebResource webResource;
+    private String localhostname;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        final Path jobStorePath = FileSystems.getDefault().getPath("/tmp/dataio-job-store");
+        jobStorePath = FileSystems.getDefault().getPath(String.format("/tmp/%s", jobStoreName));
         try {
             jobStore = FileSystemJobStore.newFileSystemJobStore(jobStorePath);
+            localhostname = java.net.InetAddress.getLocalHost().getHostName();
         } catch (JobStoreException e) {
+            throw new ServletException(e);
+        } catch (UnknownHostException e) {
             throw new ServletException(e);
         }
 
@@ -84,17 +88,25 @@ public class EmbeddedEngineServlet extends HttpServlet {
         // return response.getEnt;
     }
 
-    private void executeJob(String dataPath, String flow) throws Exception {
+    private String executeJob(String dataPath, String flow) throws Exception {
         final Engine engine = new Engine();
+        final String sinkFileUrl;
         try {
             log.info("dataPath: " + dataPath);
             log.info("flow    : " + flow);
             final Job job = engine.insertIntoJobStore(FileSystems.getDefault().getPath(dataPath), flow, jobStore);
             engine.chunkify(job, jobStore);
             engine.process(job, jobStore);
+
+            final String sinkFileName = String.format("%s.sink.txt", job.getId());
+            final Path sinkPath = FileSystems.getDefault().getPath(jobStorePath.toString(), sinkFileName);
+            engine.sendToSink(job, jobStore, sinkPath);
+
+            sinkFileUrl = String.format("http://%s/%s/%s", localhostname, jobStoreName, sinkFileName);
         } catch (JobStoreException e) {
             throw new Exception(e);
         }
+        return sinkFileUrl;
     }
 
     @Override
@@ -124,7 +136,9 @@ public class EmbeddedEngineServlet extends HttpServlet {
                     resp.flushBuffer();
                 }
 
-                executeJob(dataFile.getAbsolutePath(), flow);
+                final String sinkFileUrl = executeJob(dataFile.getAbsolutePath(), flow);
+                resp.setContentType("text/html");
+                resp.getWriter().write(String.format("<a href='%s'>link to sink file</a>", sinkFileUrl));
             } catch (Exception e) {
                 log.error("Exception caught", e);
                 throw new ServletException(e);

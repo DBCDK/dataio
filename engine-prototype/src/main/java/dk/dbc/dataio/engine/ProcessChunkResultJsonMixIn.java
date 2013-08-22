@@ -20,5 +20,5 @@ abstract class ProcessChunkResultJsonMixIn {
      */
     @JsonCreator
     public ProcessChunkResultJsonMixIn(@JsonProperty("id") long id,
-                                       @JsonProperty("records") List<String> results) { }
+                                       @JsonProperty("results") List<String> results) { }
 }

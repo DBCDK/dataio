@@ -1,21 +1,24 @@
 package dk.dbc.dataio.engine;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.codec.binary.Base64;
 
 public class Engine {
 
     private static final Logger log = LoggerFactory.getLogger(Engine.class);
+
+    private final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
     public Job insertIntoJobStore(Path dataObjectPath, String flowInfoJson, JobStore jobStore) throws JobStoreException {
         return jobStore.createJob(dataObjectPath, JsonUtil.fromJson(flowInfoJson, Flow.class, JsonUtil.getMixIns()));
@@ -47,7 +50,21 @@ public class Engine {
         return job;
     }
 
-    public Job sendToSink(Job job, JobStore jobStore) {
+    public Job sendToSink(Job job, JobStore jobStore, Path sinkFile) throws JobStoreException {
+       final long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
+        log.info("Combining decoded chunk results from {} chunks for jobId {} in {}", numberOfChunks, job.getId(), sinkFile);
+        try (BufferedWriter writer = Files.newBufferedWriter(sinkFile,
+                LOCAL_CHARSET, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+
+            for (int i = 0; i < numberOfChunks; i++) {
+                final ProcessChunkResult chunkResult = jobStore.getProcessChunkResult(job, i);
+                for (String encodedRecord : chunkResult.getResults()) {
+                    writer.write(base64decode(encodedRecord));
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Exception caught when trying to write to sink file {}", sinkFile, e);
+        }
         return job;
     }
 
@@ -61,7 +78,7 @@ public class Engine {
     private List<Chunk> splitByLine(Path path, Job job) throws IOException {
         log.info("Got path: " + path.toString());
         List<Chunk> chunks = new ArrayList<>();
-        BufferedReader br = Files.newBufferedReader(path, Charset.forName("UTF-8"));
+        BufferedReader br = Files.newBufferedReader(path, LOCAL_CHARSET);
         String line;
         long chunkId = 0;
         int counter = 0; 

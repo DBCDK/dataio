@@ -132,6 +132,7 @@ public class FlowsBean {
      *
      * @throws JsonException when unable to handle entity content as JSON
      */
+    @Deprecated
     @POST
     @Path(FLOWS_RESOURCE_COMPONENTS_ENTRY_POINT)
     @Produces({ MediaType.APPLICATION_JSON })

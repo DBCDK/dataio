@@ -10,6 +10,7 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.FileUpload;
 import com.google.gwt.user.client.ui.FormPanel;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
@@ -17,7 +18,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.engine.Flow;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import java.util.ArrayList;
+
 import java.util.List;
 
 public class EngineGUI extends DockLayoutPanel {
@@ -42,6 +43,7 @@ public class EngineGUI extends DockLayoutPanel {
 
 
         engineFormPanel.setWidget(vpanel);
+
         add(engineFormPanel);
     }
 
@@ -91,6 +93,7 @@ public class EngineGUI extends DockLayoutPanel {
                     // When the form submission is successfully completed, this
                     // event is fired.
                     runFlowPanel.setStatusText("Done");
+                    runFlowPanel.add(new HTML(event.getResults()));
                 }
             });
         }

@@ -115,6 +115,26 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
+    public ProcessChunkResult getProcessChunkResult(Job job, long i) throws JobStoreException {
+        final Path chunkResultPath =  FileSystems.getDefault().getPath(getJobPath(job.getId()).toString(), String.format("%d.res.json", i));
+        ProcessChunkResult chunkResult;
+        try (BufferedReader br = Files.newBufferedReader(chunkResultPath, LOCAL_CHARSET)) {
+            final StringBuilder sb = new StringBuilder();
+            String data;
+            while ((data = br.readLine()) != null) {
+                sb.append(data);
+            }
+            log.info("Data: [{}]", sb.toString());
+            chunkResult = JsonUtil.fromJson(sb.toString(), ProcessChunkResult.class, JsonUtil.getMixIns());
+        } catch (IOException ex) {
+            final String msg = "Could not read chunk file: " + i;
+            log.error(msg);
+            throw new JobStoreException(msg);
+        }
+        return chunkResult;
+    }
+
+    @Override
     public void addChunkResult(Job job, ProcessChunkResult processChunkResult) throws JobStoreException {
         final Path chunkPath =  FileSystems.getDefault().getPath(getJobPath(job.getId()).toString(), String.format("%d.res.json", processChunkResult.getId()));
         log.info("Creating chunk result json-file: {}", chunkPath);

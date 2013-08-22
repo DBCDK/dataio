@@ -26,10 +26,10 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     public static final String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";
     public static final String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
     public static final String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
-    public static final String FLOW_CREATE_FLOW_NAME_PANEL_ID = "flow-name-panel-id";
-    public static final String FLOW_CREATE_FLOW_DESCRIPTION_PANEL_ID = "flow-description-panel-id";
-    public static final String FLOW_CREATE_FLOW_COMPONENT_SELECTION_PANEL_ID = "flow-component-selection-panel-id";
-    public static final String FLOW_CREATE_FLOW_SAVE_PANEL_ID = "flow-save-panel-id";
+    public static final String GUIID_FLOW_CREATION_FLOW_NAME_PANEL = "flow-name-panel-id";
+    public static final String GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL = "flow-description-panel-id";
+    public static final String GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL = "flow-component-selection-panel-id";
+    public static final String GUIID_FLOW_CREATION_FLOW_SAVE_PANEL = "flow-save-panel-id";
     
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     public static final String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
@@ -101,7 +101,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
         public FlowNamePanel() {
             super();
             add(new Label("Flownavn"));
-            getElement().setId(FLOW_CREATE_FLOW_NAME_PANEL_ID);
+            getElement().setId(GUIID_FLOW_CREATION_FLOW_NAME_PANEL);
             textBox.getElement().setId(GUIID_FLOW_CREATION_NAME_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
@@ -118,7 +118,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
 
         public FlowDescriptionPanel() {
             add(new Label("Beskrivelse"));
-            getElement().setId(FLOW_CREATE_FLOW_DESCRIPTION_PANEL_ID);
+            getElement().setId(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL);
             add(flowDescriptionTextArea);
         }
 
@@ -146,7 +146,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     
         public FlowComponentSelectionPanel() {
             add(new Label("Flow komponenter"));
-            getElement().setId(FLOW_CREATE_FLOW_COMPONENT_SELECTION_PANEL_ID);
+            getElement().setId(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
             add(flowComponentSelectionLists);
         }
 
@@ -170,7 +170,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
         private final Label flowSaveResultLabel = new Label("");
 
         public FlowSavePanel() {
-            getElement().setId(FLOW_CREATE_FLOW_SAVE_PANEL_ID);
+            getElement().setId(GUIID_FLOW_CREATION_FLOW_SAVE_PANEL);
             flowSaveResultLabel.getElement().setId(GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
             add(flowSaveResultLabel);
             flowSaveButton.getElement().setId(GUIID_FLOW_CREATION_SAVE_BUTTON);

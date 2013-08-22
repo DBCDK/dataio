@@ -20,6 +20,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  *
  */
 public class DualList extends HorizontalPanel {
+    public static final String GUIID_DUAL_LIST_ADDITEM_ID = "dual-list-additem-id";
+    public static final String GUIID_DUAL_LIST_REMOVEITEM_ID = "dual-list-removeitem-id";
     public static final String DUAL_LIST_COMPONENT_CLASS = "dual-list-component-class";
     public static final String DUAL_LIST_LEFT_SELECTION_PANE_CLASS = "left-selection-pane-class";
     public static final String DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS = "selection-buttons-pane-class";
@@ -100,7 +102,9 @@ public class DualList extends HorizontalPanel {
                 moveItems(right, left);
             }
         });
+        addItem.getElement().setId(GUIID_DUAL_LIST_ADDITEM_ID);
         buttonPanel.add(addItem);
+        removeItem.getElement().setId(GUIID_DUAL_LIST_REMOVEITEM_ID);
         buttonPanel.add(removeItem);
         add(left);
         add(buttonPanel);

@@ -248,14 +248,16 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     public static void addFlowComponent(WebDriver driver, TemporaryFolder tempFolder, String componentName, String javascript, String invocationMethod) throws IOException {
-        final String javascriptFileName = "test.js";
+        final String javascriptFileName = "test-"+System.currentTimeMillis()+".js";
         File javascriptFile = tempFolder.newFile(javascriptFileName);
         try (BufferedWriter writer = Files.newBufferedWriter(javascriptFile.toPath(), Charset.forName("UTF-8"))) {
             writer.write(javascript);
         }
         driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION)).click();
+        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX)).clear();
         driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX)).sendKeys(componentName);
         driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD)).sendKeys(javascriptFile.getAbsolutePath());
+        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX)).clear();
         driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX)).sendKeys(invocationMethod);
         driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON)).click();
     }

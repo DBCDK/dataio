@@ -33,6 +33,10 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     public static final String SAVE_RESULT_LABEL_PROCESSING_MESSAGE = "Opsætningen gemmes...";
+    public static final String FLOW_COMPONENT_CREATE_NAME_PANEL_ID = "flow-component-name-panel-id";
+    public static final String FLOW_COMPONENT_CREATE_JAVA_SCRIPT_UPLOAD_PANEL_ID = "flow-component-java-script-upload-panel-id";
+    public static final String FLOW_COMPONENT_CREATE_INVOCATION_METHOD_PANEL_ID = "flow-component-invocation-method-panel-id";
+    public static final String FLOW_COMPONENT_CREATE_SAVE_PANEL_ID = "flow-component-save-panel-id";
     // private objects
     private FlowComponentCreatePresenter presenter;
     private VerticalPanel localPanel = new VerticalPanel();
@@ -101,7 +105,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentNamePanel() {
             super();
             add(label);
-            addStyleName("flow-component-name-panel");
+            getElement().setId(FLOW_COMPONENT_CREATE_NAME_PANEL_ID);
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             textBox.setName(FORM_FIELD_COMPONENT_NAME);
@@ -121,7 +125,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentJavaScriptUploadPanel() {
             super();
             add(label);
-            addStyleName("flow-component-java-script-upload-panel");
+            getElement().setId(FLOW_COMPONENT_CREATE_JAVA_SCRIPT_UPLOAD_PANEL_ID);
             fileUpload.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD);
             fileUpload.setName(FORM_FIELD_JAVASCRIPT_FILE_UPLOAD);
             add(fileUpload);
@@ -146,7 +150,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentInvocationMethodPanel() {
             super();
             add(label);
-            addStyleName("flow-component-invocation-method-panel");
+            getElement().setId(FLOW_COMPONENT_CREATE_INVOCATION_METHOD_PANEL_ID);
             textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX);
             textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             textBox.setName(FORM_FIELD_INVOCATION_METHOD);
@@ -166,7 +170,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         public FlowComponentSavePanel() {
             flowComponentSaveResultLabel.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
             add(flowComponentSaveResultLabel);
-            addStyleName("flow-component-save-panel");
+            getElement().setId(FLOW_COMPONENT_CREATE_SAVE_PANEL_ID);
             flowComponentSaveButton.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
             flowComponentSaveButton.addClickHandler(new SaveButtonHandler());
             add(flowComponentSaveButton);

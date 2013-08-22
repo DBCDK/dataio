@@ -20,6 +20,10 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  *
  */
 public class DualList extends HorizontalPanel {
+    public static final String DUAL_LIST_COMPONENT_CLASS = "dual-list-component-class";
+    public static final String DUAL_LIST_LEFT_SELECTION_PANE_CLASS = "left-selection-pane-class";
+    public static final String DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS = "selection-buttons-pane-class";
+    public static final String DUAL_LIST_RIGHT_SELECTION_PANE_CLASS = "right-selection-pane-class";
 
     private static class SimpleImmutableEntry<K, V> implements Entry<K, V>, java.io.Serializable {
 
@@ -82,7 +86,10 @@ public class DualList extends HorizontalPanel {
      * Constructor
      */
     public DualList() {
-        this.addStyleName("dual-list-component-class");
+        this.addStyleName(DUAL_LIST_COMPONENT_CLASS);
+        this.left.addStyleName(DUAL_LIST_LEFT_SELECTION_PANE_CLASS);
+        this.buttonPanel.addStyleName(DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS);
+        this.right.addStyleName(DUAL_LIST_RIGHT_SELECTION_PANE_CLASS);
         addItem.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
                 moveItems(left, right);

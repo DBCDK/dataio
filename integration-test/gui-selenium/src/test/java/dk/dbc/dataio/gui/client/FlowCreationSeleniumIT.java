@@ -1,8 +1,10 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import java.io.IOException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -21,12 +23,17 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 public class FlowCreationSeleniumIT {
 
     private static WebDriver driver;
     private static String APP_URL;
     private static Connection conn;
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -50,23 +57,34 @@ public class FlowCreationSeleniumIT {
     @After
     public void tearDown() throws SQLException {
         ITUtil.clearDbTables(conn, ITUtil.FLOWS_TABLE_NAME);
+        FlowComponentCreationSeleniumIT.clearFlowComponentDBTable(conn);
         driver.quit();
     }
 
     @Test
+    public void testInitialVisibililtyAndAccessabilityOfElements() throws Exception {
+        testFlowCreationNavigationItemIsVisible();
+        testFlowCreationNavigationItemIsClickable();
+        testFlowCreationNameInputFieldIsVisible();
+        testFlowCreationDescriptionInputFieldIsVisible();
+        testFlowCreationSaveButtonIsVisible();
+        testFlowCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault();
+    }
+    
+//    @Test
     public void testFlowCreationNavigationItemIsVisible() {
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
         assertEquals(true, element.isDisplayed());
     }
 
-    @Test
+//    @Test
     public void testFlowCreationNavigationItemIsClickable() throws Exception {
         navigateToFlowCreationContext();
         WebElement widget = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_WIDGET));
         assertEquals(true, widget.isDisplayed());
     }
 
-    @Test
+//    @Test
     public void testFlowCreationNameInputFieldIsVisible() {
         navigateToFlowCreationContext();
         WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
@@ -83,7 +101,7 @@ public class FlowCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    @Test
+//    @Test
     public void testFlowCreationDescriptionInputFieldIsVisible() {
         navigateToFlowCreationContext();
         WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
@@ -102,13 +120,78 @@ public class FlowCreationSeleniumIT {
     }
 
     @Test
+    public void testFlowCreationFlowComponentSelectionFieldIsVisible() {
+        navigateToFlowCreationContext();
+        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.FLOW_CREATE_FLOW_COMPONENT_SELECTION_PANEL_ID));
+        assertEquals(true, element.isDisplayed());
+    }
+
+    
+    
+    @Ignore
+    @Test
+    public void testFlowCreationFlowComponentSelectionField_InsertAndRead() throws IOException, InterruptedException {
+        FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 1", "Script 1", "Invocation Method 1");
+        FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 2", "Script 2", "Invocation Method 2");
+        FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 3", "Script 3", "Invocation Method 3");
+
+        navigateToFlowCreationContext();
+        WebElement componentSelection = driver.findElement(By.id(FlowCreateViewImpl.FLOW_CREATE_FLOW_COMPONENT_SELECTION_PANEL_ID));
+        WebElement leftPane = componentSelection.findElement(By.className(DualList.DUAL_LIST_LEFT_SELECTION_PANE_CLASS));
+//        WebElement buttonLeft2Right = componentSelection.findElement(By.className(DualList.DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS)).findElement(By.xpath("//*[button='>']"));
+//        WebElement buttonRight2Left = componentSelection.findElement(By.className(DualList.DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS)).findElement(By.xpath("//*[button='<']"));
+        WebElement buttonLeft2Right = driver.findElement(By.xpath("//*[button='>']"));
+        WebElement buttonRight2Left = driver.findElement(By.xpath("//*[button='<']"));
+        WebElement rightPane = componentSelection.findElement(By.className(DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS));
+        
+
+        Thread.sleep(1000);
+//        leftPane.findElement(By.tagName("OPTION")).click();
+        WebElement kurt = driver.findElement(By.tagName("OPTION"));
+        kurt.click();
+        System.out.println("tagname " + kurt.getText());
+
+        
+//IWebElement dropDownListBox = driver.findElement(By.Id("selection"));
+//SelectElement clickThis = new SelectElement(dropDownListBox);
+//clickThis.SelectByText("Germany");
+
+
+
+        Thread.sleep(1000);
+        driver.findElement(By.xpath("//*[button='>']")).click();
+        //buttonLeft2Right.click();
+        System.out.println("SLF: " + buttonLeft2Right.getText());
+        System.out.println("SLF class: " + buttonLeft2Right.getClass());
+
+        Thread.sleep(1000);
+        leftPane.findElement(By.tagName("OPTION")).click();
+        
+        Thread.sleep(1000);
+        buttonLeft2Right.click();
+        
+        Thread.sleep(5000);
+                
+//        element.sendKeys(textWithMoreThan160Chars);
+//        assertEquals(sameTextWithExactly160Chars, element.getAttribute("value"));
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+//    @Test
     public void testFlowCreationSaveButtonIsVisible() {
         navigateToFlowCreationContext();
         WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         assertEquals(true, element.isDisplayed());
     }
 
-    @Test
+//    @Test
     public void testFlowCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() throws Exception {
         navigateToFlowCreationContext();
         WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));

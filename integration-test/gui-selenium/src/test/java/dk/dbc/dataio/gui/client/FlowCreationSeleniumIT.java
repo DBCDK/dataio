@@ -130,18 +130,15 @@ public class FlowCreationSeleniumIT {
     @Test
     public void testFlowCreationFlowComponentSelectionField_InsertAndRead() throws IOException, InterruptedException {
         FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 1", "Script 1", "Invocation Method 1");
-        Thread.sleep(1000);
         FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 2", "Script 2", "Invocation Method 2");
-        Thread.sleep(1000);
         FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 3", "Script 3", "Invocation Method 3");
-        Thread.sleep(1000);
 
         navigateToFlowCreationContext();
         WebElement componentSelection = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL));
-        WebElement leftPane = componentSelection.findElement(By.className(DualList.DUAL_LIST_LEFT_SELECTION_PANE_CLASS));
+        //WebElement leftPane = componentSelection.findElement(By.className(DualList.DUAL_LIST_LEFT_SELECTION_PANE_CLASS));
         WebElement buttonLeft2Right = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));
-        WebElement buttonRight2Left = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_REMOVEITEM_ID));
-        WebElement rightPane = componentSelection.findElement(By.className(DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS));
+        //WebElement buttonRight2Left = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_REMOVEITEM_ID));
+        //WebElement rightPane = componentSelection.findElement(By.className(DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS));
         
         Select list = new Select(driver.findElement(By.tagName("select")));
         list.selectByIndex(0);

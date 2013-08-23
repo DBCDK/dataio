@@ -63,7 +63,7 @@ public class EngineGUI extends DockLayoutPanel {
 
             @Override
             public void onSuccess(List<Flow> flows) {
-                runFlowPanel.setStatusText("Size: " + flows.size());
+                // runFlowPanel.setStatusText("Size: " + flows.size());
                 flowPanel.setFlows(flows);
             }
         });

@@ -132,6 +132,7 @@ public class Engine {
             javascripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), base64decode(javascriptBase64.getJavascript())));
         }
         JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javascripts);
+        log.info("Starting javascript with invocation method: [{}]", flow.getContent().getComponents().get(0).getContent().getInvocationMethod());
         Object res = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record});
         return (String)res;
     }

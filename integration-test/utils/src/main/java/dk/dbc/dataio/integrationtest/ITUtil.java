@@ -5,6 +5,16 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
+import org.tmatesoft.svn.core.SVNCommitInfo;
+import org.tmatesoft.svn.core.SVNDepth;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNURL;
+import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
+import org.tmatesoft.svn.core.wc2.SvnCheckout;
+import org.tmatesoft.svn.core.wc2.SvnCommit;
+import org.tmatesoft.svn.core.wc2.SvnImport;
+import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
+import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -13,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -196,6 +207,91 @@ public class ITUtil {
     public static JsonNode getJsonRoot(String json) throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         return mapper.readTree(json);
+    }
+
+    /**
+     * Creates FSFS type subversion repository
+     *
+     * @param repositoryPath file system path to create repository at
+     *
+     * @return SVNURL representation of the file:/// url of the repository root location
+     *
+     * @throws SVNException if unable to create repository
+     */
+    public static SVNURL doSvnCreateFsRepository(Path repositoryPath) throws SVNException {
+        return SVNRepositoryFactory.createLocalRepository(repositoryPath.toFile(), true, false);
+    }
+
+    /**
+     * Recursively imports all files and folders in given project path to repository location
+     *
+     * @param repositoryURL repository project location
+     * @param projectPath file system path of project to import
+     * @param commitMessage attached log message
+     *
+     * @return commit info
+     *
+     * @throws SVNException if unable to import
+     */
+    public static SVNCommitInfo doSvnImport(SVNURL repositoryURL, Path projectPath, String commitMessage) throws SVNException {
+        SVNCommitInfo commitInfo;
+        final SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
+        try {
+            final SvnImport svnImport = svnOperationFactory.createImport();
+            svnImport.setSource(projectPath.toFile());
+            svnImport.setSingleTarget(SvnTarget.fromURL(repositoryURL));
+            svnImport.setDepth(SVNDepth.INFINITY);
+            svnImport.setCommitMessage(commitMessage);
+            commitInfo = svnImport.run();
+        } finally {
+            svnOperationFactory.dispose();
+        }
+        return commitInfo;
+    }
+
+    /**
+     * Recursively commits all changes in given checked out project
+     *
+     * @param projectPath file system path of checked out copy of project
+     * @param commitMessage attached log message
+     *
+     * @return commit info
+     *
+     * @throws SVNException if unable to commit
+     */
+    public static SVNCommitInfo doSvnCommit(Path projectPath, String commitMessage) throws SVNException {
+        SVNCommitInfo commitInfo;
+        final SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
+        try {
+            final SvnCommit commit = svnOperationFactory.createCommit();
+            commit.setSingleTarget(SvnTarget.fromFile(projectPath.toFile()));
+            commit.setDepth(SVNDepth.INFINITY);
+            commit.setCommitMessage(commitMessage);
+            commitInfo = commit.run();
+        } finally {
+            svnOperationFactory.dispose();
+        }
+        return commitInfo;
+    }
+
+    /**
+     * Checks out project pointed to by repository URL
+     *
+     * @param repositoryPath repository project location
+     * @param checkoutTo file system path of checked out copy
+     *
+     * @throws SVNException if unable to checkout
+     */
+    public static void doSvnCheckout(SVNURL repositoryPath, Path checkoutTo) throws SVNException {
+        final SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
+        try {
+            final SvnCheckout checkout = svnOperationFactory.createCheckout();
+            checkout.setSource(SvnTarget.fromURL(repositoryPath));
+            checkout.setSingleTarget(SvnTarget.fromFile(checkoutTo.toFile()));
+            checkout.run();
+        } finally {
+            svnOperationFactory.dispose();
+        }
     }
 
     /**

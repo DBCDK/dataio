@@ -16,7 +16,7 @@
 
   <modules>
     <module>invariant</module>
-    <module>svn-connector</module>
+    <module>svn</module>
   </modules>
 
 </project>

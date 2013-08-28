@@ -29,7 +29,7 @@ public class Flow extends dk.dbc.dataio.flowstore.entity.Entity {
     static final String NAME_INDEX_COLUMN = "name_idx";
 
     @Lob
-    @Column(name = "name_idx", nullable = false)
+    @Column(name = NAME_INDEX_COLUMN, nullable = false)
     private String nameIndexValue;
 
     String getNameIndexValue() {

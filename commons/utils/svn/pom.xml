@@ -10,7 +10,30 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils-svn-connector</artifactId>
-  <name>dataio-commons-utils-svn-connector</name>
+  <artifactId>dataio-commons-utils-svn</artifactId>
+  <name>dataio-commons-utils-svn</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-types</artifactId>
+      <version>${version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-invariant</artifactId>
+      <version>${version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-integration-test-utils</artifactId>
+      <version>${version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.tmatesoft.svnkit</groupId>
+      <artifactId>svnkit</artifactId>
+      <version>${svnkit.version}</version>
+    </dependency>
+  </dependencies>
 
 </project>

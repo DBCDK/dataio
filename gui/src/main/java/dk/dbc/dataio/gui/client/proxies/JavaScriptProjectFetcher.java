@@ -22,12 +22,12 @@ public interface JavaScriptProjectFetcher extends RemoteService {
 
     /**
      * Fetches paths of all files with a .js extension contained in specified
-     * revision of project (and any of the projects dependencies) pointed to by given URL
+     * revision of project pointed to by given URL
      *
      * @param projectUrl project URL
      * @param revision project revision
      *
-     * @return list of file names in alphabetical order
+     * @return list of file names
      *
      * @throws JavaScriptProjectFetcherException if unable to fetch files
      */

@@ -49,7 +49,7 @@ public class SvnConnector {
      * Retrieves information from Subversion source control management system for
      * all available commited revisions for project pointed to by given URL
      *
-     * @param projectUrl project URL on the form http(s)://... or file://...
+     * @param projectUrl unencoded project URL on the form http(s)://... or file://...
      *
      * @return list of available revisions ordered from latest to earliest
      *
@@ -95,7 +95,7 @@ public class SvnConnector {
      * Retrieves all available paths in given revision of project pointed to by
      * given URL from Subversion source control management system
      *
-     * @param projectUrl project URL on the form http(s)://... or file://...
+     * @param projectUrl unencoded project URL on the form http(s)://... or file://...
      * @param revision project revision
      *
      * @return list of available paths

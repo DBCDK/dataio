@@ -16,26 +16,27 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
     @Override
     public void init() throws ServletException {
         super.init();
-        javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl();
+        final String subversionScmEndpoint = ServletUtil.getSubversionScmEndpoint();
+        javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl(subversionScmEndpoint);
     }
 
     @Override
-    public List<RevisionInfo> fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchRevisions(projectUrl);
+    public List<RevisionInfo> fetchRevisions(String projectName) throws JavaScriptProjectFetcherException {
+        return javaScriptProjectFetcher.fetchRevisions(projectName);
     }
 
     @Override
-    public List<String> fetchJavaScriptFileNames(String projectUrl, long revision) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchJavaScriptFileNames(projectUrl, revision);
+    public List<String> fetchJavaScriptFileNames(String projectName, long revision) throws JavaScriptProjectFetcherException {
+        return javaScriptProjectFetcher.fetchJavaScriptFileNames(projectName, revision);
     }
 
     @Override
-    public List<String> fetchJavaScriptInvocationMethods(String projectUrl, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectUrl, revision, javaScriptFileName);
+    public List<String> fetchJavaScriptInvocationMethods(String projectName, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException {
+        return javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
     }
 
     @Override
-    public List<JavaScript> fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchRequiredJavaScript(projectUrl, revision, javaScriptFileName);
+    public List<JavaScript> fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException {
+        return javaScriptProjectFetcher.fetchRequiredJavaScript(projectName, revision, javaScriptFileName);
     }
 }

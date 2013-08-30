@@ -15,6 +15,7 @@ import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory;
 import org.tmatesoft.svn.core.io.SVNRepository;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+import org.tmatesoft.svn.core.wc2.SvnExport;
 import org.tmatesoft.svn.core.wc2.SvnLog;
 import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 import org.tmatesoft.svn.core.wc2.SvnRevisionRange;
@@ -22,6 +23,7 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -122,6 +124,37 @@ public class SvnConnector {
             svnRepository.closeSession();
         }
         return availablePaths;
+    }
+
+    /**
+     * Executes export operation for project pointed to by given URL from Subversion
+     * source control management system
+     *
+     * @param projectUrl unencoded project URL on the form http(s)://... or file://...
+     * @param revision project revision
+     * @param exportTo file system path of exported copy
+     *
+     * @throws NullPointerException if given null-valued project URL or export path
+     * @throws IllegalArgumentException if given empty-valued project URL or export path
+     * @throws SVNException on failure to export given revision
+     * @throws URISyntaxException if given project URL could not be parsed as a URI reference
+     */
+    public static void export(final String projectUrl, final long revision, final Path exportTo)
+            throws NullPointerException, IllegalArgumentException, SVNException, URISyntaxException {
+        log.debug("Exporting URL '{}' to '{}'", projectUrl, exportTo);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(projectUrl, "projectUrl");
+        InvariantUtil.checkNotNullOrThrow(exportTo, "exportTo");
+
+        final SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
+        try {
+            final SvnExport export = svnOperationFactory.createExport();
+            export.setRevision(SVNRevision.create(revision));
+            export.setSource(SvnTarget.fromURL(asSvnUrl(projectUrl)));
+            export.setSingleTarget(SvnTarget.fromFile(exportTo.toFile()));
+            export.run();
+        } finally {
+            svnOperationFactory.dispose();
+        }
     }
 
     private static long getLatestRevisionNumber(final String projectUrl) throws SVNException, URISyntaxException {

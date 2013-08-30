@@ -13,7 +13,9 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,9 +40,8 @@ public class SvnConnectorTest {
     private final String illegalUrl = "|";
     private final String repositoryName = "repos";
     private final String projectName = "test-project";
-    private final String projectPath1 = String.format("%s/sub", projectName);
-    private final String projectPath2 = String.format("%s/sub/world.txt", projectName);
-    private final String projectPath3 = String.format("%s/hello.txt", projectName);
+    private final String helloFile = "hello.txt";
+    private final String worldFile = "sub/world.txt";
     private final String nonExistingRepositoryUrl = "file://no_such_repository/no_such_project";
 
     @Test(expected = NullPointerException.class)
@@ -72,7 +73,6 @@ public class SvnConnectorTest {
 
     @Test
     public void listAvailableRevisions_projectUrlExists_returnsListOfRevisions() throws Exception {
-        final String filename = "hello.txt";
         final String logMessage = "commiting changes";
         final File checkoutFolder = tempFolder.newFolder("workspace");
         final SVNURL reposUrl = createNewRepository();
@@ -80,7 +80,7 @@ public class SvnConnectorTest {
 
         // Modify file and commit to force second revision
         ITUtil.doSvnCheckout(projectUrl, checkoutFolder.toPath());
-        appendToFile(FileSystems.getDefault().getPath(checkoutFolder.getPath(), filename), "some data");
+        appendToFile(FileSystems.getDefault().getPath(checkoutFolder.getPath(), helloFile), "some data");
         ITUtil.doSvnCommit(checkoutFolder.toPath(), logMessage);
 
         final List<RevisionInfo> revisions = SvnConnector.listAvailableRevisions(projectUrl.toDecodedString());
@@ -91,7 +91,7 @@ public class SvnConnectorTest {
         // RevisionInfo content
         assertThat(revisions.get(0).getMessage(), is(logMessage));
         assertThat(revisions.get(0).getChangedItems().size(), is(1));
-        assertThat(revisions.get(0).getChangedItems().get(0).getPath().endsWith(filename), is(true));
+        assertThat(revisions.get(0).getChangedItems().get(0).getPath().endsWith(helloFile), is(true));
     }
 
     @Test(expected = NullPointerException.class)
@@ -123,11 +123,104 @@ public class SvnConnectorTest {
 
     @Test
     public void listAvailablePaths_projectUrlExists_returnsListOfProjectPaths() throws Exception {
-        final List<String> expectedPaths = new ArrayList<>(Arrays.asList(projectPath1, projectPath2, projectPath3));
+        final List<String> expectedPaths = new ArrayList<>(Arrays.asList(
+                String.format("%s/sub", projectName),
+                String.format("%s/%s", projectName, worldFile),
+                String.format("%s/%s", projectName, helloFile)));
         final SVNURL reposUrl = createNewRepository();
         final SVNURL projectUrl = importProject(reposUrl);
         final List<String> paths = SvnConnector.listAvailablePaths(projectUrl.toDecodedString(), revision);
         assertThat(paths, is(expectedPaths));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void export_projectUrlArgIsNull_throws() throws Exception {
+         SvnConnector.export(null, revision, tempFolder.newFolder().toPath());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void export_projectUrlArgIsEmpty_throws() throws Exception {
+        SvnConnector.export("", revision, tempFolder.newFolder().toPath());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void export_exportToArgIsNull_throws() throws Exception {
+        SvnConnector.export(projectName, revision, null);
+    }
+
+    @Test(expected = URISyntaxException.class)
+    public void export_projectUrlIsIllegal_throws() throws Exception {
+        SvnConnector.export(illegalUrl, revision, tempFolder.newFolder().toPath());
+    }
+
+    @Test(expected = SVNException.class)
+    public void export_projectUrlRepositoryIsNonExisting_throws() throws Exception {
+        SvnConnector.export(nonExistingRepositoryUrl, revision, tempFolder.newFolder().toPath());
+    }
+
+    @Test(expected = SVNException.class)
+    public void export_projectUrlIsNonExisting_throws() throws Exception {
+        final SVNURL reposUrl = createNewRepository();
+        final SVNURL nonExistingProjectUrl = reposUrl.appendPath("no_such_project", false);
+        SvnConnector.export(nonExistingProjectUrl.toDecodedString(), revision, tempFolder.newFolder().toPath());
+    }
+
+    @Test
+    public void export_projectUrlPointsToEntireProject_exportsProject() throws Exception {
+        final File checkoutFolder = tempFolder.newFolder("workspace");
+        final File exportFolder = tempFolder.newFolder("export");
+        final SVNURL reposUrl = createNewRepository();
+        final SVNURL projectUrl = importProject(reposUrl);
+
+        // Modify file and commit to force second revision
+        ITUtil.doSvnCheckout(projectUrl, checkoutFolder.toPath());
+        appendToFile(FileSystems.getDefault().getPath(checkoutFolder.getPath(), helloFile), "some data");
+        ITUtil.doSvnCommit(checkoutFolder.toPath(), "changed");
+
+        // export first revision
+        SvnConnector.export(projectUrl.toDecodedString(), revision, exportFolder.toPath());
+
+        // Get original file content from resources folder
+        final List<String> expectedHelloFileContent = Files.readAllLines(
+                FileSystems.getDefault().getPath(this.getClass().getResource(String.format("/%s/%s", projectName, helloFile)).getPath()), StandardCharsets.UTF_8);
+        final List<String> expectedWorldFileContent = Files.readAllLines(
+                FileSystems.getDefault().getPath(this.getClass().getResource(String.format("/%s/%s", projectName, worldFile)).getPath()), StandardCharsets.UTF_8);
+
+        // Get exported file content
+        final List<String> exportedHelloFileContent = Files.readAllLines(
+                FileSystems.getDefault().getPath(exportFolder.getPath(), helloFile), StandardCharsets.UTF_8);
+        final List<String> exportedWorldFileContent = Files.readAllLines(
+                FileSystems.getDefault().getPath(exportFolder.getPath(), worldFile), StandardCharsets.UTF_8);
+
+        // Compare original file content with exported file content
+        assertThat(exportedHelloFileContent.size(), is(expectedHelloFileContent.size()));
+        assertThat(exportedHelloFileContent.get(0), is(expectedHelloFileContent.get(0)));
+        assertThat(exportedWorldFileContent.size(), is(expectedWorldFileContent.size()));
+        assertThat(exportedWorldFileContent.get(0), is(expectedWorldFileContent.get(0)));
+    }
+
+    @Test
+    public void export_projectUrlPointsToSingleFile_exportsFile() throws Exception {
+        final File exportFolder = tempFolder.newFolder("export");
+        final SVNURL reposUrl = createNewRepository();
+        final SVNURL projectUrl = importProject(reposUrl);
+        final SVNURL fileUrl = projectUrl.appendPath(helloFile, false);
+
+        // export first revision of file
+        SvnConnector.export(fileUrl.toDecodedString(), revision, exportFolder.toPath());
+
+        // Get original file content from resources folder
+        final List<String> expectedHelloFileContent = Files.readAllLines(
+                FileSystems.getDefault().getPath(this.getClass().getResource(String.format("/%s/%s", projectName, helloFile)).getPath()), StandardCharsets.UTF_8);
+
+        // Get exported file content
+        final List<String> exportedHelloFileContent = Files.readAllLines(
+                FileSystems.getDefault().getPath(exportFolder.getPath(), helloFile), StandardCharsets.UTF_8);
+
+        // Compare original file content with exported file content
+        assertThat(exportedHelloFileContent.size(), is(expectedHelloFileContent.size()));
+        assertThat(exportedHelloFileContent.get(0), is(expectedHelloFileContent.get(0)));
+        assertThat(Files.notExists(FileSystems.getDefault().getPath(exportFolder.getPath(), worldFile)), is(true));
     }
 
     private SVNURL createNewRepository() throws Exception {

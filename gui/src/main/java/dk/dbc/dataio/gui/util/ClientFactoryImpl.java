@@ -5,6 +5,8 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
@@ -20,6 +22,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
     private final PlaceController placeController = new PlaceController(eventBus);
     private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
+    private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
 
     @Override
     public EventBus getEventBus() {
@@ -49,5 +52,10 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public FlowStoreProxyAsync getFlowStoreProxyAsync() {
         return flowStoreProxyAsync;
+    }
+
+    @Override
+    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync() {
+        return javaScriptProjectFetcher;
     }
 }

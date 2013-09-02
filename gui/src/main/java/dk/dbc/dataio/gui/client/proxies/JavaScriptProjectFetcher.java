@@ -1,12 +1,15 @@
 package dk.dbc.dataio.gui.client.proxies;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
+import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.engine.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 
 import java.util.List;
 
+@RemoteServiceRelativePath("JavaScriptProjectFetcher")
 public interface JavaScriptProjectFetcher extends RemoteService {
     /**
      * Fetches information from source control management system for
@@ -60,4 +63,18 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * @throws JavaScriptProjectFetcherException if unable to fetch javaScript content
      */
     List<JavaScript> fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException;
+    
+    /**
+     * The factory class for JavaScriptProjectFetcher
+     */
+    public static class Factory {
+        private static JavaScriptProjectFetcherAsync asyncInstance = null;
+        public static JavaScriptProjectFetcherAsync getAsyncInstance() {
+            if (asyncInstance == null) {
+                asyncInstance = GWT.create(JavaScriptProjectFetcher.class);
+            }
+            return asyncInstance;
+        }
+    }
+    
 }

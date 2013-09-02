@@ -16,6 +16,7 @@
 
   <modules>
     <module>invariant</module>
+    <module>javascript</module>
     <module>svn</module>
   </modules>
 

@@ -5,21 +5,120 @@ import java.util.List;
 import dk.dbc.jslib.Environment;
 import java.io.IOException;
 import java.util.ArrayList;
+import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.ext.XLoggerFactory;
 import org.slf4j.ext.XLogger;
 
 public class JavascriptUtil {
 
-     private static XLogger log = XLoggerFactory.getXLogger(JavascriptUtil.class);
+    private static XLogger log = XLoggerFactory.getXLogger(JavascriptUtil.class);
 
-    // todo: Add javadoc
+    /**
+     * Function for retrieving the top-level function names from a javascript.
+     * <p>
+     * Given a javascript like this:
+     * <pre>
+     * {@code
+     * function myfunc(someVar) {
+     *   // body of function
+     * }
+     *
+     * function anotherfunc(anotherVar) {
+     *   // body of function
+     * } }
+     * </pre> the method <code>getAllToplevelFunctionsInJavascript(...)</code> will
+     * return a <code>List</code> containing the values <code>myfunc</code> and <code>anotherfunc</code>.
+     * <p>
+     * <b>Notice:</b> the order of the returned values is unspecified.
+     *
+     * @param reader with the javascript.
+     * @param sourceName the filename of the source.
+     * @return A <code>List</code> of <code>Strings</code> containing the function names from the
+     * javascript in unspecified order.
+     * @throws IOException if the <code>Reader</code> containing the javascript can not be read.
+     * @throws EvaluatorException if the javascript could not be evaluated
+     * @throws EcmaError if an error in the evaluated javascript is found
+     */
     public static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName) throws IOException {
         Environment jsEnvironment = new Environment();
         return getAllToplevelFunctionsInJavascript(reader, sourceName, jsEnvironment);
     }
 
-    // todo: Add javadoc
+    /**
+     * Function for retrieving the top-level function names from a javascript
+     * for javascripts containing use-functionality. The depended use-modules
+     * will not be loaded, instead an empty use-function will be added to the
+     * scope before evaluating the javascript. After evaluation the
+     * 'use'-function-name will be filtered from the result.
+     * <p>
+     * Given a javascript like this:
+     * <pre>
+     * {@code
+     * use("SomeModule");
+     *
+     * function myfunc(someVar) {
+     *   // body of function
+     * }
+     *
+     * function anotherfunc(anotherVar) {
+     *   // body of function
+     * } }
+     * </pre> the method
+     * <code>getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...)</code> will
+     * return a <code>List</code> containing the values <code>myfunc</code> and <code>anotherfunc</code>.
+     * <p>
+     * <b>Notice:</b> the order of the returned values is unspecified.
+     * <p>
+     * <b>Notice:</b> there are some problems with this function: If the
+     * javascript contains a top-level function named <code>use</code> like this:
+     * <pre>
+     * {@code
+     * use("SomeModule");
+     *
+     * function myfunc(someVar) {
+     *   // body of function
+     * }
+     *
+     * function use(x) {
+     *   // body of function
+     * } }
+     * }
+     * </pre> then the method
+     * <code>getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...)</code> will
+     * return a List containing the single value <code>myfunc</code>. The value
+     * <code>use</code> will be filtered from the result.
+     * <p>
+     * Another problem is if a javascript implements an object, which on the
+     * top-level depends on a 'used' module like this:
+     * <pre>
+     * {@code
+     * use("Something");
+     *
+     * function f(x) { // body of function }
+     *
+     * var SomeObject = function() {
+     *     var s = Something.somefunc();
+     *     var that = {};
+     *
+     *     that.f = function(x) {
+     *         return Something.somefunc(x);
+     *     }
+     *     return that;
+     * }(); }
+     * </pre> then the function
+     * getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...) will throw an
+     * {@link EcmaError} containing a <code>ReferenceError</code> to the line containing the
+     * code {@code var s = Something.somefunc();}
+     *
+     * @param reader with the javascript.
+     * @param sourceName the filename of the source.
+     * @return A <code>List</code> of <code>Strings</code> containing the function names from the
+     * javascript.
+     * @throws IOException if the <code>Reader</code> containing the javascript can not be read.
+     * @throws EvaluatorException if the javascript could not be evaluated
+     * @throws EcmaError if an error in the evaluated javascript is found
+     */
     public static List<String> getAllToplevelFunctionsInJavascriptWithFakeUseFunction(Reader reader, String sourceName) throws IOException {
         Environment jsEnvironment = new Environment();
         addFakeUseFunction(jsEnvironment);
@@ -27,7 +126,7 @@ public class JavascriptUtil {
         return filterFakeUseFunction(topLevelFunctionsWithUse);
     }
 
-    private static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName, Environment jsEnvironment) throws IOException {
+    private static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName, Environment jsEnvironment) throws IOException, EcmaError {
         // evaluateJavascriptAndThrow(jsEnvironment, reader, sourceName);
         jsEnvironment.eval(reader, sourceName);
         Object[] propertyObjs = jsEnvironment.getAllIds();

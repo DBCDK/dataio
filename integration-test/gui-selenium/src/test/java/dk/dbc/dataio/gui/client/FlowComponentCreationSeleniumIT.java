@@ -18,12 +18,17 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNURL;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
@@ -31,18 +36,23 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 public class FlowComponentCreationSeleniumIT {
+    private static final String SVN_PROJECT_NAME = "main";
+    private static final String SVN_PROJECT_DEPENDENCY_NAME = "jscommon";
 
     private static WebDriver driver;
-    private static String APP_URL;
+    private static String appUrl;
     private static Connection conn;
+    private static SVNURL svnRepoUrl;
+
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
-    public static void setUpClass() throws ClassNotFoundException, SQLException {
-        String glassfishPort = System.getProperty("glassfish.port");
-        APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
+    public static void setUpClass() throws ClassNotFoundException, SQLException, SVNException, URISyntaxException {
+        appUrl = "http://localhost:" + System.getProperty("glassfish.port") + "/gui/gui.html";
         conn = ITUtil.newDbConnection();
+        svnRepoUrl = ITUtil.doSvnCreateFsRepository(Paths.get(System.getProperty("svn.local.dir")));
+        populateSvnRepository();
     }
 
     @AfterClass
@@ -53,7 +63,7 @@ public class FlowComponentCreationSeleniumIT {
     @Before
     public void setUp() {
         driver = new FirefoxDriver();
-        driver.get(APP_URL);
+        driver.get(appUrl);
         driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
     }
 
@@ -271,5 +281,13 @@ public class FlowComponentCreationSeleniumIT {
     
     public static void clearFlowComponentDBTable(Connection conn) throws SQLException {
         ITUtil.clearDbTables(conn, ITUtil.FLOW_COMPONENTS_TABLE_NAME);
-    } 
+    }
+
+    private static void populateSvnRepository() throws URISyntaxException, SVNException {
+        final URL project = FlowComponentCreationSeleniumIT.class.getResource(String.format("/projects/%s", SVN_PROJECT_NAME));
+        System.err.println("DEBUG " + project);
+        ITUtil.doSvnImport(svnRepoUrl, Paths.get(project.toURI()), "project import");
+        final URL dependency = FlowComponentCreationSeleniumIT.class.getResource(String.format("/projects/%s", SVN_PROJECT_DEPENDENCY_NAME));
+        ITUtil.doSvnImport(svnRepoUrl, Paths.get(dependency.toURI()), "project dependency import");
+    }
 }

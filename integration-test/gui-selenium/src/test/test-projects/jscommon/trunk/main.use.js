@@ -1,1 +1,1 @@
-# dependency use module
+// dependency use module

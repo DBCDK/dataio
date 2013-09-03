@@ -23,6 +23,7 @@
      <id>dev</id>
      <properties>
        <developmentFlowStoreURLProperty>-DflowStoreURL=http://localhost:8080/flow-store</developmentFlowStoreURLProperty>
+       <developmentDataioGuiSubversionScmEndpointProperty>-DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</developmentDataioGuiSubversionScmEndpointProperty>
      </properties>
    </profile>
  </profiles>
@@ -133,7 +134,9 @@
           </execution>
         </executions>
         <configuration>
-	        <extraJvmArgs>${developmentFlowStoreURLProperty}</extraJvmArgs>
+	        <!-- extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty}</extraJvmArgs -->
+                <extraJvmArgs>${developmentFlowStoreURLProperty}</extraJvmArgs>
+                <extraJvmArgs>${developmentDataioGuiSubversionScmEndpointProperty}</extraJvmArgs>
           <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
         </configuration>
       </plugin>

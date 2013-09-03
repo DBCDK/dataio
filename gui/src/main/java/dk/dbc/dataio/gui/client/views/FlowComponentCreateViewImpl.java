@@ -11,17 +11,13 @@ import com.google.gwt.i18n.client.HasDirection;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FormPanel;
-import static com.google.gwt.user.client.ui.FormPanel.METHOD_GET;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.commons.types.RevisionInfo;
-import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class FlowComponentCreateViewImpl extends FormPanel implements FlowComponentCreateView {
 
@@ -54,6 +50,8 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
     private FlowComponentSavePanel savePanel = new FlowComponentSavePanel();
     private Label busyLabel = new Label("Busy...");
 
+    class ItemChangedEvent extends ChangeEvent {}
+
     public FlowComponentCreateViewImpl() {
         super();
 
@@ -66,7 +64,6 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         localPanel.add(invocationMethodPanel);
         localPanel.add(savePanel);
         localPanel.add(busyLabel);
-        revisionPanel.disable();
         setAsBusy(false);
         addSubmitHandler(new FormPanel.SubmitHandler() {
             public void onSubmit(SubmitEvent event) {
@@ -76,7 +73,6 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
                 setAsBusy(true);
             }
         });
-
         addSubmitCompleteHandler(new FormPanel.SubmitCompleteHandler() {
             public void onSubmitComplete(SubmitCompleteEvent event) {
                 // When the form submission is successfully completed, this
@@ -94,6 +90,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
 
     @Override
     public void displayError(String message) {
+        setAsBusy(false);
         Window.alert("Error: " + message);
     }
 
@@ -121,8 +118,23 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
     }
 
     @Override
-    public void setAvailabelInvocationMethods(List<String> availableInvocationMethods) {
+    public void setAvailableInvocationMethods(List<String> availableInvocationMethods) {
         invocationMethodPanel.setInvocationMethods(availableInvocationMethods);
+    }
+
+    @Override
+    public void disableRevisionEntry() {
+        revisionPanel.disable();
+    }
+
+    @Override
+    public void disableScriptNameEntry() {
+        scriptNamePanel.disable();
+    }
+
+    @Override
+    public void disableInvocationMethodEntry() {
+        invocationMethodPanel.disable();
     }
 
     /**
@@ -142,7 +154,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             textBox.setName(FORM_FIELD_COMPONENT_NAME);
             add(textBox);
         }
-
+        
         public String getFlowComponentName() {
             return textBox.getValue();
         }
@@ -163,16 +175,13 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             svnProject.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
-                    projectNameEntered();
+                    setAsBusy(true);
+                    presenter.projectNameEntered(getProjectName());
                 }
             });
         }
         
-        private void projectNameEntered() {
-            revisionPanel.enable();
-        }
-        
-        private String getProjectName() {
+        public String getProjectName() {
             return svnProject.getValue();
         }
     }
@@ -193,30 +202,18 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             svnRevision.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
-                    revisionSelected();
+                    setAsBusy(true);
+                    presenter.revisionSelected(getSelectedRevision());
                 }
             });
         }
         
-        private void enable() {
-            svnRevision.setEnabled(true);
-            try {
-                presenter.fetchRevisions(projectPanel.getProjectName());
-            } catch (JavaScriptProjectFetcherException exception) {
-                Window.alert(exception.getMessage());  // Todo: Tjek lige op på den her...
-            }
-        }
-
-        private void disable() {
+        public void disable() {
+            svnRevision.clear();
             svnRevision.setEnabled(false);
-            scriptNamePanel.disable();
         }
 
-        private void revisionSelected() {
-            scriptNamePanel.enable();
-        }
-        
-        private void setRevisions(List<RevisionInfo> revisions) {
+        public void setRevisions(List<RevisionInfo> revisions) {
             svnRevision.clear();
             if (revisions.size() != 0) {
                 for (RevisionInfo revision: revisions) {
@@ -224,10 +221,12 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
                 }
                 svnRevision.setSelectedIndex(0);  // Set the first item to be selected
             }
-            revisionSelected();
+            svnRevision.setEnabled(true);
+            setAsBusy(false);
+            svnRevision.fireEvent(new ItemChangedEvent());
         }
 
-        private long getSelectedRevision() {
+        public long getSelectedRevision() {
             return Long.parseLong(svnRevision.getItemText(svnRevision.getSelectedIndex()));
         }
     }
@@ -248,38 +247,28 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             scriptName.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
-                    scriptNameSelected();
+                    setAsBusy(true);
+                    presenter.scriptNameSelected(getScriptName());
                 }
             });
         }
  
-        private void enable() {
-            scriptName.setEnabled(true);
-            try {
-                presenter.fetchScriptNames(projectPanel.getProjectName(), revisionPanel.getSelectedRevision());
-            } catch (JavaScriptProjectFetcherException exception) {
-                Window.alert(exception.getMessage());  // Todo: Tjek lige op på den her...
-            }
-        }
-       
-        private void disable() {
+        public void disable() {
+            scriptName.clear();
             scriptName.setEnabled(false);
-            invocationMethodPanel.disable();
         }
 
-        private void scriptNameSelected() {
-            invocationMethodPanel.enable();
-        }
-        
-        private void setScriptNames(List<String> fetchScriptNames) {
+        public void setScriptNames(List<String> fetchScriptNames) {
             scriptName.clear();
             for (String name: fetchScriptNames) {
                 scriptName.addItem(name);
             }
-            scriptNameSelected();
+            scriptName.setEnabled(true);
+            setAsBusy(false);
+            scriptName.fireEvent(new ItemChangedEvent());
         }
         
-        private String getScriptName() {
+        public String getScriptName() {
             return scriptName.getItemText(scriptName.getSelectedIndex());
         }
     }
@@ -303,29 +292,19 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             invocationMethodName.setEnabled(false);
         }
 
-        private void enable() {
-            invocationMethodName.setEnabled(true);
-            try {
-                presenter.fetchInvocationMethods(projectPanel.getProjectName(), revisionPanel.getSelectedRevision(), scriptNamePanel.getScriptName());
-            } catch (JavaScriptProjectFetcherException exception) {
-                Window.alert(exception.getMessage());  // Todo: Tjek lige op på den her...
-            }
-        }
-
-        private void disable() {
+        public void disable() {
+            invocationMethodName.clear();
             invocationMethodName.setEnabled(false);
         }
-        
-        private void invocationMethodSelected() {
-            // No action is needed
-        }
-        
-        private void setInvocationMethods(List<String> fetchInvocationMethods) {
+
+        public void setInvocationMethods(List<String> fetchInvocationMethods) {
             invocationMethodName.clear();
             for (String method: fetchInvocationMethods) {
                 invocationMethodName.addItem(method);
             }
-            invocationMethodSelected();
+            invocationMethodName.setEnabled(true);
+            setAsBusy(false);
+            invocationMethodName.fireEvent(new ItemChangedEvent());
         }
 
         public String getInvocationMethod() {

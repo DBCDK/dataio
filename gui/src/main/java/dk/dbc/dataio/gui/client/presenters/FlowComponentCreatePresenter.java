@@ -6,8 +6,7 @@ import java.util.List;
 
 public interface FlowComponentCreatePresenter extends Presenter {
 
-    public void fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException;
-    public void fetchScriptNames(String project, long revision) throws JavaScriptProjectFetcherException;
-    public void fetchInvocationMethods(String project, long revision, String scriptName) throws JavaScriptProjectFetcherException;
-    
+    public void projectNameEntered(String projectName);
+    public void revisionSelected(long selectedRevision);
+    public void scriptNameSelected(String scriptName);
 }

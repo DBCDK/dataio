@@ -8,5 +8,8 @@ import java.util.List;
 public interface FlowComponentCreateView extends IsWidget, View<FlowComponentCreatePresenter> {
     public void setAvailableRevisions(List<RevisionInfo> availableRevisions);
     public void setAvailableScriptNames(List<String> availableScriptNames);
-    public void setAvailabelInvocationMethods(List<String> availableInvocationMethods);
+    public void setAvailableInvocationMethods(List<String> availableInvocationMethods);
+    public void disableRevisionEntry();
+    public void disableScriptNameEntry();
+    public void disableInvocationMethodEntry();
 }

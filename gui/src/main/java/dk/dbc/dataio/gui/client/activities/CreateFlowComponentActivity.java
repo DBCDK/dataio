@@ -16,6 +16,8 @@ import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class represents the create flow activity encompassing saving
@@ -25,6 +27,10 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     private ClientFactory clientFactory;
     private FlowComponentCreateView flowComponentCreateView;
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
+    private String projectName = null;
+    private long revision = 0;
+    private String scriptName = null;
+    private String invocationMethod = null;
 
     
     public CreateFlowComponentActivity(FlowComponentCreatePlace place, ClientFactory clientFactory) {
@@ -49,13 +55,14 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         containerWidget.setWidget(flowComponentCreateView.asWidget());
     }
 
-    @Override
-    public void fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException {
+    private void fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException {
         javaScriptProjectFetcher.fetchRevisions(projectUrl, new AsyncCallback<List<RevisionInfo>>() {
             @Override
             public void onFailure(Throwable e) {
-                final String errorClassName = e.getClass().getName();
-                flowComponentCreateView.displayError(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.disableRevisionEntry();
+                flowComponentCreateView.disableScriptNameEntry();
+                flowComponentCreateView.disableInvocationMethodEntry();
+                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<RevisionInfo> revisions) {
@@ -64,13 +71,13 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         });
     }
 
-    @Override
-    public void fetchScriptNames(String projectUrl, long revision) throws JavaScriptProjectFetcherException {
+    private void fetchScriptNames(String projectUrl, long revision) throws JavaScriptProjectFetcherException {
         javaScriptProjectFetcher.fetchJavaScriptFileNames(projectUrl, revision, new AsyncCallback<List<String>>() {
             @Override
             public void onFailure(Throwable e) {
-                final String errorClassName = e.getClass().getName();
-                flowComponentCreateView.displayError(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.disableScriptNameEntry();
+                flowComponentCreateView.disableInvocationMethodEntry();
+                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<String> scriptNames) {
@@ -79,18 +86,47 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         });
     }
 
-    @Override
-    public void fetchInvocationMethods(String projectUrl, long revision, String scriptName) throws JavaScriptProjectFetcherException {
+    private void fetchInvocationMethods(String projectUrl, long revision, String scriptName) throws JavaScriptProjectFetcherException {
         javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectUrl, revision, scriptName, new AsyncCallback<List<String>>() {
             @Override
             public void onFailure(Throwable e) {
-                final String errorClassName = e.getClass().getName();
-                flowComponentCreateView.displayError(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.disableInvocationMethodEntry();
+                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<String> invocationMethods) {
-                flowComponentCreateView.setAvailabelInvocationMethods(invocationMethods);
+                flowComponentCreateView.setAvailableInvocationMethods(invocationMethods);
             }
         });
+    }
+
+    @Override
+    public void projectNameEntered(String projectName) {
+        this.projectName = projectName;
+        try {
+            fetchRevisions(projectName);
+        } catch (JavaScriptProjectFetcherException e) {
+            flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+        }
+    }
+
+    @Override
+    public void revisionSelected(long selectedRevision) {
+        this.revision = selectedRevision;
+        try {
+            fetchScriptNames(this.projectName, this.revision);
+        } catch (JavaScriptProjectFetcherException e) {
+            flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+        }
+    }
+
+    @Override
+    public void scriptNameSelected(String scriptName) {
+        this.scriptName = scriptName;
+        try {
+            fetchInvocationMethods(this.projectName, this.revision, this.scriptName);
+        } catch (JavaScriptProjectFetcherException e) {
+            flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+        }
     }
 }

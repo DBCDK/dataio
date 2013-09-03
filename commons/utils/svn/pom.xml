@@ -28,6 +28,7 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-integration-test-utils</artifactId>
       <version>${version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.tmatesoft.svnkit</groupId>

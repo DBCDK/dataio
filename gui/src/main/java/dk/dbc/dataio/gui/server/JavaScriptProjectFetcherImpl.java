@@ -14,10 +14,15 @@ import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -275,12 +280,16 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         try {
             final List<String> functionNames = new ArrayList<String>(
                     JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(
-                            new FileReader(exportedFile.toFile()), javaScriptFileName));
+                            getReaderForFile(exportedFile), javaScriptFileName));
             Collections.sort(functionNames);
             return functionNames;
         } catch (IOException e) {
             log.error("Caught unexpected exception trying to read javaScript file '{}'", exportedFile, e);
         }
         return Collections.emptyList();
+    }
+
+    private static Reader getReaderForFile(Path file) throws FileNotFoundException, UnsupportedEncodingException {
+        return new InputStreamReader(new FileInputStream(file.toFile()), StandardCharsets.UTF_8);
     }
 }

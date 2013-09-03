@@ -15,7 +15,7 @@ import org.tmatesoft.svn.core.SVNErrorMessage;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.Reader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -258,14 +258,11 @@ public class JavaScriptProjectFetcherImplTest {
         final List<String> expectedFunctionNames = new ArrayList<String>(Arrays.asList("funC", "funA", "funB"));
 
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        new Expectations(SvnConnector.class, JavascriptUtil.class) {
-            final FileReader fileReader = null;
-            {
+        new Expectations(JavaScriptProjectFetcherImpl.class, SvnConnector.class, JavascriptUtil.class) { {
                 SvnConnector.export(projectUrl, revision, (Path) any);
-                JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(
-                    new FileReader((File) any), filename); result = expectedFunctionNames;
-            }
-        };
+                invoke(JavaScriptProjectFetcherImpl.class, "getReaderForFile", withAny(Path.class));
+                JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction((Reader) any, filename); result = expectedFunctionNames;
+        } };
         final List<String> functionNames = instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
         assertThat(functionNames.size(), is(expectedFunctionNames.size()));
         // assert that returned list is sorted

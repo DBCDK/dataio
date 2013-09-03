@@ -210,7 +210,7 @@ public class ITUtil {
     }
 
     /**
-     * Creates FSFS type subversion repository
+     * Creates FSFS type subversion repository overwriting any existing files
      *
      * @param repositoryPath file system path to create repository at
      *
@@ -219,7 +219,7 @@ public class ITUtil {
      * @throws SVNException if unable to create repository
      */
     public static SVNURL doSvnCreateFsRepository(Path repositoryPath) throws SVNException {
-        return SVNRepositoryFactory.createLocalRepository(repositoryPath.toFile(), true, false);
+        return SVNRepositoryFactory.createLocalRepository(repositoryPath.toFile(), true, true);
     }
 
     /**

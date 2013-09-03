@@ -23,11 +23,14 @@ import org.tmatesoft.svn.core.SVNURL;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -36,8 +39,12 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 
 public class FlowComponentCreationSeleniumIT {
+    private static final String PROJECTS_PATH = "projects";
     private static final String SVN_PROJECT_NAME = "main";
-    private static final String SVN_PROJECT_DEPENDENCY_NAME = "jscommon";
+    private static final String SVN_DEPENDENCY_NAME = "jscommon";
+    private static final String SVN_TRUNK_PATH = "trunk";
+    private static final String JAVASCRIPT_FILE = "main.js";
+    private static final String JAVASCRIPT_USE_MODULE = "main.use.js";
 
     private static WebDriver driver;
     private static String appUrl;
@@ -48,7 +55,7 @@ public class FlowComponentCreationSeleniumIT {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
-    public static void setUpClass() throws ClassNotFoundException, SQLException, SVNException, URISyntaxException {
+    public static void setUpClass() throws ClassNotFoundException, SQLException, SVNException, URISyntaxException, IOException {
         appUrl = "http://localhost:" + System.getProperty("glassfish.port") + "/gui/gui.html";
         conn = ITUtil.newDbConnection();
         svnRepoUrl = ITUtil.doSvnCreateFsRepository(Paths.get(System.getProperty("svn.local.dir")));
@@ -283,11 +290,19 @@ public class FlowComponentCreationSeleniumIT {
         ITUtil.clearDbTables(conn, ITUtil.FLOW_COMPONENTS_TABLE_NAME);
     }
 
-    private static void populateSvnRepository() throws URISyntaxException, SVNException {
-        final URL project = FlowComponentCreationSeleniumIT.class.getResource(String.format("/projects/%s", SVN_PROJECT_NAME));
-        System.err.println("DEBUG " + project);
-        ITUtil.doSvnImport(svnRepoUrl, Paths.get(project.toURI()), "project import");
-        final URL dependency = FlowComponentCreationSeleniumIT.class.getResource(String.format("/projects/%s", SVN_PROJECT_DEPENDENCY_NAME));
-        ITUtil.doSvnImport(svnRepoUrl, Paths.get(dependency.toURI()), "project dependency import");
+    private static void populateSvnRepository() throws IOException, SVNException, URISyntaxException {
+        final URL project = FlowComponentCreationSeleniumIT.class.getResource(String.format("/%s", PROJECTS_PATH));
+        ITUtil.doSvnImport(svnRepoUrl, Paths.get(project.toURI()), "initial import");
+        final Path checkoutFolder = Paths.get(FlowComponentCreationSeleniumIT.class.getResource("/").toURI());
+        ITUtil.doSvnCheckout(svnRepoUrl, checkoutFolder);
+        appendToFile(Paths.get(checkoutFolder.toString(), SVN_PROJECT_NAME, SVN_TRUNK_PATH, JAVASCRIPT_FILE), "// some comment");
+        appendToFile(Paths.get(checkoutFolder.toString(), SVN_DEPENDENCY_NAME, SVN_TRUNK_PATH, JAVASCRIPT_USE_MODULE), "// some other comment");
+        ITUtil.doSvnCommit(checkoutFolder, "updated");
+    }
+
+    private static void appendToFile(final Path filename, final String data) throws IOException {
+        try (PrintWriter output = new PrintWriter(new FileWriter(filename.toString(), true))) {
+            output.print(data);
+        }
     }
 }

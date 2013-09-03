@@ -11,6 +11,10 @@
   <artifactId>dataio-integration-test-gui-selenium</artifactId>
   <name>dataio-integration-test-gui-selenium</name>
 
+  <properties>
+    <svn.local.dir>${project.build.directory}/svnrepo</svn.local.dir>
+  </properties>
+
   <dependencies>
     <!-- This is ugly, but we need those element ID constants from the GUI views -->
     <dependency>
@@ -41,6 +45,7 @@
   </dependencies>
 
   <build>
+
     <plugins>
 
       <plugin>
@@ -144,6 +149,7 @@
               <contextRoot>${project.name}</contextRoot>
               <systemProperties>
                 <property>flowStoreURL=http://localhost:${glassfish.port}/flow-store</property>
+                <property>dataioGuiSubversionScmEndpoint=file://${svn.local.dir}</property>
               </systemProperties>
               <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
             </configuration>
@@ -209,6 +215,7 @@
               <systemPropertyVariables>
                 <glassfish.port>${glassfish.port}</glassfish.port>
                 <h2.port>${h2.port}</h2.port>
+                <svn.local.dir>${svn.local.dir}</svn.local.dir>
               </systemPropertyVariables>
             </configuration>
           </plugin>

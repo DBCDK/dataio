@@ -10,5 +10,5 @@ public interface JavaScriptProjectFetcherAsync {
     void fetchRevisions(String projectUrl, AsyncCallback<List<RevisionInfo>> async);
     void fetchJavaScriptFileNames(String projectUrl, long revision, AsyncCallback<List<String>> async);
     void fetchJavaScriptInvocationMethods(String projectUrl, long revision, String javaScriptFileName, AsyncCallback<List<String>> async);
-    void fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName, AsyncCallback<List<JavaScript>> async);
+    void fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName, String javaScriptFunction, AsyncCallback<List<JavaScript>> async);
 }

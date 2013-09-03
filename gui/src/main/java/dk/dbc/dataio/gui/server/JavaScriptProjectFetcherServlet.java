@@ -36,7 +36,7 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
     }
 
     @Override
-    public List<JavaScript> fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchRequiredJavaScript(projectName, revision, javaScriptFileName);
+    public List<JavaScript> fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction) throws JavaScriptProjectFetcherException {
+        return javaScriptProjectFetcher.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
     }
 }

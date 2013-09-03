@@ -57,12 +57,13 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      * @param projectUrl project URL
      * @param revision project revision
      * @param javaScriptFileName name of script file
+     * @param javaScriptFunction name of invocation function in script file
      *
      * @return list of javaScripts
      *
      * @throws JavaScriptProjectFetcherException if unable to fetch javaScript content
      */
-    List<JavaScript> fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException;
+    List<JavaScript> fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName, String javaScriptFunction) throws JavaScriptProjectFetcherException;
     
     /**
      * The factory class for JavaScriptProjectFetcher

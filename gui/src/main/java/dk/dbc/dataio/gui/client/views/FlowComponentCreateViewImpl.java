@@ -10,7 +10,6 @@ import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.i18n.client.HasDirection;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
@@ -19,7 +18,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import java.util.List;
 
-public class FlowComponentCreateViewImpl extends FormPanel implements FlowComponentCreateView {
+public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowComponentCreateView {
 
     // public Identifiers
     public static final String CONTEXT_HEADER = "Flow Komponent - opsætning";
@@ -41,7 +40,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
     public static final String SAVE_RESULT_LABEL_PROCESSING_MESSAGE = "Opsætningen gemmes...";
     // private objects
     private FlowComponentCreatePresenter presenter;
-    private VerticalPanel localPanel = new VerticalPanel();
+//    private VerticalPanel localPanel = new VerticalPanel();
     private FlowComponentNamePanel namePanel = new FlowComponentNamePanel();
     private FlowComponentSvnProjectPanel projectPanel = new FlowComponentSvnProjectPanel();
     private FlowComponentSvnRevisionPanel revisionPanel = new FlowComponentSvnRevisionPanel();
@@ -54,33 +53,15 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
 
     public FlowComponentCreateViewImpl() {
         super();
-
         getElement().setId(GUIID_FLOW_COMPONENT_CREATION_WIDGET);
-        setWidget(localPanel);
-        localPanel.add(namePanel);
-        localPanel.add(projectPanel);
-        localPanel.add(revisionPanel);
-        localPanel.add(scriptNamePanel);
-        localPanel.add(invocationMethodPanel);
-        localPanel.add(savePanel);
-        localPanel.add(busyLabel);
+        add(namePanel);
+        add(projectPanel);
+        add(revisionPanel);
+        add(scriptNamePanel);
+        add(invocationMethodPanel);
+        add(savePanel);
+        add(busyLabel);
         setAsBusy(false);
-        addSubmitHandler(new FormPanel.SubmitHandler() {
-            public void onSubmit(SubmitEvent event) {
-                // This event is fired just before the form is submitted. We can
-                // take this opportunity to perform validation.
-                // flowComponentSavePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
-                setAsBusy(true);
-            }
-        });
-        addSubmitCompleteHandler(new FormPanel.SubmitCompleteHandler() {
-            public void onSubmitComplete(SubmitCompleteEvent event) {
-                // When the form submission is successfully completed, this
-                // event is fired.
-                setAsBusy(false);
-                savePanel.setStatusText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
-            }
-        });
     }
 
     @Override
@@ -172,6 +153,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             super();
             add(label);
             add(svnProject);
+            svnProject.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             svnProject.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
@@ -202,6 +184,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             svnRevision.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
+                    savePanel.setStatusText("");
                     setAsBusy(true);
                     presenter.revisionSelected(getSelectedRevision());
                 }
@@ -244,9 +227,11 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             add(label);
             add(scriptName);
             scriptName.setEnabled(false);
+            scriptName.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             scriptName.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
+                    savePanel.setStatusText("");
                     setAsBusy(true);
                     presenter.scriptNameSelected(getScriptName());
                 }
@@ -286,10 +271,15 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             add(label);
             getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL);
             invocationMethodName.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX);
-            invocationMethodName.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             invocationMethodName.setName(FORM_FIELD_INVOCATION_METHOD);
             add(invocationMethodName);
             invocationMethodName.setEnabled(false);
+            invocationMethodName.addChangeHandler(new ChangeHandler() {
+                @Override
+                public void onChange(ChangeEvent event) {
+                    savePanel.setStatusText("");
+                }
+            });
         }
 
         public void disable() {
@@ -308,7 +298,11 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
         }
 
         public String getInvocationMethod() {
-            return invocationMethodName.getItemText(invocationMethodName.getSelectedIndex());
+            int selectedInvocationMethod = invocationMethodName.getSelectedIndex();
+            if (selectedInvocationMethod < 0) {
+                return "";
+            }
+            return invocationMethodName.getItemText(selectedInvocationMethod);
         }
     }
 
@@ -347,7 +341,7 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
             long revision = revisionPanel.getSelectedRevision();
             String scriptName = scriptNamePanel.getScriptName();
             String invocationMethod = invocationMethodPanel.getInvocationMethod();
-            Window.alert("Component name: " + name + ", Project name: " + project + ", Revision: " + revision + ", Script naem: " + scriptName + ", Invocation Method: " + invocationMethod);
+//            Window.alert("Component name: " + name + ", Project name: " + project + ", Revision: " + revision + ", Script name: " + scriptName + ", Invocation Method: " + invocationMethod);
             if (name.isEmpty() || 
                 project.isEmpty() ||
                 (revision == 0) ||
@@ -355,13 +349,15 @@ public class FlowComponentCreateViewImpl extends FormPanel implements FlowCompon
                 invocationMethod.isEmpty() ) {
                 Window.alert(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {
-                submit();
+                // Her skal gem kaldes.....
+                savePanel.setStatusText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+
+// eller:                savePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
             }
         }
     }
 
     private class InputFieldKeyDownHandler implements KeyDownHandler {
-
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
             savePanel.setStatusText("");

@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.engine.Flow;
 import dk.dbc.dataio.engine.FlowComponent;
+import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import org.slf4j.Logger;
@@ -32,8 +33,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public void addFlowComponentToFlow(Flow flow, FlowComponent flowComponent) {
-        flowStoreProxy.addFlowComponentToFlow(flow, flowComponent);
+    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, IllegalStateException {
+        flowStoreProxy.createFlowComponent(flowComponentContent);
     }
 
     @Override

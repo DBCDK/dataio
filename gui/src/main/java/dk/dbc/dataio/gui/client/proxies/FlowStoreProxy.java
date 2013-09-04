@@ -5,6 +5,7 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.engine.Flow;
 import dk.dbc.dataio.engine.FlowComponent;
+import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public interface FlowStoreProxy extends RemoteService {
 
     void createFlow(FlowContent flowContent) throws NullPointerException, IllegalStateException;
 
-    void addFlowComponentToFlow(Flow flow, FlowComponent flowComponent);
+    void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, IllegalStateException;
 
     List<FlowComponent> findAllComponents();
 

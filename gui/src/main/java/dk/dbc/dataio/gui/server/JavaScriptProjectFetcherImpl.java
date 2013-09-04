@@ -107,6 +107,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
                     fileNames.add(path);
                 }
             }
+            Collections.sort(fileNames);
         } catch (SVNException e) {
             log.error(errorMessage, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(e);

@@ -31,7 +31,7 @@ public class Engine {
             chunks = splitByLine(path, job);
             log.info("Number of chunks: {}",  chunks.size());
         } catch (IOException ex) {
-            System.err.println("An error occured: " + ex);
+            log.info("An error occured: ", ex);
         }
         for (Chunk chunk : chunks) {
             jobStore.addChunk(job, chunk);

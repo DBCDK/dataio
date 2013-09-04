@@ -24,7 +24,13 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     public static final String CONTEXT_HEADER = "Flow Komponent - opsætning";
     public static final String GUIID_FLOW_COMPONENT_CREATION_WIDGET = "flowcomponentcreationwidget";
     public static final String GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX = "flowcomponentcreationnametextbox";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX = "flowcomponentcreationinvocationmethodtextbox";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_PANEL = "flowcomponentcreationsvnprojectpanel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX = "flowcomponentcreationsvnprojecttextbox";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL = "flowcomponentcreationsvnrevisionpanel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX = "flowcomponentcreationsvnrevisionlistbox";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL = "flowcomponentcreationscriptnamepanel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX = "flowcomponentcreationscriptnamelistbox";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX = "flowcomponentcreationinvocationmethodlistbox";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL = "flowcomponentcreationsaveresultlabel";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON = "flowcomponentcreationsavebutton";
     public static final String GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD = "flowcomponentcreationjavascriptfileupload";
@@ -152,6 +158,8 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
         public FlowComponentSvnProjectPanel() {
             super();
             add(label);
+            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_PANEL);
+            svnProject.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX);
             add(svnProject);
             svnProject.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
             svnProject.addChangeHandler(new ChangeHandler() {
@@ -179,6 +187,8 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
         public FlowComponentSvnRevisionPanel() {
             super();
             add(label);
+            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL);
+            svnRevision.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX);
             add(svnRevision);
             svnRevision.setEnabled(false);
             svnRevision.addChangeHandler(new ChangeHandler() {
@@ -210,7 +220,11 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
         }
 
         public long getSelectedRevision() {
-            return Long.parseLong(svnRevision.getItemText(svnRevision.getSelectedIndex()));
+            int selectedRevisionIndex = svnRevision.getSelectedIndex();
+            if (selectedRevisionIndex < 0) {
+                return 0;
+            }
+            return Long.parseLong(svnRevision.getItemText(selectedRevisionIndex));
         }
     }
 
@@ -225,6 +239,8 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
         public FlowComponentScriptNamePanel() {
             super();
             add(label);
+            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL);
+            scriptName.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX);
             add(scriptName);
             scriptName.setEnabled(false);
             scriptName.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
@@ -254,7 +270,11 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
         }
         
         public String getScriptName() {
-            return scriptName.getItemText(scriptName.getSelectedIndex());
+            int selectedScriptNameIndex = scriptName.getSelectedIndex();
+            if (selectedScriptNameIndex < 0) {
+                return "";
+            }
+            return scriptName.getItemText(selectedScriptNameIndex);
         }
     }
     
@@ -270,7 +290,7 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
             super();
             add(label);
             getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL);
-            invocationMethodName.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_TEXT_BOX);
+            invocationMethodName.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX);
             invocationMethodName.setName(FORM_FIELD_INVOCATION_METHOD);
             add(invocationMethodName);
             invocationMethodName.setEnabled(false);
@@ -298,11 +318,11 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
         }
 
         public String getInvocationMethod() {
-            int selectedInvocationMethod = invocationMethodName.getSelectedIndex();
-            if (selectedInvocationMethod < 0) {
+            int selectedInvocationMethodIndex = invocationMethodName.getSelectedIndex();
+            if (selectedInvocationMethodIndex < 0) {
                 return "";
             }
-            return invocationMethodName.getItemText(selectedInvocationMethod);
+            return invocationMethodName.getItemText(selectedInvocationMethodIndex);
         }
     }
 

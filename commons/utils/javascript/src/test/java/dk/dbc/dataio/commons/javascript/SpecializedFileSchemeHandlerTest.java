@@ -1,4 +1,3 @@
-
 package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.jslib.Environment;
@@ -21,21 +20,32 @@ public class SpecializedFileSchemeHandlerTest {
         org.apache.log4j.BasicConfigurator.configure();
     }
 
-    @Ignore
+     @Ignore
     @Test
     public void test() throws IOException {
-        Path rootDir = (new File("/home/damkjaer/dbc/tmp/jscommon")).toPath();
+        Path rootDir1 = (new File("/home/damkjaer/dbc/tmp/jscommon")).toPath();
+        Path rootDir2 = (new File("/home/damkjaer/dbc/tmp/datawell-convert")).toPath();
 
-        DirectoriesContainingJavascriptFinder finder = new DirectoriesContainingJavascriptFinder();
-        Files.walkFileTree(rootDir, finder);
-        for(Path path : finder.getJavascriptDirectories()) {
-            System.out.println("Path: " + path.toString());
+        DirectoriesContainingJavascriptFinder finderJsCommon = new DirectoriesContainingJavascriptFinder();
+        Files.walkFileTree(rootDir1, finderJsCommon);
+        DirectoriesContainingJavascriptFinder finderDatawell = new DirectoriesContainingJavascriptFinder();
+        Files.walkFileTree(rootDir2, finderDatawell);
+//        for (Path path : finderJsCommon.getJavascriptDirectories()) {
+//            System.out.println("Path: " + path.toString());
+//        }
+        ModuleHandler mh = new ModuleHandler();
+        SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler("");
+        mh.registerHandler("file", sfsh);
+        for (Path p : finderJsCommon.getJavascriptDirectories()) {
+            mh.addSearchPath(new SchemeURI("file", p.toString()));
+        }
+        for (Path d : finderDatawell.getJavascriptDirectories()) {
+            mh.addSearchPath(new SchemeURI("file", d.toString()));
         }
 
-//        ModuleHandler mh = new ModuleHandler();
-//        SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler("");
-//        mh.registerHandler("file", sfsh);
-//        mh.addSearchPath(new SchemeURI("file", "."));
-//        Environment jsEnvironment = new Environment();
+        Environment jsEnvironment = new Environment();
+        jsEnvironment.registerUseFunction(mh);
+        jsEnvironment.evalFile("/home/damkjaer/dbc/tmp/datawell-convert/js/xml_datawell_3.0.js");
+
     }
 }

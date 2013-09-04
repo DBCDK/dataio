@@ -42,6 +42,12 @@
       <version>2.31.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.tmatesoft.svnkit</groupId>
+      <artifactId>svnkit</artifactId>
+      <version>${svnkit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

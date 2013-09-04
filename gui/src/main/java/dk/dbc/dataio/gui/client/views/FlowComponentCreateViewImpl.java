@@ -369,10 +369,8 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
                 invocationMethod.isEmpty() ) {
                 Window.alert(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {
-                // Her skal gem kaldes.....
-                savePanel.setStatusText(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
-
-// eller:                savePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
+                savePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
+                presenter.saveFlowComponent(name, project, revision, scriptName, invocationMethod);
             }
         }
     }

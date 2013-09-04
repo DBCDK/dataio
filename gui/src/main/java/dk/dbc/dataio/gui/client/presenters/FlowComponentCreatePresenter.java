@@ -8,5 +8,5 @@ public interface FlowComponentCreatePresenter extends Presenter {
     public void projectNameEntered(String projectName);
     public void revisionSelected(long selectedRevision);
     public void scriptNameSelected(String scriptName);
-    public void saveComponentFlow(String componentName, String svnProject, long svnRevision, String javaScriptName, String invocationMethod);
+    public void saveFlowComponent(String componentName, String svnProject, long svnRevision, String javaScriptName, String invocationMethod);
 }

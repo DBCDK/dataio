@@ -2,15 +2,19 @@ package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.RevisionInfo;
+import dk.dbc.dataio.engine.FlowComponentContent;
+import dk.dbc.dataio.engine.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
+import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.Arrays;
 import java.util.List;
@@ -28,11 +32,12 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     private long revision = 0;
     private String scriptName = null;
     private String invocationMethod = null;
-
+    private String flowComponentName;
     
     public CreateFlowComponentActivity(FlowComponentCreatePlace place, ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         javaScriptProjectFetcher = clientFactory.getJavaScriptProjectFetcherAsync();
+        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
     @Override
@@ -128,19 +133,40 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     }
 
     @Override
-    public void saveComponentFlow(String componentName, String svnProject, long svnRevision, String javaScriptName, String invocationMethod) {
-//        final FlowContent flowContent = new FlowContent(name, description, flowComponents);
-//        flowStoreProxy.createFlowComponent(flowContent, new AsyncCallback<Void>() {
-//            @Override
-//            public void onFailure(Throwable e) {
-//                final String errorClassName = e.getClass().getName();
-//                flowCreateView.displayError(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
-//            }
-//
-//            @Override
-//            public void onSuccess(Void aVoid) {
-//                flowCreateView.displaySuccess(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
-//            }
-//        });
+    public void saveFlowComponent(String componentName, String svnProject, long svnRevision, String javaScriptName, String invocationMethod) {
+        this.flowComponentName = componentName;
+        this.invocationMethod = invocationMethod;
+        fetchJavaScriptsAndSave(svnProject, svnRevision, javaScriptName, invocationMethod);  // Calls saveFlowComponentWithJavaScripts asynchronously after having fetched java scripts
+    }
+
+    private void fetchJavaScriptsAndSave(String svnProject, long svnRevision, String javaScriptName, String invocationMethod) {
+        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProject, revision, javaScriptName, invocationMethod, new AsyncCallback<List<JavaScript>>() {
+            @Override
+            public void onFailure(Throwable e) {
+                flowComponentCreateView.displaySuccess("");
+                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            }
+
+            @Override
+            public void onSuccess(List<JavaScript> javaScripts) {
+                saveFlowComponentWithJavaScripts(javaScripts);
+            }
+        });
+    }
+
+    private void saveFlowComponentWithJavaScripts(List<JavaScript> javaScripts) {
+        final FlowComponentContent flowComponentContent = new FlowComponentContent(flowComponentName, javaScripts, invocationMethod);
+        flowStoreProxy.createFlowComponent(flowComponentContent, new AsyncCallback<Void>() {
+            @Override
+            public void onFailure(Throwable e) {
+                flowComponentCreateView.displaySuccess("");
+                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            }
+
+            @Override
+            public void onSuccess(Void aVoid) {
+                flowComponentCreateView.displaySuccess(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+            }
+        });
     }
 }

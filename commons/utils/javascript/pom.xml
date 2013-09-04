@@ -12,6 +12,7 @@
 
     <artifactId>dataio-commons-utils-javascript</artifactId>
     <name>dataio-commons-utils-javascript</name>
+
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -20,6 +21,11 @@
             <type>jar</type>
         </dependency>
 
+        <dependency>
+	  <artifactId>dataio-commons-utils-invariant</artifactId>
+	  <groupId>dk.dbc</groupId>
+	  <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>

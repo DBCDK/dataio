@@ -16,7 +16,6 @@ public class DirectoriesContainingJavascriptFinder extends SimpleFileVisitor<Pat
     private final PathMatcher matcher;
     private final Set<Path> javascriptDirectories;
 
-
     DirectoriesContainingJavascriptFinder() {
         matcher = FileSystems.getDefault().getPathMatcher("glob:*.js");
         javascriptDirectories = new HashSet<>();

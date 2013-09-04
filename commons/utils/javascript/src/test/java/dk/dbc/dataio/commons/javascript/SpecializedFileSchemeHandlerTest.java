@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -20,6 +21,7 @@ public class SpecializedFileSchemeHandlerTest {
         org.apache.log4j.BasicConfigurator.configure();
     }
 
+    @Ignore
     @Test
     public void test() throws IOException {
         Path rootDir = (new File("/home/damkjaer/dbc/tmp/jscommon")).toPath();

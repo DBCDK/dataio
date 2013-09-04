@@ -1,11 +1,13 @@
 package dk.dbc.dataio.commons.javascript;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import java.io.Reader;
 import java.util.List;
 import dk.dbc.jslib.Environment;
 import java.io.IOException;
 import java.util.ArrayList;
 import org.mozilla.javascript.EcmaError;
+import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.ext.XLoggerFactory;
 import org.slf4j.ext.XLogger;
@@ -27,20 +29,24 @@ public class JavascriptUtil {
      * function anotherfunc(anotherVar) {
      *   // body of function
      * } }
-     * </pre> the method <code>getAllToplevelFunctionsInJavascript(...)</code> will
-     * return a <code>List</code> containing the values <code>myfunc</code> and <code>anotherfunc</code>.
+     * </pre> the method
+     * <code>getAllToplevelFunctionsInJavascript(...)</code> will return a
+     * <code>List</code> containing the values
+     * <code>myfunc</code> and
+     * <code>anotherfunc</code>.
      * <p>
      * <b>Notice:</b> the order of the returned values is unspecified.
      *
      * @param reader with the javascript.
      * @param sourceName the filename of the source.
-     * @return A <code>List</code> of <code>Strings</code> containing the function names from the
-     * javascript in unspecified order.
-     * @throws IOException if the <code>Reader</code> containing the javascript can not be read.
+     * @return A <code>List</code> of <code>Strings</code> containing the
+     * function names from the javascript in unspecified order.
+     * @throws IOException if the <code>Reader</code> containing the javascript
+     * can not be read.
      * @throws EvaluatorException if the javascript could not be evaluated
      * @throws EcmaError if an error in the evaluated javascript is found
      */
-    public static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName) throws IOException {
+    public static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName) throws IOException, EcmaError, EvaluatorException {
         Environment jsEnvironment = new Environment();
         return getAllToplevelFunctionsInJavascript(reader, sourceName, jsEnvironment);
     }
@@ -65,13 +71,17 @@ public class JavascriptUtil {
      *   // body of function
      * } }
      * </pre> the method
-     * <code>getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...)</code> will
-     * return a <code>List</code> containing the values <code>myfunc</code> and <code>anotherfunc</code>.
+     * <code>getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...)</code>
+     * will return a
+     * <code>List</code> containing the values
+     * <code>myfunc</code> and
+     * <code>anotherfunc</code>.
      * <p>
      * <b>Notice:</b> the order of the returned values is unspecified.
      * <p>
      * <b>Notice:</b> there are some problems with this function: If the
-     * javascript contains a top-level function named <code>use</code> like this:
+     * javascript contains a top-level function named
+     * <code>use</code> like this:
      * <pre>
      * {@code
      * use("SomeModule");
@@ -85,8 +95,9 @@ public class JavascriptUtil {
      * } }
      * }
      * </pre> then the method
-     * <code>getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...)</code> will
-     * return a List containing the single value <code>myfunc</code>. The value
+     * <code>getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...)</code>
+     * will return a List containing the single value
+     * <code>myfunc</code>. The value
      * <code>use</code> will be filtered from the result.
      * <p>
      * Another problem is if a javascript implements an object, which on the
@@ -108,26 +119,29 @@ public class JavascriptUtil {
      * }(); }
      * </pre> then the function
      * getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...) will throw an
-     * {@link EcmaError} containing a <code>ReferenceError</code> to the line containing the
-     * code {@code var s = Something.somefunc();}
+     * {@link EcmaError} containing a
+     * <code>ReferenceError</code> to the line containing the code
+     * {@code var s = Something.somefunc();}
      *
      * @param reader with the javascript.
      * @param sourceName the filename of the source.
-     * @return A <code>List</code> of <code>Strings</code> containing the function names from the
-     * javascript.
-     * @throws IOException if the <code>Reader</code> containing the javascript can not be read.
+     * @return A <code>List</code> of <code>Strings</code> containing the
+     * function names from the javascript.
+     * @throws IOException if the <code>Reader</code> containing the javascript
+     * can not be read.
      * @throws EvaluatorException if the javascript could not be evaluated
      * @throws EcmaError if an error in the evaluated javascript is found
      */
-    public static List<String> getAllToplevelFunctionsInJavascriptWithFakeUseFunction(Reader reader, String sourceName) throws IOException {
+    public static List<String> getAllToplevelFunctionsInJavascriptWithFakeUseFunction(Reader reader, String sourceName) throws IOException, EcmaError, EvaluatorException {
         Environment jsEnvironment = new Environment();
         addFakeUseFunction(jsEnvironment);
         List<String> topLevelFunctionsWithUse = getAllToplevelFunctionsInJavascript(reader, sourceName, jsEnvironment);
         return filterFakeUseFunction(topLevelFunctionsWithUse);
     }
 
-    private static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName, Environment jsEnvironment) throws IOException, EcmaError {
-        // evaluateJavascriptAndThrow(jsEnvironment, reader, sourceName);
+    private static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName, Environment jsEnvironment) throws IOException, EcmaError, EvaluatorException {
+        InvariantUtil.checkNotNullOrThrow(reader, "reader");
+        InvariantUtil.checkNotNullOrThrow(sourceName, "sourceName");
         jsEnvironment.eval(reader, sourceName);
         Object[] propertyObjs = jsEnvironment.getAllIds();
         List<String> functionNames = new ArrayList<>();
@@ -149,9 +163,8 @@ public class JavascriptUtil {
         if (propObj instanceof ScriptableObject) {
             ScriptableObject so = (ScriptableObject) propObj;
             return so.getTypeOf().equals(FUNCTION_IDENTIFIER);
-        } else {
-            return false;
         }
+        return false;
     }
 
     private static void addFakeUseFunction(Environment jsEnvironment) {

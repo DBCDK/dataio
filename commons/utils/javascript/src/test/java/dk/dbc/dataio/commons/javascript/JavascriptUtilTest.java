@@ -20,6 +20,28 @@ public class JavascriptUtilTest {
         org.apache.log4j.BasicConfigurator.configure();
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testGetAllToplevelFunctionsInJavascript_nullReaderArgument_throws() throws IOException {
+        JavascriptUtil.getAllToplevelFunctionsInJavascript(null, "<inlinetest>");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetAllToplevelFunctionsInJavascript_nullStringSourceArgument_throws() throws IOException {
+        String javascript = "function myfunc(s) { }";
+        JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullReaderArgument_throws() throws IOException {
+        JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(null, "<inlinetest>");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullStringSourceArgument_throws() throws IOException {
+        String javascript = "function myfunc(s) { }";
+        JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), null);
+    }
+
     @Test
     public void testGetAllToplevelFunctionsInJavascript_singleLegalFunction() throws IOException {
         String javascript = "function myfunc(s) { }";
@@ -82,7 +104,7 @@ public class JavascriptUtilTest {
         String javascript = ""
                 + "function f(x) {};\n"
                 + "function f(x) {};\n"
-                + "function f(x) {};";
+                + "function f(x,y) {};";
         List<String> functionNames = JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>");
         assertThat(functionNames.size(), is(1));
         assertThat(functionNames.get(0), is("f"));
@@ -91,7 +113,7 @@ public class JavascriptUtilTest {
     @Test(expected = EvaluatorException.class)
     public void testGetAllToplevelFunctionsInJavascript_illegalJavascript_throws() throws IOException {
         String javascript = ""
-                + "function use(x) {";
+                + "function myfunc(x) {";
         JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>");
     }
 
@@ -99,7 +121,7 @@ public class JavascriptUtilTest {
     public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_illegalJavascript_throws() throws IOException {
         String javascript = ""
                 + "use(\"Something\");\n"
-                + "function use(x) {";
+                + "function myfunc(x) {";
         JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), "<inlinetest>");
     }
 

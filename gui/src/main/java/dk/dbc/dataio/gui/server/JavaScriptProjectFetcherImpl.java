@@ -1,12 +1,14 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.javascript.JavascriptUtil;
+import dk.dbc.dataio.commons.javascript.SpecializedFileSchemeHandler;
 import dk.dbc.dataio.commons.svn.SvnConnector;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.engine.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
+import org.apache.commons.codec.binary.Base64;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -43,6 +46,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
     private static final String JAVASCRIPT_FILENAME_EXTENSION = ".js";
     private static final String JAVASCRIPT_USE_MODULE_EXTENSION = ".use.js";
     private static final Logger log = LoggerFactory.getLogger(JavaScriptProjectFetcherImpl.class);
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     private final String subversionScmEndpoint;
     private final List<String> dependencies;
@@ -177,14 +181,28 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         Path exportFolder = null;
         try {
             exportFolder = createTmpFolder(getClass().getName());
-            SvnConnector.export(projectUrl, revision, Paths.get(exportFolder.toString(), projectName));
+            final Path projectPath = Paths.get(exportFolder.toString(), projectName);
+            SvnConnector.export(projectUrl, revision, projectPath);
+
+            final Path mainJsPath = Paths.get(projectPath.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
+            final String mainJsContent = new String(Files.readAllBytes(mainJsPath), CHARSET);
+            final JavaScript mainJs = new JavaScript(Base64.encodeBase64String(mainJsContent.getBytes()), "");
+            javaScripts.add(mainJs);
+
             for (String dependency : dependencies) {
                 SvnConnector.export(buildProjectUrl(dependency), revision, Paths.get(exportFolder.toString(), dependency));
+            }
+
+            for (SpecializedFileSchemeHandler.JS js : JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath)) {
+                javaScripts.add(new JavaScript(js.javascript, js.modulename));
             }
         } catch (SVNException e) {
             log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(e);
         } catch (URISyntaxException e) {
+            log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectFetcherException(e);
+        } catch (IOException e) {
             log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(e);
         } finally {

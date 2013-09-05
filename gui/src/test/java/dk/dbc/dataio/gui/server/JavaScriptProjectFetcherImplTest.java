@@ -8,6 +8,7 @@ import mockit.Expectations;
 import mockit.integration.junit4.JMockit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.tmatesoft.svn.core.SVNErrorCode;
@@ -340,6 +341,7 @@ public class JavaScriptProjectFetcherImplTest {
         }
     }
 
+    @Ignore
     @Test
     public void fetchRequiredJavaScript__returnsJavaScripts() throws Exception {
         final String projectUrl = subversionScmEndpoint + JavaScriptProjectFetcherImpl.URL_DELIMITER

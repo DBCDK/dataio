@@ -349,7 +349,7 @@ public class FlowComponentCreationSeleniumIT {
 
         @Override
         public Boolean apply(WebDriver webDriver) {
-            return new Select(findElement(elementId)).getOptions().size() > 1;
+            return new Select(findElement(elementId)).getOptions().size() > 0;
         }
     }
 }

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.jslib.FileSchemeHandler;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -35,7 +34,8 @@ public class SpecializedFileSchemeHandler extends FileSchemeHandler {
         try {
             String filename = file.getName();
             log.debug("load file: {}", filename);
-            String javascript=  readJavascriptFileToUTF8String(file.toPath());
+            String javascript = readJavascriptFileToUTF8String(file.toPath());
+            log.debug("Javascript: [{}]", javascript);
             storeJavascript(javascript, file.getAbsolutePath());
             context.setOptimizationLevel(-1);
             context.evaluateString(scope, javascript, filename, 1, null);
@@ -45,14 +45,7 @@ public class SpecializedFileSchemeHandler extends FileSchemeHandler {
     }
 
     private String readJavascriptFileToUTF8String(Path file) throws IOException {
-        String line = "";
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader br = Files.newBufferedReader(file, Charset.forName("UTF-8"))) {
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-        }
-        return sb.toString();
+        return new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
     }
 
     private void storeJavascript(String javascript, String filename) {

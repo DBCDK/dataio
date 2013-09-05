@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -19,6 +18,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
 
 public class SpecializedFileSchemeHandlerTest {
 
@@ -75,7 +75,6 @@ public class SpecializedFileSchemeHandlerTest {
         assertThat(javascripts.get(1).modulename, is("lower"));
     }
 
-
     @Ignore
     @Test
     public void test() throws IOException {
@@ -91,6 +90,7 @@ public class SpecializedFileSchemeHandlerTest {
 //        }
         ModuleHandler mh = new ModuleHandler();
         SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler("");
+        //FileSchemeHandler sfsh = new FileSchemeHandler("");
         mh.registerHandler("file", sfsh);
         for (Path p : finderJsCommon.getJavascriptDirectories()) {
             mh.addSearchPath(new SchemeURI("file", p.toString()));

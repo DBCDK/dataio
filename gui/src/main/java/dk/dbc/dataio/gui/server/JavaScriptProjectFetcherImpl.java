@@ -194,7 +194,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             }
 
             for (SpecializedFileSchemeHandler.JS js : JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath)) {
-                javaScripts.add(new JavaScript(js.javascript, js.modulename));
+                javaScripts.add(new JavaScript(Base64.encodeBase64String(js.javascript.getBytes()), js.modulename));
             }
         } catch (SVNException e) {
             log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);

@@ -16,6 +16,14 @@
   </properties>
 
   <dependencies>
+    <!--
+    <dependency>
+      <groupId>org.tmatesoft.sqljet</groupId>
+      <artifactId>sqljet</artifactId>
+      <version>1.1.6</version>
+      <scope>test</scope>
+    </dependency>
+    -->
     <!-- This is ugly, but we need those element ID constants from the GUI views -->
     <dependency>
       <artifactId>dataio-gui</artifactId>
@@ -155,7 +163,10 @@
               <contextRoot>${project.name}</contextRoot>
               <systemProperties>
                 <property>flowStoreURL=http://localhost:${glassfish.port}/flow-store</property>
+                <!--
                 <property>dataioGuiSubversionScmEndpoint=file://${svn.local.dir}</property>
+                -->
+                <property>dataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos/dataio-js-test-projects</property>
               </systemProperties>
               <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
             </configuration>

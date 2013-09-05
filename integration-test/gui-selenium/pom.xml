@@ -166,7 +166,7 @@
                 <!--
                 <property>dataioGuiSubversionScmEndpoint=file://${svn.local.dir}</property>
                 -->
-                <property>dataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos/dataio-js-test-projects</property>
+                <property>dataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</property>
               </systemProperties>
               <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
             </configuration>

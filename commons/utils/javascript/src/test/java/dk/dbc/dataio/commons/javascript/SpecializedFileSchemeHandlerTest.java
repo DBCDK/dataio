@@ -7,20 +7,73 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 public class SpecializedFileSchemeHandlerTest {
 
     XLogger log = XLoggerFactory.getXLogger(SpecializedFileSchemeHandlerTest.class);
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     static {
         org.apache.log4j.BasicConfigurator.configure();
     }
 
-     @Ignore
+    @Test
+    public void testSingleJavascriptLoaded_javascriptAndFilenameCanBeRetrieved() throws RhinoException, IOException {
+        String javascript = "function f(x) { x.toUpperCase(); }";
+        File jsFile = folder.newFile("test.use.js");
+        Files.write(jsFile.toPath(), javascript.getBytes("UTF-8"));
+
+        SpecializedFileSchemeHandler schemeHandler = new SpecializedFileSchemeHandler(folder.getRoot().getAbsolutePath());
+        Context context = Context.enter();
+        ScriptableObject scope = context.initStandardObjects(null, true);
+        schemeHandler.load(new SchemeURI("file", jsFile.getAbsolutePath()), context, scope);
+        Context.exit();
+
+        List<SpecializedFileSchemeHandler.JS> javascripts = schemeHandler.getJavascripts();
+        assertThat(javascripts.size(), is(1));
+        assertThat(javascripts.get(0).javascript, is(javascript));
+        assertThat(javascripts.get(0).filename, is(jsFile.getAbsolutePath()));
+    }
+
+    @Test
+    public void testTwoJavascriptsLoaded_javascriptsAndFilenamesCanBeRetrieved() throws RhinoException, IOException {
+        String javascriptUpper = "function f(x) { x.toUpperCase(); }";
+        String javascriptLower = "function f(x) { x.toLowerCase(); }";
+        File jsFileUpper = folder.newFile("upper.use.js");
+        File jsFileLower = folder.newFile("lower.use.js");
+        Files.write(jsFileUpper.toPath(), javascriptUpper.getBytes("UTF-8"));
+        Files.write(jsFileLower.toPath(), javascriptLower.getBytes("UTF-8"));
+
+        SpecializedFileSchemeHandler schemeHandler = new SpecializedFileSchemeHandler(folder.getRoot().getAbsolutePath());
+        Context context = Context.enter();
+        ScriptableObject scope = context.initStandardObjects(null, true);
+        schemeHandler.load(new SchemeURI("file", jsFileUpper.getAbsolutePath()), context, scope);
+        schemeHandler.load(new SchemeURI("file", jsFileLower.getAbsolutePath()), context, scope);
+        Context.exit();
+
+        List<SpecializedFileSchemeHandler.JS> javascripts = schemeHandler.getJavascripts();
+        assertThat(javascripts.size(), is(2));
+        assertThat(javascripts.get(0).javascript, is(javascriptUpper));
+        assertThat(javascripts.get(0).filename, is(jsFileUpper.getAbsolutePath()));
+        assertThat(javascripts.get(1).javascript, is(javascriptLower));
+        assertThat(javascripts.get(1).filename, is(jsFileLower.getAbsolutePath()));
+    }
+
+
+    @Ignore
     @Test
     public void test() throws IOException {
         Path rootDir1 = (new File("/home/damkjaer/dbc/tmp/jscommon")).toPath();

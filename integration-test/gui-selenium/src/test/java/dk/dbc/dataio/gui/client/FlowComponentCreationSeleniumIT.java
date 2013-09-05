@@ -117,7 +117,7 @@ public class FlowComponentCreationSeleniumIT {
         final WebElement element = findComponentSvnProjectElement();
         assertEquals(true, element.isDisplayed());
 
-        final String fieldValue = "main";
+        final String fieldValue = SVN_PROJECT_NAME;
         element.sendKeys(fieldValue);
         assertEquals(fieldValue, element.getAttribute("value"));
     }
@@ -176,10 +176,12 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     @Test
-    public void testFlowComponentCreation() {
+    public void testFlowComponentCreationValidSvnProjectNamePopulatesListBoxes() {
         navigateToFlowComponentCreationContext();
         final WebElement svnProject = insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement().sendKeys("test");
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX, 30);
+        /*
         WebDriverWait wait = new WebDriverWait(driver, 30);
         wait.until(new ExpectedCondition<Boolean>() {
             @Override
@@ -187,17 +189,8 @@ public class FlowComponentCreationSeleniumIT {
                 return new Select(findComponentSvnRevisionElement()).getOptions().size() > 1;
             }
         });
-        final Select svnRevision = new Select(findComponentSvnRevisionElement());
-
-        //WebDriverWait wait = new WebDriverWait(driver, 10);
-        //wait.until(ExpectedConditions.  textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-        /*
-        try {
-            Thread.sleep(30000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
         */
+        final Select svnRevision = new Select(findComponentSvnRevisionElement());
         assertThat(svnRevision.getOptions().size(), is(2));
     }
 
@@ -317,9 +310,13 @@ public class FlowComponentCreationSeleniumIT {
         return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL));
     }
 
+    private WebElement findElement(final String elementId) {
+        return driver.findElement(By.id(elementId));
+    }
+
     private WebElement insertSvnProjectNameThatExistsInSvnRepository() {
         final WebElement element = findComponentSvnProjectElement();
-        element.sendKeys("main");
+        element.sendKeys(SVN_PROJECT_NAME);
         return element;
     }
 
@@ -370,6 +367,11 @@ public class FlowComponentCreationSeleniumIT {
         return element;
     }
 
+    private void waitForListBoxToFillOut(final String elementId, final int duration) {
+        final WebDriverWait wait = new WebDriverWait(driver, duration);
+        wait.until(new ListBoxFilledOutCondition(elementId));
+    }
+
     private static void populateSvnRepository() throws IOException, SVNException, URISyntaxException {
         final URL project = FlowComponentCreationSeleniumIT.class.getResource(String.format("/%s", PROJECTS_PATH));
         ITUtil.doSvnImport(svnRepoUrl, Paths.get(project.toURI()), "initial import");
@@ -384,6 +386,19 @@ public class FlowComponentCreationSeleniumIT {
     private static void appendToFile(final Path filename, final String data) throws IOException {
         try (PrintWriter output = new PrintWriter(new FileWriter(filename.toString(), true))) {
             output.print(data);
+        }
+    }
+
+    private class ListBoxFilledOutCondition implements ExpectedCondition<Boolean> {
+        private final String elementId;
+
+        public ListBoxFilledOutCondition(final String elementId) {
+            this.elementId = elementId;
+        }
+
+        @Override
+        public Boolean apply(WebDriver webDriver) {
+            return new Select(findElement(elementId)).getOptions().size() > 1;
         }
     }
 }

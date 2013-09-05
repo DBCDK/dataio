@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface FlowComponentCreatePresenter extends Presenter {
     public void projectNameEntered(String projectName);
-    public void revisionSelected(long selectedRevision);
-    public void scriptNameSelected(String scriptName);
+    public void revisionSelected(String projectName, long selectedRevision);
+    public void scriptNameSelected(String projectName, long selectedRevision, String scriptName);
     public void saveFlowComponent(String componentName, String svnProject, long svnRevision, String javaScriptName, String invocationMethod);
 }

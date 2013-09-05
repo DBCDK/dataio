@@ -9,7 +9,7 @@ public interface FlowComponentCreateView extends IsWidget, View<FlowComponentCre
     public void setAvailableRevisions(List<RevisionInfo> availableRevisions);
     public void setAvailableScriptNames(List<String> availableScriptNames);
     public void setAvailableInvocationMethods(List<String> availableInvocationMethods);
-    public void disableRevisionEntry();
-    public void disableScriptNameEntry();
-    public void disableInvocationMethodEntry();
+    public void fetchRevisionFailed(String string);
+    public void fetchScriptNamesFailed(String string);
+    public void fetchInvocationMethodsFailed(String string);
 }

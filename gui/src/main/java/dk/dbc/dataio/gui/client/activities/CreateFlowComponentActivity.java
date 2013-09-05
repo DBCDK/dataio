@@ -2,7 +2,6 @@ package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.RevisionInfo;
@@ -28,11 +27,6 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     private FlowComponentCreateView flowComponentCreateView;
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     private FlowStoreProxyAsync flowStoreProxy;
-    private String projectName = null;
-    private long revision = 0;
-    private String scriptName = null;
-    private String invocationMethod = null;
-    private String flowComponentName;
     
     public CreateFlowComponentActivity(FlowComponentCreatePlace place, ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
@@ -61,10 +55,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         javaScriptProjectFetcher.fetchRevisions(projectUrl, new AsyncCallback<List<RevisionInfo>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.disableRevisionEntry();
-                flowComponentCreateView.disableScriptNameEntry();
-                flowComponentCreateView.disableInvocationMethodEntry();
-                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.fetchRevisionFailed(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<RevisionInfo> revisions) {
@@ -77,9 +68,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         javaScriptProjectFetcher.fetchJavaScriptFileNames(projectUrl, revision, new AsyncCallback<List<String>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.disableScriptNameEntry();
-                flowComponentCreateView.disableInvocationMethodEntry();
-                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.fetchScriptNamesFailed(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<String> scriptNames) {
@@ -92,8 +81,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectUrl, revision, scriptName, new AsyncCallback<List<String>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.disableInvocationMethodEntry();
-                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.fetchInvocationMethodsFailed(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<String> invocationMethods) {
@@ -104,7 +92,6 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
 
     @Override
     public void projectNameEntered(String projectName) {
-        this.projectName = projectName;
         try {
             fetchRevisions(projectName);
         } catch (JavaScriptProjectFetcherException e) {
@@ -113,20 +100,18 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     }
 
     @Override
-    public void revisionSelected(long selectedRevision) {
-        this.revision = selectedRevision;
+    public void revisionSelected(String projectName, long selectedRevision) {
         try {
-            fetchScriptNames(this.projectName, this.revision);
+            fetchScriptNames(projectName, selectedRevision);
         } catch (JavaScriptProjectFetcherException e) {
             flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
     @Override
-    public void scriptNameSelected(String scriptName) {
-        this.scriptName = scriptName;
+    public void scriptNameSelected(String projectName, long selectedRevision, String scriptName) {
         try {
-            fetchInvocationMethods(this.projectName, this.revision, this.scriptName);
+            fetchInvocationMethods(projectName, selectedRevision, scriptName);
         } catch (JavaScriptProjectFetcherException e) {
             flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
@@ -134,32 +119,28 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
 
     @Override
     public void saveFlowComponent(String componentName, String svnProject, long svnRevision, String javaScriptName, String invocationMethod) {
-        this.flowComponentName = componentName;
-        this.invocationMethod = invocationMethod;
-        fetchJavaScriptsAndSave(svnProject, svnRevision, javaScriptName, invocationMethod);  // Calls saveFlowComponentWithJavaScripts asynchronously after having fetched java scripts
+        fetchJavaScriptsAndSave(componentName, svnProject, svnRevision, javaScriptName, invocationMethod);  // Calls saveFlowComponentWithJavaScripts asynchronously after having fetched java scripts
     }
 
-    private void fetchJavaScriptsAndSave(String svnProject, long svnRevision, String javaScriptName, String invocationMethod) {
-        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProject, revision, javaScriptName, invocationMethod, new AsyncCallback<List<JavaScript>>() {
+    private void fetchJavaScriptsAndSave(final String componentName, String svnProject, long svnRevision, String javaScriptName, final String invocationMethod) {
+        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProject, svnRevision, javaScriptName, invocationMethod, new AsyncCallback<List<JavaScript>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.displaySuccess("");
                 flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override
             public void onSuccess(List<JavaScript> javaScripts) {
-                saveFlowComponentWithJavaScripts(javaScripts);
+                saveFlowComponentWithJavaScripts(componentName, javaScripts, invocationMethod);
             }
         });
     }
 
-    private void saveFlowComponentWithJavaScripts(List<JavaScript> javaScripts) {
-        final FlowComponentContent flowComponentContent = new FlowComponentContent(flowComponentName, javaScripts, invocationMethod);
+    private void saveFlowComponentWithJavaScripts(String componentName, List<JavaScript> javaScripts, String invocationMethod) {
+        final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, javaScripts, invocationMethod);
         flowStoreProxy.createFlowComponent(flowComponentContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.displaySuccess("");
                 flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 

@@ -4,7 +4,10 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import java.io.Reader;
 import java.util.List;
 import dk.dbc.jslib.Environment;
+import dk.dbc.jslib.ModuleHandler;
+import dk.dbc.jslib.SchemeURI;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,7 +182,22 @@ public class JavascriptUtil {
         return result;
     }
 
-    public List<SpecializedFileSchemeHandler.JS> getAllDependentJavascripts(Path root, Path javascript) {
-        return Collections.emptyList();
+    public List<SpecializedFileSchemeHandler.JS> getAllDependentJavascripts(Path root, Path javascript) throws IOException {
+        DirectoriesContainingJavascriptFinder javascriptDirFinder = new DirectoriesContainingJavascriptFinder();
+        Files.walkFileTree(root, javascriptDirFinder);
+        List<Path> javascriptDirs = javascriptDirFinder.getJavascriptDirectories();
+
+        ModuleHandler mh = new ModuleHandler();
+        SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler(root.toAbsolutePath().toString());
+        mh.registerHandler("file", sfsh);
+        for(Path path : javascriptDirs) {
+            mh.addSearchPath(new SchemeURI("file", path.toString()));
+        }
+
+        Environment jsEnvironment = new Environment();
+        jsEnvironment.registerUseFunction(mh);
+        jsEnvironment.evalFile(javascript.toString());
+
+        return sfsh.getJavascripts();
     }
 }

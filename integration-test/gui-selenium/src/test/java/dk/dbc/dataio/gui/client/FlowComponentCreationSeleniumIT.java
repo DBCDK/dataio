@@ -159,7 +159,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationContext();
         final WebElement svnProject = insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement().sendKeys("test");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX, 30);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX, 60);
         /*
         WebDriverWait wait = new WebDriverWait(driver, 30);
         wait.until(new ExpectedCondition<Boolean>() {
@@ -172,12 +172,12 @@ public class FlowComponentCreationSeleniumIT {
         final Select svnRevision = new Select(findComponentSvnRevisionElement());
         assertThat(svnRevision.getOptions().size(), is(2));
 
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX, 30);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX, 60);
         final Select scriptName = new Select(findComponentScriptNameElement());
         assertThat(scriptName.getOptions().size(), is(1));
         assertThat(scriptName.getFirstSelectedOption().getText(), is(JAVASCRIPT_FILE));
 
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, 30);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, 60);
         final Select invocationMethod = new Select(findComponentInvocationMethodElement());
         assertThat(invocationMethod.getOptions().size(), is(2));
         assertThat(invocationMethod.getFirstSelectedOption().getText(), is(INVOCATION_METHOD));
@@ -186,14 +186,15 @@ public class FlowComponentCreationSeleniumIT {
     @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest 
     @Test
     public void testSaveButton_EmptyComponentNameInputField_DisplayErrorPopup() throws IOException {
-        //File javascriptFile = createTemporaryJavascriptFile();
-        //avigateToFlowComponentCreationContext();
-        //findFileUploadElement().sendKeys(javascriptFile.getAbsolutePath());
-        //findInvocationMethodElement().sendKeys("f");
-        //findSaveButtonElement().click();
+        navigateToFlowComponentCreationContext();
+        insertSvnProjectNameThatExistsInSvnRepository();
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX, 30);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX, 30);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, 30);
+        findComponentSaveButtonElement().click();
 
-        Alert alert = driver.switchTo().alert();
-        String s = alert.getText();
+        final Alert alert = driver.switchTo().alert();
+        final String s = alert.getText();
         alert.accept();
         assertEquals(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }

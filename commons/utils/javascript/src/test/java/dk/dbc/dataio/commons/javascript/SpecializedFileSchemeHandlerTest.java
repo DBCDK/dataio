@@ -46,6 +46,7 @@ public class SpecializedFileSchemeHandlerTest {
         assertThat(javascripts.size(), is(1));
         assertThat(javascripts.get(0).javascript, is(javascript));
         assertThat(javascripts.get(0).filename, is(jsFile.getAbsolutePath()));
+        assertThat(javascripts.get(0).modulename, is("test"));
     }
 
     @Test
@@ -68,8 +69,10 @@ public class SpecializedFileSchemeHandlerTest {
         assertThat(javascripts.size(), is(2));
         assertThat(javascripts.get(0).javascript, is(javascriptUpper));
         assertThat(javascripts.get(0).filename, is(jsFileUpper.getAbsolutePath()));
+        assertThat(javascripts.get(0).modulename, is("upper"));
         assertThat(javascripts.get(1).javascript, is(javascriptLower));
         assertThat(javascripts.get(1).filename, is(jsFileLower.getAbsolutePath()));
+        assertThat(javascripts.get(1).modulename, is("lower"));
     }
 
 

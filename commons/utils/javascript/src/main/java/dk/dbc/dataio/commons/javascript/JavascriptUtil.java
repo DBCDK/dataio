@@ -182,7 +182,7 @@ public class JavascriptUtil {
         return result;
     }
 
-    public List<SpecializedFileSchemeHandler.JS> getAllDependentJavascripts(Path root, Path javascript) throws IOException {
+    public static List<SpecializedFileSchemeHandler.JS> getAllDependentJavascripts(Path root, Path javascript) throws IOException {
         DirectoriesContainingJavascriptFinder javascriptDirFinder = new DirectoriesContainingJavascriptFinder();
         Files.walkFileTree(root, javascriptDirFinder);
         List<Path> javascriptDirs = javascriptDirFinder.getJavascriptDirectories();

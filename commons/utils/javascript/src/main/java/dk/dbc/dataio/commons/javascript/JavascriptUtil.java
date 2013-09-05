@@ -5,7 +5,9 @@ import java.io.Reader;
 import java.util.List;
 import dk.dbc.jslib.Environment;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.ScriptableObject;
@@ -175,5 +177,9 @@ public class JavascriptUtil {
         List<String> result = new ArrayList<>(list);
         result.remove("use");
         return result;
+    }
+
+    public List<SpecializedFileSchemeHandler.JS> getAllDependentJavascripts(Path root, Path javascript) {
+        return Collections.emptyList();
     }
 }

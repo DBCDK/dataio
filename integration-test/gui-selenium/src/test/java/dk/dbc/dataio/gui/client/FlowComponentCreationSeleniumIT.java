@@ -46,6 +46,7 @@ public class FlowComponentCreationSeleniumIT {
     private static final String SVN_TRUNK_PATH = "trunk";
     private static final String JAVASCRIPT_FILE = "main.js";
     private static final String JAVASCRIPT_USE_MODULE = "main.use.js";
+    private static final String INVOCATION_METHOD = "funA";
 
     private static WebDriver driver;
     private static String appUrl;
@@ -140,28 +141,6 @@ public class FlowComponentCreationSeleniumIT {
         assertEquals(true, element.isDisplayed());
     }
 
-    /*
-    public void testFlowComponentCreationInvocationMethodInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToFlowComponentCreationContext();
-        WebElement element = findInvocationMethodElement();
-        assertEquals(true, element.isDisplayed());
-
-        final String fieldValue = "test of unicode content æøåÆØÅ";
-        element.sendKeys(fieldValue);
-        assertEquals(fieldValue, element.getAttribute("value"));
-    }
-
-    public void testFlowComponentCreationFileUploadIsVisibleAndFileNameCanBeChosenAndFileNameCanBeRetrievedFromWidget() throws IOException {
-        File javascript = createTemporaryJavascriptFile();
-        navigateToFlowComponentCreationContext();
-        WebElement element = findFileUploadElement();
-        assertEquals(true, element.isDisplayed());
-
-        element.sendKeys(javascript.getAbsolutePath());
-        assertEquals(javascript.getAbsolutePath(), element.getAttribute("value"));
-    }
-    */
-
     public void testFlowComponentCreationSaveButtonIsVisible() {
         navigateToFlowComponentCreationContext();
         WebElement element = findComponentSaveButtonElement();
@@ -192,6 +171,16 @@ public class FlowComponentCreationSeleniumIT {
         */
         final Select svnRevision = new Select(findComponentSvnRevisionElement());
         assertThat(svnRevision.getOptions().size(), is(2));
+
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX, 30);
+        final Select scriptName = new Select(findComponentScriptNameElement());
+        assertThat(scriptName.getOptions().size(), is(1));
+        assertThat(scriptName.getFirstSelectedOption().getText(), is(JAVASCRIPT_FILE));
+
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, 30);
+        final Select invocationMethod = new Select(findComponentInvocationMethodElement());
+        assertThat(invocationMethod.getOptions().size(), is(2));
+        assertThat(invocationMethod.getFirstSelectedOption().getText(), is(INVOCATION_METHOD));
     }
 
     @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest 

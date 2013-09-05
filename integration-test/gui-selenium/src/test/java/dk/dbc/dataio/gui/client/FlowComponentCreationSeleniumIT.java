@@ -16,7 +16,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -47,6 +46,7 @@ public class FlowComponentCreationSeleniumIT {
     private static final String JAVASCRIPT_FILE = "main.js";
     private static final String JAVASCRIPT_USE_MODULE = "main.use.js";
     private static final String INVOCATION_METHOD = "funA";
+    private static final int SVN_TIMEOUT = 60;
 
     private static WebDriver driver;
     private static String appUrl;
@@ -61,6 +61,7 @@ public class FlowComponentCreationSeleniumIT {
         appUrl = "http://localhost:" + System.getProperty("glassfish.port") + "/gui/gui.html";
         conn = ITUtil.newDbConnection();
         svnRepoUrl = ITUtil.doSvnCreateFsRepository(Paths.get(System.getProperty("svn.local.dir")));
+        // Disabled until we can get the FSFS repository working...
         //populateSvnRepository();
     }
 
@@ -83,7 +84,7 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     @Test
-    public void testInitialVisibililtyAndAccessabilityOfElements() throws IOException {
+    public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
         testFlowComponentCreationNavigationItemIsVisibleAndClickable();
         testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowComponentCreationSvnProjectInputFieldIsVisibleAndDataCanBeInsertedAndRead();
@@ -154,13 +155,14 @@ public class FlowComponentCreationSeleniumIT {
         assertEquals("", element.getText());
     }
 
+    @Ignore // merge with testFlowComponentCreationSuccessfulSave_* test
     @Test
     public void testFlowComponentCreationValidSvnProjectNamePopulatesListBoxes() {
         navigateToFlowComponentCreationContext();
-        final WebElement svnProject = insertSvnProjectNameThatExistsInSvnRepository();
-        findComponentNameElement().sendKeys("test");
+        insertSvnProjectNameThatExistsInSvnRepository();
+        findComponentNameElement().sendKeys("testComponent");
 
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, 60);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
 
         final Select svnRevision = new Select(findComponentSvnRevisionElement());
         assertThat(svnRevision.getOptions().size() > 0, is(true));
@@ -177,12 +179,28 @@ public class FlowComponentCreationSeleniumIT {
         */
     }
 
-    @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest 
+    @Ignore
+    @Test
+    public void testFlowComponentCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
+        navigateToFlowComponentCreationContext();
+        insertSvnProjectNameThatExistsInSvnRepository();
+        findComponentNameElement().sendKeys("testComponent");
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        findComponentSaveButtonElement().click();
+        final WebDriverWait wait = new WebDriverWait(driver, 10);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
+        final WebElement saveResultLabel = findComponentSaveResultLabelElement();
+        assertThat(saveResultLabel.getText(), is(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
+
+    }
+
+    @Ignore
     @Test
     public void testSaveButton_EmptyComponentNameInputField_DisplayErrorPopup() throws IOException {
         navigateToFlowComponentCreationContext();
         insertSvnProjectNameThatExistsInSvnRepository();
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, 60);
+        findComponentNameElement().sendKeys("");
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
         findComponentSaveButtonElement().click();
 
         final Alert alert = driver.switchTo().alert();
@@ -191,72 +209,63 @@ public class FlowComponentCreationSeleniumIT {
         assertEquals(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }
 
-    @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest 
+    @Ignore
     @Test
-    public void testSaveButton_MissingFileForUpload_DisplayErrorPopup() throws IOException {
+    public void testSaveButton_MissingSvnProjectName_DisplayErrorPopup() throws IOException {
         navigateToFlowComponentCreationContext();
         findComponentNameElement().sendKeys("testComponent");
-        //findInvocationMethodElement().sendKeys("f");
-        //findSaveButtonElement().click();
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        findComponentSaveButtonElement().click();
 
-        Alert alert = driver.switchTo().alert();
-        String s = alert.getText();
+        final Alert alert = driver.switchTo().alert();
+        final String s = alert.getText();
         alert.accept();
         assertEquals(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
-    }
-
-    @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest 
-    @Test
-    public void testSaveButton_EmptyInvocationMethodInputField_DisplayErrorPopup() throws IOException {
-        //File javascriptFile = createTemporaryJavascriptFile();
-        //navigateToFlowComponentCreationContext();
-        //findComponentNameElement().sendKeys("testComponent");
-        //findFileUploadElement().sendKeys(javascriptFile.getAbsolutePath());
-        //findSaveButtonElement().click();
-
-        Alert alert = driver.switchTo().alert();
-        String s = alert.getText();
-        alert.accept();
-        assertEquals(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
-    }
-
-    @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest 
-    @Test
-    public void testFlowComponentCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws IOException {
-        navigateToFlowComponentCreationContext();
-        //insertInputIntoInputElementsAndClickSaveButton();
-
-        WebDriverWait wait = new WebDriverWait(driver, 10);
-        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-        //WebElement saveResultLabel = findSaveResultLabelElement();
-        //assertEquals(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
 
     @Ignore
     @Test
     public void testFlowComponentCreationNameInputFieldUpdate_clearsSaveResultLabel() throws IOException {
         navigateToFlowComponentCreationContext();
-        //insertInputIntoInputElementsAndClickSaveButton();
+        insertInputIntoInputElementsAndClickSaveButton();
         findComponentNameElement().sendKeys("a");
-        //assertEquals("", findSaveResultLabelElement().getText());
+        assertEquals("", findComponentSaveResultLabelElement().getText());
     }
 
     @Ignore
     @Test
-    public void testFlowComponentCreationFileUploadUpdate_clearsSaveResultLabel() throws IOException {
+    public void testFlowComponentCreationSvnProjectInputFieldUpdate_clearsSaveResultLabel() throws IOException {
         navigateToFlowComponentCreationContext();
-        //insertInputIntoInputElementsAndClickSaveButton();
-        //findFileUploadElement().sendKeys("b");
-        //assertEquals("", findSaveResultLabelElement().getText());
+        insertInputIntoInputElementsAndClickSaveButton();
+        findComponentSvnProjectElement().sendKeys("project");
+        assertEquals("", findComponentSaveResultLabelElement().getText());
     }
 
     @Ignore
     @Test
-    public void testFlowComponentCreationInvocationMethodInputfieldUpdate_clearsSaveResultLabel() throws IOException {
+    public void testFlowComponentCreationSvnRevisionSelectionFieldUpdate_clearsSaveResultLabel() throws IOException {
         navigateToFlowComponentCreationContext();
-        //insertInputIntoInputElementsAndClickSaveButton();
-        //findInvocationMethodElement().sendKeys("c");
-        //assertEquals("", findSaveResultLabelElement().getText());
+        insertInputIntoInputElementsAndClickSaveButton();
+        new Select(findComponentSvnRevisionElement()).selectByIndex(2);
+        assertEquals("", findComponentSaveResultLabelElement().getText());
+    }
+
+    @Ignore
+    @Test
+    public void testFlowComponentCreationScriptFileSelectionFieldUpdate_clearsSaveResultLabel() throws IOException {
+        navigateToFlowComponentCreationContext();
+        insertInputIntoInputElementsAndClickSaveButton();
+        new Select(findComponentScriptNameElement()).selectByIndex(2);
+        assertEquals("", findComponentSaveResultLabelElement().getText());
+    }
+
+    @Ignore
+    @Test
+    public void testFlowComponentCreationInvocationMethodSelectionFieldUpdate_clearsSaveResultLabel() throws IOException {
+        navigateToFlowComponentCreationContext();
+        insertInputIntoInputElementsAndClickSaveButton();
+        new Select(findComponentInvocationMethodElement()).selectByIndex(2);
+        assertEquals("", findComponentSaveResultLabelElement().getText());
     }
 
     private void navigateToFlowComponentCreationContext() {
@@ -265,31 +274,31 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private WebElement findComponentNameElement() {
-        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX));
+        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
     }
 
     private WebElement findComponentSvnProjectElement() {
-        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX));
+        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX);
     }
 
     private WebElement findComponentSvnRevisionElement() {
-        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX));
+        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX);
     }
 
     private WebElement findComponentScriptNameElement() {
-        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX));
+        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX);
     }
 
     private WebElement findComponentInvocationMethodElement() {
-        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX));
+        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX);
     }
 
     private WebElement findComponentSaveButtonElement() {
-        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON));
+        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
     }
 
     private WebElement findComponentSaveResultLabelElement() {
-        return driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL));
+        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
     }
 
     private WebElement findElement(final String elementId) {
@@ -302,51 +311,11 @@ public class FlowComponentCreationSeleniumIT {
         return element;
     }
 
-    /*
     private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
+        insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement().sendKeys("testComponent");
-        findFileUploadElement().sendKeys(createTemporaryJavascriptFile().getAbsolutePath());
-        findInvocationMethodElement().sendKeys("f");
-        findSaveButtonElement().click();
-    }
-
-    private File createTemporaryJavascriptFile() throws IOException {
-        final String javascript = "function f(s) { return s.toUpperCase(); }";
-        final String javascriptFileName = "test.js";
-
-        File javascriptFile = tempFolder.newFile(javascriptFileName);
-        try (BufferedWriter writer = Files.newBufferedWriter(javascriptFile.toPath(), Charset.forName("UTF-8"))) {
-            writer.write(javascript);
-        }
-        return javascriptFile;
-    }
-
-    public static void addFlowComponent(WebDriver driver, TemporaryFolder tempFolder, String componentName, String javascript, String invocationMethod) throws IOException {
-        final String javascriptFileName = "test-"+System.currentTimeMillis()+".js";
-        File javascriptFile = tempFolder.newFile(javascriptFileName);
-        try (BufferedWriter writer = Files.newBufferedWriter(javascriptFile.toPath(), Charset.forName("UTF-8"))) {
-            writer.write(javascript);
-        }
-        driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION)).click();
-        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX)).clear();
-        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX)).sendKeys(componentName);
-        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD)).sendKeys(javascriptFile.getAbsolutePath());
-        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX)).clear();
-        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX)).sendKeys(invocationMethod);
-        driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON)).click();
-        
-        WebDriverWait wait = new WebDriverWait(driver, 10);
-        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-    }
-
-    public static void clearFlowComponentDBTable(Connection conn) throws SQLException {
-        ITUtil.clearDbTables(conn, ITUtil.FLOW_COMPONENTS_TABLE_NAME);
-    }
-    */
-
-    private WebElement changeFocusTo(WebElement element) {
-        new Actions(driver).moveToElement(element).perform();
-        return element;
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        findComponentSaveButtonElement().click();
     }
 
     private void waitForListBoxToFillOut(final String elementId, final int duration) {

@@ -16,6 +16,8 @@
     <gwt.version>2.5.0</gwt.version>
     <runTarget>gui.html</runTarget>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <developmentFlowStoreURLProperty> </developmentFlowStoreURLProperty>
+    <developmentDataioGuiSubversionScmEndpointProperty> </developmentDataioGuiSubversionScmEndpointProperty>
  </properties>
 
  <profiles>

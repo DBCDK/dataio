@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import java.io.IOException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,30 +54,37 @@ public class SubmitterCreationSeleniumIT {
         driver.quit();
     }
 
-    // Navigation button
     @Test
+    public void testInitialVisibilityAndAccessabilityOfElements() {
+        testSubmitterCreationNavigationItemIsVisible();
+        testSubmitterCreationNavigationItemIsClickable();
+        testSubmitterCreationNameInputFieldIsVisible();
+        testSubmitterCreationNameInputField_InsertAndRead();
+        testSubmitterCreationNumberInputFieldIsVisible();
+        testSubmitterCreationNumberInputField_InsertAndRead();
+        testSubmitterCreationDescriptionInputFieldIsVisible();
+        testSubmitterCreationDescriptionInputField_InsertAndRead();
+        testSubmitterCreationSaveButtonIsVisible();
+        testSubmitterCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault();
+    }
+
     public void testSubmitterCreationNavigationItemIsVisible() {
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
         assertEquals(true, element.isDisplayed());
     }
 
-    // Create Submitter Container
-    @Test
-    public void testSubmitterCreationNavigationItemIsClickable() throws Exception {
+    public void testSubmitterCreationNavigationItemIsClickable() {
         navigateToSubmitterCreationContext();
         WebElement widget = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_WIDGET));
         assertEquals(true, widget.isDisplayed());
     }
 
-    // Submitter name entry field
-    @Test
     public void testSubmitterCreationNameInputFieldIsVisible() {
         navigateToSubmitterCreationContext();
         WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX));
         assertEquals(true, element.isDisplayed());
     }
 
-    @Test
     public void testSubmitterCreationNameInputField_InsertAndRead() {
         final String fieldValue = "test of unicode content æøåÆØÅ";
 
@@ -86,15 +94,12 @@ public class SubmitterCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    // Submitter number entry field
-    @Test
     public void testSubmitterCreationNumberInputFieldIsVisible() {
         navigateToSubmitterCreationContext();
         WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_TEXT_BOX));
         assertEquals(true, element.isDisplayed());
     }
 
-    @Test
     public void testSubmitterCreationNumberInputField_InsertAndRead() {
         final String fieldValue = "test of unicode content æøåÆØÅ";
 
@@ -104,15 +109,12 @@ public class SubmitterCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    // Description entry field
-    @Test
     public void testSubmitterCreationDescriptionInputFieldIsVisible() {
         navigateToSubmitterCreationContext();
         WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA));
         assertEquals(true, element.isDisplayed());
     }
 
-    @Test
     public void testSubmitterCreationDescriptionInputField_InsertAndRead() {
         final String textWithMoreThan160Chars = "Dette er et stykke tekst som indeholder æøå og ÆØÅ. Formålet med teksten er hovedsagligt at være mere end 160 tegn lang, på en måde så der ikke er gentagelser i indholdet af teksten";
         final String sameTextWithExactly160Chars = textWithMoreThan160Chars.substring(0, 160);
@@ -123,17 +125,13 @@ public class SubmitterCreationSeleniumIT {
         assertEquals(sameTextWithExactly160Chars, element.getAttribute("value"));
     }
 
-    // Save button
-    @Test
     public void testSubmitterCreationSaveButtonIsVisible() {
         navigateToSubmitterCreationContext();
         WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON));
         assertEquals(true, element.isDisplayed());
     }
 
-    // Result label
-    @Test
-    public void testSubmitterCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() throws Exception {
+    public void testSubmitterCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() {
         navigateToSubmitterCreationContext();
         WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL));
         assertEquals(false, element.isDisplayed());
@@ -207,7 +205,7 @@ public class SubmitterCreationSeleniumIT {
         assertEquals(SubmitterCreateViewImpl.SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }
 
-    
+
     // Private methods
     private void navigateToSubmitterCreationContext() {
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));

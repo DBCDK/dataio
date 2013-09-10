@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import java.io.IOException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -28,6 +27,7 @@ public class SubmitterCreationSeleniumIT {
     private static WebDriver driver;
     private static String APP_URL;
     private static Connection conn;
+    public static final String SMALL_UNICODE_TEST_STRING = "test of unicode content æøåÆØÅ";
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -81,37 +81,33 @@ public class SubmitterCreationSeleniumIT {
 
     public void testSubmitterCreationNameInputFieldIsVisible() {
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX));
+        WebElement element = findNameElement(driver);
         assertEquals(true, element.isDisplayed());
     }
 
     public void testSubmitterCreationNameInputField_InsertAndRead() {
-        final String fieldValue = "test of unicode content æøåÆØÅ";
-
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX));
-        element.sendKeys(fieldValue);
-        assertEquals(fieldValue, element.getAttribute("value"));
+        WebElement element = findNameElement(driver);
+        element.sendKeys(SMALL_UNICODE_TEST_STRING);
+        assertEquals(SMALL_UNICODE_TEST_STRING, element.getAttribute("value"));
     }
 
     public void testSubmitterCreationNumberInputFieldIsVisible() {
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_TEXT_BOX));
+        WebElement element = findNumberElement(driver);
         assertEquals(true, element.isDisplayed());
     }
 
     public void testSubmitterCreationNumberInputField_InsertAndRead() {
-        final String fieldValue = "test of unicode content æøåÆØÅ";
-
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_TEXT_BOX));
-        element.sendKeys(fieldValue);
-        assertEquals(fieldValue, element.getAttribute("value"));
+        WebElement element = findNumberElement(driver);
+        element.sendKeys(SMALL_UNICODE_TEST_STRING);
+        assertEquals(SMALL_UNICODE_TEST_STRING, element.getAttribute("value"));
     }
 
     public void testSubmitterCreationDescriptionInputFieldIsVisible() {
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement element = findDescriptionElement(driver);
         assertEquals(true, element.isDisplayed());
     }
 
@@ -120,20 +116,20 @@ public class SubmitterCreationSeleniumIT {
         final String sameTextWithExactly160Chars = textWithMoreThan160Chars.substring(0, 160);
 
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement element = findDescriptionElement(driver);
         element.sendKeys(textWithMoreThan160Chars);
         assertEquals(sameTextWithExactly160Chars, element.getAttribute("value"));
     }
 
     public void testSubmitterCreationSaveButtonIsVisible() {
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON));
+        WebElement element = findSaveButton(driver);
         assertEquals(true, element.isDisplayed());
     }
 
     public void testSubmitterCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() {
         navigateToSubmitterCreationContext();
-        WebElement element = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL));
+        WebElement element = findSaveResultLabel(driver);
         assertEquals(false, element.isDisplayed());
         assertEquals("", element.getText());
     }
@@ -144,7 +140,7 @@ public class SubmitterCreationSeleniumIT {
         insertTextInInputFieldsAndClickSaveButton();
         WebDriverWait wait = new WebDriverWait(driver, 4);
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL), SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-        WebElement saveResultLabel = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL));
+        WebElement saveResultLabel = findSaveResultLabel(driver);
         assertEquals(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
 
@@ -152,9 +148,8 @@ public class SubmitterCreationSeleniumIT {
     public void testSubmitterCreationNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToSubmitterCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL));
-        WebElement nameInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX));
-        nameInputField.sendKeys("a");
+        findNameElement(driver).sendKeys("a");
+        WebElement saveResultLabel = findSaveResultLabel(driver);
         assertEquals("", saveResultLabel.getText());
     }
 
@@ -162,9 +157,8 @@ public class SubmitterCreationSeleniumIT {
     public void testSubmitterCreationNumberInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToSubmitterCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL));
-        WebElement numberInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_TEXT_BOX));
-        numberInputField.sendKeys("b");
+        findNumberElement(driver).sendKeys("b");
+        WebElement saveResultLabel = findSaveResultLabel(driver);
         assertEquals("", saveResultLabel.getText());
     }
 
@@ -172,20 +166,16 @@ public class SubmitterCreationSeleniumIT {
     public void testSubmitterCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToSubmitterCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL));
-        WebElement descriptionInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA));
-        descriptionInputField.sendKeys("b");
+        findDescriptionElement(driver).sendKeys("b");
+        WebElement saveResultLabel = findSaveResultLabel(driver);
         assertEquals("", saveResultLabel.getText());
     }
 
-    // Error popup
     @Test
     public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() {
         navigateToSubmitterCreationContext();
-        WebElement nameInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX));
-        nameInputField.sendKeys("a");
-        WebElement saveButton = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findNameElement(driver).sendKeys("a");
+        findSaveButton(driver).click();
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
         alert.accept();
@@ -195,31 +185,56 @@ public class SubmitterCreationSeleniumIT {
     @Test
     public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() {
         navigateToSubmitterCreationContext();
-        WebElement descriptionInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA));
-        descriptionInputField.sendKeys("b");
-        WebElement saveButton = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findDescriptionElement(driver).sendKeys("b");
+        findSaveButton(driver).click();
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
         alert.accept();
         assertEquals(SubmitterCreateViewImpl.SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
     }
 
-
-    // Private methods
     private void navigateToSubmitterCreationContext() {
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
         element.click();
     }
 
+    private static WebElement findNameElement(WebDriver webDriver) {
+        return webDriver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX));
+    }
+
+    private static WebElement findNumberElement(WebDriver webDriver) {
+        return webDriver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_TEXT_BOX));
+    }
+
+    private static WebElement findDescriptionElement(WebDriver webDriver) {
+        return webDriver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA));
+    }
+
+    private static WebElement findSaveButton(WebDriver webDriver) {
+        return webDriver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON));
+    }
+
+    private static WebElement findSaveResultLabel(WebDriver webDriver) {
+        return webDriver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL));
+    }
+
     private void insertTextInInputFieldsAndClickSaveButton() {
-        WebElement nameInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_TEXT_BOX));
-        nameInputField.sendKeys("a");
-        WebElement numberInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_TEXT_BOX));
-        numberInputField.sendKeys("b");
-        WebElement descriptionInputField = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA));
-        descriptionInputField.sendKeys("c");
-        WebElement saveButton = driver.findElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findNameElement(driver).sendKeys("a");
+        findNumberElement(driver).sendKeys("b");
+        findDescriptionElement(driver).sendKeys("c");
+        findSaveButton(driver).click();
+    }
+
+    public static boolean createTestSubmitter(WebDriver webDriver, String name, String number, String description) {
+        webDriver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION)).click();
+        findNameElement(webDriver).sendKeys(name);
+        findNumberElement(webDriver).sendKeys(number);
+        findDescriptionElement(webDriver).sendKeys(description);
+        findSaveButton(driver).click();
+
+        WebDriverWait wait = new WebDriverWait(webDriver, 4);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL), SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
+
+        return findSaveResultLabel(webDriver).getText().equals(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 }

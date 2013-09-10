@@ -25,14 +25,14 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     public static final String SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     private static final int SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
-    
+
     // Local variables
     private SubmitterCreatePresenter presenter;
     private final SubmitterCreateViewImpl.SubmitterNamePanel submitterNamePanel = new SubmitterCreateViewImpl.SubmitterNamePanel();
     private final SubmitterCreateViewImpl.SubmitterNumberPanel submitterNumberPanel = new SubmitterCreateViewImpl.SubmitterNumberPanel();
     private final SubmitterCreateViewImpl.SubmitterDescriptionPanel submitterDescriptionPanel = new SubmitterCreateViewImpl.SubmitterDescriptionPanel();
     private final SubmitterCreateViewImpl.SubmitterSavePanel submitterSavePanel = new SubmitterCreateViewImpl.SubmitterSavePanel();
-    
+
     public SubmitterCreateViewImpl() {
         getElement().setId(GUIID_SUBMITTER_CREATION_WIDGET);
         add(submitterNamePanel);
@@ -44,11 +44,6 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     @Override
     public void setPresenter(SubmitterCreatePresenter presenter) {
         this.presenter = presenter;
-    }
-
-    @Override
-    public void setData(String name, String description) {
-        // set data
     }
 
     @Override
@@ -157,10 +152,10 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
             String nameValue = submitterNamePanel.getText();
             String numberValue = submitterNumberPanel.getText();
             String descriptionValue = submitterDescriptionPanel.getText();
-            if (!nameValue.isEmpty() && !numberValue.isEmpty() && !descriptionValue.isEmpty()) {
-                presenter.saveSubmitter(submitterNamePanel.getText(), submitterNumberPanel.getText(), submitterDescriptionPanel.getText());
-            } else {
+            if (nameValue.isEmpty() || numberValue.isEmpty() || descriptionValue.isEmpty()) {
                 Window.alert(SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+            } else {
+                presenter.saveSubmitter(nameValue, numberValue, descriptionValue);
             }
         }
     }

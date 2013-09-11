@@ -37,9 +37,11 @@ import java.util.Map;
 public class ITUtil {
     public static final String FLOWS_TABLE_NAME = "flows";
     public static final String FLOW_COMPONENTS_TABLE_NAME = "flow_components";
+    public static final String SUBMITTERS_TABLE_NAME = "submitters";
 
     public static final String FLOWS_URL_PATH = "flows";
     public static final String FLOW_COMPONENTS_URL_PATH = "components";
+    public static final String SUBMITTERS_URL_PATH = "submitters";
 
     public static final String FLOWS_TABLE_INSERT_STMT = String.format(
             "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOWS_TABLE_NAME);
@@ -49,6 +51,10 @@ public class ITUtil {
             "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOW_COMPONENTS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=? AND version=?", FLOW_COMPONENTS_TABLE_NAME);
+    public static final String SUBMITTERS_TABLE_INSERT_STMT = String.format(
+            "INSERT INTO %s (id, version, content, name_idx, number_idx) VALUES (?,?,?,?,?)", SUBMITTERS_TABLE_NAME);
+    public static final String SUBMITTERS_TABLE_SELECT_CONTENT_STMT = String.format(
+            "SELECT content FROM %s WHERE id=?", SUBMITTERS_TABLE_NAME);
 
     private ITUtil() { }
 
@@ -196,6 +202,18 @@ public class ITUtil {
         final String version = locationHeaderValueParts[locationHeaderValueParts.length - 1];
 
         return new ResourceIdentifier(Long.valueOf(id), Long.valueOf(version));
+    }
+
+    public static long getResourceIdFromLocationHeaderAndAssertHasValue(Response response) {
+        final List<Object> locationHeader = getHeaderAndAssertNotNull(response, "Location");
+        Assert.assertThat(locationHeader.size(), CoreMatchers.is(1));
+
+        final String[] locationHeaderValueParts = ((String) locationHeader.get(0)).split("/");
+        Assert.assertThat(locationHeaderValueParts.length > 2, CoreMatchers.is(true));
+
+        final String id = locationHeaderValueParts[locationHeaderValueParts.length - 1];
+
+        return Long.valueOf(id);
     }
 
     /**

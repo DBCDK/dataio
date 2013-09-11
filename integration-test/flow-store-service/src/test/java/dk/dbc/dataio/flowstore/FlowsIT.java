@@ -89,7 +89,7 @@ public class FlowsIT {
     /**
      * Given: a deployed flow-store service
      * When: invalid JSON is POSTed to the flows path
-     * Then: request returns with a INTERNAL SERVER ERROR http status code
+     * Then: request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
     public void createFlow_ErrorWhenGivenInvalidJson() {
@@ -97,13 +97,13 @@ public class FlowsIT {
         final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service
      * When: null value is POSTed to the flows path
-     * Then: request returns with a INTERNAL SERVER ERROR http status code
+     * Then: request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
     public void createFlow_ErrorWhenGivenNull() {
@@ -111,13 +111,13 @@ public class FlowsIT {
         final Response response = doPostWithJson(restClient, null, baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service
      * When: empty value is POSTed to the flows path
-     * Then: request returns with a INTERNAL SERVER ERROR http status code
+     * Then: request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
     public void createFlow_ErrorWhenGivenEmpty() {
@@ -125,7 +125,7 @@ public class FlowsIT {
         final Response response = doPostWithJson(restClient, "", baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**

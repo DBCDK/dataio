@@ -80,7 +80,7 @@ public class FlowComponentsIT {
     /**
      * Given: a deployed flow-store service
      * When: invalid JSON is POSTed to the components path
-     * Then: request returns with a INTERNAL SERVER ERROR http status code
+     * Then: request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
     public void createComponent_ErrorWhenGivenInvalidJson() {
@@ -88,13 +88,13 @@ public class FlowComponentsIT {
         final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service
      * When: null value is POSTed to the components path
-     * Then: request returns with a INTERNAL SERVER ERROR http status code
+     * Then: request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
     public void createComponent_ErrorWhenGivenNull() {
@@ -102,13 +102,13 @@ public class FlowComponentsIT {
         final Response response = doPostWithJson(restClient, null, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service
      * When: empty value is POSTed to the components path
-     * Then: request returns with a INTERNAL SERVER ERROR http status code
+     * Then: request returns with a NOT_ACCEPTABLE http status code
      */
     @Test
     public void createComponent_ErrorWhenGivenEmpty() {
@@ -116,7 +116,7 @@ public class FlowComponentsIT {
         final Response response = doPostWithJson(restClient, "", baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**

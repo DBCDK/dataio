@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore.rest;
 
 import dk.dbc.dataio.flowstore.ejb.FlowComponentsBean;
 import dk.dbc.dataio.flowstore.ejb.FlowsBean;
+import dk.dbc.dataio.flowstore.ejb.SubmittersBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,8 @@ public class FlowStoreApplication extends Application {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(FlowsBean.class);
         classes.add(FlowComponentsBean.class);
+        classes.add(SubmittersBean.class);
+        classes.add(JsonExceptionMapper.class);
         classes.add(PersistenceExceptionMapper.class);
         for (Class<?> clazz : classes) {
             log.info("Registered {} resource", clazz.getName());

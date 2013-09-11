@@ -1,0 +1,133 @@
+package dk.dbc.dataio.flowstore;
+
+import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.integrationtest.ITUtil;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
+import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+/**
+ * Integration tests for the submitters collection part of the flow store service
+ */
+public class SubmittersIT {
+    private static Client restClient;
+    private static Connection dbConnection;
+    private static String baseUrl;
+
+    @BeforeClass
+    public static void setUpClass() throws ClassNotFoundException, SQLException {
+        baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        restClient = ClientBuilder.newClient();
+        dbConnection = newDbConnection();
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws SQLException {
+        JDBCUtil.closeConnection(dbConnection);
+    }
+
+    @After
+    public void tearDown() throws SQLException {
+        clearDbTables(dbConnection, ITUtil.SUBMITTERS_TABLE_NAME);
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When: valid JSON is POSTed to the submitters path
+     * Then: request returns with a CREATED http status code
+     * And: request returns with a Location header pointing to the newly created resource
+     * And: posted data can be found in the underlying database
+     */
+    @Test
+    public void createSubmitter_Ok() throws SQLException {
+        // When...
+        final String submitterContent = "{\"name\": \"testName\", \"number\": 42}";
+        final Response response = doPostWithJson(restClient, submitterContent, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
+
+        // And ...
+        final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
+
+        // And ...
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.SUBMITTERS_TABLE_SELECT_CONTENT_STMT, id);
+
+        assertThat(rs.size(), is(1));
+        assertThat((String) rs.get(0).get(0), is(submitterContent));
+    }
+
+
+    /**
+     * Given: a deployed flow-store service
+     * When: JSON posted to the submitters path causes JsonException
+     * Then: request returns with a NOT ACCEPTED http status code
+     */
+    @Test
+    public void createSubmitter_ErrorWhenJsonExceptionIsThrown() {
+        // When...
+        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing submitter resource
+     * When: adding submitter with the same name
+     * Then: request returns with a CONFLICT http status code
+     */
+    @Test
+    public void createSubmitter_duplicateName() throws Exception {
+        // Given...
+        final String name = "name";
+        final String submitterContent1 = String.format("{\"name\": \"%s\", \"number\": 1}", name);
+        final String submitterContent2 = String.format("{\"name\": \"%s\", \"number\": 2}", name);
+
+        JDBCUtil.update(dbConnection, ITUtil.SUBMITTERS_TABLE_INSERT_STMT,
+                1, 1, submitterContent1, name, 1);
+
+        // When...
+        final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing submitter resource
+     * When: adding submitter with the same number
+     * Then: request returns with a CONFLICT http status code
+     */
+    @Test
+    public void createSubmitter_duplicateNumber() throws Exception {
+        // Given...
+        final long number = 42;
+        final String submitterContent1 = String.format("{\"name\": \"test1\", \"number\": %d}", number);
+        final String submitterContent2 = String.format("{\"name\": \"test2\", \"number\": %d}", number);
+
+        JDBCUtil.update(dbConnection, ITUtil.SUBMITTERS_TABLE_INSERT_STMT,
+                1, 1, submitterContent1, "test1", number);
+
+        // When...
+        final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
+    }
+}

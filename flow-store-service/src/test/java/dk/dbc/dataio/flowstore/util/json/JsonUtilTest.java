@@ -88,4 +88,37 @@ public class JsonUtilTest {
         final JsonNode root = JsonUtil.getJsonRoot(validJsonSimpleObjectString);
         assertThat(JsonUtil.getNonEmptyTextValueOrThrow(root.path(simpleObjectKey), errMessage), is(simpleObjectValue));
     }
+
+    @Test(expected = JsonException.class)
+    public void getLongValueOrThrow_jsonNodeArgIsNull_throws() throws Exception {
+        JsonUtil.getLongValueOrThrow(null, errMessage);
+    }
+
+    @Test(expected = JsonException.class)
+    public void getLongValueOrThrow_jsonNodeArgRepresentsMissingNode_throws() throws Exception {
+        final JsonNode root = JsonUtil.getJsonRoot(validJsonSimpleObjectString);
+        JsonUtil.getLongValueOrThrow(root.path("non-existing"), errMessage);
+    }
+
+    @Test(expected = JsonException.class)
+    public void getLongValueOrThrow_jsonNodeArgIsNotALong_throws() throws Exception {
+        final JsonNode root = JsonUtil.getJsonRoot(validJsonSimpleObjectString);
+        JsonUtil.getLongValueOrThrow(root.path(simpleObjectKey), errMessage);
+    }
+
+    @Test(expected = JsonException.class)
+    public void getLongValueOrThrow_jsonNodeArgHasNullLongValue_throws() throws Exception {
+        final String objectString = String.format("{\"%s\": null}", simpleObjectKey);
+        final JsonNode root = JsonUtil.getJsonRoot(objectString);
+        JsonUtil.getLongValueOrThrow(root.path(simpleObjectKey), errMessage);
+    }
+
+    @Test
+    public void getLongValueOrThrow_jsonNodeArgHasLongValue_returnsLongValue() throws Exception {
+        final long expectedValue = 42;
+        final String objectString = String.format("{\"%s\": %d}", simpleObjectKey, expectedValue);
+        final JsonNode root = JsonUtil.getJsonRoot(objectString);
+        final long value = JsonUtil.getLongValueOrThrow(root.path(simpleObjectKey), errMessage);
+        assertThat(value, is(expectedValue));
+    }
 }

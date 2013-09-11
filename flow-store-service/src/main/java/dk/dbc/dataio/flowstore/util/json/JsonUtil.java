@@ -36,7 +36,7 @@ public class JsonUtil {
     }
 
     /**
-     * Provides access to text value of given document tree node
+     * Retrieves text value of given document tree node
      *
      * @param jsonNode JSON node
      * @param message message to prepend to exception message in case of error
@@ -60,6 +60,28 @@ public class JsonUtil {
             throw new JsonException(String.format("%s - member value was empty", message));
         }
         return value;
+    }
+
+    /**
+     * Retrieves long value of given document tree node
+     *
+     * @param jsonNode JSON node
+     * @param message message to prepend to exception message in case of error
+     * @return long value
+     * @throws JsonException when given null-valued jsonNode, when jsonNode represents a
+     * non-existing node or when jsonNode does not represent a number node
+     */
+    public static long getLongValueOrThrow(JsonNode jsonNode, String message) throws JsonException {
+        if (jsonNode == null) {
+            throw new JsonException(String.format("%s - jsonNode was null", message));
+        }
+        if (jsonNode.isMissingNode()) {
+            throw new JsonException(String.format("%s - member was not found", message));
+        }
+        if (!jsonNode.isNumber()) {
+            throw new JsonException(String.format("%s - member is not a number", message));
+        }
+        return jsonNode.getLongValue();
     }
 
     public static String toJson(Object object) throws JsonException {

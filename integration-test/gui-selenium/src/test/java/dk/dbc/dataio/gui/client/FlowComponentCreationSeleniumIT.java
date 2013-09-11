@@ -62,7 +62,7 @@ public class FlowComponentCreationSeleniumIT {
         conn = ITUtil.newDbConnection();
         svnRepoUrl = ITUtil.doSvnCreateFsRepository(Paths.get(System.getProperty("svn.local.dir")));
         // Disabled until we can get the FSFS repository working...
-        //populateSvnRepository();
+        populateSvnRepository();
     }
 
     @AfterClass

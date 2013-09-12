@@ -7,6 +7,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.JavaScript;
+import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
@@ -15,6 +16,7 @@ import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,7 +57,8 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         javaScriptProjectFetcher.fetchRevisions(projectUrl, new AsyncCallback<List<RevisionInfo>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.fetchRevisionFailed(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.fetchRevisionFailed(getJavaScriptProjectFetcherError(e),
+                        e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<RevisionInfo> revisions) {
@@ -81,7 +84,8 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectUrl, revision, scriptName, new AsyncCallback<List<String>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.fetchInvocationMethodsFailed(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.fetchInvocationMethodsFailed(getJavaScriptProjectFetcherError(e),
+                        e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
             public void onSuccess(List<String> invocationMethods) {
@@ -149,5 +153,13 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
                 flowComponentCreateView.displaySuccess(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
             }
         });
+    }
+
+    private JavaScriptProjectFetcherError getJavaScriptProjectFetcherError(Throwable e) {
+        JavaScriptProjectFetcherError errorCode = null;
+        if (e instanceof JavaScriptProjectFetcherException) {
+            errorCode = ((JavaScriptProjectFetcherException) e).getErrorCode();
+        }
+        return errorCode;
     }
 }

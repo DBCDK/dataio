@@ -4,6 +4,7 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
@@ -25,6 +26,9 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     public static final String SAVE_RESULT_LABEL_PROCESSING_MESSAGE = "Opsætningen gemmes...";
     public static final String FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
+    public static final String FLOW_COMPONENT_CREATION_SCM_PROJECT_NOT_FOUND_ERROR = "Det angivne projekt findes ikke i SVN.";
+    public static final String FLOW_COMPONENT_CREATION_SCM_ILLEGAL_PROJECT_NAME_ERROR = "Det angivne projekt må ikke indeholde sti elementer.";
+    public static final String FLOW_COMPONENT_CREATION_JAVASCRIPT_FAKE_USE_REFERENCE_ERROR = "Der skete en fejl i forbindelse med kald til SVN. Prøv at vælge en anden revision eller et andet javascript.";
     public static final String FLOW_COMPONENT_CREATION_BUSY_LABEL = "Busy...";
     public static final String FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL = "Komponentnavn";
     public static final String FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL = "SVN Projekt";
@@ -121,11 +125,22 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     }
 
     @Override
-    public void fetchRevisionFailed(String failText) {
+    public void fetchRevisionFailed(JavaScriptProjectFetcherError errorCode, String detail) {
         revisionPanel.disable();
         scriptNamePanel.disable();
         invocationMethodPanel.disable();
-        displayError(failText);
+        if (errorCode == null) {
+            displayError(detail);
+        } else {
+            switch (errorCode) {
+                case SCM_RESOURCE_NOT_FOUND: displayError(FLOW_COMPONENT_CREATION_SCM_PROJECT_NOT_FOUND_ERROR);
+                    break;
+                case SCM_ILLEGAL_PROJECT_NAME: displayError(FLOW_COMPONENT_CREATION_SCM_ILLEGAL_PROJECT_NAME_ERROR);
+                    break;
+                default: displayError(detail);
+                    break;
+            }
+        }
     }
 
     @Override
@@ -136,9 +151,18 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     }
 
     @Override
-    public void fetchInvocationMethodsFailed(String failText) {
+    public void fetchInvocationMethodsFailed(JavaScriptProjectFetcherError errorCode, String detail) {
         invocationMethodPanel.disable();
-        displayError(failText);
+        if (errorCode == null) {
+            displayError(detail);
+        } else {
+            switch (errorCode) {
+                case JAVASCRIPT_FAKE_USE_REFERENCE_ERROR: displayError(FLOW_COMPONENT_CREATION_JAVASCRIPT_FAKE_USE_REFERENCE_ERROR);
+                    break;
+                default: displayError(detail);
+                    break;
+            }
+        }
     }
 
     private void svnProjectChanged() {

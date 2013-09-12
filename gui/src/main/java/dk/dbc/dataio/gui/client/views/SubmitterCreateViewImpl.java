@@ -71,9 +71,9 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
             errorMessage = detail;
         } else {
             switch (errorCode) {
-                case KEY_VIOLATION: errorMessage = FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE;
+                case KEY_CONFLICT: errorMessage = FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE;
                     break;
-                case DATA_VALIDATION: errorMessage = FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE;
+                case DATA_NOT_ACCEPTABLE: errorMessage = FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE;
                     break;
                 default: errorMessage = detail;
                     break;

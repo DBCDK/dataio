@@ -70,11 +70,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         if (status != ClientResponse.Status.CREATED) {
             final FlowStoreProxyError errorCode;
             switch (status) {
-                case CONFLICT: errorCode = FlowStoreProxyError.KEY_VIOLATION;
+                case CONFLICT: errorCode = FlowStoreProxyError.KEY_CONFLICT;
                     break;
-                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.DATA_VALIDATION;
+                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.DATA_NOT_ACCEPTABLE;
                     break;
-                default: errorCode = FlowStoreProxyError.UNKNOWN;
+                default: errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
                     break;
             }
             throw new FlowStoreProxyException(errorCode, response.getEntity(String.class));

@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.javascript.JavascriptUtil;
 import dk.dbc.dataio.commons.svn.SvnConnector;
 import dk.dbc.dataio.commons.types.RevisionInfo;
+import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import mockit.Expectations;
 import mockit.integration.junit4.JMockit;
@@ -43,6 +44,7 @@ public class JavaScriptProjectFetcherImplTest {
 
     private final String subversionScmEndpoint = "file:///test/repos";
     private final String illegalProjectName = "name/with/path/elements";
+    private final String nonExistingProjectName = "not-to-be-found";
     private final String projectName = "project";
     private final String javaScriptFileName = String.format("%s%s%sfile.js",
             JavaScriptProjectFetcherImpl.URL_DELIMITER,
@@ -96,7 +98,24 @@ public class JavaScriptProjectFetcherImplTest {
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchRevisions_projectNameArgIsIllegal_throws() throws Exception {
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        instance.fetchRevisions(illegalProjectName);
+        try {
+            instance.fetchRevisions(illegalProjectName);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME));
+            throw e;
+        }
+    }
+
+    @Ignore
+    @Test(expected = JavaScriptProjectFetcherException.class)
+    public void fetchRevisions_projectNameCanNotBeFound_throws() throws Exception {
+        final JavaScriptProjectFetcherImpl instance = newInstance();
+        try {
+            instance.fetchRevisions(nonExistingProjectName);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND));
+            throw e;
+        }
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
@@ -105,7 +124,12 @@ public class JavaScriptProjectFetcherImplTest {
         new Expectations(SvnConnector.class) { {
                 SvnConnector.listAvailableRevisions(anyString); result = new URISyntaxException("input", "reason");
         } };
-        instance.fetchRevisions(projectName);
+        try {
+            instance.fetchRevisions(projectName);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_INVALID_URL));
+            throw e;
+        }
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
@@ -114,7 +138,12 @@ public class JavaScriptProjectFetcherImplTest {
         new Expectations(SvnConnector.class) { {
                 SvnConnector.listAvailableRevisions(anyString); result = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
         } };
-        instance.fetchRevisions(projectName);
+        try {
+            instance.fetchRevisions(projectName);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_SERVER_ERROR));
+            throw e;
+        }
     }
 
     @Test
@@ -152,7 +181,12 @@ public class JavaScriptProjectFetcherImplTest {
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchJavaScriptFileNames_projectNameArgIsIllegal_throws() throws Exception {
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        instance.fetchJavaScriptFileNames(illegalProjectName, revision);
+        try {
+            instance.fetchJavaScriptFileNames(illegalProjectName, revision);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME));
+            throw e;
+        }
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
@@ -161,7 +195,12 @@ public class JavaScriptProjectFetcherImplTest {
          new Expectations(SvnConnector.class) { {
                 SvnConnector.listAvailablePaths(anyString, revision); result = new URISyntaxException("input", "reason");
         } };
-        instance.fetchJavaScriptFileNames(projectName, revision);
+        try {
+            instance.fetchJavaScriptFileNames(projectName, revision);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_INVALID_URL));
+            throw e;
+        }
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
@@ -170,7 +209,12 @@ public class JavaScriptProjectFetcherImplTest {
          new Expectations(SvnConnector.class) { {
                 SvnConnector.listAvailablePaths(anyString, revision); result = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
         } };
-        instance.fetchJavaScriptFileNames(projectName, revision);
+        try {
+            instance.fetchJavaScriptFileNames(projectName, revision);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_SERVER_ERROR));
+            throw e;
+        }
     }
 
     @Test
@@ -222,7 +266,12 @@ public class JavaScriptProjectFetcherImplTest {
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchJavaScriptInvocationMethods_projectNameArgIsIllegal_throws() throws Exception {
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        instance.fetchJavaScriptInvocationMethods(illegalProjectName, revision, javaScriptFileName);
+        try {
+            instance.fetchJavaScriptInvocationMethods(illegalProjectName, revision, javaScriptFileName);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME));
+            throw e;
+        }
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
@@ -233,6 +282,9 @@ public class JavaScriptProjectFetcherImplTest {
         } };
         try {
             instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_INVALID_URL));
+            throw e;
         } finally {
             assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
         }
@@ -246,6 +298,9 @@ public class JavaScriptProjectFetcherImplTest {
         } };
         try {
             instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_SERVER_ERROR));
+            throw e;
         } finally {
             assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
         }
@@ -312,7 +367,12 @@ public class JavaScriptProjectFetcherImplTest {
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchRequiredJavaScript_projectNameArgIsIllegal_throws() throws Exception {
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        instance.fetchRequiredJavaScript(illegalProjectName, revision, javaScriptFileName, javaScriptFunction);
+        try {
+            instance.fetchRequiredJavaScript(illegalProjectName, revision, javaScriptFileName, javaScriptFunction);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME));
+            throw e;
+        }
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
@@ -323,6 +383,9 @@ public class JavaScriptProjectFetcherImplTest {
         } };
         try {
             instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_INVALID_URL));
+            throw e;
         } finally {
             assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
         }
@@ -336,6 +399,9 @@ public class JavaScriptProjectFetcherImplTest {
         } };
         try {
             instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
+        } catch (JavaScriptProjectFetcherException e) {
+            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_SERVER_ERROR));
+            throw e;
         } finally {
             assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
         }

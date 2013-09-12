@@ -1,7 +1,7 @@
 package dk.dbc.dataio.gui.client.exceptions;
 
 public enum FlowStoreProxyError {
-    UNKNOWN,
-    KEY_VIOLATION,      // violation of unique key contraints
-    DATA_VALIDATION,    // invalid data content
+    KEY_CONFLICT,               // violation of unique key contraints
+    DATA_NOT_ACCEPTABLE,        // invalid data content
+    INTERNAL_SERVER_ERROR,
 }

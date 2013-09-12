@@ -7,7 +7,7 @@ public class FlowStoreProxyException extends Exception implements Serializable {
     private /* final */ FlowStoreProxyError errorCode;
 
     public FlowStoreProxyException() {
-        this.errorCode = FlowStoreProxyError.UNKNOWN;
+        this.errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
     }
 
     public FlowStoreProxyException(final FlowStoreProxyError errorCode, final Throwable cause) {

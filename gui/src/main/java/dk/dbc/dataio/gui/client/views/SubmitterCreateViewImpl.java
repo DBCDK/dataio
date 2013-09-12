@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
 
 public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterCreateView {
@@ -24,6 +25,9 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     public static final String GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL = "submittercreationsaveresultlabel";
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     public static final String SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
+    public static final String SUBMITTER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR = "Nummer felt skal indeholde en numerisk talværdi.";
+    public static final String FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE = "Et eller flere af de unikke felter { navn, nummer } er allerede oprettet i flow store.";
+    public static final String FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE = "De udfyldte felter forårsagede en data valideringsfejl i flow store.";
     private static final int SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
 
     // Local variables
@@ -58,6 +62,27 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
     @Override
     public void refresh() {
+    }
+
+    @Override
+    public void onFlowStoreProxyFailure(FlowStoreProxyError errorCode, String detail) {
+        if (errorCode == null) {
+            displayError(detail);
+        } else {
+            switch (errorCode) {
+                case KEY_VIOLATION: displayError(FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE);
+                    break;
+                case DATA_VALIDATION: displayError(FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE);
+                    break;
+                default: displayError(detail);
+                    break;
+            }
+        }
+    }
+
+    @Override
+    public void onSaveSubmitterSuccess() {
+        displaySuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
     private class SubmitterNamePanel extends HorizontalPanel {
@@ -149,14 +174,27 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
         @Override
         public void onClick(ClickEvent event) {
-            String nameValue = submitterNamePanel.getText();
-            String numberValue = submitterNumberPanel.getText();
-            String descriptionValue = submitterDescriptionPanel.getText();
-            if (nameValue.isEmpty() || numberValue.isEmpty() || descriptionValue.isEmpty()) {
-                Window.alert(SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+            final String nameValue = submitterNamePanel.getText();
+            final String numberValue = submitterNumberPanel.getText();
+            final String descriptionValue = submitterDescriptionPanel.getText();
+            final String validationError = validateFields(nameValue, numberValue, descriptionValue);
+            if (!validationError.isEmpty()) {
+                Window.alert(validationError);
             } else {
                 presenter.saveSubmitter(nameValue, numberValue, descriptionValue);
             }
+        }
+
+        private String validateFields(final String nameValue, final String numberValue, final String descriptionValue) {
+            if (nameValue.isEmpty() || numberValue.isEmpty() || descriptionValue.isEmpty()) {
+                return SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
+            }
+            try {
+                Long.valueOf(numberValue);
+            } catch (NumberFormatException e) {
+                return SUBMITTER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR;
+            }
+            return "";
         }
     }
 

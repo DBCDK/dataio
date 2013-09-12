@@ -5,6 +5,8 @@ import dk.dbc.dataio.engine.Flow;
 import dk.dbc.dataio.engine.FlowComponent;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
+import dk.dbc.dataio.engine.SubmitterContent;
+import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, IllegalStateException {
         flowStoreProxy.createFlowComponent(flowComponentContent);
+    }
+
+    @Override
+    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
+        flowStoreProxy.createSubmitter(submitterContent);
     }
 
     @Override

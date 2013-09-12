@@ -11,6 +11,9 @@ import dk.dbc.dataio.engine.Flow;
 import dk.dbc.dataio.engine.FlowComponent;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
+import dk.dbc.dataio.engine.SubmitterContent;
+import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
+import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.slf4j.Logger;
@@ -24,6 +27,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     private static final String FLOWS_ENTRY_POINT = "flows";
     private static final String COMPONENTS_ENTRY_POINT = "components";
+    private static final String SUBMITTERS_ENTRY_POINT = "submitters";
     private final WebResource webResource;
 
     /**
@@ -56,6 +60,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final ClientResponse response = webResource.path(COMPONENTS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowComponentContent);
         if (response.getClientResponseStatus() != ClientResponse.Status.CREATED) {
             throw new IllegalStateException(response.getEntity(String.class));
+        }
+    }
+
+    @Override
+    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
+        final ClientResponse response = webResource.path(SUBMITTERS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, submitterContent);
+        final ClientResponse.Status status = response.getClientResponseStatus();
+        if (status != ClientResponse.Status.CREATED) {
+            if (status == ClientResponse.Status.CONFLICT) {
+                throw new FlowStoreProxyException(FlowStoreProxyError.KEY_VIOLATION, response.getEntity(String.class));
+            } else if (status == ClientResponse.Status.NOT_ACCEPTABLE) {
+                throw new FlowStoreProxyException(FlowStoreProxyError.DATA_VALIDATION, response.getEntity(String.class));
+            } else {
+                throw new FlowStoreProxyException(FlowStoreProxyError.UNKNOWN, response.getEntity(String.class));
+            }
         }
     }
 

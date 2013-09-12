@@ -2,13 +2,15 @@ package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.gui.client.model.SubmitterData;
+import dk.dbc.dataio.engine.SubmitterContent;
+import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
+import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
-import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -38,30 +40,33 @@ public class CreateSubmitterActivity extends AbstractActivity implements Submitt
 
     @Override
     public void saveSubmitter(String name, String number, String description) {
-        final SubmitterData submitterData = new SubmitterData();
-        submitterData.setName(name);
-        submitterData.setNumber(number);
-        submitterData.setDescription(description);
+        final SubmitterContent submitterContent = new SubmitterContent(Long.valueOf(number), name, description);
 
-        submitterCreateView.displaySuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);   // NB: Midlertidig - erstattes af kald til proxy (se herunder)
-//        flowStoreProxy.createSubmitter(submitterData, new AsyncCallback<Void>() {
-//            @Override
-//            public void onFailure(Throwable e) {
-//                final String errorClassName = e.getClass().getName();
-//                submitterCreateView.displayError(errorClassName + " - " + e.getMessage());
-//            }
-//
-//            @Override
-//            public void onSuccess(Void aVoid) {
-//                submitterCreateView.displaySuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
-//            }
-//        });
+        flowStoreProxy.createSubmitter(submitterContent, new AsyncCallback<Void>() {
+            @Override
+            public void onFailure(Throwable e) {
+                submitterCreateView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
+            }
+
+            @Override
+            public void onSuccess(Void aVoid) {
+                submitterCreateView.onSaveSubmitterSuccess();
+            }
+        });
     }
 
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(submitterCreateView.asWidget());
+    }
+
+    private FlowStoreProxyError getErrorCode(Throwable e) {
+        FlowStoreProxyError errorCode = null;
+        if (e instanceof FlowStoreProxyException) {
+            errorCode = ((FlowStoreProxyException) e).getErrorCode();
+        }
+        return errorCode;
     }
 
 }

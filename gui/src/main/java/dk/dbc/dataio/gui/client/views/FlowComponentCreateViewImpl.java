@@ -28,7 +28,7 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     public static final String FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     public static final String FLOW_COMPONENT_CREATION_SCM_PROJECT_NOT_FOUND_ERROR = "Det angivne projekt findes ikke i SVN.";
     public static final String FLOW_COMPONENT_CREATION_SCM_ILLEGAL_PROJECT_NAME_ERROR = "Det angivne projekt må ikke indeholde sti elementer.";
-    public static final String FLOW_COMPONENT_CREATION_JAVASCRIPT_FAKE_USE_REFERENCE_ERROR = "Der skete en fejl i forbindelse med kald til SVN. Prøv at vælge en anden revision eller et andet javascript.";
+    public static final String FLOW_COMPONENT_CREATION_JAVASCRIPT_REFERENCE_ERROR = "Der skete en fejl i forbindelse med kald til SVN. Prøv at vælge en anden revision eller et andet javascript.";
     public static final String FLOW_COMPONENT_CREATION_BUSY_LABEL = "Busy...";
     public static final String FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL = "Komponentnavn";
     public static final String FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL = "SVN Projekt";
@@ -129,18 +129,20 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
         revisionPanel.disable();
         scriptNamePanel.disable();
         invocationMethodPanel.disable();
+        final String errorMessage;
         if (errorCode == null) {
-            displayError(detail);
+            errorMessage = detail;
         } else {
             switch (errorCode) {
-                case SCM_RESOURCE_NOT_FOUND: displayError(FLOW_COMPONENT_CREATION_SCM_PROJECT_NOT_FOUND_ERROR);
+                case SCM_RESOURCE_NOT_FOUND: errorMessage = FLOW_COMPONENT_CREATION_SCM_PROJECT_NOT_FOUND_ERROR;
                     break;
-                case SCM_ILLEGAL_PROJECT_NAME: displayError(FLOW_COMPONENT_CREATION_SCM_ILLEGAL_PROJECT_NAME_ERROR);
+                case SCM_ILLEGAL_PROJECT_NAME: errorMessage = FLOW_COMPONENT_CREATION_SCM_ILLEGAL_PROJECT_NAME_ERROR;
                     break;
-                default: displayError(detail);
+                default: errorMessage = detail;
                     break;
             }
         }
+        displayError(errorMessage);
     }
 
     @Override
@@ -153,16 +155,18 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     @Override
     public void fetchInvocationMethodsFailed(JavaScriptProjectFetcherError errorCode, String detail) {
         invocationMethodPanel.disable();
+        final String errorMessage;
         if (errorCode == null) {
-            displayError(detail);
+            errorMessage = detail;
         } else {
             switch (errorCode) {
-                case JAVASCRIPT_FAKE_USE_REFERENCE_ERROR: displayError(FLOW_COMPONENT_CREATION_JAVASCRIPT_FAKE_USE_REFERENCE_ERROR);
+                case JAVASCRIPT_REFERENCE_ERROR: errorMessage = FLOW_COMPONENT_CREATION_JAVASCRIPT_REFERENCE_ERROR;
                     break;
-                default: displayError(detail);
+                default: errorMessage = detail;
                     break;
             }
         }
+        displayError(errorMessage);
     }
 
     private void svnProjectChanged() {

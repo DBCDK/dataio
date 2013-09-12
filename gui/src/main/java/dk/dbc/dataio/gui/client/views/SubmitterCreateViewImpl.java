@@ -66,18 +66,20 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
     @Override
     public void onFlowStoreProxyFailure(FlowStoreProxyError errorCode, String detail) {
+        final String errorMessage;
         if (errorCode == null) {
-            displayError(detail);
+            errorMessage = detail;
         } else {
             switch (errorCode) {
-                case KEY_VIOLATION: displayError(FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE);
+                case KEY_VIOLATION: errorMessage = FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE;
                     break;
-                case DATA_VALIDATION: displayError(FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE);
+                case DATA_VALIDATION: errorMessage = FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE;
                     break;
-                default: displayError(detail);
+                default: errorMessage = detail;
                     break;
             }
         }
+        displayError(errorMessage);
     }
 
     @Override

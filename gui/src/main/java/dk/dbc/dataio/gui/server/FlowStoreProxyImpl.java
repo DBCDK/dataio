@@ -68,13 +68,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final ClientResponse response = webResource.path(SUBMITTERS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, submitterContent);
         final ClientResponse.Status status = response.getClientResponseStatus();
         if (status != ClientResponse.Status.CREATED) {
-            if (status == ClientResponse.Status.CONFLICT) {
-                throw new FlowStoreProxyException(FlowStoreProxyError.KEY_VIOLATION, response.getEntity(String.class));
-            } else if (status == ClientResponse.Status.NOT_ACCEPTABLE) {
-                throw new FlowStoreProxyException(FlowStoreProxyError.DATA_VALIDATION, response.getEntity(String.class));
-            } else {
-                throw new FlowStoreProxyException(FlowStoreProxyError.UNKNOWN, response.getEntity(String.class));
+            final FlowStoreProxyError errorCode;
+            switch (status) {
+                case CONFLICT: errorCode = FlowStoreProxyError.KEY_VIOLATION;
+                    break;
+                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.DATA_VALIDATION;
+                    break;
+                default: errorCode = FlowStoreProxyError.UNKNOWN;
+                    break;
             }
+            throw new FlowStoreProxyException(errorCode, response.getEntity(String.class));
         }
     }
 

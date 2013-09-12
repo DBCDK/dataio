@@ -138,7 +138,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
      *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
-     *          JAVASCRIPT_FAKE_USE_REFERENCE_ERROR - on failure to evaluate JavaScript with fake use functionality.
+     *          JAVASCRIPT_REFERENCE_ERROR - on failure to evaluate JavaScript with fake use functionality.
      *          JAVASCRIPT_EVAL_ERROR - on failure to evaluate JavaScript.
      */
     @Override
@@ -158,7 +158,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             methodNames = getJavaScriptFunctionsSortedByPathNameFromFile(exportFolder, trimmedJavaScriptFileName);
         } catch (EcmaError e) {
             log.error(errorMessage, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_FAKE_USE_REFERENCE_ERROR, e);
+            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_REFERENCE_ERROR, e);
         } catch (EvaluatorException e) {
             log.error(errorMessage, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR, e);

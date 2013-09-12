@@ -39,8 +39,8 @@ public class SubmittersBean {
      * @param submitterContent submitter data as JSON string
      *
      * @return a HTTP 201 response with a Location header containing the URL value of the newly created resource
-     *         a HTTP 400 response if violating any uniqueness constraints
      *         a HTTP 406 response on invalid json content
+     *         a HTTP 409 response if violating any uniqueness constraints
      *         a HTTP 500 response in case of general error.
      *
      * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
@@ -49,7 +49,7 @@ public class SubmittersBean {
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
-    public Response createFlow(@Context UriInfo uriInfo, String submitterContent) throws JsonException {
+    public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JsonException {
         log.trace("Called with: '{}'", submitterContent);
 
         final Submitter submitter = ServiceUtil.saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);

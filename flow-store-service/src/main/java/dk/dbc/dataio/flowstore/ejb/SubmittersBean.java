@@ -67,7 +67,6 @@ public class SubmittersBean {
      * Returns list of all stored submitters sorted by name in ascending order
      *
      * @return a HTTP 200 OK response with result list as JSON.
-     *         a HTTP 406 NOT_ACCEPTABLE response on failure to generate JSON response entity.
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
      * @throws JsonException on failure to create result list as JSON

@@ -6,7 +6,6 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
@@ -186,23 +185,5 @@ public class SubmittersIT {
         assertThat(responseContentNode.get(0).get("id").getLongValue(), is(sortsFirst));
         assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond));
         assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
-    }
-
-    /**
-     * Given: a deployed flow-store service containing a single submitter with invalid JSON content
-     * When: GETing submitters collection
-     * Then: request returns with a NOT_ACCEPTABLE http status code
-     */
-    @Ignore
-    @Test
-    public void findAllSubmitters_ErrorOnInvalidJsonInStore() throws Exception {
-        // Given...
-        ITUtil.insertSubmitter(dbConnection, 1, 1, "{bad: json}", "name", 1);
-
-        // When...
-        final Response response = doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 }

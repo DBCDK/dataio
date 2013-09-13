@@ -160,11 +160,10 @@ public class SubmittersIT {
      * Then: request returns with a OK http status code
      * And: request returns with list as JSON of submitters sorted alphabetically by name
      */
-    @Ignore
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
-        final String submitterContent = "{\"desc\": \"test\"}";
+        final String submitterContent = "{}";
         final long sortsFirst = 1;
         final long sortsSecond = 2;
         final long sortsThird = 3;
@@ -194,6 +193,7 @@ public class SubmittersIT {
      * When: GETing submitters collection
      * Then: request returns with a NOT_ACCEPTABLE http status code
      */
+    @Ignore
     @Test
     public void findAllSubmitters_ErrorOnInvalidJsonInStore() throws Exception {
         // Given...

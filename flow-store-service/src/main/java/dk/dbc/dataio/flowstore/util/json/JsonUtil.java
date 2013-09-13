@@ -92,7 +92,7 @@ public class JsonUtil {
             objectMapper.writeValue(stringWriter, object);
             json = stringWriter.toString();
             // Verify valid json
-            getJsonRoot(json);
+            //getJsonRoot(json);
         } catch (IOException e) {
             throw new JsonException(String.format("Exception caught when trying to marshall %s object to JSON", object.getClass().getName()), e);
         }

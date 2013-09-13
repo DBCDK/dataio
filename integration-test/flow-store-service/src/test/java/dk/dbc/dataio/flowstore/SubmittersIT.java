@@ -6,6 +6,7 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
@@ -159,6 +160,7 @@ public class SubmittersIT {
      * Then: request returns with a OK http status code
      * And: request returns with list as JSON of submitters sorted alphabetically by name
      */
+    @Ignore
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...

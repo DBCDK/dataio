@@ -83,6 +83,23 @@ public class ITUtil {
     }
 
     /**
+     * Inserts new submitter row in flow-store database
+     *
+     * @param conn open database connection
+     * @param id submitter id
+     * @param version submitter version
+     * @param content submitter content as JSON string
+     * @param nameIdx submitter name index value
+     * @param numberIdx submitter number index value
+     *
+     * @throws SQLException
+     */
+    public static void insertSubmitter(Connection conn, long id, long version, String content, String nameIdx, long numberIdx)
+            throws SQLException {
+        JDBCUtil.update(conn, SUBMITTERS_TABLE_INSERT_STMT, id, version, content, nameIdx, numberIdx);
+    }
+
+    /**
      * POSTs given data entity to endpoint constructed using given baseurl and path elements
      *
      * @param restClient RESTful web service client

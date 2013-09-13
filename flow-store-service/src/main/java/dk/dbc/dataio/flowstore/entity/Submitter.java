@@ -7,6 +7,8 @@ import org.codehaus.jackson.JsonNode;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -21,8 +23,12 @@ uniqueConstraints = {
     @UniqueConstraint(columnNames = { Submitter.NAME_INDEX_COLUMN }),
     @UniqueConstraint(columnNames = { Submitter.NUMBER_INDEX_COLUMN }),
 })
+@NamedQueries({
+    @NamedQuery(name = Submitter.QUERY_FIND_ALL, query = "SELECT submitter FROM Submitter submitter ORDER BY submitter.nameIndexValue ASC")
+})
 public class Submitter extends VersionedEntity {
     public static final String TABLE_NAME = "submitters";
+    public static final String QUERY_FIND_ALL = "Submitter.findAll";
     static final String NAME_INDEX_COLUMN = "name_idx";
     static final String NUMBER_INDEX_COLUMN = "number_idx";
 

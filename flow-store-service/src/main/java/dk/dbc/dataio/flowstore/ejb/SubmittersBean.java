@@ -3,19 +3,24 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import dk.dbc.dataio.flowstore.util.json.JsonException;
+import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.List;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -38,10 +43,10 @@ public class SubmittersBean {
      * @param uriInfo application and request URI information
      * @param submitterContent submitter data as JSON string
      *
-     * @return a HTTP 201 response with a Location header containing the URL value of the newly created resource
-     *         a HTTP 406 response on invalid json content
-     *         a HTTP 409 response if violating any uniqueness constraints
-     *         a HTTP 500 response in case of general error.
+     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource.
+     *         a HTTP 406 NOT_ACCEPTABLE response on invalid json content.
+     *         a HTTP 409 CONFLICT response if violating any uniqueness constraints.
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
      * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
      *                       JSON string, or if JSON object does not contain required
@@ -56,5 +61,22 @@ public class SubmittersBean {
         entityManager.flush();
 
         return Response.created(ServiceUtil.getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter)).build();
+    }
+
+    /**
+     * Returns list of all stored submitters sorted by name in ascending order
+     *
+     * @return a HTTP 200 OK response with result list as JSON.
+     *         a HTTP 406 NOT_ACCEPTABLE response on failure to generate JSON response entity.
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JsonException on failure to create result list as JSON
+     */
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllSubmitters() throws JsonException {
+        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_ALL, Submitter.class);
+        final List<Submitter> results = query.getResultList();
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 }

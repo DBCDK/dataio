@@ -331,7 +331,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
     private static JavaScriptProjectFetcherError interpretSvnException(SVNException e) {
         final String message = e.getMessage();
         if (message != null) {
-            if (message.contains("E160013") || message.contains("E180001")) {
+            if (message.contains("E160013") || message.contains("E180001") || message.contains("404 Not Found")) {
                 return JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND;
             }
         }

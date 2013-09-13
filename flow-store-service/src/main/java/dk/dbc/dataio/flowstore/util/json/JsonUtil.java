@@ -87,11 +87,15 @@ public class JsonUtil {
     public static String toJson(Object object) throws JsonException {
         final StringWriter stringWriter = new StringWriter();
         final ObjectMapper objectMapper = new ObjectMapper();
+        final String json;
         try {
             objectMapper.writeValue(stringWriter, object);
+            json = stringWriter.toString();
+            // Verify valid json
+            getJsonRoot(json);
         } catch (IOException e) {
             throw new JsonException(String.format("Exception caught when trying to marshall %s object to JSON", object.getClass().getName()), e);
         }
-        return stringWriter.toString();
+        return json;
     }
 }

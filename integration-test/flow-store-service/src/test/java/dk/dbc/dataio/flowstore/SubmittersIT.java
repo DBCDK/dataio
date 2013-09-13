@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import org.codehaus.jackson.node.ArrayNode;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -15,10 +16,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.doGet;
 import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -99,8 +102,7 @@ public class SubmittersIT {
         final String submitterContent1 = String.format("{\"name\": \"%s\", \"number\": 1}", name);
         final String submitterContent2 = String.format("{\"name\": \"%s\", \"number\": 2}", name);
 
-        JDBCUtil.update(dbConnection, ITUtil.SUBMITTERS_TABLE_INSERT_STMT,
-                1, 1, submitterContent1, name, 1);
+        ITUtil.insertSubmitter(dbConnection, 1, 1, submitterContent1, name, 1);
 
         // When...
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
@@ -121,13 +123,84 @@ public class SubmittersIT {
         final String submitterContent1 = String.format("{\"name\": \"test1\", \"number\": %d}", number);
         final String submitterContent2 = String.format("{\"name\": \"test2\", \"number\": %d}", number);
 
-        JDBCUtil.update(dbConnection, ITUtil.SUBMITTERS_TABLE_INSERT_STMT,
-                1, 1, submitterContent1, "test1", number);
+        ITUtil.insertSubmitter(dbConnection, 1, 1, submitterContent1, "test1", number);
 
         // When...
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing no submitters
+     * When: GETing submitters collection
+     * Then: request returns with a OK http status code
+     * And: request returns with empty list as JSON
+     */
+    @Test
+    public void findAllSubmitters_emptyResult() throws Exception {
+        // When...
+        final Response response = doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+
+        // And...
+        final String responseContent = response.readEntity(String.class);
+        assertThat(responseContent, is(notNullValue()));
+        final ArrayNode responseContentNode = (ArrayNode) ITUtil.getJsonRoot(responseContent);
+        assertThat(responseContentNode.size(), is(0));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing three submitters
+     * When: GETing submitters collection
+     * Then: request returns with a OK http status code
+     * And: request returns with list as JSON of submitters sorted alphabetically by name
+     */
+    @Test
+    public void findAllSubmitters_Ok() throws Exception {
+        // Given...
+        final String submitterContent = "{}";
+        final long sortsFirst = 1;
+        final long sortsSecond = 2;
+        final long sortsThird = 3;
+
+        ITUtil.insertSubmitter(dbConnection, sortsThird, 1, submitterContent, "c", 1);
+        ITUtil.insertSubmitter(dbConnection, sortsFirst, 1, submitterContent, "a", 2);
+        ITUtil.insertSubmitter(dbConnection, sortsSecond, 1, submitterContent, "b", 3);
+
+        // When...
+        final Response response = doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+
+        // And...
+        final String responseContent = response.readEntity(String.class);
+        assertThat(responseContent, is(notNullValue()));
+        final ArrayNode responseContentNode = (ArrayNode) ITUtil.getJsonRoot(responseContent);
+        assertThat(responseContentNode.size(), is(3));
+        assertThat(responseContentNode.get(0).get("id").getLongValue(), is(sortsFirst));
+        assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond));
+        assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing a single submitter with invalid JSON content
+     * When: GETing submitters collection
+     * Then: request returns with a NOT_ACCEPTABLE http status code
+     */
+    @Test
+    public void findAllSubmitters_ErrorOnInvalidJsonInStore() throws Exception {
+        // Given...
+        ITUtil.insertSubmitter(dbConnection, 1, 1, "{bad: json}", "name", 1);
+
+        // When...
+        final Response response = doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 }

@@ -162,7 +162,7 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
-        final String submitterContent = "{}";
+        final String submitterContent = "{\"desc\": \"test\"}";
         final long sortsFirst = 1;
         final long sortsSecond = 2;
         final long sortsThird = 3;

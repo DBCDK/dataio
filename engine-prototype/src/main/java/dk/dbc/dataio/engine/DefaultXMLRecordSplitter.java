@@ -22,7 +22,58 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 /**
+ * Reads XML-files and split them on first child below the root element.
  *
+ * A simple splitter which read XML from an {@link InputStream} and can iterate over, and extract children below the root element.
+ *
+ * Example:
+ * <p>
+ * Given an XML-file like this:
+ * <pre>
+ * {@code
+ * <?xml version="1.0" encoding="UTF-8"?>
+ * <test>
+ *     <child>This is the first child</child>
+ *     <child>This is the second child</child>
+ * </test>
+ * }
+ * </pre>
+ * DefaultXMLRecordSplitter will produce the two following XMLStrings:
+ * <pre>
+ * {@code
+ * <?xml version="1.0" encoding="UTF-8"?>
+ * <test>
+ *     <child>This is the first child</child>
+ * </test>
+ * }
+ * </pre>
+ * and
+ * <pre>
+ * {@code
+ * <?xml version="1.0" encoding="UTF-8"?>
+ * <test>
+ *     <child>This is the second child</child>
+ * </test>
+ * }
+ * </pre>
+ * if you use it like this:
+ * <pre>
+ * {@code
+ * try {
+ *   DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(inputStream);
+ *   for(String record : recordSplitter) {
+ *      // do something with record.
+ *   }
+ * } catch(IllegalDataException ex) {
+ *     // Something was wrong with the inputdata.
+ * }
+ * }
+ * </pre>
+ * As can be seen in the above example, the DefaultXMLRecordSplitter implements {@link Iterable},
+ * and you can step through the records one at the time.
+ * Also note, that if an error occurs, {@link IllegalDataException} is thrown.
+ * {@link IllegalDataException} is a {@link RuntimeException} since the {@link Iterable}
+ * interface does not allow checked exceptions to be thrown.
  */
 public class DefaultXMLRecordSplitter implements Iterable<String> {
 
@@ -38,11 +89,12 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
     private final String rootTag;
 
     /**
+     * Creates an instance of DefaultXMLRecordSplitter ready to read from {@code inputStream}.
      *
-     * @param inputStream
+     * @param inputStream The {@link InputStream} containing the XML to be read.
      * @throws XMLStreamException
      */
-    public DefaultXMLRecordSplitter(InputStream inputStream) throws XMLStreamException {
+    public DefaultXMLRecordSplitter(InputStream inputStream) throws IllegalDataException, XMLStreamException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
 
         xmlEventFactory = XMLEventFactory.newInstance();
@@ -136,11 +188,18 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
     @Override
     public Iterator<String> iterator() {
         Iterator<String> it = new Iterator<String>() {
+
+            /**
+             * @inheritDoc
+             */
             @Override
             public boolean hasNext() throws IllegalDataException {
                 return hasNextRecord();
             }
 
+            /**
+             * @inheritDoc
+             */
             @Override
             public String next() throws IllegalDataException {
                 try {
@@ -176,6 +235,11 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
                 }
             }
 
+            /**
+             * @inheritDoc
+             *
+             * This method does not do anything.
+             */
             @Override
             public void remove() {
             }

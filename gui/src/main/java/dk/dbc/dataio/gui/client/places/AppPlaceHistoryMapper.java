@@ -7,6 +7,7 @@ import com.google.gwt.place.shared.WithTokenizers;
     FlowCreatePlace.Tokenizer.class,
     FlowComponentCreatePlace.Tokenizer.class,
     SubmitterCreatePlace.Tokenizer.class,
+    FlowbinderCreatePlace.Tokenizer.class,
 })
 
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper

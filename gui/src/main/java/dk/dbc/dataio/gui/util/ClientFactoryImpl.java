@@ -11,6 +11,8 @@ import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 
@@ -20,6 +22,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
     private final FlowComponentCreateView flowComponentCreateView = new FlowComponentCreateViewImpl();
     private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
+    private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final PlaceController placeController = new PlaceController(eventBus);
     private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
     private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
@@ -45,6 +48,11 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
+    public FlowbinderCreateView getFlowbinderCreateView() {
+        return flowbinderCreateView;
+    }
+    
+    @Override
     public PlaceController getPlaceController() {
         return placeController;
     }
@@ -58,4 +66,5 @@ public class ClientFactoryImpl implements ClientFactory {
     public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync() {
         return javaScriptProjectFetcher;
     }
+
 }

@@ -12,6 +12,7 @@ import com.google.gwt.user.client.ui.SimpleLayoutPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -19,6 +20,7 @@ public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION = "navigationbuttonflowcreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION = "navigationbuttonflowcomponentcreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION = "navigationbuttonsubmittercreation";
+    public static final String GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION = "navigationbuttonflowbindercreation";
 
     private static final String CONTEXT_HEADER = "DBC DATAINDSYSTEM";
     private static final String GUIID_MAIN_PANEL_LAYOUT = "main-panel-layout";
@@ -43,6 +45,7 @@ public class MainPanel extends DockLayoutPanel {
             case 0: return new FlowCreatePlace();
             case 1: return new FlowComponentCreatePlace();
             case 2: return new SubmitterCreatePlace();
+            case 3: return new FlowbinderCreatePlace();
             // ...
             default: return null;
         }
@@ -68,6 +71,7 @@ public class MainPanel extends DockLayoutPanel {
             add(new NavigationButton(0, FlowCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
             add(new NavigationButton(1, FlowComponentCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
             add(new NavigationButton(2, SubmitterCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
+            add(new NavigationButton(3, FlowbinderCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION));
             // ...
         }
     }

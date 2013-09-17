@@ -6,6 +6,7 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
+import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 
 /**
@@ -15,18 +16,12 @@ import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
  * - any RPC proxies.
  */
 public interface ClientFactory {
-
-    EventBus getEventBus();
-
-    FlowCreateView getFlowCreateView();
-
-    FlowComponentCreateView getFlowComponentCreateView();
-
-    SubmitterCreateView getSubmitterCreateView();
-
-    PlaceController getPlaceController();
-
-    FlowStoreProxyAsync getFlowStoreProxyAsync();
-    
-    JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
+    public EventBus getEventBus();
+    public FlowCreateView getFlowCreateView();
+    public FlowComponentCreateView getFlowComponentCreateView();
+    public SubmitterCreateView getSubmitterCreateView();
+    public FlowbinderCreateView getFlowbinderCreateView();
+    public PlaceController getPlaceController();
+    public FlowStoreProxyAsync getFlowStoreProxyAsync();
+    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
 }

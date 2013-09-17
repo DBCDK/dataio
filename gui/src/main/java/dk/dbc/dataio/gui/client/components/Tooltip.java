@@ -12,7 +12,7 @@ public class Tooltip extends PopupPanel implements MouseOverHandler, MouseOutHan
 
     private final FocusWidget widget;
 
-    public Tooltip(String text, FocusWidget widget) {
+    public Tooltip(FocusWidget widget, String text) {
         super(true);
         Label l = new Label(text);
         l.setWidth("300px"); // move to css

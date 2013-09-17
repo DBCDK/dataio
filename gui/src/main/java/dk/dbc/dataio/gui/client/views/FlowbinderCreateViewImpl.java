@@ -14,6 +14,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.components.Tooltip;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import static dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_WIDGET;
 import java.util.Collection;
@@ -64,8 +65,8 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final FlowbinderSubmittersPanel flowbinderSubmittersPanel = new FlowbinderSubmittersPanel();
     private final FlowbinderFlowPanel flowbinderFlowPanel = new FlowbinderFlowPanel();
     private final FlowbinderSavePanel flowbinderSavePanel = new FlowbinderSavePanel();
-                          
-    
+
+
     public FlowbinderCreateViewImpl() {
         getElement().setId(GUIID_SUBMITTER_CREATION_WIDGET);
         add(flowbinderNamePanel);
@@ -83,7 +84,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public void setPresenter(FlowbinderCreatePresenter presenter) {
         this.presenter = presenter;
     }
-    
+
     @Override
     public void displayError(String message) {
         Window.alert("Error: " + message);
@@ -122,6 +123,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_FRAME_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
+            new Tooltip(textBox, "Teknisk formatprotokol til brug for udveksling af data. Eksempelvis dm2iso, dm2lin, abmxml, clioxml, csv, m.v.");
         }
         public String getText() {
             return textBox.getValue();
@@ -137,6 +139,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
+            new Tooltip(textBox, "Bibliografisk format, f.eks. dbc, dfi, dkbilled, dsd, ebogsbib, ebrary, mv.");
         }
         public String getText() {
             return textBox.getValue();
@@ -152,6 +155,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
+            new Tooltip(textBox, "F.eks. utf8, latin-1, samkat, m.v.");
         }
         public String getText() {
             return textBox.getValue();
@@ -224,7 +228,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             });
         }
     }
-    
+
     private class FlowbinderSavePanel extends HorizontalPanel {
         private final Button flowbinderSaveButton = new Button("Gem");
         private final Label flowbinderSaveResultLabel = new Label("");

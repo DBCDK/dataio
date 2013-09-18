@@ -123,7 +123,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_FRAME_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
-            new Tooltip(textBox, "Teknisk formatprotokol til brug for udveksling af data. Eksempelvis dm2iso, dm2lin, abmxml, clioxml, csv, m.v.");
+            new Tooltip(textBox, "Rammeformat: Teknisk formatprotokol til brug for udveksling af data. Eksempelvis dm2iso, dm2lin, xml, csv, m.v.");
         }
         public String getText() {
             return textBox.getValue();
@@ -139,7 +139,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
-            new Tooltip(textBox, "Bibliografisk format, f.eks. dbc, dfi, dkbilled, dsd, ebogsbib, ebrary, mv.");
+            new Tooltip(textBox, "Indholdsformat: Bibliografisk format, f.eks. dbc, dfi, dkbilled, dsd, ebogsbib, ebrary, mv.");
         }
         public String getText() {
             return textBox.getValue();
@@ -155,7 +155,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
-            new Tooltip(textBox, "F.eks. utf8, latin-1, samkat, m.v.");
+            new Tooltip(textBox, "Tegnsæt: F.eks. utf8, latin-1, samkat, m.v.");
         }
         public String getText() {
             return textBox.getValue();

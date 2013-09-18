@@ -355,31 +355,26 @@ public class ITUtil {
         protected String asTextMember(String memberName, String memberValue) {
             if (memberValue == null) {
                 return String.format("\"%s\": null", memberName);
-            } else {
-                return String.format("\"%s\": \"%s\"", memberName, memberValue);
             }
+            return String.format("\"%s\": \"%s\"", memberName, memberValue);
         }
 
         protected String asLongMember(String memberName, Long memberValue) {
-            String memberValueAsString = NULL_VALUE;
-            if (memberValue != null) {
-                memberValueAsString = Long.toString(memberValue);
-            }
+            final String memberValueAsString = (memberValue == null) ? NULL_VALUE
+                : Long.toString(memberValue);
             return String.format("\"%s\": %s", memberName, memberValueAsString);
         }
 
         protected String asLongArray(String memberName, List<Long> memberValues) {
-            String memberValuesAsString = NULL_VALUE;
-            if (memberValues !=  null) {
-                memberValuesAsString = String.format("%s%s%s", START_ARRAY, joinLongs(",", memberValues), END_ARRAY);
-            }
+            final String memberValuesAsString = (memberValues == null) ? NULL_VALUE
+                : String.format("%s%s%s", START_ARRAY, joinLongs(",", memberValues), END_ARRAY);
             return String.format("\"%s\": %s", memberName, memberValuesAsString);
         }
 
         protected String joinLongs(final String delimiter, List<Long> ids) {
             final StringBuilder stringbuilder = new StringBuilder();
             for (Long id : ids) {
-                String idAsString = (id != null) ? Long.toString(id) : NULL_VALUE;
+                final String idAsString = (id != null) ? Long.toString(id) : NULL_VALUE;
                 stringbuilder.append(idAsString).append(delimiter);
             }
             return stringbuilder.toString().replaceFirst(String.format("%s$", delimiter), "");

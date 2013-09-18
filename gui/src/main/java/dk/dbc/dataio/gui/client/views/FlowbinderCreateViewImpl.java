@@ -11,13 +11,18 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.components.Tooltip;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
+import static dk.dbc.dataio.gui.client.views.FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA;
+import static dk.dbc.dataio.gui.client.views.FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL;
 import static dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_WIDGET;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class FlowbinderCreateViewImpl extends VerticalPanel implements FlowbinderCreateView {
@@ -25,7 +30,6 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String CONTEXT_HEADER = "Flowbinder - opsætning";
     public static final String FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
-    public static final String FLOWBINDER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR = "Nummer felt skal indeholde en numerisk talværdi.";
     public static final String FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL = "Flowbinder navn";
     public static final String FLOWBINDER_CREATION_FRAMEFORMAT_LABEL = "Rammeformat";
     public static final String FLOWBINDER_CREATION_CONTENTFORMAT_LABEL = "Indholdsformat";
@@ -98,6 +102,36 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     @Override
     public void refresh() {
     }
+    
+    @Override
+    public void setAvailableFlow(String key, String flow) {
+        flowbinderFlowPanel.setAvailableFlow(flow, key);
+    }
+
+    @Override
+    public String getSelectedFlow() {
+        return flowbinderFlowPanel.getSelectedFlow();
+    }
+    
+    @Override
+    public void clearAvailableSubmitters() {
+        flowbinderSubmittersPanel.clearAvailableSubmitters();
+    }
+
+    @Override
+    public void setAvailableSubmitter(String key, String value) {
+        flowbinderSubmittersPanel.addAvailableSubmitter(value, key);
+    }
+
+    @Override
+    public List<String> getSelectedSubmitters() {
+        List<String> selectedSubmitters = new ArrayList<String>();
+        Collection<Map.Entry<String, String>> selectedSubmittersFromPanel = flowbinderSubmittersPanel.getSelectedSubmitters();
+        for (Map.Entry<String, String> item : selectedSubmittersFromPanel) {
+            selectedSubmitters.add(item.getKey());
+        }
+        return selectedSubmitters;
+    }
 
     private class FlowbinderNamePanel extends HorizontalPanel {
         private final TextBox textBox = new TextBox();
@@ -113,6 +147,28 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             return textBox.getValue();
         }
     }
+
+//    private class FlowDescriptionPanel extends HorizontalPanel {
+//        private final TextArea flowDescriptionTextArea = new FlowCreateViewImpl.FlowDescriptionPanel.FlowDescriptionTextArea();
+//        public FlowDescriptionPanel() {
+//            add(new Label("Beskrivelse"));
+//            getElement().setId(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL);
+//            add(flowDescriptionTextArea);
+//        }
+//        public String getText() {
+//            return flowDescriptionTextArea.getValue();
+//        }
+//        private class FlowDescriptionTextArea extends TextArea {
+//            public FlowDescriptionTextArea() {
+//                super();
+//                setCharacterWidth(40);
+//                setVisibleLines(4);
+//                getElement().setAttribute("Maxlength", String.valueOf(FLOW_CREATION_DESCRIPTION_MAX_LENGTH));
+//                getElement().setId(GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
+//                addKeyDownHandler(new FlowCreateViewImpl.InputFieldKeyDownHandler());
+//            }
+//        }
+//    }
 
     private class FlowbinderFramePanel extends HorizontalPanel {
         private final TextBox textBox = new TextBox();
@@ -202,30 +258,42 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         private void clearItems() {
             submittersSelectionLists.clear();
         }
-        private void addAvailableItem(String key, String value) {
+        private void addAvailableSubmitter(String key, String value) {
             submittersSelectionLists.addAvailableItem(key, value);
         }
-        private Collection<Map.Entry<String, String>> getSelectedItems() {
+        private Collection<Map.Entry<String, String>> getSelectedSubmitters() {
             return submittersSelectionLists.getSelectedItems();
+        }
+        private void clearAvailableSubmitters() {
+            submittersSelectionLists.clearAvailableItems();
         }
     }
 
     private class FlowbinderFlowPanel extends HorizontalPanel {
-        private final ListBox svnRevision = new ListBox();
+        private final ListBox flow = new ListBox();
 
         public FlowbinderFlowPanel() {
             super();
             add(new Label(FLOWBINDER_CREATION_FLOW_LABEL));
             getElement().setId(GUIID_FLOWBINDER_CREATION_FLOW_PANEL);
-            svnRevision.getElement().setId(GUIID_FLOWBINDER_CREATION_FLOW_LIST_BOX);
-            add(svnRevision);
-            svnRevision.setEnabled(false);
-            svnRevision.addChangeHandler(new ChangeHandler() {
+            flow.getElement().setId(GUIID_FLOWBINDER_CREATION_FLOW_LIST_BOX);
+            add(flow);
+            flow.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
 //                    svnRevisionChanged();
                 }
             });
+        }
+        private void setAvailableFlow(String flowName, String key) {
+            flow.addItem(flowName, key);
+        }
+        private String getSelectedFlow() {
+            int selectedItemIndex = flow.getSelectedIndex();
+            if (selectedItemIndex < 0) {
+                return "";
+            }
+            return flow.getItemText(selectedItemIndex);
         }
     }
 
@@ -248,25 +316,28 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private class SaveButtonHandler implements ClickHandler {
         @Override
         public void onClick(ClickEvent event) {
-//            final String nameValue = flowbinderNamePanel.getText();
-//            final String numberValue = flowbinderNumberPanel.getText();
-//            final String descriptionValue = flowbinderDescriptionPanel.getText();
-//            final String validationError = validateFields(nameValue, numberValue, descriptionValue);
-//            if (!validationError.isEmpty()) {
-//                Window.alert(validationError);
-//            } else {
-//                presenter.saveFlowbinder(nameValue, numberValue, descriptionValue);
-//            }
+            final String name = flowbinderNamePanel.getText();
+            final String frameFormat = flowbinderFramePanel.getText();
+            final String contentFormat = flowbinderContentFormatPanel.getText();
+            final String characterSet = flowbinderCharacterSetPanel.getText();
+            final String sink = flowbinderSinkPanel.getText();
+            final String recordSplitter = flowbinderRecordSplitterPanel.getText();
+            final Collection<Map.Entry<String, String>> submitters = flowbinderSubmittersPanel.getSelectedSubmitters();
+            final String flow = flowbinderFlowPanel.getSelectedFlow();
+            
+            final String validationError = validateFields(name, frameFormat, contentFormat, characterSet, sink, recordSplitter, submitters, flow);
+            if (!validationError.isEmpty()) {
+                Window.alert(validationError);
+            } else {
+                presenter.saveFlowbinder(name, frameFormat, contentFormat, characterSet, sink, recordSplitter);
+            }
         }
 
-        private String validateFields(final String nameValue, final String numberValue, final String descriptionValue) {
-            if (nameValue.isEmpty() || numberValue.isEmpty() || descriptionValue.isEmpty()) {
+        private String validateFields(final String name, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter, 
+                                      final Collection<Map.Entry<String, String>> submitters, final String flow) {
+            if (name.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || sink.isEmpty() || recordSplitter.isEmpty() ||
+                submitters.isEmpty() || flow.isEmpty()) {
                 return FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
-            }
-            try {
-                Long.valueOf(numberValue);
-            } catch (NumberFormatException e) {
-                return FLOWBINDER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR;
             }
             return "";
         }

@@ -141,8 +141,9 @@
           </execution>
         </executions>
         <configuration>
-	        <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty}</extraJvmArgs>
+	  <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty}</extraJvmArgs>
           <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
+          <localWorkers>1</localWorkers>
         </configuration>
       </plugin>
 

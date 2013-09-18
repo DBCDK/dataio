@@ -8,6 +8,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import dk.dbc.dataio.engine.Flow;
+import dk.dbc.dataio.engine.FlowBinderContent;
 import dk.dbc.dataio.engine.FlowComponent;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
@@ -26,6 +27,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     private static final String FLOWS_ENTRY_POINT = "flows";
+    private static final String BINDERS_ENTRY_POINT = "binders";
     private static final String COMPONENTS_ENTRY_POINT = "components";
     private static final String SUBMITTERS_ENTRY_POINT = "submitters";
     private final WebResource webResource;
@@ -73,6 +75,26 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                 case CONFLICT: errorCode = FlowStoreProxyError.KEY_CONFLICT;
                     break;
                 case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.DATA_NOT_ACCEPTABLE;
+                    break;
+                default: errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
+                    break;
+            }
+            throw new FlowStoreProxyException(errorCode, response.getEntity(String.class));
+        }
+    }
+
+    @Override
+    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
+        final ClientResponse response = webResource.path(BINDERS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowBinderContent);
+        final ClientResponse.Status status = response.getClientResponseStatus();
+        if (status != ClientResponse.Status.CREATED) {
+            final FlowStoreProxyError errorCode;
+            switch (status) {
+                case CONFLICT: errorCode = FlowStoreProxyError.KEY_CONFLICT;
+                    break;
+                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.DATA_NOT_ACCEPTABLE;
+                    break;
+                case GONE: errorCode = FlowStoreProxyError.ENTITY_GONE;
                     break;
                 default: errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
                     break;

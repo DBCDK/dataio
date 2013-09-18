@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.engine.Flow;
+import dk.dbc.dataio.engine.FlowBinderContent;
 import dk.dbc.dataio.engine.FlowComponent;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
@@ -42,6 +43,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
         flowStoreProxy.createSubmitter(submitterContent);
+    }
+
+    @Override
+    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
+        flowStoreProxy.createFlowBinder(flowBinderContent);
     }
 
     @Override

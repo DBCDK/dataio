@@ -8,8 +8,6 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.engine.Flow;
 import dk.dbc.dataio.engine.FlowBinderContent;
 import dk.dbc.dataio.engine.Submitter;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -91,6 +89,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
                         availableFlows.put(key, flow);
                         flowbinderCreateView.setAvailableFlow(key, flow.getContent().getName());
                     } catch (Exception e) {
+                        flowbinderCreateView.displayError(e.getClass().getName() + " - " + e.getMessage());
                     }
                 }
             }
@@ -98,27 +97,25 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     }
 
     @Override
-    public void saveFlowbinder(String name, String frameFormat, String contentFormat, String characterSet, String sink, String recordSplitter) {
-        List<Submitter> submitters = new ArrayList<Submitter>();
+    public void saveFlowbinder(String name, String description, String frameFormat, String contentFormat, String characterSet, String sink, String recordSplitter) {
+        final long flowId = availableFlows.get(flowbinderCreateView.getSelectedFlow()).getId();
+        final List<Long> submitterIds = new ArrayList<Long>();
         for (String submitterName: flowbinderCreateView.getSelectedSubmitters()) {
-            submitters.add(availableSubmitters.get(submitterName));
+            submitterIds.add(availableSubmitters.get(submitterName).getId());
         }
-//        FlowBinderContent flowbinderContent = FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, Long flowId, List<Long> submitterIds);
-//        flowStoreProxy.createFlowBinder(null, null);
-        
-//        final SubmitterContent submitterContent = new SubmitterContent(Long.valueOf(number), name, description);
-
-//        flowStoreProxy.createSubmitter(submitterContent, new AsyncCallback<Void>() {
-//            @Override
-//            public void onFailure(Throwable e) {
-//                submitterCreateView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
-//            }
-//
-//            @Override
-//            public void onSuccess(Void aVoid) {
-//                submitterCreateView.onSaveSubmitterSuccess();
-//            }
-//        });
+        FlowBinderContent flowbinderContent = new FlowBinderContent(name, description, frameFormat, contentFormat, characterSet, sink, recordSplitter, flowId, submitterIds);
+        flowStoreProxy.createFlowBinder(flowbinderContent, new AsyncCallback<Void>() {
+            @Override
+            public void onFailure(Throwable e) {
+                flowbinderCreateView.displayError(e.getClass().getName() + " - " + e.getMessage());
+                Window.alert("FB Fejl");
+            }
+            @Override
+            public void onSuccess(Void result) {
+                flowbinderCreateView.onSaveSubmitterSuccess();
+                Window.alert("FB Success");
+            }
+        });
     }
 
 }

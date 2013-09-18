@@ -37,22 +37,26 @@ import java.util.Map;
 public class ITUtil {
     public static final String FLOWS_TABLE_NAME = "flows";
     public static final String FLOW_COMPONENTS_TABLE_NAME = "flow_components";
+    public static final String FLOW_BINDERS_TABLE_NAME = "flow_binders";
+    public static final String FLOW_BINDERS_SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
+    public static final String FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME = "flow_binders_search_index";
     public static final String SUBMITTERS_TABLE_NAME = "submitters";
 
     public static final String FLOWS_URL_PATH = "flows";
     public static final String FLOW_COMPONENTS_URL_PATH = "components";
+    public static final String FLOW_BINDERS_URL_PATH = "binders";
     public static final String SUBMITTERS_URL_PATH = "submitters";
 
     public static final String FLOWS_TABLE_INSERT_STMT = String.format(
             "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOWS_TABLE_NAME);
     public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=? AND version=?", FLOWS_TABLE_NAME);
+    public static final String FLOW_BINDERS_TABLE_SELECT_CONTENT_STMT = String.format(
+            "SELECT content FROM %s WHERE id=?", FLOW_BINDERS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_INSERT_STMT = String.format(
             "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOW_COMPONENTS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=? AND version=?", FLOW_COMPONENTS_TABLE_NAME);
-    public static final String SUBMITTERS_TABLE_INSERT_STMT = String.format(
-            "INSERT INTO %s (id, version, content, name_idx, number_idx) VALUES (?,?,?,?,?)", SUBMITTERS_TABLE_NAME);
     public static final String SUBMITTERS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", SUBMITTERS_TABLE_NAME);
 
@@ -83,20 +87,28 @@ public class ITUtil {
     }
 
     /**
-     * Inserts new submitter row in flow-store database
+     * Deletes all rows from all flow store database tables
      *
      * @param conn open database connection
-     * @param id submitter id
-     * @param version submitter version
-     * @param content submitter content as JSON string
-     * @param nameIdx submitter name index value
-     * @param numberIdx submitter number index value
-     *
-     * @throws SQLException
      */
-    public static void insertSubmitter(Connection conn, long id, long version, String content, String nameIdx, long numberIdx)
-            throws SQLException {
-        JDBCUtil.update(conn, SUBMITTERS_TABLE_INSERT_STMT, id, version, content, nameIdx, numberIdx);
+    public static void clearAllDbTables(Connection conn) throws SQLException {
+        clearDbTables(conn,
+                FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME,
+                FLOW_BINDERS_SUBMITTER_JOIN_TABLE_NAME,
+                FLOW_BINDERS_TABLE_NAME,
+                FLOW_COMPONENTS_TABLE_NAME,
+                FLOWS_TABLE_NAME,
+                SUBMITTERS_TABLE_NAME);
+    }
+
+    public static long createSubmitter(Client restClient, String baseUrl, String content) {
+        return getResourceIdFromLocationHeaderAndAssertHasValue(
+                doPostWithJson(restClient, content, baseUrl, ITUtil.SUBMITTERS_URL_PATH));
+    }
+
+    public static long createFlowBinder(Client restClient, String baseUrl, String content) {
+        return getResourceIdFromLocationHeaderAndAssertHasValue(
+                doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH));
     }
 
     /**
@@ -326,6 +338,54 @@ public class ITUtil {
             checkout.run();
         } finally {
             svnOperationFactory.dispose();
+        }
+    }
+
+    /**
+     * Abstract base class for JSON content builders
+     */
+    public abstract static class JsonContentBuilder {
+        protected static final String MEMBER_DELIMITER = ", ";
+        protected static final String NULL_VALUE = "null";
+        protected static final String START_ARRAY = "[";
+        protected static final String END_ARRAY = "]";
+        protected static final String START_OBJECT = "{";
+        protected static final String END_OBJECT = "}";
+
+        protected String asTextMember(String memberName, String memberValue) {
+            if (memberValue == null) {
+                return String.format("\"%s\": null", memberName);
+            } else {
+                return String.format("\"%s\": \"%s\"", memberName, memberValue);
+            }
+        }
+
+        protected String asLongMember(String memberName, Long memberValue) {
+            String memberValueAsString = NULL_VALUE;
+            if (memberValue != null) {
+                memberValueAsString = Long.toString(memberValue);
+            }
+            return String.format("\"%s\": %s", memberName, memberValueAsString);
+        }
+
+        protected String asLongArray(String memberName, List<Long> memberValues) {
+            String memberValuesAsString = NULL_VALUE;
+            if (memberValues !=  null) {
+                memberValuesAsString = String.format("%s%s%s", START_ARRAY, joinLongs(",", memberValues), END_ARRAY);
+            }
+            return String.format("\"%s\": %s", memberName, memberValuesAsString);
+        }
+
+        protected String joinLongs(final String delimiter, List<Long> ids) {
+            final StringBuilder stringbuilder = new StringBuilder();
+            for (Long id : ids) {
+                String idAsString = NULL_VALUE;
+                if (id != null) {
+                    idAsString = Long.toString(id);
+                }
+                stringbuilder.append(idAsString).append(delimiter);
+            }
+            return stringbuilder.toString().replaceFirst(String.format("%s$", delimiter), "");
         }
     }
 

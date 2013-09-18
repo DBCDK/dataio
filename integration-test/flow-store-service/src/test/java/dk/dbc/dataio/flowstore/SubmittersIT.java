@@ -15,7 +15,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.doGet;
 import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
@@ -46,7 +47,7 @@ public class SubmittersIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables(dbConnection, ITUtil.SUBMITTERS_TABLE_NAME);
+        clearAllDbTables(dbConnection);
     }
 
     /**
@@ -59,7 +60,7 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_Ok() throws SQLException {
         // When...
-        final String submitterContent = "{\"name\": \"testName\", \"number\": 42}";
+        final String submitterContent = new SubmitterJsonContentBuilder().build();
         final Response response = doPostWithJson(restClient, submitterContent, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
@@ -98,13 +99,15 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateName() throws Exception {
         // Given...
-        final String name = "name";
-        final String submitterContent1 = String.format("{\"name\": \"%s\", \"number\": 1}", name);
-        final String submitterContent2 = String.format("{\"name\": \"%s\", \"number\": 2}", name);
-
-        ITUtil.insertSubmitter(dbConnection, 1, 1, submitterContent1, name, 1);
+        final String submitterContent1 = new SubmitterJsonContentBuilder()
+                .setNumber(1L)
+                .build();
+        createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
+        final String submitterContent2 = new SubmitterJsonContentBuilder()
+                .setNumber(2L)
+                .build();
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
@@ -119,13 +122,15 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateNumber() throws Exception {
         // Given...
-        final long number = 42;
-        final String submitterContent1 = String.format("{\"name\": \"test1\", \"number\": %d}", number);
-        final String submitterContent2 = String.format("{\"name\": \"test2\", \"number\": %d}", number);
-
-        ITUtil.insertSubmitter(dbConnection, 1, 1, submitterContent1, "test1", number);
+        final String submitterContent1 = new SubmitterJsonContentBuilder()
+                .setName("test1")
+                .build();
+        createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
+        final String submitterContent2 = new SubmitterJsonContentBuilder()
+                .setName("test2")
+                .build();
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
@@ -162,14 +167,23 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
-        final String submitterContent = "{}";
-        final long sortsFirst = 1;
-        final long sortsSecond = 2;
-        final long sortsThird = 3;
+        String submitterContent = new SubmitterJsonContentBuilder()
+                .setName("c")
+                .setNumber(1L)
+                .build();
+        final long sortsThird = createSubmitter(restClient, baseUrl, submitterContent);
 
-        ITUtil.insertSubmitter(dbConnection, sortsThird, 1, submitterContent, "c", 1);
-        ITUtil.insertSubmitter(dbConnection, sortsFirst, 1, submitterContent, "a", 2);
-        ITUtil.insertSubmitter(dbConnection, sortsSecond, 1, submitterContent, "b", 3);
+        submitterContent = new SubmitterJsonContentBuilder()
+                .setName("a")
+                .setNumber(2L)
+                .build();
+        final long sortsFirst = createSubmitter(restClient, baseUrl, submitterContent);
+
+        submitterContent = new SubmitterJsonContentBuilder()
+                .setName("b")
+                .setNumber(3L)
+                .build();
+        final long sortsSecond = createSubmitter(restClient, baseUrl, submitterContent);
 
         // When...
         final Response response = doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
@@ -185,5 +199,36 @@ public class SubmittersIT {
         assertThat(responseContentNode.get(0).get("id").getLongValue(), is(sortsFirst));
         assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond));
         assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
+    }
+
+    public static class SubmitterJsonContentBuilder extends ITUtil.JsonContentBuilder {
+        private String name = "name";
+        private String description = "description";
+        private Long number = 42L;
+
+        public SubmitterJsonContentBuilder setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public SubmitterJsonContentBuilder setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public SubmitterJsonContentBuilder setNumber(Long number) {
+            this.number = number;
+            return this;
+        }
+
+        public String build() {
+            final StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(START_OBJECT);
+            stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("description", description)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asLongMember("number", number));
+            stringBuilder.append(END_OBJECT);
+            return stringBuilder.toString();
+        }
     }
 }

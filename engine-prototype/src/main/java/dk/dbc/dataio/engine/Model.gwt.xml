@@ -1,6 +1,8 @@
 <module>
   <source path="">
     <include name="**/Flow.java"/>
+    <include name="**/FlowBinder.java"/>
+    <include name="**/FlowBinderContent.java"/>
     <include name="**/FlowContent.java"/>
     <include name="**/FlowComponent.java"/>
     <include name="**/FlowComponentContent.java"/>

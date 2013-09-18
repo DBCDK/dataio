@@ -6,6 +6,9 @@
   <persistence-unit name="flowStorePU" transaction-type="JTA">
     <jta-data-source>jdbc/flowStoreDb</jta-data-source>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
+    <!--
+    <shared-cache-mode>NONE</shared-cache-mode>
+    -->
     <properties>
       <property name="eclipselink.ddl-generation" value="create-tables"/>
       <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>

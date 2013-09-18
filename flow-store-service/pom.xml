@@ -43,6 +43,24 @@
       <artifactId>jackson-jaxrs</artifactId>
       <version>1.9.12</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-invariant</artifactId>
+      <version>${version}</version>
+    </dependency>
+    <dependency>
+      <groupId>nl.jqno.equalsverifier</groupId>
+      <artifactId>equalsverifier</artifactId>
+      <version>1.2</version>
+      <scope>test</scope>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>9.1-901.jdbc4</version>
+    </dependency>
+    -->
 
   </dependencies>
 

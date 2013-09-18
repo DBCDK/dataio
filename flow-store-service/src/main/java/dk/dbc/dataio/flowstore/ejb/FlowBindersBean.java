@@ -7,8 +7,6 @@ import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.exception.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import dk.dbc.dataio.flowstore.util.json.JsonException;
-import dk.dbc.dataio.flowstore.util.json.JsonUtil;
-import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +59,6 @@ public class FlowBindersBean {
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderData) throws JsonException, ReferencedEntityNotFoundException {
         log.trace("Called with: '{}'", flowBinderData);
-        final JsonNode json = JsonUtil.getJsonRoot(flowBinderData);
 
         /* ATTENTION:
            Below we rely on the transactional integrity provided by the underlying relational

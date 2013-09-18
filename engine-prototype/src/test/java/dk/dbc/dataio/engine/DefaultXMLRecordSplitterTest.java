@@ -2,25 +2,15 @@ package dk.dbc.dataio.engine;
 
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import javax.xml.stream.XMLStreamException;
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
-import org.junit.Ignore;
-
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 public class DefaultXMLRecordSplitterTest {
 
-    private XLogger log = XLoggerFactory.getXLogger(DefaultXMLRecordSplitterTest.class);
-
-    static {
-        org.apache.log4j.BasicConfigurator.configure();
-    }
     private static final String UTF8_CHARSET = "UTF-8";
 
     @Test(expected = NullPointerException.class)

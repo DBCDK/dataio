@@ -6,6 +6,7 @@ import dk.dbc.dataio.engine.FlowBinderContent;
 import dk.dbc.dataio.engine.FlowComponent;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
+import dk.dbc.dataio.engine.Submitter;
 import dk.dbc.dataio.engine.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
@@ -54,7 +55,12 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     public List<FlowComponent> findAllComponents() {
         return flowStoreProxy.findAllComponents();
     }
-    
+
+    @Override
+    public List<Submitter> findAllSubmitters() {
+        return flowStoreProxy.findAllSubmitters();
+    }
+
     @Override
     public List<Flow> findAllFlows() throws Exception {
         return flowStoreProxy.findAllFlows();

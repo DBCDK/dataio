@@ -12,6 +12,7 @@ import dk.dbc.dataio.engine.FlowBinderContent;
 import dk.dbc.dataio.engine.FlowComponent;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
+import dk.dbc.dataio.engine.Submitter;
 import dk.dbc.dataio.engine.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
@@ -110,6 +111,15 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new IllegalStateException(response.getEntity(String.class));
         }
         return response.getEntity(new GenericType<List<FlowComponent>>() { });
+    }
+
+    @Override
+    public List<Submitter> findAllSubmitters() {
+        final ClientResponse response = webResource.path(SUBMITTERS_ENTRY_POINT).get(ClientResponse.class);
+        if (response.getClientResponseStatus() != ClientResponse.Status.OK) {
+            throw new IllegalStateException(response.getEntity(String.class));
+        }
+        return response.getEntity(new GenericType<List<Submitter>>() { });
     }
 
     @Override

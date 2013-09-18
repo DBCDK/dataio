@@ -8,6 +8,7 @@ import dk.dbc.dataio.engine.FlowBinderContent;
 import dk.dbc.dataio.engine.FlowComponent;
 import dk.dbc.dataio.engine.FlowComponentContent;
 import dk.dbc.dataio.engine.FlowContent;
+import dk.dbc.dataio.engine.Submitter;
 import dk.dbc.dataio.engine.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 
@@ -25,6 +26,8 @@ public interface FlowStoreProxy extends RemoteService {
     void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException;
 
     List<FlowComponent> findAllComponents();
+
+    List<Submitter> findAllSubmitters();
 
     List<Flow> findAllFlows() throws Exception;
     

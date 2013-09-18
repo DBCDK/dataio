@@ -169,7 +169,9 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
         try {
             return xmlReader.peek().getEventType() == XMLEvent.START_ELEMENT;
         } catch (XMLStreamException ex) {
-            throw new IllegalDataException("Could not peek at next event", ex);
+            String errMsg = "Could not peek at next event";
+            log.error(errMsg, ex);
+            throw new IllegalDataException(errMsg, ex);
         }
     }
 
@@ -177,7 +179,9 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
         try {
             return xmlReader.peek().getEventType() == XMLEvent.END_ELEMENT;
         } catch (XMLStreamException ex) {
-            throw new IllegalDataException("Could not peek at next event", ex);
+            String errMsg = "Could not peek at next event";
+            log.error(errMsg, ex);
+            throw new IllegalDataException(errMsg, ex);
         }
     }
 

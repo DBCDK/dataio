@@ -160,4 +160,20 @@ public class DefaultXMLRecordSplitterTest {
         assertThat(it.hasNext(), is(true));
         it.next();
     }
+
+    @Test
+    public void testRootTagNameWitNamespacePrefix() throws UnsupportedEncodingException, IllegalDataException, XMLStreamException {
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                + "<ns:test xmlns:ns=\"http://uri\">"
+                + "<child1>æøå</child1>"
+                + "</ns:test>";
+
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
+        Iterator<String> it = xmlRecordSplitter.iterator();
+
+        assertThat(it.hasNext(), is(true));
+        assertThat(it.next(), is(xml));
+        assertThat(it.hasNext(), is(false));
+
+    }
 }

@@ -379,10 +379,7 @@ public class ITUtil {
         protected String joinLongs(final String delimiter, List<Long> ids) {
             final StringBuilder stringbuilder = new StringBuilder();
             for (Long id : ids) {
-                String idAsString = NULL_VALUE;
-                if (id != null) {
-                    idAsString = Long.toString(id);
-                }
+                String idAsString = (id != null) ? Long.toString(id) : NULL_VALUE;
                 stringbuilder.append(idAsString).append(delimiter);
             }
             return stringbuilder.toString().replaceFirst(String.format("%s$", delimiter), "");

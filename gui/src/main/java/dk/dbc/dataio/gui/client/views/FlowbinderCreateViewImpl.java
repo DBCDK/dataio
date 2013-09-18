@@ -11,15 +11,11 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.components.Tooltip;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
-import static dk.dbc.dataio.gui.client.views.FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA;
-import static dk.dbc.dataio.gui.client.views.FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL;
-import static dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_WIDGET;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -38,7 +34,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public static final String FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL = "Recordsplitter";
     public static final String FLOWBINDER_CREATION_SUBMITTERS_LABEL = "Submittere";
     public static final String FLOWBINDER_CREATION_FLOW_LABEL = "Flow";
-
+    public static final String GUIID_FLOWBINDER_CREATION_WIDGET = "flowbindercreationwidget";
     public static final String GUIID_FLOWBINDER_CREATION_NAME_PANEL = "flowbindercreationnamepanel";
     public static final String GUIID_FLOWBINDER_CREATION_NAME_TEXT_BOX = "flowbindercreationnametextbox";
     public static final String GUIID_FLOWBINDER_CREATION_FRAME_PANEL = "flowbindercreationframepanel";
@@ -57,7 +53,6 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_PANEL = "flowbindercreationsavepanel";
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_BUTTON = "flowbindercreationsavebutton";
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL = "flowbindercreationsaveresultlabel";
-
     // Local variables
     private FlowbinderCreatePresenter presenter;
     private final FlowbinderNamePanel flowbinderNamePanel = new FlowbinderNamePanel();
@@ -70,9 +65,8 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final FlowbinderFlowPanel flowbinderFlowPanel = new FlowbinderFlowPanel();
     private final FlowbinderSavePanel flowbinderSavePanel = new FlowbinderSavePanel();
 
-
     public FlowbinderCreateViewImpl() {
-        getElement().setId(GUIID_SUBMITTER_CREATION_WIDGET);
+        getElement().setId(GUIID_FLOWBINDER_CREATION_WIDGET);
         add(flowbinderNamePanel);
         add(flowbinderFramePanel);
         add(flowbinderContentFormatPanel);
@@ -102,7 +96,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     @Override
     public void refresh() {
     }
-    
+
     @Override
     public void setAvailableFlow(String key, String flow) {
         flowbinderFlowPanel.setAvailableFlow(flow, key);
@@ -112,7 +106,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public String getSelectedFlow() {
         return flowbinderFlowPanel.getSelectedFlow();
     }
-    
+
     @Override
     public void clearAvailableSubmitters() {
         flowbinderSubmittersPanel.clearAvailableSubmitters();
@@ -134,7 +128,9 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     }
 
     private class FlowbinderNamePanel extends HorizontalPanel {
+
         private final TextBox textBox = new TextBox();
+
         public FlowbinderNamePanel() {
             super();
             add(new Label(FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL));
@@ -143,6 +139,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
         }
+
         public String getText() {
             return textBox.getValue();
         }
@@ -169,9 +166,10 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 //            }
 //        }
 //    }
-
     private class FlowbinderFramePanel extends HorizontalPanel {
+
         private final TextBox textBox = new TextBox();
+
         public FlowbinderFramePanel() {
             super();
             add(new Label(FLOWBINDER_CREATION_FRAMEFORMAT_LABEL));
@@ -181,13 +179,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             add(textBox);
             new Tooltip(textBox, "Rammeformat: Teknisk formatprotokol til brug for udveksling af data. Eksempelvis dm2iso, dm2lin, xml, csv, m.v.");
         }
+
         public String getText() {
             return textBox.getValue();
         }
     }
 
     private class FlowbinderContentFormatPanel extends HorizontalPanel {
+
         private final TextBox textBox = new TextBox();
+
         public FlowbinderContentFormatPanel() {
             super();
             add(new Label(FLOWBINDER_CREATION_CONTENTFORMAT_LABEL));
@@ -197,13 +198,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             add(textBox);
             new Tooltip(textBox, "Indholdsformat: Bibliografisk format, f.eks. dbc, dfi, dkbilled, dsd, ebogsbib, ebrary, mv.");
         }
+
         public String getText() {
             return textBox.getValue();
         }
     }
 
     private class FlowbinderCharacterSetPanel extends HorizontalPanel {
+
         private final TextBox textBox = new TextBox();
+
         public FlowbinderCharacterSetPanel() {
             super();
             add(new Label(FLOWBINDER_CREATION_CHARACTERSET_LABEL));
@@ -213,13 +217,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             add(textBox);
             new Tooltip(textBox, "Tegnsæt: F.eks. utf8, latin-1, samkat, m.v.");
         }
+
         public String getText() {
             return textBox.getValue();
         }
     }
 
     private class FlowbinderSinkPanel extends HorizontalPanel {
+
         private final TextBox textBox = new TextBox();
+
         public FlowbinderSinkPanel() {
             super();
             add(new Label(FLOWBINDER_CREATION_SINK_LABEL));
@@ -228,13 +235,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
         }
+
         public String getText() {
             return textBox.getValue();
         }
     }
 
     private class FlowbinderRecordSplitterPanel extends HorizontalPanel {
+
         private final TextBox textBox = new TextBox();
+
         public FlowbinderRecordSplitterPanel() {
             super();
             add(new Label(FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL));
@@ -243,33 +253,41 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
         }
+
         public String getText() {
             return textBox.getValue();
         }
     }
 
     private class FlowbinderSubmittersPanel extends HorizontalPanel {
+
         private final DualList submittersSelectionLists = new DualList();
+
         public FlowbinderSubmittersPanel() {
             add(new Label(FLOWBINDER_CREATION_SUBMITTERS_LABEL));
             getElement().setId(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL);
             add(submittersSelectionLists);
         }
+
         private void clearItems() {
             submittersSelectionLists.clear();
         }
+
         private void addAvailableSubmitter(String key, String value) {
             submittersSelectionLists.addAvailableItem(key, value);
         }
+
         private Collection<Map.Entry<String, String>> getSelectedSubmitters() {
             return submittersSelectionLists.getSelectedItems();
         }
+
         private void clearAvailableSubmitters() {
             submittersSelectionLists.clearAvailableItems();
         }
     }
 
     private class FlowbinderFlowPanel extends HorizontalPanel {
+
         private final ListBox flow = new ListBox();
 
         public FlowbinderFlowPanel() {
@@ -285,9 +303,11 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
                 }
             });
         }
+
         private void setAvailableFlow(String flowName, String key) {
             flow.addItem(flowName, key);
         }
+
         private String getSelectedFlow() {
             int selectedItemIndex = flow.getSelectedIndex();
             if (selectedItemIndex < 0) {
@@ -298,8 +318,10 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     }
 
     private class FlowbinderSavePanel extends HorizontalPanel {
+
         private final Button flowbinderSaveButton = new Button("Gem");
         private final Label flowbinderSaveResultLabel = new Label("");
+
         public FlowbinderSavePanel() {
             flowbinderSaveResultLabel.getElement().setId(GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL);
             add(flowbinderSaveResultLabel);
@@ -308,12 +330,14 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             flowbinderSaveButton.addClickHandler(new SaveButtonHandler());
             add(flowbinderSaveButton);
         }
+
         public void setStatusText(String statusText) {
             flowbinderSaveResultLabel.setText(statusText);
         }
     }
 
     private class SaveButtonHandler implements ClickHandler {
+
         @Override
         public void onClick(ClickEvent event) {
             final String name = flowbinderNamePanel.getText();
@@ -324,7 +348,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             final String recordSplitter = flowbinderRecordSplitterPanel.getText();
             final Collection<Map.Entry<String, String>> submitters = flowbinderSubmittersPanel.getSelectedSubmitters();
             final String flow = flowbinderFlowPanel.getSelectedFlow();
-            
+
             final String validationError = validateFields(name, frameFormat, contentFormat, characterSet, sink, recordSplitter, submitters, flow);
             if (!validationError.isEmpty()) {
                 Window.alert(validationError);
@@ -333,10 +357,10 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             }
         }
 
-        private String validateFields(final String name, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter, 
-                                      final Collection<Map.Entry<String, String>> submitters, final String flow) {
-            if (name.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || sink.isEmpty() || recordSplitter.isEmpty() ||
-                submitters.isEmpty() || flow.isEmpty()) {
+        private String validateFields(final String name, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter,
+                final Collection<Map.Entry<String, String>> submitters, final String flow) {
+            if (name.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || sink.isEmpty() || recordSplitter.isEmpty()
+                    || submitters.isEmpty() || flow.isEmpty()) {
                 return FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
             }
             return "";
@@ -344,6 +368,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     }
 
     private class InputFieldKeyDownHandler implements KeyDownHandler {
+
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
             flowbinderSavePanel.setStatusText("");

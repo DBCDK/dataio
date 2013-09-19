@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
@@ -94,6 +96,10 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
         return selectedItems;
     }
 
+    private void changeDetected() {
+        flowSavePanel.setStatusText("");
+    }
+
     private class FlowNamePanel extends HorizontalPanel {
 
         private final TextBox textBox = new TextBox();
@@ -138,9 +144,8 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
             }
         }
     }
-
     
-    private static class FlowComponentSelectionPanel extends HorizontalPanel {
+    private class FlowComponentSelectionPanel extends HorizontalPanel {
 
         private final DualList flowComponentSelectionLists = new DualList();
     
@@ -148,7 +153,12 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
             add(new Label("Flow komponenter"));
             getElement().setId(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
             add(flowComponentSelectionLists);
-//            flowComponentSelectionLists
+            flowComponentSelectionLists.addChangeHandler(new ChangeHandler() {
+                @Override
+                public void onChange(ChangeEvent event) {
+                    changeDetected();
+                }
+            });
         }
 
         private void clearItems() {
@@ -163,8 +173,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
             return flowComponentSelectionLists.getSelectedItems();
         }
     }
-    
-    
+        
     private class FlowSavePanel extends HorizontalPanel {
 
         private final Button flowSaveButton = new Button("Gem");
@@ -199,10 +208,9 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     }
 
     private class InputFieldKeyDownHandler implements KeyDownHandler {
-
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
-            flowSavePanel.setStatusText("");
+            changeDetected();
         }
     }
 }

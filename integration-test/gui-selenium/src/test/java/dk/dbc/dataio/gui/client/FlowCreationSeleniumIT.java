@@ -3,13 +3,11 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
-import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -29,6 +27,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import org.junit.Ignore;
 
 public class FlowCreationSeleniumIT {
 
@@ -128,20 +127,20 @@ public class FlowCreationSeleniumIT {
         assertEquals(true, element.isDisplayed());
     }
 
-    @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest
+    @Ignore
     @Test
     public void testFlowCreationFlowComponentSelectionField_InsertAndRead() throws IOException, InterruptedException {
-        //FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 1", "Script 1", "Invocation Method 1");
-        //FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 2", "Script 2", "Invocation Method 2");
-        //lowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 3", "Script 3", "Invocation Method 3");
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, "Componentname 1");
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, "Componentname 2");
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, "Componentname 3");
 
         navigateToFlowCreationContext();
-//        WebElement buttonLeft2Right = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));   NB: Skal laves på en anden måde - GUIID eksisterer ikke længere
+        WebElement buttonLeft2Right = driver.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS));
 
         Select list = new Select(driver.findElement(By.tagName("select")));
         list.selectByIndex(0);
         list.selectByIndex(1);
-//        buttonLeft2Right.click();  NB: Se kommentar længere oppe
+        buttonLeft2Right.click();
 
         List<WebElement> selectedItems = driver.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
         assertEquals("Componentname 1", selectedItems.get(0).getText());

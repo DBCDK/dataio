@@ -108,12 +108,10 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
             @Override
             public void onFailure(Throwable e) {
                 flowbinderCreateView.displayError(e.getClass().getName() + " - " + e.getMessage());
-                Window.alert("FB Fejl");
             }
             @Override
             public void onSuccess(Void result) {
                 flowbinderCreateView.onSaveSubmitterSuccess();
-                Window.alert("FB Success");
             }
         });
     }

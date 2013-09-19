@@ -113,11 +113,17 @@ public class FlowBinderCreationSeleniumIT {
         assertDualListIsVisibleAndElementCanBeChosen(driver, findSubmitterPanelElement(), submitterName);
     }
 
-    @Ignore
     @Test
     public void test() {
         FlowCreationSeleniumIT.createTestFlow(driver, "name", "description", "flowComponent1");
-    }
+
+        navigateToFlowbinderCreationContext();
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ex) {
+        }
+}
 
     // done:
     // test recordsplitter text box : visibility/read/NOT write
@@ -199,19 +205,6 @@ public class FlowBinderCreationSeleniumIT {
         return findElementInCurrentView(driver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL);
     }
 
-    // todo: Fix this method to be more generel!
-    private void assertDualListIsVisibleAndElementCanBeChosen(WebDriver webDriver, WebElement dualListElement, String submitterName) {
-        assertThat(dualListElement.isDisplayed(), is(true));
-
-        WebElement buttonLeft2Right = dualListElement.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS + ""));
-        Select list = new Select(dualListElement.findElement(By.tagName("select")));
-        list.selectByIndex(0);
-        buttonLeft2Right.click();
-
-        List<WebElement> selectedItems = dualListElement.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
-        assertThat(selectedItems.get(0).getText(), is(submitterName));
-    }
-
     /**
      * The following is static public helper methods - they should probably be
      * moved to a helper-class.
@@ -228,7 +221,7 @@ public class FlowBinderCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    public void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(WebElement element, int maxSizeOfText) {
+    public static void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(WebElement element, int maxSizeOfText) {
         final String testSubText = "æøå ÆØÅ ";
 
         assertEquals(true, element.isDisplayed());
@@ -243,5 +236,17 @@ public class FlowBinderCreationSeleniumIT {
 
         element.sendKeys(testText);
         assertThat(element.getAttribute("value"), is(testText.substring(0, maxSizeOfText)));
+    }
+
+    public static void assertDualListIsVisibleAndElementCanBeChosen(WebDriver webDriver, WebElement dualListElement, String submitterName) {
+        assertThat(dualListElement.isDisplayed(), is(true));
+
+        WebElement buttonLeft2Right = dualListElement.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS + ""));
+        Select list = new Select(dualListElement.findElement(By.tagName("select")));
+        list.selectByIndex(0);
+        buttonLeft2Right.click();
+
+        List<WebElement> selectedItems = dualListElement.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
+        assertThat(selectedItems.get(0).getText(), is(submitterName));
     }
 }

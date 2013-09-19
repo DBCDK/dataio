@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
+import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -245,16 +246,21 @@ public class FlowCreationSeleniumIT {
      * Creates a new Flow with the given values - NOTE: It is the callers
      * responsibility to create a flow-component beforehand with the given name.
      */
+    private static void waitForSuccessfulSave(WebDriver webDriver) {
+        WebDriverWait wait = new WebDriverWait(webDriver, 4);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL), FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
+    }
+
     public static boolean createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
         webDriver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION)).click();
         webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX)).sendKeys(name);
+
+        // todo: Add selection of chosen flowComponent in duallist.
         webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA)).sendKeys(description);
         webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON)).click();
 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException ex) {
-        }
-        return true;
+        waitForSuccessfulSave(webDriver);
+
+        return webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL)).getText().equals(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 }

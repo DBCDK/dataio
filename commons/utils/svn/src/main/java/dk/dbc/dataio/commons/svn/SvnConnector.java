@@ -109,7 +109,7 @@ public class SvnConnector {
      */
     public static List<String> listAvailablePaths(final String projectUrl, final long revision)
             throws NullPointerException, IllegalArgumentException, SVNException, URISyntaxException {
-        log.debug("Listing available paths for URL '{}'", projectUrl);
+        log.debug("Listing available paths for revision {} URL '{}'", revision, projectUrl);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectUrl, "projectUrl");
 
         final String[] urlParts = projectUrl.split("/");
@@ -145,7 +145,7 @@ public class SvnConnector {
      */
     public static void export(final String projectUrl, final long revision, final Path exportTo)
             throws NullPointerException, IllegalArgumentException, SVNException, URISyntaxException {
-        log.debug("Exporting URL '{}' to '{}'", projectUrl, exportTo);
+        log.debug("Exporting revision {} of URL '{}' to '{}'", revision, projectUrl, exportTo);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectUrl, "projectUrl");
         InvariantUtil.checkNotNullOrThrow(exportTo, "exportTo");
 

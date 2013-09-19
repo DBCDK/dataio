@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.client.components;
 
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -20,12 +22,13 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  *
  */
 public class DualList extends HorizontalPanel {
-    public static final String GUIID_DUAL_LIST_ADDITEM_ID = "dual-list-additem-id";
-    public static final String GUIID_DUAL_LIST_REMOVEITEM_ID = "dual-list-removeitem-id";
-    public static final String DUAL_LIST_COMPONENT_CLASS = "dual-list-component-class";
-    public static final String DUAL_LIST_LEFT_SELECTION_PANE_CLASS = "left-selection-pane-class";
-    public static final String DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS = "selection-buttons-pane-class";
-    public static final String DUAL_LIST_RIGHT_SELECTION_PANE_CLASS = "right-selection-pane-class";
+    public static final String DUAL_LIST_COMPONENT_CLASS = "dio-DualList";
+    public static final String DUAL_LIST_ADDITEM_CLASS = "dual-list-additem-class";
+    public static final String DUAL_LIST_REMOVEITEM_CLASS = "dual-list-removeitem-class";
+    public static final String DUAL_LIST_LEFT_SELECTION_PANE_CLASS = "dual-list-left-selection-pane-class";
+    public static final String DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS = "dual-list-selection-buttons-pane-class";
+    public static final String DUAL_LIST_RIGHT_SELECTION_PANE_CLASS = "dual-list-right-selection-pane-class";
+    ChangeHandler callbackChangeHandler = null;
 
     private static class SimpleImmutableEntry<K, V> implements Entry<K, V>, java.io.Serializable {
 
@@ -102,9 +105,9 @@ public class DualList extends HorizontalPanel {
                 moveItems(right, left);
             }
         });
-        addItem.getElement().setId(GUIID_DUAL_LIST_ADDITEM_ID);
+        addItem.addStyleName(DUAL_LIST_ADDITEM_CLASS);
         buttonPanel.add(addItem);
-        removeItem.getElement().setId(GUIID_DUAL_LIST_REMOVEITEM_ID);
+        removeItem.addStyleName(DUAL_LIST_REMOVEITEM_CLASS);
         buttonPanel.add(removeItem);
         add(left);
         add(buttonPanel);
@@ -177,6 +180,15 @@ public class DualList extends HorizontalPanel {
     }
 
     /**
+     * Adds a changehandler, for detecting changes in one of the selection boxes
+     * 
+     * @param changeHandler 
+     */
+    public void addChangeHandler(ChangeHandler changeHandler) {
+        callbackChangeHandler = changeHandler;
+    }
+
+    /**
      * Clear the selectedItems Listbox
      */
     public void clearSelectedItems() {
@@ -203,6 +215,9 @@ public class DualList extends HorizontalPanel {
             index = source.getSelectedIndex();
         }
         enableOrDisableButtons();
+        if (callbackChangeHandler != null) {
+            callbackChangeHandler.onChange(null);  // No need to supply a ChangeEvent
+        }
     }
 
     private static <K> void populateList(ListBox aListBox, Collection<? extends Entry<K, String>> lista) {

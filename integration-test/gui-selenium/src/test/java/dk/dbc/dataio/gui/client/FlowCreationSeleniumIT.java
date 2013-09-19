@@ -135,12 +135,12 @@ public class FlowCreationSeleniumIT {
         //lowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 3", "Script 3", "Invocation Method 3");
 
         navigateToFlowCreationContext();
-        WebElement buttonLeft2Right = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));
+//        WebElement buttonLeft2Right = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));   NB: Skal laves på en anden måde - GUIID eksisterer ikke længere
         
         Select list = new Select(driver.findElement(By.tagName("select")));
         list.selectByIndex(0);
         list.selectByIndex(1);
-        buttonLeft2Right.click();
+//        buttonLeft2Right.click();  NB: Se kommentar længere oppe
 
         List<WebElement> selectedItems = driver.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
         assertEquals("Componentname 1", selectedItems.get(0).getText());

@@ -148,6 +148,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
             add(new Label("Flow komponenter"));
             getElement().setId(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
             add(flowComponentSelectionLists);
+//            flowComponentSelectionLists
         }
 
         private void clearItems() {

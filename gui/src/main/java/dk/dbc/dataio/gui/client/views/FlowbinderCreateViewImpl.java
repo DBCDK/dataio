@@ -269,6 +269,12 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             add(new Label(FLOWBINDER_CREATION_SUBMITTERS_LABEL));
             getElement().setId(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL);
             add(submittersSelectionLists);
+            submittersSelectionLists.addChangeHandler(new ChangeHandler() {
+                @Override
+                public void onChange(ChangeEvent event) {
+                    changeDetected();
+                }
+            });
         }
         private void clearItems() {
             submittersSelectionLists.clear();

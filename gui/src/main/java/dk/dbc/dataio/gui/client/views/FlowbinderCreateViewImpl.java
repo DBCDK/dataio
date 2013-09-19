@@ -140,6 +140,10 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         displaySuccess(FLOWBINDER_CREATION_SAVE_SUCCESS);
     }
 
+    private void changeDetected() {
+        flowbinderSavePanel.setStatusText("");  // If the user makes changes after a save, the status field shall be cleared
+    }
+    
     private class FlowbinderNamePanel extends HorizontalPanel {
         private final TextBox textBox = new TextBox();
         public FlowbinderNamePanel() {
@@ -289,6 +293,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             flow.addChangeHandler(new ChangeHandler() {
                 @Override
                 public void onChange(ChangeEvent event) {
+                    changeDetected();
                 }
             });
         }
@@ -352,7 +357,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private class InputFieldKeyDownHandler implements KeyDownHandler {
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
-            flowbinderSavePanel.setStatusText("");
+            changeDetected();
         }
     }
 }

@@ -246,6 +246,15 @@ public class FlowCreationSeleniumIT {
      * responsibility to create a flow-component beforehand with the given name.
      */
     public static boolean createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
+        webDriver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION)).click();
+        webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX)).sendKeys(name);
+        webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA)).sendKeys(description);
+        webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON)).click();
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ex) {
+        }
         return true;
     }
 }

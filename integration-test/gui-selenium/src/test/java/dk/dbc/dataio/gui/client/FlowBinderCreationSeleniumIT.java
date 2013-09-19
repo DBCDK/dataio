@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -112,6 +113,12 @@ public class FlowBinderCreationSeleniumIT {
         assertDualListIsVisibleAndElementCanBeChosen(driver, findSubmitterPanelElement(), submitterName);
     }
 
+    @Ignore
+    @Test
+    public void test() {
+        FlowCreationSeleniumIT.createTestFlow(driver, "name", "description", "flowComponent1");
+    }
+
     // done:
     // test recordsplitter text box : visibility/read/NOT write
     // test submitter panel : visibility/select
@@ -196,7 +203,7 @@ public class FlowBinderCreationSeleniumIT {
     private void assertDualListIsVisibleAndElementCanBeChosen(WebDriver webDriver, WebElement dualListElement, String submitterName) {
         assertThat(dualListElement.isDisplayed(), is(true));
 
-        WebElement buttonLeft2Right = webDriver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));
+        WebElement buttonLeft2Right = webDriver.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS + ""));
         Select list = new Select(webDriver.findElement(By.tagName("select")));
         list.selectByIndex(0);
         buttonLeft2Right.click();

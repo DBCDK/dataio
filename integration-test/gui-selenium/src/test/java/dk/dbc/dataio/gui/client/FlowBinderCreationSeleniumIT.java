@@ -203,12 +203,12 @@ public class FlowBinderCreationSeleniumIT {
     private void assertDualListIsVisibleAndElementCanBeChosen(WebDriver webDriver, WebElement dualListElement, String submitterName) {
         assertThat(dualListElement.isDisplayed(), is(true));
 
-        WebElement buttonLeft2Right = webDriver.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS + ""));
-        Select list = new Select(webDriver.findElement(By.tagName("select")));
+        WebElement buttonLeft2Right = dualListElement.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS + ""));
+        Select list = new Select(dualListElement.findElement(By.tagName("select")));
         list.selectByIndex(0);
         buttonLeft2Right.click();
 
-        List<WebElement> selectedItems = webDriver.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
+        List<WebElement> selectedItems = dualListElement.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
         assertThat(selectedItems.get(0).getText(), is(submitterName));
     }
 

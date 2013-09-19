@@ -76,7 +76,7 @@ public class SvnConnector {
 
             // We get the log entries back from the server ordered earliest->latest.
             // We therefore use a LinkedList taking advantage of the fact that it
-            // provides a descendingIterator, allowing us to return in earliest->latest
+            // provides a descendingIterator, allowing us to return in latest->earliest
             // order.
             final Collection<SVNLogEntry> logEntries = new LinkedList<>();
             svnLog.run(logEntries);

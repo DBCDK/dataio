@@ -252,9 +252,12 @@ public class FlowCreationSeleniumIT {
 
     public static boolean createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
         webDriver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION)).click();
+
+        webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX)).clear();
         webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX)).sendKeys(name);
 
         // todo: Add selection of chosen flowComponent in duallist.
+        webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA)).clear();
         webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA)).sendKeys(description);
         webDriver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON)).click();
 

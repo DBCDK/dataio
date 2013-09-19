@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -16,13 +17,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class FlowBinderCreationSeleniumIT {
 
@@ -51,18 +53,23 @@ public class FlowBinderCreationSeleniumIT {
     @After
     public void tearDown() throws SQLException {
         //ITUtil.clearDbTables(conn, ITUtil.FLOW_BINDERS_TABLE_NAME, ITUtil.FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME, ITUtil.FLOW_BINDERS_SUBMITTER_JOIN_TABLE_NAME);
+        ITUtil.clearAllDbTables(conn);
         driver.quit();
     }
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
         testFlowBinderCreationNavigationItemIsVisibleAndClickable();
-        //testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
+        testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationFrameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationContentFormatInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationCharacterSetInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationSinkInputFieldIsVisibleAndDataCanBeInsertedAndRead();
+        //testFlowbinderCreationSubmitterDualListIsVisibleAndAnElementCanBeChosen();
+        //testFlowbinderCreationFlowListIsVisibleAndAnElementCanBeSelected();
+        testFlowbinderCreationSaveButtonIsVisible();
+        testFlowbinderCreationSaveResultLableIsNotVisibleAndEmptyByDefault();
     }
 
     public void testFlowBinderCreationNavigationItemIsVisibleAndClickable() {
@@ -74,7 +81,6 @@ public class FlowBinderCreationSeleniumIT {
         assertEquals(true, widget.isDisplayed());
     }
 
-    @Test
     public void testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
         navigateToFlowbinderCreationContext();
         assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(findNameTextElement(), 160);
@@ -105,6 +111,7 @@ public class FlowBinderCreationSeleniumIT {
         assertFieldIsVisbleAndDataCanBeInsertedAndRead(findSinkTextElement());
     }
 
+    // This can, for some reason, not be included with the other visibility tests
     @Test
     public void testFlowbinderCreationSubmitterDualListIsVisibleAndAnElementCanBeChosen() {
         String submitterName = "submitter1";
@@ -113,29 +120,69 @@ public class FlowBinderCreationSeleniumIT {
         assertDualListIsVisibleAndElementCanBeChosen(driver, findSubmitterPanelElement(), submitterName);
     }
 
-    @Ignore
+    // This can, for some reason, not be included with the other visibility tests
     @Test
-    public void test() {
-        FlowCreationSeleniumIT.createTestFlow(driver, "name", "description", "flowComponent1");
+    public void testFlowbinderCreationFlowListIsVisibleAndAnElementCanBeSelected() {
+        String flowComponentName = "flowComponent";
+        String flowName = "flowName";
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, flowComponentName);
+        FlowCreationSeleniumIT.createTestFlow(driver, flowName, "description", flowComponentName);
 
         navigateToFlowbinderCreationContext();
+        assertListBoxIsVisibleAndAnElementCanBeSelected(driver, findFlowListElement(), flowName);
+    }
 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException ex) {
-        }
-}
+    public void testFlowbinderCreationSaveButtonIsVisible() {
+        navigateToFlowbinderCreationContext();
+        assertThat(findSaveButtonElement().isDisplayed(), is(true));
+    }
+
+    public void testFlowbinderCreationSaveResultLableIsNotVisibleAndEmptyByDefault() {
+        navigateToFlowbinderCreationContext();
+        WebElement element = findSaveResultLabelElement();
+        assertEquals(false, element.isDisplayed());
+        assertEquals("", element.getText());
+    }
+
+    @Test // todo: cleanup
+    public void fillAllInputFields() {
+        String submitterName = "submitter12";
+        SubmitterCreationSeleniumIT.createTestSubmitter(driver, submitterName, "123456", "Description");
+        String flowComponentName = "flowComponent12";
+        String flowName = "flowName12";
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, flowComponentName);
+        FlowCreationSeleniumIT.createTestFlow(driver, flowName, "description", flowComponentName);
+
+        navigateToFlowbinderCreationContext();
+        findNameTextElement().sendKeys("Name");
+        findDescriptionTextElement().sendKeys("Description");
+        findFrameTextElement().sendKeys("Frame");
+        findContentFormatTextElement().sendKeys("ContentFormat");
+        findCharacterSetTextElement().sendKeys("CharacterSet");
+        findSinkTextElement().sendKeys("Sink");
+        selectItemInListBox(findFlowListElement(), flowName);
+        selectItemInDualList(findSubmitterPanelElement(), submitterName);
+
+        findSaveButtonElement().click();
+
+        // todo: Split into own method
+        WebDriverWait wait = new WebDriverWait(driver, 4);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL), FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS));
+
+        assertThat(findSaveResultLabelElement().getText(), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS));
+    }
 
     // done:
     // test recordsplitter text box : visibility/read/NOT write
     // test submitter panel : visibility/select
+    // test flow list box : visibility/select
+    // test save button : visibility
+    // test save result label : initially NOT visible and empty
     //
+    // in progress:
+    // test save result label : visibility after click with success content
     //
     // todo:
-    // test flow list box : visibility/select
-    // test save button : visibility/clickable
-    // test save result label : visibility after click with success content
-    // test save result label : initially NOT visible
     // test popup error : missing name
     // test popup error : missing description
     // test popup error : missing frame
@@ -239,6 +286,15 @@ public class FlowBinderCreationSeleniumIT {
         assertThat(element.getAttribute("value"), is(testText.substring(0, maxSizeOfText)));
     }
 
+    public static void assertListBoxIsVisibleAndAnElementCanBeSelected(WebDriver webDriver, WebElement listElement, String flowName) {
+        assertThat(listElement.isDisplayed(), is(true));
+
+        final Select list = new Select(listElement);
+        assertThat(list.getOptions().size() > 0, is(true));
+        list.selectByVisibleText(flowName);
+        assertThat(list.getFirstSelectedOption().getText(), is(flowName));
+    }
+
     public static void assertDualListIsVisibleAndElementCanBeChosen(WebDriver webDriver, WebElement dualListElement, String submitterName) {
         assertThat(dualListElement.isDisplayed(), is(true));
 
@@ -249,5 +305,16 @@ public class FlowBinderCreationSeleniumIT {
 
         List<WebElement> selectedItems = dualListElement.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
         assertThat(selectedItems.get(0).getText(), is(submitterName));
+    }
+
+    public static void selectItemInListBox(WebElement listBoxElement, String listItem) {
+        final Select list = new Select(listBoxElement);
+        list.selectByVisibleText(listItem);
+    }
+
+    public static void selectItemInDualList(WebElement dualListElement, String listItem) {
+        Select list = new Select(dualListElement.findElement(By.tagName("select")));
+        list.selectByVisibleText(listItem);
+        dualListElement.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS + "")).click();
     }
 }

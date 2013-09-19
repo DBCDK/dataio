@@ -17,6 +17,7 @@ import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
 import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -99,6 +100,17 @@ public class ITUtil {
                 FLOW_COMPONENTS_TABLE_NAME,
                 FLOWS_TABLE_NAME,
                 SUBMITTERS_TABLE_NAME);
+    }
+
+    public static ResourceIdentifier createFlowComponentWithName(String name) {
+        final String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        final Client restClient = ClientBuilder.newClient();
+        return createFlowComponent(restClient, baseUrl, String.format("{\"name\": \"%s\"}", name));
+    }
+
+    public static ResourceIdentifier createFlowComponent(Client restClient, String baseUrl, String content) {
+        return getResourceIdentifierFromLocationHeaderAndAssertHasValue(
+                doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH));
     }
 
     public static long createSubmitter(Client restClient, String baseUrl, String content) {

@@ -273,7 +273,7 @@ public class SubmitterCreationSeleniumIT {
         findNameElement(webDriver).sendKeys(name);
         findNumberElement(webDriver).sendKeys(number);
         findDescriptionElement(webDriver).sendKeys(description);
-        findSaveButton(driver).click();
+        findSaveButton(webDriver).click();
 
         waitForSuccessfulSave(webDriver);
 

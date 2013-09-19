@@ -1,11 +1,13 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.DualList;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static org.hamcrest.CoreMatchers.is;
 import org.junit.After;
@@ -14,12 +16,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.Select;
 
 public class FlowBinderCreationSeleniumIT {
 
@@ -102,22 +104,21 @@ public class FlowBinderCreationSeleniumIT {
         assertFieldIsVisbleAndDataCanBeInsertedAndRead(findSinkTextElement());
     }
 
+    @Test
     public void testFlowbinderCreationSubmitterDualListIsVisibleAndAnElementCanBeChosen() {
-        SubmitterCreationSeleniumIT.createTestSubmitter(driver, "submitter1", "123456", "Description");
-
+        String submitterName = "submitter1";
+        SubmitterCreationSeleniumIT.createTestSubmitter(driver, submitterName, "123456", "Description");
         navigateToFlowbinderCreationContext();
-        // assertFieldIsVisbleAndDataCanBeInsertedAndRead(findSinkTextElement());
-
-
+        assertDualListIsVisibleAndElementCanBeChosen(driver, findSubmitterPanelElement(), submitterName);
     }
 
     // done:
     // test recordsplitter text box : visibility/read/NOT write
+    // test submitter panel : visibility/select
     //
     //
     // todo:
     // test flow list box : visibility/select
-    // test submitter panel : visibility/select
     // test save button : visibility/clickable
     // test save result label : visibility after click with success content
     // test save result label : initially NOT visible
@@ -191,6 +192,19 @@ public class FlowBinderCreationSeleniumIT {
         return findElementInCurrentView(driver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL);
     }
 
+    // todo: Fix this method to be more generel!
+    private void assertDualListIsVisibleAndElementCanBeChosen(WebDriver webDriver, WebElement dualListElement, String submitterName) {
+        assertThat(dualListElement.isDisplayed(), is(true));
+
+        WebElement buttonLeft2Right = webDriver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));
+        Select list = new Select(webDriver.findElement(By.tagName("select")));
+        list.selectByIndex(0);
+        buttonLeft2Right.click();
+
+        List<WebElement> selectedItems = webDriver.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
+        assertThat(selectedItems.get(0).getText(), is(submitterName));
+    }
+
     /**
      * The following is static public helper methods - they should probably be
      * moved to a helper-class.
@@ -207,7 +221,7 @@ public class FlowBinderCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    private void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(WebElement element, int maxSizeOfText) {
+    public void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(WebElement element, int maxSizeOfText) {
         final String testSubText = "æøå ÆØÅ ";
 
         assertEquals(true, element.isDisplayed());

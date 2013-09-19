@@ -62,7 +62,7 @@ public class FlowComponentCreationSeleniumIT {
         conn = ITUtil.newDbConnection();
         svnRepoUrl = ITUtil.doSvnCreateFsRepository(Paths.get(System.getProperty("svn.local.dir")));
         // Disabled until we can get the FSFS repository working...
-        populateSvnRepository();
+        // populateSvnRepository();
     }
 
     @AfterClass
@@ -351,5 +351,16 @@ public class FlowComponentCreationSeleniumIT {
         public Boolean apply(WebDriver webDriver) {
             return new Select(findElement(elementId)).getOptions().size() > 0;
         }
+    }
+
+
+    /**
+     * The following are public static helper methods.
+     */
+
+    // notice: WebDriver is currently unused but is there for future reference.
+    public static boolean createTestFlowComponent(WebDriver webDriver, String name) {
+        ITUtil.ResourceIdentifier resourceIdentifier = ITUtil.createFlowComponentWithName(name);
+        return (resourceIdentifier != null && resourceIdentifier.getId() > 0L) ? true : false;
     }
 }

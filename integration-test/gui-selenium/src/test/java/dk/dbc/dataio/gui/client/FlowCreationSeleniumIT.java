@@ -71,7 +71,7 @@ public class FlowCreationSeleniumIT {
         testFlowCreationSaveButtonIsVisible();
         testFlowCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault();
     }
-    
+
 //    @Test
     public void testFlowCreationNavigationItemIsVisible() {
         WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
@@ -126,8 +126,8 @@ public class FlowCreationSeleniumIT {
         WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL));
         assertEquals(true, element.isDisplayed());
     }
-    
-    @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest 
+
+    @Ignore  // Er midlertidig slået fra - afventer opdateret Seleniumtest
     @Test
     public void testFlowCreationFlowComponentSelectionField_InsertAndRead() throws IOException, InterruptedException {
         //FlowComponentCreationSeleniumIT.addFlowComponent(driver, tempFolder, "Componentname 1", "Script 1", "Invocation Method 1");
@@ -136,7 +136,7 @@ public class FlowCreationSeleniumIT {
 
         navigateToFlowCreationContext();
 //        WebElement buttonLeft2Right = driver.findElement(By.id(DualList.GUIID_DUAL_LIST_ADDITEM_ID));   NB: Skal laves på en anden måde - GUIID eksisterer ikke længere
-        
+
         Select list = new Select(driver.findElement(By.tagName("select")));
         list.selectByIndex(0);
         list.selectByIndex(1);
@@ -145,14 +145,14 @@ public class FlowCreationSeleniumIT {
         List<WebElement> selectedItems = driver.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
         assertEquals("Componentname 1", selectedItems.get(0).getText());
         assertEquals("Componentname 2", selectedItems.get(1).getText());
-        
+
         insertTextInInputFieldsAndClickSaveButton();
         WebDriverWait wait = new WebDriverWait(driver, 4);
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL), FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
         WebElement saveResultLabel = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
         assertEquals(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
-    
+
 //    @Test
     public void testFlowCreationSaveButtonIsVisible() {
         navigateToFlowCreationContext();
@@ -236,5 +236,16 @@ public class FlowCreationSeleniumIT {
         descriptionInputField.sendKeys("b");
         WebElement saveButton = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
         saveButton.click();
+    }
+
+    /**
+     * The following is public static helper methods.
+     */
+    /**
+     * Creates a new Flow with the given values - NOTE: It is the callers
+     * responsibility to create a flow-component beforehand with the given name.
+     */
+    public static boolean createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
+        return true;
     }
 }

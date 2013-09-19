@@ -26,7 +26,8 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String CONTEXT_HEADER = "Flowbinder - opsætning";
-    public static final int    FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGHT = 160;
+    public static final int    FLOWBINDER_CREATION_NAME_MAX_LENGTH = 160;
+    public static final int    FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
     public static final String FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     public static final String FLOWBINDER_CREATION_SAVE_SUCCESS = "Flowbinderen blev gemt.";
     public static final String FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL = "Flowbinder navn";
@@ -151,6 +152,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             add(new Label(FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL));
             getElement().setId(GUIID_FLOWBINDER_CREATION_NAME_PANEL);
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_NAME_TEXT_BOX);
+            textBox.getElement().setAttribute("Maxlength", String.valueOf(FLOWBINDER_CREATION_NAME_MAX_LENGTH));
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
             add(textBox);
         }
@@ -174,7 +176,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
                 super();
                 setCharacterWidth(40);
                 setVisibleLines(4);
-                getElement().setAttribute("Maxlength", String.valueOf(FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGHT));
+                getElement().setAttribute("Maxlength", String.valueOf(FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH));
                 getElement().setId(GUIID_FLOWBINDER_CREATION_DESCRIPTION_TEXT_AREA);
                 addKeyDownHandler(new InputFieldKeyDownHandler());
             }

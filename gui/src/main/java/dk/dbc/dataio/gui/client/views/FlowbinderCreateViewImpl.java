@@ -248,6 +248,8 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             getElement().setId(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL);
             textBox.getElement().setId(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_TEXT_BOX);
             textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
+            textBox.setValue("Default Record Splitter");
+            textBox.setEnabled(false);
             add(textBox);
         }
         public String getText() {

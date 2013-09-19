@@ -130,6 +130,10 @@ public class SvnConnector {
      * Executes export operation for project pointed to by given URL from Subversion
      * source control management system
      *
+     * Note that the specified revision is set as the Peg revision (as opposed to the
+     * operative revision) meaning export the contents of whatever file or directory
+     * occupied the URL at that point in history.
+     *
      * @param projectUrl unencoded project URL on the form http(s)://... or file://...
      * @param revision project revision
      * @param exportTo file system path of exported copy
@@ -148,8 +152,7 @@ public class SvnConnector {
         final SvnOperationFactory svnOperationFactory = new SvnOperationFactory();
         try {
             final SvnExport export = svnOperationFactory.createExport();
-            export.setRevision(SVNRevision.create(revision));
-            export.setSource(SvnTarget.fromURL(asSvnUrl(projectUrl)));
+            export.setSource(SvnTarget.fromURL(asSvnUrl(projectUrl), SVNRevision.create(revision)));
             export.setSingleTarget(SvnTarget.fromFile(exportTo.toFile()));
             export.run();
         } finally {

@@ -113,6 +113,7 @@ public class FlowBinderCreationSeleniumIT {
         assertDualListIsVisibleAndElementCanBeChosen(driver, findSubmitterPanelElement(), submitterName);
     }
 
+    @Ignore
     @Test
     public void test() {
         FlowCreationSeleniumIT.createTestFlow(driver, "name", "description", "flowComponent1");

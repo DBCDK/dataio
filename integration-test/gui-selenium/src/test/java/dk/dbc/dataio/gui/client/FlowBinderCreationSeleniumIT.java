@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
+import static org.hamcrest.CoreMatchers.is;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -51,7 +54,8 @@ public class FlowBinderCreationSeleniumIT {
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
         testFlowBinderCreationNavigationItemIsVisibleAndClickable();
-        testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
+        //testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
+        testFlowbinderCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationFrameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationContentFormatInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationCharacterSetInputFieldIsVisibleAndDataCanBeInsertedAndRead();
@@ -67,9 +71,15 @@ public class FlowBinderCreationSeleniumIT {
         assertEquals(true, widget.isDisplayed());
     }
 
+    @Test
     public void testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
         navigateToFlowbinderCreationContext();
-        assertFieldIsVisbleAndDataCanBeInsertedAndRead(findNameTextElement());
+        assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(findNameTextElement(), 160);
+    }
+
+    public void testFlowbinderCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
+        navigateToFlowbinderCreationContext();
+        assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(findDescriptionTextElement(), 160);
     }
 
     public void testFlowbinderCreationFrameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
@@ -92,9 +102,20 @@ public class FlowBinderCreationSeleniumIT {
         assertFieldIsVisbleAndDataCanBeInsertedAndRead(findSinkTextElement());
     }
 
-    // todo:
-    // test description text area : visibility/write/read
+    public void testFlowbinderCreationSubmitterDualListIsVisibleAndAnElementCanBeChosen() {
+        SubmitterCreationSeleniumIT.createTestSubmitter(driver, "submitter1", "123456", "Description");
+
+        navigateToFlowbinderCreationContext();
+        // assertFieldIsVisbleAndDataCanBeInsertedAndRead(findSinkTextElement());
+
+
+    }
+
+    // done:
     // test recordsplitter text box : visibility/read/NOT write
+    //
+    //
+    // todo:
     // test flow list box : visibility/select
     // test submitter panel : visibility/select
     // test save button : visibility/clickable
@@ -108,10 +129,16 @@ public class FlowBinderCreationSeleniumIT {
     // test popup error : missing sink
     // test popup error : missing flow
     // test popup error : missing submitter
-
-
-
-
+    // test removal of success status label after save : name changed
+    // test removal of success status label after save : description changed
+    // test removal of success status label after save : frame changed
+    // test removal of success status label after save : content format changed
+    // test removal of success status label after save : character set changed
+    // test removal of success status label after save : sink changed
+    // test removal of success status label after save : flow changed
+    // test removal of success status label after save : submitter changed
+    //
+    //
     /**
      * The following is private helper methods
      */
@@ -180,16 +207,20 @@ public class FlowBinderCreationSeleniumIT {
         assertEquals(fieldValue, element.getAttribute("value"));
     }
 
-    /*
-     public static final String GUIID_FLOWBINDER_CREATION_NAME_TEXT_BOX = "flowbindercreationnametextbox";
-     public static final String GUIID_FLOWBINDER_CREATION_DESCRIPTION_TEXT_AREA = "flowbindercreationdescriptiontextarea";
-     public static final String GUIID_FLOWBINDER_CREATION_FRAME_TEXT_BOX = "flowbindercreationframetextbox";
-     public static final String GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_TEXT_BOX = "flowbindercreationcontentformattextbox";
-     public static final String GUIID_FLOWBINDER_CREATION_CHARACTER_SET_TEXT_BOX = "flowbindercreationcharactersettextbox";
-     public static final String GUIID_FLOWBINDER_CREATION_SINK_TEXT_BOX = "flowbindercreationsinktextbox";
-     public static final String GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_TEXT_BOX = "flowbindercreationrecordsplittertextbox";
-     public static final String GUIID_FLOWBINDER_CREATION_FLOW_LIST_BOX = "flowbindercreationflowlistbox";
-     public static final String GUIID_FLOWBINDER_CREATION_SAVE_BUTTON = "flowbindercreationsavebutton";
-     public static final String GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL = "flowbindercreationsaveresultlabel";
-     */
+    private void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(WebElement element, int maxSizeOfText) {
+        final String testSubText = "æøå ÆØÅ ";
+
+        assertEquals(true, element.isDisplayed());
+
+        StringBuilder sb = new StringBuilder();
+        // ensure to make text larger than what can be read.
+        for (int i = 0; i < maxSizeOfText / testSubText.length() + 2; i++) {
+            sb.append(testSubText);
+        }
+        String testText = sb.toString();
+        assertThat(testText.length() > maxSizeOfText, is(true));
+
+        element.sendKeys(testText);
+        assertThat(element.getAttribute("value"), is(testText.substring(0, maxSizeOfText)));
+    }
 }

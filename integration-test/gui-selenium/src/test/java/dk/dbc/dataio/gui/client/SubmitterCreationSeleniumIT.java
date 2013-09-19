@@ -264,6 +264,10 @@ public class SubmitterCreationSeleniumIT {
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL), SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
     }
 
+    /**
+     *  The following is public static helper methods.
+     */
+
     public static boolean createTestSubmitter(WebDriver webDriver, String name, String number, String description) {
         webDriver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION)).click();
         findNameElement(webDriver).sendKeys(name);

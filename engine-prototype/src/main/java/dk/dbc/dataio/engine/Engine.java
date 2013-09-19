@@ -4,6 +4,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.stream.XMLStreamException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -28,9 +29,10 @@ public class Engine {
         Path path = job.getOriginalDataPath();
         List<Chunk> chunks = null;
         try {
-            chunks = splitByLine(path, job);
+            //chunks = splitByLine(path, job);
+            chunks = applyDefaultXmlSplitter(path, job);
             log.info("Number of chunks: {}",  chunks.size());
-        } catch (IOException ex) {
+        } catch (XMLStreamException | IOException ex) {
             log.info("An error occured: ", ex);
         }
         for (Chunk chunk : chunks) {
@@ -94,6 +96,33 @@ public class Engine {
                 chunks.add(chunk);
                 chunk = new Chunk(++chunkId, job.getFlow());
                 chunk.addRecord(base64line);
+                counter = 1;
+            }
+        }
+        if (counter != 0) {
+            chunks.add(chunk);
+        }
+        return chunks;
+    }
+
+    private List<Chunk> applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException {
+        log.info("Got path: " + path.toString());
+        final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(path));
+        final List<Chunk> chunks = new ArrayList<>();
+
+        long chunkId = 0;
+        int counter = 0;
+        Chunk chunk = new Chunk(chunkId, job.getFlow());
+        for (String record : recordSplitter) {
+            log.trace("======> Before [" + record + "]");
+            final String recordBase64 = base64encode(record);
+            log.trace("======> After  [" + recordBase64 + "]");
+            if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
+                chunk.addRecord(recordBase64);
+            } else {
+                chunks.add(chunk);
+                chunk = new Chunk(++chunkId, job.getFlow());
+                chunk.addRecord(recordBase64);
                 counter = 1;
             }
         }

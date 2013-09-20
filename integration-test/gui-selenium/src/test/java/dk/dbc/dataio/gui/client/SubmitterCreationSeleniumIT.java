@@ -270,8 +270,11 @@ public class SubmitterCreationSeleniumIT {
 
     public static boolean createTestSubmitter(WebDriver webDriver, String name, String number, String description) {
         webDriver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION)).click();
+        findNameElement(webDriver).clear();
         findNameElement(webDriver).sendKeys(name);
+        findNumberElement(webDriver).clear();
         findNumberElement(webDriver).sendKeys(number);
+        findDescriptionElement(webDriver).clear();
         findDescriptionElement(webDriver).sendKeys(description);
         findSaveButton(webDriver).click();
 

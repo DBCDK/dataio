@@ -39,8 +39,8 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
     public SubmitterCreateViewImpl() {
         getElement().setId(GUIID_SUBMITTER_CREATION_WIDGET);
-        add(submitterNamePanel);
         add(submitterNumberPanel);
+        add(submitterNamePanel);
         add(submitterDescriptionPanel);
         add(submitterSavePanel);
     }

@@ -267,10 +267,10 @@
               <systemProperties>
                 <property>flowStoreURL=http://localhost:${glassfish.port}/flow-store</property>
               </systemProperties>
-              <!--
               <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
-              -->
+              <!--
               <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}_with_pg_template.xml</configFile>
+              -->
             </configuration>
 
             <executions>

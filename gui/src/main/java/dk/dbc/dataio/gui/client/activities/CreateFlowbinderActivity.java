@@ -49,12 +49,12 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowbinderCreateView.asWidget());
-        flowbinderCreateView.clearAvailableSubmitters();
         fetchAvailableSubmitters();
         fetchFlows();
     }
 
     private void fetchAvailableSubmitters() {
+        flowbinderCreateView.clearAvailableSubmitters();
         flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
             @Override
             public void onFailure(Throwable e) {
@@ -72,6 +72,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchFlows() {
+        flowbinderCreateView.clearFlows();
         flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
             @Override
             public void onFailure(Throwable e) {

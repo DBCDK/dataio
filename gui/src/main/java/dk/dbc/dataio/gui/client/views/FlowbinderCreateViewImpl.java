@@ -112,6 +112,11 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     }
 
     @Override
+    public void clearFlows() {
+        flowbinderFlowPanel.clearFlows();
+    }
+
+    @Override
     public String getSelectedFlow() {
         return flowbinderFlowPanel.getSelectedFlow();
     }
@@ -314,6 +319,9 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
                 return "";
             }
             return flow.getValue(selectedItemIndex);
+        }
+        private void clearFlows() {
+            flow.clear();
         }
     }
 

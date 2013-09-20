@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface FlowbinderCreateView extends IsWidget, View<FlowbinderCreatePresenter> {
     public void setAvailableFlow(String key, String flow);
+    public void clearFlows();
     public String getSelectedFlow();
     public void setAvailableSubmitter(String key, String value);
     public void clearAvailableSubmitters();

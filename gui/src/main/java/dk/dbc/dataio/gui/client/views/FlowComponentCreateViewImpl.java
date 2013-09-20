@@ -84,7 +84,7 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     }
 
     @Override
-    public void displayError(String message) {
+    public void onSaveFlowbinderFailure(String message) {
         setAsBusy(false);
         savePanel.setStatusText("");
         Window.alert("Error: " + message);
@@ -142,14 +142,14 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
                     break;
             }
         }
-        displayError(errorMessage);
+        onSaveFlowbinderFailure(errorMessage);
     }
 
     @Override
     public void fetchScriptNamesFailed(String failText) {
         scriptNamePanel.disable();
         invocationMethodPanel.disable();
-        displayError(failText);
+        onSaveFlowbinderFailure(failText);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
                     break;
             }
         }
-        displayError(errorMessage);
+        onSaveFlowbinderFailure(errorMessage);
     }
 
     private void svnProjectChanged() {
@@ -439,7 +439,7 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
             String scriptName = scriptNamePanel.getScriptName();
             String invocationMethod = invocationMethodPanel.getInvocationMethod();
             if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
-                displayError(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+                onSaveFlowbinderFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {
                 savePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
                 presenter.saveFlowComponent(name, project, revision, scriptName, invocationMethod);

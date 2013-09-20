@@ -57,7 +57,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
             @Override
             public void onFailure(Throwable e) {
                 final String errorClassName = e.getClass().getName();
-                flowCreateView.displayError(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowCreateView.onSaveFlowbinderFailure(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override
@@ -75,7 +75,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
         flowStoreProxy.findAllComponents(new AsyncCallback<List<FlowComponent>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowCreateView.displayError(e.getClass().getName() + " - " + e.getMessage());
+                flowCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage());
             }
 
             @Override
@@ -86,7 +86,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
                         availableComponents.put(key, component);
                         flowCreateView.setAvailableItem(component.getContent().getName(), key);
                     } catch (Exception e) {
-                        flowCreateView.displayError(e.getClass().getName() + " - " + e.getMessage());
+                        flowCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage());
                     }
                 }
             }

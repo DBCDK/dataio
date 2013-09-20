@@ -63,7 +63,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     }
 
     @Override
-    public void displayError(String message) {
+    public void onSaveFlowbinderFailure(String message) {
         Window.alert("Error: " + message);
     }
 

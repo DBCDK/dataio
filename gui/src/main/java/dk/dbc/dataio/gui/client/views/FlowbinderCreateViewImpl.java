@@ -93,7 +93,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     }
 
     @Override
-    public void displayError(String message) {
+    public void onSaveFlowbinderFailure(String message) {
         Window.alert("Error: " + message);
     }
 
@@ -137,7 +137,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     }
 
     @Override
-    public void onSaveSubmitterSuccess() {
+    public void onSaveFlowbinderSuccess() {
         displaySuccess(FLOWBINDER_CREATION_SAVE_SUCCESS);
     }
 

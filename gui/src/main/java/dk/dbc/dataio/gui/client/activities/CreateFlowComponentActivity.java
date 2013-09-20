@@ -99,7 +99,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         try {
             fetchRevisions(projectName);
         } catch (JavaScriptProjectFetcherException e) {
-            flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            flowComponentCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -108,7 +108,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         try {
             fetchScriptNames(projectName, selectedRevision);
         } catch (JavaScriptProjectFetcherException e) {
-            flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            flowComponentCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -117,7 +117,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         try {
             fetchInvocationMethods(projectName, selectedRevision, scriptName);
         } catch (JavaScriptProjectFetcherException e) {
-            flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            flowComponentCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -130,7 +130,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         javaScriptProjectFetcher.fetchRequiredJavaScript(svnProject, svnRevision, javaScriptName, invocationMethod, new AsyncCallback<List<JavaScript>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override
@@ -145,7 +145,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
         flowStoreProxy.createFlowComponent(flowComponentContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
-                flowComponentCreateView.displayError(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override

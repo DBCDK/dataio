@@ -9,7 +9,7 @@ import dk.dbc.dataio.gui.client.presenters.Presenter;
  * @param T specific Presenter sub type
  */
 public interface View<T extends Presenter> {
-    void displayError(String message);
+    void onSaveFlowbinderFailure(String message);
 
     void displaySuccess(String message);
 

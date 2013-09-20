@@ -51,7 +51,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     }
 
     @Override
-    public void displayError(String message) {
+    public void onSaveFlowbinderFailure(String message) {
         Window.alert("Error: " + message);
     }
 
@@ -79,7 +79,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
                     break;
             }
         }
-        displayError(errorMessage);
+        onSaveFlowbinderFailure(errorMessage);
     }
 
     @Override

@@ -11,6 +11,6 @@ public interface FlowbinderCreateView extends IsWidget, View<FlowbinderCreatePre
     public void clearAvailableSubmitters();
     public List<String> getSelectedSubmitters();
 
-    public void onSaveSubmitterSuccess();
+    public void onSaveFlowbinderSuccess();
 }
 

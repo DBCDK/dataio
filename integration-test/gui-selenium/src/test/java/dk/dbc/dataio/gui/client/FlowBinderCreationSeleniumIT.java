@@ -54,7 +54,6 @@ public class FlowBinderCreationSeleniumIT {
 
     @After
     public void tearDown() throws SQLException {
-        //ITUtil.clearDbTables(conn, ITUtil.FLOW_BINDERS_TABLE_NAME, ITUtil.FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME, ITUtil.FLOW_BINDERS_SUBMITTER_JOIN_TABLE_NAME);
         ITUtil.clearAllDbTables(conn);
         driver.quit();
     }
@@ -147,7 +146,7 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     @Test
-    public void fillAllInputFields() {
+    public void testFlowbinderCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() {
         populateAllInputFieldsAndClickSave();
         assertThat(findSaveResultLabelElement().getText(), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS));
     }
@@ -264,6 +263,28 @@ public class FlowBinderCreationSeleniumIT {
         assertThat(findSaveResultLabelElement().getText(), is(""));
     }
 
+    @Test
+    public void testFlowBinderCreationFlowInputFieldUpdate_clearsSaveResultLabel() {
+        final String flowComponentName = "anotherFlowComponent";
+        final String flowName = "anotherFlow";
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, flowComponentName);
+        FlowCreationSeleniumIT.createTestFlow(driver, flowName, "description", flowComponentName);
+        navigateToFlowbinderCreationContext();
+        populateAllInputFieldsAndClickSave();
+        selectItemInListBox(findFlowListElement(), flowName);
+        assertThat(findSaveResultLabelElement().getText(), is(""));
+    }
+
+    @Test
+    public void testFlowBinderCreationSubmitterInputFieldUpdate_clearsSaveResultLabel() {
+        final String submitterName = "anotherSubmitter";
+        SubmitterCreationSeleniumIT.createTestSubmitter(driver, submitterName, "42", "Description");
+        navigateToFlowbinderCreationContext();
+        populateAllInputFieldsAndClickSave();
+        selectItemInDualList(findSubmitterPanelElement(), submitterName);
+        assertThat(findSaveResultLabelElement().getText(), is(""));
+    }
+
     private void populateAllInputFields() {
         populateSubmitterSelectionField();
         populateAllTextInputFields();
@@ -306,35 +327,6 @@ public class FlowBinderCreationSeleniumIT {
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL), FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS));
     }
 
-    // done:
-    // test recordsplitter text box : visibility/read/NOT write
-    // test submitter panel : visibility/select
-    // test flow list box : visibility/select
-    // test save button : visibility
-    // test save result label : initially NOT visible and empty
-    //
-    // in progress:
-    // test save result label : visibility after click with success content
-    //
-    // todo:
-    // test popup error : missing name
-    // test popup error : missing description
-    // test popup error : missing frame
-    // test popup error : missing content format
-    // test popup error : missing character set
-    // test popup error : missing sink
-    // test popup error : missing flow
-    // test popup error : missing submitter
-    // test removal of success status label after save : name changed
-    // test removal of success status label after save : description changed
-    // test removal of success status label after save : frame changed
-    // test removal of success status label after save : content format changed
-    // test removal of success status label after save : character set changed
-    // test removal of success status label after save : sink changed
-    // test removal of success status label after save : flow changed
-    // test removal of success status label after save : submitter changed
-    //
-    //
     /**
      * The following is private helper methods
      */

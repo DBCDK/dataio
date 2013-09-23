@@ -74,22 +74,21 @@ public class FlowCreationSeleniumIT {
 
 //    @Test
     public void testFlowCreationNavigationItemIsVisible() {
-        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
+        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION)); // todo: Create method
         assertEquals(true, element.isDisplayed());
     }
 
 //    @Test
     public void testFlowCreationNavigationItemIsClickable() throws Exception {
         navigateToFlowCreationContext();
-        WebElement widget = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_WIDGET));
+        WebElement widget = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_WIDGET)); // todo: Create method
         assertEquals(true, widget.isDisplayed());
     }
 
 //    @Test
     public void testFlowCreationNameInputFieldIsVisible() {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
-        assertEquals(true, element.isDisplayed());
+        assertEquals(true, findNameElement(driver).isDisplayed());
     }
 
     @Test
@@ -97,7 +96,7 @@ public class FlowCreationSeleniumIT {
         final String fieldValue = "test of unicode content æøåÆØÅ";
 
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
+        WebElement element = findNameElement(driver);
         element.sendKeys(fieldValue);
         assertEquals(fieldValue, element.getAttribute("value"));
     }
@@ -105,8 +104,7 @@ public class FlowCreationSeleniumIT {
 //    @Test
     public void testFlowCreationDescriptionInputFieldIsVisible() {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
-        assertEquals(true, element.isDisplayed());
+        assertEquals(true, findDescriptionElement(driver).isDisplayed());
     }
 
     @Test
@@ -115,7 +113,7 @@ public class FlowCreationSeleniumIT {
         final String sameTextWithExactly160Chars = textWithMoreThan160Chars.substring(0, 160);
 
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
+        WebElement element = findDescriptionElement(driver);
         element.sendKeys(textWithMoreThan160Chars);
         assertEquals(sameTextWithExactly160Chars, element.getAttribute("value"));
     }
@@ -123,8 +121,7 @@ public class FlowCreationSeleniumIT {
     @Test
     public void testFlowCreationFlowComponentSelectionFieldIsVisible() {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL));
-        assertEquals(true, element.isDisplayed());
+        assertEquals(true, findComponentSelectionElement(driver).isDisplayed());
     }
 
     @Ignore
@@ -147,6 +144,8 @@ public class FlowCreationSeleniumIT {
         assertEquals("Componentname 2", selectedItems.get(1).getText());
 
         insertTextInInputFieldsAndClickSaveButton();
+
+
         WebDriverWait wait = new WebDriverWait(driver, 4);
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL), FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
         WebElement saveResultLabel = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
@@ -156,14 +155,13 @@ public class FlowCreationSeleniumIT {
 //    @Test
     public void testFlowCreationSaveButtonIsVisible() {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
-        assertEquals(true, element.isDisplayed());
+        assertEquals(true, findSaveButtonElement(driver).isDisplayed());
     }
 
 //    @Test
     public void testFlowCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() throws Exception {
         navigateToFlowCreationContext();
-        WebElement element = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
+        WebElement element = findSaveResultElement(driver);
         assertEquals(false, element.isDisplayed());
         assertEquals("", element.getText());
     }
@@ -174,7 +172,7 @@ public class FlowCreationSeleniumIT {
         insertTextInInputFieldsAndClickSaveButton();
         WebDriverWait wait = new WebDriverWait(driver, 4);
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL), FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-        WebElement saveResultLabel = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
+        WebElement saveResultLabel = findSaveResultElement(driver);
         assertEquals(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE, saveResultLabel.getText());
     }
 
@@ -182,29 +180,23 @@ public class FlowCreationSeleniumIT {
     public void testFlowCreationNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
-        WebElement nameInputField = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
-        nameInputField.sendKeys("a");
-        assertEquals("", saveResultLabel.getText());
+        findNameElement(driver).sendKeys("a");
+        assertEquals("", findSaveResultElement(driver).getText());
     }
 
     @Test
     public void testFlowCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToFlowCreationContext();
         insertTextInInputFieldsAndClickSaveButton();
-        WebElement saveResultLabel = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL));
-        WebElement descriptionInputField = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
-        descriptionInputField.sendKeys("b");
-        assertEquals("", saveResultLabel.getText());
+        findDescriptionElement(driver).sendKeys("b");
+        assertEquals("", findSaveResultElement(driver).getText());
     }
 
     @Test
     public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() {
         navigateToFlowCreationContext();
-        WebElement nameInputField = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
-        nameInputField.sendKeys("a");
-        WebElement saveButton = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findNameElement(driver).sendKeys("a");
+        findSaveButtonElement(driver).click();
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
         alert.accept();
@@ -214,10 +206,8 @@ public class FlowCreationSeleniumIT {
     @Test
     public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() {
         navigateToFlowCreationContext();
-        WebElement descriptionInputField = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
-        descriptionInputField.sendKeys("b");
-        WebElement saveButton = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findDescriptionElement(driver).sendKeys("b");
+        findSaveButtonElement(driver).click();
         Alert alert = driver.switchTo().alert();
         String s = alert.getText();
         alert.accept();
@@ -225,31 +215,57 @@ public class FlowCreationSeleniumIT {
     }
 
     private void navigateToFlowCreationContext() {
-        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
-        element.click();
+        findFlowCreationContext(driver).click();
     }
 
     private void insertTextInInputFieldsAndClickSaveButton() {
-        WebElement nameInputField = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX));
-        nameInputField.sendKeys("a");
-        WebElement descriptionInputField = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA));
-        descriptionInputField.sendKeys("b");
-        WebElement saveButton = driver.findElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON));
-        saveButton.click();
+        findNameElement(driver).sendKeys("a");
+        findDescriptionElement(driver).sendKeys("b");
+        findSaveButtonElement(driver).click();
+    }
+
+
+
+    public static WebElement findFlowCreationContext(WebDriver webDriver) {
+        return findElement(webDriver, MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION);
+    }
+
+    public static WebElement findNameElement(WebDriver webDriver) {
+        return findElement(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_NAME_TEXT_BOX);
+    }
+
+    public static WebElement findDescriptionElement(WebDriver webDriver) {
+        return findElement(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
+    }
+
+    public static WebElement findComponentSelectionElement(WebDriver webDriver) {
+        return findElement(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
+    }
+
+    public static WebElement findSaveButtonElement(WebDriver webDriver) {
+        return findElement(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON);
+    }
+
+    public static WebElement findSaveResultElement(WebDriver webDriver) {
+        return findElement(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
+    }
+
+    public static WebElement findElement(WebDriver webDriver, String elementGUIID) {
+       return webDriver.findElement(By.id(elementGUIID));
     }
 
     /**
      * The following is public static helper methods.
-     */
-    /**
-     * Creates a new Flow with the given values - NOTE: It is the callers
-     * responsibility to create a flow-component beforehand with the given name.
      */
     private static void waitForSuccessfulSave(WebDriver webDriver) {
         WebDriverWait wait = new WebDriverWait(webDriver, 4);
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL), FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
     }
 
+    /**
+     * Creates a new Flow with the given values - NOTE: It is the callers
+     * responsibility to create a flow-component beforehand with the given name.
+     */
     public static boolean createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
         webDriver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION)).click();
 

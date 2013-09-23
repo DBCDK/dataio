@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.javascript.SpecializedFileSchemeHandler;
 import dk.dbc.dataio.commons.svn.SvnConnector;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.engine.JavaScript;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;

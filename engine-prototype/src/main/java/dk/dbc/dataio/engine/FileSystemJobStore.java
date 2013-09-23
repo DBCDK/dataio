@@ -1,5 +1,6 @@
 package dk.dbc.dataio.engine;
 
+import dk.dbc.dataio.commons.types.Flow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

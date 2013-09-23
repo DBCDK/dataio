@@ -29,6 +29,7 @@
     <source path="views" />
     <source path="places" / -->
 
+    <inherits name="dk.dbc.dataio.commons.types.Types" />
     <inherits name="dk.dbc.dataio.engine.Model" />
     
     <entry-point class="dk.dbc.dataio.gui.client.tmpengine.EngineEntryPoint"/>

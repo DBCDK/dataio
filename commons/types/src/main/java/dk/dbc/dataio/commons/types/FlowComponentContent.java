@@ -1,4 +1,4 @@
-package dk.dbc.dataio.engine;
+package dk.dbc.dataio.commons.types;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -1,5 +1,7 @@
 package dk.dbc.dataio.engine;
 
+import dk.dbc.dataio.commons.types.Flow;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

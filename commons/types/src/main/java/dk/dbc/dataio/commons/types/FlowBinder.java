@@ -1,23 +1,23 @@
-package dk.dbc.dataio.engine;
+package dk.dbc.dataio.commons.types;
 
 import java.io.Serializable;
 
 /**
-* Submitter DTO class.
+* FlowBinder DTO class.
 *
 * In all essence objects of this class are immutable, but due to GWT serialization
 * issues we cannot have final fields and need a default no-arg constructo.
 */
-public class Submitter implements Serializable {
-    private static final long serialVersionUID = -2728868887371312413L;
+public class FlowBinder implements Serializable {
+    private static final long serialVersionUID = 6196377900891717136L;
 
     private /* final */ long id;
     private /* final */ long version;
-    private /* final */ SubmitterContent content;
+    private /* final */ FlowBinderContent content;
 
-    private Submitter() { }
+    private FlowBinder() { }
 
-    public Submitter(long id, long version, SubmitterContent content) {
+    public FlowBinder(long id, long version, FlowBinderContent content) {
         this.id = id;
         this.version = version;
         this.content = content;
@@ -31,7 +31,7 @@ public class Submitter implements Serializable {
         return version;
     }
 
-    public SubmitterContent getContent() {
+    public FlowBinderContent getContent() {
         return content;
     }
 }

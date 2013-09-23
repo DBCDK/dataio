@@ -1,13 +1,13 @@
 package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import dk.dbc.dataio.engine.Flow;
-import dk.dbc.dataio.engine.FlowBinderContent;
-import dk.dbc.dataio.engine.FlowComponent;
-import dk.dbc.dataio.engine.FlowComponentContent;
-import dk.dbc.dataio.engine.FlowContent;
-import dk.dbc.dataio.engine.Submitter;
-import dk.dbc.dataio.engine.SubmitterContent;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 
 import java.util.List;
 

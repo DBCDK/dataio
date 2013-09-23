@@ -21,6 +21,9 @@
           <include>**/*.java</include>
           <include>**/*.gwt.xml</include>
         </includes>
+        <excludes>
+          <exclude>**/*JsonMixIn.java</exclude>
+        </excludes>
       </resource>
     </resources>
   </build>
@@ -30,6 +33,11 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-invariant</artifactId>
       <version>${version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.12</version>
     </dependency>
   </dependencies>
 

@@ -1,5 +1,15 @@
 package dk.dbc.dataio.engine;
 
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.json.mixins.FlowComponentContentJsonMixIn;
+import dk.dbc.dataio.commons.types.json.mixins.FlowComponentJsonMixIn;
+import dk.dbc.dataio.commons.types.json.mixins.FlowContentJsonMixIn;
+import dk.dbc.dataio.commons.types.json.mixins.FlowJsonMixIn;
+import dk.dbc.dataio.commons.types.json.mixins.JavaScriptJsonMixIn;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

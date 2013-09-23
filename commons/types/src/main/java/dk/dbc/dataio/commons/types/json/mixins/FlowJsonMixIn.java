@@ -1,5 +1,6 @@
-package dk.dbc.dataio.engine;
+package dk.dbc.dataio.commons.types.json.mixins;
 
+import dk.dbc.dataio.commons.types.FlowContent;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -12,7 +13,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
  * Method implementations of a MixIn class are ignored.
  */
 @SuppressWarnings("unused")
-abstract class FlowJsonMixIn {
+public abstract class FlowJsonMixIn {
     /**
      * Makes jackson runtime aware of non-default Flow constructor.
      */

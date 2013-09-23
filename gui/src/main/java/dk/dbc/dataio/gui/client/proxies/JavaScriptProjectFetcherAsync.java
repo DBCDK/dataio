@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import dk.dbc.dataio.commons.types.RevisionInfo;
-import dk.dbc.dataio.engine.JavaScript;
+import dk.dbc.dataio.commons.types.JavaScript;
 
 import java.util.List;
 

@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.RevisionInfo;
-import dk.dbc.dataio.engine.JavaScript;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 

@@ -4,7 +4,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.commons.types.RevisionInfo;
-import dk.dbc.dataio.engine.JavaScript;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 
 import java.util.List;

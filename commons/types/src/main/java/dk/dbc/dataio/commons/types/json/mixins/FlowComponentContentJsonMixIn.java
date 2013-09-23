@@ -1,8 +1,10 @@
-package dk.dbc.dataio.engine;
+package dk.dbc.dataio.commons.types.json.mixins;
 
-import java.util.List;
+import dk.dbc.dataio.commons.types.JavaScript;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import java.util.List;
 
 /**
  * This class is a companion to the FlowComponentContent DTO class.

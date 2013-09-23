@@ -1,4 +1,4 @@
-package dk.dbc.dataio.engine;
+package dk.dbc.dataio.commons.types.json.mixins;
 
 import java.util.List;
 import org.codehaus.jackson.annotate.JsonCreator;

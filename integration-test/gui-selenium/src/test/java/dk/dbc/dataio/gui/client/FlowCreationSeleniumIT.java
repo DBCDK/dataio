@@ -124,7 +124,7 @@ public class FlowCreationSeleniumIT {
         assertEquals(true, findComponentSelectionElement(driver).isDisplayed());
     }
 
-    @Ignore
+//    @Ignore
     @Test
     public void testFlowCreationFlowComponentSelectionField_InsertAndRead() throws IOException, InterruptedException {
         FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, "Componentname 1");

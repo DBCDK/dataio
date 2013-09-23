@@ -105,7 +105,7 @@ public class ITUtil {
     public static ResourceIdentifier createFlowComponentWithName(String name) {
         final String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         final Client restClient = ClientBuilder.newClient();
-        return createFlowComponent(restClient, baseUrl, String.format("{\"name\": \"%s\"}", name));
+        return createFlowComponent(restClient, baseUrl, String.format("{\"name\": \"%s\", \"invocationMethod\": \"f\", \"javascripts\": [{\"moduleName\": \"\", \"javascript\": \"\"}]}", name));
     }
 
     public static ResourceIdentifier createFlowComponent(Client restClient, String baseUrl, String content) {

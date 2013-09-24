@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.Serializable;
 
 /**
@@ -17,10 +19,19 @@ public class FlowComponent implements Serializable {
 
     private FlowComponent() { }
 
+    /**
+     * Class constructor
+     *
+     * @param id flow component id
+     * @param version flow component version
+     * @param content flow component content
+     *
+     * @throws NullPointerException if given null-valued content argument
+     */
     public FlowComponent(long id, long version, FlowComponentContent content) {
         this.id = id;
         this.version = version;
-        this.content = content;
+        this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
     }
 
     public long getId() {

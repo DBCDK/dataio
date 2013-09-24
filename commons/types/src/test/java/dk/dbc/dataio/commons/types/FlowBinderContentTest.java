@@ -1,0 +1,133 @@
+package dk.dbc.dataio.commons.types;
+
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
+/**
+ * FlowBinderContent unit tests
+ *
+ * The test methods of this class uses the following naming convention:
+ *
+ *  unitOfWork_stateUnderTest_expectedBehavior
+ */
+public class FlowBinderContentTest {
+    private static final String NAME = "name";
+    private static final String DESCRIPTION = "description";
+    private static final String PACKAGING = "packaging";
+    private static final String FORMAT = "format";
+    private static final String CHARSET = "charset";
+    private static final String DESTINATION = "destination";
+    private static final String RECORD_SPLITTER = "recordSplitter";
+    private static final Long FLOW_ID = 42L;
+    private static final List<Long> SUBMITTER_IDS = Arrays.asList(42L);
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_nameArgIsNull_throws() {
+        new FlowBinderContent(null, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_nameArgIsEmpty_throws() {
+        new FlowBinderContent("", DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_descriptionArgIsNull_throws() {
+        new FlowBinderContent(NAME, null, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_descriptionArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, "", PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_packagingArgIsNull_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, null, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_packagingArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, "", FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_formatArgIsNull_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, null, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_formatArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, "", CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_charsetArgIsNull_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, null, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_charsetArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, "", DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_destinationArgIsNull_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, null, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_destinationArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, "", RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_recordSplitterArgIsNull_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, null, FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_recordSplitterArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, "", FLOW_ID, SUBMITTER_IDS);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_submitterIdsArgIsNull_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_submitterIdsArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, new ArrayList<Long>(0));
+    }
+
+    @Test
+    public void constructor_allArgsAreValid_returnsNewInstance() {
+        final FlowBinderContent instance = new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+        assertThat(instance, is(notNullValue()));
+    }
+
+    @Test
+    public void verify_defensiveCopyingOfSubmitterIdsList() {
+        final List<Long> submitterIds = new ArrayList<>();
+        submitterIds.add(42L);
+        final FlowBinderContent instance = new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, submitterIds);
+        assertThat(instance.getSubmitterIds().size(), is(1));
+        submitterIds.add(null);
+        final List<Long> returnedSubmitterIds = instance.getSubmitterIds();
+        assertThat(returnedSubmitterIds.size(), is(1));
+        returnedSubmitterIds.add(null);
+        assertThat(instance.getSubmitterIds().size(), is(1));
+    }
+
+    static FlowBinderContent newFlowBinderContentInstance() {
+        return new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
+    }
+}

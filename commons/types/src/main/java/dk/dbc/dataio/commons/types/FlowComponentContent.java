@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +21,20 @@ public class FlowComponentContent implements Serializable {
 
     private FlowComponentContent() { }
 
+    /**
+     * Class constructor
+     *
+     * @param name name of flow component
+     * @param javascripts list of attached JavaScripts (can be empty)
+     * @param invocationMethod name of invocation method (can be empty)
+     *
+     * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
+     * @throws IllegalArgumentException if given empty-valued name argument
+     */
     public FlowComponentContent(String name, List<JavaScript> javascripts, String invocationMethod) {
-        this.name = name;
-        this.javascripts = new ArrayList<JavaScript>(javascripts);
-        this.invocationMethod = invocationMethod;
+        this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
+        this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
+        this.javascripts = new ArrayList<JavaScript>(InvariantUtil.checkNotNullOrThrow(javascripts, "javascripts"));
     }
 
     public String getName() {

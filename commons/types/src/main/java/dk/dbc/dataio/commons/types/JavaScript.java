@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.Serializable;
 
 /**
@@ -15,9 +17,18 @@ public class JavaScript implements Serializable {
 
     private JavaScript() { }
 
+    /**
+     * Class constructor
+     *
+     * @param javascript JavaScript source code
+     * @param moduleName JavaScript module name
+     *
+     * @throws NullPointerException if given null-valued javascript or moduleName argument
+     * @throws IllegalArgumentException if given empty-valued javascript or moduleName argument
+     */
     public JavaScript(String javascript, String moduleName) {
-        this.javascript = javascript;
-        this.moduleName = moduleName;
+        this.javascript = InvariantUtil.checkNotNullNotEmptyOrThrow(javascript, "javascript");
+        this.moduleName = InvariantUtil.checkNotNullNotEmptyOrThrow(moduleName, "moduleName");
     }
 
     public String getJavascript() {

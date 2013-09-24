@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.Serializable;
 
 /**
@@ -17,10 +19,20 @@ public class SubmitterContent implements Serializable {
 
     private SubmitterContent() { }
 
+    /**
+     * Class constructor
+     *
+     * @param number submitter number
+     * @param name submitter name
+     * @param description submitter description
+     *
+     * @throws NullPointerException if given null-valued name or description argument
+     * @throws IllegalArgumentException if given empty-valued name or description argument
+     */
     public SubmitterContent(long number, String name, String description) {
         this.number = number;
-        this.name = name;
-        this.description = description;
+        this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
+        this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
     }
 
     public String getDescription() {

@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,17 +21,23 @@ public class FlowContent implements Serializable {
 
     private FlowContent() { }
 
+    /**
+     * Class constructor
+     *
+     * @param name flow name
+     * @param description flow description
+     * @param components flow components attached to this flow (can be empty)
+     *
+     * @throws NullPointerException if given null-valued name, description or components argument
+     * @throws IllegalArgumentException if given empty-valued name or description argument
+     */
     public FlowContent(String name, String description, List<FlowComponent> components) {
-        this.name = name;
-        this.description = description;
+        this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
+        this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
         // We're not making a deep-copy here, but since FlowComponent is immutable
         // (or as near as) this should be sufficient to ensure immutability of this
         // class.
-        if (components != null) {
-            this.components = new ArrayList<FlowComponent>(components);
-        } else {
-            this.components = new ArrayList<FlowComponent>(0);
-        }
+        this.components = new ArrayList<FlowComponent>(InvariantUtil.checkNotNullOrThrow(components, "components"));
     }
 
     public List<FlowComponent> getComponents() {

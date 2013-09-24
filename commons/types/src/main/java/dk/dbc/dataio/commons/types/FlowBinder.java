@@ -1,12 +1,14 @@
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.Serializable;
 
 /**
 * FlowBinder DTO class.
 *
 * In all essence objects of this class are immutable, but due to GWT serialization
-* issues we cannot have final fields and need a default no-arg constructo.
+* issues we cannot have final fields and need a default no-arg constructor.
 */
 public class FlowBinder implements Serializable {
     private static final long serialVersionUID = 6196377900891717136L;
@@ -17,10 +19,19 @@ public class FlowBinder implements Serializable {
 
     private FlowBinder() { }
 
+    /**
+     * Class constructor
+     *
+     * @param id flowbinder id
+     * @param version flowbinder version
+     * @param content flowbinder content
+     *
+     * @throws NullPointerException if given null-valued content
+     */
     public FlowBinder(long id, long version, FlowBinderContent content) {
         this.id = id;
         this.version = version;
-        this.content = content;
+        this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
     }
 
     public long getId() {

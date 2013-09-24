@@ -12,8 +12,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -21,9 +19,9 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 public class FlowBinderCreationSeleniumIT {
 
@@ -71,12 +69,12 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     public void testFlowBinderCreationNavigationItemIsVisibleAndClickable() {
-        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION));
-        assertEquals(true, element.isDisplayed());
+        WebElement element = findFlowbinderCreationContextElement();
+        assertTrue(element.isDisplayed());
         element.click();
 
-        WebElement widget = driver.findElement(By.id(FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_WIDGET));
-        assertEquals(true, widget.isDisplayed());
+        WebElement widget = findFlowbinderCreationWidget();
+        assertTrue(widget.isDisplayed());
     }
 
     public void testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
@@ -132,20 +130,19 @@ public class FlowBinderCreationSeleniumIT {
 
     public void testFlowbinderCreationSaveButtonIsVisible() {
         navigateToFlowbinderCreationContext();
-        assertThat(findSaveButtonElement().isDisplayed(), is(true));
+        assertTrue(findSaveButtonElement().isDisplayed());
     }
 
     public void testFlowbinderCreationSaveResultLableIsNotVisibleAndEmptyByDefault() {
         navigateToFlowbinderCreationContext();
         WebElement element = findSaveResultLabelElement();
-        assertEquals(false, element.isDisplayed());
-        assertEquals("", element.getText());
+        assertFalse(element.isDisplayed());
+        assertThat(element.getText(), is(""));
     }
 
     @Test
     public void testFlowbinderCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() {
         populateAllInputFieldsAndClickSave();
-        assertThat(findSaveResultLabelElement().getText(), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS));
     }
 
     @Test
@@ -282,6 +279,9 @@ public class FlowBinderCreationSeleniumIT {
         assertThat(findSaveResultLabelElement().getText(), is(""));
     }
 
+    /**
+     * The following is private helper methods
+     */
     private void populateAllInputFields() {
         populateSubmitterSelectionField();
         populateAllTextInputFields();
@@ -316,19 +316,20 @@ public class FlowBinderCreationSeleniumIT {
 
     private void populateAllInputFieldsAndClickSave() {
         populateAllInputFields();
-
         findSaveButtonElement().click();
-
-        // todo: Split into own method
-        WebDriverWait wait = new WebDriverWait(driver, 4);
-        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL), FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS));
+        SeleniumUtil.waitAndAssert(driver, 4, findSaveResultLabelElement(), FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS);
     }
 
-    /**
-     * The following is private helper methods
-     */
     private void navigateToFlowbinderCreationContext() {
-        driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION)).click();
+        findFlowbinderCreationContextElement().click();
+    }
+
+    private WebElement findFlowbinderCreationContextElement() {
+        return SeleniumUtil.findElementInCurrentView(driver, MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION);
+    }
+
+    private WebElement findFlowbinderCreationWidget() {
+        return SeleniumUtil.findElementInCurrentView(driver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_WIDGET);
     }
 
     private WebElement findNameTextElement() {
@@ -374,5 +375,4 @@ public class FlowBinderCreationSeleniumIT {
     private WebElement findSaveResultLabelElement() {
         return SeleniumUtil.findElementInCurrentView(driver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL);
     }
-
 }

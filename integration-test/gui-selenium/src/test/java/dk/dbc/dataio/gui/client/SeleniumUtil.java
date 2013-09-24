@@ -9,7 +9,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import static org.junit.Assert.assertTrue;
 import org.openqa.selenium.Alert;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class SeleniumUtil {
 
@@ -61,6 +63,15 @@ public class SeleniumUtil {
 
         List<WebElement> selectedItems = dualListElement.findElements(By.cssSelector("." + DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS + " option"));
         assertThat(selectedItems.get(0).getText(), is(itemName));
+    }
+
+    public static boolean waitAndAssert(WebDriver webDriver, long timeToWait, WebElement elementToWaitFor, String messageToBePresent) {
+        String id = elementToWaitFor.getAttribute("id");
+        WebDriverWait wait = new WebDriverWait(webDriver, timeToWait);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.id(id), messageToBePresent));
+
+        // assertion of element contains the expected message
+        return elementToWaitFor.getText().equals(messageToBePresent);
     }
 
     public static void selectItemInListBox(WebElement listBoxElement, String listItem) {

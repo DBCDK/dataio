@@ -117,12 +117,12 @@ public class DualList extends HorizontalPanel {
     /**
      * Adds one item to the availableItems list
      *
-     * @param item The item to add
+     * @param key The item to add
      * @param value The value of the item to add
      * @see DualList#addAvailableItems(Collection) to bulk operations.
      */
-    public void addAvailableItem(String item, String value) {
-        left.addItem(item, value);
+    public void addAvailableItem(String key, String value) {
+        left.addItem(value, key);
         enableOrDisableButtons();
     }
 

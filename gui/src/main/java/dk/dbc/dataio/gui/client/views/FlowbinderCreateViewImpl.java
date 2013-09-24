@@ -128,7 +128,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 
     @Override
     public void setAvailableSubmitter(String key, String value) {
-        flowbinderSubmittersPanel.addAvailableSubmitter(value, key);
+        flowbinderSubmittersPanel.addAvailableSubmitter(key, value);
     }
 
     @Override

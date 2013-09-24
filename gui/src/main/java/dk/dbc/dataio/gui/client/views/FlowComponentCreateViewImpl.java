@@ -84,14 +84,14 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
     }
 
     @Override
-    public void onSaveFlowbinderFailure(String message) {
+    public void onFailure(String message) {
         setAsBusy(false);
         savePanel.setStatusText("");
         Window.alert("Error: " + message);
     }
 
     @Override
-    public void displaySuccess(String message) {
+    public void onSuccess(String message) {
         savePanel.setStatusText(message);
     }
 
@@ -142,14 +142,14 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
                     break;
             }
         }
-        onSaveFlowbinderFailure(errorMessage);
+        onFailure(errorMessage);
     }
 
     @Override
     public void fetchScriptNamesFailed(String failText) {
         scriptNamePanel.disable();
         invocationMethodPanel.disable();
-        onSaveFlowbinderFailure(failText);
+        onFailure(failText);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
                     break;
             }
         }
-        onSaveFlowbinderFailure(errorMessage);
+        onFailure(errorMessage);
     }
 
     private void svnProjectChanged() {
@@ -439,7 +439,7 @@ public class FlowComponentCreateViewImpl extends VerticalPanel implements FlowCo
             String scriptName = scriptNamePanel.getScriptName();
             String invocationMethod = invocationMethodPanel.getInvocationMethod();
             if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
-                onSaveFlowbinderFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+                onFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {
                 savePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
                 presenter.saveFlowComponent(name, project, revision, scriptName, invocationMethod);

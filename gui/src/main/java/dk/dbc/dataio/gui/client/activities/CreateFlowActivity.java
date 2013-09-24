@@ -56,12 +56,12 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
             @Override
             public void onFailure(Throwable e) {
                 final String errorClassName = e.getClass().getName();
-                flowCreateView.onSaveFlowbinderFailure(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowCreateView.onFailure(errorClassName + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override
             public void onSuccess(Void aVoid) {
-                flowCreateView.displaySuccess(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+                flowCreateView.onSuccess(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
             }
         });
     }
@@ -74,7 +74,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
         flowStoreProxy.findAllComponents(new AsyncCallback<List<FlowComponent>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
 
             @Override
@@ -85,7 +85,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
                         availableComponents.put(key, component);
                         flowCreateView.setAvailableItem(component.getContent().getName(), key);
                     } catch (Exception e) {
-                        flowCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage());
+                        flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
                     }
                 }
             }

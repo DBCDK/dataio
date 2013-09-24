@@ -51,12 +51,12 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     }
 
     @Override
-    public void onSaveFlowbinderFailure(String message) {
+    public void onFailure(String message) {
         Window.alert("Error: " + message);
     }
 
     @Override
-    public void displaySuccess(String message) {
+    public void onSuccess(String message) {
         submitterSavePanel.setStatusText(message);
     }
 
@@ -79,12 +79,12 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
                     break;
             }
         }
-        onSaveFlowbinderFailure(errorMessage);
+        onFailure(errorMessage);
     }
 
     @Override
     public void onSaveSubmitterSuccess() {
-        displaySuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        onSuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
     private class SubmitterNamePanel extends HorizontalPanel {

@@ -57,7 +57,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowbinderCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<Submitter> result) {
@@ -75,7 +75,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowbinderCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<Flow> result) {
@@ -99,7 +99,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.createFlowBinder(flowbinderContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
-                flowbinderCreateView.onSaveFlowbinderFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(Void result) {

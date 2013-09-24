@@ -2,7 +2,6 @@ package dk.dbc.dataio.engine;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.apache.commons.codec.binary.Base64;
@@ -28,7 +27,7 @@ public class Engine {
 
     public Job insertIntoJobStore(Path dataObjectPath, String flowInfoJson, JobStore jobStore) throws JobStoreException {
         try {
-            return jobStore.createJob(dataObjectPath, JsonUtil.fromJson(flowInfoJson, Flow.class, MixIns.getMixIns()));
+            return jobStore.createJob(dataObjectPath, JsonUtil.fromJson(flowInfoJson, Flow.class));
         } catch (JsonException e) {
             throw new JobStoreException("Unable to create job", e);
         }

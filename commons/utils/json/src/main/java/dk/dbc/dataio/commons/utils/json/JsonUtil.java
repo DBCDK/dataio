@@ -63,6 +63,10 @@ public class JsonUtil {
         return object;
     }
 
+    public static <T> T fromJson(String json, Class<T> tClass) throws JsonException {
+        return fromJson(json, tClass, null);
+    }
+
     /**
      * Provides access to a tree based view of the given JSON document similar
      * to DOM nodes in XML DOM trees

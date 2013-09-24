@@ -1,7 +1,6 @@
 package dk.dbc.dataio.engine;
 
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.slf4j.Logger;
@@ -20,12 +19,6 @@ import java.util.Map;
 
 public class FileSystemJobStore implements JobStore {
     private static final Logger log = LoggerFactory.getLogger(FileSystemJobStore.class);
-    private static Map<Class<?>, Class<?>> mixIns = new HashMap<>(MixIns.getMixIns());
-    static {
-        mixIns.put(Chunk.class, ChunkJsonMixIn.class);
-        mixIns.put(Job.class, JobJsonMixIn.class);
-        mixIns.put(ProcessChunkResult.class, ProcessChunkResultJsonMixIn.class);
-    }
 
     private final Path storePath;
     
@@ -121,7 +114,7 @@ public class FileSystemJobStore implements JobStore {
                 sb.append(data);
             }
             log.info("Data: [{}]", sb.toString());
-            chunk = JsonUtil.fromJson(sb.toString(), Chunk.class, mixIns);
+            chunk = JsonUtil.fromJson(sb.toString(), Chunk.class);
         } catch (IOException ex) {
             String msg = "Could not read chunk file: " + i;
             log.error(msg, ex);
@@ -145,7 +138,7 @@ public class FileSystemJobStore implements JobStore {
                 sb.append(data);
             }
             log.info("Data: [{}]", sb.toString());
-            chunkResult = JsonUtil.fromJson(sb.toString(), ProcessChunkResult.class, mixIns);
+            chunkResult = JsonUtil.fromJson(sb.toString(), ProcessChunkResult.class);
         } catch (IOException ex) {
             final String msg = "Could not read chunk file: " + i;
             log.error(msg, ex);

@@ -32,9 +32,10 @@ public class JavaScriptTest {
         new JavaScript(JAVASCRIPT, null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_moduleNameArgIsEmpty_throws() {
-        new JavaScript(JAVASCRIPT, "");
+    @Test
+    public void constructor_moduleNameArgIsEmpty_returnsNewInstance() {
+        final JavaScript instance = new JavaScript(JAVASCRIPT, "");
+        assertThat(instance, is(notNullValue()));
     }
 
     @Test

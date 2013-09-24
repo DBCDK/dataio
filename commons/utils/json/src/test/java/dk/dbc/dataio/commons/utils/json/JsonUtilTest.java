@@ -1,10 +1,16 @@
-package dk.dbc.dataio.flowstore.util.json;
+package dk.dbc.dataio.commons.utils.json;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.junit.Test;
-import static org.junit.Assert.assertThat;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * JsonUtil unit tests
@@ -21,6 +27,76 @@ public class JsonUtilTest {
     private final int simpleArrayValue = 0;
     private final String validJsonSimpleArrayString = String.format("[%d, 1, 2, 3]", simpleArrayValue);
     private final String errMessage = "message";
+
+    @Test(expected = NullPointerException.class)
+    public void toJson_objectArgIsNull_throws() throws Exception {
+        JsonUtil.toJson(null);
+    }
+
+    @Test(expected = JsonException.class)
+    public void toJson_objectArgCanNotBeMarshalled_throws() throws Exception {
+       JsonUtil.toJson(new Object());
+    }
+
+    @Test
+    public void toJson_objectArgCanBeMarshalled_returnsRepresentation() throws Exception {
+        final int value = 42;
+        final String expectedStringRepresentation = String.format("{\"value\":%d}", value);
+        final SimpleBean object = new SimpleBean();
+        object.setValue(value);
+        final String output = JsonUtil.toJson(object);
+        assertThat(output, is(expectedStringRepresentation));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void fromJson_jsonArgIsNull_throws() throws Exception {
+        JsonUtil.fromJson(null, SimpleBean.class, new HashMap<Class<?>, Class<?>>(0));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void fromJson_jsonArgIsEmpty_throws() throws Exception {
+        JsonUtil.fromJson("", SimpleBean.class, new HashMap<Class<?>, Class<?>>(0));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void fromJson_tClassArgIsNull_throws() throws Exception {
+        JsonUtil.fromJson("{}", null, new HashMap<Class<?>, Class<?>>(0));
+    }
+
+    @Test(expected = JsonException.class)
+    public void fromJson_jsonArgCanNotBeUnmarshalled_throws() throws Exception {
+        JsonUtil.fromJson("{}", SimpleBeanWithoutDefaultConstructor.class, new HashMap<Class<?>, Class<?>>(0));
+    }
+
+    @Test
+    public void fromJson_jsonArgCanBeUnmarshalled_returnsInstance() throws Exception {
+        final int value = 42;
+        final String jsonRepresentation = String.format("{\"value\":%d}", value);
+        final SimpleBean instance = JsonUtil.fromJson(jsonRepresentation, SimpleBean.class, new HashMap<Class<?>, Class<?>>(0));
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getValue(), is(value));
+    }
+
+    @Test
+    public void fromJson_mixinsArgIsNull_returnsInstance() throws Exception {
+        final int value = 42;
+        final String jsonRepresentation = String.format("{\"value\":%d}", value);
+        final SimpleBean instance = JsonUtil.fromJson(jsonRepresentation, SimpleBean.class, null);
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getValue(), is(value));
+    }
+
+    @Test
+    public void fromJson_mixinsArgNecessary_returnsInstance() throws Exception {
+        final int value = 42;
+        final String jsonRepresentation = String.format("{\"value\":%d}", value);
+        final Map<Class<?>, Class<?>> mixins = new HashMap<>(1);
+        mixins.put(SimpleBeanWithoutDefaultConstructor.class, SimpleBeanWithoutDefaultConstructorJsonMixin.class);
+        final SimpleBeanWithoutDefaultConstructor instance =
+                JsonUtil.fromJson(jsonRepresentation, SimpleBeanWithoutDefaultConstructor.class, mixins);
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getValue(), is(value));
+    }
 
     @Test(expected = JsonException.class)
     public void getJsonRoot_jsonArgIsNull_throws() throws Exception {
@@ -120,5 +196,34 @@ public class JsonUtilTest {
         final JsonNode root = JsonUtil.getJsonRoot(objectString);
         final long value = JsonUtil.getLongValueOrThrow(root.path(simpleObjectKey), errMessage);
         assertThat(value, is(expectedValue));
+    }
+
+    private static class SimpleBean {
+        private int value;
+
+        public int getValue() {
+            return value;
+        }
+        public void setValue(int value) {
+            this.value = value;
+        }
+    }
+
+    private static class SimpleBeanWithoutDefaultConstructor {
+        private int value;
+
+        public SimpleBeanWithoutDefaultConstructor(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static abstract class SimpleBeanWithoutDefaultConstructorJsonMixin {
+        @JsonCreator
+        public SimpleBeanWithoutDefaultConstructorJsonMixin(@JsonProperty("value") int value) { }
     }
 }

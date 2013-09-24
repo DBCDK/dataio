@@ -1,7 +1,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.flowstore.util.json.JsonException;
-import dk.dbc.dataio.flowstore.util.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.codehaus.jackson.JsonNode;
 
 import javax.persistence.Column;

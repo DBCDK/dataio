@@ -1,6 +1,9 @@
 package dk.dbc.dataio.engine;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,9 +15,17 @@ import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FileSystemJobStore implements JobStore {
     private static final Logger log = LoggerFactory.getLogger(FileSystemJobStore.class);
+    private static Map<Class<?>, Class<?>> mixIns = new HashMap<>(MixIns.getMixIns());
+    static {
+        mixIns.put(Chunk.class, ChunkJsonMixIn.class);
+        mixIns.put(Job.class, JobJsonMixIn.class);
+        mixIns.put(ProcessChunkResult.class, ProcessChunkResultJsonMixIn.class);
+    }
 
     private final Path storePath;
     
@@ -53,6 +64,8 @@ public class FileSystemJobStore implements JobStore {
           bw.write(JsonUtil.toJson(flow));
         } catch(IOException ex) {
             log.warn("Exception caught when trying to write Flow: {}", flow.getId(), ex);
+        } catch (JsonException ex) {
+            log.warn("Exception caught when trying to write Flow: {}", flow.getId(), ex);
         }
     }
     
@@ -90,6 +103,8 @@ public class FileSystemJobStore implements JobStore {
             bw.write(JsonUtil.toJson(chunk));
         } catch (IOException ex) {
             log.warn("Exception caught when trying to write chunk: {}", chunk.getId(), ex);
+        } catch (JsonException e) {
+            log.warn("Exception caught when trying to write chunk: {}", chunk.getId(), e);
         }
 
         incrementJobChunkCounter(job);
@@ -106,11 +121,15 @@ public class FileSystemJobStore implements JobStore {
                 sb.append(data);
             }
             log.info("Data: [{}]", sb.toString());
-            chunk = JsonUtil.fromJson(sb.toString(), Chunk.class, JsonUtil.getMixIns());
+            chunk = JsonUtil.fromJson(sb.toString(), Chunk.class, mixIns);
         } catch (IOException ex) {
             String msg = "Could not read chunk file: " + i;
-            log.error(msg);
-            throw new JobStoreException(msg);
+            log.error(msg, ex);
+            throw new JobStoreException(msg, ex);
+        } catch (JsonException e) {
+            String msg = "Could not unmarshall chunk file: " + i;
+            log.error(msg, e);
+            throw new JobStoreException(msg, e);
         }
         return chunk;
     }
@@ -126,11 +145,15 @@ public class FileSystemJobStore implements JobStore {
                 sb.append(data);
             }
             log.info("Data: [{}]", sb.toString());
-            chunkResult = JsonUtil.fromJson(sb.toString(), ProcessChunkResult.class, JsonUtil.getMixIns());
+            chunkResult = JsonUtil.fromJson(sb.toString(), ProcessChunkResult.class, mixIns);
         } catch (IOException ex) {
             final String msg = "Could not read chunk file: " + i;
-            log.error(msg);
-            throw new JobStoreException(msg);
+            log.error(msg, ex);
+            throw new JobStoreException(msg, ex);
+        } catch (JsonException e) {
+            final String msg = "Could not unmarshall chunk file: " + i;
+            log.error(msg, e);
+            throw new JobStoreException(msg, e);
         }
         return chunkResult;
     }
@@ -143,6 +166,8 @@ public class FileSystemJobStore implements JobStore {
             bw.write(JsonUtil.toJson(processChunkResult));
         } catch (IOException ex) {
             log.warn("Exception caught when trying to write chunk result: {}", processChunkResult.getId(), ex);
+        } catch (JsonException e) {
+            log.warn("Exception caught when trying to marshall chunk result: {}", processChunkResult.getId(), e);
         }
     }
 

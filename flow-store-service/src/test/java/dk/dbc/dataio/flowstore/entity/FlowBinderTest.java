@@ -1,6 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.flowstore.util.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonException;
 import org.junit.Test;
 
 /**

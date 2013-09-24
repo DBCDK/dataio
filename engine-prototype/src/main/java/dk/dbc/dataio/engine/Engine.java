@@ -2,6 +2,9 @@ package dk.dbc.dataio.engine;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +27,11 @@ public class Engine {
     private final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
     public Job insertIntoJobStore(Path dataObjectPath, String flowInfoJson, JobStore jobStore) throws JobStoreException {
-        return jobStore.createJob(dataObjectPath, JsonUtil.fromJson(flowInfoJson, Flow.class, JsonUtil.getMixIns()));
+        try {
+            return jobStore.createJob(dataObjectPath, JsonUtil.fromJson(flowInfoJson, Flow.class, MixIns.getMixIns()));
+        } catch (JsonException e) {
+            throw new JobStoreException("Unable to create job", e);
+        }
     }
 
     public Job chunkify(Job job, JobStore jobStore) throws JobStoreException {

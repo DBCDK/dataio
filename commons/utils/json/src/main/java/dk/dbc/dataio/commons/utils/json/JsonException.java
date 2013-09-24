@@ -1,4 +1,4 @@
-package dk.dbc.dataio.flowstore.util.json;
+package dk.dbc.dataio.commons.utils.json;
 
 public class JsonException extends Exception {
     private static final long serialVersionUID = -6429142830690189808L;

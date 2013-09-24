@@ -1,16 +1,67 @@
-package dk.dbc.dataio.flowstore.util.json;
+package dk.dbc.dataio.commons.utils.json;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Map;
 
 /**
  * This utility class provides convenience methods for JSON document handling.
  */
 public class JsonUtil {
     private JsonUtil() { }
+
+    /**
+     * Transforms given value type into its corresponding JSON string representation
+     *
+     * @param object object to transform
+     * @return JSON representation
+     * @throws JsonException if unable to marshall value type into its JSON representation
+     */
+    public static String toJson(Object object) throws JsonException {
+        InvariantUtil.checkNotNullOrThrow(object, "object");
+        final StringWriter stringWriter = new StringWriter();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            objectMapper.writeValue(stringWriter, object);
+        } catch (IOException e) {
+            throw new JsonException(String.format("Exception caught when trying to marshall %s object to JSON", object.getClass().getName()), e);
+        }
+        return stringWriter.toString();
+    }
+
+    /**
+     * Transforms JSON string into value type
+     *
+     * @param json JSON representation of value type
+     * @param tClass value type class
+     * @param mixIns Map of target class to mixin class. Mixin classes use annotations
+     *               to guide the serialization/deserialization process, Can be null
+     *               or empty.
+     * @param <T> type parameter
+     * @return value type instance
+     * @throws JsonException if unable to unmarshall JSON representation to value type
+     */
+    public static <T> T fromJson(String json, Class<T> tClass, Map<Class<?>, Class<?>> mixIns) throws JsonException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(json, "json");
+        InvariantUtil.checkNotNullOrThrow(tClass, "tClass");
+        T object;
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            if (mixIns != null) {
+                for (Map.Entry<Class<?>, Class<?>> e : mixIns.entrySet()) {
+                    objectMapper.getDeserializationConfig().addMixInAnnotations(e.getKey(), e.getValue());
+                }
+            }
+            object = objectMapper.readValue(json, tClass);
+        } catch (IOException e) {
+            throw new JsonException(String.format("Exception caught when trying to unmarshall JSON %s to %s object", json, tClass.getName()), e);
+        }
+        return object;
+    }
 
     /**
      * Provides access to a tree based view of the given JSON document similar
@@ -82,18 +133,5 @@ public class JsonUtil {
             throw new JsonException(String.format("%s - member is not a number", message));
         }
         return jsonNode.getLongValue();
-    }
-
-    public static String toJson(Object object) throws JsonException {
-        final StringWriter stringWriter = new StringWriter();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final String json;
-        try {
-            objectMapper.writeValue(stringWriter, object);
-            json = stringWriter.toString();
-        } catch (IOException e) {
-            throw new JsonException(String.format("Exception caught when trying to marshall %s object to JSON", object.getClass().getName()), e);
-        }
-        return json;
     }
 }

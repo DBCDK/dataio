@@ -1,7 +1,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.flowstore.util.json.JsonException;
-import dk.dbc.dataio.flowstore.util.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.codehaus.jackson.annotate.JsonRawValue;
 
 import javax.persistence.Column;
@@ -50,7 +50,7 @@ public class VersionedEntity {
      *
      * @param content entity data as JSON string
      *
-     * @throws dk.dbc.dataio.flowstore.util.json.JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
+     * @throws JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
      */
     public void setContent(String content) throws JsonException {
         preProcessContent(content);
@@ -63,7 +63,7 @@ public class VersionedEntity {
      *
      * @param data entity content
      *
-     * @throws dk.dbc.dataio.flowstore.util.json.JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
+     * @throws JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
      */
     protected void preProcessContent(String data) throws JsonException {
         JsonUtil.getJsonRoot(data);

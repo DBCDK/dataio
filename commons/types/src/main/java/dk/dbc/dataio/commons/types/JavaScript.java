@@ -21,14 +21,14 @@ public class JavaScript implements Serializable {
      * Class constructor
      *
      * @param javascript JavaScript source code
-     * @param moduleName JavaScript module name
+     * @param moduleName JavaScript module name (can be empty)
      *
      * @throws NullPointerException if given null-valued javascript or moduleName argument
      * @throws IllegalArgumentException if given empty-valued javascript or moduleName argument
      */
     public JavaScript(String javascript, String moduleName) {
         this.javascript = InvariantUtil.checkNotNullNotEmptyOrThrow(javascript, "javascript");
-        this.moduleName = InvariantUtil.checkNotNullNotEmptyOrThrow(moduleName, "moduleName");
+        this.moduleName = InvariantUtil.checkNotNullOrThrow(moduleName, "moduleName");
     }
 
     public String getJavascript() {

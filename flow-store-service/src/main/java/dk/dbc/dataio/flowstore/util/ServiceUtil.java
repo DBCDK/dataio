@@ -1,10 +1,10 @@
 package dk.dbc.dataio.flowstore.util;
 
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.flowstore.entity.Entity;
 import dk.dbc.dataio.flowstore.entity.EntityPrimaryKey;
 import dk.dbc.dataio.flowstore.entity.VersionedEntity;
-import dk.dbc.dataio.flowstore.util.json.JsonException;
-import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

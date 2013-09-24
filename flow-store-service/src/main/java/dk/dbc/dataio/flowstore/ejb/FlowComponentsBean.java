@@ -1,8 +1,8 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
-import dk.dbc.dataio.flowstore.util.json.JsonException;
-import dk.dbc.dataio.flowstore.util.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

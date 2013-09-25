@@ -13,6 +13,8 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
@@ -61,6 +63,7 @@ public class FlowsIT {
     public void createFlow_Ok() throws SQLException {
         // When...
         final String flowContent = new FlowContentJsonBuilder().build();
+        System.out.println(flowContent);
         final Response response = doPostWithJson(restClient, flowContent, baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
@@ -182,7 +185,8 @@ public class FlowsIT {
     public static class FlowContentJsonBuilder extends ITUtil.JsonBuilder {
         private String name = "name";
         private String description = "description";
-        private String component = new FlowComponentsIT.FlowComponentJsonBuilder().build();
+        private List<String> components = new ArrayList<>(Arrays.asList(
+                new FlowComponentsIT.FlowComponentJsonBuilder().build()));
 
         public FlowContentJsonBuilder setDescription(String description) {
             this.description = description;
@@ -194,8 +198,8 @@ public class FlowsIT {
             return this;
         }
 
-        public FlowContentJsonBuilder setComponent(String component) {
-            this.component = component;
+        public FlowContentJsonBuilder setComponents(List<String> components) {
+            this.components = new ArrayList<>(components);
             return this;
         }
 
@@ -204,7 +208,7 @@ public class FlowsIT {
             stringBuilder.append(START_OBJECT);
             stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asTextMember("description", description)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asObjectMember("component", component));
+            stringBuilder.append(asObjectArray("components", components));
             stringBuilder.append(END_OBJECT);
             return stringBuilder.toString();
         }

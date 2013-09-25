@@ -48,8 +48,6 @@ public class ITUtil {
     public static final String FLOW_BINDERS_URL_PATH = "binders";
     public static final String SUBMITTERS_URL_PATH = "submitters";
 
-    public static final String FLOWS_TABLE_INSERT_STMT = String.format(
-            "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOWS_TABLE_NAME);
     public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", FLOWS_TABLE_NAME);
     public static final String FLOW_BINDERS_TABLE_SELECT_CONTENT_STMT = String.format(
@@ -57,7 +55,7 @@ public class ITUtil {
     public static final String FLOW_COMPONENTS_TABLE_INSERT_STMT = String.format(
             "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOW_COMPONENTS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT = String.format(
-            "SELECT content FROM %s WHERE id=? AND version=?", FLOW_COMPONENTS_TABLE_NAME);
+            "SELECT content FROM %s WHERE id=?", FLOW_COMPONENTS_TABLE_NAME);
     public static final String SUBMITTERS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", SUBMITTERS_TABLE_NAME);
 
@@ -102,14 +100,14 @@ public class ITUtil {
                 SUBMITTERS_TABLE_NAME);
     }
 
-    public static ResourceIdentifier createFlowComponentWithName(String name) {
+    public static long createFlowComponentWithName(String name) {
         final String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         final Client restClient = ClientBuilder.newClient();
         return createFlowComponent(restClient, baseUrl, String.format("{\"name\": \"%s\", \"invocationMethod\": \"f\", \"javascripts\": [{\"moduleName\": \"\", \"javascript\": \"\"}]}", name));
     }
 
-    public static ResourceIdentifier createFlowComponent(Client restClient, String baseUrl, String content) {
-        return getResourceIdentifierFromLocationHeaderAndAssertHasValue(
+    public static long createFlowComponent(Client restClient, String baseUrl, String content) {
+        return getResourceIdFromLocationHeaderAndAssertHasValue(
                 doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH));
     }
 
@@ -376,17 +374,22 @@ public class ITUtil {
             return String.format("\"%s\": \"%s\"", memberName, memberValue);
         }
 
-        protected String asObjectMember(String memberName, String memberValue) {
-            if (memberValue == null) {
-                return String.format("\"%s\": null", memberName);
-            }
-            return String.format("\"%s\": %s", memberName, memberValue);
-        }
-
         protected String asLongMember(String memberName, Long memberValue) {
             final String memberValueAsString = (memberValue == null) ? NULL_VALUE
                 : Long.toString(memberValue);
             return String.format("\"%s\": %s", memberName, memberValueAsString);
+        }
+
+        protected String asObjectMember(String memberName, String memberValue) {
+            final String memberValueAsString = (memberValue == null) ? NULL_VALUE
+                    : memberValue;
+            return String.format("\"%s\": %s", memberName, memberValueAsString);
+        }
+
+        protected String asObjectArray(String memberName, List<String> memberValues) {
+            final String memberValuesAsString = (memberValues == null) ? NULL_VALUE
+                    : String.format("%s%s%s", START_ARRAY, joinNonTextValues(",", memberValues), END_ARRAY);
+            return String.format("\"%s\": %s", memberName, memberValuesAsString);
         }
 
         protected String asLongArray(String memberName, List<Long> memberValues) {
@@ -395,7 +398,16 @@ public class ITUtil {
             return String.format("\"%s\": %s", memberName, memberValuesAsString);
         }
 
-        protected String joinLongs(final String delimiter, List<Long> ids) {
+        protected String joinNonTextValues(String delimiter, List<String> memberValues) {
+            final StringBuilder stringbuilder = new StringBuilder();
+            for (String memberValue : memberValues) {
+                final String value = (memberValue != null) ? memberValue : NULL_VALUE;
+                stringbuilder.append(value).append(delimiter);
+            }
+            return stringbuilder.toString().replaceFirst(String.format("%s$", delimiter), "");
+        }
+
+        protected String joinLongs(String delimiter, List<Long> ids) {
             final StringBuilder stringbuilder = new StringBuilder();
             for (Long id : ids) {
                 final String idAsString = (id != null) ? Long.toString(id) : NULL_VALUE;

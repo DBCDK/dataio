@@ -23,7 +23,7 @@ import javax.persistence.Table;
 @NamedQueries({
     @NamedQuery(name = FlowComponent.QUERY_FIND_ALL, query = "SELECT component FROM FlowComponent component ORDER BY component.nameIndexValue ASC")
 })
-public class FlowComponent extends dk.dbc.dataio.flowstore.entity.Entity {
+public class FlowComponent extends VersionedEntity {
     public static final String TABLE_NAME = "flow_components";
     public static final String QUERY_FIND_ALL = "FlowComponent.findAll";
     static final String NAME_INDEX_COLUMN = "name_idx";

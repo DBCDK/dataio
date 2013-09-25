@@ -13,13 +13,16 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.createFlowComponent;
 import static dk.dbc.dataio.integrationtest.ITUtil.doGet;
 import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
-import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdentifierFromLocationHeaderAndAssertHasValue;
+import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -47,7 +50,7 @@ public class FlowComponentsIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_NAME);
+        clearAllDbTables(dbConnection);
     }
 
     /**
@@ -60,18 +63,17 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_Ok() throws SQLException {
         // When...
-        final String flowComponentContent = "{\"name\": \"testComponentName\"}";
+        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
         final Response response = doPostWithJson(restClient, flowComponentContent, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
 
         // And ...
-        final ITUtil.ResourceIdentifier resId = getResourceIdentifierFromLocationHeaderAndAssertHasValue(response);
+        final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT,
-                resId.getId(), new Date(resId.getVersion()));
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT, id);
 
         assertThat(rs.size(), is(1));
         assertThat((String) rs.get(0).get(0), is(flowComponentContent));
@@ -149,18 +151,21 @@ public class FlowComponentsIT {
     @Test
     public void findAllComponents_Ok() throws Exception {
         // Given...
-        final ITUtil.ResourceIdentifier sortsFirst = new ITUtil.ResourceIdentifier(1L, new Date().getTime());
-        final ITUtil.ResourceIdentifier sortsSecond = new ITUtil.ResourceIdentifier(2L, new Date().getTime());
-        final ITUtil.ResourceIdentifier sortsThird = new ITUtil.ResourceIdentifier(3L, new Date().getTime());
+        // Given...
+        String flowComponentContent = new FlowComponentContentJsonBuilder()
+                .setName("c")
+                .build();
+        final long sortsThird = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
-        final String componentContent = "{}";
+        flowComponentContent = new FlowComponentContentJsonBuilder()
+                .setName("a")
+                .build();
+        final long sortsFirst = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
-        JDBCUtil.update(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
-                sortsThird.getId(), new Date(sortsThird.getVersion()), componentContent, "c");
-        JDBCUtil.update(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
-                sortsFirst.getId(), new Date(sortsFirst.getVersion()), componentContent, "a");
-        JDBCUtil.update(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_INSERT_STMT,
-                sortsSecond.getId(), new Date(sortsSecond.getVersion()), componentContent, "b");
+        flowComponentContent = new FlowComponentContentJsonBuilder()
+                .setName("b")
+                .build();
+        final long sortsSecond = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
         // When...
         final Response response = doGet(restClient, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
@@ -173,14 +178,15 @@ public class FlowComponentsIT {
         assertThat(responseContent, is(notNullValue()));
         final ArrayNode responseContentNode = (ArrayNode) ITUtil.getJsonRoot(responseContent);
         assertThat(responseContentNode.size(), is(3));
-        assertThat(responseContentNode.get(0).get("id").getLongValue(), is(sortsFirst.getId()));
-        assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond.getId()));
-        assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird.getId()));
+        assertThat(responseContentNode.get(0).get("id").getLongValue(), is(sortsFirst));
+        assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond));
+        assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
     }
 
     public static class FlowComponentJsonBuilder extends ITUtil.JsonBuilder {
         private Long id = 42L;
         private Long version = 1L;
+        private String content = new FlowComponentContentJsonBuilder().build();
 
         public FlowComponentJsonBuilder setId(Long id) {
             this.id = id;
@@ -192,15 +198,76 @@ public class FlowComponentsIT {
             return this;
         }
 
+        public void setContent(String content) {
+            this.content = content;
+        }
+
         public String build() {
             final StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(START_OBJECT);
             stringBuilder.append(asLongMember("id", id)); stringBuilder.append(MEMBER_DELIMITER);
-            //stringBuilder.append(asLongMember("version", version)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asLongMember("version", version));
+            stringBuilder.append(asLongMember("version", version)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asObjectMember("content", content));
             stringBuilder.append(END_OBJECT);
             return stringBuilder.toString();
         }
     }
+
+    public static class FlowComponentContentJsonBuilder extends ITUtil.JsonBuilder {
+        private String name = "name";
+        private String invocationMethod = "invocationMethod";
+        private List<String> javascripts = new ArrayList<>(Arrays.asList(
+                new JavaScriptJsonBuilder().build()));
+
+        public FlowComponentContentJsonBuilder setInvocationMethod(String invocationMethod) {
+            this.invocationMethod = invocationMethod;
+            return this;
+        }
+
+        public FlowComponentContentJsonBuilder setJavascripts(List<String> javascripts) {
+            this.javascripts = new ArrayList<>(javascripts);
+            return this;
+        }
+
+        public FlowComponentContentJsonBuilder setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+       public String build() {
+            final StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(START_OBJECT);
+           stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("invocationMethod", invocationMethod)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asObjectArray("javascripts", javascripts));
+            stringBuilder.append(END_OBJECT);
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class JavaScriptJsonBuilder extends ITUtil.JsonBuilder {
+        private String javascript = "javascript";
+        private String moduleName = "moduleName";
+
+        public JavaScriptJsonBuilder setJavascript(String javascript) {
+            this.javascript = javascript;
+            return this;
+        }
+
+        public JavaScriptJsonBuilder setModuleName(String moduleName) {
+            this.moduleName = moduleName;
+            return this;
+        }
+
+        public String build() {
+            final StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(START_OBJECT);
+            stringBuilder.append(asTextMember("javascript", javascript)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("moduleName", moduleName));
+            stringBuilder.append(END_OBJECT);
+            return stringBuilder.toString();
+        }
+    }
+
 
 }

@@ -22,8 +22,8 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.buildResponse;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUri;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsEntity;
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -40,7 +40,7 @@ public class FlowComponentsBean {
     private EntityManager entityManager;
 
     /**
-     * Creates new flow component with data POST'ed as JSON and persists it in the
+     * Creates new flow component with data POSTed as JSON and persists it in the
      * underlying data store
      *
      * @param componentContent component data as JSON string
@@ -52,10 +52,10 @@ public class FlowComponentsBean {
     public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JsonException {
         log.trace("Called with: '{}'", componentContent);
 
-        final FlowComponent component = saveAsEntity(entityManager, FlowComponent.class, componentContent);
+        final FlowComponent component = saveAsVersionedEntity(entityManager, FlowComponent.class, componentContent);
         entityManager.flush();
 
-        return Response.created(getResourceUri(uriInfo.getAbsolutePathBuilder(), component)).build();
+        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), component)).build();
     }
 
     /**

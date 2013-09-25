@@ -360,7 +360,7 @@ public class FlowComponentCreationSeleniumIT {
 
     // notice: WebDriver is currently unused but is there for future reference.
     public static boolean createTestFlowComponent(WebDriver webDriver, String name) {
-        ITUtil.ResourceIdentifier resourceIdentifier = ITUtil.createFlowComponentWithName(name);
-        return (resourceIdentifier != null && resourceIdentifier.getId() > 0L) ? true : false;
+        final long resourceIdentifier = ITUtil.createFlowComponentWithName(name);
+        return resourceIdentifier > 0L;
     }
 }

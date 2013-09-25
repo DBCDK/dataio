@@ -20,11 +20,15 @@ public class SeleniumUtil {
     }
 
     public static void assertFieldIsVisbleAndDataCanBeInsertedAndRead(WebElement element) {
+        final String fieldValue = "test of unicode content æøåÆØÅ";
+        assertFieldIsVisbleAndDataCanBeInsertedAndReadWithValue(element, fieldValue);
+    }
+
+    public static void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithValue(WebElement element, String value) {
         assertTrue(element.isDisplayed());
 
-        final String fieldValue = "test of unicode content æøåÆØÅ";
-        element.sendKeys(fieldValue);
-        assertThat(element.getAttribute("value"), is(fieldValue));
+        element.sendKeys(value);
+        assertThat(element.getAttribute("value"), is(value));
     }
 
     public static void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(WebElement element, int maxSizeOfText) {

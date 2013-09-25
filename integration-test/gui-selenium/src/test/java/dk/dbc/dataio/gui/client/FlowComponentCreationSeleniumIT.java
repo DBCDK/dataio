@@ -36,7 +36,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class FlowComponentCreationSeleniumIT {
     private static final String PROJECTS_PATH = "projects";
@@ -96,75 +98,58 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     public void testFlowComponentCreationNavigationItemIsVisibleAndClickable() {
-        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
-        assertEquals(true, element.isDisplayed());
-        element.click();
-
-        WebElement widget = driver.findElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_WIDGET));
-        assertEquals(true, widget.isDisplayed());
+        assertTrue(findFlowComponentCreateNavigationElement(driver).isDisplayed());
+        findFlowComponentCreateNavigationElement(driver).click();
+        assertTrue(findFlowComponentCreationWidget(driver).isDisplayed());
     }
 
     public void testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToFlowComponentCreationContext();
-        WebElement element = findComponentNameElement();
-        assertEquals(true, element.isDisplayed());
-
-        final String fieldValue = "test of unicode content æøåÆØÅ";
-        element.sendKeys(fieldValue);
-        assertEquals(fieldValue, element.getAttribute("value"));
+        navigateToFlowComponentCreationWidget(driver);
+        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findComponentNameElement(driver));
     }
 
     public void testFlowComponentCreationSvnProjectInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToFlowComponentCreationContext();
-        final WebElement element = findComponentSvnProjectElement();
-        assertEquals(true, element.isDisplayed());
-
-        final String fieldValue = SVN_PROJECT_NAME;
-        element.sendKeys(fieldValue);
-        assertEquals(fieldValue, element.getAttribute("value"));
+        navigateToFlowComponentCreationWidget(driver);
+        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndReadWithValue(findComponentSvnProjectElement(driver), SVN_PROJECT_NAME);
     }
 
     public void testFlowComponentCreationSvnRevisionSelectionFieldIsVisible() {
-        navigateToFlowComponentCreationContext();
-        final WebElement element = findComponentSvnRevisionElement();
-        assertEquals(true, element.isDisplayed());
+        navigateToFlowComponentCreationWidget(driver);
+        assertTrue(findComponentSvnRevisionElement(driver).isDisplayed());
     }
 
     public void testFlowComponentCreationScriptNameSelectionFieldIsVisible() {
-        navigateToFlowComponentCreationContext();
-        final WebElement element = findComponentScriptNameElement();
-        assertEquals(true, element.isDisplayed());
+        navigateToFlowComponentCreationWidget(driver);
+        assertTrue(findComponentScriptNameElement(driver).isDisplayed());
     }
 
     public void testFlowComponentCreationInvocationMethodSelectionFieldIsVisible() {
-        navigateToFlowComponentCreationContext();
-        final WebElement element = findComponentInvocationMethodElement();
-        assertEquals(true, element.isDisplayed());
+        navigateToFlowComponentCreationWidget(driver);
+        assertTrue(findComponentInvocationMethodElement(driver).isDisplayed());
     }
 
     public void testFlowComponentCreationSaveButtonIsVisible() {
-        navigateToFlowComponentCreationContext();
-        WebElement element = findComponentSaveButtonElement();
-        assertEquals(true, element.isDisplayed());
+        navigateToFlowComponentCreationWidget(driver);
+        assertTrue(findComponentSaveButtonElement(driver).isDisplayed());
     }
 
     public void testFlowComponentCreationSaveResultLabelIsVisibleAndEmpty() {
-        navigateToFlowComponentCreationContext();
-        WebElement element = findComponentSaveResultLabelElement();
-        assertEquals(false, element.isDisplayed());
-        assertEquals("", element.getText());
+        navigateToFlowComponentCreationWidget(driver);
+        WebElement element = findComponentSaveResultLabelElement(driver);
+        assertFalse(element.isDisplayed());
+        assertThat(element.getText(), is(""));
     }
 
     @Ignore // merge with testFlowComponentCreationSuccessfulSave_* test
     @Test
     public void testFlowComponentCreationValidSvnProjectNamePopulatesListBoxes() {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
-        findComponentNameElement().sendKeys("testComponent");
+        findComponentNameElement(driver).sendKeys("testComponent");
 
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
 
-        final Select svnRevision = new Select(findComponentSvnRevisionElement());
+        final Select svnRevision = new Select(findComponentSvnRevisionElement(driver));
         assertThat(svnRevision.getOptions().size() > 0, is(true));
 
         /* When uncommented no ListBoxes are filled ???
@@ -182,14 +167,14 @@ public class FlowComponentCreationSeleniumIT {
     @Ignore
     @Test
     public void testFlowComponentCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
-        findComponentNameElement().sendKeys("testComponent");
+        findComponentNameElement(driver).sendKeys("testComponent");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
-        findComponentSaveButtonElement().click();
+        findComponentSaveButtonElement(driver).click();
         final WebDriverWait wait = new WebDriverWait(driver, 10);
         wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-        final WebElement saveResultLabel = findComponentSaveResultLabelElement();
+        final WebElement saveResultLabel = findComponentSaveResultLabelElement(driver);
         assertThat(saveResultLabel.getText(), is(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
 
     }
@@ -197,11 +182,11 @@ public class FlowComponentCreationSeleniumIT {
     @Ignore
     @Test
     public void testSaveButton_EmptyComponentNameInputField_DisplayErrorPopup() throws IOException {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
-        findComponentNameElement().sendKeys("");
+        findComponentNameElement(driver).sendKeys("");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
-        findComponentSaveButtonElement().click();
+        findComponentSaveButtonElement(driver).click();
 
         final Alert alert = driver.switchTo().alert();
         final String s = alert.getText();
@@ -212,10 +197,10 @@ public class FlowComponentCreationSeleniumIT {
     @Ignore
     @Test
     public void testSaveButton_MissingSvnProjectName_DisplayErrorPopup() throws IOException {
-        navigateToFlowComponentCreationContext();
-        findComponentNameElement().sendKeys("testComponent");
+        navigateToFlowComponentCreationWidget(driver);
+        findComponentNameElement(driver).sendKeys("testComponent");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
-        findComponentSaveButtonElement().click();
+        findComponentSaveButtonElement(driver).click();
 
         final Alert alert = driver.switchTo().alert();
         final String s = alert.getText();
@@ -226,96 +211,99 @@ public class FlowComponentCreationSeleniumIT {
     @Ignore
     @Test
     public void testFlowComponentCreationNameInputFieldUpdate_clearsSaveResultLabel() throws IOException {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
-        findComponentNameElement().sendKeys("a");
-        assertEquals("", findComponentSaveResultLabelElement().getText());
+        findComponentNameElement(driver).sendKeys("a");
+        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
     }
 
     @Ignore
     @Test
     public void testFlowComponentCreationSvnProjectInputFieldUpdate_clearsSaveResultLabel() throws IOException {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
-        findComponentSvnProjectElement().sendKeys("project");
-        assertEquals("", findComponentSaveResultLabelElement().getText());
+        findComponentSvnProjectElement(driver).sendKeys("project");
+        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
     }
 
     @Ignore
     @Test
     public void testFlowComponentCreationSvnRevisionSelectionFieldUpdate_clearsSaveResultLabel() throws IOException {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
-        new Select(findComponentSvnRevisionElement()).selectByIndex(2);
-        assertEquals("", findComponentSaveResultLabelElement().getText());
+        new Select(findComponentSvnRevisionElement(driver)).selectByIndex(2);
+        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
     }
 
     @Ignore
     @Test
     public void testFlowComponentCreationScriptFileSelectionFieldUpdate_clearsSaveResultLabel() throws IOException {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
-        new Select(findComponentScriptNameElement()).selectByIndex(2);
-        assertEquals("", findComponentSaveResultLabelElement().getText());
+        new Select(findComponentScriptNameElement(driver)).selectByIndex(2);
+        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
     }
 
     @Ignore
     @Test
     public void testFlowComponentCreationInvocationMethodSelectionFieldUpdate_clearsSaveResultLabel() throws IOException {
-        navigateToFlowComponentCreationContext();
+        navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
-        new Select(findComponentInvocationMethodElement()).selectByIndex(2);
-        assertEquals("", findComponentSaveResultLabelElement().getText());
+        new Select(findComponentInvocationMethodElement(driver)).selectByIndex(2);
+        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
     }
 
-    private void navigateToFlowComponentCreationContext() {
-        WebElement element = driver.findElement(By.id(MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
-        element.click();
+    private static void navigateToFlowComponentCreationWidget(WebDriver webDriver) {
+        findFlowComponentCreateNavigationElement(webDriver).click();
     }
 
-    private WebElement findComponentNameElement() {
-        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
+    private static WebElement findFlowComponentCreateNavigationElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, MainPanel.GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION);
     }
 
-    private WebElement findComponentSvnProjectElement() {
-        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX);
+    private static WebElement findFlowComponentCreationWidget(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_WIDGET);
     }
 
-    private WebElement findComponentSvnRevisionElement() {
-        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX);
+    private static WebElement findComponentNameElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
     }
 
-    private WebElement findComponentScriptNameElement() {
-        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX);
+    private WebElement findComponentSvnProjectElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX);
     }
 
-    private WebElement findComponentInvocationMethodElement() {
-        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX);
+    private WebElement findComponentSvnRevisionElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX);
     }
 
-    private WebElement findComponentSaveButtonElement() {
-        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
+    private WebElement findComponentScriptNameElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX);
     }
 
-    private WebElement findComponentSaveResultLabelElement() {
-        return findElement(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
+    private WebElement findComponentInvocationMethodElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX);
     }
 
-    private WebElement findElement(final String elementId) {
-        return driver.findElement(By.id(elementId));
+    private WebElement findComponentSaveButtonElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
+    }
+
+    private WebElement findComponentSaveResultLabelElement(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
     }
 
     private WebElement insertSvnProjectNameThatExistsInSvnRepository() {
-        final WebElement element = findComponentSvnProjectElement();
+        final WebElement element = findComponentSvnProjectElement(driver);
         element.sendKeys(SVN_PROJECT_NAME);
         return element;
     }
 
     private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
         insertSvnProjectNameThatExistsInSvnRepository();
-        findComponentNameElement().sendKeys("testComponent");
+        findComponentNameElement(driver).sendKeys("testComponent");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
-        findComponentSaveButtonElement().click();
+        findComponentSaveButtonElement(driver).click();
     }
 
     private void waitForListBoxToFillOut(final String elementId, final int duration) {
@@ -349,7 +337,7 @@ public class FlowComponentCreationSeleniumIT {
 
         @Override
         public Boolean apply(WebDriver webDriver) {
-            return new Select(findElement(elementId)).getOptions().size() > 0;
+            return new Select(SeleniumUtil.findElementInCurrentView(webDriver, elementId)).getOptions().size() > 0;
         }
     }
 

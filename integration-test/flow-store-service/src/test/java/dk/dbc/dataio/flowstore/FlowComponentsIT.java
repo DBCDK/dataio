@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.codehaus.jackson.node.ArrayNode;
 import org.junit.After;
@@ -15,7 +16,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
@@ -138,7 +138,7 @@ public class FlowComponentsIT {
         // And...
         final String responseContent = response.readEntity(String.class);
         assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) ITUtil.getJsonRoot(responseContent);
+        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
         assertThat(responseContentNode.size(), is(0));
     }
 
@@ -176,7 +176,7 @@ public class FlowComponentsIT {
         // And...
         final String responseContent = response.readEntity(String.class);
         assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) ITUtil.getJsonRoot(responseContent);
+        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
         assertThat(responseContentNode.size(), is(3));
         assertThat(responseContentNode.get(0).get("id").getLongValue(), is(sortsFirst));
         assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond));

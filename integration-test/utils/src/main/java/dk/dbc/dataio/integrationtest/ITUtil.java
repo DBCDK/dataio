@@ -1,8 +1,6 @@
 package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.tmatesoft.svn.core.SVNCommitInfo;
@@ -23,7 +21,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -52,8 +49,6 @@ public class ITUtil {
             "SELECT content FROM %s WHERE id=?", FLOWS_TABLE_NAME);
     public static final String FLOW_BINDERS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", FLOW_BINDERS_TABLE_NAME);
-    public static final String FLOW_COMPONENTS_TABLE_INSERT_STMT = String.format(
-            "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOW_COMPONENTS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", FLOW_COMPONENTS_TABLE_NAME);
     public static final String SUBMITTERS_TABLE_SELECT_CONTENT_STMT = String.format(
@@ -233,21 +228,8 @@ public class ITUtil {
 
     /**
      * Extracts Location header from given response while asserting that it contains a single
-     * value from which a ResourceIdentifier object can be derived
+     * value from which a resource Id can be derived
      */
-    public static ResourceIdentifier getResourceIdentifierFromLocationHeaderAndAssertHasValue(Response response) {
-        final List<Object> locationHeader = getHeaderAndAssertNotNull(response, "Location");
-        Assert.assertThat(locationHeader.size(), CoreMatchers.is(1));
-
-        final String[] locationHeaderValueParts = ((String) locationHeader.get(0)).split("/");
-        Assert.assertThat(locationHeaderValueParts.length > 2, CoreMatchers.is(true));
-
-        final String id = locationHeaderValueParts[locationHeaderValueParts.length - 2];
-        final String version = locationHeaderValueParts[locationHeaderValueParts.length - 1];
-
-        return new ResourceIdentifier(Long.valueOf(id), Long.valueOf(version));
-    }
-
     public static long getResourceIdFromLocationHeaderAndAssertHasValue(Response response) {
         final List<Object> locationHeader = getHeaderAndAssertNotNull(response, "Location");
         Assert.assertThat(locationHeader.size(), CoreMatchers.is(1));
@@ -258,17 +240,6 @@ public class ITUtil {
         final String id = locationHeaderValueParts[locationHeaderValueParts.length - 1];
 
         return Long.valueOf(id);
-    }
-
-    /**
-     * Provides access to a tree based view of the given JSON document similar
-     * to DOM nodes in XML DOM trees
-     *
-     * ToDo: this method should cease to exist when we get a general JSON utility class
-     */
-    public static JsonNode getJsonRoot(String json) throws IOException {
-        final ObjectMapper mapper = new ObjectMapper();
-        return mapper.readTree(json);
     }
 
     /**
@@ -414,27 +385,6 @@ public class ITUtil {
                 stringbuilder.append(idAsString).append(delimiter);
             }
             return stringbuilder.toString().replaceFirst(String.format("%s$", delimiter), "");
-        }
-    }
-
-    /**
-     * Simple resource identifier representation with id and version
-     */
-    public static class ResourceIdentifier {
-        private Long id;
-        private Long version;
-
-        public ResourceIdentifier(Long id, Long version) {
-            this.id = id;
-            this.version = version;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public Long getVersion() {
-            return version;
         }
     }
 }

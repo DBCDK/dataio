@@ -41,6 +41,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class FlowComponentCreationSeleniumIT {
+
     private static final String PROJECTS_PATH = "projects";
     private static final String SVN_PROJECT_NAME = "datawell-convert";
     private static final String SVN_DEPENDENCY_NAME = "jscommon";
@@ -49,12 +50,10 @@ public class FlowComponentCreationSeleniumIT {
     private static final String JAVASCRIPT_USE_MODULE = "main.use.js";
     private static final String INVOCATION_METHOD = "funA";
     private static final int SVN_TIMEOUT = 60;
-
     private static WebDriver driver;
     private static String appUrl;
     private static Connection conn;
     private static SVNURL svnRepoUrl;
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -154,14 +153,14 @@ public class FlowComponentCreationSeleniumIT {
 
         /* When uncommented no ListBoxes are filled ???
 
-        final Select scriptName = new Select(findComponentScriptNameElement());
-        assertThat(scriptName.getOptions().size() > 0, is(true));
-        //assertThat(scriptName.getFirstSelectedOption().getText(), is(JAVASCRIPT_FILE));
+         final Select scriptName = new Select(findComponentScriptNameElement());
+         assertThat(scriptName.getOptions().size() > 0, is(true));
+         //assertThat(scriptName.getFirstSelectedOption().getText(), is(JAVASCRIPT_FILE));
 
-        final Select invocationMethod = new Select(findComponentInvocationMethodElement());
-        assertThat(invocationMethod.getOptions().size() > 0, is(true));
-        //assertThat(invocationMethod.getFirstSelectedOption().getText(), is(INVOCATION_METHOD));
-        */
+         final Select invocationMethod = new Select(findComponentInvocationMethodElement());
+         assertThat(invocationMethod.getOptions().size() > 0, is(true));
+         //assertThat(invocationMethod.getFirstSelectedOption().getText(), is(INVOCATION_METHOD));
+         */
     }
 
     @Ignore
@@ -172,11 +171,7 @@ public class FlowComponentCreationSeleniumIT {
         findComponentNameElement(driver).sendKeys("testComponent");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
-        final WebDriverWait wait = new WebDriverWait(driver, 10);
-        wait.until(ExpectedConditions.textToBePresentInElement(By.id(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-        final WebElement saveResultLabel = findComponentSaveResultLabelElement(driver);
-        assertThat(saveResultLabel.getText(), is(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE));
-
+        SeleniumUtil.waitAndAssert(driver, 10, findComponentSaveResultLabelElement(driver), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
     @Ignore
@@ -187,11 +182,8 @@ public class FlowComponentCreationSeleniumIT {
         findComponentNameElement(driver).sendKeys("");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
-
-        final Alert alert = driver.switchTo().alert();
-        final String s = alert.getText();
-        alert.accept();
-        assertEquals(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
+        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        assertThat(s, is(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR));
     }
 
     @Ignore
@@ -201,11 +193,8 @@ public class FlowComponentCreationSeleniumIT {
         findComponentNameElement(driver).sendKeys("testComponent");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
-
-        final Alert alert = driver.switchTo().alert();
-        final String s = alert.getText();
-        alert.accept();
-        assertEquals(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR, s);
+        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        assertThat(s, is(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR));
     }
 
     @Ignore
@@ -214,7 +203,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
         findComponentNameElement(driver).sendKeys("a");
-        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
+        assertThat(findComponentSaveResultLabelElement(driver).getText(), is(""));
     }
 
     @Ignore
@@ -223,7 +212,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
         findComponentSvnProjectElement(driver).sendKeys("project");
-        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
+        assertThat(findComponentSaveResultLabelElement(driver).getText(), is(""));
     }
 
     @Ignore
@@ -232,7 +221,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
         new Select(findComponentSvnRevisionElement(driver)).selectByIndex(2);
-        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
+        assertThat(findComponentSaveResultLabelElement(driver).getText(), is(""));
     }
 
     @Ignore
@@ -241,7 +230,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
         new Select(findComponentScriptNameElement(driver)).selectByIndex(2);
-        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
+        assertThat(findComponentSaveResultLabelElement(driver).getText(), is(""));
     }
 
     @Ignore
@@ -250,7 +239,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertInputIntoInputElementsAndClickSaveButton();
         new Select(findComponentInvocationMethodElement(driver)).selectByIndex(2);
-        assertEquals("", findComponentSaveResultLabelElement(driver).getText());
+        assertThat(findComponentSaveResultLabelElement(driver).getText(), is(""));
     }
 
     private static void navigateToFlowComponentCreationWidget(WebDriver webDriver) {
@@ -293,10 +282,8 @@ public class FlowComponentCreationSeleniumIT {
         return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
     }
 
-    private WebElement insertSvnProjectNameThatExistsInSvnRepository() {
-        final WebElement element = findComponentSvnProjectElement(driver);
-        element.sendKeys(SVN_PROJECT_NAME);
-        return element;
+    private void insertSvnProjectNameThatExistsInSvnRepository() {
+        findComponentSvnProjectElement(driver).sendKeys(SVN_PROJECT_NAME);
     }
 
     private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
@@ -329,6 +316,7 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private class ListBoxFilledOutCondition implements ExpectedCondition<Boolean> {
+
         private final String elementId;
 
         public ListBoxFilledOutCondition(final String elementId) {
@@ -341,11 +329,9 @@ public class FlowComponentCreationSeleniumIT {
         }
     }
 
-
     /**
      * The following are public static helper methods.
      */
-
     // notice: WebDriver is currently unused but is there for future reference.
     public static boolean createTestFlowComponent(WebDriver webDriver, String name) {
         final long resourceIdentifier = ITUtil.createFlowComponentWithName(name);

@@ -2,22 +2,22 @@ package dk.dbc.dataio.flowstore.entity;
 
 public class Error {
     private final String message;
-    private final StackTraceElement[] stackTrace;
+    private final String details;
 
-    public Error(String message) {
-        this(message, null);
+    public Error(String message, String details) {
+        this.message = message;
+        this.details = details;
     }
 
-    public Error(String message, StackTraceElement[] stackTrace) {
-        this.message = message;
-        this.stackTrace = stackTrace;
+    public Error(String message) {
+        this(message, "");
     }
 
     public String getMessage() {
         return message;
     }
 
-    public StackTraceElement[] getStackTrace() {
-        return stackTrace;
+    public String getDetails() {
+        return details;
     }
 }

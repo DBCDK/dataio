@@ -51,7 +51,7 @@ public class ITUtil {
     public static final String FLOWS_TABLE_INSERT_STMT = String.format(
             "INSERT INTO %s (id, version, content, name_idx) VALUES (?,?,?,?)", FLOWS_TABLE_NAME);
     public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
-            "SELECT content FROM %s WHERE id=? AND version=?", FLOWS_TABLE_NAME);
+            "SELECT content FROM %s WHERE id=?", FLOWS_TABLE_NAME);
     public static final String FLOW_BINDERS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", FLOW_BINDERS_TABLE_NAME);
     public static final String FLOW_COMPONENTS_TABLE_INSERT_STMT = String.format(
@@ -111,6 +111,11 @@ public class ITUtil {
     public static ResourceIdentifier createFlowComponent(Client restClient, String baseUrl, String content) {
         return getResourceIdentifierFromLocationHeaderAndAssertHasValue(
                 doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH));
+    }
+
+    public static long createFlow(Client restClient, String baseUrl, String content) {
+        return getResourceIdFromLocationHeaderAndAssertHasValue(
+                doPostWithJson(restClient, content, baseUrl, ITUtil.FLOWS_URL_PATH));
     }
 
     public static long createSubmitter(Client restClient, String baseUrl, String content) {
@@ -356,7 +361,7 @@ public class ITUtil {
     /**
      * Abstract base class for JSON content builders
      */
-    public abstract static class JsonContentBuilder {
+    public abstract static class JsonBuilder {
         protected static final String MEMBER_DELIMITER = ", ";
         protected static final String NULL_VALUE = "null";
         protected static final String START_ARRAY = "[";
@@ -369,6 +374,13 @@ public class ITUtil {
                 return String.format("\"%s\": null", memberName);
             }
             return String.format("\"%s\": \"%s\"", memberName, memberValue);
+        }
+
+        protected String asObjectMember(String memberName, String memberValue) {
+            if (memberValue == null) {
+                return String.format("\"%s\": null", memberName);
+            }
+            return String.format("\"%s\": %s", memberName, memberValue);
         }
 
         protected String asLongMember(String memberName, Long memberValue) {

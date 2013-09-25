@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.Date;
 
@@ -158,6 +160,24 @@ public class ServiceUtil {
 
     /**
      * Returns JSON string representation of dk.dbc.dataio.flowstore.entity.Error object
+     * constructed from given error message
+     *
+     * @param errorMessage error message
+     *
+     * @return JSON string representation of Error object
+     */
+    public static String asJsonError(String errorMessage) {
+        String error = null;
+        try {
+            error = JsonUtil.toJson(new dk.dbc.dataio.flowstore.entity.Error(errorMessage));
+        } catch (JsonException e) {
+            log.error("Caught exception trying to create JSON representation of error", e);
+        }
+        return error;
+    }
+
+    /**
+     * Returns JSON string representation of dk.dbc.dataio.flowstore.entity.Error object
      * constructed from given exception
      *
      * @param ex exception to wrap
@@ -167,11 +187,18 @@ public class ServiceUtil {
     public static String asJsonError(Exception ex) {
         String error = null;
         try {
-            error = JsonUtil.toJson(new dk.dbc.dataio.flowstore.entity.Error(ex.getMessage(), ex.getStackTrace()));
+            log.error("Generating error based on exception", ex);
+            error = JsonUtil.toJson(new dk.dbc.dataio.flowstore.entity.Error(ex.getMessage(), stackTraceToString(ex)));
         } catch (JsonException e) {
             log.error("Caught exception trying to create JSON representation of error", e);
         }
         return error;
+    }
+
+    public static String stackTraceToString(Throwable t) {
+        final StringWriter sw = new StringWriter();
+        t.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }
 

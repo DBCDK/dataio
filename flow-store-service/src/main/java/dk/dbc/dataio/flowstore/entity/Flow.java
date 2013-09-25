@@ -23,7 +23,7 @@ indexes = @Index(columnList = Flow.NAME_INDEX_COLUMN))
 @NamedQueries({
     @NamedQuery(name = Flow.QUERY_FIND_ALL, query = "SELECT flow FROM Flow flow ORDER BY flow.nameIndexValue ASC")
 })
-public class Flow extends dk.dbc.dataio.flowstore.entity.Entity {
+public class Flow extends VersionedEntity {
     public static final String TABLE_NAME = "flows";
     public static final String QUERY_FIND_ALL = "Flow.findAll";
     static final String NAME_INDEX_COLUMN = "name_idx";

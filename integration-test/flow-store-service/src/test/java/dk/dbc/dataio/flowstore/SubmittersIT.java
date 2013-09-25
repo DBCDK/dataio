@@ -60,7 +60,7 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_Ok() throws SQLException {
         // When...
-        final String submitterContent = new SubmitterJsonContentBuilder().build();
+        final String submitterContent = new SubmitterContentJsonBuilder().build();
         final Response response = doPostWithJson(restClient, submitterContent, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
@@ -99,13 +99,13 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateName() throws Exception {
         // Given...
-        final String submitterContent1 = new SubmitterJsonContentBuilder()
+        final String submitterContent1 = new SubmitterContentJsonBuilder()
                 .setNumber(1L)
                 .build();
         createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
-        final String submitterContent2 = new SubmitterJsonContentBuilder()
+        final String submitterContent2 = new SubmitterContentJsonBuilder()
                 .setNumber(2L)
                 .build();
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
@@ -122,13 +122,13 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateNumber() throws Exception {
         // Given...
-        final String submitterContent1 = new SubmitterJsonContentBuilder()
+        final String submitterContent1 = new SubmitterContentJsonBuilder()
                 .setName("test1")
                 .build();
         createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
-        final String submitterContent2 = new SubmitterJsonContentBuilder()
+        final String submitterContent2 = new SubmitterContentJsonBuilder()
                 .setName("test2")
                 .build();
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
@@ -167,19 +167,19 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
-        String submitterContent = new SubmitterJsonContentBuilder()
+        String submitterContent = new SubmitterContentJsonBuilder()
                 .setName("c")
                 .setNumber(1L)
                 .build();
         final long sortsThird = createSubmitter(restClient, baseUrl, submitterContent);
 
-        submitterContent = new SubmitterJsonContentBuilder()
+        submitterContent = new SubmitterContentJsonBuilder()
                 .setName("a")
                 .setNumber(2L)
                 .build();
         final long sortsFirst = createSubmitter(restClient, baseUrl, submitterContent);
 
-        submitterContent = new SubmitterJsonContentBuilder()
+        submitterContent = new SubmitterContentJsonBuilder()
                 .setName("b")
                 .setNumber(3L)
                 .build();
@@ -201,22 +201,22 @@ public class SubmittersIT {
         assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
     }
 
-    public static class SubmitterJsonContentBuilder extends ITUtil.JsonContentBuilder {
+    public static class SubmitterContentJsonBuilder extends ITUtil.JsonBuilder {
         private String name = "name";
         private String description = "description";
         private Long number = 42L;
 
-        public SubmitterJsonContentBuilder setDescription(String description) {
+        public SubmitterContentJsonBuilder setDescription(String description) {
             this.description = description;
             return this;
         }
 
-        public SubmitterJsonContentBuilder setName(String name) {
+        public SubmitterContentJsonBuilder setName(String name) {
             this.name = name;
             return this;
         }
 
-        public SubmitterJsonContentBuilder setNumber(Long number) {
+        public SubmitterContentJsonBuilder setNumber(Long number) {
             this.number = number;
             return this;
         }

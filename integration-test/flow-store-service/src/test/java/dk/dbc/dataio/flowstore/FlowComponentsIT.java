@@ -177,4 +177,30 @@ public class FlowComponentsIT {
         assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond.getId()));
         assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird.getId()));
     }
+
+    public static class FlowComponentJsonBuilder extends ITUtil.JsonBuilder {
+        private Long id = 42L;
+        private Long version = 1L;
+
+        public FlowComponentJsonBuilder setId(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public FlowComponentJsonBuilder setVersion(Long version) {
+            this.version = version;
+            return this;
+        }
+
+        public String build() {
+            final StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(START_OBJECT);
+            stringBuilder.append(asLongMember("id", id)); stringBuilder.append(MEMBER_DELIMITER);
+            //stringBuilder.append(asLongMember("version", version)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asLongMember("version", version));
+            stringBuilder.append(END_OBJECT);
+            return stringBuilder.toString();
+        }
+    }
+
 }

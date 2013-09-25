@@ -61,10 +61,10 @@ public class FlowBindersIT {
     public void createFlowBinder_ok() throws Exception {
         // Given...
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmittersIT.SubmitterJsonContentBuilder().build());
+                new SubmittersIT.SubmitterContentJsonBuilder().build());
 
         // When...
-        final String flowBinderContent = new FlowBinderJsonContentBuilder()
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
@@ -108,10 +108,10 @@ public class FlowBindersIT {
 
         // Given...
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmittersIT.SubmitterJsonContentBuilder().build());
+                new SubmittersIT.SubmitterContentJsonBuilder().build());
 
         final String name = "createFlowBinder_duplicateName";
-        final String firstFlowBinderContent = new FlowBinderJsonContentBuilder()
+        final String firstFlowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base1")
                 .setSubmitterIds(Arrays.asList(submitterId))
@@ -119,7 +119,7 @@ public class FlowBindersIT {
         createFlowBinder(restClient, baseUrl, firstFlowBinderContent);
 
         // When...
-        final String secondFlowBinderContent = new FlowBinderJsonContentBuilder()
+        final String secondFlowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base2")
                 .setSubmitterIds(Arrays.asList(submitterId))
@@ -139,7 +139,7 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_referencedSubmitterNotFound() throws Exception {
         // When...
-        final String flowBinderContent = new FlowBinderJsonContentBuilder()
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setSubmitterIds(Arrays.asList(123456789L))
                 .build();
         final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
@@ -157,16 +157,16 @@ public class FlowBindersIT {
     public void createFlowBinder_searchKeyExistsInSearchIndex() throws Exception {
         // Given...
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmittersIT.SubmitterJsonContentBuilder().build());
+                new SubmittersIT.SubmitterContentJsonBuilder().build());
 
-        String flowBinderContent = new FlowBinderJsonContentBuilder()
+        String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_1")
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         createFlowBinder(restClient, baseUrl, flowBinderContent);
 
         // When...
-        flowBinderContent = new FlowBinderJsonContentBuilder()
+        flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_2")
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
@@ -177,7 +177,7 @@ public class FlowBindersIT {
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
     }
 
-    public static class FlowBinderJsonContentBuilder extends ITUtil.JsonContentBuilder {
+    public static class FlowBinderContentJsonBuilder extends ITUtil.JsonBuilder {
         private String name = "name";
         private String packaging = "packaging";
         private String format = "format";
@@ -188,47 +188,47 @@ public class FlowBindersIT {
         private Long flowId = 42L;
         private List<Long> submitterIds = new ArrayList<>(Arrays.asList(43L));
 
-        public FlowBinderJsonContentBuilder setCharset(String charset) {
+        public FlowBinderContentJsonBuilder setCharset(String charset) {
             this.charset = charset;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setDescription(String description) {
+        public FlowBinderContentJsonBuilder setDescription(String description) {
             this.description = description;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setDestination(String destination) {
+        public FlowBinderContentJsonBuilder setDestination(String destination) {
             this.destination = destination;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setFlowId(Long flowId) {
+        public FlowBinderContentJsonBuilder setFlowId(Long flowId) {
             this.flowId = flowId;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setFormat(String format) {
+        public FlowBinderContentJsonBuilder setFormat(String format) {
             this.format = format;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setName(String name) {
+        public FlowBinderContentJsonBuilder setName(String name) {
             this.name = name;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setPackaging(String packaging) {
+        public FlowBinderContentJsonBuilder setPackaging(String packaging) {
             this.packaging = packaging;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setRecordSplitter(String recordSplitter) {
+        public FlowBinderContentJsonBuilder setRecordSplitter(String recordSplitter) {
             this.recordSplitter = recordSplitter;
             return this;
         }
 
-        public FlowBinderJsonContentBuilder setSubmitterIds(List<Long> submitterIds) {
+        public FlowBinderContentJsonBuilder setSubmitterIds(List<Long> submitterIds) {
             this.submitterIds = new ArrayList<>(submitterIds);
             return this;
         }

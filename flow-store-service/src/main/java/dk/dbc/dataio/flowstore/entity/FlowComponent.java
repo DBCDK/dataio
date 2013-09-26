@@ -1,8 +1,9 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import org.codehaus.jackson.JsonNode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -36,9 +37,15 @@ public class FlowComponent extends VersionedEntity {
         return nameIndexValue;
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws NullPointerException if given null-valued data argument
+     * @throws IllegalArgumentException if given empty-valued data argument
+     * @throws JsonException if non-json JSON string or if given JSON is invalid FlowComponentContent.
+     */
     @Override
-    protected void preProcessContent(String componentData) throws JsonException {
-        final JsonNode json = JsonUtil.getJsonRoot(componentData);
-        nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "component.content.name");
+    protected void preProcessContent(String data) throws JsonException {
+        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class, MixIns.getMixIns());
+        nameIndexValue = flowComponentContent.getName();
     }
 }

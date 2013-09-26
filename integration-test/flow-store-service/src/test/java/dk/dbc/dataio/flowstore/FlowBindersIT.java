@@ -12,7 +12,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,10 +60,10 @@ public class FlowBindersIT {
     public void createFlowBinder_ok() throws Exception {
         // Given...
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmittersIT.SubmitterContentJsonBuilder().build());
+                new ITUtil.SubmitterContentJsonBuilder().build());
 
         // When...
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
+        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
@@ -108,10 +107,10 @@ public class FlowBindersIT {
 
         // Given...
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmittersIT.SubmitterContentJsonBuilder().build());
+                new ITUtil.SubmitterContentJsonBuilder().build());
 
         final String name = "createFlowBinder_duplicateName";
-        final String firstFlowBinderContent = new FlowBinderContentJsonBuilder()
+        final String firstFlowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base1")
                 .setSubmitterIds(Arrays.asList(submitterId))
@@ -119,7 +118,7 @@ public class FlowBindersIT {
         createFlowBinder(restClient, baseUrl, firstFlowBinderContent);
 
         // When...
-        final String secondFlowBinderContent = new FlowBinderContentJsonBuilder()
+        final String secondFlowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base2")
                 .setSubmitterIds(Arrays.asList(submitterId))
@@ -139,7 +138,7 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_referencedSubmitterNotFound() throws Exception {
         // When...
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
+        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setSubmitterIds(Arrays.asList(123456789L))
                 .build();
         final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
@@ -157,16 +156,16 @@ public class FlowBindersIT {
     public void createFlowBinder_searchKeyExistsInSearchIndex() throws Exception {
         // Given...
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmittersIT.SubmitterContentJsonBuilder().build());
+                new ITUtil.SubmitterContentJsonBuilder().build());
 
-        String flowBinderContent = new FlowBinderContentJsonBuilder()
+        String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_1")
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         createFlowBinder(restClient, baseUrl, flowBinderContent);
 
         // When...
-        flowBinderContent = new FlowBinderContentJsonBuilder()
+        flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_2")
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
@@ -175,77 +174,5 @@ public class FlowBindersIT {
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
-    }
-
-    public static class FlowBinderContentJsonBuilder extends ITUtil.JsonBuilder {
-        private String name = "name";
-        private String packaging = "packaging";
-        private String format = "format";
-        private String destination = "destination";
-        private String charset = "charset";
-        private String description = "description";
-        private String recordSplitter = "recordSplitter";
-        private Long flowId = 42L;
-        private List<Long> submitterIds = new ArrayList<>(Arrays.asList(43L));
-
-        public FlowBinderContentJsonBuilder setCharset(String charset) {
-            this.charset = charset;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setDescription(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setDestination(String destination) {
-            this.destination = destination;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setFlowId(Long flowId) {
-            this.flowId = flowId;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setFormat(String format) {
-            this.format = format;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setPackaging(String packaging) {
-            this.packaging = packaging;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setRecordSplitter(String recordSplitter) {
-            this.recordSplitter = recordSplitter;
-            return this;
-        }
-
-        public FlowBinderContentJsonBuilder setSubmitterIds(List<Long> submitterIds) {
-            this.submitterIds = new ArrayList<>(submitterIds);
-            return this;
-        }
-
-        public String build() {
-            final StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(START_OBJECT);
-            stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("description", description)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("packaging", packaging)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("format", format)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("charset", charset)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("destination", destination)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asLongMember("flowId", flowId)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asLongArray("submitterIds", submitterIds));
-            stringBuilder.append(END_OBJECT);
-            return stringBuilder.toString();
-        }
     }
 }

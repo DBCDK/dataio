@@ -14,8 +14,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
@@ -63,7 +61,7 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_Ok() throws SQLException {
         // When...
-        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
+        final String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder().build();
         final Response response = doPostWithJson(restClient, flowComponentContent, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
@@ -88,34 +86,6 @@ public class FlowComponentsIT {
     public void createComponent_ErrorWhenGivenInvalidJson() {
         // When...
         final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
-    }
-
-    /**
-     * Given: a deployed flow-store service
-     * When: null value is POSTed to the components path
-     * Then: request returns with a NOT_ACCEPTABLE http status code
-     */
-    @Test
-    public void createComponent_ErrorWhenGivenNull() {
-        // When...
-        final Response response = doPostWithJson(restClient, null, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
-    }
-
-    /**
-     * Given: a deployed flow-store service
-     * When: empty value is POSTed to the components path
-     * Then: request returns with a NOT_ACCEPTABLE http status code
-     */
-    @Test
-    public void createComponent_ErrorWhenGivenEmpty() {
-        // When...
-        final Response response = doPostWithJson(restClient, "", baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -152,17 +122,17 @@ public class FlowComponentsIT {
     public void findAllComponents_Ok() throws Exception {
         // Given...
         // Given...
-        String flowComponentContent = new FlowComponentContentJsonBuilder()
+        String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder()
                 .setName("c")
                 .build();
         final long sortsThird = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
-        flowComponentContent = new FlowComponentContentJsonBuilder()
+        flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder()
                 .setName("a")
                 .build();
         final long sortsFirst = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
-        flowComponentContent = new FlowComponentContentJsonBuilder()
+        flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder()
                 .setName("b")
                 .build();
         final long sortsSecond = createFlowComponent(restClient, baseUrl, flowComponentContent);
@@ -182,92 +152,4 @@ public class FlowComponentsIT {
         assertThat(responseContentNode.get(1).get("id").getLongValue(), is(sortsSecond));
         assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
     }
-
-    public static class FlowComponentJsonBuilder extends ITUtil.JsonBuilder {
-        private Long id = 42L;
-        private Long version = 1L;
-        private String content = new FlowComponentContentJsonBuilder().build();
-
-        public FlowComponentJsonBuilder setId(Long id) {
-            this.id = id;
-            return this;
-        }
-
-        public FlowComponentJsonBuilder setVersion(Long version) {
-            this.version = version;
-            return this;
-        }
-
-        public void setContent(String content) {
-            this.content = content;
-        }
-
-        public String build() {
-            final StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(START_OBJECT);
-            stringBuilder.append(asLongMember("id", id)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asLongMember("version", version)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asObjectMember("content", content));
-            stringBuilder.append(END_OBJECT);
-            return stringBuilder.toString();
-        }
-    }
-
-    public static class FlowComponentContentJsonBuilder extends ITUtil.JsonBuilder {
-        private String name = "name";
-        private String invocationMethod = "invocationMethod";
-        private List<String> javascripts = new ArrayList<>(Arrays.asList(
-                new JavaScriptJsonBuilder().build()));
-
-        public FlowComponentContentJsonBuilder setInvocationMethod(String invocationMethod) {
-            this.invocationMethod = invocationMethod;
-            return this;
-        }
-
-        public FlowComponentContentJsonBuilder setJavascripts(List<String> javascripts) {
-            this.javascripts = new ArrayList<>(javascripts);
-            return this;
-        }
-
-        public FlowComponentContentJsonBuilder setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-       public String build() {
-            final StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(START_OBJECT);
-           stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("invocationMethod", invocationMethod)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asObjectArray("javascripts", javascripts));
-            stringBuilder.append(END_OBJECT);
-            return stringBuilder.toString();
-        }
-    }
-
-    public static class JavaScriptJsonBuilder extends ITUtil.JsonBuilder {
-        private String javascript = "javascript";
-        private String moduleName = "moduleName";
-
-        public JavaScriptJsonBuilder setJavascript(String javascript) {
-            this.javascript = javascript;
-            return this;
-        }
-
-        public JavaScriptJsonBuilder setModuleName(String moduleName) {
-            this.moduleName = moduleName;
-            return this;
-        }
-
-        public String build() {
-            final StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(START_OBJECT);
-            stringBuilder.append(asTextMember("javascript", javascript)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("moduleName", moduleName));
-            stringBuilder.append(END_OBJECT);
-            return stringBuilder.toString();
-        }
-    }
-
-
 }

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -15,70 +16,48 @@ import static org.junit.Assert.assertThat;
  */
 public class SubmitterTest {
     @Test
-    public void setContent_jsonDataArgIsValidSubmitterJson_setsNameIndexValue() throws Exception {
+    public void setContent_jsonDataArgIsValidSubmitterContentJson_setsNameIndexValue() throws Exception {
         final String name = "testsubmitter";
-        final long number = 42;
-        final String jsonData = String.format("{\"name\": \"%s\", \"number\": %d}", name, number);
+        final String submitterContent = new ITUtil.SubmitterContentJsonBuilder()
+                .setName(name)
+                .build();
 
         final Submitter submitter = new Submitter();
-        submitter.setContent(jsonData);
+        submitter.setContent(submitterContent);
         assertThat(submitter.getNameIndexValue(), is(name));
     }
 
     @Test
-    public void setContent_jsonDataArgIsValidSubmitterJson_setsNumberIndexValue() throws Exception {
-        final String name = "testsubmitter";
-        final long number = 42;
-        final String jsonData = String.format("{\"name\": \"%s\", \"number\": %d}", name, number);
+    public void setContent_jsonDataArgIsValidSubmitterContentJson_setsNumberIndexValue() throws Exception {
+        final Long number = 42L;
+        final String submitterContent = new ITUtil.SubmitterContentJsonBuilder()
+                .setNumber(number)
+                .build();
 
         final Submitter submitter = new Submitter();
-        submitter.setContent(jsonData);
+        submitter.setContent(submitterContent);
         assertThat(submitter.getNumberIndexValue(), is(number));
     }
 
     @Test(expected = JsonException.class)
-    public void setContent_jsonDataArgDoesNotContainNameMember_throws() throws Exception {
+    public void setContent_jsonDataArgIsInvalidSubmitterContent_throws() throws Exception {
         final Submitter submitter = new Submitter();
-        submitter.setContent("{\"number\": 42}");
-    }
-
-    @Test(expected = JsonException.class)
-    public void setContent_jsonDataArgDoesNotContainNumberMember_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent("{\"name\": \"test\"}");
-    }
-
-    @Test(expected = JsonException.class)
-    public void setContent_jsonDataArgNameMemberIsNull_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent("{\"name\": null, \"number\": 42}");
-    }
-
-    @Test(expected = JsonException.class)
-    public void setContent_jsonDataArgNameMemberIsEmpty_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent("{\"name\": \"\", \"number\": 42}");
-    }
-
-    @Test(expected = JsonException.class)
-    public void setContent_jsonDataArgNumberMemberIsNull_throws() throws Exception {
-        final Submitter submitter = new Submitter();
-        submitter.setContent("{\"name\": \"test\", \"number\": null}");
+        submitter.setContent("{}");
     }
 
     @Test(expected = JsonException.class)
     public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
         final Submitter submitter = new Submitter();
-        submitter.setContent("<not_json/>");
+        submitter.setContent("{");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
         final Submitter submitter = new Submitter();
         submitter.setContent("");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = NullPointerException.class)
     public void setContent_jsonDataArgIsNull_throws() throws Exception {
         final Submitter submitter = new Submitter();
         submitter.setContent(null);

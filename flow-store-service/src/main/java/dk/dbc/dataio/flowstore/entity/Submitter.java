@@ -1,8 +1,9 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import org.codehaus.jackson.JsonNode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,14 +50,14 @@ public class Submitter extends VersionedEntity {
 
     /**
      * {@inheritDoc}
-     * @throws JsonException if given invalid (null-valued, empty-valued or non-json) JSON string.
-     *                       If name field of given json data does not exists, is null, is empty or is non-textual.
-     *                       If number field of given json data does not exists, is null or is non-numeric.
+     * @throws NullPointerException if given null-valued data argument
+     * @throws IllegalArgumentException if given empty-valued data argument
+     * @throws JsonException if non-json JSON string or if given JSON is invalid SubmitterContent
      */
     @Override
-    protected void preProcessContent(String submitterData) throws JsonException {
-        final JsonNode json = JsonUtil.getJsonRoot(submitterData);
-        nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path("name"), "submitter.content.name");
-        numberIndexValue = JsonUtil.getLongValueOrThrow(json.path("number"), "submitter.content.number");
+    protected void preProcessContent(String data) throws JsonException {
+        final SubmitterContent submitterContent = JsonUtil.fromJson(data, SubmitterContent.class, MixIns.getMixIns());
+        nameIndexValue = submitterContent.getName();
+        numberIndexValue = submitterContent.getNumber();
     }
 }

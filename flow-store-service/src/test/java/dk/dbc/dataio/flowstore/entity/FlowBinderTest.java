@@ -1,7 +1,16 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
   * FlowBinder unit tests
@@ -11,19 +20,51 @@ import org.junit.Test;
   *  unitOfWork_stateUnderTest_expectedBehavior
   */
 public class FlowBinderTest {
-    @Test(expected = JsonException.class)
-    public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
+    @Test
+    public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsNameIndexValue() throws Exception {
+        final String name = "testbinder";
+        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                .setName(name)
+                .build();
+
         final FlowBinder binder = new FlowBinder();
-        binder.setContent("<not_json/>");
+        binder.setContent(flowBinderContent);
+        assertThat(binder.getNameIndexValue(), is(name));
+    }
+
+    @Test
+    public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsSubmitterIds() throws Exception {
+        final Set<Long> submitterIds = new HashSet<>(2);
+        submitterIds.add(42L);
+        submitterIds.add(43L);
+        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                .setSubmitterIds(new ArrayList<Long>(submitterIds))
+                .build();
+
+        final FlowBinder binder = new FlowBinder();
+        binder.setContent(flowBinderContent);
+        assertThat(binder.getSubmitterIds(), is(submitterIds));
     }
 
     @Test(expected = JsonException.class)
+    public void setContent_jsonDataArgIsInvalidFlowBinderContentJson_throws() throws Exception {
+        final FlowBinder binder = new FlowBinder();
+        binder.setContent("{}");
+    }
+
+    @Test(expected = JsonException.class)
+    public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
+        final FlowBinder binder = new FlowBinder();
+        binder.setContent("{");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         binder.setContent("");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = NullPointerException.class)
     public void setContent_jsonDataArgIsNull_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         binder.setContent(null);
@@ -34,9 +75,34 @@ public class FlowBinderTest {
         FlowBinder.generateSearchIndexEntries(null);
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = NullPointerException.class)
     public void generateSearchIndexEntries_flowBinderHasNoContent_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         FlowBinder.generateSearchIndexEntries(binder);
+    }
+
+    @Test
+    public void generateSearchIndexEntries_flowBinderIsAttachedToMultipleSubmitters_createsSearchIndexEntryForEachSubmitter() throws Exception {
+        final String packaging = "packaging";
+        final String format = "format";
+        final String charset = "charset";
+        final String destination = "destination";
+        final Long sub1 = 42L;
+        final Long sub2 = 43L;
+        final Set<Long> submitterIds = new HashSet<>(2);
+        submitterIds.add(sub1);
+        submitterIds.add(sub2);
+        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                .setPackaging(packaging)
+                .setFormat(format)
+                .setCharset(charset)
+                .setDestination(destination)
+                .setSubmitterIds(new ArrayList<Long>(submitterIds))
+                .build();
+
+        final FlowBinder binder = new FlowBinder();
+        binder.setContent(flowBinderContent);
+        final List<FlowBinderSearchIndexEntry> entries = FlowBinder.generateSearchIndexEntries(binder);
+        assertThat(entries.size(), is(2));
     }
 }

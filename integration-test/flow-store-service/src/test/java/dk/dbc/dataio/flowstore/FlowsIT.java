@@ -14,8 +14,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
@@ -63,7 +61,7 @@ public class FlowsIT {
     @Test
     public void createFlow_Ok() throws SQLException {
         // When...
-        final String flowContent = new FlowContentJsonBuilder().build();
+        final String flowContent = new ITUtil.FlowContentJsonBuilder().build();
         System.out.println(flowContent);
         final Response response = doPostWithJson(restClient, flowContent, baseUrl, ITUtil.FLOWS_URL_PATH);
 
@@ -89,34 +87,6 @@ public class FlowsIT {
     public void createFlow_ErrorWhenGivenInvalidJson() {
         // When...
         final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOWS_URL_PATH);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
-    }
-
-    /**
-     * Given: a deployed flow-store service
-     * When: null value is POSTed to the flows path
-     * Then: request returns with a NOT_ACCEPTABLE http status code
-     */
-    @Test
-    public void createFlow_ErrorWhenGivenNull() {
-        // When...
-        final Response response = doPostWithJson(restClient, null, baseUrl, ITUtil.FLOWS_URL_PATH);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
-    }
-
-    /**
-     * Given: a deployed flow-store service
-     * When: empty value is POSTed to the flows path
-     * Then: request returns with a NOT_ACCEPTABLE http status code
-     */
-    @Test
-    public void createFlow_ErrorWhenGivenEmpty() {
-        // When...
-        final Response response = doPostWithJson(restClient, "", baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -152,17 +122,17 @@ public class FlowsIT {
     @Test
     public void findAllFlows_Ok() throws Exception {
         // Given...
-        String flowContent = new FlowContentJsonBuilder()
+        String flowContent = new ITUtil.FlowContentJsonBuilder()
                 .setName("c")
                 .build();
         final long sortsThird = createFlow(restClient, baseUrl, flowContent);
 
-        flowContent = new FlowContentJsonBuilder()
+        flowContent = new ITUtil.FlowContentJsonBuilder()
                 .setName("a")
                 .build();
         final long sortsFirst = createFlow(restClient, baseUrl, flowContent);
 
-        flowContent = new FlowContentJsonBuilder()
+        flowContent = new ITUtil.FlowContentJsonBuilder()
                 .setName("b")
                 .build();
         final long sortsSecond = createFlow(restClient, baseUrl, flowContent);
@@ -183,35 +153,4 @@ public class FlowsIT {
         assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
     }
 
-    public static class FlowContentJsonBuilder extends ITUtil.JsonBuilder {
-        private String name = "name";
-        private String description = "description";
-        private List<String> components = new ArrayList<>(Arrays.asList(
-                new FlowComponentsIT.FlowComponentJsonBuilder().build()));
-
-        public FlowContentJsonBuilder setDescription(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public FlowContentJsonBuilder setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public FlowContentJsonBuilder setComponents(List<String> components) {
-            this.components = new ArrayList<>(components);
-            return this;
-        }
-
-        public String build() {
-            final StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(START_OBJECT);
-            stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("description", description)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asObjectArray("components", components));
-            stringBuilder.append(END_OBJECT);
-            return stringBuilder.toString();
-        }
-    }
 }

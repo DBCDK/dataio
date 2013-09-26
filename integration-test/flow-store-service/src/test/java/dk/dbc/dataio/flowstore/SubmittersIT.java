@@ -61,7 +61,7 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_Ok() throws SQLException {
         // When...
-        final String submitterContent = new SubmitterContentJsonBuilder().build();
+        final String submitterContent = new ITUtil.SubmitterContentJsonBuilder().build();
         final Response response = doPostWithJson(restClient, submitterContent, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
@@ -100,13 +100,13 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateName() throws Exception {
         // Given...
-        final String submitterContent1 = new SubmitterContentJsonBuilder()
+        final String submitterContent1 = new ITUtil.SubmitterContentJsonBuilder()
                 .setNumber(1L)
                 .build();
         createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
-        final String submitterContent2 = new SubmitterContentJsonBuilder()
+        final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
                 .setNumber(2L)
                 .build();
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
@@ -123,13 +123,13 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateNumber() throws Exception {
         // Given...
-        final String submitterContent1 = new SubmitterContentJsonBuilder()
+        final String submitterContent1 = new ITUtil.SubmitterContentJsonBuilder()
                 .setName("test1")
                 .build();
         createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
-        final String submitterContent2 = new SubmitterContentJsonBuilder()
+        final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
                 .setName("test2")
                 .build();
         final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
@@ -168,19 +168,19 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
-        String submitterContent = new SubmitterContentJsonBuilder()
+        String submitterContent = new ITUtil.SubmitterContentJsonBuilder()
                 .setName("c")
                 .setNumber(1L)
                 .build();
         final long sortsThird = createSubmitter(restClient, baseUrl, submitterContent);
 
-        submitterContent = new SubmitterContentJsonBuilder()
+        submitterContent = new ITUtil.SubmitterContentJsonBuilder()
                 .setName("a")
                 .setNumber(2L)
                 .build();
         final long sortsFirst = createSubmitter(restClient, baseUrl, submitterContent);
 
-        submitterContent = new SubmitterContentJsonBuilder()
+        submitterContent = new ITUtil.SubmitterContentJsonBuilder()
                 .setName("b")
                 .setNumber(3L)
                 .build();
@@ -202,34 +202,4 @@ public class SubmittersIT {
         assertThat(responseContentNode.get(2).get("id").getLongValue(), is(sortsThird));
     }
 
-    public static class SubmitterContentJsonBuilder extends ITUtil.JsonBuilder {
-        private String name = "name";
-        private String description = "description";
-        private Long number = 42L;
-
-        public SubmitterContentJsonBuilder setDescription(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public SubmitterContentJsonBuilder setName(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public SubmitterContentJsonBuilder setNumber(Long number) {
-            this.number = number;
-            return this;
-        }
-
-        public String build() {
-            final StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(START_OBJECT);
-            stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("description", description)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asLongMember("number", number));
-            stringBuilder.append(END_OBJECT);
-            return stringBuilder.toString();
-        }
-    }
 }

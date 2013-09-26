@@ -1,9 +1,10 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import org.codehaus.jackson.JsonNode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,13 +36,6 @@ uniqueConstraints = {
 public class FlowBinder extends VersionedEntity {
     public static final String TABLE_NAME = "flow_binders";
     public static final String SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
-
-    public static final String NAME_FIELD = "name";
-    public static final String PACKAGING_FIELD = "packaging";
-    public static final String FORMAT_FIELD = "format";
-    public static final String CHARSET_FIELD = "charset";
-    public static final String DESTINATION_FIELD = "destination";
-    public static final String FLOW_ID_FIELD = "flowId";
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
 
     static final String NAME_INDEX_COLUMN = "name_idx";
@@ -74,45 +68,22 @@ public class FlowBinder extends VersionedEntity {
         this.submitters = new HashSet<>(submitters);
     }
 
+    String getNameIndexValue() {
+        return nameIndexValue;
+    }
+
     /**
      * {@inheritDoc}
-     * @throws JsonException if given invalid (null-valued, empty-valued or non-json) JSON string.
-     *                       If '{@value #NAME_FIELD}', '{@value #PACKAGING_FIELD}', '{@value #FORMAT_FIELD}',
-     *                       '{@value #CHARSET_FIELD}', or '{@value #DESTINATION_FIELD}'  field of given json
-     *                       data does not exists, is null, is empty or is non-textual. If unable to extract
-     *                       submitter IDs from '{@value #SUBMITTER_IDS_FIELD}'. If unable to extract flow ID
-     *                       from  '{@value #FLOW_ID_FIELD}'.
+     * @throws NullPointerException if given null-valued data argument
+     * @throws IllegalArgumentException if given empty-valued data argument
+     * @throws JsonException if non-json JSON string or if given JSON is invalid FlowBinderContent.
      */
     @Override
-    protected void preProcessContent(String flowBinderData) throws JsonException {
-        final JsonNode json = JsonUtil.getJsonRoot(flowBinderData);
-        nameIndexValue = JsonUtil.getNonEmptyTextValueOrThrow(json.path(NAME_FIELD), NAME_FIELD);
-        submitterIds = extractSubmitterIdsFromJson(json);
-        flow = extractFlowIdFromJson(json);
-    }
-
-    /* Extracts IDs of submitters referenced by this flow binder
-     */
-    private Set<Long> extractSubmitterIdsFromJson(JsonNode json) throws JsonException {
-        final JsonNode submitterIdsNode = json.get(SUBMITTER_IDS_FIELD);
-        final Set<Long> submitterIds;
-        if (submitterIdsNode != null && submitterIdsNode.isArray()) {
-            submitterIds = new HashSet<>(submitterIdsNode.size());
-            for (final JsonNode idNode : submitterIdsNode) {
-                final long submitterId = JsonUtil.getLongValueOrThrow(idNode, FlowBinder.SUBMITTER_IDS_FIELD);
-                submitterIds.add(submitterId);
-            }
-        } else {
-            throw new JsonException(String.format("No array value found for field '%s'", SUBMITTER_IDS_FIELD));
-        }
-        return submitterIds;
-    }
-
-    /* Extracts ID of flow referenced by this flow binder
-     */
-    private Long extractFlowIdFromJson(JsonNode json) throws JsonException {
-        final JsonNode flowIdNode = json.get(FLOW_ID_FIELD);
-        return JsonUtil.getLongValueOrThrow(flowIdNode, FLOW_ID_FIELD);
+    protected void preProcessContent(String data) throws JsonException {
+        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(data, FlowBinderContent.class, MixIns.getMixIns());
+        nameIndexValue = flowBinderContent.getName();
+        submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
+        flow = flowBinderContent.getFlowId();
     }
 
     /**
@@ -127,11 +98,11 @@ public class FlowBinder extends VersionedEntity {
      */
     public static List<FlowBinderSearchIndexEntry> generateSearchIndexEntries(final FlowBinder flowBinder) throws JsonException {
         InvariantUtil.checkNotNullOrThrow(flowBinder, "flowBinder");
-        final JsonNode json = JsonUtil.getJsonRoot(flowBinder.getContent());
-        final String packaging = JsonUtil.getNonEmptyTextValueOrThrow(json.path(PACKAGING_FIELD), PACKAGING_FIELD);
-        final String format = JsonUtil.getNonEmptyTextValueOrThrow(json.path(FORMAT_FIELD), FORMAT_FIELD);
-        final String charset = JsonUtil.getNonEmptyTextValueOrThrow(json.path(CHARSET_FIELD), CHARSET_FIELD);
-        final String destination = JsonUtil.getNonEmptyTextValueOrThrow(json.path(DESTINATION_FIELD), DESTINATION_FIELD);
+        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(flowBinder.getContent(), FlowBinderContent.class, MixIns.getMixIns());
+        final String packaging = flowBinderContent.getPackaging();
+        final String format = flowBinderContent.getFormat();
+        final String charset = flowBinderContent.getCharset();
+        final String destination = flowBinderContent.getDestination();
         final List<FlowBinderSearchIndexEntry> index = new ArrayList<>(flowBinder.getSubmitterIds().size());
         for (final Long submitterId : flowBinder.getSubmitterIds()) {
             final FlowBinderSearchIndexEntry entry = new FlowBinderSearchIndexEntry();

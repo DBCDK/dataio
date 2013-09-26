@@ -11,6 +11,8 @@ import java.io.Serializable;
  * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class SubmitterContent implements Serializable {
+    static /* final */ long NUMBER_LOWER_THRESHOLD = 0;
+
     private static final long serialVersionUID = -2754982619041504537L;
 
     private /* final */ long number;
@@ -22,15 +24,19 @@ public class SubmitterContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param number submitter number
+     * Attention: when changing the signature of this constructor
+     * remember to also change the signature in the corresponding *JsonMixIn class.
+     *
+     * @param number submitter number (> {@value #NUMBER_LOWER_THRESHOLD})
      * @param name submitter name
      * @param description submitter description
      *
      * @throws NullPointerException if given null-valued name or description argument
-     * @throws IllegalArgumentException if given empty-valued name or description argument
+     * @throws IllegalArgumentException if given empty-valued name or description argument, or if
+     * value of number is not above {@value #NUMBER_LOWER_THRESHOLD}
      */
     public SubmitterContent(long number, String name, String description) {
-        this.number = number;
+        this.number = InvariantUtil.checkAboveThresholdOrThrow(number, "number", NUMBER_LOWER_THRESHOLD);
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
     }

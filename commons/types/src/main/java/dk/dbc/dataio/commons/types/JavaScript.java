@@ -20,6 +20,9 @@ public class JavaScript implements Serializable {
     /**
      * Class constructor
      *
+     * Attention: when changing the signature of this constructor
+     * remember to also change the signature in the corresponding *JsonMixIn class.
+     *
      * @param javascript JavaScript source code
      * @param moduleName JavaScript module name (can be empty)
      *

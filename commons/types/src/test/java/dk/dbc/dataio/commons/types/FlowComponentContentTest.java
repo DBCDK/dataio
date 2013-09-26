@@ -73,7 +73,7 @@ public class FlowComponentContentTest {
         assertThat(instance.getJavascripts().size(), is(1));
     }
 
-    static FlowComponentContent newFlowComponentContentInstance() {
+    public static FlowComponentContent newFlowComponentContentInstance() {
         return new FlowComponentContent(NAME, JAVASCRIPTS, INVOCATION_METHOD);
     }
 }

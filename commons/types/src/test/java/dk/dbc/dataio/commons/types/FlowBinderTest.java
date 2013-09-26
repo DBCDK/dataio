@@ -23,13 +23,23 @@ public class FlowBinderTest {
         new FlowBinder(ID, VERSION, null);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_idArgIsBelowThreshold_throws() {
+        new FlowBinder(FlowBinder.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_versionArgIsBelowThreshold_throws() {
+        new FlowBinder(ID, FlowBinder.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+    }
+
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         final FlowBinder instance = new FlowBinder(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
     }
 
-    static FlowBinder newFlowBinderInstance() {
+    public static FlowBinder newFlowBinderInstance() {
         return new FlowBinder(ID, VERSION, CONTENT);
     }
 }

@@ -11,6 +11,8 @@ import java.io.Serializable;
  * issues we cannot have final fields and need a default no-arg constructor.
  */
  public class Flow implements Serializable {
+     static /* final */ long ID_VERSION_LOWER_THRESHOLD = 0;
+
      private static final long serialVersionUID = -8809513217759455225L;
 
      private /* final */ long id;
@@ -22,15 +24,19 @@ import java.io.Serializable;
      /**
       * Class constructor
       *
-      * @param id flow id
-      * @param version flow version
+      * Attention: when changing the signature of this constructor
+      * remember to also change the signature in the corresponding *JsonMixIn class.
+      *
+      * @param id flow id (> {@value #ID_VERSION_LOWER_THRESHOLD})
+      * @param version flow version (> {@value #ID_VERSION_LOWER_THRESHOLD})
       * @param content flow content
       *
       * @throws NullPointerException if given null-valued content
+      * @throws IllegalArgumentException if value of id or version is not above {@value #ID_VERSION_LOWER_THRESHOLD}
       */
      public Flow(long id, long version, FlowContent content) {
-         this.id = id;
-         this.version = version;
+         this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", ID_VERSION_LOWER_THRESHOLD);
+         this.version = InvariantUtil.checkAboveThresholdOrThrow(version, "version", ID_VERSION_LOWER_THRESHOLD);
          this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
      }
 

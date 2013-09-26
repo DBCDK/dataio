@@ -114,6 +114,11 @@ public class FlowBinderContentTest {
         assertThat(instance, is(notNullValue()));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_flowIdArgIsBelowThreshold_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, Flow.ID_VERSION_LOWER_THRESHOLD, SUBMITTER_IDS);
+    }
+
     @Test
     public void verify_defensiveCopyingOfSubmitterIdsList() {
         final List<Long> submitterIds = new ArrayList<>();
@@ -127,7 +132,7 @@ public class FlowBinderContentTest {
         assertThat(instance.getSubmitterIds().size(), is(1));
     }
 
-    static FlowBinderContent newFlowBinderContentInstance() {
+    public static FlowBinderContent newFlowBinderContentInstance() {
         return new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS);
     }
 }

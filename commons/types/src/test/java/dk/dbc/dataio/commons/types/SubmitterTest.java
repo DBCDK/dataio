@@ -23,13 +23,23 @@ public class SubmitterTest {
         new Submitter(ID, VERSION, null);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_idArgIsBelowThreshold_throws() {
+        new Submitter(Submitter.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_versionArgIsBelowThreshold_throws() {
+        new Submitter(ID, Submitter.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+    }
+
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         final Submitter instance = new Submitter(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
     }
 
-    static Submitter newSubmitterInstance() {
+    public static Submitter newSubmitterInstance() {
         return new Submitter(ID, VERSION, CONTENT);
     }
 }

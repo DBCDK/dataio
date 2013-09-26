@@ -23,13 +23,23 @@ public class FlowTest {
         new Flow(ID, VERSION, null);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_idArgIsBelowThreshold_throws() {
+        new Flow(Flow.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_versionArgIsBelowThreshold_throws() {
+        new Flow(ID, Flow.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+    }
+
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         final Flow instance = new Flow(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
     }
 
-    static Flow newFlowInstance() {
+    public static Flow newFlowInstance() {
         return new Flow(ID, VERSION, CONTENT);
     }
 }

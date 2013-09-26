@@ -44,7 +44,7 @@ public class JavaScriptTest {
         assertThat(instance, is(notNullValue()));
     }
 
-    static JavaScript newJavaScriptInstance() {
+    public static JavaScript newJavaScriptInstance() {
         return new JavaScript(JAVASCRIPT, MODULE_NAME);
     }
 }

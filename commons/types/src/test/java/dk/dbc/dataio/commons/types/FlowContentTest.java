@@ -72,7 +72,7 @@ public class FlowContentTest {
         assertThat(instance.getComponents().size(), is(1));
     }
 
-    static FlowContent newFlowContentInstance() {
+    public static FlowContent newFlowContentInstance() {
         return new FlowContent(NAME, DESCRIPTION, COMPONENTS);
     }
 }

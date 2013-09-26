@@ -38,13 +38,18 @@ public class SubmitterContentTest {
         new SubmitterContent(NUMBER, NAME, "");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_numberArgIsBelowThreshold_throws() {
+        new SubmitterContent(SubmitterContent.NUMBER_LOWER_THRESHOLD, NAME, DESCRIPTION);
+    }
+
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         final SubmitterContent instance = new SubmitterContent(NUMBER, NAME, DESCRIPTION);
         assertThat(instance, is(notNullValue()));
     }
 
-    static SubmitterContent newSubmitterContentInstance() {
+    public static SubmitterContent newSubmitterContentInstance() {
         return new SubmitterContent(NUMBER, NAME, DESCRIPTION);
     }
 }

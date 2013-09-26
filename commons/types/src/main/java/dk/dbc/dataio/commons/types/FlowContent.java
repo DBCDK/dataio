@@ -24,6 +24,9 @@ public class FlowContent implements Serializable {
     /**
      * Class constructor
      *
+     * Attention: when changing the signature of this constructor
+     * remember to also change the signature in the corresponding *JsonMixIn class.
+     *
      * @param name flow name
      * @param description flow description
      * @param components flow components attached to this flow (can be empty)

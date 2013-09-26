@@ -30,6 +30,9 @@ public class FlowBinderContent implements Serializable {
     /**
      * Class constructor
      *
+     * Attention: when changing the signature of this constructor
+     * remember to also change the signature in the corresponding *JsonMixIn class.
+     *
      * @param name flowbinder name
      * @param description flowbinder description
      * @param packaging flowbinder packaging (rammeformat)
@@ -51,7 +54,7 @@ public class FlowBinderContent implements Serializable {
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
         this.recordSplitter = InvariantUtil.checkNotNullNotEmptyOrThrow(recordSplitter, "recordSplitter");
-        this.flowId = flowId;
+        this.flowId = InvariantUtil.checkAboveThresholdOrThrow(flowId, "flowId", Flow.ID_VERSION_LOWER_THRESHOLD);
         this.submitterIds = new ArrayList<Long>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
         if (this.submitterIds.size() == 0) {
             throw new IllegalArgumentException("submitterIds can not be empty");

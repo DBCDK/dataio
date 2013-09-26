@@ -23,13 +23,23 @@ public class FlowComponentTest {
         new FlowComponent(ID, VERSION, null);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_idArgIsBelowThreshold_throws() {
+        new FlowComponent(FlowComponent.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_versionArgIsBelowThreshold_throws() {
+        new FlowComponent(ID, FlowComponent.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+    }
+
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         final FlowComponent instance = new FlowComponent(ID, VERSION, CONTENT);
         assertThat(instance, is(notNullValue()));
     }
 
-    static FlowComponent newFlowComponentInstance() {
+    public static FlowComponent newFlowComponentInstance() {
         return new FlowComponent(ID, VERSION, CONTENT);
     }
 }

@@ -14,6 +14,7 @@ import static org.junit.Assert.assertThat;
  */
 public class InvariantUtilTest {
     private final String parameterName = "name";
+    private final long threshold = 0;
 
     @Test(expected = NullPointerException.class)
     public void checkNotNullOrThrow_objectArgIsNull_throws() {
@@ -42,5 +43,21 @@ public class InvariantUtilTest {
         final String object = "string";
         final String returnedObject = InvariantUtil.checkNotNullOrThrow(object, parameterName);
         assertThat(returnedObject, is(object));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void checkAboveThresholdOrThrow_valueArgIsBelowThreshold_throws() {
+        InvariantUtil.checkAboveThresholdOrThrow(-42, parameterName, threshold);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void checkAboveThresholdOrThrow_valueArgEqualsThreshold_throws() {
+        InvariantUtil.checkAboveThresholdOrThrow(threshold, parameterName, threshold);
+    }
+
+    @Test
+    public void checkAboveThresholdOrThrow_valueArgIsAboveThreshold_returnsValue() {
+        final long expectedValue = 42L;
+        assertThat(InvariantUtil.checkAboveThresholdOrThrow(expectedValue, parameterName, threshold), is(expectedValue));
     }
 }

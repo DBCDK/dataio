@@ -22,7 +22,7 @@ public class InvariantUtil {
     public static <T> T checkNotNullOrThrow(T object, String parameterName)
             throws NullPointerException {
         if (object == null) {
-            final String message = "Parameter '" + parameterName + "' cannot be null";
+            final String message = "Value of parameter '" + parameterName + "' cannot be null";
             throw new NullPointerException(message);
         }
         return object;
@@ -44,9 +44,29 @@ public class InvariantUtil {
             throws NullPointerException, IllegalArgumentException {
         checkNotNullOrThrow(stringObject, parameterName);
         if (stringObject.isEmpty()) {
-            final String message = "Parameter '" + parameterName + "' cannot be empty";
+            final String message = "Value of parameter '" + parameterName + "' cannot be empty";
             throw new IllegalArgumentException(message);
         }
         return stringObject;
+    }
+
+    /**
+     * Simple convenience method to check that a given long is above a certain threshold.
+     * If the below the threshold then an IllegalArgumentException is thrown, otherwise
+     * the value is returned as is.
+     *
+     * @param value value to test against threshold
+     * @param parameterName name of the tested parameter. This name is used in the exception message.
+     * @param threshold threshold that value must be above
+     *
+     * @throws IllegalArgumentException if {@code value} is equal to or below {@code threshold}
+     */
+    public static long checkAboveThresholdOrThrow(long value, String parameterName, long threshold)
+            throws IllegalArgumentException {
+        if (value <= threshold) {
+            final String message = "Value of parameter '" + parameterName + "' must be above " + threshold;
+            throw new IllegalArgumentException(message);
+        }
+        return value;
     }
 }

@@ -110,7 +110,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
         public void onClick(ClickEvent event) {
             String nameValue = flowNamePanel.getText();
             String descriptionValue = flowDescriptionPanel.getText();
-            if (!nameValue.isEmpty() && !descriptionValue.isEmpty()) {
+            if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.size()>0)) {
                 presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
@@ -178,6 +178,9 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
                     changeDetected();
                 }
             });
+        }
+        private int size() {
+            return flowComponentSelectionLists.getSelectedItems().size();
         }
         private void clearItems() {
             flowComponentSelectionLists.clear();

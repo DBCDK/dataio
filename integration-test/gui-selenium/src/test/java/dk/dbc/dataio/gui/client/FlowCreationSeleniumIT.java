@@ -20,7 +20,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
-import org.junit.Ignore;
 
 public class FlowCreationSeleniumIT {
 
@@ -175,7 +174,6 @@ public class FlowCreationSeleniumIT {
         assertThat(s, is(FlowCreateViewImpl.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR));
     }
 
-    @Ignore("Missing correct behaviour in implementation")
     @Test
     public void testSaveButton_NoSelectedFlowComponent_DisplayErrorPopup() {
         String flowComponentName = "testComponent";

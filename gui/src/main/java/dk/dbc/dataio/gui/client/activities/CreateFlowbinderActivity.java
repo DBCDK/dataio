@@ -11,6 +11,7 @@ import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,7 +54,6 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchAvailableSubmitters() {
-        flowbinderCreateView.clearAvailableSubmitters();
         flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
             @Override
             public void onFailure(Throwable e) {
@@ -61,17 +61,22 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
             }
             @Override
             public void onSuccess(List<Submitter> result) {
+                Map<String, String> submittersToView = new HashMap<String, String>();
                 for (Submitter submitter: result) {
-                    String key = Long.toString(submitter.getId()) + "-" + Long.toString(submitter.getVersion());
-                    availableSubmitters.put(key, submitter);
-                    flowbinderCreateView.setAvailableSubmitter(key, submitter.getContent().getName());
+                    String key = Long.toString(submitter.getId());
+                    try {
+                        availableSubmitters.put(key, submitter);
+                        submittersToView.put(key, submitter.getContent().getName());
+                    } catch (Exception e) {
+                        flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                    }
+                    flowbinderCreateView.setAvailableSubmitters(submittersToView);
                 }
             }
         });
     }
 
     private void fetchFlows() {
-        flowbinderCreateView.clearFlows();
         flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
             @Override
             public void onFailure(Throwable e) {
@@ -79,23 +84,35 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
             }
             @Override
             public void onSuccess(List<Flow> result) {
+                Map<String, String> flowsToView = new HashMap<String, String>();
                 for (Flow flow: result) {
-                    String key = Long.toString(flow.getId()) + "-" + Long.toString(flow.getVersion());
-                    availableFlows.put(key, flow);
-                    flowbinderCreateView.setAvailableFlow(key, flow.getContent().getName());
+                    String key = Long.toString(flow.getId());
+                    try {
+                        availableFlows.put(key, flow);
+                        flowsToView.put(key, flow.getContent().getName());
+                    } catch (Exception e) {
+                        flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                    }
+                    flowbinderCreateView.setAvailableFlows(flowsToView);
                 }
             }
         });
     }
 
     @Override
-    public void saveFlowbinder(String name, String description, String frameFormat, String contentFormat, String characterSet, String sink, String recordSplitter) {
-        final long flowId = availableFlows.get(flowbinderCreateView.getSelectedFlow()).getId();
+    public void saveFlowbinder(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, String flow, List<String> submitters) {
+        long flowId = 0;
         final List<Long> submitterIds = new ArrayList<Long>();
-        for (String submitterName: flowbinderCreateView.getSelectedSubmitters()) {
-            submitterIds.add(availableSubmitters.get(submitterName).getId());
+        FlowBinderContent flowbinderContent = null;
+        try {
+            flowId = availableFlows.get(flow).getId();
+            for (String submitterId: submitters) {
+                submitterIds.add(availableSubmitters.get(submitterId).getId());
+            }
+            flowbinderContent = new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds);
+        } catch (Exception e) {
+            flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
         }
-        FlowBinderContent flowbinderContent = new FlowBinderContent(name, description, frameFormat, contentFormat, characterSet, sink, recordSplitter, flowId, submitterIds);
         flowStoreProxy.createFlowBinder(flowbinderContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
@@ -103,7 +120,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
             }
             @Override
             public void onSuccess(Void result) {
-                flowbinderCreateView.onSaveFlowbinderSuccess();
+                flowbinderCreateView.onSuccess(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS);
             }
         });
     }

@@ -87,9 +87,18 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         add(flowbinderSavePanel);
     }
 
+    
+    /*
+     * Implementation of interface methods
+     */
+
     @Override
     public void setPresenter(FlowbinderCreatePresenter presenter) {
         this.presenter = presenter;
+    }
+
+    @Override
+    public void refresh() {
     }
 
     @Override
@@ -103,52 +112,79 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     }
 
     @Override
-    public void refresh() {
-    }
-
-    @Override
-    public void setAvailableFlow(String key, String flow) {
-        flowbinderFlowPanel.setAvailableFlow(flow, key);
-    }
-
-    @Override
-    public void clearFlows() {
+    public void setAvailableFlows(Map<String, String> availableFlows) {
         flowbinderFlowPanel.clearFlows();
-    }
-
-    @Override
-    public String getSelectedFlow() {
-        return flowbinderFlowPanel.getSelectedFlow();
-    }
-
-    @Override
-    public void clearAvailableSubmitters() {
-        flowbinderSubmittersPanel.clearAvailableSubmitters();
-    }
-
-    @Override
-    public void setAvailableSubmitter(String key, String value) {
-        flowbinderSubmittersPanel.addAvailableSubmitter(key, value);
-    }
-
-    @Override
-    public List<String> getSelectedSubmitters() {
-        List<String> selectedSubmitters = new ArrayList<String>();
-        Collection<Map.Entry<String, String>> selectedSubmittersFromPanel = flowbinderSubmittersPanel.getSelectedSubmitters();
-        for (Map.Entry<String, String> item : selectedSubmittersFromPanel) {
-            selectedSubmitters.add(item.getKey());
+        for (String key: availableFlows.keySet()) {
+           flowbinderFlowPanel.setAvailableFlow(key, availableFlows.get(key));
         }
-        return selectedSubmitters;
     }
 
     @Override
-    public void onSaveFlowbinderSuccess() {
-        onSuccess(FLOWBINDER_CREATION_SAVE_SUCCESS);
+    public void setAvailableSubmitters(Map<String, String> availableSubmitters) {
+        flowbinderSubmittersPanel.clearAvailableSubmitters();
+        flowbinderSubmittersPanel.clearItems();
+        for (String key: availableSubmitters.keySet()) {
+            flowbinderSubmittersPanel.addAvailableSubmitter(key, availableSubmitters.get(key));
+        }
     }
 
+    
+    /*
+     * Private methods
+     */
+    
     private void changeDetected() {
         flowbinderSavePanel.setStatusText("");  // If the user makes changes after a save, the status field shall be cleared
     }
+    
+
+   /*
+    * Private classes
+    */
+
+    private class SaveButtonHandler implements ClickHandler {
+        @Override
+        public void onClick(ClickEvent event) {
+            final String name = flowbinderNamePanel.getText();
+            final String description = flowbinderDescriptionPanel.getText();
+            final String packaging = flowbinderFramePanel.getText();
+            final String format = flowbinderContentFormatPanel.getText();
+            final String charset = flowbinderCharacterSetPanel.getText();
+            final String destination = flowbinderSinkPanel.getText();
+            final String recordSplitter = flowbinderRecordSplitterPanel.getText();
+            final Collection<Map.Entry<String, String>> submittersFromView = flowbinderSubmittersPanel.getSelectedSubmitters();
+            final List<String> submitters = new ArrayList<String>();
+            final String flow = flowbinderFlowPanel.getSelectedFlow();
+            final String validationError = validateFields(name, description, packaging, format, charset, destination, recordSplitter, submittersFromView, flow);
+            if (!validationError.isEmpty()) {
+                Window.alert(validationError);
+            } else {
+                for (Map.Entry<String, String> submitter: submittersFromView) {
+                    submitters.add(submitter.getKey());
+                }
+                presenter.saveFlowbinder(name, description, packaging, format, charset, destination, recordSplitter, flow, submitters);
+            }
+        }
+        private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter,
+                final Collection<Map.Entry<String, String>> submitters, final String flow) {
+            if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || sink.isEmpty() || recordSplitter.isEmpty()
+                    || submitters.isEmpty() || flow.isEmpty()) {
+                return FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
+            }
+            return "";
+        }
+    }
+
+    private class InputFieldKeyDownHandler implements KeyDownHandler {
+        @Override
+        public void onKeyDown(KeyDownEvent keyDownEvent) {
+            changeDetected();
+        }
+    }
+    
+    /*
+     * Panels
+     */
     
     private class FlowbinderNamePanel extends HorizontalPanel {
         private final TextBox textBox = new TextBox();
@@ -310,7 +346,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
                 }
             });
         }
-        private void setAvailableFlow(String flowName, String key) {
+        private void setAvailableFlow(String key, String flowName) {
             flow.addItem(flowName, key);
         }
         private String getSelectedFlow() {
@@ -341,39 +377,4 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         }
     }
 
-    private class SaveButtonHandler implements ClickHandler {
-        @Override
-        public void onClick(ClickEvent event) {
-            final String name = flowbinderNamePanel.getText();
-            final String description = flowbinderDescriptionPanel.getText();
-            final String frameFormat = flowbinderFramePanel.getText();
-            final String contentFormat = flowbinderContentFormatPanel.getText();
-            final String characterSet = flowbinderCharacterSetPanel.getText();
-            final String sink = flowbinderSinkPanel.getText();
-            final String recordSplitter = flowbinderRecordSplitterPanel.getText();
-            final Collection<Map.Entry<String, String>> submitters = flowbinderSubmittersPanel.getSelectedSubmitters();
-            final String flow = flowbinderFlowPanel.getSelectedFlow();
-            final String validationError = validateFields(name, description, frameFormat, contentFormat, characterSet, sink, recordSplitter, submitters, flow);
-            if (!validationError.isEmpty()) {
-                Window.alert(validationError);
-            } else {
-                presenter.saveFlowbinder(name, description, frameFormat, contentFormat, characterSet, sink, recordSplitter);
-            }
-        }
-        private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter,
-                final Collection<Map.Entry<String, String>> submitters, final String flow) {
-            if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || sink.isEmpty() || recordSplitter.isEmpty()
-                    || submitters.isEmpty() || flow.isEmpty()) {
-                return FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
-            }
-            return "";
-        }
-    }
-
-    private class InputFieldKeyDownHandler implements KeyDownHandler {
-        @Override
-        public void onKeyDown(KeyDownEvent keyDownEvent) {
-            changeDetected();
-        }
-    }
 }

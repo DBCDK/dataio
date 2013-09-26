@@ -26,7 +26,6 @@ public class SeleniumUtil {
 
     public static void assertFieldIsVisbleAndDataCanBeInsertedAndReadWithValue(WebElement element, String value) {
         assertTrue(element.isDisplayed());
-
         element.sendKeys(value);
         assertThat(element.getAttribute("value"), is(value));
     }

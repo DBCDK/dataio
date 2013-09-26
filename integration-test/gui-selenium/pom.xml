@@ -229,6 +229,7 @@
                             </execution>
                         </executions>
                         <configuration>
+			  <redirectTestOutputToFile>true</redirectTestOutputToFile>
                             <systemPropertyVariables>
                                 <glassfish.port>${glassfish.port}</glassfish.port>
                                 <h2.port>${h2.port}</h2.port>

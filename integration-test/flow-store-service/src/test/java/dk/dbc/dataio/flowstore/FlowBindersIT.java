@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlowBinder;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
@@ -50,8 +51,8 @@ public class FlowBindersIT {
     }
 
      /**
-     * Given: a deployed flow-store service with a submitter
-     * When: valid JSON is POSTed to the flow binders path referencing the submitter
+     * Given: a deployed flow-store service with a flow and a submitter
+     * When: valid JSON is POSTed to the flow binders path referencing the flow and submitter
      * Then: request returns with a CREATED http status code
      * And: request returns with a Location header pointing to the newly created resource
      * And: posted data can be found in the underlying database
@@ -59,11 +60,14 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_ok() throws Exception {
         // Given...
+        final long flowId = createFlow(restClient, baseUrl,
+                new ITUtil.FlowContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
                 new ITUtil.SubmitterContentJsonBuilder().build());
 
         // When...
         final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
@@ -106,6 +110,8 @@ public class FlowBindersIT {
         // Note that we set different destinations to ensure we don't risk matching search keys.
 
         // Given...
+        final long flowId = createFlow(restClient, baseUrl,
+                new ITUtil.FlowContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
                 new ITUtil.SubmitterContentJsonBuilder().build());
 
@@ -113,6 +119,7 @@ public class FlowBindersIT {
         final String firstFlowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base1")
+                .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         createFlowBinder(restClient, baseUrl, firstFlowBinderContent);
@@ -121,6 +128,7 @@ public class FlowBindersIT {
         final String secondFlowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base2")
+                .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
@@ -138,8 +146,31 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_referencedSubmitterNotFound() throws Exception {
         // When...
+        final long flowId = createFlow(restClient, baseUrl,
+                new ITUtil.FlowContentJsonBuilder().build());
         final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(123456789L))
+                .build();
+        final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.GONE.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When: adding flow binder which references non-existing flow
+     * Then: request returns with a GONE http status code
+     */
+    @Test
+    public void createFlowBinder_referencedFlowNotFound() throws Exception {
+        // When...
+        final long submitterId = createSubmitter(restClient, baseUrl,
+                new ITUtil.SubmitterContentJsonBuilder().build());
+        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                .setFlowId(987654321L)
+                .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
 
@@ -155,11 +186,14 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_searchKeyExistsInSearchIndex() throws Exception {
         // Given...
+        final long flowId = createFlow(restClient, baseUrl,
+                new ITUtil.FlowContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
                 new ITUtil.SubmitterContentJsonBuilder().build());
 
         String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_1")
+                .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         createFlowBinder(restClient, baseUrl, flowBinderContent);
@@ -167,6 +201,7 @@ public class FlowBindersIT {
         // When...
         flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_2")
+                .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 

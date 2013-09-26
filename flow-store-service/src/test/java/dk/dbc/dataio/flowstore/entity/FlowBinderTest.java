@@ -46,6 +46,18 @@ public class FlowBinderTest {
         assertThat(binder.getSubmitterIds(), is(submitterIds));
     }
 
+    @Test
+    public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsFlowId() throws Exception {
+        final long flowId = 42L;
+        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                .setFlowId(flowId)
+                .build();
+
+        final FlowBinder binder = new FlowBinder();
+        binder.setContent(flowBinderContent);
+        assertThat(binder.getFlowId(), is(flowId));
+    }
+
     @Test(expected = JsonException.class)
     public void setContent_jsonDataArgIsInvalidFlowBinderContentJson_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();

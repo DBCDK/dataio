@@ -76,8 +76,8 @@ public class FlowBindersBean {
 
         final FlowBinder flowBinder = new FlowBinder();
         flowBinder.setContent(flowBinderData);
+        flowBinder.setFlow(resolveFlow(flowBinder.getFlowId()));
         flowBinder.setSubmitters(resolveSubmitterIds(flowBinder.getSubmitterIds()));
-        //flowBinder.setFlow(resolveFlow(json));
         entityManager.persist(flowBinder);
 
         for (FlowBinderSearchIndexEntry searchIndexEntry : FlowBinder.generateSearchIndexEntries(flowBinder)) {

@@ -15,13 +15,13 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-integration-test-utils</artifactId>
-      <version>${version}</version>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-json</artifactId>
-      <version>${version}</version>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -138,7 +138,7 @@
               <goal>deploy</goal>
             </goals>
             <configuration>
-              <app>${basedir}/../../flow-store-service/target/dataio-flow-store-service-${version}.war</app>
+              <app>${basedir}/../../flow-store-service/target/dataio-flow-store-service-${project.version}.war</app>
               <contextRoot>flow-store</contextRoot>
               <name>flowstore</name>
             </configuration>

@@ -1,8 +1,8 @@
 package dk.dbc.dataio.commons.utils.json;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -117,7 +117,7 @@ public class JsonUtilTest {
     public void getJsonRoot_jsonArgIsValidJsonObject_returnsJsonNode() throws Exception {
         final JsonNode root = JsonUtil.getJsonRoot(validJsonSimpleObjectString);
         assertThat(root, is(notNullValue()));
-        assertThat(root.path(simpleObjectKey).getTextValue(), is(simpleObjectValue));
+        assertThat(root.path(simpleObjectKey).textValue(), is(simpleObjectValue));
     }
 
     @Test
@@ -125,7 +125,7 @@ public class JsonUtilTest {
         final JsonNode root = JsonUtil.getJsonRoot(validJsonSimpleArrayString);
         assertThat(root, is(notNullValue()));
         assertThat(root.size(), is(simpleArraySize));
-        assertThat(root.get(0).getIntValue(), is(simpleArrayValue));
+        assertThat(root.get(0).intValue(), is(simpleArrayValue));
     }
 
     @Test(expected = JsonException.class)

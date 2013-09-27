@@ -1,8 +1,8 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import org.codehaus.jackson.annotate.JsonRawValue;
 
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;

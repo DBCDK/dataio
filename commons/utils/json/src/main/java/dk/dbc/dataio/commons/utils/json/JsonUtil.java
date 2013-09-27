@@ -1,8 +1,8 @@
 package dk.dbc.dataio.commons.utils.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -53,7 +53,7 @@ public class JsonUtil {
         try {
             if (mixIns != null) {
                 for (Map.Entry<Class<?>, Class<?>> e : mixIns.entrySet()) {
-                    objectMapper.getDeserializationConfig().addMixInAnnotations(e.getKey(), e.getValue());
+                    objectMapper.addMixInAnnotations(e.getKey(), e.getValue());
                 }
             }
             object = objectMapper.readValue(json, tClass);
@@ -110,7 +110,8 @@ public class JsonUtil {
         if (!jsonNode.isTextual()) {
             throw new JsonException(String.format("%s - member is non-textual", message));
         }
-        final String value = jsonNode.getTextValue();
+        //final String value = jsonNode.getTextValue();
+        final String value = jsonNode.textValue();
         if (value.isEmpty()) {
             throw new JsonException(String.format("%s - member value was empty", message));
         }
@@ -136,6 +137,7 @@ public class JsonUtil {
         if (!jsonNode.isNumber()) {
             throw new JsonException(String.format("%s - member is not a number", message));
         }
-        return jsonNode.getLongValue();
+        //return jsonNode.getLongValue();
+        return jsonNode.longValue();
     }
 }

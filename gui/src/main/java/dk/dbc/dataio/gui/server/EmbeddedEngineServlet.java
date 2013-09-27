@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -16,7 +17,6 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ public class EmbeddedEngineServlet extends HttpServlet {
     private WebResource setupWebResource(String flowStoreServiceEndpoint) {
         final ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        // force client to use Jackson JAX-RS provider (one in org.codehaus.jackson.jaxrs)
+        // force client to use Jackson JAX-RS provider (one in com.fasterxml.jackson.jaxrs.json)
         clientConfig.getClasses().add(JacksonJsonProvider.class);
         final Client httpClient = Client.create(clientConfig);
 

@@ -1,8 +1,8 @@
 package dk.dbc.dataio.commons.types.json.mixins;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * This class is a companion to the Submitter DTO class.

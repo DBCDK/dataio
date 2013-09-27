@@ -1,30 +1,31 @@
 package dk.dbc.dataio.gui.server;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
-import dk.dbc.dataio.engine.Engine;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.engine.Engine;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.List;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemFactory;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.List;
 
 public class FlowComponentContentUploadServlet extends HttpServlet {
 
@@ -46,7 +47,7 @@ public class FlowComponentContentUploadServlet extends HttpServlet {
     private WebResource setupWebResource(String flowStoreServiceEndpoint) {
         final ClientConfig clientConfig = new DefaultClientConfig();
         clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        // force client to use Jackson JAX-RS provider (one in org.codehaus.jackson.jaxrs)
+        // force client to use Jackson JAX-RS provider (one in com.fasterxml.jackson.jaxrs.json)
         clientConfig.getClasses().add(JacksonJsonProvider.class);
         final Client httpClient = Client.create(clientConfig);
 

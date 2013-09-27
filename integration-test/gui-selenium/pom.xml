@@ -192,6 +192,18 @@
                                 </configuration>
                             </execution>
                             <execution>
+                                <id>jobstore-deploy</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                                <configuration>
+                                    <app>../../job-store-service/target/dataio-job-store-service-${project.version}.war</app>
+                                    <contextRoot>job-store</contextRoot>
+                                    <name>jobstore</name>
+                                </configuration>
+                            </execution>
+                            <execution>
                                 <id>gui-deploy</id>
                                 <phase>pre-integration-test</phase>
                                 <goals>
@@ -285,6 +297,18 @@
                                     <app>../../flow-store-service/target/dataio-flow-store-service-${project.version}.war</app>
                                     <contextRoot>flow-store</contextRoot>
                                     <name>flowstore</name>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jobstore-deploy</id>
+                                <phase>this-phase-should-never-run</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                                <configuration>
+                                    <app>../../job-store-service/target/dataio-job-store-service-${project.version}.war</app>
+                                    <contextRoot>job-store</contextRoot>
+                                    <name>jobstore</name>
                                 </configuration>
                             </execution>
                             <execution>

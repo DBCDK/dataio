@@ -7,6 +7,8 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.JobInfo;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 
@@ -28,6 +30,8 @@ public class MixIns {
         mixIns.put(JavaScript.class, JavaScriptJsonMixIn.class);
         mixIns.put(Submitter.class, SubmitterJsonMixIn.class);
         mixIns.put(SubmitterContent.class, SubmitterContentJsonMixIn.class);
+        mixIns.put(JobInfo.class, JobInfoJsonMixIn.class);
+        mixIns.put(JobSpecification.class, JobSpecificationJsonMixIn.class);
     }
 
     private MixIns() { }

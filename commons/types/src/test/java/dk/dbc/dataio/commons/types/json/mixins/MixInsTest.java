@@ -14,6 +14,10 @@ import dk.dbc.dataio.commons.types.FlowContentTest;
 import dk.dbc.dataio.commons.types.FlowTest;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JavaScriptTest;
+import dk.dbc.dataio.commons.types.JobInfo;
+import dk.dbc.dataio.commons.types.JobInfoTest;
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobSpecificationTest;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SubmitterContentTest;
@@ -74,5 +78,17 @@ public class MixInsTest {
     public void verify_jsonMixInForFlowBinderContent() throws Exception {
         final String json = JsonUtil.toJson(FlowBinderContentTest.newFlowBinderContentInstance());
         JsonUtil.fromJson(json, FlowBinderContent.class, MixIns.getMixIns());
+    }
+
+    @Test
+    public void verify_jsonMixInForJobInfo() throws Exception {
+        final String json = JsonUtil.toJson(JobInfoTest.newJobInfoInstance());
+        JsonUtil.fromJson(json, JobInfo.class, MixIns.getMixIns());
+    }
+
+    @Test
+    public void verify_jsonMixInForJobSpecification() throws Exception {
+        final String json = JsonUtil.toJson(JobSpecificationTest.newJobSpecificationInstance());
+        JsonUtil.fromJson(json, JobSpecification.class, MixIns.getMixIns());
     }
 }

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -8,27 +9,29 @@ import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView {
+public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String CONTEXT_HEADER = "Flow - opsætning";
     public static final String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
-    public static final String GUIID_FLOW_CREATION_NAME_TEXT_BOX = "flowcreationnametextbox";
+    public static final String GUIID_FLOW_CREATION_FLOW_NAME_PANEL = "flow-name-panel-id";
+    
     public static final String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";
     public static final String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
     public static final String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
-    public static final String GUIID_FLOW_CREATION_FLOW_NAME_PANEL = "flow-name-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL = "flow-description-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL = "flow-component-selection-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_SAVE_PANEL = "flow-save-panel-id";
@@ -39,14 +42,18 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     
     // Local variables
     private FlowCreatePresenter presenter;
-    private final FlowNamePanel flowNamePanel = new FlowNamePanel();
+    private final TextEntry<String> flowNamePanel = new TextEntry<String>("Flownavn");
+
     private final FlowDescriptionPanel flowDescriptionPanel = new FlowDescriptionPanel();
     private final FlowComponentSelectionPanel flowComponentSelectionPanel = new FlowComponentSelectionPanel();
     private final FlowSavePanel flowSavePanel = new FlowSavePanel();
-
+    
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
+        flowNamePanel.getElement().setId(GUIID_FLOW_CREATION_FLOW_NAME_PANEL);
         add(flowNamePanel);
+        flowNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
+
         add(flowDescriptionPanel);
         add(flowComponentSelectionPanel);
         add(flowSavePanel);
@@ -55,8 +62,7 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     
     /*
      * Implementation of interface methods
-     */
-    
+     */    
     @Override
     public void setPresenter(FlowCreatePresenter presenter) {
         this.presenter = presenter;
@@ -108,10 +114,10 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     private class SaveButtonHandler implements ClickHandler {
         @Override
         public void onClick(ClickEvent event) {
-            String nameValue = flowNamePanel.getText();
+            String nameValue = flowNamePanel.getValue();
             String descriptionValue = flowDescriptionPanel.getText();
             if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.size()>0)) {
-                presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
+                presenter.saveFlow(flowNamePanel.getValue(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             }
@@ -129,21 +135,6 @@ public class FlowCreateViewImpl extends VerticalPanel implements FlowCreateView 
     /*
      * Panels
      */
-    private class FlowNamePanel extends HorizontalPanel {
-        private final TextBox textBox = new TextBox();
-        public FlowNamePanel() {
-            super();
-            add(new Label("Flownavn"));
-            getElement().setId(GUIID_FLOW_CREATION_FLOW_NAME_PANEL);
-            textBox.getElement().setId(GUIID_FLOW_CREATION_NAME_TEXT_BOX);
-            textBox.addKeyDownHandler(new InputFieldKeyDownHandler());
-            add(textBox);
-        }
-        public String getText() {
-            return textBox.getValue();
-        }
-    }
-
     private class FlowDescriptionPanel extends HorizontalPanel {
         private final TextArea flowDescriptionTextArea = new FlowDescriptionTextArea();
         public FlowDescriptionPanel() {

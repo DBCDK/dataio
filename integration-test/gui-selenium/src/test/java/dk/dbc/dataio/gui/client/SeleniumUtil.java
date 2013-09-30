@@ -19,6 +19,10 @@ public class SeleniumUtil {
         return webDriver.findElement(By.id(elementId));
     }
 
+    public static WebElement findElementInComponentInCurrentView(WebDriver webDriver, final String elementId, final String className) {
+        return webDriver.findElement(By.cssSelector("#" + elementId + " ." + className));
+    }
+
     public static void assertFieldIsVisbleAndDataCanBeInsertedAndRead(WebElement element) {
         final String fieldValue = "test of unicode content æøåÆØÅ";
         assertFieldIsVisbleAndDataCanBeInsertedAndReadWithValue(element, fieldValue);

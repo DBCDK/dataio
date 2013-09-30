@@ -34,8 +34,8 @@ public class Chunk implements Serializable {
             throw new IllegalArgumentException("Number of records exceeds MAX_RECORDS_PER_CHUNK");
         }
     }
-    
-    void addRecord(String record) {
+
+    public void addRecord(String record) {
         if (records.size() < MAX_RECORDS_PER_CHUNK) {
             records.add(record);
         } else {

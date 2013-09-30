@@ -22,5 +22,6 @@ public class JobSpecificationJsonMixIn {
                                      @JsonProperty("charset") String charset,
                                      @JsonProperty("destination") String destination,
                                      @JsonProperty("submitterId") long submitterId,
+                                     @JsonProperty("flowId") long flowId,
                                      @JsonProperty("dataFile") String dataFile) { }
 }

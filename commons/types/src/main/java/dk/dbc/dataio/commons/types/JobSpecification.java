@@ -21,6 +21,9 @@ public class JobSpecification implements Serializable {
     // Due to GWT serialization issues we cannot use java.net.URI or java.net.URL
     private /* final */ String dataFile;
 
+    // Temporary field until we get proper flow analysis in the job-store
+    private /* final */ long flowId;
+
     private JobSpecification() { }
 
     /**
@@ -40,7 +43,7 @@ public class JobSpecification implements Serializable {
      * @throws IllegalArgumentException if given empty valued String argument
      * or if value of submitterId is <= 0
      */
-    public JobSpecification(String packaging, String format, String charset, String destination, long submitterId, String dataFile)
+    public JobSpecification(String packaging, String format, String charset, String destination, long submitterId, String dataFile, long flowId)
             throws NullPointerException, IllegalArgumentException {
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
@@ -48,6 +51,8 @@ public class JobSpecification implements Serializable {
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
         this.submitterId = InvariantUtil.checkAboveThresholdOrThrow(submitterId, "submitterId", Submitter.ID_VERSION_LOWER_THRESHOLD);
         this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
+
+        this.flowId = flowId;
     }
 
     public String getCharset() {
@@ -72,5 +77,9 @@ public class JobSpecification implements Serializable {
 
     public long getSubmitterId() {
         return submitterId;
+    }
+
+    public long getFlowId() {
+        return flowId;
     }
 }

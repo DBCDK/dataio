@@ -5,21 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-commons</artifactId>
+    <artifactId>dataio-commons-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils</artifactId>
-  <name>dataio-commons-utils</name>
-  <packaging>pom</packaging>
+  <artifactId>dataio-commons-utils-service</artifactId>
+  <name>dataio-commons-utils-service</name>
 
-  <modules>
-    <module>invariant</module>
-    <module>javascript</module>
-    <module>json</module>
-    <module>svn</module>
-    <module>service</module>
-  </modules>
 
 </project>

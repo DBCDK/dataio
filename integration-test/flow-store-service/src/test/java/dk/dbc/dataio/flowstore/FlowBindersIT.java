@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -8,7 +9,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -19,7 +19,6 @@ import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlowBinder;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
-import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
@@ -36,7 +35,7 @@ public class FlowBindersIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
-        restClient = ClientBuilder.newClient();
+        restClient = HttpClient.newClient();
         dbConnection = newDbConnection();
     }
 
@@ -71,7 +70,7 @@ public class FlowBindersIT {
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
-        final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -94,7 +93,7 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_errorWhenJsonExceptionIsThrown() {
         // When...
-        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -132,7 +131,7 @@ public class FlowBindersIT {
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
-        final Response response = doPostWithJson(restClient, secondFlowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, secondFlowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
@@ -152,7 +151,7 @@ public class FlowBindersIT {
                 .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(123456789L))
                 .build();
-        final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.GONE.getStatusCode()));
@@ -172,7 +171,7 @@ public class FlowBindersIT {
                 .setFlowId(987654321L)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
-        final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.GONE.getStatusCode()));
@@ -205,7 +204,7 @@ public class FlowBindersIT {
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
-        final Response response = doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));

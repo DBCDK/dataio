@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
@@ -10,7 +11,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,8 +18,6 @@ import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
-import static dk.dbc.dataio.integrationtest.ITUtil.doGet;
-import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
@@ -37,7 +35,7 @@ public class SubmittersIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
-        restClient = ClientBuilder.newClient();
+        restClient = HttpClient.newClient();
         dbConnection = newDbConnection();
     }
 
@@ -62,7 +60,7 @@ public class SubmittersIT {
     public void createSubmitter_Ok() throws SQLException {
         // When...
         final String submitterContent = new ITUtil.SubmitterContentJsonBuilder().build();
-        final Response response = doPostWithJson(restClient, submitterContent, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, submitterContent, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -86,7 +84,7 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_ErrorWhenJsonExceptionIsThrown() {
         // When...
-        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -109,7 +107,7 @@ public class SubmittersIT {
         final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
                 .setNumber(2L)
                 .build();
-        final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
@@ -132,7 +130,7 @@ public class SubmittersIT {
         final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
                 .setName("test2")
                 .build();
-        final Response response = doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
@@ -147,7 +145,7 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_emptyResult() throws Exception {
         // When...
-        final Response response = doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
@@ -187,7 +185,7 @@ public class SubmittersIT {
         final long sortsSecond = createSubmitter(restClient, baseUrl, submitterContent);
 
         // When...
-        final Response response = doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));

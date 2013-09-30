@@ -15,6 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>httpclient</module>
     <module>invariant</module>
     <module>javascript</module>
     <module>json</module>

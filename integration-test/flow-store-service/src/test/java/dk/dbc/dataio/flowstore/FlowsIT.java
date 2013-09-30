@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
@@ -10,7 +11,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,8 +18,6 @@ import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
-import static dk.dbc.dataio.integrationtest.ITUtil.doGet;
-import static dk.dbc.dataio.integrationtest.ITUtil.doPostWithJson;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
@@ -37,7 +35,7 @@ public class FlowsIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
-        restClient = ClientBuilder.newClient();
+        restClient = HttpClient.newClient();
         dbConnection = newDbConnection();
     }
 
@@ -63,7 +61,7 @@ public class FlowsIT {
         // When...
         final String flowContent = new ITUtil.FlowContentJsonBuilder().build();
         System.out.println(flowContent);
-        final Response response = doPostWithJson(restClient, flowContent, baseUrl, ITUtil.FLOWS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, flowContent, baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -86,7 +84,7 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenInvalidJson() {
         // When...
-        final Response response = doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOWS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -101,7 +99,7 @@ public class FlowsIT {
     @Test
     public void findAllFlows_emptyResult() throws Exception {
         // When...
-        final Response response = doGet(restClient, baseUrl, ITUtil.FLOWS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
@@ -138,7 +136,7 @@ public class FlowsIT {
         final long sortsSecond = createFlow(restClient, baseUrl, flowContent);
 
         // When...
-        final Response response = doGet(restClient, baseUrl, ITUtil.FLOWS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.FLOWS_URL_PATH);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.tmatesoft.svn.core.SVNCommitInfo;
@@ -16,10 +17,6 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -27,9 +24,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Integration test utility
@@ -108,116 +103,22 @@ public class ITUtil {
 
     public static long createFlowComponent(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH));
     }
 
     public static long createFlow(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                doPostWithJson(restClient, content, baseUrl, ITUtil.FLOWS_URL_PATH));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.FLOWS_URL_PATH));
     }
 
     public static long createSubmitter(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                doPostWithJson(restClient, content, baseUrl, ITUtil.SUBMITTERS_URL_PATH));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.SUBMITTERS_URL_PATH));
     }
 
     public static long createFlowBinder(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH));
-    }
-
-    /**
-     * POSTs given data entity to endpoint constructed using given baseurl and path elements
-     *
-     * @param restClient RESTful web service client
-     * @param data data entity
-     * @param baseUrl base URL on the form http(s)://host:port/path
-     * @param pathElements additional path elements to be added to base URL
-     *
-     * @return server response
-     */
-    public static Response doPost(Client restClient, Entity data, String baseUrl, String... pathElements) {
-        WebTarget target = restClient.target(baseUrl);
-        for (String pathElement : pathElements) {
-            target = target.path(pathElement);
-        }
-        return target.request().post(data);
-    }
-
-    /**
-     * POSTs given data as application/json to endpoint constructed using given baseurl and path elements
-     *
-     * @param restClient RESTful web service client
-     * @param data JSON data
-     * @param baseUrl base URL on the form http(s)://host:port/path
-     * @param pathElements additional path elements to be added to base URL
-     *
-     * @return server response
-     */
-    public static Response doPostWithJson(Client restClient, String data, String baseUrl, String... pathElements) {
-        return doPost(restClient, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
-    }
-
-    /**
-     * POSTs given data as application/x-www-form-urlencoded to endpoint constructed using given baseurl and path elements
-     *
-     * @param restClient RESTful web service client
-     * @param formData form data
-     * @param baseUrl base URL on the form http(s)://host:port/path
-     * @param pathElements additional path elements to be added to base URL
-     *
-     * @return server response
-     */
-    public static Response doPostWithFormData(Client restClient, MultivaluedMap<String, String> formData, String baseUrl, String... pathElements) {
-        return doPost(restClient, Entity.form(formData), baseUrl, pathElements);
-    }
-
-    /**
-     * Issues GET request to endpoint constructed using given baseurl and path elements
-     *
-     * @param restClient RESTful web service client
-     * @param queryParameters query parameters to be added to request
-     * @param baseUrl base URL on the form http(s)://host:port/path
-     * @param pathElements additional path elements to be added to base URL
-     *
-     * @return server response
-     */
-    public static Response doGet(Client restClient, Map<String, Object> queryParameters, String baseUrl, String... pathElements)  {
-        WebTarget target = restClient.target(baseUrl);
-        for (String pathElement : pathElements) {
-            target = target.path(pathElement);
-        }
-        for (Map.Entry<String, Object> queryParameter : queryParameters.entrySet()) {
-            target = target.queryParam(queryParameter.getKey(), queryParameter.getValue());
-        }
-        return target.request().get();
-    }
-
-     /**
-     * Issues GET request to endpoint constructed using given baseurl and path elements
-     *
-     * @param restClient RESTful web service client
-     * @param baseUrl base URL on the form http(s)://host:port/path
-     * @param pathElements additional path elements to be added to base URL
-     *
-     * @return server response
-     */
-    public static Response doGet(Client restClient, String baseUrl, String... pathElements)  {
-        return doGet(restClient, new HashMap<String, Object>(), baseUrl, pathElements);
-    }
-
-    /**
-     * Issues GET request to endpoint constructed using given baseurl and path elements
-     *
-     * @param restClient RESTful web service client
-     * @param queryParameters query parameters to be added to request
-     * @param baseUrl base URL on the form http(s)://host:port/path
-     * @param pathElements additional path elements to be added to base URL
-     *
-     * @return server response
-     */
-    public static Response doGetWithQueryParameters(Client restClient, Map<String, Object> queryParameters, String baseUrl, String... pathElements)  {
-        return doGet(restClient, queryParameters, baseUrl, pathElements);
+                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH));
     }
 
     /**

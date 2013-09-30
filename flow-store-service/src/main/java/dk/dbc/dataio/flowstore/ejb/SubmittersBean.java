@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.flowstore.entity.Submitter;
@@ -27,10 +28,8 @@ import java.util.List;
  * exposed by the '/{@code SUBMITTERS_ENTRY_POINT}' entry point
  */
 @Stateless
-@Path(SubmittersBean.SUBMITTERS_ENTRY_POINT)
+@Path(FlowStoreServiceEntryPoint.SUBMITTERS)
 public class SubmittersBean {
-    public static final String SUBMITTERS_ENTRY_POINT = "submitters";
-
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
 
     @PersistenceContext

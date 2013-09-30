@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -60,7 +61,7 @@ public class FlowComponentsIT {
     public void createComponent_Ok() throws SQLException {
         // When...
         final String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowComponentContent, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, flowComponentContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -83,7 +84,7 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_ErrorWhenGivenInvalidJson() {
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -98,7 +99,7 @@ public class FlowComponentsIT {
     @Test
     public void findAllComponents_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
@@ -136,7 +137,7 @@ public class FlowComponentsIT {
         final long sortsSecond = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));

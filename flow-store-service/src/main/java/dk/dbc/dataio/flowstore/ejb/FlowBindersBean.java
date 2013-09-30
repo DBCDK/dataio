@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
@@ -25,13 +26,11 @@ import java.util.Set;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the '{@value #FLOW_BINDERS_ENTRY_POINT}' entry point
+ * exposed by the '/FlowStoreServiceEntryPoint.FLOW_BINDERS' entry point
  */
 @Stateless
-@Path(FlowBindersBean.FLOW_BINDERS_ENTRY_POINT)
+@Path(FlowStoreServiceEntryPoint.FLOW_BINDERS)
 public class FlowBindersBean {
-    public static final String FLOW_BINDERS_ENTRY_POINT = "binders";
-
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
 
     @PersistenceContext

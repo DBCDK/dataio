@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
@@ -28,11 +29,8 @@ import java.util.List;
  * exposed by the '/{@code FLOWS_ENTRY_POINT}' entry point
  */
 @Stateless
-@Path(FlowsBean.FLOWS_ENTRY_POINT)
+@Path(FlowStoreServiceEntryPoint.FLOWS)
 public class FlowsBean {
-    public static final String FLOWS_ENTRY_POINT = "flows";
-    public static final String FLOWS_RESOURCE_ENTRY_POINT = "/{id}";
-
     private static final Logger log = LoggerFactory.getLogger(FlowsBean.class);
 
     private static final String NOT_FOUND_MESSAGE = "resource not found";
@@ -50,7 +48,7 @@ public class FlowsBean {
      *         a HTTP 500 response in case of general error.
      */
     @GET
-    @Path(FLOWS_RESOURCE_ENTRY_POINT)
+    @Path("/{id}")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getFlow(@PathParam("id") Long id) throws JsonException {
         final Flow flow = entityManager.find(Flow.class, id);

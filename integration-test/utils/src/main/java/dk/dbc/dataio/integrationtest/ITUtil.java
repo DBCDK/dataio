@@ -1,6 +1,7 @@
 package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -37,10 +38,12 @@ public class ITUtil {
     public static final String FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME = "flow_binders_search_index";
     public static final String SUBMITTERS_TABLE_NAME = "submitters";
 
+    /*
     public static final String FLOWS_URL_PATH = "flows";
     public static final String FLOW_COMPONENTS_URL_PATH = "components";
     public static final String FLOW_BINDERS_URL_PATH = "binders";
     public static final String SUBMITTERS_URL_PATH = "submitters";
+    */
 
     public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", FLOWS_TABLE_NAME);
@@ -103,22 +106,22 @@ public class ITUtil {
 
     public static long createFlowComponent(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_COMPONENTS_URL_PATH));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS));
     }
 
     public static long createFlow(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.FLOWS_URL_PATH));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.FLOWS));
     }
 
     public static long createSubmitter(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.SUBMITTERS_URL_PATH));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS));
     }
 
     public static long createFlowBinder(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, ITUtil.FLOW_BINDERS_URL_PATH));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS));
     }
 
     /**

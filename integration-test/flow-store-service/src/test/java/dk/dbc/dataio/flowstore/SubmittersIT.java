@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -60,7 +61,7 @@ public class SubmittersIT {
     public void createSubmitter_Ok() throws SQLException {
         // When...
         final String submitterContent = new ITUtil.SubmitterContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, submitterContent, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, submitterContent, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -84,7 +85,7 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_ErrorWhenJsonExceptionIsThrown() {
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -107,7 +108,7 @@ public class SubmittersIT {
         final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
                 .setNumber(2L)
                 .build();
-        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
@@ -130,7 +131,7 @@ public class SubmittersIT {
         final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
                 .setName("test2")
                 .build();
-        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
@@ -145,7 +146,7 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
@@ -185,7 +186,7 @@ public class SubmittersIT {
         final long sortsSecond = createSubmitter(restClient, baseUrl, submitterContent);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, ITUtil.SUBMITTERS_URL_PATH);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));

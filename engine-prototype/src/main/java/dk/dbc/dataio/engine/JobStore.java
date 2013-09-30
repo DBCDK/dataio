@@ -4,9 +4,9 @@ import dk.dbc.dataio.commons.types.Flow;
 
 import java.nio.file.Path;
 
-interface JobStore {
+public interface JobStore {
     Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException;
-    
+
     void addChunk(Job job, Chunk chunk) throws JobStoreException;
 
     long getNumberOfChunksInJob(Job job) throws JobStoreException;

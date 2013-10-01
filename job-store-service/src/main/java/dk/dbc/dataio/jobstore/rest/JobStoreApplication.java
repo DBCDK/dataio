@@ -21,22 +21,13 @@ public class JobStoreApplication extends Application {
     public Set<Class<?>> getClasses() {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(JobsBean.class);
+        classes.add(JsonExceptionMapper.class);
+        classes.add(ReferencedEntityNotFoundExceptionMapper.class);
         for (Class<?> clazz : classes) {
             log.info("Registered {} resource", clazz.getName());
         }
         return classes;
     }
-
-    // Hardening: JAX-RS/Jackson integration stopped working during glassfish3 to glassfish4 migration.
-    /*
-    @Override
-    public Set<Object> getSingletons() {
-        HashSet<Object> singletons = new HashSet<>();
-        // use Jackson to do JSON serialization with JAX-RS
-        singletons.add(new org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider());
-        return singletons;
-    }
-    */
 
     /**
      * Do not modify addRestResourceClasses() method.

@@ -3,8 +3,8 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Submitter;
-import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +22,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -56,10 +59,10 @@ public class SubmittersBean {
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JsonException {
         log.trace("Called with: '{}'", submitterContent);
 
-        final Submitter submitter = ServiceUtil.saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
+        final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
         entityManager.flush();
 
-        return Response.created(ServiceUtil.getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter)).build();
+        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter)).build();
     }
 
     /**

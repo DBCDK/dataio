@@ -1,10 +1,16 @@
 package dk.dbc.dataio.commons.utils.service;
 
+import dk.dbc.dataio.commons.types.ServiceError;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.ws.rs.core.Response;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * This utility class provides convenience methods for working with Servlet/JAX-RS based web services
@@ -52,6 +58,62 @@ public class ServiceUtil {
         return subversionScmEndpoint;
     }
 
+    /**
+     * Builds service method response
+     *
+     * @param status HTTP status code of response
+     * @param entity entity to include in response
+     * @param <T> type parameter for entity type
+     *
+     * @return response object
+     */
+    public static <T> Response buildResponse(Response.Status status, T entity) {
+        return Response.status(status).entity(entity).build();
+    }
+
+    /**
+     * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
+     * constructed from given error message
+     *
+     * @param errorMessage error message
+     *
+     * @return JSON string representation of ServiceError object
+     */
+    public static String asJsonError(String errorMessage) {
+        String error = null;
+        try {
+            error = JsonUtil.toJson(new ServiceError(errorMessage));
+        } catch (JsonException e) {
+            log.error("Caught exception trying to create JSON representation of error", e);
+        }
+        return error;
+    }
+
+    /**
+     * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
+     * constructed from given exception
+     *
+     * @param ex exception to wrap
+     *
+     * @return JSON string representation of ServiceError object
+     */
+    public static String asJsonError(Exception ex) {
+        String error = null;
+        try {
+            log.error("Generating error based on exception", ex);
+            error = JsonUtil.toJson(new ServiceError(ex.getMessage(), stackTraceToString(ex)));
+        } catch (JsonException e) {
+            log.error("Caught exception trying to create JSON representation of error", e);
+        }
+        return error;
+    }
+
+    public static String stackTraceToString(Throwable t) {
+        final StringWriter sw = new StringWriter();
+        t.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
+
     private static String getStringValueFromResource(String resourceName) throws NamingException {
         String resourceValue;
         InitialContext initialContext = null;
@@ -73,5 +135,4 @@ public class ServiceUtil {
             }
         }
     }
-
 }

@@ -3,8 +3,8 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
-import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +23,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
+
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -79,10 +82,10 @@ public class FlowsBean {
     public Response createFlow(@Context UriInfo uriInfo, String flowContent) throws JsonException {
         log.trace("Called with: '{}'", flowContent);
 
-        final Flow flow = ServiceUtil.saveAsVersionedEntity(entityManager, Flow.class, flowContent);
+        final Flow flow = saveAsVersionedEntity(entityManager, Flow.class, flowContent);
         entityManager.flush();
 
-        return Response.created(ServiceUtil.getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).build();
+        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).build();
     }
 
     /**

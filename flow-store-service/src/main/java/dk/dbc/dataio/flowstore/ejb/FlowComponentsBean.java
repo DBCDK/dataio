@@ -3,6 +3,7 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.buildResponse;
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
@@ -72,6 +72,6 @@ public class FlowComponentsBean {
     public Response findAllComponents() throws JsonException {
         final TypedQuery<FlowComponent> query = entityManager.createNamedQuery(FlowComponent.QUERY_FIND_ALL, FlowComponent.class);
         final List<FlowComponent> results = query.getResultList();
-        return buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 }

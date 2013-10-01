@@ -13,5 +13,24 @@
   <artifactId>dataio-commons-utils-service</artifactId>
   <name>dataio-commons-utils-service</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-types</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+	    <groupId>org.glassfish.jersey.core</groupId>
+	    <artifactId>jersey-client</artifactId>
+	    <version>${jersey.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
 
 </project>

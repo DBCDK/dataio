@@ -6,7 +6,7 @@ import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.Submitter;
-import dk.dbc.dataio.flowstore.exception.ReferencedEntityNotFoundException;
+import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

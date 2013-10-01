@@ -1,4 +1,4 @@
-package dk.dbc.dataio.flowstore.exception;
+package dk.dbc.dataio.commons.types.exceptions;
 
 public class ReferencedEntityNotFoundException extends Exception {
     private static final long serialVersionUID = 8207867940250219288L;

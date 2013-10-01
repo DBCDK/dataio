@@ -1,6 +1,6 @@
 package dk.dbc.dataio.flowstore.rest;
 
-import dk.dbc.dataio.flowstore.util.ServiceUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -19,8 +19,8 @@ public class SeleniumUtil {
         return webDriver.findElement(By.id(elementId));
     }
 
-    public static WebElement findElementInComponentInCurrentView(WebDriver webDriver, final String elementId, final String className) {
-        return webDriver.findElement(By.cssSelector("#" + elementId + " ." + className));
+    public static WebElement findElementInCurrentView(WebDriver webDriver, final String elementId, final String className) {
+        return webDriver.findElement(By.id(elementId)).findElement(By.className(className));
     }
 
     public static void assertFieldIsVisbleAndDataCanBeInsertedAndRead(WebElement element) {

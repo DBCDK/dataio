@@ -252,11 +252,11 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private static WebElement findComponentNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInComponentInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private WebElement findComponentSvnProjectElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInComponentInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private WebElement findComponentSvnRevisionElement(WebDriver webDriver) {

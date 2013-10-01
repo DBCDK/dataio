@@ -211,7 +211,7 @@ public class FlowCreationSeleniumIT {
     }
 
     private static WebElement findNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInComponentInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_NAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_NAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findDescriptionElement(WebDriver webDriver) {

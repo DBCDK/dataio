@@ -40,7 +40,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     
     // Local variables
     private FlowCreatePresenter presenter;
-    private final TextEntry<String> flowNamePanel = new TextEntry<String>("Flownavn");
+    private final TextEntry flowNamePanel = new TextEntry("Flownavn");
 
     private final FlowDescriptionPanel flowDescriptionPanel = new FlowDescriptionPanel();
     private final FlowComponentSelectionPanel flowComponentSelectionPanel = new FlowComponentSelectionPanel();
@@ -48,9 +48,10 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
+        
         flowNamePanel.getElement().setId(GUIID_FLOW_CREATION_FLOW_NAME_PANEL);
-        add(flowNamePanel);
         flowNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
+        add(flowNamePanel);
 
         add(flowDescriptionPanel);
         add(flowComponentSelectionPanel);
@@ -112,10 +113,10 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     private class SaveButtonHandler implements ClickHandler {
         @Override
         public void onClick(ClickEvent event) {
-            String nameValue = flowNamePanel.getValue();
+            String nameValue = flowNamePanel.getText();
             String descriptionValue = flowDescriptionPanel.getText();
             if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.size()>0)) {
-                presenter.saveFlow(flowNamePanel.getValue(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
+                presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             }

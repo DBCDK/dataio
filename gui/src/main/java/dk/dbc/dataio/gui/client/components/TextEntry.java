@@ -7,27 +7,21 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextBox;
 
-public class TextEntry<Type> extends HorizontalPanel {
+public class TextEntry extends HorizontalPanel {
     public static final String TEXT_ENTRY_COMPONENT_CLASS = "dio-TextEntry";
     public static final String TEXT_ENTRY_PROMPT_LABEL_CLASS = "dio-TextEntry-PromptLabelClass";
     public static final String TEXT_ENTRY_TEXT_BOX_CLASS = "dio-TextEntry-TextBoxClass";
-    public static final double PROMPT_WIDTH = 100;
 
     private final TextBox textBox = new TextBox();
 
     
-    public TextEntry(String prompt) {
-        super();
-        constructor(prompt);
-    }
-    
     public TextEntry(String prompt, int maxLength) {
-        super();
-        constructor(prompt);
+        this(prompt);
         textBox.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
     }
     
-    private void constructor(String prompt) {
+    public TextEntry(String prompt) {
+        super();
         Label promptLabel = new Label(prompt);
         setStyleName(TEXT_ENTRY_COMPONENT_CLASS);
         promptLabel.setStyleName(TEXT_ENTRY_PROMPT_LABEL_CLASS);
@@ -36,18 +30,18 @@ public class TextEntry<Type> extends HorizontalPanel {
         add(textBox);
     }
     
-    public void clear() {
+    public void clearText() {
         textBox.setText("");
     }
     
-    public void setValue(Type value) {
-        textBox.setText((String)value);
+    public void setText(String value) {
+        textBox.setText(value);
     }
     
-    public Type getValue() {
-        return (Type) textBox.getText();
+    public String getText() {
+        return textBox.getText();
     }
-    
+
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
         return textBox.addKeyDownHandler(handler);
     }

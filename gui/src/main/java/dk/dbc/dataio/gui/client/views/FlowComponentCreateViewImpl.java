@@ -61,11 +61,9 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
     // private objects
     private FlowComponentCreatePresenter presenter;
-//    private FlowComponentNamePanel namePanel = new FlowComponentNamePanel();
-//    private FlowComponentSvnProjectPanel projectPanel = new FlowComponentSvnProjectPanel();
 
-    private TextEntry<String> namePanel = new TextEntry<String>(FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL);
-    private TextEntry<String> projectPanel = new TextEntry<String>(FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL);
+    private TextEntry namePanel = new TextEntry(FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL);
+    private TextEntry projectPanel = new TextEntry(FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL);
     private FlowComponentSvnRevisionPanel revisionPanel = new FlowComponentSvnRevisionPanel();
     private FlowComponentScriptNamePanel scriptNamePanel = new FlowComponentScriptNamePanel();
     private FlowComponentInvocationMethodPanel invocationMethodPanel = new FlowComponentInvocationMethodPanel();
@@ -192,74 +190,25 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     private void svnProjectChanged() {
         setAsBusy(true);
         savePanel.setStatusText("");
-        presenter.projectNameEntered(projectPanel.getValue());
+        presenter.projectNameEntered(projectPanel.getText());
     }
 
     private void svnRevisionChanged() {
         setAsBusy(true);
         savePanel.setStatusText("");
-        presenter.revisionSelected(projectPanel.getValue(), revisionPanel.getSelectedRevision());
+        presenter.revisionSelected(projectPanel.getText(), revisionPanel.getSelectedRevision());
     }
 
     private void scriptNameChanged() {
         setAsBusy(true);
         savePanel.setStatusText("");
-        presenter.scriptNameSelected(projectPanel.getValue(), revisionPanel.getSelectedRevision(), scriptNamePanel.getScriptName());
+        presenter.scriptNameSelected(projectPanel.getText(), revisionPanel.getSelectedRevision(), scriptNamePanel.getScriptName());
     }
 
     private void invocationMethodNameChanged() {
         savePanel.setStatusText("");
     }
 
-    /**
-     * Panel: FlowComponentNamePanel
-     */
-//    private class FlowComponentNamePanel extends HorizontalPanel {
-//
-//        private final Label label = new Label(FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL);
-//        private final TextBox textBox = new TextBox();
-//
-//        public FlowComponentNamePanel() {
-//            super();
-//            add(label);
-//            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL);
-//            textBox.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_NAME_TEXT_BOX);
-//            textBox.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
-//            add(textBox);
-//        }
-//
-//        public String getFlowComponentName() {
-//            return textBox.getValue();
-//        }
-//    }
-
-    /**
-     * Panel: FlowComponentSvnProjectPanel
-     */
-//    private class FlowComponentSvnProjectPanel extends HorizontalPanel {
-//
-//        private final Label label = new Label(FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL);
-//        private final TextBox svnProject = new TextBox();
-//
-//        public FlowComponentSvnProjectPanel() {
-//            super();
-//            add(label);
-//            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_PANEL);
-//            svnProject.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX);
-//            add(svnProject);
-//            svnProject.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
-//            svnProject.addChangeHandler(new ChangeHandler() {
-//                @Override
-//                public void onChange(ChangeEvent event) {
-//                    svnProjectChanged();
-//                }
-//            });
-//        }
-//
-//        public String getProjectName() {
-//            return svnProject.getValue();
-//        }
-//    }
 
     /**
      * Panel: FlowComponentSvnRevisionPanel
@@ -453,8 +402,8 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
 
         @Override
         public void onClick(ClickEvent event) {
-            String name = namePanel.getValue();
-            String project = projectPanel.getValue();
+            String name = namePanel.getText();
+            String project = projectPanel.getText();
             long revision = revisionPanel.getSelectedRevision();
             String scriptName = scriptNamePanel.getScriptName();
             String invocationMethod = invocationMethodPanel.getInvocationMethod();

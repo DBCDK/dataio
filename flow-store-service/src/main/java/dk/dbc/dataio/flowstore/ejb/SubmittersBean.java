@@ -43,8 +43,8 @@ public class SubmittersBean {
      * @param submitterContent submitter data as JSON string
      *
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource.
-     *         a HTTP 406 NOT_ACCEPTABLE response on invalid json content.
-     *         a HTTP 409 CONFLICT response if violating any uniqueness constraints.
+     *         a HTTP 400 BAD_REQUEST response on invalid json content.
+     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
      * @throws JsonException when given invalid (null-valued, empty-valued or non-json)

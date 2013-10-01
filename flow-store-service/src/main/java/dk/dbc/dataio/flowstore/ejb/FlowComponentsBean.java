@@ -44,7 +44,10 @@ public class FlowComponentsBean {
      *
      * @param componentContent component data as JSON string
      *
-     * @return a HTTP CREATED response with a Location header containing the URL value of the newly created resource
+     * @return a HTTP 201 response with a Location header containing the URL value of the newly created resource
+     *         a HTTP 400 BAD_REQUEST response on invalid json content.
+     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     *         a HTTP 500 response in case of general error.
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })

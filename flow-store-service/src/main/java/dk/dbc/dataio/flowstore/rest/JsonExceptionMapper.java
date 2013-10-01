@@ -19,6 +19,6 @@ public class JsonExceptionMapper implements ExceptionMapper<JsonException> {
     @Override
     public Response toResponse(JsonException e) {
         log.error("Mapping JSON exception", e);
-        return ServiceUtil.buildResponse(Response.Status.NOT_ACCEPTABLE, ServiceUtil.asJsonError(e));
+        return ServiceUtil.buildResponse(Response.Status.BAD_REQUEST, ServiceUtil.asJsonError(e));
     }
 }

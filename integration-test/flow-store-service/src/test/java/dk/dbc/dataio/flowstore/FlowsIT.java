@@ -79,7 +79,7 @@ public class FlowsIT {
     /**
      * Given: a deployed flow-store service
      * When: invalid JSON is POSTed to the flows path
-     * Then: request returns with a NOT_ACCEPTABLE http status code
+     * Then: request returns with a BAD REQUEST http status code
      */
     @Test
     public void createFlow_ErrorWhenGivenInvalidJson() {
@@ -87,7 +87,65 @@ public class FlowsIT {
         final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.FLOWS);
 
         // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing flow resource
+     * When: adding flow with the same name
+     * Then: request returns with a NOT ACCEPTABLE http status code
+     */
+    @Test
+    public void createFlow_duplicateName() throws Exception {
+        final String flowContent = new ITUtil.FlowContentJsonBuilder().build();
+
+        // Given...
+        createFlow(restClient, baseUrl, flowContent);
+
+        // When...
+        final Response response = HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceEntryPoint.FLOWS);
+
+        // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing no flow resources
+     * When: looking up non-existing flow
+     * Then: request returns with a NOT FOUND http status code
+     */
+    @Test
+    public void getFlow_flowNotFound() throws Exception {
+        // When...
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS, Long.toString(42L));
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing a flow resources
+     * When: looking up existing flow
+     * Then: request returns with a OK http status code
+     * And; request returns requested flow
+     */
+    @Test
+    public void getFlow_flowFound() throws Exception {
+        // Given...
+        final String flowContent = new ITUtil.FlowContentJsonBuilder().build();
+        final long flowId = getResourceIdFromLocationHeaderAndAssertHasValue(
+                HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceEntryPoint.FLOWS));
+
+        // When...
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+
+        // And...
+        final String responseContent = response.readEntity(String.class);
+        assertThat(responseContent, is(notNullValue()));
+        assertThat(JsonUtil.getLongValueOrThrow(JsonUtil.getJsonRoot(responseContent).path("id"), "id assertion"), is(flowId));
     }
 
     /**

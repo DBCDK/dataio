@@ -79,12 +79,31 @@ public class FlowComponentsIT {
     /**
      * Given: a deployed flow-store service
      * When: invalid JSON is POSTed to the components path
-     * Then: request returns with a NOT_ACCEPTABLE http status code
+     * Then: request returns with a BAD REQUEST http status code
      */
     @Test
     public void createComponent_ErrorWhenGivenInvalidJson() {
         // When...
         final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing flow component resource
+     * When: adding flow component with the same name
+     * Then: request returns with a NOT ACCEPTABLE http status code
+     */
+    @Test
+    public void createFlowComponent_duplicateName() throws Exception {
+        final String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder().build();
+
+        // Given...
+        createFlowComponent(restClient, baseUrl, flowComponentContent);
+
+        // When...
+        final Response response = HttpClient.doPostWithJson(restClient, flowComponentContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));

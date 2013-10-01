@@ -12,6 +12,7 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 /**
  * Persistence domain class for flow component objects where id is auto
@@ -20,7 +21,11 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = FlowComponent.TABLE_NAME,
-    indexes = @Index(columnList = FlowComponent.NAME_INDEX_COLUMN))
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = { FlowComponent.NAME_INDEX_COLUMN })
+    },
+    indexes = @Index(columnList = FlowComponent.NAME_INDEX_COLUMN)
+)
 @NamedQueries({
     @NamedQuery(name = FlowComponent.QUERY_FIND_ALL, query = "SELECT component FROM FlowComponent component ORDER BY component.nameIndexValue ASC")
 })

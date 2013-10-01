@@ -89,7 +89,7 @@ public class FlowBindersIT {
     /**
      * Given: a deployed flow-store service
      * When: JSON posted to the flow binders path causes JsonException
-     * Then: request returns with a NOT ACCEPTED http status code
+     * Then: request returns with a BAD REQUEST http status code
      */
     @Test
     public void createFlowBinder_errorWhenJsonExceptionIsThrown() {
@@ -97,13 +97,13 @@ public class FlowBindersIT {
         final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service containing flow binder resource
      * When: adding flow binder with the same name
-     * Then: request returns with a CONFLICT http status code
+     * Then: request returns with a NOT ACCEPTABLE http status code
      */
     @Test
     public void createFlowBinder_duplicateName() throws Exception {
@@ -135,13 +135,13 @@ public class FlowBindersIT {
         final Response response = HttpClient.doPostWithJson(restClient, secondFlowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service
      * When: adding flow binder which references non-existing submitter
-     * Then: request returns with a GONE http status code
+     * Then: request returns with a PRECONDITION FAILED http status code
      */
     @Test
     public void createFlowBinder_referencedSubmitterNotFound() throws Exception {
@@ -155,13 +155,13 @@ public class FlowBindersIT {
         final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.GONE.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service
      * When: adding flow binder which references non-existing flow
-     * Then: request returns with a GONE http status code
+     * Then: request returns with a PRECONDITION FAILED http status code
      */
     @Test
     public void createFlowBinder_referencedFlowNotFound() throws Exception {
@@ -175,13 +175,13 @@ public class FlowBindersIT {
         final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.GONE.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service containing flow binder resource
      * When: adding flow binder with different name but matching search key
-     * Then: request returns with a CONFLICT http status code
+     * Then: request returns with a NOT ACCEPTABLE http status code
      */
     @Test
     public void createFlowBinder_searchKeyExistsInSearchIndex() throws Exception {
@@ -208,6 +208,6 @@ public class FlowBindersIT {
         final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 }

@@ -38,13 +38,6 @@ public class ITUtil {
     public static final String FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME = "flow_binders_search_index";
     public static final String SUBMITTERS_TABLE_NAME = "submitters";
 
-    /*
-    public static final String FLOWS_URL_PATH = "flows";
-    public static final String FLOW_COMPONENTS_URL_PATH = "components";
-    public static final String FLOW_BINDERS_URL_PATH = "binders";
-    public static final String SUBMITTERS_URL_PATH = "submitters";
-    */
-
     public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", FLOWS_TABLE_NAME);
     public static final String FLOW_BINDERS_TABLE_SELECT_CONTENT_STMT = String.format(

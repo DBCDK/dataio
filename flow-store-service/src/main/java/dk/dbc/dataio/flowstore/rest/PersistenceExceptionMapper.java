@@ -23,7 +23,7 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
             final String message = e.getMessage().toLowerCase();
             if (message.contains("duplicate key value violates unique constraint")      // postgresql
                     || message.contains("unique index or primary key violation")) {     // h2
-                return ServiceUtil.buildResponse(Response.Status.CONFLICT, ServiceUtil.asJsonError(e));
+                return ServiceUtil.buildResponse(Response.Status.NOT_ACCEPTABLE, ServiceUtil.asJsonError(e));
             }
         }
         return ServiceUtil.buildResponse(Response.Status.INTERNAL_SERVER_ERROR, ServiceUtil.asJsonError(e));

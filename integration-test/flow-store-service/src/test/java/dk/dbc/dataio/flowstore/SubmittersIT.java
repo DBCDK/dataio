@@ -80,7 +80,7 @@ public class SubmittersIT {
     /**
      * Given: a deployed flow-store service
      * When: JSON posted to the submitters path causes JsonException
-     * Then: request returns with a NOT ACCEPTED http status code
+     * Then: request returns with a BAD REQUEST http status code
      */
     @Test
     public void createSubmitter_ErrorWhenJsonExceptionIsThrown() {
@@ -88,13 +88,13 @@ public class SubmittersIT {
         final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service containing submitter resource
      * When: adding submitter with the same name
-     * Then: request returns with a CONFLICT http status code
+     * Then: request returns with a NOT ACCEPTABLE http status code
      */
     @Test
     public void createSubmitter_duplicateName() throws Exception {
@@ -111,13 +111,13 @@ public class SubmittersIT {
         final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service containing submitter resource
      * When: adding submitter with the same number
-     * Then: request returns with a CONFLICT http status code
+     * Then: request returns with a NOT ACCEPTABLE http status code
      */
     @Test
     public void createSubmitter_duplicateNumber() throws Exception {
@@ -134,7 +134,7 @@ public class SubmittersIT {
         final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CONFLICT.getStatusCode()));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
 
     /**

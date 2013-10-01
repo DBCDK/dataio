@@ -19,6 +19,6 @@ public class ReferencedEntityNotFoundExceptionMapper implements ExceptionMapper<
     @Override
     public Response toResponse(ReferencedEntityNotFoundException e) {
         log.error("Mapping referenced entity not found exception", e);
-        return ServiceUtil.buildResponse(Response.Status.GONE, ServiceUtil.asJsonError(e));
+        return ServiceUtil.buildResponse(Response.Status.PRECONDITION_FAILED, ServiceUtil.asJsonError(e));
     }
 }

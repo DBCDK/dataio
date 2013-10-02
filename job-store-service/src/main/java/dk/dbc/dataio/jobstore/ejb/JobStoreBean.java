@@ -1,27 +1,29 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
+import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
+import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.jobstore.types.Chunk;
-import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
-import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Singleton;
+import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.stream.XMLStreamException;
+
+import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 
 @Singleton
-public class JobStoreBean {
+public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
 
     private Logger log = LoggerFactory.getLogger(JobStoreBean.class);
     private static final String jobStoreName = "dataio-job-store";
@@ -39,15 +41,18 @@ public class JobStoreBean {
         }
     }
 
+    @Override
     public Job createJob(Path jobPath, Flow flow) throws JobStoreException {
         Job job = jobStore.createJob(jobPath, flow);
         return chunkify(job);
     }
 
+    @Override
     public long getNumberOfChunksInJob(Job job) throws JobStoreException {
         return jobStore.getNumberOfChunksInJob(job);
     }
 
+    @Override
     public Chunk getChunk(Job job, long chunkId) throws JobStoreException {
         return jobStore.getChunk(job, chunkId);
     }

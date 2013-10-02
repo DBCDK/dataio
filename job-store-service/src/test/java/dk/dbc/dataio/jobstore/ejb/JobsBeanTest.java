@@ -1,11 +1,16 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,18 +30,20 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.lang.annotation.Annotation;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
   * JobsBean unit tests
@@ -49,11 +56,13 @@ import static org.junit.Assert.assertThat;
 @PrepareForTest({
         HttpClient.class,
         ServiceUtil.class,
+        dk.dbc.dataio.jobstore.JobStoreBean.class,
         UriInfo.class
 })
 public class JobsBeanTest {
     private final String flowStoreUrl = "http://dataio/flow-store";
     private final UriInfo uriInfo = mock(UriInfo.class);
+    private final dk.dbc.dataio.jobstore.JobStoreBean jobStore = mock(dk.dbc.dataio.jobstore.JobStoreBean.class);
 
     @Before
     public void setup() throws Exception {
@@ -111,6 +120,27 @@ public class JobsBeanTest {
         jobsBean.createJob(uriInfo, jobSpecData);
     }
 
+    @Test(expected = EJBException.class)
+    public void createJob_jobStoreThrowsJobStoreException_throwsEJBException() throws Exception {
+        final long flowId = 42L;
+        final String flowData = new ITUtil.FlowJsonBuilder()
+                .setId(flowId)
+                .build();
+        final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder()
+                .setFlowId(flowId)
+                .build();
+        final Job job = new Job(1, Paths.get("file"), JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
+
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
+        when(jobStore.createJob(any(Path.class), any(Flow.class)))
+                .thenThrow(new JobStoreException("die"));
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        jobsBean.createJob(uriInfo, jobSpecData);
+    }
+
     @Test
     public void createJob_jobIsCreated_returnsStatusCreatedResponse() throws Exception {
         final long flowId = 42L;
@@ -120,11 +150,15 @@ public class JobsBeanTest {
         final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder()
                 .setFlowId(flowId)
                 .build();
+        final Job job = new Job(1, Paths.get("file"), JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
         when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
+        when(jobStore.createJob(any(Path.class), any(Flow.class)))
+                .thenReturn(job);
 
         final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
         final Response response = jobsBean.createJob(uriInfo, jobSpecData);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }
@@ -267,5 +301,4 @@ public class JobsBeanTest {
             return null;
         }
     }
-
 }

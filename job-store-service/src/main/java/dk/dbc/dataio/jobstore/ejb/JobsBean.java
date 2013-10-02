@@ -2,7 +2,9 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
@@ -10,6 +12,8 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +24,13 @@ import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.nio.file.Paths;
+import java.util.Date;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -35,7 +42,7 @@ public class JobsBean {
     private static final Logger log = LoggerFactory.getLogger(JobsBean.class);
 
     @EJB
-    JobStoreBean jobStore;
+    dk.dbc.dataio.jobstore.JobStoreBean jobStore;
 
     /**
      * Creates new job based on POSTed job specification and persists it in
@@ -52,21 +59,28 @@ public class JobsBean {
      * @throws NullPointerException when given null-valued jobSpecData argument
      * @throws IllegalArgumentException when given empty-valued jobSpecData argument
      * @throws EJBException on internal server error
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
-     *                       JSON string, or if JSON object does not comply with model schema
+     * @throws JsonException when given non-json jobSpecData argument,
+     * or if JSON object does not comply with model schema
      * @throws ReferencedEntityNotFoundException when unable to resolve attached flow
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
             throws NullPointerException, IllegalArgumentException, EJBException, JsonException, ReferencedEntityNotFoundException {
         log.trace("JobSpec: {}", jobSpecData);
 
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
         final Flow flow = lookupFlowInFlowStore(jobSpec.getFlowId());
-        //jobStore.createJob()
+        final JobInfo jobInfo;
+        try {
+            final Job job = jobStore.createJob(Paths.get(jobSpec.getDataFile()), flow);
+            jobInfo = new JobInfo(job.getId(), jobSpec, new Date(), JobState.COMPLETED, null);
+        } catch (JobStoreException e) {
+            throw new EJBException(e);
+        }
 
-        return Response.created(uriInfo.getAbsolutePath()).build();
+        return Response.created(uriInfo.getAbsolutePath()).entity(JsonUtil.toJson(jobInfo)).build();
     }
 
     private Flow lookupFlowInFlowStore(long flowId) throws EJBException, ReferencedEntityNotFoundException, JsonException {

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
@@ -143,7 +144,7 @@ public class FlowComponentCreationSeleniumIT {
         insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement(driver).sendKeys("testComponent");
 
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
 
         final Select svnRevision = new Select(findComponentSvnRevisionElement(driver));
         assertThat(svnRevision.getOptions().size() > 0, is(true));
@@ -166,7 +167,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement(driver).sendKeys("testComponent");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
         SeleniumUtil.waitAndAssert(driver, 10, findComponentSaveResultLabelElement(driver), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
@@ -177,7 +178,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement(driver).sendKeys("");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
         assertThat(s, is(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR));
@@ -188,7 +189,7 @@ public class FlowComponentCreationSeleniumIT {
     public void testSaveButton_MissingSvnProjectName_DisplayErrorPopup() throws IOException {
         navigateToFlowComponentCreationWidget(driver);
         findComponentNameElement(driver).sendKeys("testComponent");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
         assertThat(s, is(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR));
@@ -260,15 +261,15 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private WebElement findComponentSvnRevisionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS);
     }
 
     private WebElement findComponentScriptNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS);
     }
 
     private WebElement findComponentInvocationMethodElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS);
     }
 
     private WebElement findComponentSaveButtonElement(WebDriver webDriver) {
@@ -286,13 +287,13 @@ public class FlowComponentCreationSeleniumIT {
     private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
         insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement(driver).sendKeys("testComponent");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
     }
 
-    private void waitForListBoxToFillOut(final String elementId, final int duration) {
+    private void waitForListBoxToFillOut(final String elementId, final String elementClass, final int duration) {
         final WebDriverWait wait = new WebDriverWait(driver, duration);
-        wait.until(new ListBoxFilledOutCondition(elementId));
+        wait.until(new ListBoxFilledOutCondition(elementId, elementClass));
     }
 
     private static void populateSvnRepository() throws IOException, SVNException, URISyntaxException {
@@ -315,9 +316,11 @@ public class FlowComponentCreationSeleniumIT {
     private class ListBoxFilledOutCondition implements ExpectedCondition<Boolean> {
 
         private final String elementId;
+        private final String elementClass;
 
-        public ListBoxFilledOutCondition(final String elementId) {
+        public ListBoxFilledOutCondition(final String elementId, final String elementClass) {
             this.elementId = elementId;
+            this.elementClass = elementClass;
         }
 
         @Override

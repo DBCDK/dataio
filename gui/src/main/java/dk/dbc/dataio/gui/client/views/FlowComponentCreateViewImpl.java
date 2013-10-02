@@ -6,14 +6,13 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.i18n.client.HasDirection;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import dk.dbc.dataio.commons.types.RevisionInfo;
+import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
@@ -41,20 +40,12 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     public static final String GUIID_FLOW_COMPONENT_CREATION_WIDGET = "flowcomponentcreationwidget";
     public static final String GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL = "flowcomponentcreationnamepanel";
     public static final String GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL = "flowcomponentcreationprojectpanel";
-
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_PANEL = "flowcomponentcreationsvnprojectpanel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_PROJECT_TEXT_BOX = "flowcomponentcreationsvnprojecttextbox";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL = "flowcomponentcreationsvnrevisionpanel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX = "flowcomponentcreationsvnrevisionlistbox";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL = "flowcomponentcreationscriptnamepanel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX = "flowcomponentcreationscriptnamelistbox";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX = "flowcomponentcreationinvocationmethodlistbox";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL = "flow-component-invocation-method-panel-id";
+    
     public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL = "flowcomponentcreationsaveresultlabel";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON = "flowcomponentcreationsavebutton";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_JAVASCRIPT_FILE_UPLOAD = "flowcomponentcreationjavascriptfileupload";
-//    public static final String GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL = "flow-component-name-panel-id";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_JAVA_SCRIPT_UPLOAD_PANEL = "flow-component-java-script-upload-panel-id";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL = "flow-component-invocation-method-panel-id";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_PANEL = "flow-component-save-panel-id";
     public static final String FORM_FIELD_COMPONENT_NAME = "formfieldcomponentname";
     public static final String FORM_FIELD_INVOCATION_METHOD = "formfieldinvocationmethod";
@@ -64,9 +55,9 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
 
     private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL);
     private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL);
-    private FlowComponentSvnRevisionPanel revisionPanel = new FlowComponentSvnRevisionPanel();
-    private FlowComponentScriptNamePanel scriptNamePanel = new FlowComponentScriptNamePanel();
-    private FlowComponentInvocationMethodPanel invocationMethodPanel = new FlowComponentInvocationMethodPanel();
+    private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, FLOW_COMPONENT_CREATION_SVN_REVISION_LABEL);
+    private ListEntry scriptNamePanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, FLOW_COMPONENT_CREATION_SCRIPT_NAME_LABEL);
+    private ListEntry invocationMethodPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LABEL);
     private FlowComponentSavePanel savePanel = new FlowComponentSavePanel();
     private Label busyLabel = new Label(FLOW_COMPONENT_CREATION_BUSY_LABEL);
 
@@ -86,9 +77,33 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         });
         add(projectPanel);
         
+        revisionPanel.setEnabled(false);
+        revisionPanel.addChangeHandler(new ChangeHandler() {
+            @Override
+            public void onChange(ChangeEvent event) {
+                svnRevisionChanged();
+            }
+        });
         add(revisionPanel);
+        
+        scriptNamePanel.setEnabled(false);
+        scriptNamePanel.addChangeHandler(new ChangeHandler() {
+            @Override
+            public void onChange(ChangeEvent event) {
+                scriptNameChanged();
+            }
+        });
         add(scriptNamePanel);
+        
+        invocationMethodPanel.setEnabled(false);
+        invocationMethodPanel.addChangeHandler(new ChangeHandler() {
+            @Override
+            public void onChange(ChangeEvent event) {
+                invocationMethodNameChanged();
+            }
+        });
         add(invocationMethodPanel);
+        
         add(savePanel);
         add(busyLabel);
         setAsBusy(false);
@@ -122,29 +137,47 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     @Override
     public void setAvailableRevisions(List<RevisionInfo> availableRevisions) {
         setAsBusy(false);
-        revisionPanel.setRevisions(availableRevisions);
-        revisionPanel.fireChangeEvent();
+        revisionPanel.clear();
+        if (!availableRevisions.isEmpty()) {
+            for (RevisionInfo revision: availableRevisions) {
+                revisionPanel.setAvailableItem(String.valueOf(revision.getRevision()), String.valueOf(revision.hashCode()));
+            }
+            revisionPanel.setEnabled(true);
+            revisionPanel.fireChangeEvent();
+        }
     }
 
     @Override
     public void setAvailableScriptNames(List<String> availableScriptNames) {
         setAsBusy(false);
-        scriptNamePanel.setScriptNames(availableScriptNames);
-        scriptNamePanel.fireChangeEvent();
+        scriptNamePanel.clear();
+        if (!availableScriptNames.isEmpty()) {
+            for (String scriptName: availableScriptNames) {
+                scriptNamePanel.setAvailableItem(scriptName, "1112");
+            }
+            scriptNamePanel.setEnabled(true);
+            scriptNamePanel.fireChangeEvent();
+        }
     }
 
     @Override
     public void setAvailableInvocationMethods(List<String> availableInvocationMethods) {
         setAsBusy(false);
-        invocationMethodPanel.setInvocationMethods(availableInvocationMethods);
-        invocationMethodPanel.fireChangeEvent();
+        invocationMethodPanel.clear();
+        if (!availableInvocationMethods.isEmpty()) {
+            for (String invocationMethod: availableInvocationMethods) {
+                invocationMethodPanel.setAvailableItem(invocationMethod, "2223");
+            }
+            invocationMethodPanel.setEnabled(true);
+            invocationMethodPanel.fireChangeEvent();
+        }
     }
 
     @Override
     public void fetchRevisionFailed(JavaScriptProjectFetcherError errorCode, String detail) {
-        revisionPanel.disable();
-        scriptNamePanel.disable();
-        invocationMethodPanel.disable();
+        revisionPanel.setEnabled(false);
+        scriptNamePanel.setEnabled(false);
+        invocationMethodPanel.setEnabled(false);
         final String errorMessage;
         if (errorCode == null) {
             errorMessage = detail;
@@ -163,14 +196,14 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
 
     @Override
     public void fetchScriptNamesFailed(String failText) {
-        scriptNamePanel.disable();
-        invocationMethodPanel.disable();
+        scriptNamePanel.setEnabled(false);
+        invocationMethodPanel.setEnabled(false);
         onFailure(failText);
     }
 
     @Override
     public void fetchInvocationMethodsFailed(JavaScriptProjectFetcherError errorCode, String detail) {
-        invocationMethodPanel.disable();
+        invocationMethodPanel.setEnabled(false);
         final String errorMessage;
         if (errorCode == null) {
             errorMessage = detail;
@@ -194,182 +227,22 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     private void svnRevisionChanged() {
         setAsBusy(true);
         savePanel.setStatusText("");
-        presenter.revisionSelected(projectPanel.getText(), revisionPanel.getSelectedRevision());
+        ListEntry.Element revisionElement = revisionPanel.getSelectedItem();
+        presenter.revisionSelected(projectPanel.getText(), Long.parseLong(revisionElement.getItem()));
     }
 
     private void scriptNameChanged() {
         setAsBusy(true);
         savePanel.setStatusText("");
-        presenter.scriptNameSelected(projectPanel.getText(), revisionPanel.getSelectedRevision(), scriptNamePanel.getScriptName());
+        ListEntry.Element revisionElement = revisionPanel.getSelectedItem();
+        ListEntry.Element scriptNameElement = scriptNamePanel.getSelectedItem();
+        presenter.scriptNameSelected(projectPanel.getText(), Long.parseLong(revisionElement.getItem()), scriptNameElement.getItem());
     }
 
     private void invocationMethodNameChanged() {
         savePanel.setStatusText("");
     }
 
-
-    /**
-     * Panel: FlowComponentSvnRevisionPanel
-     */
-    private class FlowComponentSvnRevisionPanel extends HorizontalPanel {
-
-        private final Label label = new Label(FLOW_COMPONENT_CREATION_SVN_REVISION_LABEL);
-        private final ListBox svnRevision = new ListBox();
-
-        public FlowComponentSvnRevisionPanel() {
-            super();
-            add(label);
-            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL);
-            svnRevision.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_LIST_BOX);
-            add(svnRevision);
-            svnRevision.setEnabled(false);
-            svnRevision.addChangeHandler(new ChangeHandler() {
-                @Override
-                public void onChange(ChangeEvent event) {
-                    svnRevisionChanged();
-                }
-            });
-        }
-
-        public void disable() {
-            svnRevision.clear();
-            svnRevision.setEnabled(false);
-        }
-
-        public void setRevisions(List<RevisionInfo> revisions) {
-            svnRevision.clear();
-            for (RevisionInfo revision : revisions) {
-                svnRevision.addItem(String.valueOf(revision.getRevision()), HasDirection.Direction.RTL, String.valueOf(revision.hashCode()));
-            }
-            if (svnRevision.getItemCount() > 0) {
-                svnRevision.setSelectedIndex(0);  // Set the first item to be selected
-            }
-            svnRevision.setEnabled(true);
-        }
-
-        public long getSelectedRevision() {
-            int selectedRevisionIndex = svnRevision.getSelectedIndex();
-            if (selectedRevisionIndex < 0) {
-                return 0;
-            }
-            return Long.parseLong(svnRevision.getItemText(selectedRevisionIndex));
-        }
-
-        public void fireChangeEvent() {
-            class RevisionChangedEvent extends ChangeEvent {
-            }
-            svnRevision.fireEvent(new RevisionChangedEvent());
-        }
-    }
-
-    /**
-     * Panel: FlowComponentScriptNamePanel
-     */
-    private class FlowComponentScriptNamePanel extends HorizontalPanel {
-
-        private final Label label = new Label(FLOW_COMPONENT_CREATION_SCRIPT_NAME_LABEL);
-        private final ListBox scriptName = new ListBox();
-
-        public FlowComponentScriptNamePanel() {
-            super();
-            add(label);
-            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL);
-            scriptName.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_LIST_BOX);
-            add(scriptName);
-            scriptName.setEnabled(false);
-            scriptName.addKeyDownHandler(new FlowComponentCreateViewImpl.InputFieldKeyDownHandler());
-            scriptName.addChangeHandler(new ChangeHandler() {
-                @Override
-                public void onChange(ChangeEvent event) {
-                    scriptNameChanged();
-                }
-            });
-        }
-
-        public void disable() {
-            scriptName.clear();
-            scriptName.setEnabled(false);
-        }
-
-        public void setScriptNames(List<String> fetchScriptNames) {
-            scriptName.clear();
-            for (String name : fetchScriptNames) {
-                scriptName.addItem(name);
-            }
-            if (scriptName.getItemCount() > 0) {
-                scriptName.setSelectedIndex(0);  // Set the first item to be selected
-            }
-            scriptName.setEnabled(true);
-        }
-
-        public String getScriptName() {
-            int selectedScriptNameIndex = scriptName.getSelectedIndex();
-            if (selectedScriptNameIndex < 0) {
-                return "";
-            }
-            return scriptName.getItemText(selectedScriptNameIndex);
-        }
-
-        public void fireChangeEvent() {
-            class ScriptNameChangedEvent extends ChangeEvent {
-            }
-            scriptName.fireEvent(new ScriptNameChangedEvent());
-        }
-    }
-
-    /**
-     * Panel: FlowComponentInvocationMethodPanel
-     */
-    private class FlowComponentInvocationMethodPanel extends HorizontalPanel {
-
-        private final Label label = new Label(FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LABEL);
-        private final ListBox invocationMethodName = new ListBox();
-
-        public FlowComponentInvocationMethodPanel() {
-            super();
-            add(label);
-            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL);
-            invocationMethodName.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LIST_BOX);
-            add(invocationMethodName);
-            invocationMethodName.setEnabled(false);
-            invocationMethodName.addChangeHandler(new ChangeHandler() {
-                @Override
-                public void onChange(ChangeEvent event) {
-                    invocationMethodNameChanged();
-                }
-            });
-        }
-
-        public void disable() {
-            invocationMethodName.clear();
-            invocationMethodName.setEnabled(false);
-        }
-
-        public void setInvocationMethods(List<String> fetchInvocationMethods) {
-            invocationMethodName.clear();
-            for (String method : fetchInvocationMethods) {
-                invocationMethodName.addItem(method);
-            }
-            if (invocationMethodName.getItemCount() > 0) {
-                invocationMethodName.setSelectedIndex(0);  // Set the first item to be selected
-            }
-            invocationMethodName.setEnabled(true);
-        }
-
-        public String getInvocationMethod() {
-            int selectedInvocationMethodIndex = invocationMethodName.getSelectedIndex();
-            if (selectedInvocationMethodIndex < 0) {
-                return "";
-            }
-            return invocationMethodName.getItemText(selectedInvocationMethodIndex);
-        }
-
-        public void fireChangeEvent() {
-            class InvocationMethodNameChangedEvent extends ChangeEvent {
-            }
-            invocationMethodName.fireEvent(new InvocationMethodNameChangedEvent());
-        }
-    }
 
     /**
      * Panel: FlowComponentSavePanel
@@ -402,9 +275,16 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         public void onClick(ClickEvent event) {
             String name = namePanel.getText();
             String project = projectPanel.getText();
-            long revision = revisionPanel.getSelectedRevision();
-            String scriptName = scriptNamePanel.getScriptName();
-            String invocationMethod = invocationMethodPanel.getInvocationMethod();
+
+            ListEntry.Element revisionElement = revisionPanel.getSelectedItem();
+            long revision = Long.parseLong(revisionElement.getItem());
+            
+            ListEntry.Element scriptNameElement = scriptNamePanel.getSelectedItem();
+            String scriptName = scriptNameElement.getItem();
+            
+            ListEntry.Element invocationMethodElement = invocationMethodPanel.getSelectedItem();
+            String invocationMethod = invocationMethodElement.getItem();
+
             if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
                 onFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
@@ -355,7 +356,7 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     private static WebElement findDescriptionTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_DESCRIPTION_TEXT_AREA);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL, TextAreaEntry.TEXT_AREA_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findFrameTextElement(WebDriver webDriver) {

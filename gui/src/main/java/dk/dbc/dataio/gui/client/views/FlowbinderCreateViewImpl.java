@@ -12,13 +12,11 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextArea;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
-import dk.dbc.dataio.gui.client.components.Tooltip;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
-import static dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_PANEL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -67,7 +65,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     // Local variables
     private FlowbinderCreatePresenter presenter;
     private final TextEntry flowbinderNamePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_NAME_PANEL, FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL, FLOWBINDER_CREATION_NAME_MAX_LENGTH);
-    private final FlowbinderDescriptionPanel flowbinderDescriptionPanel = new FlowbinderDescriptionPanel();
+    private final TextAreaEntry flowbinderDescriptionPanel = new TextAreaEntry(GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL ,FLOWBINDER_CREATION_FLOWBINDER_DESCRIPTION_LABEL, FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH);
     private final TextEntry flowbinderFramePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_FRAME_PANEL, FLOWBINDER_CREATION_FRAMEFORMAT_LABEL);
     private final TextEntry flowbinderContentFormatPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL, FLOWBINDER_CREATION_CONTENTFORMAT_LABEL);
     private final TextEntry flowbinderCharacterSetPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, FLOWBINDER_CREATION_CHARACTERSET_LABEL);
@@ -83,6 +81,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderNamePanel);
         
+        flowbinderDescriptionPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderDescriptionPanel);
         
         flowbinderFramePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
@@ -204,28 +203,6 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
      * Panels
      */
     
-    private class FlowbinderDescriptionPanel extends HorizontalPanel {
-        private final FlowDescriptionTextArea flowDescriptionTextArea = new FlowDescriptionTextArea();
-        public FlowbinderDescriptionPanel() {
-            add(new Label(FLOWBINDER_CREATION_FLOWBINDER_DESCRIPTION_LABEL));
-            getElement().setId(GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL);
-            add(flowDescriptionTextArea);
-        }
-        public String getText() {
-            return flowDescriptionTextArea.getValue();
-        }
-        private class FlowDescriptionTextArea extends TextArea {
-            public FlowDescriptionTextArea() {
-                super();
-                setCharacterWidth(40);
-                setVisibleLines(4);
-                getElement().setAttribute("Maxlength", String.valueOf(FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH));
-                getElement().setId(GUIID_FLOWBINDER_CREATION_DESCRIPTION_TEXT_AREA);
-                addKeyDownHandler(new InputFieldKeyDownHandler());
-            }
-        }
-    }
-
     private class FlowbinderSubmittersPanel extends HorizontalPanel {
         private final DualList submittersSelectionLists = new DualList();
         public FlowbinderSubmittersPanel() {

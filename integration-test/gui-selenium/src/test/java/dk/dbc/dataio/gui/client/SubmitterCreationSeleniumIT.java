@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
@@ -200,7 +201,7 @@ public class SubmitterCreationSeleniumIT {
     }
 
     private static WebElement findDescriptionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, TextAreaEntry.TEXT_AREA_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findSaveButton(WebDriver webDriver) {

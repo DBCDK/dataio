@@ -11,8 +11,8 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.TextArea;
 import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import java.util.ArrayList;
@@ -32,7 +32,6 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     public static final String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
     public static final String GUIID_FLOW_CREATION_FLOW_NAME_PANEL = "flow-name-panel-id";
     
-    public static final String GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA = "flowcreationdescriptiontextarea";
     public static final String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
     public static final String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
     public static final String GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL = "flow-description-panel-id";
@@ -46,8 +45,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     // Local variables
     private FlowCreatePresenter presenter;
     private final TextEntry flowNamePanel = new TextEntry(GUIID_FLOW_CREATION_FLOW_NAME_PANEL, FLOW_CREATION_FLOW_NAME_LABEL);
-
-    private final FlowDescriptionPanel flowDescriptionPanel = new FlowDescriptionPanel();
+    private final TextAreaEntry flowDescriptionPanel = new TextAreaEntry(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, FLOW_CREATION_DESCRIPTION_LABEL, FLOW_CREATION_DESCRIPTION_MAX_LENGTH);
     private final FlowComponentSelectionPanel flowComponentSelectionPanel = new FlowComponentSelectionPanel();
     private final FlowSavePanel flowSavePanel = new FlowSavePanel();
     
@@ -57,7 +55,9 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         flowNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowNamePanel);
 
+        flowDescriptionPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowDescriptionPanel);
+
         add(flowComponentSelectionPanel);
         add(flowSavePanel);
     }
@@ -138,28 +138,6 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     /*
      * Panels
      */
-    private class FlowDescriptionPanel extends HorizontalPanel {
-        private final TextArea flowDescriptionTextArea = new FlowDescriptionTextArea();
-        public FlowDescriptionPanel() {
-            add(new Label(FLOW_CREATION_DESCRIPTION_LABEL));
-            getElement().setId(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL);
-            add(flowDescriptionTextArea);
-        }
-        public String getText() {
-            return flowDescriptionTextArea.getValue();
-        }
-        private class FlowDescriptionTextArea extends TextArea {
-            public FlowDescriptionTextArea() {
-                super();
-                setCharacterWidth(40);
-                setVisibleLines(4);
-                getElement().setAttribute("Maxlength", String.valueOf(FLOW_CREATION_DESCRIPTION_MAX_LENGTH));
-                getElement().setId(GUIID_FLOW_CREATION_DESCRIPTION_TEXT_AREA);
-                addKeyDownHandler(new InputFieldKeyDownHandler());
-            }
-        }
-    }
-    
     private class FlowComponentSelectionPanel extends HorizontalPanel {
         private final DualList flowComponentSelectionLists = new DualList();
         public FlowComponentSelectionPanel() {

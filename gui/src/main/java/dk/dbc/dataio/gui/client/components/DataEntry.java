@@ -16,7 +16,6 @@ public class DataEntry extends HorizontalPanel {
         setStyleName(DATA_ENTRY_COMPONENT_CLASS);
         Label promptLabel = new Label(prompt);
         promptLabel.setStyleName(DATA_ENTRY_PROMPT_LABEL_CLASS);
-        promptLabel.setStyleName(DATA_ENTRY_PROMPT_LABEL_CLASS);
         add(promptLabel);
     }
 

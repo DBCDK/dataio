@@ -10,6 +10,7 @@ import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
@@ -22,13 +23,14 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     public static final String GUIID_SUBMITTER_CREATION_WIDGET = "submittercreationwidget";
     public static final String GUIID_SUBMITTER_CREATION_NUMBER_PANEL = "submittercreationnumberpanel";
     public static final String GUIID_SUBMITTER_CREATION_NAME_PANEL = "submittercreationnamepanel";
-    public static final String GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA = "submittercreationdescriptiontextarea";
+    public static final String GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL = "submittercreationdescriptionpanel";
     public static final String GUIID_SUBMITTER_CREATION_SAVE_BUTTON = "submittercreationsavebutton";
     public static final String GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL = "submittercreationsaveresultlabel";
     
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     public static final String SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL = "Submitternummer";
     public static final String SUBMITTER_CREATION_SUBMITTER_NAME_LABEL = "Submitternavn";
+    public static final String SUBMITTER_CREATION_DESCRIPTION_LABEL = "Beskrivelse";
     
     public static final String SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     public static final String SUBMITTER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR = "Nummer felt skal indeholde en numerisk talværdi.";
@@ -40,7 +42,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     private SubmitterCreatePresenter presenter;
     private final TextEntry submitterNumberPanel = new TextEntry(GUIID_SUBMITTER_CREATION_NUMBER_PANEL, SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL);
     private final TextEntry submitterNamePanel = new TextEntry(GUIID_SUBMITTER_CREATION_NAME_PANEL, SUBMITTER_CREATION_SUBMITTER_NAME_LABEL);
-    private final SubmitterCreateViewImpl.SubmitterDescriptionPanel submitterDescriptionPanel = new SubmitterCreateViewImpl.SubmitterDescriptionPanel();
+    private final TextAreaEntry submitterDescriptionPanel = new TextAreaEntry(GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL ,SUBMITTER_CREATION_DESCRIPTION_LABEL, SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH);
     private final SubmitterCreateViewImpl.SubmitterSavePanel submitterSavePanel = new SubmitterCreateViewImpl.SubmitterSavePanel();
 
     public SubmitterCreateViewImpl() {
@@ -52,7 +54,9 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
         submitterNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(submitterNamePanel);
 
+        submitterDescriptionPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(submitterDescriptionPanel);
+
         add(submitterSavePanel);
     }
 
@@ -96,34 +100,6 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     @Override
     public void onSaveSubmitterSuccess() {
         onSuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
-    }
-
-    private class SubmitterDescriptionPanel extends HorizontalPanel {
-
-        private final Label submitterDescriptionLabel = new Label("Beskrivelse");
-        private final TextArea submitterDescriptionTextArea = new SubmitterDescriptionTextArea();
-
-        public SubmitterDescriptionPanel() {
-            add(submitterDescriptionLabel);
-            getElement().setId("submitter-description-panel-id");
-            add(submitterDescriptionTextArea);
-        }
-
-        public String getText() {
-            return submitterDescriptionTextArea.getValue();
-        }
-
-        private class SubmitterDescriptionTextArea extends TextArea {
-
-            public SubmitterDescriptionTextArea() {
-                super();
-                setCharacterWidth(40);
-                setVisibleLines(4);
-                getElement().setAttribute("Maxlength", String.valueOf(SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH));
-                getElement().setId(GUIID_SUBMITTER_CREATION_DESCRIPTION_TEXT_AREA);
-                addKeyDownHandler(new SubmitterCreateViewImpl.InputFieldKeyDownHandler());
-            }
-        }
     }
 
     private class SubmitterSavePanel extends HorizontalPanel {

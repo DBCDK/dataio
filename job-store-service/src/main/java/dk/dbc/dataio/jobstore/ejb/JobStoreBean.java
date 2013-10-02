@@ -1,9 +1,9 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.engine.JobStore;
-import dk.dbc.dataio.engine.FileSystemJobStore;
-import dk.dbc.dataio.engine.Job;
-import dk.dbc.dataio.engine.JobStoreException;
+import dk.dbc.dataio.jobstore.JobStore;
+import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
+import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import javax.annotation.PostConstruct;
@@ -11,9 +11,9 @@ import javax.ejb.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.engine.Chunk;
-import dk.dbc.dataio.engine.DefaultXMLRecordSplitter;
-import static dk.dbc.dataio.engine.Engine.base64encode;
+import dk.dbc.dataio.jobstore.types.Chunk;
+import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
+import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -52,6 +52,8 @@ public class JobStoreBean {
         return jobStore.getChunk(job, chunkId);
     }
 
+
+    // Todo: Move into JobStore
     private Job chunkify(Job job) throws JobStoreException {
         Path path = job.getOriginalDataPath();
         List<Chunk> chunks = null;

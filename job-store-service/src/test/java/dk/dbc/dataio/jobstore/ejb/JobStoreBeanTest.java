@@ -3,11 +3,11 @@ package dk.dbc.dataio.jobstore.ejb;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.engine.Chunk;
-import dk.dbc.dataio.engine.IllegalDataException;
-import dk.dbc.dataio.engine.Engine;
-import dk.dbc.dataio.engine.Job;
-import dk.dbc.dataio.engine.JobStoreException;
+import dk.dbc.dataio.jobstore.types.Chunk;
+import dk.dbc.dataio.jobstore.types.IllegalDataException;
+import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
+import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,7 +42,7 @@ public class JobStoreBeanTest {
         assertThat(jsb.getNumberOfChunksInJob(job), is(1L));
         Chunk chunk = jsb.getChunk(job, 0);
         assertThat(chunk.getRecords().size(), is(1));
-        assertThat(Engine.base64decode(chunk.getRecords().get(0)), is(xmlHeader + someXML));
+        assertThat(base64decode(chunk.getRecords().get(0)), is(xmlHeader + someXML));
     }
 
     @Test(expected = JobStoreException.class)

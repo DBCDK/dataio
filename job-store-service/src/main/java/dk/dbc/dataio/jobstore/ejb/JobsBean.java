@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
@@ -12,6 +13,7 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.naming.NamingException;
@@ -23,24 +25,51 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+/**
+ * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
+ * exposed by the '/JobStoreServiceEntryPoint.JOBS' entry point
+ */
 @Stateless
 @Path(JobStoreServiceEntryPoint.JOBS)
 public class JobsBean {
     private static final Logger log = LoggerFactory.getLogger(JobsBean.class);
 
+    @EJB
+    JobStoreBean jobStore;
+
+    /**
+     * Creates new job based on POSTed job specification and persists it in
+     * the underlying data store
+     *
+     * @param uriInfo application and request URI information
+     * @param jobSpecData job specification as JSON string
+     *
+     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     *         a HTTP 412 PRECONDITION_FAILED if unable to resolve attached flow,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws NullPointerException when given null-valued jobSpecData argument
+     * @throws IllegalArgumentException when given empty-valued jobSpecData argument
+     * @throws EJBException on internal server error
+     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
+     *                       JSON string, or if JSON object does not comply with model schema
+     * @throws ReferencedEntityNotFoundException when unable to resolve attached flow
+     */
     @POST
-    @Consumes({MediaType.APPLICATION_JSON})
+    @Consumes({ MediaType.APPLICATION_JSON })
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
-            throws EJBException, JsonException, ReferencedEntityNotFoundException {
+            throws NullPointerException, IllegalArgumentException, EJBException, JsonException, ReferencedEntityNotFoundException {
         log.trace("JobSpec: {}", jobSpecData);
 
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
-        final String flowAsJson = lookupFlowInFlowStore(jobSpec.getFlowId());
+        final Flow flow = lookupFlowInFlowStore(jobSpec.getFlowId());
+        //jobStore.createJob()
 
         return Response.created(uriInfo.getAbsolutePath()).build();
     }
 
-    private String lookupFlowInFlowStore(long flowId) throws EJBException, ReferencedEntityNotFoundException {
+    private Flow lookupFlowInFlowStore(long flowId) throws EJBException, ReferencedEntityNotFoundException, JsonException {
         final Response response = HttpClient.doGet(HttpClient.newClient(), getFlowStoreServiceEndpoint(),
                 FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
 
@@ -49,7 +78,7 @@ public class JobsBean {
             final int status = response.getStatus();
             switch (Response.Status.fromStatusCode(status)) {
                 case OK:
-                    flowData = extractFlowFromFlowStoreResponse(flowId, response);
+                    flowData = extractFlowDataFromFlowStoreResponse(flowId, response);
                     break;
                 case NOT_FOUND:
                     throwOnFlowNotFoundInFlowStore(flowId);
@@ -63,10 +92,10 @@ public class JobsBean {
         }
         log.trace("Found flow: {}", flowData);
 
-        return flowData;
+        return JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns());
     }
 
-    private String extractFlowFromFlowStoreResponse(long flowId, Response response) {
+    private String extractFlowDataFromFlowStoreResponse(long flowId, Response response) {
         final String flowData = response.readEntity(String.class);
         log.trace("Resolved flow({}) to {}", flowId, flowData);
         return flowData;

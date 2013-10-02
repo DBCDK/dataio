@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
@@ -384,7 +385,7 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     private static WebElement findFlowListElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_FLOW_LIST_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_FLOW_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS);
     }
 
     private static WebElement findSaveButtonElement(WebDriver webDriver) {

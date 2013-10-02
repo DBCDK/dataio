@@ -10,10 +10,9 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
@@ -72,7 +71,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final TextEntry flowbinderSinkPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, FLOWBINDER_CREATION_SINK_LABEL);
     private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL);
     private final FlowbinderSubmittersPanel flowbinderSubmittersPanel = new FlowbinderSubmittersPanel();
-    private final FlowbinderFlowPanel flowbinderFlowPanel = new FlowbinderFlowPanel();
+    private final ListEntry flowbinderFlowPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_FLOW_PANEL, FLOWBINDER_CREATION_FLOW_LABEL);
     private final FlowbinderSavePanel flowbinderSavePanel = new FlowbinderSavePanel();
 
     public FlowbinderCreateViewImpl() {
@@ -102,7 +101,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         add(flowbinderRecordSplitterPanel);
         
         add(flowbinderSubmittersPanel);
+
+        flowbinderFlowPanel.setEnabled(false);
+        flowbinderFlowPanel.addChangeHandler(new ChangeHandler() {
+            @Override
+            public void onChange(ChangeEvent event) {
+                changeDetected();
+            }
+        });
         add(flowbinderFlowPanel);
+        
         add(flowbinderSavePanel);
     }
 
@@ -132,9 +140,12 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 
     @Override
     public void setAvailableFlows(Map<String, String> availableFlows) {
-        flowbinderFlowPanel.clearFlows();
-        for (String key: availableFlows.keySet()) {
-           flowbinderFlowPanel.setAvailableFlow(key, availableFlows.get(key));
+        flowbinderFlowPanel.clear();
+        if (!availableFlows.isEmpty()) {
+            flowbinderFlowPanel.setEnabled(true);
+            for (String key: availableFlows.keySet()) {
+               flowbinderFlowPanel.setAvailableItem(availableFlows.get(key), key);
+            }
         }
     }
 
@@ -171,7 +182,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             final String recordSplitter = flowbinderRecordSplitterPanel.getText();
             final Collection<Map.Entry<String, String>> submittersFromView = flowbinderSubmittersPanel.getSelectedSubmitters();
             final List<String> submitters = new ArrayList<String>();
-            final String flow = flowbinderFlowPanel.getSelectedFlow();
+            final String flow = flowbinderFlowPanel.getSelectedItem().getValue();
             final String validationError = validateFields(name, description, packaging, format, charset, destination, recordSplitter, submittersFromView, flow);
             if (!validationError.isEmpty()) {
                 Window.alert(validationError);
@@ -227,36 +238,6 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         }
         private void clearAvailableSubmitters() {
             submittersSelectionLists.clearAvailableItems();
-        }
-    }
-
-    private class FlowbinderFlowPanel extends HorizontalPanel {
-        private final ListBox flow = new ListBox();
-        public FlowbinderFlowPanel() {
-            super();
-            add(new Label(FLOWBINDER_CREATION_FLOW_LABEL));
-            getElement().setId(GUIID_FLOWBINDER_CREATION_FLOW_PANEL);
-            flow.getElement().setId(GUIID_FLOWBINDER_CREATION_FLOW_LIST_BOX);
-            add(flow);
-            flow.addChangeHandler(new ChangeHandler() {
-                @Override
-                public void onChange(ChangeEvent event) {
-                    changeDetected();
-                }
-            });
-        }
-        private void setAvailableFlow(String key, String flowName) {
-            flow.addItem(flowName, key);
-        }
-        private String getSelectedFlow() {
-            int selectedItemIndex = flow.getSelectedIndex();
-            if (selectedItemIndex < 0) {
-                return "";
-            }
-            return flow.getValue(selectedItemIndex);
-        }
-        private void clearFlows() {
-            flow.clear();
         }
     }
 

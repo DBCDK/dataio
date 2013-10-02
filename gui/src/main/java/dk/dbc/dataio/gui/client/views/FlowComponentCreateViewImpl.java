@@ -153,7 +153,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         scriptNamePanel.clear();
         if (!availableScriptNames.isEmpty()) {
             for (String scriptName: availableScriptNames) {
-                scriptNamePanel.setAvailableItem(scriptName, "1112");
+                scriptNamePanel.setAvailableItem(scriptName, "");
             }
             scriptNamePanel.setEnabled(true);
             scriptNamePanel.fireChangeEvent();
@@ -166,7 +166,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         invocationMethodPanel.clear();
         if (!availableInvocationMethods.isEmpty()) {
             for (String invocationMethod: availableInvocationMethods) {
-                invocationMethodPanel.setAvailableItem(invocationMethod, "2223");
+                invocationMethodPanel.setAvailableItem(invocationMethod, "");
             }
             invocationMethodPanel.setEnabled(true);
             invocationMethodPanel.fireChangeEvent();
@@ -275,16 +275,9 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         public void onClick(ClickEvent event) {
             String name = namePanel.getText();
             String project = projectPanel.getText();
-
-            ListEntry.Element revisionElement = revisionPanel.getSelectedItem();
-            long revision = Long.parseLong(revisionElement.getItem());
-            
-            ListEntry.Element scriptNameElement = scriptNamePanel.getSelectedItem();
-            String scriptName = scriptNameElement.getItem();
-            
-            ListEntry.Element invocationMethodElement = invocationMethodPanel.getSelectedItem();
-            String invocationMethod = invocationMethodElement.getItem();
-
+            long revision = Long.parseLong(revisionPanel.getSelectedItem().getItem());
+            String scriptName = scriptNamePanel.getSelectedItem().getItem();
+            String invocationMethod = invocationMethodPanel.getSelectedItem().getItem();
             if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
                 onFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {

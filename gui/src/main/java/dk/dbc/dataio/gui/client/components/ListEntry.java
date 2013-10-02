@@ -22,6 +22,7 @@ public class ListEntry extends DataEntry {
             return value;
         }
     }
+    public final Element emptyElement = new Element("", "");
     
     public static final String LIST_ENTRY_LIST_BOX_CLASS = "dio-TextEntry-ListBoxClass";
 
@@ -47,7 +48,7 @@ public class ListEntry extends DataEntry {
     public ListEntry.Element getSelectedItem() {
         int selectedRevisionIndex = listBox.getSelectedIndex();
         if (selectedRevisionIndex < 0) {
-            return null;
+            return emptyElement;
         }
         return new ListEntry.Element(listBox.getItemText(selectedRevisionIndex), listBox.getValue(selectedRevisionIndex));
     }

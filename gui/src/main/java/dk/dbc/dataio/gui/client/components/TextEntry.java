@@ -42,6 +42,10 @@ public class TextEntry extends HorizontalPanel {
         return textBox.getText();
     }
 
+    public void setEnabled(boolean enabled) {
+        textBox.setEnabled(enabled);
+    }
+  
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
         return textBox.addKeyDownHandler(handler);
     }
@@ -49,5 +53,5 @@ public class TextEntry extends HorizontalPanel {
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return textBox.addChangeHandler(handler);
     }
-  
+
 }

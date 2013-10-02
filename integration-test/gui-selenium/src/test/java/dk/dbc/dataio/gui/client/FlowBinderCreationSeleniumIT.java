@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -8,7 +9,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -17,8 +17,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -353,7 +351,7 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     private static WebElement findNameTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_NAME_TEXT_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_NAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findDescriptionTextElement(WebDriver webDriver) {
@@ -361,23 +359,23 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     private static WebElement findFrameTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_FRAME_TEXT_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_FRAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findContentFormatTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_TEXT_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findCharacterSetTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_CHARACTER_SET_TEXT_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findSinkTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SINK_TEXT_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SINK_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findRecordSplitterTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_TEXT_BOX);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
     }
 
     private static WebElement findSubmitterPanelElement(WebDriver webDriver) {

@@ -27,6 +27,9 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     public static final String GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL = "submittercreationsaveresultlabel";
     
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
+    public static final String SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL = "Submitternummer";
+    public static final String SUBMITTER_CREATION_SUBMITTER_NAME_LABEL = "Submitternavn";
+    
     public static final String SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     public static final String SUBMITTER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR = "Nummer felt skal indeholde en numerisk talværdi.";
     public static final String FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE = "Et eller flere af de unikke felter { navn, nummer } er allerede oprettet i flow store.";
@@ -35,19 +38,17 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
     // Local variables
     private SubmitterCreatePresenter presenter;
-    private final TextEntry submitterNumberPanel = new TextEntry("Submitternummer");
-    private final TextEntry submitterNamePanel = new TextEntry("Submitternavn");
+    private final TextEntry submitterNumberPanel = new TextEntry(GUIID_SUBMITTER_CREATION_NUMBER_PANEL, SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL);
+    private final TextEntry submitterNamePanel = new TextEntry(GUIID_SUBMITTER_CREATION_NAME_PANEL, SUBMITTER_CREATION_SUBMITTER_NAME_LABEL);
     private final SubmitterCreateViewImpl.SubmitterDescriptionPanel submitterDescriptionPanel = new SubmitterCreateViewImpl.SubmitterDescriptionPanel();
     private final SubmitterCreateViewImpl.SubmitterSavePanel submitterSavePanel = new SubmitterCreateViewImpl.SubmitterSavePanel();
 
     public SubmitterCreateViewImpl() {
         getElement().setId(GUIID_SUBMITTER_CREATION_WIDGET);
         
-        submitterNumberPanel.getElement().setId(GUIID_SUBMITTER_CREATION_NUMBER_PANEL);
         submitterNumberPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(submitterNumberPanel);
         
-        submitterNamePanel.getElement().setId(GUIID_SUBMITTER_CREATION_NAME_PANEL);
         submitterNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(submitterNamePanel);
 

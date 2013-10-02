@@ -62,8 +62,8 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     // private objects
     private FlowComponentCreatePresenter presenter;
 
-    private TextEntry namePanel = new TextEntry(FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL);
-    private TextEntry projectPanel = new TextEntry(FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL);
+    private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL);
+    private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL);
     private FlowComponentSvnRevisionPanel revisionPanel = new FlowComponentSvnRevisionPanel();
     private FlowComponentScriptNamePanel scriptNamePanel = new FlowComponentScriptNamePanel();
     private FlowComponentInvocationMethodPanel invocationMethodPanel = new FlowComponentInvocationMethodPanel();
@@ -74,11 +74,9 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         super();
         getElement().setId(GUIID_FLOW_COMPONENT_CREATION_WIDGET);
         
-        namePanel.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL);
         namePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(namePanel);
         
-        projectPanel.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL);
         projectPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         projectPanel.addChangeHandler(new ChangeHandler() {
             @Override

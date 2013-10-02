@@ -24,6 +24,11 @@ import java.util.Map;
 public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String CONTEXT_HEADER = "Flow - opsætning";
+    public static final String FLOW_CREATION_FLOW_NAME_LABEL = "Flownavn";
+    public static final String FLOW_CREATION_DESCRIPTION_LABEL = "Beskrivelse";
+    public static final String FLOW_CREATION_FLOW_COMPONENTS_LABEL = "Flow komponenter";
+    public static final String FLOW_CREATION_SAVE_BUTTON = "Gem";
+    
     public static final String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
     public static final String GUIID_FLOW_CREATION_FLOW_NAME_PANEL = "flow-name-panel-id";
     
@@ -40,7 +45,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     
     // Local variables
     private FlowCreatePresenter presenter;
-    private final TextEntry flowNamePanel = new TextEntry("Flownavn");
+    private final TextEntry flowNamePanel = new TextEntry(GUIID_FLOW_CREATION_FLOW_NAME_PANEL, FLOW_CREATION_FLOW_NAME_LABEL);
 
     private final FlowDescriptionPanel flowDescriptionPanel = new FlowDescriptionPanel();
     private final FlowComponentSelectionPanel flowComponentSelectionPanel = new FlowComponentSelectionPanel();
@@ -49,7 +54,6 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
         
-        flowNamePanel.getElement().setId(GUIID_FLOW_CREATION_FLOW_NAME_PANEL);
         flowNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowNamePanel);
 
@@ -137,7 +141,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     private class FlowDescriptionPanel extends HorizontalPanel {
         private final TextArea flowDescriptionTextArea = new FlowDescriptionTextArea();
         public FlowDescriptionPanel() {
-            add(new Label("Beskrivelse"));
+            add(new Label(FLOW_CREATION_DESCRIPTION_LABEL));
             getElement().setId(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL);
             add(flowDescriptionTextArea);
         }
@@ -159,7 +163,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     private class FlowComponentSelectionPanel extends HorizontalPanel {
         private final DualList flowComponentSelectionLists = new DualList();
         public FlowComponentSelectionPanel() {
-            add(new Label("Flow komponenter"));
+            add(new Label(FLOW_CREATION_FLOW_COMPONENTS_LABEL));
             getElement().setId(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
             add(flowComponentSelectionLists);
             flowComponentSelectionLists.addChangeHandler(new ChangeHandler() {
@@ -184,7 +188,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     }
         
     private class FlowSavePanel extends HorizontalPanel {
-        private final Button flowSaveButton = new Button("Gem");
+        private final Button flowSaveButton = new Button(FLOW_CREATION_SAVE_BUTTON);
         private final Label flowSaveResultLabel = new Label("");
         public FlowSavePanel() {
             getElement().setId(GUIID_FLOW_CREATION_FLOW_SAVE_PANEL);

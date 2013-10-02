@@ -66,13 +66,13 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL = "flowbindercreationsaveresultlabel";
     // Local variables
     private FlowbinderCreatePresenter presenter;
-    private final TextEntry flowbinderNamePanel = new TextEntry(FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL, FLOWBINDER_CREATION_NAME_MAX_LENGTH);
+    private final TextEntry flowbinderNamePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_NAME_PANEL, FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL, FLOWBINDER_CREATION_NAME_MAX_LENGTH);
     private final FlowbinderDescriptionPanel flowbinderDescriptionPanel = new FlowbinderDescriptionPanel();
-    private final TextEntry flowbinderFramePanel = new TextEntry(FLOWBINDER_CREATION_FRAMEFORMAT_LABEL);
-    private final TextEntry flowbinderContentFormatPanel = new TextEntry(FLOWBINDER_CREATION_CONTENTFORMAT_LABEL);
-    private final TextEntry flowbinderCharacterSetPanel = new TextEntry(FLOWBINDER_CREATION_CHARACTERSET_LABEL);
-    private final TextEntry flowbinderSinkPanel = new TextEntry(FLOWBINDER_CREATION_SINK_LABEL);
-    private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL);
+    private final TextEntry flowbinderFramePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_FRAME_PANEL, FLOWBINDER_CREATION_FRAMEFORMAT_LABEL);
+    private final TextEntry flowbinderContentFormatPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL, FLOWBINDER_CREATION_CONTENTFORMAT_LABEL);
+    private final TextEntry flowbinderCharacterSetPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, FLOWBINDER_CREATION_CHARACTERSET_LABEL);
+    private final TextEntry flowbinderSinkPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, FLOWBINDER_CREATION_SINK_LABEL);
+    private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL);
     private final FlowbinderSubmittersPanel flowbinderSubmittersPanel = new FlowbinderSubmittersPanel();
     private final FlowbinderFlowPanel flowbinderFlowPanel = new FlowbinderFlowPanel();
     private final FlowbinderSavePanel flowbinderSavePanel = new FlowbinderSavePanel();
@@ -80,29 +80,23 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public FlowbinderCreateViewImpl() {
         getElement().setId(GUIID_FLOWBINDER_CREATION_WIDGET);
         
-        flowbinderNamePanel.getElement().setId(GUIID_FLOWBINDER_CREATION_NAME_PANEL);
         flowbinderNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderNamePanel);
         
         add(flowbinderDescriptionPanel);
         
-        flowbinderFramePanel.getElement().setId(GUIID_FLOWBINDER_CREATION_FRAME_PANEL);
         flowbinderFramePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderFramePanel);
         
-        flowbinderContentFormatPanel.getElement().setId(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL);
         flowbinderContentFormatPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderContentFormatPanel);
         
-        flowbinderCharacterSetPanel.getElement().setId(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL);
         flowbinderCharacterSetPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderCharacterSetPanel);
         
-        flowbinderSinkPanel.getElement().setId(GUIID_FLOWBINDER_CREATION_SINK_PANEL);
         flowbinderSinkPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderSinkPanel);
         
-        flowbinderRecordSplitterPanel.getElement().setId(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL);
         flowbinderRecordSplitterPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         flowbinderRecordSplitterPanel.setText(FLOWBINDER_CREATION_DEFAULT_RECORD_SPLITTER_LABEL);
         flowbinderRecordSplitterPanel.setEnabled(false);

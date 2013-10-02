@@ -36,5 +36,7 @@ public class JobStoreApplication extends Application {
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(dk.dbc.dataio.jobstore.ejb.JobsBean.class);
+        resources.add(dk.dbc.dataio.jobstore.rest.JsonExceptionMapper.class);
+        resources.add(dk.dbc.dataio.jobstore.rest.ReferencedEntityNotFoundExceptionMapper.class);
     }
 }

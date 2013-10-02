@@ -24,7 +24,6 @@ import javax.xml.stream.XMLStreamException;
 public class JobStoreBean {
 
     private Logger log = LoggerFactory.getLogger(JobStoreBean.class);
-
     private static final String jobStoreName = "dataio-job-store";
     private Path jobStorePath = FileSystems.getDefault().getPath(String.format("/tmp/%s", jobStoreName));
     private JobStore jobStore;
@@ -33,7 +32,7 @@ public class JobStoreBean {
     public void setupJobStore() {
         try {
             jobStore = FileSystemJobStore.newFileSystemJobStore(jobStorePath);
-        } catch(JobStoreException ex) {
+        } catch (JobStoreException ex) {
             String errMsg = "An Error occured while setting up the job-store.";
             log.error(errMsg, ex);
             throw new RuntimeException(errMsg, ex);
@@ -45,6 +44,13 @@ public class JobStoreBean {
         return chunkify(job);
     }
 
+    public long getNumberOfChunksInJob(Job job) throws JobStoreException {
+        return jobStore.getNumberOfChunksInJob(job);
+    }
+
+    public Chunk getChunk(Job job, long chunkId) throws JobStoreException {
+        return jobStore.getChunk(job, chunkId);
+    }
 
     private Job chunkify(Job job) throws JobStoreException {
         Path path = job.getOriginalDataPath();
@@ -52,7 +58,7 @@ public class JobStoreBean {
         try {
             //chunks = splitByLine(path, job);
             chunks = applyDefaultXmlSplitter(path, job);
-            log.info("Number of chunks: {}",  chunks.size());
+            log.info("Number of chunks: {}", chunks.size());
         } catch (XMLStreamException | IOException ex) {
             log.info("An error occured: ", ex);
         }
@@ -62,7 +68,7 @@ public class JobStoreBean {
         return job;
     }
 
-        private List<Chunk> applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException {
+    private List<Chunk> applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException {
         log.info("Got path: " + path.toString());
         final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(path));
         final List<Chunk> chunks = new ArrayList<>();
@@ -88,6 +94,4 @@ public class JobStoreBean {
         }
         return chunks;
     }
-
-
 }

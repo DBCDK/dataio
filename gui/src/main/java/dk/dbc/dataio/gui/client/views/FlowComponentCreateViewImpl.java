@@ -61,6 +61,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     private FlowComponentSavePanel savePanel = new FlowComponentSavePanel();
     private Label busyLabel = new Label(FLOW_COMPONENT_CREATION_BUSY_LABEL);
 
+    
     public FlowComponentCreateViewImpl() {
         super();
         getElement().setId(GUIID_FLOW_COMPONENT_CREATION_WIDGET);
@@ -140,7 +141,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         revisionPanel.clear();
         if (!availableRevisions.isEmpty()) {
             for (RevisionInfo revision: availableRevisions) {
-                revisionPanel.setAvailableItem(String.valueOf(revision.getRevision()), String.valueOf(revision.hashCode()));
+                revisionPanel.setAvailableItem(String.valueOf(revision.getRevision()));
             }
             revisionPanel.setEnabled(true);
             revisionPanel.fireChangeEvent();
@@ -153,7 +154,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         scriptNamePanel.clear();
         if (!availableScriptNames.isEmpty()) {
             for (String scriptName: availableScriptNames) {
-                scriptNamePanel.setAvailableItem(scriptName, "");
+                scriptNamePanel.setAvailableItem(scriptName);
             }
             scriptNamePanel.setEnabled(true);
             scriptNamePanel.fireChangeEvent();
@@ -166,7 +167,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         invocationMethodPanel.clear();
         if (!availableInvocationMethods.isEmpty()) {
             for (String invocationMethod: availableInvocationMethods) {
-                invocationMethodPanel.setAvailableItem(invocationMethod, "");
+                invocationMethodPanel.setAvailableItem(invocationMethod);
             }
             invocationMethodPanel.setEnabled(true);
             invocationMethodPanel.fireChangeEvent();
@@ -227,16 +228,13 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     private void svnRevisionChanged() {
         setAsBusy(true);
         savePanel.setStatusText("");
-        ListEntry.Element revisionElement = revisionPanel.getSelectedItem();
-        presenter.revisionSelected(projectPanel.getText(), Long.parseLong(revisionElement.getItem()));
+        presenter.revisionSelected(projectPanel.getText(), Long.parseLong(revisionPanel.getSelectedText()));
     }
 
     private void scriptNameChanged() {
         setAsBusy(true);
         savePanel.setStatusText("");
-        ListEntry.Element revisionElement = revisionPanel.getSelectedItem();
-        ListEntry.Element scriptNameElement = scriptNamePanel.getSelectedItem();
-        presenter.scriptNameSelected(projectPanel.getText(), Long.parseLong(revisionElement.getItem()), scriptNameElement.getItem());
+        presenter.scriptNameSelected(projectPanel.getText(), Long.parseLong(revisionPanel.getSelectedText()), scriptNamePanel.getSelectedText());
     }
 
     private void invocationMethodNameChanged() {
@@ -275,9 +273,9 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         public void onClick(ClickEvent event) {
             String name = namePanel.getText();
             String project = projectPanel.getText();
-            long revision = Long.parseLong(revisionPanel.getSelectedItem().getItem());
-            String scriptName = scriptNamePanel.getSelectedItem().getItem();
-            String invocationMethod = invocationMethodPanel.getSelectedItem().getItem();
+            long revision = Long.parseLong(revisionPanel.getSelectedText());
+            String scriptName = scriptNamePanel.getSelectedText();
+            String invocationMethod = invocationMethodPanel.getSelectedText();
             if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
                 onFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {

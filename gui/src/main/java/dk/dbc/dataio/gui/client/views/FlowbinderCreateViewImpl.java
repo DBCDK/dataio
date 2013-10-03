@@ -182,7 +182,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             final String recordSplitter = flowbinderRecordSplitterPanel.getText();
             final Collection<Map.Entry<String, String>> submittersFromView = flowbinderSubmittersPanel.getSelectedSubmitters();
             final List<String> submitters = new ArrayList<String>();
-            final String flow = flowbinderFlowPanel.getSelectedItem().getValue();
+            final String flow = flowbinderFlowPanel.getSelectedKey();
             final String validationError = validateFields(name, description, packaging, format, charset, destination, recordSplitter, submittersFromView, flow);
             if (!validationError.isEmpty()) {
                 Window.alert(validationError);
@@ -196,7 +196,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter,
                 final Collection<Map.Entry<String, String>> submitters, final String flow) {
             if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || sink.isEmpty() || recordSplitter.isEmpty()
-                    || submitters.isEmpty() || flow.isEmpty()) {
+                    || (submitters == null) || submitters.isEmpty() || (flow == null) || flow.isEmpty()) {
                 return FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
             }
             return "";

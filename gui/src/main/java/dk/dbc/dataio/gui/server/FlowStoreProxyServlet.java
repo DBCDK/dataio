@@ -21,14 +21,12 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyServlet.class);
     private static final long serialVersionUID = 358109395377092219L;
 
-    private transient FlowStoreProxy flowStoreProxy;
+    private transient FlowStoreProxy flowStoreProxy = null;
 
     @Override
     public void init() throws ServletException {
         super.init();
-
-        final String flowStoreServiceEndpoint = ServletUtil.getFlowStoreServiceEndpoint();
-        flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceEndpoint);
+        flowStoreProxy = new FlowStoreProxyImpl();
     }
 
     @Override
@@ -64,5 +62,19 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public List<Flow> findAllFlows() throws FlowStoreProxyException {
         return flowStoreProxy.findAllFlows();
+    }
+
+    @Override
+    public void close() {
+        if (flowStoreProxy != null) {
+            flowStoreProxy.close();
+            flowStoreProxy = null;
+        }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        close();
     }
 }

@@ -21,4 +21,5 @@ public interface FlowStoreProxyAsync {
     void findAllFlows(AsyncCallback<List<Flow>> async);
     void findAllSubmitters(AsyncCallback<List<Submitter>> async);
 
+    void close(AsyncCallback<Void> async);
 }

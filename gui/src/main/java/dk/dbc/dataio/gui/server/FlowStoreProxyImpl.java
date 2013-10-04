@@ -26,14 +26,9 @@ import java.util.List;
 public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
-    final Client client;
+    Client client = null;
 
-    /**
-     * Class constructor
-     *
-     * @param serviceEndpoint base URL of flow store web-service to be proxied
-     */
-    public FlowStoreProxyImpl(String serviceEndpoint) {
+    public FlowStoreProxyImpl() {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
     }
@@ -154,6 +149,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             response.close();
         }
         return result;
+    }
+
+    public void close() {
+        if (client != null) {
+            client.close();
+        }
     }
 
     private void assertStatusCode(Response response, Response.Status expectedStatus) throws FlowStoreProxyException {

@@ -30,6 +30,8 @@ public interface FlowStoreProxy extends RemoteService {
     List<Submitter> findAllSubmitters() throws FlowStoreProxyException;
 
     List<Flow> findAllFlows() throws FlowStoreProxyException;
+
+    void close();
     
     public static class Factory {
 

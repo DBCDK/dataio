@@ -41,6 +41,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -54,6 +55,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
   */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
+        Client.class,
         HttpClient.class,
         ServiceUtil.class,
         dk.dbc.dataio.jobstore.JobStoreBean.class,
@@ -62,6 +64,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class JobsBeanTest {
     private final String flowStoreUrl = "http://dataio/flow-store";
     private final UriInfo uriInfo = mock(UriInfo.class);
+    private final Client client = mock(Client.class);
     private final dk.dbc.dataio.jobstore.JobStoreBean jobStore = mock(dk.dbc.dataio.jobstore.JobStoreBean.class);
 
     @Before
@@ -70,6 +73,8 @@ public class JobsBeanTest {
         mockStatic(HttpClient.class);
         when(ServiceUtil.getFlowStoreServiceEndpoint())
                 .thenReturn(flowStoreUrl);
+        when(HttpClient.newClient()).thenReturn(client);
+        doNothing().when(client).close();
     }
 
     @Test(expected = NullPointerException.class)

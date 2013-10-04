@@ -25,6 +25,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -84,28 +85,32 @@ public class JobsBean {
     }
 
     private Flow lookupFlowInFlowStore(long flowId) throws EJBException, ReferencedEntityNotFoundException, JsonException {
-        final Response response = HttpClient.doGet(HttpClient.newClient(), getFlowStoreServiceEndpoint(),
-                FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
-
+        final Client client = HttpClient.newClient();
         String flowData = null;
         try {
-            final int status = response.getStatus();
-            switch (Response.Status.fromStatusCode(status)) {
-                case OK:
-                    flowData = extractFlowDataFromFlowStoreResponse(flowId, response);
-                    break;
-                case NOT_FOUND:
-                    throwOnFlowNotFoundInFlowStore(flowId);
-                    break;
-                default:
-                    throwOnUnexpectedResponseFromFlowStore(flowId, status, response);
-                    break;
-            }
-        } finally {
-            response.close();
-        }
-        log.trace("Found flow: {}", flowData);
+            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(),
+                    FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
 
+            try {
+                final int status = response.getStatus();
+                switch (Response.Status.fromStatusCode(status)) {
+                    case OK:
+                        flowData = extractFlowDataFromFlowStoreResponse(flowId, response);
+                        break;
+                    case NOT_FOUND:
+                        throwOnFlowNotFoundInFlowStore(flowId);
+                        break;
+                    default:
+                        throwOnUnexpectedResponseFromFlowStore(flowId, status, response);
+                        break;
+                }
+            } finally {
+                response.close();
+            }
+            log.trace("Found flow: {}", flowData);
+        } finally {
+            client.close();
+        }
         return JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns());
     }
 

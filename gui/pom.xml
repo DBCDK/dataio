@@ -45,6 +45,19 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+	    <groupId>org.glassfish.jersey.core</groupId>
+	    <artifactId>jersey-client</artifactId>
+	    <version>${jersey.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>${jersey.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!--
+    <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-client</artifactId>
       <version>1.17.1</version>
@@ -59,18 +72,12 @@
       <artifactId>jackson-jaxrs-json-provider</artifactId>
       <version>${jackson.version}</version>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-jaxrs</artifactId>
-      <version>1.9.12</version>
-    </dependency>
-    -->
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
       <artifactId>json-simple</artifactId>
       <version>1.1.1</version>
     </dependency>
+    -->
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-engine</artifactId>
@@ -79,6 +86,11 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-httpclient</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

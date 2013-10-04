@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.utils.httpclient;
 
+import org.glassfish.jersey.client.ClientConfig;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -21,6 +23,13 @@ public class HttpClient {
      */
     public static Client newClient() {
        return ClientBuilder.newClient();
+    }
+
+    /**
+     * @return new web resources client with given configuration
+     */
+    public static Client newClient(ClientConfig config) {
+       return ClientBuilder.newClient(config);
     }
 
     /**
@@ -86,6 +95,9 @@ public class HttpClient {
      * @return server response
      */
     public static Response doPostWithJson(Client client, String data, String baseUrl, String... pathElements) {
+        return doPost(client, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+    }
+    public static <T> Response doPostWithJson(Client client, T data, String baseUrl, String... pathElements) {
         return doPost(client, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
     }
 

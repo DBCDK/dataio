@@ -1,37 +1,32 @@
 package dk.dbc.dataio.gui.server;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.GenericType;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.MediaType;
+import javax.servlet.ServletException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
-    private static final String FLOWS_ENTRY_POINT = "flows";
-    private static final String BINDERS_ENTRY_POINT = "binders";
-    private static final String COMPONENTS_ENTRY_POINT = "components";
-    private static final String SUBMITTERS_ENTRY_POINT = "submitters";
-    private final WebResource webResource;
+    final Client client;
 
     /**
      * Class constructor
@@ -39,102 +34,144 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @param serviceEndpoint base URL of flow store web-service to be proxied
      */
     public FlowStoreProxyImpl(String serviceEndpoint) {
-        final ClientConfig clientConfig = new DefaultClientConfig();
-        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-
-        // force client to use Jackson JAX-RS provider (one in com.fasterxml.jackson.jaxrs.json)
-        clientConfig.getClasses().add(JacksonJsonProvider.class);
-
-        final Client httpClient = Client.create(clientConfig);
-
-        webResource = httpClient.resource(serviceEndpoint);
+        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+        client = HttpClient.newClient(clientConfig);
     }
 
     @Override
-    public void createFlow(FlowContent flowContent) throws NullPointerException, IllegalStateException {
-        final ClientResponse response = webResource.path(FLOWS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowContent);
-        if (response.getClientResponseStatus() != ClientResponse.Status.CREATED) {
-            throw new IllegalStateException(response.getEntity(String.class));
+    public void createFlow(FlowContent flowContent) throws NullPointerException, FlowStoreProxyException {
+        final Response response;
+        try {
+            response = HttpClient.doPostWithJson(client, flowContent,
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.CREATED);
+        } finally {
+            response.close();
         }
     }
 
     @Override
-    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, IllegalStateException {
-        final ClientResponse response = webResource.path(COMPONENTS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowComponentContent);
-        if (response.getClientResponseStatus() != ClientResponse.Status.CREATED) {
-            throw new IllegalStateException(response.getEntity(String.class));
+    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, FlowStoreProxyException {
+        final Response response;
+        try {
+            response = HttpClient.doPostWithJson(client, flowComponentContent,
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.CREATED);
+        } finally {
+            response.close();
         }
     }
 
     @Override
     public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
-        final ClientResponse response = webResource.path(SUBMITTERS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, submitterContent);
-        final ClientResponse.Status status = response.getClientResponseStatus();
-        if (status != ClientResponse.Status.CREATED) {
-            final FlowStoreProxyError errorCode;
-            switch (status) {
-                case CONFLICT: errorCode = FlowStoreProxyError.KEY_CONFLICT;
-                    break;
-                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.DATA_NOT_ACCEPTABLE;
-                    break;
-                default: errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
-                    break;
-            }
-            throw new FlowStoreProxyException(errorCode, response.getEntity(String.class));
-        }
-    }
-
-    @Override
-    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
-        final ClientResponse response = webResource.path(BINDERS_ENTRY_POINT).type(MediaType.APPLICATION_JSON).post(ClientResponse.class, flowBinderContent);
-        final ClientResponse.Status status = response.getClientResponseStatus();
-        if (status != ClientResponse.Status.CREATED) {
-            final FlowStoreProxyError errorCode;
-            switch (status) {
-                case CONFLICT: errorCode = FlowStoreProxyError.KEY_CONFLICT;
-                    break;
-                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.DATA_NOT_ACCEPTABLE;
-                    break;
-                case GONE: errorCode = FlowStoreProxyError.ENTITY_GONE;
-                    break;
-                default: errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
-                    break;
-            }
-            throw new FlowStoreProxyException(errorCode, response.getEntity(String.class));
-        }
-    }
-
-    @Override
-    public List<FlowComponent> findAllComponents() {
-        final ClientResponse response = webResource.path(COMPONENTS_ENTRY_POINT).get(ClientResponse.class);
-        if (response.getClientResponseStatus() != ClientResponse.Status.OK) {
-            throw new IllegalStateException(response.getEntity(String.class));
-        }
-        return response.getEntity(new GenericType<List<FlowComponent>>() { });
-    }
-
-    @Override
-    public List<Submitter> findAllSubmitters() {
-        final ClientResponse response = webResource.path(SUBMITTERS_ENTRY_POINT).get(ClientResponse.class);
-        if (response.getClientResponseStatus() != ClientResponse.Status.OK) {
-            throw new IllegalStateException(response.getEntity(String.class));
-        }
-        return response.getEntity(new GenericType<List<Submitter>>() { });
-    }
-
-    @Override
-    public List<Flow> findAllFlows() throws Exception {
-        log.info("Find All Flows");
+        final Response response;
         try {
-            final ClientResponse response = webResource.path(FLOWS_ENTRY_POINT).get(ClientResponse.class);
-            if (response.getClientResponseStatus() != ClientResponse.Status.OK) {
-                throw new IllegalStateException(response.getEntity(String.class));
-            }
-            return response.getEntity(new GenericType<List<Flow>>() {
-            });
-        } catch (Exception ex) {
-            log.error("Exception caught while retrieving all flows", ex);
-            throw ex;
+            response = HttpClient.doPostWithJson(client, submitterContent,
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SUBMITTERS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.CREATED);
+        } finally {
+            response.close();
         }
     }
+
+    @Override
+    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, FlowStoreProxyException {
+        final Response response;
+        try {
+            response = HttpClient.doPostWithJson(client, flowBinderContent,
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.CREATED);
+        } finally {
+            response.close();
+        }
+    }
+
+    @Override
+    public List<FlowComponent> findAllComponents() throws FlowStoreProxyException {
+        final Response response;
+        final List<FlowComponent> result;
+        try {
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+            result = response.readEntity(new GenericType<List<FlowComponent>>() { });
+        } finally {
+            response.close();
+        }
+        return result;
+    }
+
+    @Override
+    public List<Submitter> findAllSubmitters() throws FlowStoreProxyException {
+        final Response response;
+        final List<Submitter> result;
+        try {
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SUBMITTERS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+            result = response.readEntity(new GenericType<List<Submitter>>() { });
+        } finally {
+            response.close();
+        }
+        return result;
+    }
+
+    @Override
+    public List<Flow> findAllFlows() throws FlowStoreProxyException {
+        final Response response;
+        final List<Flow> result;
+        try {
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+            result = response.readEntity(new GenericType<List<Flow>>() { });
+        } finally {
+            response.close();
+        }
+        return result;
+    }
+
+    private void assertStatusCode(Response response, Response.Status expectedStatus) throws FlowStoreProxyException {
+        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+        if (status != expectedStatus) {
+            final FlowStoreProxyError errorCode;
+            switch (status) {
+                case BAD_REQUEST: errorCode = FlowStoreProxyError.BAD_REQUEST;
+                    break;
+                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.NOT_ACCEPTABLE;
+                    break;
+                case PRECONDITION_FAILED: errorCode = FlowStoreProxyError.ENTITY_NOT_FOUND;
+                    break;
+                default:
+                    errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
+            }
+            throw new FlowStoreProxyException(errorCode, response.readEntity(String.class));
+        }
+    }
+
 }

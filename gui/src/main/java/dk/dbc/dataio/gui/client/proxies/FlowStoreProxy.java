@@ -17,19 +17,19 @@ import java.util.List;
 @RemoteServiceRelativePath("FlowStoreProxy")
 public interface FlowStoreProxy extends RemoteService {
 
-    void createFlow(FlowContent flowContent) throws NullPointerException, IllegalStateException;
+    void createFlow(FlowContent flowContent) throws NullPointerException, FlowStoreProxyException;
 
-    void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, IllegalStateException;
+    void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, FlowStoreProxyException;
 
-    void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException;
+    void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, FlowStoreProxyException;
 
-    void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException;
+    void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, FlowStoreProxyException;
 
-    List<FlowComponent> findAllComponents();
+    List<FlowComponent> findAllComponents() throws FlowStoreProxyException;
 
-    List<Submitter> findAllSubmitters();
+    List<Submitter> findAllSubmitters() throws FlowStoreProxyException;
 
-    List<Flow> findAllFlows() throws Exception;
+    List<Flow> findAllFlows() throws FlowStoreProxyException;
     
     public static class Factory {
 

@@ -1,12 +1,7 @@
 package dk.dbc.dataio.gui.server;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
+import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.engine.Engine;
 import dk.dbc.dataio.engine.FileSystemJobStore;
 import dk.dbc.dataio.engine.Job;
@@ -17,6 +12,8 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FilenameUtils;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +21,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystems;
@@ -38,8 +36,8 @@ public class EmbeddedEngineServlet extends HttpServlet {
     private static final String jobStoreName = "dataio-job-store";
     private Path jobStorePath;
     private FileSystemJobStore jobStore;
-    private WebResource webResource;
     private String localhostname;
+    private Client client;
 
     @Override
     public void init() throws ServletException {
@@ -55,37 +53,28 @@ public class EmbeddedEngineServlet extends HttpServlet {
         }
 
         try {
-            String flowStoreServiceEndpoint = ServletUtil.getFlowStoreServiceEndpoint();
-            log.info("FlowStoreServiceEndpoint: " + flowStoreServiceEndpoint);
-            webResource = setupWebResource(flowStoreServiceEndpoint);
+            client = setupHttpClient();
         } catch (Exception ex) {
             log.error("Exception caught while initializing: ", ex);
         }
     }
 
-    private WebResource setupWebResource(String flowStoreServiceEndpoint) {
-        final ClientConfig clientConfig = new DefaultClientConfig();
-        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        // force client to use Jackson JAX-RS provider (one in com.fasterxml.jackson.jaxrs.json)
-        clientConfig.getClasses().add(JacksonJsonProvider.class);
-        final Client httpClient = Client.create(clientConfig);
-
-        return httpClient.resource(flowStoreServiceEndpoint);
+    private Client setupHttpClient() {
+        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+        return HttpClient.newClient(clientConfig);
     }
 
-    public String getFlow(long id, long version) throws NullPointerException, IllegalStateException {
+    public String getFlow(long id, long version) throws ServletException {
+        final Response response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS, Long.toString(id));
         try {
-            final ClientResponse response = webResource.path("flows/" + id + "/" + version).accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
-//        if (response.getClientResponseStatus() != ClientResponse.Status.) {
-//            throw new IllegalStateException(response.getEntity(String.class));
-//        }
             log.info("Found something");
-            return response.getEntity(String.class);
+            return response.readEntity(String.class);
         } catch (Exception ex) {
             log.error("Caught Exception: ", ex);
             return "";
+        } finally {
+            response.close();
         }
-        // return response.getEnt;
     }
 
     private String executeJob(String dataPath, String flow) throws Exception {

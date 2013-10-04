@@ -32,37 +32,37 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public void createFlow(FlowContent flowContent) throws NullPointerException, IllegalStateException {
+    public void createFlow(FlowContent flowContent) throws NullPointerException, FlowStoreProxyException {
         flowStoreProxy.createFlow(flowContent);
     }
 
     @Override
-    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, IllegalStateException {
+    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, FlowStoreProxyException {
         flowStoreProxy.createFlowComponent(flowComponentContent);
     }
 
     @Override
-    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
+    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, FlowStoreProxyException {
         flowStoreProxy.createSubmitter(submitterContent);
     }
 
     @Override
-    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
+    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, FlowStoreProxyException {
         flowStoreProxy.createFlowBinder(flowBinderContent);
     }
 
     @Override
-    public List<FlowComponent> findAllComponents() {
+    public List<FlowComponent> findAllComponents() throws FlowStoreProxyException {
         return flowStoreProxy.findAllComponents();
     }
 
     @Override
-    public List<Submitter> findAllSubmitters() {
+    public List<Submitter> findAllSubmitters() throws FlowStoreProxyException {
         return flowStoreProxy.findAllSubmitters();
     }
 
     @Override
-    public List<Flow> findAllFlows() throws Exception {
+    public List<Flow> findAllFlows() throws FlowStoreProxyException {
         return flowStoreProxy.findAllFlows();
     }
 }

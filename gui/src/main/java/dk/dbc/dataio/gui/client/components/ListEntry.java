@@ -10,7 +10,7 @@ import java.lang.String;
 
 
 public class ListEntry extends DataEntry {
-    public static final String LIST_ENTRY_LIST_BOX_CLASS = "dio-TextEntry-ListBoxClass";
+    public static final String LIST_ENTRY_LIST_BOX_CLASS = "dio-ListEntry-ListBox";
 
     private final ListBox listBox = new ListBox();
 
@@ -62,10 +62,6 @@ public class ListEntry extends DataEntry {
         listBox.fireEvent(new ListBoxChangedEvent());
     }
 
-    public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
-        return listBox.addKeyDownHandler(handler);
-    }
-    
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return listBox.addChangeHandler(handler);
     }

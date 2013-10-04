@@ -147,6 +147,14 @@ public class DualList extends HorizontalPanel {
     }
 
     /**
+     * Enable/disable both left and right lists.
+     */
+    public void setEnabled(boolean enable) {
+        left.setEnabled(enable);
+        right.setEnabled(enable);
+    }
+    
+    /**
      * Clear both lists.
      */
     public void clear() {

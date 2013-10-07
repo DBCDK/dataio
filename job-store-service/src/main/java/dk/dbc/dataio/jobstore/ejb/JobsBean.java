@@ -109,7 +109,7 @@ public class JobsBean {
             }
             log.trace("Found flow: {}", flowData);
         } finally {
-            client.close();
+            HttpClient.closeClient(client);
         }
         return JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns());
     }

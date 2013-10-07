@@ -41,7 +41,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
-import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -74,7 +73,6 @@ public class JobsBeanTest {
         when(ServiceUtil.getFlowStoreServiceEndpoint())
                 .thenReturn(flowStoreUrl);
         when(HttpClient.newClient()).thenReturn(client);
-        doNothing().when(client).close();
     }
 
     @Test(expected = NullPointerException.class)

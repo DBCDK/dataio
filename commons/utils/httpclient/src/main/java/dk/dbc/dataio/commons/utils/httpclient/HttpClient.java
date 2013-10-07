@@ -33,6 +33,17 @@ public class HttpClient {
     }
 
     /**
+     * Closes given client instance thereby releasing all resources held
+     *
+     * @param client web resource client (can be null)
+     */
+    public static void closeClient(Client client) {
+        if (client != null) {
+            client.close();
+        }
+    }
+
+    /**
      * Issues HTTP GET request to endpoint constructed using given baseurl and path elements
      *
      * @param client web resource client

@@ -152,9 +152,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     public void close() {
-        if (client != null) {
-            client.close();
-        }
+        HttpClient.closeClient(client);
     }
 
     private void assertStatusCode(Response response, Response.Status expectedStatus) throws FlowStoreProxyException {

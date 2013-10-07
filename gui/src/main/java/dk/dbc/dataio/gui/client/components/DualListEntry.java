@@ -2,11 +2,11 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.ui.ListBox;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class DualListEntry extends DataEntry {
     public static final String DUAL_LIST_ENTRY_DUAL_LIST_CLASS = "dio-DualListEntry-DualList";
@@ -16,7 +16,7 @@ public class DualListEntry extends DataEntry {
     
     public DualListEntry(String guiId, String prompt) {
         super(guiId, prompt);
-        dualList.setStyleName(DUAL_LIST_ENTRY_DUAL_LIST_CLASS);
+        setStylePrimaryName(DUAL_LIST_ENTRY_DUAL_LIST_CLASS);
         setEnabled(false);  // When empty, disable dualList box
         add(dualList);
     }
@@ -33,13 +33,25 @@ public class DualListEntry extends DataEntry {
     public void setAvailableItem(String text, String key) {
         dualList.addAvailableItem(text, key);
     }
-
-    public Collection<Map.Entry<String, String>> getSelectedItems() {
-        return dualList.getSelectedItems();
+    
+    public int getSelectedItemCount() {
+        return dualList.getSelectedItemCount();
     }
 
-    public String[] getSelectedTexts() {
-        return (String[]) dualList.getSelectedItems().toArray();
+    public Map<String, String> getSelectedItems() {
+        Map<String, String> result = new TreeMap<String, String>();
+        for (Entry<String, String> entry: dualList.getSelectedItems()) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
+    public Collection<String> getSelectedTexts() {
+        Collection<String> result = new ArrayList<String>();
+        for (Entry<String, String> entry: dualList.getSelectedItems()) {
+            result.add(entry.getValue());
+        }
+        return result;
     }
     
     public void setEnabled(boolean enabled) {

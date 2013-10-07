@@ -2,7 +2,6 @@ package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -16,7 +15,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +74,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
     }
  
     @Override
-    public void saveFlow(String name, String description, List<String> selectedFlowComponents) {
+    public void saveFlow(String name, String description, Collection<String> selectedFlowComponents) {
         final List<FlowComponent> flowComponents = new ArrayList<FlowComponent>();
         for (String flowComponentName: selectedFlowComponents) {
             flowComponents.add(availableFlowComponents.get(flowComponentName));

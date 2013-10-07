@@ -22,7 +22,7 @@ public class TextAreaEntry extends DataEntry {
         super(guiId, prompt);
         setCharacterWidth(DEFAULT_CHARACTER_WIDTH);
         setVisibleLines(DEFAULT_VISIBLE_LINES);
-        textArea.setStyleName(TEXT_AREA_ENTRY_TEXT_BOX_CLASS);
+        textArea.setStylePrimaryName(TEXT_AREA_ENTRY_TEXT_BOX_CLASS);
         add(textArea);
     }
     

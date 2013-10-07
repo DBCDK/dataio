@@ -154,7 +154,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderSubmittersPanel.clearAvailableSubmitters();
         flowbinderSubmittersPanel.clearItems();
         for (String key: availableSubmitters.keySet()) {
-            flowbinderSubmittersPanel.addAvailableSubmitter(key, availableSubmitters.get(key));
+            flowbinderSubmittersPanel.addAvailableSubmitter(availableSubmitters.get(key), key);
         }
     }
 

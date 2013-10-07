@@ -18,7 +18,7 @@ public class TextEntry extends DataEntry {
     
     public TextEntry(String guiId, String prompt) {
         super(guiId, prompt);
-        textBox.setStyleName(TEXT_ENTRY_TEXT_BOX_CLASS);
+        textBox.setStylePrimaryName(TEXT_ENTRY_TEXT_BOX_CLASS);
         add(textBox);
     }
     

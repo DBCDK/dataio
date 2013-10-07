@@ -11,14 +11,13 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.components.DualListEntry;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
+
 
 
 public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
@@ -46,7 +45,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     private FlowCreatePresenter presenter;
     private final TextEntry flowNamePanel = new TextEntry(GUIID_FLOW_CREATION_FLOW_NAME_PANEL, FLOW_CREATION_FLOW_NAME_LABEL);
     private final TextAreaEntry flowDescriptionPanel = new TextAreaEntry(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, FLOW_CREATION_DESCRIPTION_LABEL, FLOW_CREATION_DESCRIPTION_MAX_LENGTH);
-    private final FlowComponentSelectionPanel flowComponentSelectionPanel = new FlowComponentSelectionPanel();
+    private final DualListEntry flowComponentSelectionPanel = new DualListEntry(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL, FLOW_CREATION_FLOW_COMPONENTS_LABEL);
     private final FlowSavePanel flowSavePanel = new FlowSavePanel();
     
     public FlowCreateViewImpl() {
@@ -58,7 +57,14 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         flowDescriptionPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowDescriptionPanel);
 
+        flowComponentSelectionPanel.addChangeHandler(new ChangeHandler() {
+            @Override
+            public void onChange(ChangeEvent event) {
+                changeDetected();
+            }
+        });
         add(flowComponentSelectionPanel);
+        
         add(flowSavePanel);
     }
 
@@ -87,9 +93,12 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
 
     @Override
     public void setAvailableFlowComponents(Map<String, String> availableFlowComponents) {
-        flowComponentSelectionPanel.clearItems();
-        for (String key: availableFlowComponents.keySet()) {
-           flowComponentSelectionPanel.addAvailableItem(key, availableFlowComponents.get(key));
+        flowComponentSelectionPanel.clear();
+        if (!availableFlowComponents.isEmpty()) {
+            for (String key: availableFlowComponents.keySet()) {
+               flowComponentSelectionPanel.setAvailableItem(availableFlowComponents.get(key), key);
+            }
+            flowComponentSelectionPanel.setEnabled(true);
         }
     }
 
@@ -101,13 +110,8 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         flowSavePanel.setStatusText("");
     }
 
-    private List<String> getSelectedFlowComponents() {
-        List<String> selectedFlowComponents = new ArrayList<String>();
-        Collection<Map.Entry<String, String>> selectedFlowComponentsFromPanel = flowComponentSelectionPanel.getSelectedItems();
-        for (Map.Entry<String, String> item : selectedFlowComponentsFromPanel) {
-            selectedFlowComponents.add(item.getKey());
-        }
-        return selectedFlowComponents;
+    private Collection<String> getSelectedFlowComponents() {
+        return flowComponentSelectionPanel.getSelectedTexts();
     }
 
     
@@ -119,7 +123,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         public void onClick(ClickEvent event) {
             String nameValue = flowNamePanel.getText();
             String descriptionValue = flowDescriptionPanel.getText();
-            if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.size()>0)) {
+            if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.getSelectedItemCount() >0)) {
                 presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
@@ -138,33 +142,6 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     /*
      * Panels
      */
-    private class FlowComponentSelectionPanel extends HorizontalPanel {
-        private final DualList flowComponentSelectionLists = new DualList();
-        public FlowComponentSelectionPanel() {
-            add(new Label(FLOW_CREATION_FLOW_COMPONENTS_LABEL));
-            getElement().setId(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
-            add(flowComponentSelectionLists);
-            flowComponentSelectionLists.addChangeHandler(new ChangeHandler() {
-                @Override
-                public void onChange(ChangeEvent event) {
-                    changeDetected();
-                }
-            });
-        }
-        private int size() {
-            return flowComponentSelectionLists.getSelectedItems().size();
-        }
-        private void clearItems() {
-            flowComponentSelectionLists.clear();
-        }
-        private void addAvailableItem(String key, String value) {
-            flowComponentSelectionLists.addAvailableItem(key, value);
-        }
-        private Collection<Map.Entry<String, String>> getSelectedItems() {
-            return flowComponentSelectionLists.getSelectedItems();
-        }
-    }
-        
     private class FlowSavePanel extends HorizontalPanel {
         private final Button flowSaveButton = new Button(FLOW_CREATION_SAVE_BUTTON);
         private final Label flowSaveResultLabel = new Label("");

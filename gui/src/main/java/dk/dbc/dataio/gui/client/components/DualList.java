@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client.components;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,10 +90,10 @@ public class DualList extends HorizontalPanel {
      * Constructor
      */
     public DualList() {
-        this.addStyleName(DUAL_LIST_COMPONENT_CLASS);
-        this.left.addStyleName(DUAL_LIST_LEFT_SELECTION_PANE_CLASS);
-        this.buttonPanel.addStyleName(DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS);
-        this.right.addStyleName(DUAL_LIST_RIGHT_SELECTION_PANE_CLASS);
+        this.setStylePrimaryName(DUAL_LIST_COMPONENT_CLASS);
+        this.left.setStylePrimaryName(DUAL_LIST_LEFT_SELECTION_PANE_CLASS);
+        this.buttonPanel.setStylePrimaryName(DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS);
+        this.right.setStylePrimaryName(DUAL_LIST_RIGHT_SELECTION_PANE_CLASS);
         addItem.addClickHandler(new ClickHandler() {
             public void onClick(ClickEvent event) {
                 moveItems(left, right);
@@ -105,9 +104,9 @@ public class DualList extends HorizontalPanel {
                 moveItems(right, left);
             }
         });
-        addItem.addStyleName(DUAL_LIST_ADDITEM_CLASS);
+        addItem.setStylePrimaryName(DUAL_LIST_ADDITEM_CLASS);
         buttonPanel.add(addItem);
-        removeItem.addStyleName(DUAL_LIST_REMOVEITEM_CLASS);
+        removeItem.setStylePrimaryName(DUAL_LIST_REMOVEITEM_CLASS);
         buttonPanel.add(removeItem);
         add(left);
         add(buttonPanel);
@@ -117,11 +116,11 @@ public class DualList extends HorizontalPanel {
     /**
      * Adds one item to the availableItems list
      *
-     * @param key The item to add
      * @param value The value of the item to add
+     * @param key The item to add
      * @see DualList#addAvailableItems(Collection) to bulk operations.
      */
-    public void addAvailableItem(String key, String value) {
+    public void addAvailableItem(String value, String key) {
         left.addItem(value, key);
         enableOrDisableButtons();
     }
@@ -173,10 +172,20 @@ public class DualList extends HorizontalPanel {
     }
 
     /**
+     * Return the number of selected items.
+     *
+     * @return the selected items.
+     */
+    public int getSelectedItemCount() {
+        return right.getItemCount();
+    }
+    
+    /**
      * Return the selected items.
      *
      * @return the selected items.
      */
+
     public Collection<Entry<String, String>> getSelectedItems() {
         int count = right.getItemCount();
         Collection<Entry<String, String>> selectedItems = new ArrayList<Entry<String, String>>(count);

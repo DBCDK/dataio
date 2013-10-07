@@ -17,7 +17,7 @@ public class ListEntry extends DataEntry {
     
     public ListEntry(String guiId, String prompt) {
         super(guiId, prompt);
-        listBox.setStyleName(LIST_ENTRY_LIST_BOX_CLASS);
+        listBox.setStylePrimaryName(LIST_ENTRY_LIST_BOX_CLASS);
         setEnabled(false);  // When empty, disable list box
         add(listBox);
     }

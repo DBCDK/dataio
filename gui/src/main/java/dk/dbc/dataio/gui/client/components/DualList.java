@@ -118,7 +118,7 @@ public class DualList extends HorizontalPanel {
      *
      * @param value The value of the item to add
      * @param key The item to add
-     * @see DualList#addAvailableItems(Collection) to bulk operations.
+     * @see DualList#setAvailableItems(Collection) to bulk operations.
      */
     public void addAvailableItem(String value, String key) {
         left.addItem(value, key);
@@ -130,7 +130,7 @@ public class DualList extends HorizontalPanel {
      *
      * @param items A collection of items to add
      */
-    public void addAvailableItems(Collection<? extends Entry<String, String>> items) {
+    public void setAvailableItems(Collection<? extends Entry<String, String>> items) {
         populateList(left, items);
         enableOrDisableButtons();
     }

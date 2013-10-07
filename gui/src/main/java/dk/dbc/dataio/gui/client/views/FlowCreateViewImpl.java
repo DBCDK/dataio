@@ -96,7 +96,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         flowComponentSelectionPanel.clear();
         if (!availableFlowComponents.isEmpty()) {
             for (String key: availableFlowComponents.keySet()) {
-               flowComponentSelectionPanel.setAvailableItem(availableFlowComponents.get(key), key);
+               flowComponentSelectionPanel.addAvailableItem(availableFlowComponents.get(key), key);
             }
             flowComponentSelectionPanel.setEnabled(true);
         }

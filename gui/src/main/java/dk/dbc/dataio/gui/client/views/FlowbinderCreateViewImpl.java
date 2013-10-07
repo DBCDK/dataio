@@ -11,13 +11,12 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import dk.dbc.dataio.gui.client.components.DualList;
+import dk.dbc.dataio.gui.client.components.DualListEntry;
 import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +69,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final TextEntry flowbinderCharacterSetPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, FLOWBINDER_CREATION_CHARACTERSET_LABEL);
     private final TextEntry flowbinderSinkPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, FLOWBINDER_CREATION_SINK_LABEL);
     private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL);
-    private final FlowbinderSubmittersPanel flowbinderSubmittersPanel = new FlowbinderSubmittersPanel();
+    private final DualListEntry flowbinderSubmittersPanel = new DualListEntry(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL, FLOWBINDER_CREATION_SUBMITTERS_LABEL);
     private final ListEntry flowbinderFlowPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_FLOW_PANEL, FLOWBINDER_CREATION_FLOW_LABEL);
     private final FlowbinderSavePanel flowbinderSavePanel = new FlowbinderSavePanel();
 
@@ -99,7 +98,13 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderRecordSplitterPanel.setText(FLOWBINDER_CREATION_DEFAULT_RECORD_SPLITTER_LABEL);
         flowbinderRecordSplitterPanel.setEnabled(false);
         add(flowbinderRecordSplitterPanel);
-        
+
+        flowbinderSubmittersPanel.addChangeHandler(new ChangeHandler() {
+            @Override
+            public void onChange(ChangeEvent event) {
+                changeDetected();
+            }
+        });
         add(flowbinderSubmittersPanel);
 
         flowbinderFlowPanel.setEnabled(false);
@@ -151,10 +156,12 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 
     @Override
     public void setAvailableSubmitters(Map<String, String> availableSubmitters) {
-        flowbinderSubmittersPanel.clearAvailableSubmitters();
-        flowbinderSubmittersPanel.clearItems();
-        for (String key: availableSubmitters.keySet()) {
-            flowbinderSubmittersPanel.addAvailableSubmitter(availableSubmitters.get(key), key);
+        flowbinderSubmittersPanel.clear();
+        if (!availableSubmitters.isEmpty()) {
+            flowbinderSubmittersPanel.setEnabled(true);
+            for (String key: availableSubmitters.keySet()) {
+                flowbinderSubmittersPanel.addAvailableItem(availableSubmitters.get(key), key);
+            }
         }
     }
 
@@ -180,21 +187,21 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             final String charset = flowbinderCharacterSetPanel.getText();
             final String destination = flowbinderSinkPanel.getText();
             final String recordSplitter = flowbinderRecordSplitterPanel.getText();
-            final Collection<Map.Entry<String, String>> submittersFromView = flowbinderSubmittersPanel.getSelectedSubmitters();
+            final Map<String, String> submittersFromView = flowbinderSubmittersPanel.getSelectedItems();
             final List<String> submitters = new ArrayList<String>();
             final String flow = flowbinderFlowPanel.getSelectedKey();
             final String validationError = validateFields(name, description, packaging, format, charset, destination, recordSplitter, submittersFromView, flow);
             if (!validationError.isEmpty()) {
                 Window.alert(validationError);
             } else {
-                for (Map.Entry<String, String> submitter: submittersFromView) {
-                    submitters.add(submitter.getKey());
+                for (String key: submittersFromView.keySet()) {
+                    submitters.add(key);
                 }
                 presenter.saveFlowbinder(name, description, packaging, format, charset, destination, recordSplitter, flow, submitters);
             }
         }
         private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter,
-                final Collection<Map.Entry<String, String>> submitters, final String flow) {
+                final Map<String, String> submitters, final String flow) {
             if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || sink.isEmpty() || recordSplitter.isEmpty()
                     || (submitters == null) || submitters.isEmpty() || (flow == null) || flow.isEmpty()) {
                 return FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
@@ -214,33 +221,6 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
      * Panels
      */
     
-    private class FlowbinderSubmittersPanel extends HorizontalPanel {
-        private final DualList submittersSelectionLists = new DualList();
-        public FlowbinderSubmittersPanel() {
-            add(new Label(FLOWBINDER_CREATION_SUBMITTERS_LABEL));
-            getElement().setId(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL);
-            add(submittersSelectionLists);
-            submittersSelectionLists.addChangeHandler(new ChangeHandler() {
-                @Override
-                public void onChange(ChangeEvent event) {
-                    changeDetected();
-                }
-            });
-        }
-        private void clearItems() {
-            submittersSelectionLists.clear();
-        }
-        private void addAvailableSubmitter(String key, String value) {
-            submittersSelectionLists.addAvailableItem(key, value);
-        }
-        private Collection<Map.Entry<String, String>> getSelectedSubmitters() {
-            return submittersSelectionLists.getSelectedItems();
-        }
-        private void clearAvailableSubmitters() {
-            submittersSelectionLists.clearAvailableItems();
-        }
-    }
-
     private class FlowbinderSavePanel extends HorizontalPanel {
         private final Button flowbinderSaveButton = new Button("Gem");
         private final Label flowbinderSaveResultLabel = new Label("");

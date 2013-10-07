@@ -26,11 +26,11 @@ public class DualListEntry extends DataEntry {
         dualList.clear();
     }
     
-    public void setAvailableItem(String text) {
+    public void addAvailableItem(String text) {
         dualList.addAvailableItem(text, text);  // Put the text itself as a key
     }
     
-    public void setAvailableItem(String text, String key) {
+    public void addAvailableItem(String text, String key) {
         dualList.addAvailableItem(text, key);
     }
     

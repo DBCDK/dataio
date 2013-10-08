@@ -111,7 +111,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     }
 
     private Collection<String> getSelectedFlowComponents() {
-        return flowComponentSelectionPanel.getSelectedTexts();
+        return flowComponentSelectionPanel.getSelectedItems().keySet();
     }
 
     
@@ -123,7 +123,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         public void onClick(ClickEvent event) {
             String nameValue = flowNamePanel.getText();
             String descriptionValue = flowDescriptionPanel.getText();
-            if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.getSelectedItemCount() >0)) {
+            if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.getSelectedItemCount() > 0)) {
                 presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
             } else {
                 Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);

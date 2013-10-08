@@ -13,7 +13,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <gwt.version>2.5.0</gwt.version>
+    <gwt.version>2.5.1</gwt.version>
     <runTarget>gui.html</runTarget>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <developmentFlowStoreURLProperty> </developmentFlowStoreURLProperty>

@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
@@ -57,7 +56,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({
         Client.class,
         HttpClient.class,
-        JobStore.class,
+        JobHandlerBean.class,
         ServiceUtil.class,
         UriInfo.class
 })
@@ -65,7 +64,7 @@ public class JobsBeanTest {
     private final String flowStoreUrl = "http://dataio/flow-store";
     private final UriInfo uriInfo = mock(UriInfo.class);
     private final Client client = mock(Client.class);
-    private final JobStore jobStore = mock(JobStore.class);
+    private final JobHandlerBean jobHandler = mock(JobHandlerBean.class);
 
     @Before
     public void setup() throws Exception {
@@ -137,11 +136,11 @@ public class JobsBeanTest {
 
         when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
-        when(jobStore.createJob(any(Path.class), any(Flow.class)))
+        when(jobHandler.createJob(any(Path.class), any(Flow.class)))
                 .thenThrow(new JobStoreException("die"));
 
         final JobsBean jobsBean = new JobsBean();
-        jobsBean.jobStore = jobStore;
+        jobsBean.jobHandler = jobHandler;
         jobsBean.createJob(uriInfo, jobSpecData);
     }
 
@@ -158,11 +157,11 @@ public class JobsBeanTest {
 
         when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
-        when(jobStore.createJob(any(Path.class), any(Flow.class)))
+        when(jobHandler.createJob(any(Path.class), any(Flow.class)))
                 .thenReturn(job);
 
         final JobsBean jobsBean = new JobsBean();
-        jobsBean.jobStore = jobStore;
+        jobsBean.jobHandler = jobHandler;
         final Response response = jobsBean.createJob(uriInfo, jobSpecData);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
     }

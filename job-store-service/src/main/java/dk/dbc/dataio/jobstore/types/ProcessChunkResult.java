@@ -18,7 +18,7 @@ public class ProcessChunkResult implements Serializable {
 
     private ProcessChunkResult() { }
 
-    ProcessChunkResult(long id, List<String> results) {
+    public ProcessChunkResult(long id, List<String> results) {
         this.id = id;
         this.results = new ArrayList<String>(results);
     }

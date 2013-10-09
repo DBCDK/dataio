@@ -11,10 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
+@LocalBean
 @Singleton
 public class JobStoreBean implements JobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
@@ -51,11 +53,14 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public void addChunkResult(Job job, ProcessChunkResult processChunkResult) throws JobStoreException {
+    public void addChunkResult(Job job, ProcessChunkResult processedChunk) throws JobStoreException {
+        jobStore.addChunkResult(job, processedChunk);
     }
 
     @Override
     public ProcessChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException {
-        return null;
+        return jobStore.getProcessChunkResult(job, chunkId);
     }
+
+
 }

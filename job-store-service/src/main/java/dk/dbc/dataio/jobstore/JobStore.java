@@ -14,9 +14,9 @@ public interface JobStore {
 
     long getNumberOfChunksInJob(Job job) throws JobStoreException;
 
-    Chunk getChunk(Job job, long i) throws JobStoreException;
+    Chunk getChunk(Job job, long chunkId) throws JobStoreException;
 
     void addChunkResult(Job job, ProcessChunkResult processChunkResult) throws JobStoreException;
 
-    ProcessChunkResult getProcessChunkResult(Job job, long i) throws JobStoreException;
+    ProcessChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException;
 }

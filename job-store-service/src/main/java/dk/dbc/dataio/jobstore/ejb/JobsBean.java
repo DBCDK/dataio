@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
 
     @EJB
-    dk.dbc.dataio.jobstore.JobStoreBean jobStore;
+    JobStore jobStore;
 
     /**
      * Creates new job based on POSTed job specification and persists it in

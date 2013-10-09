@@ -6,6 +6,7 @@ import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +16,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 @Singleton
-public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
+public class JobStoreBean implements JobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
     private static final String JOB_STORE_NAME = "dataio-job-store";
 
@@ -49,49 +50,12 @@ public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
         return jobStore.getChunk(job, chunkId);
     }
 
-
-    /*
-    // Todo: Move into JobStore
-    private Job chunkify(Job job) throws JobStoreException {
-        Path path = job.getOriginalDataPath();
-        List<Chunk> chunks = null;
-        try {
-            chunks = applyDefaultXmlSplitter(path, job);
-            LOGGER.info("Number of chunks: {}", chunks.size());
-        } catch (XMLStreamException | IOException ex) {
-            LOGGER.info("An error occured: ", ex);
-        }
-        for (Chunk chunk : chunks) {
-            jobStore.addChunk(job, chunk);
-        }
-        return job;
+    @Override
+    public void addChunkResult(Job job, ProcessChunkResult processChunkResult) throws JobStoreException {
     }
 
-    private List<Chunk> applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException {
-        LOGGER.info("Got path: " + path.toString());
-        final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(path));
-        final List<Chunk> chunks = new ArrayList<>();
-
-        long chunkId = 0;
-        int counter = 0;
-        Chunk chunk = new Chunk(chunkId, job.getFlow());
-        for (String record : recordSplitter) {
-            LOGGER.trace("======> Before [" + record + "]");
-            final String recordBase64 = base64encode(record);
-            LOGGER.trace("======> After  [" + recordBase64 + "]");
-            if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
-                chunk.addRecord(recordBase64);
-            } else {
-                chunks.add(chunk);
-                chunk = new Chunk(++chunkId, job.getFlow());
-                chunk.addRecord(recordBase64);
-                counter = 1;
-            }
-        }
-        if (counter != 0) {
-            chunks.add(chunk);
-        }
-        return chunks;
+    @Override
+    public ProcessChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException {
+        return null;
     }
-    */
 }

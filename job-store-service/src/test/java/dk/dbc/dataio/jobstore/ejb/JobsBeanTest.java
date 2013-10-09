@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
@@ -56,15 +57,15 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({
         Client.class,
         HttpClient.class,
+        JobStore.class,
         ServiceUtil.class,
-        dk.dbc.dataio.jobstore.JobStoreBean.class,
         UriInfo.class
 })
 public class JobsBeanTest {
     private final String flowStoreUrl = "http://dataio/flow-store";
     private final UriInfo uriInfo = mock(UriInfo.class);
     private final Client client = mock(Client.class);
-    private final dk.dbc.dataio.jobstore.JobStoreBean jobStore = mock(dk.dbc.dataio.jobstore.JobStoreBean.class);
+    private final JobStore jobStore = mock(JobStore.class);
 
     @Before
     public void setup() throws Exception {

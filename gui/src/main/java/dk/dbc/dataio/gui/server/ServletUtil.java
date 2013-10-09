@@ -20,6 +20,14 @@ public class ServletUtil {
         }
     }
 
+    public static String getJobStoreServiceEndpoint() throws ServletException {
+        try {
+            return ServiceUtil.getJobStoreServiceEndpoint();
+        } catch (NamingException e) {
+            throw new ServletException(e);
+        }
+    }
+
     public static String getSubversionScmEndpoint() throws ServletException {
         try {
             return ServiceUtil.getSubversionScmEndpoint();

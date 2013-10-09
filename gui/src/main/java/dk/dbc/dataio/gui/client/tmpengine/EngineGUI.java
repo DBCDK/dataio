@@ -130,7 +130,7 @@ public class EngineGUI extends DockLayoutPanel {
         public void setFlows(List<Flow> flows) {
             listBox.clear();
             for (Flow flow : flows) {
-                String flowId = Long.toString(flow.getId()) + "-" + Long.toString(flow.getVersion());
+                String flowId = Long.toString(flow.getId());
                 listBox.addItem(flow.getContent().getName(), flowId);
             }
         }

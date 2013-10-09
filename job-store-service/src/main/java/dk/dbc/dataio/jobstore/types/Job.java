@@ -1,31 +1,26 @@
 package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.nio.file.Path;
 
 /**
  * Job DTO class.
- *
- * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields and need a default no-arg constructor.
- *
- * ToDo: Needs to be refactored if to be used directly in GWT GUI since we cannot use the Java7 Path construct.
  */
 public class Job implements Serializable {
+    static final long ID_LOWER_THRESHOLD = 0;
     private static final long serialVersionUID = 592111006810833332L;
 
-    private /* final */ long id;
-    private /* final */ Path originalDataPath;
-    private /* final */ Flow flow;
-
-    private Job() { }
+    private final long id;
+    private final Path originalDataPath;
+    private final Flow flow;
 
     public Job(long id, Path originalDataPath, Flow flow) {
-        this.id = id;
-        this.originalDataPath = originalDataPath;
-        this.flow = flow;
+        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", ID_LOWER_THRESHOLD);
+        this.originalDataPath = InvariantUtil.checkNotNullOrThrow(originalDataPath, "originalDataPath");
+        this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
     }
 
     public long getId() {

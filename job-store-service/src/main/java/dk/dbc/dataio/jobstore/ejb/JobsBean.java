@@ -40,7 +40,7 @@ import java.util.Date;
 @Stateless
 @Path(JobStoreServiceEntryPoint.JOBS)
 public class JobsBean {
-    private static final Logger log = LoggerFactory.getLogger(JobsBean.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
 
     @EJB
     dk.dbc.dataio.jobstore.JobStoreBean jobStore;
@@ -69,7 +69,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
             throws NullPointerException, IllegalArgumentException, EJBException, JsonException, ReferencedEntityNotFoundException {
-        log.trace("JobSpec: {}", jobSpecData);
+        LOGGER.trace("JobSpec: {}", jobSpecData);
 
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
         final Flow flow = lookupFlowInFlowStore(jobSpec.getFlowId());
@@ -107,7 +107,7 @@ public class JobsBean {
             } finally {
                 response.close();
             }
-            log.trace("Found flow: {}", flowData);
+            LOGGER.trace("Found flow: {}", flowData);
         } finally {
             HttpClient.closeClient(client);
         }
@@ -116,13 +116,13 @@ public class JobsBean {
 
     private String extractFlowDataFromFlowStoreResponse(long flowId, Response response) {
         final String flowData = response.readEntity(String.class);
-        log.trace("Resolved flow({}) to {}", flowId, flowData);
+        LOGGER.trace("Resolved flow({}) to {}", flowId, flowData);
         return flowData;
     }
 
     private void throwOnFlowNotFoundInFlowStore(long flowId) throws ReferencedEntityNotFoundException {
         final String errorMessage = String.format("flow(%d) not found", flowId);
-        log.error(errorMessage);
+        LOGGER.error(errorMessage);
         throw new ReferencedEntityNotFoundException(errorMessage);
     }
 
@@ -130,7 +130,7 @@ public class JobsBean {
         final String errorDetails = response.readEntity(String.class);
         final String errorMessage = String.format("Attempt to resolve flow(%d) returned with status code %d: %s",
                 flowId, status, errorDetails);
-        log.error(errorMessage);
+        LOGGER.error(errorMessage);
         throw new EJBException(errorMessage);
     }
 
@@ -138,7 +138,7 @@ public class JobsBean {
         final String flowStoreServiceEndpoint;
         try {
             flowStoreServiceEndpoint = ServiceUtil.getFlowStoreServiceEndpoint();
-            log.debug("flow-store service endpoint {}", flowStoreServiceEndpoint);
+            LOGGER.debug("flow-store service endpoint {}", flowStoreServiceEndpoint);
         } catch (NamingException e) {
             throw new EJBException(e);
         }

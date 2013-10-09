@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.ejb;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
-import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -12,39 +11,32 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
-import javax.xml.stream.XMLStreamException;
-import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
-import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 
 @Singleton
 public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
+    private static final String JOB_STORE_NAME = "dataio-job-store";
 
-    private Logger log = LoggerFactory.getLogger(JobStoreBean.class);
-    private static final String jobStoreName = "dataio-job-store";
-    private Path jobStorePath = FileSystems.getDefault().getPath(String.format("/tmp/%s", jobStoreName));
-    private JobStore jobStore;
+    // class scoped for easy test injection
+    Path jobStorePath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), JOB_STORE_NAME);
+    JobStore jobStore;
 
     @PostConstruct
     public void setupJobStore() {
         try {
             jobStore = FileSystemJobStore.newFileSystemJobStore(jobStorePath);
         } catch (JobStoreException ex) {
-            String errMsg = "An Error occured while setting up the job-store.";
-            log.error(errMsg, ex);
+            final String errMsg = "An Error occured while setting up the job-store.";
+            LOGGER.error(errMsg, ex);
             throw new RuntimeException(errMsg, ex);
         }
     }
 
     @Override
-    public Job createJob(Path jobPath, Flow flow) throws JobStoreException {
-        Job job = jobStore.createJob(jobPath, flow);
-        return chunkify(job);
+    public Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException {
+        return jobStore.createJob(dataObjectPath, flow);
     }
 
     @Override
@@ -58,16 +50,16 @@ public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
     }
 
 
+    /*
     // Todo: Move into JobStore
     private Job chunkify(Job job) throws JobStoreException {
         Path path = job.getOriginalDataPath();
         List<Chunk> chunks = null;
         try {
-            //chunks = splitByLine(path, job);
             chunks = applyDefaultXmlSplitter(path, job);
-            log.info("Number of chunks: {}", chunks.size());
+            LOGGER.info("Number of chunks: {}", chunks.size());
         } catch (XMLStreamException | IOException ex) {
-            log.info("An error occured: ", ex);
+            LOGGER.info("An error occured: ", ex);
         }
         for (Chunk chunk : chunks) {
             jobStore.addChunk(job, chunk);
@@ -76,7 +68,7 @@ public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
     }
 
     private List<Chunk> applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException {
-        log.info("Got path: " + path.toString());
+        LOGGER.info("Got path: " + path.toString());
         final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(path));
         final List<Chunk> chunks = new ArrayList<>();
 
@@ -84,9 +76,9 @@ public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
         int counter = 0;
         Chunk chunk = new Chunk(chunkId, job.getFlow());
         for (String record : recordSplitter) {
-            log.trace("======> Before [" + record + "]");
+            LOGGER.trace("======> Before [" + record + "]");
             final String recordBase64 = base64encode(record);
-            log.trace("======> After  [" + recordBase64 + "]");
+            LOGGER.trace("======> After  [" + recordBase64 + "]");
             if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
                 chunk.addRecord(recordBase64);
             } else {
@@ -101,4 +93,5 @@ public class JobStoreBean implements dk.dbc.dataio.jobstore.JobStoreBean {
         }
         return chunks;
     }
+    */
 }

@@ -16,7 +16,6 @@
     <inherits name="com.google.gwt.place.Place" />
 
     <inherits name="dk.dbc.dataio.commons.types.Types" />
-    <inherits name="dk.dbc.dataio.engine.Model" />
     
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
     

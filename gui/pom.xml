@@ -56,28 +56,6 @@
       <version>${jersey.version}</version>
       <scope>provided</scope>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <version>1.17.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-bundle</artifactId>
-      <version>1.17.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.jaxrs</groupId>
-      <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <version>${jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>1.1.1</version>
-    </dependency>
-    -->
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
@@ -114,6 +92,7 @@
       <version>1.8</version>
     </dependency>
 
+    <!--
     <dependency>
 		  <groupId>org.powermock</groupId>
 		  <artifactId>powermock-module-junit4</artifactId>
@@ -132,6 +111,7 @@
 	    <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
+    -->
   </dependencies>
 
   <build>

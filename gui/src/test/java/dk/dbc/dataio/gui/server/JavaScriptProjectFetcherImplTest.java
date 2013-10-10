@@ -5,13 +5,14 @@ import dk.dbc.dataio.commons.svn.SvnConnector;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
-import mockit.Expectations;
-import mockit.integration.junit4.JMockit;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.tmatesoft.svn.core.SVNErrorCode;
 import org.tmatesoft.svn.core.SVNErrorMessage;
 import org.tmatesoft.svn.core.SVNException;
@@ -29,6 +30,14 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * JavaScriptProjectFetcherImpl unit tests
@@ -37,14 +46,19 @@ import static org.junit.Assert.assertThat;
  *
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
-@RunWith(JMockit.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({
+    FileUtil.class,
+    JavaScriptProjectFetcherImpl.class,
+    JavascriptUtil.class,
+    SvnConnector.class
+})
 public class JavaScriptProjectFetcherImplTest {
     private static final String JAVA_IO_TMPDIR = "java.io.tmpdir";
     private static String originalTmpDir;
 
     private final String subversionScmEndpoint = "file:///test/repos";
     private final String illegalProjectName = "name/with/path/elements";
-    private final String nonExistingProjectName = "not-to-be-found";
     private final String projectName = "project";
     private final String javaScriptFileName = String.format("%s%s%sfile.js",
             JavaScriptProjectFetcherImpl.URL_DELIMITER,
@@ -52,6 +66,8 @@ public class JavaScriptProjectFetcherImplTest {
             JavaScriptProjectFetcherImpl.URL_DELIMITER);
     private final String javaScriptFunction = "func";
     private final long revision = 1;
+    private final URISyntaxException uriSyntaxException = new URISyntaxException("input", "reason");
+    private final SVNException svnException = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -65,6 +81,13 @@ public class JavaScriptProjectFetcherImplTest {
     public static void tearDownClass() throws Exception {
         // Restore original tmp directory
         System.setProperty(JAVA_IO_TMPDIR, originalTmpDir);
+    }
+
+    @Before
+    public void setup() throws Exception {
+        mockStatic(FileUtil.class);
+        mockStatic(JavascriptUtil.class);
+        mockStatic(SvnConnector.class);
     }
 
     @Test(expected = NullPointerException.class)
@@ -106,24 +129,11 @@ public class JavaScriptProjectFetcherImplTest {
         }
     }
 
-    @Ignore
-    @Test(expected = JavaScriptProjectFetcherException.class)
-    public void fetchRevisions_projectNameCanNotBeFound_throws() throws Exception {
-        final JavaScriptProjectFetcherImpl instance = newInstance();
-        try {
-            instance.fetchRevisions(nonExistingProjectName);
-        } catch (JavaScriptProjectFetcherException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND));
-            throw e;
-        }
-    }
-
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchRevisions_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
+        when(SvnConnector.listAvailableRevisions(anyString())).thenThrow(uriSyntaxException);
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        new Expectations(SvnConnector.class) { {
-                SvnConnector.listAvailableRevisions(anyString); result = new URISyntaxException("input", "reason");
-        } };
         try {
             instance.fetchRevisions(projectName);
         } catch (JavaScriptProjectFetcherException e) {
@@ -134,10 +144,9 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchRevisions_svnConnectorThrowsSvnException_throws() throws Exception {
+        when(SvnConnector.listAvailableRevisions(anyString())).thenThrow(svnException);
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        new Expectations(SvnConnector.class) { {
-                SvnConnector.listAvailableRevisions(anyString); result = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
-        } };
         try {
             instance.fetchRevisions(projectName);
         } catch (JavaScriptProjectFetcherException e) {
@@ -158,10 +167,9 @@ public class JavaScriptProjectFetcherImplTest {
         final String projectUrl = subversionScmEndpoint + JavaScriptProjectFetcherImpl.URL_DELIMITER
                 + projectName + JavaScriptProjectFetcherImpl.URL_DELIMITER + JavaScriptProjectFetcherImpl.TRUNK_PATH;
 
+        when(SvnConnector.listAvailableRevisions(eq(projectUrl))).thenReturn(expectedRevisions);
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        new Expectations(SvnConnector.class) { {
-                SvnConnector.listAvailableRevisions(projectUrl); result = expectedRevisions;
-        } };
         final List<RevisionInfo> revisions = instance.fetchRevisions(projectName);
         assertThat(revisions, is(expectedRevisions));
     }
@@ -191,10 +199,9 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchJavaScriptFileNames_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
+        when(SvnConnector.listAvailablePaths(anyString(), anyLong())).thenThrow(uriSyntaxException);
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-         new Expectations(SvnConnector.class) { {
-                SvnConnector.listAvailablePaths(anyString, revision); result = new URISyntaxException("input", "reason");
-        } };
         try {
             instance.fetchJavaScriptFileNames(projectName, revision);
         } catch (JavaScriptProjectFetcherException e) {
@@ -205,10 +212,9 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchJavaScriptFileNames_svnConnectorThrowsSvnException_throws() throws Exception {
+        when(SvnConnector.listAvailablePaths(anyString(), anyLong())).thenThrow(svnException);
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-         new Expectations(SvnConnector.class) { {
-                SvnConnector.listAvailablePaths(anyString, revision); result = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
-        } };
         try {
             instance.fetchJavaScriptFileNames(projectName, revision);
         } catch (JavaScriptProjectFetcherException e) {
@@ -229,10 +235,9 @@ public class JavaScriptProjectFetcherImplTest {
         final String projectUrl = subversionScmEndpoint + JavaScriptProjectFetcherImpl.URL_DELIMITER
                 + projectName + JavaScriptProjectFetcherImpl.URL_DELIMITER + JavaScriptProjectFetcherImpl.TRUNK_PATH;
 
+        when(SvnConnector.listAvailablePaths(eq(projectUrl), eq(revision))).thenReturn(paths);
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        new Expectations(SvnConnector.class) { {
-                SvnConnector.listAvailablePaths(projectUrl, revision); result = paths;
-        } };
         final List<String> fileNames = instance.fetchJavaScriptFileNames(projectName, revision);
         assertThat(fileNames.size(), is(2));
         assertThat(fileNames.get(0), is(paths.get(0)));
@@ -276,10 +281,9 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchJavaScriptInvocationMethods_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
+        doThrow(uriSyntaxException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-         new Expectations(SvnConnector.class) { {
-                SvnConnector.export(anyString, revision, (Path) any); result = new URISyntaxException("input", "reason");
-        } };
         try {
             instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
         } catch (JavaScriptProjectFetcherException e) {
@@ -292,10 +296,9 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchJavaScriptInvocationMethods_svnConnectorThrowsSvnException_throws() throws Exception {
+        doThrow(svnException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-         new Expectations(SvnConnector.class) { {
-                SvnConnector.export(anyString, revision, (Path) any); result = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
-        } };
         try {
             instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
         } catch (JavaScriptProjectFetcherException e) {
@@ -313,12 +316,11 @@ public class JavaScriptProjectFetcherImplTest {
         final String filename = new File(javaScriptFileName).getName();
         final List<String> expectedFunctionNames = new ArrayList<String>(Arrays.asList("funC", "funA", "funB"));
 
+        doNothing().when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
+        when(FileUtil.getReaderForFile(any(Path.class))).thenReturn(null);
+        when(JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(any(Reader.class), eq(filename))).thenReturn(expectedFunctionNames);
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        new Expectations(JavaScriptProjectFetcherImpl.class, SvnConnector.class, JavascriptUtil.class) { {
-                SvnConnector.export(projectUrl, revision, (Path) any);
-                invoke(JavaScriptProjectFetcherImpl.class, "getReaderForFile", withAny(Path.class));
-                JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction((Reader) any, filename); result = expectedFunctionNames;
-        } };
         final List<String> functionNames = instance.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
         assertThat(functionNames.size(), is(expectedFunctionNames.size()));
         // assert that returned list is sorted
@@ -377,10 +379,9 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchRequiredJavaScript_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
+        doThrow(uriSyntaxException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-         new Expectations(SvnConnector.class) { {
-                SvnConnector.export(anyString, revision, (Path) any); result = new URISyntaxException("input", "reason");
-        } };
         try {
             instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
         } catch (JavaScriptProjectFetcherException e) {
@@ -393,10 +394,9 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Test(expected = JavaScriptProjectFetcherException.class)
     public void fetchRequiredJavaScript_svnConnectorThrowsSvnException_throws() throws Exception {
+        doThrow(svnException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-         new Expectations(SvnConnector.class) { {
-                SvnConnector.export(anyString, revision, (Path) any); result = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
-        } };
         try {
             instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
         } catch (JavaScriptProjectFetcherException e) {
@@ -415,11 +415,10 @@ public class JavaScriptProjectFetcherImplTest {
         final String dependencyUrl = subversionScmEndpoint + JavaScriptProjectFetcherImpl.URL_DELIMITER
                 + "jscommon" + JavaScriptProjectFetcherImpl.URL_DELIMITER + JavaScriptProjectFetcherImpl.TRUNK_PATH;
 
+        doNothing().when(SvnConnector.class, "export", eq(projectUrl), eq(revision), any(Path.class));
+        doNothing().when(SvnConnector.class, "export", eq(dependencyUrl), eq(revision), any(Path.class));
+
         final JavaScriptProjectFetcherImpl instance = newInstance();
-        new Expectations(SvnConnector.class) { {
-                SvnConnector.export(projectUrl, revision, (Path) any);
-                SvnConnector.export(dependencyUrl, revision, (Path) any);
-        } };
         instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
         assertThat(new File(System.getProperty(JAVA_IO_TMPDIR)).list().length, is(0));
     }

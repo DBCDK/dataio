@@ -3,9 +3,9 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.javascript.JavascriptUtil;
 import dk.dbc.dataio.commons.javascript.SpecializedFileSchemeHandler;
 import dk.dbc.dataio.commons.svn.SvnConnector;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -17,12 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -315,7 +310,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         try {
             final List<String> functionNames = new ArrayList<String>(
                     JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(
-                            getReaderForFile(exportedFile), javaScriptFileName));
+                            FileUtil.getReaderForFile(exportedFile), javaScriptFileName));
             Collections.sort(functionNames);
             return functionNames;
         } catch (IOException e) {
@@ -324,9 +319,6 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         return Collections.emptyList();
     }
 
-    private static Reader getReaderForFile(Path file) throws FileNotFoundException, UnsupportedEncodingException {
-        return new InputStreamReader(new FileInputStream(file.toFile()), StandardCharsets.UTF_8);
-    }
 
     private static JavaScriptProjectFetcherError interpretSvnException(SVNException e) {
         final String message = e.getMessage();

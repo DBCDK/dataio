@@ -1,5 +1,6 @@
-package dk.dbc.dataio.engine;
+package dk.dbc.dataio.jobstore.recordsplitter;
 
+import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;

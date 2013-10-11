@@ -13,6 +13,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -61,7 +62,7 @@ public class FlowComponentCreationSeleniumIT {
         conn = ITUtil.newDbConnection();
         svnRepoUrl = ITUtil.doSvnCreateFsRepository(Paths.get(System.getProperty("svn.local.dir")));
         // Disabled until we can get the FSFS repository working...
-        // populateSvnRepository();
+        //populateSvnRepository();
     }
 
     @AfterClass
@@ -142,9 +143,8 @@ public class FlowComponentCreationSeleniumIT {
     public void testFlowComponentCreationValidSvnProjectNamePopulatesListBoxes() {
         navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
-        findComponentNameElement(driver).sendKeys("testComponent");
-
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
+        findComponentNameElement(driver).sendKeys("testComponent");
 
         final Select svnRevision = new Select(findComponentSvnRevisionElement(driver));
         assertThat(svnRevision.getOptions().size() > 0, is(true));
@@ -177,22 +177,11 @@ public class FlowComponentCreationSeleniumIT {
     public void testSaveButton_EmptyComponentNameInputField_DisplayErrorPopup() throws IOException {
         navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
         findComponentNameElement(driver).sendKeys("");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR));
-    }
-
-    @Ignore
-    @Test
-    public void testSaveButton_MissingSvnProjectName_DisplayErrorPopup() throws IOException {
-        navigateToFlowComponentCreationWidget(driver);
-        findComponentNameElement(driver).sendKeys("testComponent");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
-        findComponentSaveButtonElement(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is("Error: " + FlowComponentCreateViewImpl.FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR));
     }
 
     @Ignore
@@ -281,7 +270,9 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private void insertSvnProjectNameThatExistsInSvnRepository() {
-        findComponentSvnProjectElement(driver).sendKeys(SVN_PROJECT_NAME);
+        final WebElement element = findComponentSvnProjectElement(driver);
+        element.sendKeys(SVN_PROJECT_NAME);
+        element.sendKeys(Keys.TAB);
     }
 
     private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
@@ -325,7 +316,7 @@ public class FlowComponentCreationSeleniumIT {
 
         @Override
         public Boolean apply(WebDriver webDriver) {
-            return new Select(SeleniumUtil.findElementInCurrentView(webDriver, elementId)).getOptions().size() > 0;
+            return new Select(SeleniumUtil.findElementInCurrentView(webDriver, elementId, elementClass)).getOptions().size() > 0;
         }
     }
 

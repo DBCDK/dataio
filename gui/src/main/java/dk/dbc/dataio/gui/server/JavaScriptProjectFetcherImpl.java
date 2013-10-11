@@ -59,6 +59,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             throws NullPointerException, IllegalArgumentException {
         this.subversionScmEndpoint = removeTrailingDelimiter(InvariantUtil.checkNotNullNotEmptyOrThrow(subversionScmEndpoint, "subversionScmEndpoint"));
         this.dependencies = new ArrayList<String>(Arrays.asList("jscommon"));
+        log.info("Using SCM endpoint {}", subversionScmEndpoint);
     }
 
     /**

@@ -25,7 +25,9 @@ import java.io.File;
 import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EmbeddedEngineServlet extends HttpServlet {
 
@@ -50,10 +52,17 @@ public class EmbeddedEngineServlet extends HttpServlet {
         return HttpClient.newClient(clientConfig);
     }
 
-    private String executeJob(String dataPath, long flowId) throws Exception {
-        final JobSpecification jobSpecification = new JobSpecification("packaging", "format", "charset", "destination", 42L, dataPath, flowId);
+    private String executeJob(String dataPath, TransfileData transfileData, long flowId) throws Exception {
+        final JobSpecification jobSpecification = new JobSpecification(
+                transfileData.packaging,
+                transfileData.format,
+                transfileData.charset,
+                transfileData.destination,
+                transfileData.submitterId,
+                dataPath,
+                flowId);
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,
-                    ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
+                ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
 
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         if (status != Response.Status.CREATED) {
@@ -69,7 +78,9 @@ public class EmbeddedEngineServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
         File dataFile = null;
         long flowId = 0;
+        Map<String, String> transfileFieldsMap = new HashMap<String, String>();
 
+        log.info("TESTING");
         // process only multipart requests
         if (ServletFileUpload.isMultipartContent(req)) {
             // Create a factory for disk-based file items
@@ -86,11 +97,18 @@ public class EmbeddedEngineServlet extends HttpServlet {
                     } else if (EngineGUI.FORM_FIELD_FLOW_ID.equals(item.getFieldName())) {
                         flowId = Long.valueOf(item.getString("UTF-8"));
                         log.info("flow ID [{}]", flowId);
+                    } else {
+                        // transfiledata input fields:
+                        String fieldName = item.getFieldName();
+                        String itemString = item.getString("UTF-8");
+                        transfileFieldsMap.put(fieldName, itemString);
                     }
                     resp.flushBuffer();
                 }
+                TransfileData transfileData = new TransfileData(transfileFieldsMap);
+                log.info("transfile: \n{}", transfileData.toString());
 
-                final String sinkFileUrl = executeJob(dataFile.getAbsolutePath(), flowId);
+                final String sinkFileUrl = executeJob(dataFile.getAbsolutePath(), transfileData, flowId);
                 resp.setContentType("text/html");
                 resp.getWriter().write(String.format("<a href='%s'>link to sink file</a>", sinkFileUrl));
             } catch (Exception e) {
@@ -121,4 +139,45 @@ public class EmbeddedEngineServlet extends HttpServlet {
             uploadedFile.delete();
         }
     }
+
+    private class TransfileData {
+        public final Long submitterId;
+        public final String filename;
+        public final String format;
+        public final String packaging;
+        public final String charset;
+        public final String destination;
+        public final String verificationMail;
+        public final String processingMail;
+        public final String resultMailInitials;
+
+        public TransfileData(Map<String, String> fieldsAndValues) {
+            filename = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_FILENAME);
+            format = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_FORMAT);
+            packaging = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_PACKAGING);
+            charset = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_CHARSET);
+            destination = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_DESTINATION);
+            verificationMail = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_VERIFICATION_MAIL);
+            processingMail = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_PROCESSING_MAIL);
+            resultMailInitials = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_RESULT_MAIL_INITIALS);
+            submitterId = Long.valueOf(filename.substring(0, filename.indexOf(".")));
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("filename : " + filename + "\n");
+            sb.append("Sumbitter String: " + filename.substring(0, filename.indexOf(".")) + "\n");
+            sb.append("submitter : " + submitterId + "\n");
+            sb.append("format : " + format + "\n");
+            sb.append("packaging : " + packaging + "\n");
+            sb.append("charset : " + charset + "\n");
+            sb.append("destination : " + destination + "\n");
+            sb.append("verificationMail : " + verificationMail + "\n");
+            sb.append("processingMail : " + processingMail + "\n");
+            sb.append("resultMailInitials : " + resultMailInitials + "\n");
+            return sb.toString();
+        }
+    }
 }
+

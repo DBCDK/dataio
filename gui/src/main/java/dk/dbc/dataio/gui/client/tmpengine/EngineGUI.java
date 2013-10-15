@@ -14,8 +14,10 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 
@@ -23,13 +25,30 @@ import java.util.List;
 
 public class EngineGUI extends DockLayoutPanel {
 
-    FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
     public static final String FORM_FIELD_DATA_FILE = "dataFile";
     public static final String FORM_FIELD_FLOW_ID = "formfieldflowid";
+    FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
     private EngineFormPanel engineFormPanel = new EngineFormPanel();
     private FileNamePanel fileNamePanel = new FileNamePanel();
     private FlowPanel flowPanel = new FlowPanel();
     private RunFlowPanel runFlowPanel = new RunFlowPanel();
+    // transfiledata input information
+    public static final String FORM_FIELD_TRANSFILE_FILENAME = "filenametextentry";
+    public static final String FORM_FIELD_TRANSFILE_FORMAT = "formattextentry";
+    public static final String FORM_FIELD_TRANSFILE_PACKAGING = "packagingtextentry";
+    public static final String FORM_FIELD_TRANSFILE_CHARSET = "charsettextentry";
+    public static final String FORM_FIELD_TRANSFILE_DESTINATION = "destinationtextentry";
+    public static final String FORM_FIELD_TRANSFILE_VERIFICATION_MAIL = "verificationmailtextentry";
+    public static final String FORM_FIELD_TRANSFILE_PROCESSING_MAIL = "processingmailtextentry";
+    public static final String FORM_FIELD_TRANSFILE_RESULT_MAIL_INITIALS = "resultmailinitialstextentry";
+    private LocalTextEntry filenameTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_FILENAME, "[f] filename");
+    private LocalTextEntry formatTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_FORMAT, "[o] indholdsformat");
+    private LocalTextEntry packagingTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_PACKAGING, "[t] rammeformat");
+    private LocalTextEntry charsetTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_CHARSET, "[c] tegnsæt");
+    private LocalTextEntry destinationTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_DESTINATION, "[b] destination");
+    private LocalTextEntry verificationMailTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_VERIFICATION_MAIL, "[m] mailaddresse til endt verifikation af data");
+    private LocalTextEntry processingMailTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_PROCESSING_MAIL, "[M] mailaddresse til endt processering af data");
+    private LocalTextEntry resultMailInitialsTextEntry = new LocalTextEntry(FORM_FIELD_TRANSFILE_RESULT_MAIL_INITIALS, "[i] resultat mail identifikations initialer");
 
     public EngineGUI() {
         super(Style.Unit.PX);
@@ -39,8 +58,18 @@ public class EngineGUI extends DockLayoutPanel {
         VerticalPanel vpanel = new VerticalPanel();
         vpanel.add(fileNamePanel);
         vpanel.add(flowPanel);
+        // transfiledata input information: begin
+        vpanel.add(new Label("******** Transfile inputfields below are currently unused! ********"));
+        vpanel.add(filenameTextEntry);
+        vpanel.add(formatTextEntry);
+        vpanel.add(packagingTextEntry);
+        vpanel.add(charsetTextEntry);
+        vpanel.add(destinationTextEntry);
+        vpanel.add(verificationMailTextEntry);
+        vpanel.add(processingMailTextEntry);
+        vpanel.add(resultMailInitialsTextEntry);
+        // transfiledata input information: end
         vpanel.add(runFlowPanel);
-
 
         engineFormPanel.setWidget(vpanel);
 
@@ -153,6 +182,24 @@ public class EngineGUI extends DockLayoutPanel {
 
         public void setStatusText(String statusText) {
             runFlowResultLabel.setText(statusText);
+        }
+    }
+
+
+    // Trnasfiledata input field
+    private class LocalTextEntry extends HorizontalPanel {
+
+        private final Label label;
+        private final TextBox textBox;
+
+        public LocalTextEntry(String GUIID, String labelContent) {
+            super();
+            this.label = new Label(labelContent);
+
+            textBox = new TextBox();
+            textBox.setName(GUIID);
+            add(label);
+            add(textBox);
         }
     }
 }

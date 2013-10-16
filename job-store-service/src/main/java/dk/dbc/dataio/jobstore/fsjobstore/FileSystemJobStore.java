@@ -26,6 +26,7 @@ import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 
 public class FileSystemJobStore implements JobStore {
     static final String FLOW_FILE = "flow.json";
+    static final String JOBSPECIFICATION_FILE = "jobspec.json";
     static final String CHUNK_COUNTER_FILE = "chunk.cnt";
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
@@ -57,6 +58,7 @@ public class FileSystemJobStore implements JobStore {
         createDirectory(getChunksPath(jobId));
 
         storeFlowInJob(jobPath, flow);
+        storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
 
         return chunkify(new Job(jobId, dataObjectPath, flow));
@@ -69,6 +71,16 @@ public class FileSystemJobStore implements JobStore {
           bw.write(JsonUtil.toJson(flow));
         } catch (IOException | JsonException e) {
             throw new JobStoreException(String.format("Exception caught when trying to write Flow: %d", flow.getId()), e);
+        }
+    }
+
+    private void storeJobSpecificationInJob(Path jobPath, JobSpecification jobSpec) throws JobStoreException {
+        final Path jobSpecPath = Paths.get(jobPath.toString(), JOBSPECIFICATION_FILE);
+        LOGGER.info("Creating Flow json-file: {}", jobSpecPath);
+        try (BufferedWriter bw = Files.newBufferedWriter(jobSpecPath, LOCAL_CHARSET)) {
+          bw.write(JsonUtil.toJson(jobSpec));
+        } catch (IOException | JsonException e) {
+            throw new JobStoreException(String.format("Exception caught when trying to write JobSpecification: %s", jobSpecPath.toString()), e);
         }
     }
 

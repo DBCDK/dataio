@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.components;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,8 +9,8 @@ import java.util.Map.Entry;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -27,6 +28,13 @@ public class DualList extends HorizontalPanel {
     public static final String DUAL_LIST_LEFT_SELECTION_PANE_CLASS = "dual-list-left-selection-pane-class";
     public static final String DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS = "dual-list-selection-buttons-pane-class";
     public static final String DUAL_LIST_RIGHT_SELECTION_PANE_CLASS = "dual-list-right-selection-pane-class";
+    
+    public static final String MOVE_LEFT_BUTTON_IMAGE = GWT.getHostPageBaseURL() + "images/left.gif";
+    public static final String DISABLED_MOVE_LEFT_BUTTON_IMAGE = GWT.getHostPageBaseURL() + "images/disabledleft.gif";
+    public static final String MOVE_RIGHT_BUTTON_IMAGE = GWT.getHostPageBaseURL() + "images/right.gif";
+    public static final String DISABLED_MOVE_RIGHT_BUTTON_IMAGE = GWT.getHostPageBaseURL() + "images/disabledright.gif";
+
+    
     ChangeHandler callbackChangeHandler = null;
 
     private static class SimpleImmutableEntry<K, V> implements Entry<K, V>, java.io.Serializable {
@@ -82,8 +90,8 @@ public class DualList extends HorizontalPanel {
     
     ListBox right = new ListBox(true);
     ListBox left = new ListBox(true);
-    Button addItem = new Button(">");
-    Button removeItem = new Button("<");
+    Image addItem = new Image();
+    Image removeItem = new Image();
     VerticalPanel buttonPanel = new VerticalPanel();
 
     /**
@@ -104,6 +112,7 @@ public class DualList extends HorizontalPanel {
                 moveItems(right, left);
             }
         });
+        enableOrDisableButtons();  // Show correct bitmaps according to content of lists
         addItem.setStylePrimaryName(DUAL_LIST_ADDITEM_CLASS);
         buttonPanel.add(addItem);
         removeItem.setStylePrimaryName(DUAL_LIST_REMOVEITEM_CLASS);
@@ -159,8 +168,7 @@ public class DualList extends HorizontalPanel {
     public void clear() {
         left.clear();
         right.clear();
-        addItem.setEnabled(false);
-        removeItem.setEnabled(false);
+        enableOrDisableButtons();  // Show correct bitmaps according to content of lists
     }
 
     /**
@@ -168,7 +176,7 @@ public class DualList extends HorizontalPanel {
      */
     public void clearAvailableItems() {
         left.clear();
-        addItem.setEnabled(false);
+        enableOrDisableButtons();  // Show correct bitmaps according to content of lists
     }
 
     /**
@@ -210,12 +218,20 @@ public class DualList extends HorizontalPanel {
      */
     public void clearSelectedItems() {
         right.clear();
-        removeItem.setEnabled(false);
+        enableOrDisableButtons();
     }
 
     private void enableOrDisableButtons() {
-        removeItem.setEnabled(right.getItemCount() > 0);
-        addItem.setEnabled(left.getItemCount() > 0);
+        if (right.getItemCount() > 0) {
+            removeItem.setUrl(MOVE_LEFT_BUTTON_IMAGE);
+        } else {
+            removeItem.setUrl(DISABLED_MOVE_LEFT_BUTTON_IMAGE);
+        }
+        if (left.getItemCount() > 0) {
+            addItem.setUrl(MOVE_RIGHT_BUTTON_IMAGE);
+        } else {
+            addItem.setUrl(DISABLED_MOVE_RIGHT_BUTTON_IMAGE);
+        }
     }
 
     private void moveItem(int index, ListBox source, ListBox target) {

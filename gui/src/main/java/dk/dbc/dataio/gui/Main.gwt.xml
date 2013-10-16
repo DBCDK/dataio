@@ -12,6 +12,8 @@
     <!-- <inherits name="com.google.gwt.user.theme.chrome.Chrome"/> -->
     <!-- <inherits name="com.google.gwt.user.theme.dark.Dark"/> -->
 
+    <stylesheet src="dataio.css" />
+
     <inherits name="com.google.gwt.activity.Activity" />
     <inherits name="com.google.gwt.place.Place" />
 

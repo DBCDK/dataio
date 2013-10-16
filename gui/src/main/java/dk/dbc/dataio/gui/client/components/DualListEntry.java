@@ -9,14 +9,13 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 public class DualListEntry extends DataEntry {
-    public static final String DUAL_LIST_ENTRY_DUAL_LIST_CLASS = "dio-DualListEntry-DualList";
 
     private final DualList dualList = new DualList();
 
     
     public DualListEntry(String guiId, String prompt) {
         super(guiId, prompt);
-        setStylePrimaryName(DUAL_LIST_ENTRY_DUAL_LIST_CLASS);
+        dualList.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         setEnabled(false);  // When empty, disable dualList box
         add(dualList);
     }

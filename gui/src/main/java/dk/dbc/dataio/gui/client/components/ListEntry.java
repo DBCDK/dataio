@@ -10,14 +10,13 @@ import java.lang.String;
 
 
 public class ListEntry extends DataEntry {
-    public static final String LIST_ENTRY_LIST_BOX_CLASS = "dio-ListEntry-ListBox";
 
     private final ListBox listBox = new ListBox();
 
     
     public ListEntry(String guiId, String prompt) {
         super(guiId, prompt);
-        listBox.setStylePrimaryName(LIST_ENTRY_LIST_BOX_CLASS);
+        listBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         setEnabled(false);  // When empty, disable list box
         add(listBox);
     }

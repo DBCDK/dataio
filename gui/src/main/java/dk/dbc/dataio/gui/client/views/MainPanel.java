@@ -7,9 +7,10 @@ import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimpleLayoutPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
@@ -22,7 +23,7 @@ public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION = "navigationbuttonsubmittercreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION = "navigationbuttonflowbindercreation";
 
-    private static final String CONTEXT_HEADER = "DBC DATAINDSYSTEM";
+    private static final String CONTEXT_HEADER = "DBC Dataindsystem";
     private static final String GUIID_MAIN_PANEL_LAYOUT = "main-panel-layout";
 
     public final ContentPanel contentPanel = new ContentPanel("content-panel-layout");
@@ -34,8 +35,8 @@ public class MainPanel extends DockLayoutPanel {
     public MainPanel(ClientFactory clientFactory) {
         super(Style.Unit.PX);
         setStylePrimaryName(GUIID_MAIN_PANEL_LAYOUT);
-        addNorth(headerLabel, 40);
-        addWest(navigationPanel, 220);
+        addWest(navigationPanel, 250);
+        addNorth(headerLabel, 30);
         add(contentPanel);
         placeController = clientFactory.getPlaceController();
     }
@@ -65,9 +66,10 @@ public class MainPanel extends DockLayoutPanel {
         }
     }
 
-    private class NavigationPanel extends VerticalPanel {
+    private class NavigationPanel extends FlowPanel {
         public NavigationPanel(String styleName) {
             setStylePrimaryName(styleName);
+            add(new Image("images/dbclogo.gif"));
             add(new NavigationButton(0, FlowCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
             add(new NavigationButton(1, FlowComponentCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
             add(new NavigationButton(2, SubmitterCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
@@ -93,7 +95,7 @@ public class MainPanel extends DockLayoutPanel {
             }
             @Override
             public void onClick(ClickEvent event) {
-                headerLabel.setText(CONTEXT_HEADER + " > " + caption);
+                headerLabel.setText(CONTEXT_HEADER + " >> " + caption);
                 placeController.goTo(newPlace(subPanelIndex));
             }
         }

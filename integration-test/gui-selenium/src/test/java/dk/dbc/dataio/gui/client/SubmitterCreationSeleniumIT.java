@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.components.TextAreaEntry;
-import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -193,15 +192,15 @@ public class SubmitterCreationSeleniumIT {
     }
 
     private static WebElement findNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findNumberElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findDescriptionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, TextAreaEntry.TEXT_AREA_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSaveButton(WebDriver webDriver) {

@@ -6,7 +6,6 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.TextBox;
 
 public class TextEntry extends DataEntry {
-    public static final String TEXT_ENTRY_TEXT_BOX_CLASS = "dio-TextEntry-TextBoxClass";
 
     private final TextBox textBox = new TextBox();
 
@@ -18,7 +17,7 @@ public class TextEntry extends DataEntry {
     
     public TextEntry(String guiId, String prompt) {
         super(guiId, prompt);
-        textBox.setStylePrimaryName(TEXT_ENTRY_TEXT_BOX_CLASS);
+        textBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         add(textBox);
     }
     

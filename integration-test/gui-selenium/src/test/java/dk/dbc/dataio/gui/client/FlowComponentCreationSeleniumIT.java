@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.components.ListEntry;
-import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -143,7 +142,7 @@ public class FlowComponentCreationSeleniumIT {
     public void testFlowComponentCreationValidSvnProjectNamePopulatesListBoxes() {
         navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS, SVN_TIMEOUT);
         findComponentNameElement(driver).sendKeys("testComponent");
 
         final Select svnRevision = new Select(findComponentSvnRevisionElement(driver));
@@ -167,7 +166,7 @@ public class FlowComponentCreationSeleniumIT {
         navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement(driver).sendKeys("testComponent");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
         SeleniumUtil.waitAndAssert(driver, 10, findComponentSaveResultLabelElement(driver), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
@@ -177,7 +176,7 @@ public class FlowComponentCreationSeleniumIT {
     public void testSaveButton_EmptyComponentNameInputField_DisplayErrorPopup() throws IOException {
         navigateToFlowComponentCreationWidget(driver);
         insertSvnProjectNameThatExistsInSvnRepository();
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS, SVN_TIMEOUT);
         findComponentNameElement(driver).sendKeys("");
         findComponentSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
@@ -242,23 +241,23 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private static WebElement findComponentNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private WebElement findComponentSvnProjectElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, TextEntry.TEXT_ENTRY_TEXT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private WebElement findComponentSvnRevisionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private WebElement findComponentScriptNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private WebElement findComponentInvocationMethodElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private WebElement findComponentSaveButtonElement(WebDriver webDriver) {
@@ -278,7 +277,7 @@ public class FlowComponentCreationSeleniumIT {
     private void insertInputIntoInputElementsAndClickSaveButton() throws IOException {
         insertSvnProjectNameThatExistsInSvnRepository();
         findComponentNameElement(driver).sendKeys("testComponent");
-        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, ListEntry.LIST_ENTRY_LIST_BOX_CLASS, SVN_TIMEOUT);
+        waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
     }
 

@@ -6,7 +6,6 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.TextArea;
 
 public class TextAreaEntry extends DataEntry {
-    public static final String TEXT_AREA_ENTRY_TEXT_BOX_CLASS = "dio-TextAreaEntry-TextAreaClass";
     public static final int DEFAULT_CHARACTER_WIDTH = 40;
     public static final int DEFAULT_VISIBLE_LINES = 4;
     
@@ -22,7 +21,7 @@ public class TextAreaEntry extends DataEntry {
         super(guiId, prompt);
         setCharacterWidth(DEFAULT_CHARACTER_WIDTH);
         setVisibleLines(DEFAULT_VISIBLE_LINES);
-        textArea.setStylePrimaryName(TEXT_AREA_ENTRY_TEXT_BOX_CLASS);
+        textArea.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         add(textArea);
     }
     

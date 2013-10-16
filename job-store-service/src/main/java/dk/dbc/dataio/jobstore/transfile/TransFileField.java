@@ -41,33 +41,37 @@ public class TransFileField {
         checkValidFieldContentOrThrow(name, content);
     }
 
+    /**
+     * Getter: name The name of the TransFile Field
+     * @return 
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Getter: content The content of the TransFile Field
+     * @return 
+     */
     public String getContent() {
         return content;
     }
     
-    private void checkValidFieldIdentifierOrThrow(String fieldIdentifier) {
-        if (fieldIdentifier.length() != 1) {
-            throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' shall contain only one character");
-        }
-    }
-
-    private void checkValidEnumeratedFieldContentValueOrThrow(final List<String> validFieldContent, String fieldContent) {
-        if (!validFieldContent.contains(fieldContent)) {
-            throw new IllegalArgumentException("Field content: '" + fieldContent + "' is not valid in this context");
-        }
-    }
+    // Private methods
     
-    private void checkValidFieldContentOrThrow(String fieldIdentifier, String fieldContent) {
+    /**
+     * Checks if the fieldContent is valid. If not, an exception (IllegalArgumentException) is thrown.
+     * @param fieldIdentifier
+     * @param fieldContent
+     * @throws IllegalArgumentException 
+     */
+    private void checkValidFieldContentOrThrow(String fieldIdentifier, String fieldContent) throws IllegalArgumentException {
         switch (fieldIdentifier) {
             case "b":
                 checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_b_CONTENT_VALUES, fieldContent);
                 break;
             case "f":
-                // Not yet implemented
+                checkValidFileNameFieldOrThrow(fieldContent);
                 break;
             case "t":
                 checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_t_CONTENT_VALUES, fieldContent);
@@ -83,18 +87,68 @@ public class TransFileField {
                 checkValidEmailAddressOrThrow(fieldContent);
                 break;
             case "i":
-                // Not yet implemented
+                checkValidInitialsOrThrow(fieldContent);
                 break;
             default:
                 throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' is invalid");
         }
     }
     
-    private void checkValidEmailAddressOrThrow(String email) {
+    /**
+     * Checks if the format for the Field Identifier is valid
+     * @param fieldIdentifier
+     * @throws IllegalArgumentException 
+     */
+    private void checkValidFieldIdentifierOrThrow(String fieldIdentifier) throws IllegalArgumentException {
+        if (fieldIdentifier.length() != 1) {
+            throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' shall contain only one character");
+        }
+    }
+
+    /**
+     * Checks if the supplied fieldContent is in the valid range (given by the validFieldContent parameter)
+     * @param validFieldContent The valid range
+     * @param fieldContent
+     * @throws IllegalArgumentException 
+     */
+    private void checkValidEnumeratedFieldContentValueOrThrow(final List<String> validFieldContent, String fieldContent) throws IllegalArgumentException {
+        if (!validFieldContent.contains(fieldContent)) {
+            throw new IllegalArgumentException("Field content: '" + fieldContent + "' is not valid in this context");
+        }
+    }
+    
+    /**
+     * Checks if the supplied email address is legal. Throws an IllegalArgumentException if not
+     * @param email
+     * @throws IllegalArgumentException 
+     */
+    private void checkValidEmailAddressOrThrow(String email) throws IllegalArgumentException {
         try {
             new InternetAddress(email, true);
         } catch (AddressException ex) {
             throw new IllegalArgumentException("Field content: '" + email + "' is not a valid email address");
+        }
+    }
+
+    /**
+     * Checks if the supplied filename is a valid filename reference in the TransFile
+     * @param fieldContent
+     * @throws IllegalArgumentException 
+     */
+    private void checkValidFileNameFieldOrThrow(String fieldContent) throws IllegalArgumentException {
+        if (!fieldContent.matches("[0-9]{6}\\.[0-9a-zA-Z-_.]*")) {
+            throw new IllegalArgumentException("File name is not valid: '" + fieldContent + "'");
+        }
+    }
+
+    /**
+     * Checks if the supplied parameter is a valid Initials field
+     * @param fieldContent
+     * @throws IllegalArgumentException 
+     */
+    private void checkValidInitialsOrThrow(String fieldContent) throws IllegalArgumentException {
+        if (!fieldContent.matches("[0-9a-zA-Z]*")) {
+            throw new IllegalArgumentException("File name is not valid: '" + fieldContent + "'");
         }
     }
     

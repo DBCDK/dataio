@@ -76,31 +76,26 @@ public class TransFileTest {
 
     // Field: f
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void fFieldEqualsXxx_generateException () {
         TransFileField field = new TransFileField("f=xxx");
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void fFieldLibraryNumberNotNumeric_generateException () {
         TransFileField field = new TransFileField("f=12345V.1234567890.file-name_X.001.xml");
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void fFieldTooShortLibraryNumber_generateException () {
         TransFileField field = new TransFileField("f=12345.1234567890.file-name_X.001.xml");
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void fFieldTooLongLibraryNumber_generateException () {
         TransFileField field = new TransFileField("f=1234567.1234567890.file-name_X.001.xml");
     }
 
-    @Ignore
     @Test
     public void fFieldValidLibraryNumber_validTransFileField () {
         TransFileField field = new TransFileField("f=123456.1234567890.file-name_X.001.xml");
@@ -108,7 +103,6 @@ public class TransFileTest {
         assertThat(field.getContent(), is("123456.1234567890.file-name_X.001.xml"));
     }
 
-    @Ignore
     @Test
     public void fFieldValidLibraryNumberButEmptyRemainder_validTransFileField () {
         TransFileField field = new TransFileField("f=123456.");
@@ -116,13 +110,11 @@ public class TransFileTest {
         assertThat(field.getContent(), is("123456."));
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void fFieldInvalidCharsInFileName_generateException () {
         TransFileField field = new TransFileField("f=123456.1234567890.file-name_X:4.001.xml");
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void fFieldDanishCharsInFileName_generateException () {
         TransFileField field = new TransFileField("f=123456.1234567890.file-næme_X.001.xml");
@@ -286,37 +278,26 @@ public class TransFileTest {
 
     // Field: i
     
-    @Ignore
-    @Test (expected = IllegalArgumentException.class)
-    public void iFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("i=xxx");
-    }
-
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsDanishChars_generateException () {
         TransFileField field = new TransFileField("i=Æble");
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsColon_generateException () {
         TransFileField field = new TransFileField("i=Apple:Banana");
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsDash_generateException () {
         TransFileField field = new TransFileField("i=Apple-Banana");
     }
 
-    @Ignore
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsUnderscore_generateException () {
         TransFileField field = new TransFileField("i=Apple_Banana");
     }
 
-    @Ignore
     @Test
     public void iFieldValidInitials_validTransFileField () {
         TransFileField field = new TransFileField("i=AppleBanana");

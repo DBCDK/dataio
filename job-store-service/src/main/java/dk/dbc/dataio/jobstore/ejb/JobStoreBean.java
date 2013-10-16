@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.jobstore.types.Chunk;
@@ -38,8 +39,8 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException {
-        return jobStore.createJob(dataObjectPath, flow);
+    public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
+        return jobStore.createJob(jobSpec, flow);
     }
 
     @Override

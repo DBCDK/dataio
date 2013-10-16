@@ -6,11 +6,11 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 
-import java.nio.file.Path;
 
 public interface JobStore {
-    Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException;
+    Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException;
 
     long getNumberOfChunksInJob(Job job) throws JobStoreException;
 

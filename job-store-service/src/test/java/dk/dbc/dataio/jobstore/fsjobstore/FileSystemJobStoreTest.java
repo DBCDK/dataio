@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -61,14 +62,16 @@ public class FileSystemJobStoreTest {
     public void createJob_flowArgisNull_throws() throws Exception {
         final File dataFile = tmpFolder.newFile();
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
-        instance.createJob(dataFile.toPath(), null);
+        JobSpecification jobSpec = createJobSpecfication(dataFile.toPath());
+        instance.createJob(jobSpec, null);
     }
 
     @Test
     public void createJob_newJobIsCreated_jobFolderIsAddedToJobStore() throws Exception {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
-        final Job job = instance.createJob(getDataFile(), FLOW);
+        final JobSpecification jobSpec = createJobSpecfication(getDataFile());
+        final Job job = instance.createJob(jobSpec, FLOW);
         assertThat(job, is(notNullValue()));
         assertTrue(Files.exists(Paths.get(jobStorePath.toString(), Long.toString(job.getId()))));
     }
@@ -77,7 +80,8 @@ public class FileSystemJobStoreTest {
     public void createJob_newJobIsCreated_flowFileIsAddedToJobFolder() throws Exception {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
-        final Job job = instance.createJob(getDataFile(), FLOW);
+        final JobSpecification jobSpec = createJobSpecfication(getDataFile());
+        final Job job = instance.createJob(jobSpec, FLOW);
         assertThat(job, is(notNullValue()));
         final Path flowFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.FLOW_FILE);
         assertTrue(Files.exists(flowFile));
@@ -88,7 +92,8 @@ public class FileSystemJobStoreTest {
     public void createJob_newJobIsCreated_chunkCounterFileIsAddedToJobFolder() throws Exception {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
-        final Job job = instance.createJob(getDataFile(), FLOW);
+        final JobSpecification jobSpec = createJobSpecfication(getDataFile());
+        final Job job = instance.createJob(jobSpec, FLOW);
         assertThat(job, is(notNullValue()));
         final Path chunkCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.CHUNK_COUNTER_FILE);
         assertTrue(Files.exists(chunkCounterFile));
@@ -109,5 +114,9 @@ public class FileSystemJobStoreTest {
         final Path dataFile = tmpFolder.newFile().toPath();
         Files.write(dataFile, "<data><record>Content</record></data>".getBytes());
         return dataFile;
+    }
+
+    private JobSpecification createJobSpecfication(Path p) {
+        return new JobSpecification("packaging", "format", "charset", "destination", 42L, p.toString(), 0L);
     }
 }

@@ -18,6 +18,9 @@ public class JobSpecification implements Serializable {
     private /* final */ String charset;
     private /* final */ String destination;
     private /* final */ long submitterId;
+    private /* final */ String mailForNotificationAboutVerification;
+    private /* final */ String mailForNotificationAboutProcessing;
+    private /* final */ String resultmailInitials;
     // Due to GWT serialization issues we cannot use java.net.URI or java.net.URL
     private /* final */ String dataFile;
 

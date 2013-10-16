@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -136,7 +137,7 @@ public class JobsBeanTest {
 
         when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
-        when(jobHandler.createJob(any(Path.class), any(Flow.class)))
+        when(jobHandler.createJob(any(JobSpecification.class), any(Flow.class)))
                 .thenThrow(new JobStoreException("die"));
 
         final JobsBean jobsBean = new JobsBean();
@@ -157,7 +158,7 @@ public class JobsBeanTest {
 
         when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
-        when(jobHandler.createJob(any(Path.class), any(Flow.class)))
+        when(jobHandler.createJob(any(JobSpecification.class), any(Flow.class)))
                 .thenReturn(job);
 
         final JobsBean jobsBean = new JobsBean();

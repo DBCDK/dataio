@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.JobStore;
@@ -46,12 +47,14 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException {
+    public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
+        Path dataObjectPath = Paths.get(jobSpec.getDataFile());
         final long jobId = System.currentTimeMillis();
         final Path jobPath = getJobPath(jobId);
 
         LOGGER.info("Creating job in {}", jobPath);
-        createDirectory(Paths.get(storePath.toString(), Long.toString(jobId)));
+        createDirectory(getJobPath(jobId));
+        createDirectory(getChunksPath(jobId));
 
         storeFlowInJob(jobPath, flow);
         createJobChunkCounterFile(jobId);
@@ -81,6 +84,7 @@ public class FileSystemJobStore implements JobStore {
 
     private void createDirectory(Path dir) throws JobStoreException {
         try {
+            LOGGER.info("Creating directory: {}", dir.toString());
             Files.createDirectory(dir);
         } catch (IOException e) {
             throw new JobStoreException(String.format("Unable to create directory: %s", dir), e);
@@ -89,6 +93,10 @@ public class FileSystemJobStore implements JobStore {
 
     private Path getJobPath(long jobId) {
         return Paths.get(storePath.toString(), Long.toString(jobId));
+    }
+
+    private Path getChunksPath(long jobId) {
+        return Paths.get(storePath.toString(), Long.toString(jobId), "chunks");
     }
 
     public static FileSystemJobStore newFileSystemJobStore(Path storePath) throws JobStoreException {

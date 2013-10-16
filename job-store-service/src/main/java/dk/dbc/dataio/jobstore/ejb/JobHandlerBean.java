@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.processor.ChunkProcessor;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
@@ -31,8 +32,8 @@ public class JobHandlerBean {
     @EJB
     JobStoreBean jobStore;
 
-    public Job createJob(Path dataObjectPath, Flow flow) throws JobStoreException {
-        return processJob(jobStore.createJob(dataObjectPath, flow));
+    public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
+        return processJob(jobStore.createJob(jobSpec, flow));
     }
 
     private Job processJob(Job job) throws JobStoreException {

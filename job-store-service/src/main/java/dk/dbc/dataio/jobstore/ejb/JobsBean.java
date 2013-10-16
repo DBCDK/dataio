@@ -75,7 +75,7 @@ public class JobsBean {
         final Flow flow = lookupFlowInFlowStore(jobSpec.getFlowId());
         final JobInfo jobInfo;
         try {
-            final Job job = jobHandler.createJob(Paths.get(jobSpec.getDataFile()), flow);
+            final Job job = jobHandler.createJob(jobSpec, flow);
             final String sinkFile = jobHandler.sendToSink(job);
             jobInfo = new JobInfo(job.getId(), jobSpec, new Date(), JobState.COMPLETED, sinkFile);
         } catch (JobStoreException e) {

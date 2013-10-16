@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.ejb;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
+import java.io.File;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -41,7 +43,8 @@ public class JobStoreBeanTest {
         String someXML = "<data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
 
-        Job job = jsb.createJob(f, createDefaultFlow());
+        JobSpecification jobSpec = createJobSpecification(f);
+        Job job = jsb.createJob(jobSpec, createDefaultFlow());
         assertThat(jsb.getNumberOfChunksInJob(job), is(1L));
         Chunk chunk = jsb.getChunk(job, 1);
         assertThat(chunk.getRecords().size(), is(1));
@@ -60,7 +63,8 @@ public class JobStoreBeanTest {
         String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
 
-        Job job = jsb.createJob(f, createDefaultFlow());
+        JobSpecification jobSpec = createJobSpecification(f);
+        Job job = jsb.createJob(jobSpec, createDefaultFlow());
         jsb.getChunk(job, jsb.getNumberOfChunksInJob(job) + 1);
     }
 
@@ -70,7 +74,8 @@ public class JobStoreBeanTest {
         String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        jsb.createJob(f, createDefaultFlow());
+        JobSpecification jobSpec = createJobSpecification(f);
+        jsb.createJob(jobSpec, createDefaultFlow());
     }
 
     @Test(expected = IllegalDataException.class)
@@ -79,7 +84,8 @@ public class JobStoreBeanTest {
         String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</data>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        jsb.createJob(f, createDefaultFlow());
+        JobSpecification jobSpec = createJobSpecification(f);
+        jsb.createJob(jobSpec, createDefaultFlow());
     }
 
     @Test(expected = IllegalDataException.class)
@@ -88,7 +94,8 @@ public class JobStoreBeanTest {
         String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        jsb.createJob(f, createDefaultFlow());
+        JobSpecification jobSpec = createJobSpecification(f);
+        jsb.createJob(jobSpec, createDefaultFlow());
     }
 
     @Test(expected = IllegalDataException.class)
@@ -97,7 +104,8 @@ public class JobStoreBeanTest {
         String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></wrong>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        jsb.createJob(f, createDefaultFlow());
+        JobSpecification jobSpec = createJobSpecification(f);
+        jsb.createJob(jobSpec, createDefaultFlow());
     }
 
     /*
@@ -105,6 +113,10 @@ public class JobStoreBeanTest {
      */
     private Flow createDefaultFlow() {
         return new Flow(1, 1, new FlowContent("name", "description", new ArrayList<FlowComponent>()));
+    }
+
+    private JobSpecification createJobSpecification(Path f) {
+        return new JobSpecification("packaging", "format", "charset", "destination", 42L, f.toString(), 0L);
     }
 
 }

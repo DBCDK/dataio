@@ -40,19 +40,27 @@ public class JobSpecification implements Serializable {
      * @param charset job character set
      * @param destination job destination
      * @param submitterId id of job submitter (> 0)
+     * @param mailForNotificationAboutVerification mail address for notification about the verification step.
+     * @param mailForNotificationAboutProcessing mail address for notification about the processing step.
+     * @param resultmailInitials According to transfile spec: "Initialer til identifikation af resultatmail fra DanBib".
      * @param dataFile job data file
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String argument
      * or if value of submitterId is <= 0
      */
-    public JobSpecification(String packaging, String format, String charset, String destination, long submitterId, String dataFile, long flowId)
+    public JobSpecification(String packaging, String format, String charset, String destination, long submitterId,
+            String mailForNotificationAboutVerification, String mailForNotificationAboutProcessing, String resultmailInitials,
+            String dataFile, long flowId)
             throws NullPointerException, IllegalArgumentException {
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
         this.submitterId = InvariantUtil.checkAboveThresholdOrThrow(submitterId, "submitterId", Submitter.ID_VERSION_LOWER_THRESHOLD);
+        this.mailForNotificationAboutVerification = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutVerification, "mailForNotificationAboutVerification");
+        this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");
+        this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");
         this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
 
         this.flowId = flowId;
@@ -84,5 +92,17 @@ public class JobSpecification implements Serializable {
 
     public long getFlowId() {
         return flowId;
+    }
+
+    public String getMailForNotificationAboutVerification() {
+        return mailForNotificationAboutVerification;
+    }
+
+    public String getMailForNotificationAboutProcessing() {
+        return mailForNotificationAboutProcessing;
+    }
+
+    public String getResultmailInitials() {
+        return resultmailInitials;
     }
 }

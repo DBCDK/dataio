@@ -116,7 +116,7 @@ public class JobStoreBeanTest {
     }
 
     private JobSpecification createJobSpecification(Path f) {
-        return new JobSpecification("packaging", "format", "charset", "destination", 42L, f.toString(), 0L);
+        return new JobSpecification("packaging", "format", "charset", "destination", 42L, "verify@dbc.dk", "processing@dbc.dk", "abc", f.toString(), 0L);
     }
 
 }

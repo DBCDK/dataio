@@ -59,6 +59,9 @@ public class EmbeddedEngineServlet extends HttpServlet {
                 transfileData.charset,
                 transfileData.destination,
                 transfileData.submitterId,
+                transfileData.verificationMail,
+                transfileData.processingMail,
+                transfileData.resultMailInitials,
                 dataPath,
                 flowId);
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,

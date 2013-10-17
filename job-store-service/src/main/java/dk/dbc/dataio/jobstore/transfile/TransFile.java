@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.transfile;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -23,7 +24,7 @@ public class TransFile {
     /**
      * TransFile constructor
      */
-    private TransFile(FileInputStream inputStream) {}  // The constructor is private to make the class static
+    private TransFile() {}  // The constructor is private to make the class static
     
     /**
      * Processes all lines in a TransFile input stream
@@ -33,7 +34,7 @@ public class TransFile {
      * @throws UnexpectedEndOfFileException
      * @throws IllegalArgumentException 
      */
-    public static List<TransFileData> process(FileInputStream inputStream) throws UnexpectedEndOfFileException, IllegalArgumentException {
+    public static List<TransFileData> process(InputStream inputStream) throws UnexpectedEndOfFileException, IllegalArgumentException {
         List<TransFileData> transFile = new ArrayList<>();
         Scanner fileScanner = new Scanner(inputStream, ENCODING);
 
@@ -46,13 +47,4 @@ public class TransFile {
         throw new UnexpectedEndOfFileException();
     }
     
-    /**
-     * Main program for test purpose 
-     * 
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) throws FileNotFoundException {
-        List<TransFileData> data = process(new FileInputStream("/Users/slf/projects/dio/job-store-service/src/main/java/dk/dbc/dataio/jobstore/transfile/150014.albums.alt-godt.trans"));
-    }
-
 }

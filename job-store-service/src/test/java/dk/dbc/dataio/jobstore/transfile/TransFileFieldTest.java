@@ -1,15 +1,15 @@
 package dk.dbc.dataio.jobstore.transfile;
 
+import dk.dbc.dataio.jobstore.transfile.TransFileField.TransFileFieldId;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.is;
-import org.junit.Ignore;
 
 /**
  *
  * @author slf
  */
-public class TransFileTest {
+public class TransFileFieldTest {
     
     // Illegal input values
     
@@ -69,7 +69,7 @@ public class TransFileTest {
     @Test
     public void bFieldEqualsDatabroendpr2_validTransFileField () {
         TransFileField field = new TransFileField("b=databroendpr2");
-        assertThat(field.getName(), is("b"));
+        assertThat(field.getKey(), is(TransFileFieldId.BASE_NAME));
         assertThat(field.getContent(), is("databroendpr2"));
     }
 
@@ -99,14 +99,14 @@ public class TransFileTest {
     @Test
     public void fFieldValidLibraryNumber_validTransFileField () {
         TransFileField field = new TransFileField("f=123456.1234567890.file-name_X.001.xml");
-        assertThat(field.getName(), is("f"));
+        assertThat(field.getKey(), is(TransFileFieldId.FILE_NAME));
         assertThat(field.getContent(), is("123456.1234567890.file-name_X.001.xml"));
     }
 
     @Test
     public void fFieldValidLibraryNumberButEmptyRemainder_validTransFileField () {
         TransFileField field = new TransFileField("f=123456.");
-        assertThat(field.getName(), is("f"));
+        assertThat(field.getKey(), is(TransFileFieldId.FILE_NAME));
         assertThat(field.getContent(), is("123456."));
     }
 
@@ -136,7 +136,7 @@ public class TransFileTest {
     @Test
     public void tFieldEqualsXml_validTransFileField () {
         TransFileField field = new TransFileField("t=xml");
-        assertThat(field.getName(), is("t"));
+        assertThat(field.getKey(), is(TransFileFieldId.TECHNICAL_PROTOCOL));
         assertThat(field.getContent(), is("xml"));
     }
 
@@ -156,14 +156,14 @@ public class TransFileTest {
     @Test
     public void oFieldEqualsNmalbum_validTransFileField () {
         TransFileField field = new TransFileField("o=nmalbum");
-        assertThat(field.getName(), is("o"));
+        assertThat(field.getKey(), is(TransFileFieldId.LIBRARY_FORMAT));
         assertThat(field.getContent(), is("nmalbum"));
     }
 
     @Test
     public void oFieldEqualsNmtrack_validTransFileField () {
         TransFileField field = new TransFileField("o=nmtrack");
-        assertThat(field.getName(), is("o"));
+        assertThat(field.getKey(), is(TransFileFieldId.LIBRARY_FORMAT));
         assertThat(field.getContent(), is("nmtrack"));
     }
 
@@ -183,7 +183,7 @@ public class TransFileTest {
     @Test
     public void cFieldEqualsUtf8_validTransFileField () {
         TransFileField field = new TransFileField("c=utf8");
-        assertThat(field.getName(), is("c"));
+        assertThat(field.getKey(), is(TransFileFieldId.CHARACTER_SET));
         assertThat(field.getContent(), is("utf8"));
     }
 
@@ -213,21 +213,21 @@ public class TransFileTest {
     @Test
     public void mFieldEmailAddressOnlyWithToplevelDomain_validTransFileField () {
         TransFileField field = new TransFileField("m=mail@com");
-        assertThat(field.getName(), is("m"));
+        assertThat(field.getKey(), is(TransFileFieldId.PRIMARY_EMAIL_ADDRESS));
         assertThat(field.getContent(), is("mail@com"));
     }
 
     @Test
     public void mFieldValidEmail_validTransFileField () {
         TransFileField field = new TransFileField("m=mail@dbc.dk");
-        assertThat(field.getName(), is("m"));
+        assertThat(field.getKey(), is(TransFileFieldId.PRIMARY_EMAIL_ADDRESS));
         assertThat(field.getContent(), is("mail@dbc.dk"));
     }
 
     @Test
     public void mFieldValidComplexEmail_validTransFileField () {
         TransFileField field = new TransFileField("m=e_mail.box@d-b-c.3.dk");
-        assertThat(field.getName(), is("m"));
+        assertThat(field.getKey(), is(TransFileFieldId.PRIMARY_EMAIL_ADDRESS));
         assertThat(field.getContent(), is("e_mail.box@d-b-c.3.dk"));
     }
     
@@ -257,21 +257,21 @@ public class TransFileTest {
     @Test
     public void MFieldEmailAddressOnlyWithToplevelDomain_validTransFileField () {
         TransFileField field = new TransFileField("M=mail@com");
-        assertThat(field.getName(), is("M"));
+        assertThat(field.getKey(), is(TransFileFieldId.SECONDARY_EMAIL_ADDRESS));
         assertThat(field.getContent(), is("mail@com"));
     }
 
     @Test
     public void MFieldValidEmail_validTransFileField () {
         TransFileField field = new TransFileField("M=mail@dbc.dk");
-        assertThat(field.getName(), is("M"));
+        assertThat(field.getKey(), is(TransFileFieldId.SECONDARY_EMAIL_ADDRESS));
         assertThat(field.getContent(), is("mail@dbc.dk"));
     }
 
     @Test
     public void MFieldValidComplexEmail_validTransFileField () {
         TransFileField field = new TransFileField("M=e_mail.box@d-b-c.3.dk");
-        assertThat(field.getName(), is("M"));
+        assertThat(field.getKey(), is(TransFileFieldId.SECONDARY_EMAIL_ADDRESS));
         assertThat(field.getContent(), is("e_mail.box@d-b-c.3.dk"));
     }
     
@@ -301,7 +301,7 @@ public class TransFileTest {
     @Test
     public void iFieldValidInitials_validTransFileField () {
         TransFileField field = new TransFileField("i=AppleBanana");
-        assertThat(field.getName(), is("i"));
+        assertThat(field.getKey(), is(TransFileFieldId.INITIALS));
         assertThat(field.getContent(), is("AppleBanana"));
     }
     

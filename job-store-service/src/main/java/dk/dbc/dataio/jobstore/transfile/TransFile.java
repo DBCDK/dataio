@@ -3,11 +3,11 @@ package dk.dbc.dataio.jobstore.transfile;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 
-//public class TransFileException extends Exception {}
 
 /**
  *
@@ -15,64 +15,44 @@ import java.util.Scanner;
  */
 public class TransFile {
     private static final String ENCODING = "UTF-8";
+    public static class UnexpectedEndOfFileException extends RuntimeException {}
+
 //    private static final Logger log = LoggerFactory.getLogger(TransFile.class);
 
-    private final InputStream inputStream;
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) throws FileNotFoundException {
-        TransFile parser = new TransFile(new FileInputStream("/Users/slf/projects/dio/job-store-service/src/main/java/dk/dbc/dataio/jobstore/transfile/150014.albums.alt-godt.trans"));
-        parser.processLineByLine();
-//        log.info("Done.");
-    }
 
     /**
      * TransFile constructor
      */
-    private TransFile(FileInputStream inputStream) {
-        this.inputStream = inputStream;
-    }
+    private TransFile(FileInputStream inputStream) {}  // The constructor is private to make the class static
     
     /**
-     * Processes all lines in the input stream
+     * Processes all lines in a TransFile input stream
+     * 
+     * @param inputStream
+     * @return
+     * @throws UnexpectedEndOfFileException
+     * @throws IllegalArgumentException 
      */
-    public void processLineByLine() {
-        Scanner fileScanner =  new Scanner(inputStream, ENCODING);
+    public static List<TransFileData> process(FileInputStream inputStream) throws UnexpectedEndOfFileException, IllegalArgumentException {
+        List<TransFileData> transFile = new ArrayList<>();
+        Scanner fileScanner = new Scanner(inputStream, ENCODING);
+
         while (fileScanner.hasNextLine()) {
             if (fileScanner.hasNext("slut")) {
-                System.out.println("Slut blev fundet");
-                break;
+                return transFile;
             }
-            processLine(fileScanner.nextLine());
-        }      
-//        throw new 
+            transFile.add(new TransFileData(fileScanner.nextLine()));
+        }
+        throw new UnexpectedEndOfFileException();
     }
     
     /**
-     * Processes one line in the Transfile
-     * @param line The text to process
+     * Main program for test purpose 
+     * 
+     * @param args the command line arguments
      */
-    public void processLine(String line) {
-        System.out.println("Line: " + line);
-        Scanner lineScanner =  new Scanner(line);
-        lineScanner.useDelimiter(",");
-        while (lineScanner.hasNext()){
-            processTransField(lineScanner.next());
-        }      
+    public static void main(String[] args) throws FileNotFoundException {
+        List<TransFileData> data = process(new FileInputStream("/Users/slf/projects/dio/job-store-service/src/main/java/dk/dbc/dataio/jobstore/transfile/150014.albums.alt-godt.trans"));
     }
 
-    /**
-     * Processes a TransFile pair in the form: X=value, where X is a 
-     * @param field 
-     */
-    private void processTransField(String field) {
-        System.out.println(" Field: " + field);
-        Scanner fieldScanner =  new Scanner(field);
-        fieldScanner.useDelimiter("=");
-//        while (fieldScanner.hasNext()){
-//            processTransPair(pairScanner.next());
-//        }      
-    }
 }

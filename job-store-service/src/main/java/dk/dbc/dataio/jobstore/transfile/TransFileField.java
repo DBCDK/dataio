@@ -2,23 +2,39 @@ package dk.dbc.dataio.jobstore.transfile;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+
+
 
 /**
  * 
  * @author slf
  */
 public class TransFileField {
+    
+    public enum TransFileFieldId { BASE_NAME, FILE_NAME, TECHNICAL_PROTOCOL, CHARACTER_SET, LIBRARY_FORMAT, PRIMARY_EMAIL_ADDRESS, SECONDARY_EMAIL_ADDRESS, INITIALS }
+
+    private final static Map<String, TransFileFieldId> idMap = new HashMap<>();
+    static {
+        idMap.put ("b", TransFileFieldId.BASE_NAME);
+        idMap.put ("f", TransFileFieldId.FILE_NAME);
+        idMap.put ("t", TransFileFieldId.TECHNICAL_PROTOCOL);
+        idMap.put ("c", TransFileFieldId.CHARACTER_SET);
+        idMap.put ("o", TransFileFieldId.LIBRARY_FORMAT);
+        idMap.put ("m", TransFileFieldId.PRIMARY_EMAIL_ADDRESS);
+        idMap.put ("M", TransFileFieldId.SECONDARY_EMAIL_ADDRESS);
+        idMap.put ("i", TransFileFieldId.INITIALS);
+    }
     private final static List<String> VALID_TRANSFILE_b_CONTENT_VALUES = Arrays.asList("databroendpr2");
     private final static List<String> VALID_TRANSFILE_t_CONTENT_VALUES = Arrays.asList("xml");
     private final static List<String> VALID_TRANSFILE_o_CONTENT_VALUES = Arrays.asList("nmalbum", "nmtrack");
     private final static List<String> VALID_TRANSFILE_c_CONTENT_VALUES = Arrays.asList("utf8");
 
-    private final String name;
+    private final TransFileFieldId key;
     private final String content;
 
     /**
@@ -35,18 +51,19 @@ public class TransFileField {
             throw new IllegalArgumentException("Field does not contain a Field seperator: '='");
         }
         String parts[] = field.split("=", 2);
-        name = parts[0];
-        checkValidFieldIdentifierOrThrow(name);
+        String id = parts[0];
+        checkValidFieldIdentifierOrThrow(id);
+        key = idMap.get(id);
         content = parts[1];
-        checkValidFieldContentOrThrow(name, content);
+        checkValidFieldContentOrThrow(key, content);
     }
 
     /**
      * Getter: name The name of the TransFile Field
      * @return 
      */
-    public String getName() {
-        return name;
+    public TransFileFieldId getKey() {
+        return key;
     }
 
     /**
@@ -60,41 +77,6 @@ public class TransFileField {
     // Private methods
     
     /**
-     * Checks if the fieldContent is valid. If not, an exception (IllegalArgumentException) is thrown.
-     * @param fieldIdentifier
-     * @param fieldContent
-     * @throws IllegalArgumentException 
-     */
-    private void checkValidFieldContentOrThrow(String fieldIdentifier, String fieldContent) throws IllegalArgumentException {
-        switch (fieldIdentifier) {
-            case "b":
-                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_b_CONTENT_VALUES, fieldContent);
-                break;
-            case "f":
-                checkValidFileNameFieldOrThrow(fieldContent);
-                break;
-            case "t":
-                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_t_CONTENT_VALUES, fieldContent);
-                break;
-            case "c":
-                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_c_CONTENT_VALUES, fieldContent);
-                break;
-            case "o":
-                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_o_CONTENT_VALUES, fieldContent);
-                break;
-            case "m":
-            case "M":
-                checkValidEmailAddressOrThrow(fieldContent);
-                break;
-            case "i":
-                checkValidInitialsOrThrow(fieldContent);
-                break;
-            default:
-                throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' is invalid");
-        }
-    }
-    
-    /**
      * Checks if the format for the Field Identifier is valid
      * @param fieldIdentifier
      * @throws IllegalArgumentException 
@@ -103,8 +85,47 @@ public class TransFileField {
         if (fieldIdentifier.length() != 1) {
             throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' shall contain only one character");
         }
+        if (!idMap.containsKey(fieldIdentifier)) {
+            throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' is invalid");
+        }
     }
 
+    /**
+     * Checks if the fieldContent is valid. If not, an exception (IllegalArgumentException) is thrown.
+     * @param fieldIdentifier
+     * @param fieldContent
+     * @throws IllegalArgumentException 
+     */
+    private void checkValidFieldContentOrThrow(TransFileFieldId fieldIdentifier, String fieldContent) throws IllegalArgumentException {
+        switch (fieldIdentifier) {
+            case BASE_NAME:
+                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_b_CONTENT_VALUES, fieldContent);
+                break;
+            case FILE_NAME:
+                checkValidFileNameFieldOrThrow(fieldContent);
+                break;
+            case TECHNICAL_PROTOCOL:
+                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_t_CONTENT_VALUES, fieldContent);
+                break;
+            case CHARACTER_SET:
+                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_c_CONTENT_VALUES, fieldContent);
+                break;
+            case LIBRARY_FORMAT:
+                checkValidEnumeratedFieldContentValueOrThrow(VALID_TRANSFILE_o_CONTENT_VALUES, fieldContent);
+                break;
+            case PRIMARY_EMAIL_ADDRESS:
+            case SECONDARY_EMAIL_ADDRESS:
+                checkValidEmailAddressOrThrow(fieldContent);
+                break;
+            case INITIALS:
+                checkValidInitialsOrThrow(fieldContent);
+                break;
+            default:
+                // Unreachable statement... fieldIdentifier has been validated already
+                assert(false);
+        }
+    }
+    
     /**
      * Checks if the supplied fieldContent is in the valid range (given by the validFieldContent parameter)
      * @param validFieldContent The valid range

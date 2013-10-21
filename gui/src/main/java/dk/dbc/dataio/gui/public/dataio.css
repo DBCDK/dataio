@@ -11,7 +11,7 @@
 
 .navigation-panel-layout {
     background-color: #f2f0ec;
-    background-image: url('/images/navigationbg.gif');
+    background-image: url('/dataio/gui/images/navigationbg.gif');
     background-repeat: repeat-y;
     background-position: right;
 }
@@ -44,7 +44,7 @@
 }
 
 .dio-DualList select {
-    xwidth: 12em;
+/*    width: 12em;*/
 }
 
 .dual-list-removeitem-class, .dual-list-additem-class {

@@ -3,8 +3,10 @@ package dk.dbc.dataio.jobstore.transfile;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -29,10 +31,10 @@ public class TransFileField {
         idMap.put ("M", TransFileFieldId.SECONDARY_EMAIL_ADDRESS);
         idMap.put ("i", TransFileFieldId.INITIALS);
     }
-    private final static List<String> VALID_TRANSFILE_b_CONTENT_VALUES = Arrays.asList("databroendpr2");
-    private final static List<String> VALID_TRANSFILE_t_CONTENT_VALUES = Arrays.asList("xml");
-    private final static List<String> VALID_TRANSFILE_o_CONTENT_VALUES = Arrays.asList("nmalbum", "nmtrack");
-    private final static List<String> VALID_TRANSFILE_c_CONTENT_VALUES = Arrays.asList("utf8");
+    private final static Set<String> VALID_TRANSFILE_b_CONTENT_VALUES = new HashSet<>(Arrays.asList("databroendpr2"));
+    private final static Set<String> VALID_TRANSFILE_t_CONTENT_VALUES = new HashSet<>(Arrays.asList("xml"));
+    private final static Set<String> VALID_TRANSFILE_o_CONTENT_VALUES = new HashSet<>(Arrays.asList("nmalbum", "nmtrack"));
+    private final static Set<String> VALID_TRANSFILE_c_CONTENT_VALUES = new HashSet<>(Arrays.asList("utf8"));
 
     private final TransFileFieldId key;
     private final String content;
@@ -82,9 +84,6 @@ public class TransFileField {
      * @throws IllegalArgumentException 
      */
     private void checkValidFieldIdentifierOrThrow(String fieldIdentifier) throws IllegalArgumentException {
-        if (fieldIdentifier.length() != 1) {
-            throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' shall contain only one character");
-        }
         if (!idMap.containsKey(fieldIdentifier)) {
             throw new IllegalArgumentException("Field identifier: '" + fieldIdentifier + "' is invalid");
         }
@@ -132,7 +131,7 @@ public class TransFileField {
      * @param fieldContent
      * @throws IllegalArgumentException 
      */
-    private void checkValidEnumeratedFieldContentValueOrThrow(final List<String> validFieldContent, String fieldContent) throws IllegalArgumentException {
+    private void checkValidEnumeratedFieldContentValueOrThrow(final Set<String> validFieldContent, String fieldContent) throws IllegalArgumentException {
         if (!validFieldContent.contains(fieldContent)) {
             throw new IllegalArgumentException("Field content: '" + fieldContent + "' is not valid in this context");
         }

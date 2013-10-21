@@ -117,7 +117,8 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.createFlowBinder(flowbinderContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
-                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+//                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowbinderCreateView.onFailure("Du forsøger at oprette en Flowbinder, der allerede eksisterer");
             }
             @Override
             public void onSuccess(Void result) {

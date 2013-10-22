@@ -305,5 +305,10 @@ public class TransFileFieldTest {
         assertThat(field.getContent(), is("AppleBanana"));
     }
     
+    public @Test void iFieldIsEmpty_validTransFileField() {
+        TransFileField field = new TransFileField("i=");
+        assertThat(field.getKey(), is(TransFileFieldId.INITIALS));
+        assertThat(field.getContent(), is(""));
+    }
 
 }

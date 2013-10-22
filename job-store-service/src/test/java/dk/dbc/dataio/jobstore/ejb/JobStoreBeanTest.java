@@ -124,6 +124,8 @@ public class JobStoreBeanTest {
     @Test
     public void createJob_mismatchBetweenSpecifiedAndActualEncoding_returnsJobInFailedState() throws JsonException, JobStoreException, IOException {
         final Path f = tmpFolder.newFile().toPath();
+        final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
+        Files.write(f, someXML.getBytes());
         final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
                 .setCharset("no-such-charset")
                 .setDataFile(f.toString())

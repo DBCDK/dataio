@@ -139,6 +139,8 @@ public class FileSystemJobStoreTest {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final Path f = tmpFolder.newFile().toPath();
+        final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
+        Files.write(f, someXML.getBytes());
         final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
                 .setCharset("no-such-charset")
                 .setDataFile(f.toString())

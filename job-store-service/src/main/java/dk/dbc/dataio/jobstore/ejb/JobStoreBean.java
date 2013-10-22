@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
@@ -41,6 +42,11 @@ public class JobStoreBean implements JobStore {
     @Override
     public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
         return jobStore.createJob(jobSpec, flow);
+    }
+
+    @Override
+    public void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException {
+        jobStore.updateJobInfo(job, jobInfo);
     }
 
     @Override

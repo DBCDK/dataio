@@ -25,5 +25,6 @@ public class JobInfoJsonMixIn {
                             @JsonProperty("jobSpecification") JobSpecification jobSpecification,
                             @JsonProperty("jobCreationTime") Date jobCreationTime,
                             @JsonProperty("jobState") JobState jobState,
+                            @JsonProperty("jobStatusMessage") String jobStatusMessage,
                             @JsonProperty("jobResultDataFile") String jobResultDataFile) { }
 }

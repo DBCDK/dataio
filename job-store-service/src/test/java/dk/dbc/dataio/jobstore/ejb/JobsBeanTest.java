@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
@@ -31,8 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.lang.annotation.Annotation;
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -133,7 +132,6 @@ public class JobsBeanTest {
         final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder()
                 .setFlowId(flowId)
                 .build();
-        final Job job = new Job(1, Paths.get("file"), JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
         when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
@@ -154,7 +152,9 @@ public class JobsBeanTest {
         final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder()
                 .setFlowId(flowId)
                 .build();
-        final Job job = new Job(1, Paths.get("file"), JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
+        final String jobInfoData = new ITUtil.JobInfoJsonBuilder().build();
+        final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
+                JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
         when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));

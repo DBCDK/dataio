@@ -1,7 +1,9 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.processor.ChunkProcessor;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
@@ -33,10 +35,27 @@ public class JobHandlerBean {
     JobStoreBean jobStore;
 
     public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
-        return processJob(jobStore.createJob(jobSpec, flow));
+        Job job = jobStore.createJob(jobSpec, flow);
+        JobInfo jobInfo = job.getJobInfo();
+        try {
+            if (jobInfo.getJobState() == JobState.CREATED) {
+                processJob(job);
+                jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
+                        JobState.COMPLETED, "Job processing completed", null);
+                job = new Job(jobInfo, flow);
+            }
+            return job;
+
+        } catch (JobStoreException e) {
+            jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
+                    JobState.FAILED_DURING_PROCESSING, e.getMessage(), null);
+            throw e;
+        } finally {
+            jobStore.updateJobInfo(job, jobInfo);
+        }
     }
 
-    private Job processJob(Job job) throws JobStoreException {
+    private void processJob(Job job) throws JobStoreException {
         final long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
         LOGGER.info("Processing {} chunks for job({})", numberOfChunks, job.getId());
         for (int chunkId = 1; chunkId <= numberOfChunks; chunkId++) {
@@ -44,7 +63,6 @@ public class JobHandlerBean {
             final ProcessChunkResult processedChunk = ChunkProcessor.processChunk(chunk);
             jobStore.addChunkResult(job, processedChunk);
         }
-        return job;
     }
 
     public String sendToSink(Job job) throws JobStoreException {

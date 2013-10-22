@@ -25,6 +25,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -602,6 +603,58 @@ public class ITUtil {
         }
     }
 
+    public static class JobInfoJsonBuilder extends JsonBuilder {
+        private long jobId = 42L;
+        private long jobCreationTime = new Date().getTime();
+        private String jobSpecification = new JobSpecificationJsonBuilder().build();
+        private String jobState = "INCOMPLETE";
+        private String jobStatusMessage = "status";
+        private String jobResultDataFile = "file";
+
+        public JobInfoJsonBuilder setJobId(long jobId) {
+            this.jobId = jobId;
+            return this;
+        }
+
+        public JobInfoJsonBuilder setJobCreationTime(long jobCreationTime) {
+            this.jobCreationTime = jobCreationTime;
+            return this;
+        }
+
+        public JobInfoJsonBuilder setJobSpecification(String jobSpecification) {
+            this.jobSpecification = jobSpecification;
+            return this;
+        }
+
+        public JobInfoJsonBuilder setJobState(String jobState) {
+            this.jobState = jobState;
+            return this;
+        }
+
+        public JobInfoJsonBuilder setJobStatusMessage(String jobStatusMessage) {
+            this.jobStatusMessage = jobStatusMessage;
+            return this;
+        }
+
+        public JobInfoJsonBuilder setJobResultDataFile(String jobResultDataFile) {
+            this.jobResultDataFile = jobResultDataFile;
+            return this;
+        }
+
+        public String build() {
+            final StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(START_OBJECT);
+            stringBuilder.append(asLongMember("jobId", jobId)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asLongMember("jobCreationTime", jobCreationTime)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asObjectMember("jobSpecification", jobSpecification)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("jobState", jobState)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("jobStatusMessage", jobStatusMessage)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("jobResultDataFile", jobResultDataFile));
+            stringBuilder.append(END_OBJECT);
+            return stringBuilder.toString();
+        }
+    }
+
     public static class SubmitterJsonBuilder extends JsonBuilder {
         private long id = 42L;
         private long version = 1L;
@@ -632,5 +685,4 @@ public class ITUtil {
             return stringBuilder.toString();
         }
     }
-
 }

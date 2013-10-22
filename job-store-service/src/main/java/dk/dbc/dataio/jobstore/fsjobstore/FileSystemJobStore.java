@@ -1,12 +1,15 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
 import dk.dbc.dataio.jobstore.types.Chunk;
+import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
@@ -21,12 +24,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 
 public class FileSystemJobStore implements JobStore {
     static final String FLOW_FILE = "flow.json";
     static final String JOBSPECIFICATION_FILE = "jobspec.json";
+    static final String JOBINFO_FILE = "jobinfo.json";
     static final String CHUNK_COUNTER_FILE = "chunk.cnt";
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
@@ -49,9 +54,10 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
-        Path dataObjectPath = Paths.get(jobSpec.getDataFile());
         final long jobId = System.currentTimeMillis();
+        final Date jobCreationTime = new Date();
         final Path jobPath = getJobPath(jobId);
+        final Path dataObjectPath = Paths.get(jobSpec.getDataFile());
 
         LOGGER.info("Creating job in {}", jobPath);
         createDirectory(getJobPath(jobId));
@@ -61,7 +67,40 @@ public class FileSystemJobStore implements JobStore {
         storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
 
-        return chunkify(new Job(jobId, dataObjectPath, flow));
+        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.INCOMPLETE, "Incomplete - awaiting partitioning", null);
+        Job job = new Job(jobInfo, flow);
+
+        try {
+            final DefaultXMLRecordSplitter recordSplitter;
+            try {
+                recordSplitter = newRecordSplitter(jobSpec, dataObjectPath);
+                chunkify(new Job(jobInfo, flow), recordSplitter);
+            } catch (IOException e) {
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, e.getMessage(), null);
+                throw new JobStoreException(String.format("Exception caught creating job with id '%d'", jobId), e);
+            } catch (XMLStreamException | IllegalStateException | IllegalDataException e) {
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, e.getMessage(), null);
+                job = new Job(jobInfo, flow);
+                return job;
+            }
+
+            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.CREATED, "Job created", null);
+            job = new Job(jobInfo, flow);
+            return job;
+        } finally {
+            updateJobInfo(job, jobInfo);
+        }
+    }
+
+    @Override
+    public void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException {
+        try {
+            LOGGER.debug("Updating job info: {}", JsonUtil.toJson(jobInfo));
+        } catch (JsonException e) {
+            LOGGER.error("Error marshalling JobInfo object into JSON", e);
+        }
+        final Path jobPath = getJobPath(job.getId());
+        storeJobInfoInJob(jobPath, jobInfo);
     }
 
     private void storeFlowInJob(Path jobPath, Flow flow) throws JobStoreException {
@@ -76,11 +115,21 @@ public class FileSystemJobStore implements JobStore {
 
     private void storeJobSpecificationInJob(Path jobPath, JobSpecification jobSpec) throws JobStoreException {
         final Path jobSpecPath = Paths.get(jobPath.toString(), JOBSPECIFICATION_FILE);
-        LOGGER.info("Creating Flow json-file: {}", jobSpecPath);
+        LOGGER.info("Creating JobSpecification json-file: {}", jobSpecPath);
         try (BufferedWriter bw = Files.newBufferedWriter(jobSpecPath, LOCAL_CHARSET)) {
           bw.write(JsonUtil.toJson(jobSpec));
         } catch (IOException | JsonException e) {
             throw new JobStoreException(String.format("Exception caught when trying to write JobSpecification: %s", jobSpecPath.toString()), e);
+        }
+    }
+
+    private void storeJobInfoInJob(Path jobPath, JobInfo jobInfo) throws JobStoreException {
+        final Path jobInfoPath = Paths.get(jobPath.toString(), JOBINFO_FILE);
+        LOGGER.info("Creating JobInfo json-file: {}", jobInfoPath);
+        try (BufferedWriter bw = Files.newBufferedWriter(jobInfoPath, LOCAL_CHARSET)) {
+          bw.write(JsonUtil.toJson(jobInfo));
+        } catch (IOException | JsonException e) {
+            throw new JobStoreException(String.format("Exception caught when trying to write JobInfo: %s", jobInfoPath.toString()), e);
         }
     }
 
@@ -225,20 +274,13 @@ public class FileSystemJobStore implements JobStore {
         }
     }
 
-    private Job chunkify(Job job) throws JobStoreException {
-        try {
-            final long chunks = applyDefaultXmlSplitter(job.getOriginalDataPath(), job);
-            LOGGER.info("Created {} chunks for job {}", chunks, job.getId());
-        } catch (XMLStreamException | IOException e) {
-            throw new JobStoreException(String.format("Exception caught during chunk creation for job %d", job.getId()), e);
-        }
-        return job;
+    private long chunkify(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {
+        final long chunks = applyDefaultXmlSplitter(job, recordSplitter);
+        LOGGER.info("Created {} chunks for job {}", chunks, job.getId());
+        return chunks;
     }
 
-    private long applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException, JobStoreException {
-        LOGGER.trace("Got path: " + path.toString());
-        final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(path));
-
+    private long applyDefaultXmlSplitter(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {
         long chunkId = 1;
         int counter = 0;
         Chunk chunk = new Chunk(chunkId, job.getFlow());
@@ -259,5 +301,23 @@ public class FileSystemJobStore implements JobStore {
             addChunk(job, chunk);
         }
         return chunkId;
+    }
+
+    private static DefaultXMLRecordSplitter newRecordSplitter(JobSpecification jobSpec, Path dataPath) throws IllegalStateException, IOException, XMLStreamException {
+        final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(dataPath));
+        validateEncodings(jobSpec, recordSplitter);
+        return recordSplitter;
+    }
+
+    private static void validateEncodings(JobSpecification jobSpec, DefaultXMLRecordSplitter recordSplitter) {
+        final String expectedEncoding = normalizeEncoding(jobSpec.getCharset());
+        final String actualEncoding = normalizeEncoding(recordSplitter.getEncoding());
+        if (!actualEncoding.equals(expectedEncoding)) {
+            throw new IllegalStateException(String.format("Actual encoding '%s' differs from expected '%s' encoding", actualEncoding, expectedEncoding));
+        }
+    }
+
+    private static String normalizeEncoding(String encoding) {
+        return encoding.replaceAll("-", "").toLowerCase();
     }
 }

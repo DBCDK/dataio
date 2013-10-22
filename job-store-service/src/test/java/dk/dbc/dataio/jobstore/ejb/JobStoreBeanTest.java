@@ -3,9 +3,14 @@ package dk.dbc.dataio.jobstore.ejb;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jobstore.types.Chunk;
-import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
@@ -16,10 +21,10 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
-import java.io.File;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -38,74 +43,94 @@ public class JobStoreBeanTest {
 
     @Test
     public void oneRecordToOneChunk_withoutXMLHeaderInInput() throws IOException, JobStoreException {
-        Path f = tmpFolder.newFile().toPath();
-        String xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-        String someXML = "<data><record>Content</record></data>";
+        final Path f = tmpFolder.newFile().toPath();
+        final String xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+        final String someXML = "<data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
 
-        JobSpecification jobSpec = createJobSpecification(f);
-        Job job = jsb.createJob(jobSpec, createDefaultFlow());
+        final JobSpecification jobSpec = createJobSpecification(f);
+        final Job job = jsb.createJob(jobSpec, createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
         assertThat(jsb.getNumberOfChunksInJob(job), is(1L));
-        Chunk chunk = jsb.getChunk(job, 1);
+        final Chunk chunk = jsb.getChunk(job, 1);
         assertThat(chunk.getRecords().size(), is(1));
         assertThat(base64decode(chunk.getRecords().get(0)), is(xmlHeader + someXML));
     }
 
     @Test(expected = JobStoreException.class)
-    public void gettingChunkFromUnknownJob_throwsException() throws JobStoreException, IOException {
-        final Job job = new Job(1, tmpFolder.newFile().toPath(), createDefaultFlow());
+    public void gettingChunkFromUnknownJob_throwsException() throws JobStoreException, IOException, JsonException {
+        final String jobInfoData = new ITUtil.JobInfoJsonBuilder().build();
+        final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
+                createDefaultFlow());
         jsb.getChunk(job, 1);
     }
 
     @Test(expected = JobStoreException.class)
     public void gettingUnknownChunk_throwsException() throws JobStoreException, IOException {
-        Path f = tmpFolder.newFile().toPath();
-        String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
+        final Path f = tmpFolder.newFile().toPath();
+        final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
 
-        JobSpecification jobSpec = createJobSpecification(f);
-        Job job = jsb.createJob(jobSpec, createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
         jsb.getChunk(job, jsb.getNumberOfChunksInJob(job) + 1);
     }
 
-    @Test(expected = IllegalDataException.class)
-    public void xmlWithoutClosingOuterTag_throwsException() throws IOException, JobStoreException {
-        Path f = tmpFolder.newFile().toPath();
-        String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record>";
+    @Test
+    public void xmlWithoutClosingOuterTag_returnsJobInfailedState() throws IOException, JobStoreException {
+        final Path f = tmpFolder.newFile().toPath();
+        final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        JobSpecification jobSpec = createJobSpecification(f);
-        jsb.createJob(jobSpec, createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
     }
 
-    @Test(expected = IllegalDataException.class)
-    public void xmlMissingClosingRecordTag_throwsException() throws IOException, JobStoreException {
-        Path f = tmpFolder.newFile().toPath();
-        String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</data>";
+    @Test
+    public void xmlMissingClosingRecordTag_returnsJobInFailedState() throws IOException, JobStoreException {
+        final Path f = tmpFolder.newFile().toPath();
+        final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</data>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        JobSpecification jobSpec = createJobSpecification(f);
-        jsb.createJob(jobSpec, createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
     }
 
-    @Test(expected = IllegalDataException.class)
-    public void xmlWithoutClosingRecordAndToplevelTag_throwsException() throws IOException, JobStoreException {
-        Path f = tmpFolder.newFile().toPath();
-        String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content";
+    @Test
+    public void xmlWithoutClosingRecordAndToplevelTag_returnsJobInFailedState() throws IOException, JobStoreException {
+        final Path f = tmpFolder.newFile().toPath();
+        final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        JobSpecification jobSpec = createJobSpecification(f);
-        jsb.createJob(jobSpec, createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
     }
 
-    @Test(expected = IllegalDataException.class)
-    public void xmlMismatchedClosingOuterTag_throwsException() throws IOException, JobStoreException {
-        Path f = tmpFolder.newFile().toPath();
-        String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></wrong>";
+    @Test
+    public void xmlMismatchedClosingOuterTag_returnsJobInFailedState() throws IOException, JobStoreException {
+        final Path f = tmpFolder.newFile().toPath();
+        final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></wrong>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        JobSpecification jobSpec = createJobSpecification(f);
-        jsb.createJob(jobSpec, createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void createJob_dataFileDoesNotExist_throws() throws JobStoreException {
+        final Path f = Paths.get("no-such-file");
+        jsb.createJob(createJobSpecification(f), createDefaultFlow());
+    }
+
+    @Test
+    public void createJob_mismatchBetweenSpecifiedAndActualEncoding_returnsJobInFailedState() throws JsonException, JobStoreException, IOException {
+        final Path f = tmpFolder.newFile().toPath();
+        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+                .setCharset("no-such-charset")
+                .setDataFile(f.toString())
+                .build();
+        final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
+        final Job job = jsb.createJob(jobSpecification, createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
     }
 
     /*
@@ -116,7 +141,7 @@ public class JobStoreBeanTest {
     }
 
     private JobSpecification createJobSpecification(Path f) {
-        return new JobSpecification("packaging", "format", "charset", "destination", 42L, "verify@dbc.dk", "processing@dbc.dk", "abc", f.toString(), 0L);
+        return new JobSpecification("packaging", "format", "utf8", "destination", 42L, "verify@dbc.dk", "processing@dbc.dk", "abc", f.toString(), 0L);
     }
 
 }

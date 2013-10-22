@@ -1,14 +1,16 @@
 package dk.dbc.dataio.jobstore.recordsplitter;
 
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
+import org.junit.Test;
+
+import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
-import javax.xml.stream.XMLStreamException;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 public class DefaultXMLRecordSplitterTest {
 
@@ -166,5 +168,21 @@ public class DefaultXMLRecordSplitterTest {
         assertThat(it.next(), is(xml));
         assertThat(it.hasNext(), is(false));
 
+    }
+
+    @Test
+    public void getEncoding_documentSpecifiesEncodingInDeclaration_returnsEncoding() throws UnsupportedEncodingException, XMLStreamException {
+        final String encoding = "ISO-8859-1";
+        final String xml = String.format("<?xml version=\"1.0\" encoding=\"%s\"?><topLevel></topLevel>", encoding);
+        final DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        assertThat(xmlRecordSplitter.getEncoding(), is(encoding));
+    }
+
+    @Test
+    public void getEncoding_documentHasNoDeclaration_returnsDefaultEncoding() throws UnsupportedEncodingException, XMLStreamException {
+        final String encoding = "UTF-8";
+        final String xml = "<topLevel></topLevel>";
+        final DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
+        assertThat(xmlRecordSplitter.getEncoding(), is(encoding));
     }
 }

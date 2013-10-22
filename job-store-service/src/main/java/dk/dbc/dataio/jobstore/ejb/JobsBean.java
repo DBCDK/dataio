@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
@@ -30,8 +29,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.nio.file.Paths;
-import java.util.Date;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -77,7 +74,8 @@ public class JobsBean {
         try {
             final Job job = jobHandler.createJob(jobSpec, flow);
             final String sinkFile = jobHandler.sendToSink(job);
-            jobInfo = new JobInfo(job.getId(), jobSpec, new Date(), JobState.COMPLETED, sinkFile);
+            jobInfo = new JobInfo(job.getId(), job.getJobInfo().getJobSpecification(), job.getJobInfo().getJobCreationTime(),
+                    job.getJobInfo().getJobState(), job.getJobInfo().getJobStatusMessage(), sinkFile);
         } catch (JobStoreException e) {
             throw new EJBException(e);
         }

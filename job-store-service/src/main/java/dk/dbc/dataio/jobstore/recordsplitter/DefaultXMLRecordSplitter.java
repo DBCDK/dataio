@@ -1,7 +1,18 @@
 package dk.dbc.dataio.jobstore.recordsplitter;
 
-import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.types.IllegalDataException;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.StartDocument;
+import javax.xml.stream.events.XMLEvent;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -11,16 +22,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
-
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 /**
  * Reads XML-files and split them on first child below the root element.
@@ -79,15 +80,15 @@ import org.slf4j.ext.XLoggerFactory;
 public class DefaultXMLRecordSplitter implements Iterable<String> {
 
     private XLogger log = XLoggerFactory.getXLogger(DefaultXMLRecordSplitter.class);
-    //
-    private final static String LOCAL_CHARSET = "UTF-8";
-    //
+
     private final XMLEventReader xmlReader;
     private final XMLEventFactory xmlEventFactory;
     private final XMLOutputFactory xmlOutputFactory;
     //
     private final List<XMLEvent> preRecordEvents;
     private final String rootTag;
+
+    private String encoding;
 
     /**
      * Creates an instance of DefaultXMLRecordSplitter ready to read from {@code inputStream}.
@@ -107,14 +108,24 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
 
     }
 
+    /**
+     * @return encoding style of the XML data
+     */
+    public String getEncoding() {
+        return encoding;
+    }
+
     private List<XMLEvent> findPreRecordEvents() {
         List<XMLEvent> preRecordEvents = new ArrayList<>();
 
         try {
             XMLEvent e;
-            // retrieve header
+            // handle xml declaration and processing instructions (if any)
             while (!isNextEventStartElement()) {
                 e = xmlReader.nextEvent();
+                if (e.getEventType() == XMLEvent.START_DOCUMENT) {
+                    encoding = ((StartDocument) e).getCharacterEncodingScheme();
+                }
                 preRecordEvents.add(e);
             }
             // retrieve root tag and contents of root tag.
@@ -218,7 +229,7 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
                     // Another optimization point may be writing directly to the XMLEventWriter
                     // instead of storing the XMLEVents in a List for later writing.
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    Writer writer = new BufferedWriter(new OutputStreamWriter(baos, LOCAL_CHARSET));
+                    Writer writer = new BufferedWriter(new OutputStreamWriter(baos, encoding));
                     XMLEventWriter xmlWriter = xmlOutputFactory.createXMLEventWriter(writer);
 
                     for (XMLEvent e : preRecordEvents) {
@@ -233,7 +244,7 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
                     xmlWriter.add(xmlEventFactory.createEndDocument());
                     xmlWriter.close();
 
-                    return baos.toString(LOCAL_CHARSET);
+                    return baos.toString(encoding);
                 } catch (XMLStreamException | UnsupportedEncodingException ex) {
                     log.error("Exception", ex);
                     throw new IllegalDataException(ex);

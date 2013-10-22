@@ -47,7 +47,8 @@ public class FlowBindersBean {
 
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
     @PersistenceContext
-    private EntityManager entityManager;
+    protected EntityManager entityManager; // protected for testing purposes
+    // todo: Is it ok to have EntityManager protected for testing purposes?
 
     @GET
     @Path("/findFlow")
@@ -118,12 +119,12 @@ public class FlowBindersBean {
      * @param uriInfo application and request URI information
      * @param flowBinderData flow binder data as JSON string
      *
-     * @return a HTTP 201 CREATED response with a Location header containing the
-     * URL value of the newly created resource, a HTTP 400 BAD_REQUEST response
-     * on invalid json content, a HTTP 406 NOT_ACCEPTABLE response if violating
-     * any uniqueness constraints, a HTTP 412 PRECONDITION_FAILED if a
-     * referenced submitter or flow no longer exists, a HTTP 500
-     * INTERNAL_SERVER_ERROR response in case of general error.
+     * @return
+     * a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints,
+     * a HTTP 412 PRECONDITION_FAILED if a referenced submitter or flow no longer exists,
+     * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
      * @throws JsonException when given invalid (null-valued, empty-valued or
      * non-json) JSON string, or if JSON object does not comply with model

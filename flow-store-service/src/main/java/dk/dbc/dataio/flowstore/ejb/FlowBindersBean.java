@@ -7,6 +7,8 @@ import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,56 +24,130 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import javax.persistence.Query;
+import javax.ws.rs.GET;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 /**
- * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the '/FlowStoreServiceEntryPoint.FLOW_BINDERS' entry point
+ * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource exposed
+ * by the '/FlowStoreServiceEntryPoint.FLOW_BINDERS' entry point
  */
 @Stateless
 @Path(FlowStoreServiceEntryPoint.FLOW_BINDERS)
 public class FlowBindersBean {
-    private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
 
+    public static final String REST_PARAMETER_PACKAGING = "packaging";
+    public static final String REST_PARAMETER_FORMAT = "format";
+    public static final String REST_PARAMETER_CHARSET = "charset";
+    public static final String REST_PARAMETER_SUBMITTER = "submitter";
+    public static final String REST_PARAMETER_DESTINATION = "destination";
+
+    private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
     @PersistenceContext
     private EntityManager entityManager;
+
+    @GET
+    @Path("/findFlow")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getFlow(@QueryParam(REST_PARAMETER_PACKAGING) String packaging,
+            @QueryParam(REST_PARAMETER_FORMAT) String format,
+            @QueryParam(REST_PARAMETER_CHARSET) String charset,
+            @QueryParam(REST_PARAMETER_SUBMITTER) Long submitter_number,
+            @QueryParam(REST_PARAMETER_DESTINATION) String destination) throws JsonException {
+
+        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, REST_PARAMETER_PACKAGING);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(format, REST_PARAMETER_FORMAT);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(charset, REST_PARAMETER_CHARSET);
+        InvariantUtil.checkNotNullOrThrow(submitter_number, REST_PARAMETER_SUBMITTER);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(destination, REST_PARAMETER_DESTINATION);
+
+        Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOW);
+        try {
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_PACKAGING, packaging);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FORMAT, format);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_CHARSET, charset);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_DESTINATION, destination);
+        } catch (IllegalArgumentException ex) {
+            String errMsg = String.format("Error while setting parameters for database query: %s", ex.getMessage());
+            log.warn(errMsg, ex);
+            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(errMsg));
+        }
+
+        List<Flow> flows = query.getResultList();
+        if (flows.isEmpty()) {
+            String msg = getNoFlowFoundMessage(query);
+            log.info(msg);
+            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(msg));
+        }
+        if(flows.size() > 1) {
+            String msg = getMoreThanOneFlowFoundMessage(query);
+            log.warn(msg);
+        }
+        return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flows.get(0)));
+    }
+
+    private String getNoFlowFoundMessage(Query query) {
+        return getQueryParametersStringify("No flows found for query with parameters", query);
+    }
+
+    private String getMoreThanOneFlowFoundMessage(Query query) {
+        return getQueryParametersStringify("More than one result was found for the query with parameters", query);
+    }
+
+    private String getQueryParametersStringify(String message, Query query) {
+            return String.format("%s: '%s'='%s' '%s'='%s' '%s'='%s' '%s'='%s' '%s'='%s'",
+                    message,
+                    FlowBinder.DB_QUERY_PARAMETER_PACKAGING, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_PACKAGING),
+                    FlowBinder.DB_QUERY_PARAMETER_FORMAT, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_FORMAT),
+                    FlowBinder.DB_QUERY_PARAMETER_CHARSET, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_CHARSET),
+                    FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER),
+                    FlowBinder.DB_QUERY_PARAMETER_DESTINATION, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_DESTINATION));
+    }
 
     /**
      * Creates new flow binder with data POST'ed as JSON and persists it in the
      * underlying data store.
      *
-     * Note: this method updates multiple database tables assuming transactional integrity
+     * Note: this method updates multiple database tables assuming transactional
+     * integrity
      *
      * @param uriInfo application and request URI information
      * @param flowBinderData flow binder data as JSON string
      *
-     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints,
-     *         a HTTP 412 PRECONDITION_FAILED if a referenced submitter or flow no longer exists,
-     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     * @return a HTTP 201 CREATED response with a Location header containing the
+     * URL value of the newly created resource, a HTTP 400 BAD_REQUEST response
+     * on invalid json content, a HTTP 406 NOT_ACCEPTABLE response if violating
+     * any uniqueness constraints, a HTTP 412 PRECONDITION_FAILED if a
+     * referenced submitter or flow no longer exists, a HTTP 500
+     * INTERNAL_SERVER_ERROR response in case of general error.
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
-     *                       JSON string, or if JSON object does not comply with model schema
-     * @throws ReferencedEntityNotFoundException when unable to resolve any attached flow or submitters
+     * @throws JsonException when given invalid (null-valued, empty-valued or
+     * non-json) JSON string, or if JSON object does not comply with model
+     * schema
+     * @throws ReferencedEntityNotFoundException when unable to resolve any
+     * attached flow or submitters
      */
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({MediaType.APPLICATION_JSON})
     public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderData) throws JsonException, ReferencedEntityNotFoundException {
         log.trace("Called with: '{}'", flowBinderData);
 
         /* ATTENTION:
-           Below we rely on the transactional integrity provided by the underlying relational
-           database system and Java EE, so that if the persisting of a search index entry fails
-           the persisted flow binder will be automatically rolled back. This will have to be
-           handled differently in case the underlying data store no longer supports transactions.
-        */
+         Below we rely on the transactional integrity provided by the underlying relational
+         database system and Java EE, so that if the persisting of a search index entry fails
+         the persisted flow binder will be automatically rolled back. This will have to be
+         handled differently in case the underlying data store no longer supports transactions.
+         */
 
         /* We set the JSON content for a new FlowBinder instance causing the IDs of referenced
-           flow and submitters to be made available. We then resolve these references into
-           entities and attaches them to the flow binder causing foreign key relations to be
-           created. Finally we generate the search index entries generated by this flow binder
-           and persists them in the data store.
+         flow and submitters to be made available. We then resolve these references into
+         entities and attaches them to the flow binder causing foreign key relations to be
+         created. Finally we generate the search index entries generated by this flow binder
+         and persists them in the data store.
          */
 
         final FlowBinder flowBinder = new FlowBinder();
@@ -90,14 +166,15 @@ public class FlowBindersBean {
     }
 
     /**
-     * Resolves each submitter referenced in given set by looking up the corresponding
-     * submitter entity in the data store
+     * Resolves each submitter referenced in given set by looking up the
+     * corresponding submitter entity in the data store
      *
      * @param submitterIds set of submitter identifiers
      * @return set of submitter entities
-     * @throws ReferencedEntityNotFoundException if unable to find a referenced submitter entity in the data store
+     * @throws ReferencedEntityNotFoundException if unable to find a referenced
+     * submitter entity in the data store
      */
-    private Set<Submitter> resolveSubmitterIds(Set<Long> submitterIds) throws JsonException, ReferencedEntityNotFoundException  {
+    private Set<Submitter> resolveSubmitterIds(Set<Long> submitterIds) throws JsonException, ReferencedEntityNotFoundException {
         final Set<Submitter> submitters = new HashSet<>(submitterIds.size());
         for (Long submitterId : submitterIds) {
             log.trace("Looking up Submitter entity for ID {}", submitterId);
@@ -112,12 +189,13 @@ public class FlowBindersBean {
     }
 
     /**
-     * Resolves flow referenced by given id by looking up the corresponding flow entity in the
-     * data store
+     * Resolves flow referenced by given id by looking up the corresponding flow
+     * entity in the data store
      *
      * @param flowId flow identifier
      * @return flow entity
-     * @throws ReferencedEntityNotFoundException if unable to find the referenced flow entity in the data store
+     * @throws ReferencedEntityNotFoundException if unable to find the
+     * referenced flow entity in the data store
      */
     private Flow resolveFlow(Long flowId) throws JsonException, ReferencedEntityNotFoundException {
         log.trace("Looking up Flow entity for ID {}", flowId);
@@ -127,4 +205,5 @@ public class FlowBindersBean {
         }
         return flow;
     }
+
 }

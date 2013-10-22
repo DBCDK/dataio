@@ -1,6 +1,8 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.Test;
 
@@ -99,21 +101,24 @@ public class FlowBinderTest {
         final String format = "format";
         final String charset = "charset";
         final String destination = "destination";
-        final Long sub1 = 42L;
-        final Long sub2 = 43L;
-        final Set<Long> submitterIds = new HashSet<>(2);
-        submitterIds.add(sub1);
-        submitterIds.add(sub2);
+        final Submitter submitter1 = new Submitter();
+        final Submitter submitter2 = new Submitter();
+        submitter1.setContent(new ITUtil.SubmitterContentJsonBuilder().build());
+        submitter2.setContent(new ITUtil.SubmitterContentJsonBuilder().build());
+
+        Set<Submitter> submitters = new HashSet<>(2);
+        submitters.add(submitter1);
+        submitters.add(submitter2);
         final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
                 .setPackaging(packaging)
                 .setFormat(format)
                 .setCharset(charset)
                 .setDestination(destination)
-                .setSubmitterIds(new ArrayList<Long>(submitterIds))
                 .build();
 
         final FlowBinder binder = new FlowBinder();
         binder.setContent(flowBinderContent);
+        binder.setSubmitters(submitters);
         final List<FlowBinderSearchIndexEntry> entries = FlowBinder.generateSearchIndexEntries(binder);
         assertThat(entries.size(), is(2));
     }

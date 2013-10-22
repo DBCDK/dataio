@@ -22,7 +22,7 @@ import javax.persistence.Table;
 public class FlowBinderSearchIndexEntry {
     public static final String TABLE_NAME = "flow_binders_search_index";
 
-    static final String SUBMITTER_ID_COLUMN = "submitter_id";
+    static final String SUBMITTER_NUMBER_COLUMN = "submitter_number";
     static final String FLOW_BINDER_ID_COLUMN = "flow_binder_id";
 
     @Id
@@ -46,7 +46,7 @@ public class FlowBinderSearchIndexEntry {
     private String destination;
 
     @Id
-    @Column(name = SUBMITTER_ID_COLUMN, nullable = false)
+    @Column(name = SUBMITTER_NUMBER_COLUMN, nullable = false)
     private Long submitter;
 
     @JoinColumn(name = FLOW_BINDER_ID_COLUMN)

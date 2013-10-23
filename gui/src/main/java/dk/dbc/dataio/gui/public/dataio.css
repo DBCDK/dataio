@@ -43,8 +43,8 @@
     border-radius: 0.5em;
 }
 
-.dio-DualList select {
-/*    width: 12em;*/
+.fixed-empty-listbox-width {
+    width: 24em;
 }
 
 .dual-list-removeitem-class, .dual-list-additem-class {

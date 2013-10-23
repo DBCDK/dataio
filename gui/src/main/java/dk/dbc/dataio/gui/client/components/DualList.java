@@ -112,7 +112,7 @@ public class DualList extends HorizontalPanel {
                 moveItems(right, left);
             }
         });
-        enableOrDisableButtons();  // Show correct bitmaps according to content of lists
+        enableOrDisableButtonsAndCheckListboxWidth();  // Show correct bitmaps according to content of lists
         addItem.setStylePrimaryName(DUAL_LIST_ADDITEM_CLASS);
         buttonPanel.add(addItem);
         removeItem.setStylePrimaryName(DUAL_LIST_REMOVEITEM_CLASS);
@@ -131,7 +131,7 @@ public class DualList extends HorizontalPanel {
      */
     public void addAvailableItem(String value, String key) {
         left.addItem(value, key);
-        enableOrDisableButtons();
+        enableOrDisableButtonsAndCheckListboxWidth();
     }
 
     /*
@@ -141,7 +141,7 @@ public class DualList extends HorizontalPanel {
      */
     public void setAvailableItems(Collection<? extends Entry<String, String>> items) {
         populateList(left, items);
-        enableOrDisableButtons();
+        enableOrDisableButtonsAndCheckListboxWidth();
     }
 
     /**
@@ -151,7 +151,7 @@ public class DualList extends HorizontalPanel {
      */
     public void addSelectedItems(Collection<? extends Entry<String, String>> items) {
         populateList(right, items);
-        enableOrDisableButtons();
+        enableOrDisableButtonsAndCheckListboxWidth();
     }
 
     /**
@@ -168,7 +168,7 @@ public class DualList extends HorizontalPanel {
     public void clear() {
         left.clear();
         right.clear();
-        enableOrDisableButtons();  // Show correct bitmaps according to content of lists
+        enableOrDisableButtonsAndCheckListboxWidth();  // Show correct bitmaps according to content of lists
     }
 
     /**
@@ -176,7 +176,7 @@ public class DualList extends HorizontalPanel {
      */
     public void clearAvailableItems() {
         left.clear();
-        enableOrDisableButtons();  // Show correct bitmaps according to content of lists
+        enableOrDisableButtonsAndCheckListboxWidth();  // Show correct bitmaps according to content of lists
     }
 
     /**
@@ -218,19 +218,23 @@ public class DualList extends HorizontalPanel {
      */
     public void clearSelectedItems() {
         right.clear();
-        enableOrDisableButtons();
+        enableOrDisableButtonsAndCheckListboxWidth();
     }
 
-    private void enableOrDisableButtons() {
+    private void enableOrDisableButtonsAndCheckListboxWidth() {
         if (right.getItemCount() > 0) {
             removeItem.setUrl(MOVE_LEFT_BUTTON_IMAGE);
+            right.removeStyleName("fixed-empty-listbox-width");
         } else {
             removeItem.setUrl(DISABLED_MOVE_LEFT_BUTTON_IMAGE);
+            right.addStyleName("fixed-empty-listbox-width");
         }
         if (left.getItemCount() > 0) {
             addItem.setUrl(MOVE_RIGHT_BUTTON_IMAGE);
+            left.removeStyleName("fixed-empty-listbox-width");
         } else {
             addItem.setUrl(DISABLED_MOVE_RIGHT_BUTTON_IMAGE);
+            left.addStyleName("fixed-empty-listbox-width");
         }
     }
 
@@ -247,7 +251,7 @@ public class DualList extends HorizontalPanel {
             moveItem(index, source, target);
             index = source.getSelectedIndex();
         }
-        enableOrDisableButtons();
+        enableOrDisableButtonsAndCheckListboxWidth();
         if (callbackChangeHandler != null) {
             callbackChangeHandler.onChange(null);  // No need to supply a ChangeEvent
         }

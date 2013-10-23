@@ -83,12 +83,15 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         add(flowbinderDescriptionPanel);
         
         flowbinderFramePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
+        flowbinderFramePanel.addToolTip("Rammeformat: Teknisk formatprotokol til brug for udveksling af data. Eksempelvis dm2iso, dm2lin, xml, csv, m.v.");
         add(flowbinderFramePanel);
         
         flowbinderContentFormatPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
+        flowbinderContentFormatPanel.addToolTip("Indholdsformat: Bibliografisk format, f.eks. dbc, dfi, dkbilled, dsd, ebogsbib, ebrary, mv.");
         add(flowbinderContentFormatPanel);
         
         flowbinderCharacterSetPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
+        flowbinderCharacterSetPanel.addToolTip("Tegnsæt: F.eks. utf8, latin-1, samkat, m.v.");
         add(flowbinderCharacterSetPanel);
         
         flowbinderSinkPanel.addKeyDownHandler(new InputFieldKeyDownHandler());

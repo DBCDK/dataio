@@ -36,6 +36,10 @@ public class TextEntry extends DataEntry {
     public void setEnabled(boolean enabled) {
         textBox.setEnabled(enabled);
     }
+
+    public void addToolTip(String toolTipText) {
+        new Tooltip(textBox, toolTipText);
+    }
   
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
         return textBox.addKeyDownHandler(handler);
@@ -44,5 +48,4 @@ public class TextEntry extends DataEntry {
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return textBox.addChangeHandler(handler);
     }
-
 }

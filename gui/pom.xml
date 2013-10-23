@@ -106,14 +106,6 @@
       <artifactId>commons-codec</artifactId>
       <version>1.8</version>
     </dependency>
-
-    <!-- This dependency must be removed when the tmpengine page is no longer in use -->
-    <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.api.version}</version>
-    </dependency>
-
   </dependencies>
 
   <build>

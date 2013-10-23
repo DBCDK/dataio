@@ -11,7 +11,6 @@ import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 
 public class DefaultXMLRecordSplitterTest {
 
@@ -188,7 +187,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>This is a single Ampersand: & which is not legal</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -202,7 +201,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>This is a Less Than sign: < which is not legal</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -220,7 +219,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>This is a Larger Than sign: &gt; which is legal</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -235,7 +234,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>This is a Quotation Mark: \" which is legal</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -250,7 +249,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>This is an Aprostroph: ' which is legal</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -265,7 +264,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>child text</child1>"
                 + "</:test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -280,7 +279,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>child text</child1>"
                 + "</_test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -295,7 +294,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>child text</child1>"
                 + "</_-.9>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -310,7 +309,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1>This is a good test</child1>"
                 + "</test is good>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -335,7 +334,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<!-- comment in sub level -->"
                 + "</test>";  // The trailing comment is removed
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -351,7 +350,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<!-- Dash Dash -- is not legal -->"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -366,7 +365,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<!-- Dash Dash Larger Than used as a comment end is not legal: --->"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -380,7 +379,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"2\">What is the size here?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -399,7 +398,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"2\">What is the size here?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -414,7 +413,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=2>What is the size here?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -428,7 +427,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=2\">What is the size here?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -442,7 +441,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"2>What is the size here?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -456,7 +455,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 2size=\"2\">What is the size here?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -470,7 +469,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"Ampersand: & \">What is this?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -484,7 +483,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"Less than: < \">What is this?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -502,7 +501,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"Larger than: &gt; \">What is this?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -517,7 +516,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"Quotation Mark: \" \">What is this?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -531,7 +530,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"Apostroph: ' \">What is this?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -550,7 +549,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size=\"Quotation Mark: &quot; \">What is this?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));
@@ -565,7 +564,7 @@ public class DefaultXMLRecordSplitterTest {
                 + "<child1 size='Apostroph: ' '>What is this?</child1>"
                 + "</test>";
 
-        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(StandardCharsets.ISO_8859_1)));
+        DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
         Iterator<String> it = xmlRecordSplitter.iterator();
 
         assertThat(it.hasNext(), is(true));

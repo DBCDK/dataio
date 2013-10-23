@@ -55,15 +55,18 @@ public class EmbeddedEngineServlet extends HttpServlet {
     }
 
     private JobInfo executeJob(String dataPath, TransFileData transFileData) throws Exception {
+        final String primaryEmailAddress = transFileData.getPrimaryEmailAddress() != null ? transFileData.getPrimaryEmailAddress() : "";
+        final String secondaryEmailAddress = transFileData.getSecondaryEmailAddress() != null ? transFileData.getSecondaryEmailAddress() : "";
+        final String initials = transFileData.getInitials() != null ? transFileData.getInitials() : "";
         final JobSpecification jobSpecification = new JobSpecification(
                 transFileData.getTechnicalProtocol(),
                 transFileData.getLibraryFormat(),
                 transFileData.getCharacterSet(),
                 transFileData.getBaseName(),
                 transFileData.getSubmitterNumber(),
-                transFileData.getPrimaryEmailAddress(),
-                transFileData.getSecondaryEmailAddress(),
-                transFileData.getInitials(),
+                primaryEmailAddress,
+                secondaryEmailAddress,
+                initials,
                 dataPath);
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,
                 ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);

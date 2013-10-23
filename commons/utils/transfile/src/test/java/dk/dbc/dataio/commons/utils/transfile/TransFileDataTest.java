@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.transfile;
+package dk.dbc.dataio.commons.utils.transfile;
 
 import org.hamcrest.core.IsNull;
 import org.junit.Test;

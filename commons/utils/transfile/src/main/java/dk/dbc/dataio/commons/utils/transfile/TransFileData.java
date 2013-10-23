@@ -1,6 +1,4 @@
-package dk.dbc.dataio.jobstore.transfile;
-
-import dk.dbc.dataio.jobstore.transfile.TransFileField.TransFileFieldId;
+package dk.dbc.dataio.commons.utils.transfile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +9,7 @@ import java.util.Map;
  */
 public class TransFileData {
 
-    private final Map<TransFileFieldId, String> data = new HashMap<>();
+    private final Map<TransFileField.TransFileFieldId, String> data = new HashMap<>();
     
     /**
      * Accumulates single Trans File Fields in the class from the input string
@@ -29,7 +27,7 @@ public class TransFileData {
         if (split.length < 1) {
             throw new IllegalArgumentException("Empty input is not allowed");
         }
-        checkCorrectTransFileFieldIdOrThrow(split[0], TransFileFieldId.BASE_NAME);
+        checkCorrectTransFileFieldIdOrThrow(split[0], TransFileField.TransFileFieldId.BASE_NAME);
         for (String element: split) {
             field = new TransFileField(element);
             if (data.containsKey(field.getKey())) {
@@ -37,9 +35,9 @@ public class TransFileData {
             }
             data.put(field.getKey(), field.getContent());
         }
-        checkMandatoryFieldOrThrow(TransFileFieldId.BASE_NAME);
-        checkMandatoryFieldOrThrow(TransFileFieldId.FILE_NAME);
-        checkMandatoryFieldOrThrow(TransFileFieldId.PRIMARY_EMAIL_ADDRESS);
+        checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId.BASE_NAME);
+        checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId.FILE_NAME);
+        checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId.PRIMARY_EMAIL_ADDRESS);
     }
     
     /**
@@ -47,7 +45,7 @@ public class TransFileData {
      * @return The basename
      */
     public String getBaseName() {
-        return data.get(TransFileFieldId.BASE_NAME);
+        return data.get(TransFileField.TransFileFieldId.BASE_NAME);
     }
     
     /**
@@ -55,7 +53,7 @@ public class TransFileData {
      * @return The filename
      */
     public String getFileName() {
-        return data.get(TransFileFieldId.FILE_NAME);
+        return data.get(TransFileField.TransFileFieldId.FILE_NAME);
     }
 
     /**
@@ -63,7 +61,7 @@ public class TransFileData {
      * @return submitter number
      */
     public long getSubmitterNumber() {
-        final String filename = data.get(TransFileFieldId.FILE_NAME);
+        final String filename = data.get(TransFileField.TransFileFieldId.FILE_NAME);
         return Long.valueOf(filename.substring(0, filename.indexOf(".")));
     }
     
@@ -72,7 +70,7 @@ public class TransFileData {
      * @return The Technical Protocol
      */
     public String getTechnicalProtocol() {
-        return data.get(TransFileFieldId.TECHNICAL_PROTOCOL);
+        return data.get(TransFileField.TransFileFieldId.TECHNICAL_PROTOCOL);
     }
     
     /**
@@ -80,7 +78,7 @@ public class TransFileData {
      * @return The Character Set
      */
     public String getCharacterSet() {
-        return data.get(TransFileFieldId.CHARACTER_SET);
+        return data.get(TransFileField.TransFileFieldId.CHARACTER_SET);
     }
     
     /**
@@ -88,7 +86,7 @@ public class TransFileData {
      * @return The Library Format
      */
     public String getLibraryFormat() {
-        return data.get(TransFileFieldId.LIBRARY_FORMAT);
+        return data.get(TransFileField.TransFileFieldId.LIBRARY_FORMAT);
     }
     
     /**
@@ -96,7 +94,7 @@ public class TransFileData {
      * @return The Primary Email Address
      */
     public String getPrimaryEmailAddress() {
-        return data.get(TransFileFieldId.PRIMARY_EMAIL_ADDRESS);
+        return data.get(TransFileField.TransFileFieldId.PRIMARY_EMAIL_ADDRESS);
     }
     
     /**
@@ -104,7 +102,7 @@ public class TransFileData {
      * @return The Secondary Email Address
      */
     public String getSecondaryEmailAddress() {
-        return data.get(TransFileFieldId.SECONDARY_EMAIL_ADDRESS);
+        return data.get(TransFileField.TransFileFieldId.SECONDARY_EMAIL_ADDRESS);
     }
     
     /**
@@ -112,7 +110,7 @@ public class TransFileData {
      * @return The Initials
      */
     public String getInitials() {
-        return data.get(TransFileFieldId.INITIALS);
+        return data.get(TransFileField.TransFileFieldId.INITIALS);
     }
     
     
@@ -123,7 +121,7 @@ public class TransFileData {
      * @param mandatoryFieldId 
      * @throws IllegalArgumentException
      */
-    private void checkMandatoryFieldOrThrow(TransFileFieldId mandatoryFieldId) throws IllegalArgumentException {
+    private void checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId mandatoryFieldId) throws IllegalArgumentException {
         if (!data.containsKey(mandatoryFieldId)) {
             throw new IllegalArgumentException("A mandatory field '" + mandatoryFieldId + "' is missing");
         }
@@ -134,7 +132,7 @@ public class TransFileData {
      * @param fieldString 
      * @throws IllegalArgumentException
      */
-    private void checkCorrectTransFileFieldIdOrThrow(String fieldString, TransFileFieldId matchKey) throws IllegalArgumentException {
+    private void checkCorrectTransFileFieldIdOrThrow(String fieldString, TransFileField.TransFileFieldId matchKey) throws IllegalArgumentException {
         TransFileField field = new TransFileField(fieldString);
         if (field.getKey() != matchKey) {
             throw new IllegalArgumentException("Field 'b' must be the first field in the line");

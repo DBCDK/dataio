@@ -1,6 +1,6 @@
-package dk.dbc.dataio.jobstore.transfile;
+package dk.dbc.dataio.commons.utils.transfile;
 
-import dk.dbc.dataio.jobstore.transfile.TransFileField.TransFileFieldId;
+import dk.dbc.dataio.commons.utils.transfile.TransFileField.TransFileFieldId;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.is;

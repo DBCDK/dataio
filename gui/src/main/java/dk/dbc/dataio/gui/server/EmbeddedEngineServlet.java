@@ -4,6 +4,8 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.transfile.TransFile;
+import dk.dbc.dataio.commons.utils.transfile.TransFileData;
 import dk.dbc.dataio.gui.client.tmpengine.EngineGUI;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
@@ -22,12 +24,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class EmbeddedEngineServlet extends HttpServlet {
 
@@ -52,16 +54,16 @@ public class EmbeddedEngineServlet extends HttpServlet {
         return HttpClient.newClient(clientConfig);
     }
 
-    private String executeJob(String dataPath, TransfileData transfileData, long flowId) throws Exception {
+    private JobInfo executeJob(String dataPath, TransFileData transFileData) throws Exception {
         final JobSpecification jobSpecification = new JobSpecification(
-                transfileData.packaging,
-                transfileData.format,
-                transfileData.charset,
-                transfileData.destination,
-                transfileData.submitterId,
-                transfileData.verificationMail,
-                transfileData.processingMail,
-                transfileData.resultMailInitials,
+                transFileData.getTechnicalProtocol(),
+                transFileData.getLibraryFormat(),
+                transFileData.getCharacterSet(),
+                transFileData.getBaseName(),
+                transFileData.getSubmitterNumber(),
+                transFileData.getPrimaryEmailAddress(),
+                transFileData.getSecondaryEmailAddress(),
+                transFileData.getInitials(),
                 dataPath);
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,
                 ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
@@ -71,16 +73,51 @@ public class EmbeddedEngineServlet extends HttpServlet {
             throw new ServletException(String.format("job-store service returned with unexpected status code: %s", status));
         }
 
-        final JobInfo jobInfo = response.readEntity(JobInfo.class);
-        final Path sinkFile = Paths.get(jobInfo.getJobResultDataFile());
-        return String.format("http://%s/%s/%s", localhostname, sinkFile.getParent().getFileName(), sinkFile.getFileName());
+        return response.readEntity(JobInfo.class);
+    }
+
+    private TransFileData validateTransFile(File transFile, String dataFileName) throws IllegalArgumentException, IOException {
+        final List<TransFileData> transFileEntries = TransFile.process(Files.newInputStream(transFile.toPath()));
+        if (transFileEntries.size() > 1) {
+            throw new IllegalArgumentException("Håndtering af multiple indgange i transfil er ikke implementeret endnu");
+        }
+        if (transFileEntries.isEmpty()) {
+            throw new IllegalArgumentException("transfilen indeholder ingen indgange");
+        }
+        final TransFileData transFileData = transFileEntries.get(0);
+        if (!dataFileName.equals(transFileData.getFileName())) {
+            throw new IllegalArgumentException(String.format("Kunne ikke finde datafilen %s", transFileData.getFileName()));
+        }
+        return transFileData;
+    }
+
+    private String buildStatusFromJobInfo(JobInfo jobInfo, TransFileData transFileData, String transFileName) {
+        String status;
+        switch (jobInfo.getJobErrorCode()) {
+            case DATA_FILE_ENCODING_MISMATCH:
+                status = String.format("<div>Validering af tegnsæt: Filen %s indeholder ikke samme tegnsæt som angivet i transfilen.</div>", transFileData.getFileName());
+                break;
+            case DATA_FILE_INVALID:
+                status = String.format("<div>Validering af rammeformat: Filen %s indeholder ikke well-formed xml.</div>", transFileData.getFileName());
+                break;
+            case NO_ERROR:
+                final Path sinkFile = Paths.get(jobInfo.getJobResultDataFile());
+                status = String.format("<div>%s - Status: OK. Filen %s med %d poster er modtaget. <a href='%s'>Link til sink fil</a></div>", transFileName, transFileData.getFileName(), jobInfo.getJobRecordCount(),
+                    String.format("http://%s/%s/%s", localhostname, sinkFile.getParent().getFileName(), sinkFile.getFileName()));
+                break;
+            default:
+                status = String.format("<div>Ukendt job fejlkode: %s</div>", jobInfo.getJobErrorCode().toString());
+                break;
+        }
+        return status;
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
         File dataFile = null;
-        long flowId = 0;
-        Map<String, String> transfileFieldsMap = new HashMap<String, String>();
+        File transFile = null;
+        String dataFileOriginalName = "";
+        String transFileOriginalName = "";
 
         log.info("TESTING");
         // process only multipart requests
@@ -96,25 +133,34 @@ public class EmbeddedEngineServlet extends HttpServlet {
                 for (FileItem item : items) {
                     if (EngineGUI.FORM_FIELD_DATA_FILE.equals(item.getFieldName())) {
                         dataFile = getItem(item);
-                    } else {
-                        // transfiledata input fields:
-                        String fieldName = item.getFieldName();
-                        String itemString = item.getString("UTF-8");
-                        transfileFieldsMap.put(fieldName, itemString);
+                        dataFileOriginalName = item.getName();
+                    } else if (EngineGUI.FORM_FIELD_TRANS_FILE.equals(item.getFieldName())) {
+                        transFile = getItem(item);
+                        transFileOriginalName = item.getName();
                     }
                     resp.flushBuffer();
                 }
-                TransfileData transfileData = new TransfileData(transfileFieldsMap);
-                log.info("transfile: \n{}", transfileData.toString());
+                log.info("data file {}", dataFile.getAbsolutePath());
+                log.info("trans file {}", transFile.getAbsolutePath());
 
-                final String sinkFileUrl = executeJob(dataFile.getAbsolutePath(), transfileData, flowId);
                 resp.setContentType("text/html");
-                resp.getWriter().write(String.format("<a href='%s'>link to sink file</a>", sinkFileUrl));
+
+                TransFileData transFileData = null;
+                try {
+                    transFileData = validateTransFile(transFile, dataFileOriginalName);
+                } catch (IllegalArgumentException e) {
+                    resp.getWriter().write(String.format("<div>%s - not OK. %s</div>", transFileOriginalName, e.getMessage()));
+                    return;
+                }
+
+                final JobInfo jobInfo = executeJob(dataFile.getAbsolutePath(), transFileData);
+                resp.getWriter().write(buildStatusFromJobInfo(jobInfo, transFileData, transFileOriginalName));
             } catch (Exception e) {
                 log.error("Exception caught", e);
                 throw new ServletException(e);
             } finally {
                 deleteFile(dataFile);
+                deleteFile(transFile);
             }
         } else {
             final String errMsg = "Request did not have multipart content";
@@ -139,44 +185,5 @@ public class EmbeddedEngineServlet extends HttpServlet {
         }
     }
 
-    private class TransfileData {
-        public final Long submitterId;
-        public final String filename;
-        public final String format;
-        public final String packaging;
-        public final String charset;
-        public final String destination;
-        public final String verificationMail;
-        public final String processingMail;
-        public final String resultMailInitials;
-
-        public TransfileData(Map<String, String> fieldsAndValues) {
-            filename = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_FILENAME);
-            format = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_FORMAT);
-            packaging = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_PACKAGING);
-            charset = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_CHARSET);
-            destination = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_DESTINATION);
-            verificationMail = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_VERIFICATION_MAIL);
-            processingMail = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_PROCESSING_MAIL);
-            resultMailInitials = fieldsAndValues.get(EngineGUI.FORM_FIELD_TRANSFILE_RESULT_MAIL_INITIALS);
-            submitterId = Long.valueOf(filename.substring(0, filename.indexOf(".")));
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("filename : " + filename + "\n");
-            sb.append("Sumbitter String: " + filename.substring(0, filename.indexOf(".")) + "\n");
-            sb.append("submitter : " + submitterId + "\n");
-            sb.append("format : " + format + "\n");
-            sb.append("packaging : " + packaging + "\n");
-            sb.append("charset : " + charset + "\n");
-            sb.append("destination : " + destination + "\n");
-            sb.append("verificationMail : " + verificationMail + "\n");
-            sb.append("processingMail : " + processingMail + "\n");
-            sb.append("resultMailInitials : " + resultMailInitials + "\n");
-            return sb.toString();
-        }
-    }
 }
 

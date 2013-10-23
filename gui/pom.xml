@@ -88,6 +88,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-transfile</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-svn</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -102,26 +107,13 @@
       <version>1.8</version>
     </dependency>
 
-    <!--
+    <!-- This dependency must be removed when the tmpengine page is no longer in use -->
     <dependency>
-		  <groupId>org.powermock</groupId>
-		  <artifactId>powermock-module-junit4</artifactId>
-		  <version>1.5</version>
-		  <scope>test</scope>
-	  </dependency>
-	  <dependency>
-		  <groupId>org.powermock</groupId>
-		  <artifactId>powermock-api-mockito</artifactId>
-		  <version>1.5</version>
-		  <scope>test</scope>
-	  </dependency>
-    <dependency>
-	    <groupId>org.mockito</groupId>
-	    <artifactId>mockito-core</artifactId>
-	    <version>1.9.5</version>
-      <scope>test</scope>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>${javaee.api.version}</version>
     </dependency>
-    -->
+
   </dependencies>
 
   <build>

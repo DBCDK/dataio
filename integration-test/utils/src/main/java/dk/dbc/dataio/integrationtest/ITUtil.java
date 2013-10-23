@@ -2,6 +2,8 @@ package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.JobErrorCode;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -606,8 +608,10 @@ public class ITUtil {
     public static class JobInfoJsonBuilder extends JsonBuilder {
         private long jobId = 42L;
         private long jobCreationTime = new Date().getTime();
+        private long jobRecordCount = 0;
         private String jobSpecification = new JobSpecificationJsonBuilder().build();
-        private String jobState = "INCOMPLETE";
+        private JobState jobState = JobState.INCOMPLETE;
+        private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
         private String jobStatusMessage = "status";
         private String jobResultDataFile = "file";
 
@@ -621,12 +625,17 @@ public class ITUtil {
             return this;
         }
 
+        public JobInfoJsonBuilder setJobRecordCount(long jobRecordCount) {
+            this.jobRecordCount = jobRecordCount;
+            return this;
+        }
+
         public JobInfoJsonBuilder setJobSpecification(String jobSpecification) {
             this.jobSpecification = jobSpecification;
             return this;
         }
 
-        public JobInfoJsonBuilder setJobState(String jobState) {
+        public JobInfoJsonBuilder setJobState(JobState jobState) {
             this.jobState = jobState;
             return this;
         }
@@ -641,13 +650,20 @@ public class ITUtil {
             return this;
         }
 
+        public JobInfoJsonBuilder setJobErrorCode(JobErrorCode jobErrorCode) {
+            this.jobErrorCode = jobErrorCode;
+            return this;
+        }
+
         public String build() {
             final StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(START_OBJECT);
             stringBuilder.append(asLongMember("jobId", jobId)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asLongMember("jobCreationTime", jobCreationTime)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asLongMember("jobRecordCount", jobRecordCount)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asObjectMember("jobSpecification", jobSpecification)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asTextMember("jobState", jobState)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("jobState", jobState.name())); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("jobErrorCode", jobErrorCode.name())); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asTextMember("jobStatusMessage", jobStatusMessage)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asTextMember("jobResultDataFile", jobResultDataFile));
             stringBuilder.append(END_OBJECT);

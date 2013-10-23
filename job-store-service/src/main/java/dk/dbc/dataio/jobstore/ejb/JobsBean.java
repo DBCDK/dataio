@@ -75,7 +75,7 @@ public class JobsBean {
             final Job job = jobHandler.createJob(jobSpec, flow);
             final String sinkFile = jobHandler.sendToSink(job);
             jobInfo = new JobInfo(job.getId(), job.getJobInfo().getJobSpecification(), job.getJobInfo().getJobCreationTime(),
-                    job.getJobInfo().getJobState(), job.getJobInfo().getJobStatusMessage(), sinkFile);
+                    job.getJobInfo().getJobState(), job.getJobInfo().getJobErrorCode(), job.getJobInfo().getJobStatusMessage(), job.getJobInfo().getJobRecordCount(), sinkFile);
         } catch (JobStoreException e) {
             throw new EJBException(e);
         }

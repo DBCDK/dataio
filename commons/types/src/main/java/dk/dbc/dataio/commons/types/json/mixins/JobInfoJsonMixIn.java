@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.types.json.mixins;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
 
@@ -25,6 +26,8 @@ public class JobInfoJsonMixIn {
                             @JsonProperty("jobSpecification") JobSpecification jobSpecification,
                             @JsonProperty("jobCreationTime") Date jobCreationTime,
                             @JsonProperty("jobState") JobState jobState,
+                            @JsonProperty("jobErrorCode") JobErrorCode jobErrorCode,
                             @JsonProperty("jobStatusMessage") String jobStatusMessage,
+                            @JsonProperty("jobRecordCount") long jobRecordCount,
                             @JsonProperty("jobResultDataFile") String jobResultDataFile) { }
 }

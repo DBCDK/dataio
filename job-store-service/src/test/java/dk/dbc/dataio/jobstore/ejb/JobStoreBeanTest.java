@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.ejb;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
@@ -51,6 +52,8 @@ public class JobStoreBeanTest {
         final JobSpecification jobSpec = createJobSpecification(f);
         final Job job = jsb.createJob(jobSpec, createDefaultFlow());
         assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
         assertThat(jsb.getNumberOfChunksInJob(job), is(1L));
         final Chunk chunk = jsb.getChunk(job, 1);
         assertThat(chunk.getRecords().size(), is(1));
@@ -83,6 +86,8 @@ public class JobStoreBeanTest {
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
 
     @Test
@@ -93,6 +98,8 @@ public class JobStoreBeanTest {
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
 
     @Test
@@ -103,6 +110,8 @@ public class JobStoreBeanTest {
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
 
     @Test
@@ -113,12 +122,17 @@ public class JobStoreBeanTest {
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
 
-    @Test(expected = JobStoreException.class)
-    public void createJob_dataFileDoesNotExist_throws() throws JobStoreException {
+    @Test
+    public void createJob_dataFileDoesNotExist_returnsJobInFailedState() throws JobStoreException {
         final Path f = Paths.get("no-such-file");
-        jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_NOT_FOUND));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
 
     @Test
@@ -133,6 +147,24 @@ public class JobStoreBeanTest {
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job = jsb.createJob(jobSpecification, createDefaultFlow());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
+    }
+
+    @Test
+    public void createJob_dataFileContainsMultipleRecords_recordCountIsCorrect() throws JsonException, JobStoreException, IOException {
+        final Path f = tmpFolder.newFile().toPath();
+        final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record><record>Content</record></data>";
+        Files.write(f, someXML.getBytes());
+        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+                .setCharset("utf8")
+                .setDataFile(f.toString())
+                .build();
+        final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
+        final Job job = jsb.createJob(jobSpecification, createDefaultFlow());
+        assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(2L));
     }
 
     /*

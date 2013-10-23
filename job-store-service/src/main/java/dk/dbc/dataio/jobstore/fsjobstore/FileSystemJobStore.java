@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
@@ -58,6 +59,7 @@ public class FileSystemJobStore implements JobStore {
         final Date jobCreationTime = new Date();
         final Path jobPath = getJobPath(jobId);
         final Path dataObjectPath = Paths.get(jobSpec.getDataFile());
+        long recordCount = 0;
 
         LOGGER.info("Creating job in {}", jobPath);
         createDirectory(getJobPath(jobId));
@@ -67,24 +69,29 @@ public class FileSystemJobStore implements JobStore {
         storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
 
-        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.INCOMPLETE, "Incomplete - awaiting partitioning", null);
+        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.INCOMPLETE, JobErrorCode.NO_ERROR, "Incomplete - awaiting partitioning", 0, null);
         Job job = new Job(jobInfo, flow);
 
         try {
             final DefaultXMLRecordSplitter recordSplitter;
             try {
                 recordSplitter = newRecordSplitter(jobSpec, dataObjectPath);
-                chunkify(new Job(jobInfo, flow), recordSplitter);
+                recordCount = applyDefaultXmlSplitter(new Job(jobInfo, flow), recordSplitter);
             } catch (IOException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, e.getMessage(), null);
-                throw new JobStoreException(String.format("Exception caught creating job with id '%d'", jobId), e);
-            } catch (XMLStreamException | IllegalStateException | IllegalDataException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, e.getMessage(), null);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, JobErrorCode.DATA_FILE_NOT_FOUND, e.getMessage(), 0, null);
+                job = new Job(jobInfo, flow);
+                return job;
+            } catch (IllegalStateException e) {
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, JobErrorCode.DATA_FILE_ENCODING_MISMATCH, e.getMessage(), 0, null);
+                job = new Job(jobInfo, flow);
+                return job;
+            } catch (XMLStreamException | IllegalDataException e) {
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, JobErrorCode.DATA_FILE_INVALID, e.getMessage(), 0, null);
                 job = new Job(jobInfo, flow);
                 return job;
             }
 
-            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.CREATED, "Job created", null);
+            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.CREATED, JobErrorCode.NO_ERROR, "Job created", recordCount, null);
             job = new Job(jobInfo, flow);
             return job;
         } finally {
@@ -274,17 +281,13 @@ public class FileSystemJobStore implements JobStore {
         }
     }
 
-    private long chunkify(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {
-        final long chunks = applyDefaultXmlSplitter(job, recordSplitter);
-        LOGGER.info("Created {} chunks for job {}", chunks, job.getId());
-        return chunks;
-    }
-
     private long applyDefaultXmlSplitter(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {
         long chunkId = 1;
+        long recordCount = 0;
         int counter = 0;
         Chunk chunk = new Chunk(chunkId, job.getFlow());
         for (String record : recordSplitter) {
+            recordCount++;
             LOGGER.trace("======> Before [" + record + "]");
             final String recordBase64 = base64encode(record);
             LOGGER.trace("======> After  [" + recordBase64 + "]");
@@ -300,7 +303,9 @@ public class FileSystemJobStore implements JobStore {
         if (counter != 0) {
             addChunk(job, chunk);
         }
-        return chunkId;
+        LOGGER.info("Created {} chunks for job {}", chunkId, job.getId());
+
+        return recordCount;
     }
 
     private static DefaultXMLRecordSplitter newRecordSplitter(JobSpecification jobSpec, Path dataPath) throws IllegalStateException, IOException, XMLStreamException {

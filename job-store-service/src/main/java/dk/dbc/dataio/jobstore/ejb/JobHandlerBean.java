@@ -41,14 +41,14 @@ public class JobHandlerBean {
             if (jobInfo.getJobState() == JobState.CREATED) {
                 processJob(job);
                 jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
-                        JobState.COMPLETED, "Job processing completed", null);
+                        JobState.COMPLETED, jobInfo.getJobErrorCode(), "Job processing completed", jobInfo.getJobRecordCount(), null);
                 job = new Job(jobInfo, flow);
             }
             return job;
 
         } catch (JobStoreException e) {
             jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
-                    JobState.FAILED_DURING_PROCESSING, e.getMessage(), null);
+                    JobState.FAILED_DURING_PROCESSING, jobInfo.getJobErrorCode(), e.getMessage(), jobInfo.getJobRecordCount(), null);
             throw e;
         } finally {
             jobStore.updateJobInfo(job, jobInfo);

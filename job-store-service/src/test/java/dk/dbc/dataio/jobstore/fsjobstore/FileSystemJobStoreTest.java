@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
@@ -124,14 +125,20 @@ public class FileSystemJobStoreTest {
         assertThat(Files.exists(jobInfoFile), is(true));
         final JobInfo jobInfo = JsonUtil.fromJson(readFileIntoString(jobInfoFile), JobInfo.class, MixIns.getMixIns());
         assertThat(jobInfo.getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
     }
 
-    @Test(expected = JobStoreException.class)
-    public void createJob_dataFileDoesNotExist_throws() throws Exception {
+    @Test
+    public void createJob_dataFileDoesNotExist_returnsJobInFailedState() throws Exception {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(Paths.get("no-such-file"));
-        instance.createJob(jobSpec, FLOW);
+        final Job job = instance.createJob(jobSpec, FLOW);
+        assertThat(job, is(notNullValue()));
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_NOT_FOUND));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
 
     @Test
@@ -148,6 +155,44 @@ public class FileSystemJobStoreTest {
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job = instance.createJob(jobSpecification, FLOW);
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
+    }
+
+    @Test
+    public void createJob_invalidDataFile_returnsJobInFailedState() throws Exception {
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final Path f = tmpFolder.newFile().toPath();
+        final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</drocer></data>";
+        Files.write(f, someXML.getBytes());
+        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+                .setDataFile(f.toString())
+                .setCharset("UTF-8")
+                .build();
+        final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
+        final Job job = instance.createJob(jobSpecification, FLOW);
+        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
+    }
+
+    @Test
+    public void createJob_dataFileContainsMultipleRecords_recordCountIsCorrect() throws Exception {
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final Path f = tmpFolder.newFile().toPath();
+        final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record><record>Content</record></data>";
+        Files.write(f, someXML.getBytes());
+        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+                .setDataFile(f.toString())
+                .setCharset("UTF-8")
+                .build();
+        final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
+        final Job job = instance.createJob(jobSpecification, FLOW);
+        assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
+        assertThat(job.getJobInfo().getJobRecordCount(), is(2L));
     }
 
     private Path getJobStorePath() throws IOException {

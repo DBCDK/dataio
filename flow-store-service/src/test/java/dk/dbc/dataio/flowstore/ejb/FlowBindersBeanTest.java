@@ -16,12 +16,8 @@ import static org.hamcrest.CoreMatchers.is;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FlowBindersBeanTest {
-
-    private static Logger log = LoggerFactory.getLogger(FlowBindersBeanTest.class);
 
     @Test(expected = NullPointerException.class)
     public void getFlow_nullPackagingParameter_throws() throws JsonException {

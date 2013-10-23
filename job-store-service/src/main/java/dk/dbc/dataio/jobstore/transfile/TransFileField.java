@@ -1,21 +1,15 @@
 package dk.dbc.dataio.jobstore.transfile;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 
-
-
-/**
- * 
- * @author slf
- */
 public class TransFileField {
     
     public enum TransFileFieldId { BASE_NAME, FILE_NAME, TECHNICAL_PROTOCOL, CHARACTER_SET, LIBRARY_FORMAT, PRIMARY_EMAIL_ADDRESS, SECONDARY_EMAIL_ADDRESS, INITIALS }

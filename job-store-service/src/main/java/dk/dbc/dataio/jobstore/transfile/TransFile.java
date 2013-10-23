@@ -1,19 +1,10 @@
 package dk.dbc.dataio.jobstore.transfile;
 
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-
-
-/**
- *
- * @author slf
- */
 public class TransFile {
     private static final String ENCODING = "UTF-8";
     public static class UnexpectedEndOfFileException extends RuntimeException {}

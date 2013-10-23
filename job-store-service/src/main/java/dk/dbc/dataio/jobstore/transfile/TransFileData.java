@@ -1,15 +1,13 @@
 package dk.dbc.dataio.jobstore.transfile;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.transfile.TransFileField.TransFileFieldId;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Trans File Data element, which is one line in the Trans File,
  * each line containing multiple Trans File Fields
- * 
- * @author slf
  */
 public class TransFileData {
 
@@ -58,6 +56,15 @@ public class TransFileData {
      */
     public String getFileName() {
         return data.get(TransFileFieldId.FILE_NAME);
+    }
+
+    /**
+     * Gets the submitter number for the TransFile data element
+     * @return submitter number
+     */
+    public long getSubmitterNumber() {
+        final String filename = data.get(TransFileFieldId.FILE_NAME);
+        return Long.valueOf(filename.substring(0, filename.indexOf(".")));
     }
     
     /**

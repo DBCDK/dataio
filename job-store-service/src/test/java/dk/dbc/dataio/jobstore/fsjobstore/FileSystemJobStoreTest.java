@@ -212,6 +212,6 @@ public class FileSystemJobStoreTest {
     }
 
     private JobSpecification createJobSpecification(Path p) {
-        return new JobSpecification("packaging", "format", "utf8", "destination", 42L, "verify@dbc.dk", "processing@dbc.dk", "abc", p.toString(), 0L);
+        return new JobSpecification("packaging", "format", "utf8", "destination", 42L, "verify@dbc.dk", "processing@dbc.dk", "abc", p.toString());
     }
 }

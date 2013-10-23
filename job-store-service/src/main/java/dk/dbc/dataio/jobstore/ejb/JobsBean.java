@@ -89,7 +89,6 @@ public class JobsBean {
     }
 
     private Flow lookupFlowInFlowStore(JobSpecification jobSpec) throws EJBException, ReferencedEntityNotFoundException, JsonException {
-        long flowId = jobSpec.getFlowId();
         final Client client = HttpClient.newClient();
         final Map<String, Object> queryParameters = new HashMap<>();
         queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, jobSpec.getPackaging());
@@ -105,13 +104,13 @@ public class JobsBean {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {
                     case OK:
-                        flowData = extractFlowDataFromFlowStoreResponse(flowId, response);
+                        flowData = extractFlowDataFromFlowStoreResponse(response);
                         break;
                     case NOT_FOUND:
-                        throwOnFlowNotFoundInFlowStore(flowId);
+                        throwOnFlowNotFoundInFlowStore(queryParameters);
                         break;
                     default:
-                        throwOnUnexpectedResponseFromFlowStore(flowId, status, response);
+                        throwOnUnexpectedResponseFromFlowStore(queryParameters, status, response);
                         break;
                 }
             } finally {
@@ -124,22 +123,29 @@ public class JobsBean {
         return JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns());
     }
 
-    private String extractFlowDataFromFlowStoreResponse(long flowId, Response response) {
+    private String formatQueryParametersForLog(Map<String, Object> queryParameters) {
+        StringBuilder sb = new StringBuilder();
+        for(String key : queryParameters.keySet()) {
+            sb.append(" ").append(key).append(":").append(queryParameters.get(key));
+        }
+        return sb.toString();
+    }
+
+    private String extractFlowDataFromFlowStoreResponse(Response response) {
         final String flowData = response.readEntity(String.class);
-        LOGGER.trace("Resolved flow({}) to {}", flowId, flowData);
         return flowData;
     }
 
-    private void throwOnFlowNotFoundInFlowStore(long flowId) throws ReferencedEntityNotFoundException {
-        final String errorMessage = String.format("flow(%d) not found", flowId);
+    private void throwOnFlowNotFoundInFlowStore(Map<String, Object> queryParameters) throws ReferencedEntityNotFoundException {
+        final String errorMessage = String.format("flow not found with paramters: %s", formatQueryParametersForLog(queryParameters));
         LOGGER.error(errorMessage);
         throw new ReferencedEntityNotFoundException(errorMessage);
     }
 
-    private void throwOnUnexpectedResponseFromFlowStore(long flowId, int status, Response response) throws EJBException {
+    private void throwOnUnexpectedResponseFromFlowStore(Map<String, Object> queryParameters, int status, Response response) throws EJBException {
         final String errorDetails = response.readEntity(String.class);
-        final String errorMessage = String.format("Attempt to resolve flow(%d) returned with status code %d: %s",
-                flowId, status, errorDetails);
+        final String errorMessage = String.format("Attempt to resolve flow with parameters [ %s ] returned with status code %d: %s",
+                queryParameters, status, errorDetails);
         LOGGER.error(errorMessage);
         throw new EJBException(errorMessage);
     }

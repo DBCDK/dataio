@@ -62,8 +62,7 @@ public class EmbeddedEngineServlet extends HttpServlet {
                 transfileData.verificationMail,
                 transfileData.processingMail,
                 transfileData.resultMailInitials,
-                dataPath,
-                flowId);
+                dataPath);
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,
                 ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
 

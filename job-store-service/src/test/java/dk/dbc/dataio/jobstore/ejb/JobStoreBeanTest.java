@@ -175,7 +175,7 @@ public class JobStoreBeanTest {
     }
 
     private JobSpecification createJobSpecification(Path f) {
-        return new JobSpecification("packaging", "format", "utf8", "destination", 42L, "verify@dbc.dk", "processing@dbc.dk", "abc", f.toString(), 0L);
+        return new JobSpecification("packaging", "format", "utf8", "destination", 42L, "verify@dbc.dk", "processing@dbc.dk", "abc", f.toString());
     }
 
 }

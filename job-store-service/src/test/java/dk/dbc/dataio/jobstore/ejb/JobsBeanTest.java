@@ -101,28 +101,12 @@ public class JobsBeanTest {
 
     @Test(expected = EJBException.class)
     public void createJob_jndiLookupThrowsNamingException_throws() throws Exception {
-        final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder().build();
+        final String jobSpecData = getValidJobSpecificationString();// new ITUtil.JobSpecificationJsonBuilder().build();
         when(ServiceUtil.getFlowStoreServiceEndpoint())
                 .thenThrow(new NamingException());
 
         final JobsBean jobsBean = new JobsBean();
         jobsBean.createJob(uriInfo, jobSpecData);
-    }
-
-    private String getValidJobSpecificationString() {
-        final String packaging = "xml";
-        final String format = "nmalbum";
-        final String charset = "utf8";
-        final String destination = "idontknow";
-        final Long submitterNumber = 123456L;
-
-        return new ITUtil.JobSpecificationJsonBuilder()
-                .setPackaging(packaging)
-                .setFormat(format)
-                .setCharset(charset)
-                .setSubmitterId(submitterNumber)
-                .setDestination(destination)
-                .build();
     }
 
     @Test(expected = ReferencedEntityNotFoundException.class)
@@ -173,6 +157,29 @@ public class JobsBeanTest {
         jobsBean.jobHandler = jobHandler;
         final Response response = jobsBean.createJob(uriInfo, jobSpecData);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void test() throws Exception {
+        final String jobSpecData = getValidJobSpecificationString();
+        System.out.println("Hello: " + jobSpecData);
+        final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
+    }
+
+    private String getValidJobSpecificationString() {
+        final String packaging = "xml";
+        final String format = "nmalbum";
+        final String charset = "utf8";
+        final String destination = "idontknow";
+        final Long submitterNumber = 123456L;
+
+        return new ITUtil.JobSpecificationJsonBuilder()
+                .setPackaging(packaging)
+                .setFormat(format)
+                .setCharset(charset)
+                .setSubmitterId(submitterNumber)
+                .setDestination(destination)
+                .build();
     }
 
     class MockedResponse<T> extends Response {

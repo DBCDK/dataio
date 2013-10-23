@@ -1,5 +1,6 @@
 package dk.dbc.dataio.integrationtest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobErrorCode;
@@ -553,7 +554,6 @@ public class ITUtil {
         private String destination = "destination";
         private String dataFile = "dataFile";
         private long submitterId = 42L;
-        private long flowId = 43L;
 
         public JobSpecificationJsonBuilder setCharset(String charset) {
             this.charset = charset;
@@ -567,11 +567,6 @@ public class ITUtil {
 
         public JobSpecificationJsonBuilder setDestination(String destination) {
             this.destination = destination;
-            return this;
-        }
-
-        public JobSpecificationJsonBuilder setFlowId(long flowId) {
-            this.flowId = flowId;
             return this;
         }
 
@@ -598,8 +593,10 @@ public class ITUtil {
             stringBuilder.append(asTextMember("charset", charset)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asTextMember("destination", destination)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asTextMember("dataFile", dataFile)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asLongMember("submitterId", submitterId)); stringBuilder.append(MEMBER_DELIMITER);
-            stringBuilder.append(asLongMember("flowId", flowId));
+            stringBuilder.append(asTextMember("mailForNotificationAboutVerification", "ab@cd.ef")); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("mailForNotificationAboutProcessing", "ab@cd.ef")); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("resultmailInitials", "abc")); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asLongMember("submitterId", submitterId));
             stringBuilder.append(END_OBJECT);
             return stringBuilder.toString();
         }

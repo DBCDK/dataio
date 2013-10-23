@@ -97,9 +97,6 @@ public class EmbeddedEngineServlet extends HttpServlet {
                 for (FileItem item : items) {
                     if (EngineGUI.FORM_FIELD_DATA_FILE.equals(item.getFieldName())) {
                         dataFile = getItem(item);
-                    } else if (EngineGUI.FORM_FIELD_FLOW_ID.equals(item.getFieldName())) {
-                        flowId = Long.valueOf(item.getString("UTF-8"));
-                        log.info("flow ID [{}]", flowId);
                     } else {
                         // transfiledata input fields:
                         String fieldName = item.getFieldName();

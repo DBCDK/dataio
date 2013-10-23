@@ -30,7 +30,6 @@ public class EngineGUI extends DockLayoutPanel {
     FlowStoreProxyAsync flowStoreProxy = FlowStoreProxy.Factory.getAsyncInstance();
     private EngineFormPanel engineFormPanel = new EngineFormPanel();
     private FileNamePanel fileNamePanel = new FileNamePanel();
-    private FlowPanel flowPanel = new FlowPanel();
     private RunFlowPanel runFlowPanel = new RunFlowPanel();
     // transfiledata input information
     public static final String FORM_FIELD_TRANSFILE_FILENAME = "filenametextentry";
@@ -53,11 +52,8 @@ public class EngineGUI extends DockLayoutPanel {
     public EngineGUI() {
         super(Style.Unit.PX);
 
-        getFlows();
-
         VerticalPanel vpanel = new VerticalPanel();
         vpanel.add(fileNamePanel);
-        vpanel.add(flowPanel);
         // transfiledata input information: begin
         vpanel.add(new Label("******** Transfile inputfields below are currently unused! ********"));
         vpanel.add(filenameTextEntry);
@@ -80,22 +76,6 @@ public class EngineGUI extends DockLayoutPanel {
         final FileUpload upload = new FileUpload();
         upload.setName(fieldName);
         return upload;
-    }
-
-    public void getFlows() {
-        flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
-            @Override
-            public void onFailure(Throwable caught) {
-                runFlowPanel.setStatusText("Error!!!!");
-                Window.alert(caught.getMessage());
-            }
-
-            @Override
-            public void onSuccess(List<Flow> flows) {
-                // runFlowPanel.setStatusText("Size: " + flows.size());
-                flowPanel.setFlows(flows);
-            }
-        });
     }
 
     private class EngineFormPanel extends FormPanel {
@@ -141,27 +121,6 @@ public class EngineGUI extends DockLayoutPanel {
 
         public String getText() {
             return upload.getFilename();
-        }
-    }
-
-    private class FlowPanel extends HorizontalPanel {
-
-        private final Label label = new Label("Flow");
-        private final ListBox listBox = new ListBox();
-
-        public FlowPanel() {
-            super();
-            add(label);
-            add(listBox);
-            listBox.setName(FORM_FIELD_FLOW_ID);
-        }
-
-        public void setFlows(List<Flow> flows) {
-            listBox.clear();
-            for (Flow flow : flows) {
-                String flowId = Long.toString(flow.getId());
-                listBox.addItem(flow.getContent().getName(), flowId);
-            }
         }
     }
 

@@ -109,14 +109,26 @@ public class JobsBeanTest {
         jobsBean.createJob(uriInfo, jobSpecData);
     }
 
+    private String getValidJobSpecificationString() {
+        final String packaging = "xml";
+        final String format = "nmalbum";
+        final String charset = "utf8";
+        final String destination = "idontknow";
+        final Long submitterNumber = 123456L;
+
+        return new ITUtil.JobSpecificationJsonBuilder()
+                .setPackaging(packaging)
+                .setFormat(format)
+                .setCharset(charset)
+                .setSubmitterId(submitterNumber)
+                .setDestination(destination)
+                .build();
+    }
+
     @Test(expected = ReferencedEntityNotFoundException.class)
     public void createJob_noFlowCanBeFound_throws() throws Exception {
-        final long flowId = 42L;
-        final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder()
-                .setFlowId(flowId)
-                .build();
-
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
+        final String jobSpecData = getValidJobSpecificationString();
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOW_QUERY_ENTRY_POINT)))
                 .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), ""));
 
         final JobsBean jobsBean = new JobsBean();
@@ -129,11 +141,9 @@ public class JobsBeanTest {
         final String flowData = new ITUtil.FlowJsonBuilder()
                 .setId(flowId)
                 .build();
-        final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder()
-                .setFlowId(flowId)
-                .build();
+        final String jobSpecData = getValidJobSpecificationString();
 
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOW_QUERY_ENTRY_POINT)))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
         when(jobHandler.createJob(any(JobSpecification.class), any(Flow.class)))
                 .thenThrow(new JobStoreException("die"));
@@ -149,14 +159,12 @@ public class JobsBeanTest {
         final String flowData = new ITUtil.FlowJsonBuilder()
                 .setId(flowId)
                 .build();
-        final String jobSpecData = new ITUtil.JobSpecificationJsonBuilder()
-                .setFlowId(flowId)
-                .build();
+        final String jobSpecData = getValidJobSpecificationString();
         final String jobInfoData = new ITUtil.JobInfoJsonBuilder().build();
         final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
                 JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOW_QUERY_ENTRY_POINT)))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
         when(jobHandler.createJob(any(JobSpecification.class), any(Flow.class)))
                 .thenReturn(job);

@@ -7,12 +7,15 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.types.restparameters.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +41,8 @@ import javax.ws.rs.core.UriInfo;
 @Path(JobStoreServiceEntryPoint.JOBS)
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
+
+    public static final String REST_FLOW_QUERY_ENTRY_POINT = "/flow"; // todo: move this to a better place - this entrypoint is also hardcodet in FlowBindersBean.
 
     @EJB
     JobHandlerBean jobHandler;
@@ -69,7 +74,7 @@ public class JobsBean {
         LOGGER.trace("JobSpec: {}", jobSpecData);
 
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
-        final Flow flow = lookupFlowInFlowStore(jobSpec.getFlowId());
+        final Flow flow = lookupFlowInFlowStore(jobSpec);
         final JobInfo jobInfo;
         try {
             final Job job = jobHandler.createJob(jobSpec, flow);
@@ -83,13 +88,19 @@ public class JobsBean {
         return Response.created(uriInfo.getAbsolutePath()).entity(JsonUtil.toJson(jobInfo)).build();
     }
 
-    private Flow lookupFlowInFlowStore(long flowId) throws EJBException, ReferencedEntityNotFoundException, JsonException {
+    private Flow lookupFlowInFlowStore(JobSpecification jobSpec) throws EJBException, ReferencedEntityNotFoundException, JsonException {
+        long flowId = jobSpec.getFlowId();
         final Client client = HttpClient.newClient();
+        final Map<String, Object> queryParameters = new HashMap<>();
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, jobSpec.getPackaging());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_FORMAT, jobSpec.getFormat());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_CHARSET, jobSpec.getCharset());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER, jobSpec.getSubmitterId());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION, jobSpec.getDestination());
         String flowData = null;
         try {
-            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(),
-                    FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
-
+            final Response response = HttpClient.doGet(client, queryParameters, getFlowStoreServiceEndpoint(),
+                    FlowStoreServiceEntryPoint.FLOW_BINDERS, REST_FLOW_QUERY_ENTRY_POINT);
             try {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {

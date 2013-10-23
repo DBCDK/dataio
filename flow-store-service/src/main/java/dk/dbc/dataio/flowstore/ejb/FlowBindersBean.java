@@ -7,6 +7,7 @@ import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
+import dk.dbc.dataio.commons.types.restparameters.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
@@ -39,31 +40,25 @@ import javax.ws.rs.QueryParam;
 @Path(FlowStoreServiceEntryPoint.FLOW_BINDERS)
 public class FlowBindersBean {
 
-    public static final String REST_PARAMETER_PACKAGING = "packaging";
-    public static final String REST_PARAMETER_FORMAT = "format";
-    public static final String REST_PARAMETER_CHARSET = "charset";
-    public static final String REST_PARAMETER_SUBMITTER = "submitter";
-    public static final String REST_PARAMETER_DESTINATION = "destination";
-
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
     @PersistenceContext
     protected EntityManager entityManager; // protected for testing purposes
     // todo: Is it ok to have EntityManager protected for testing purposes?
 
     @GET
-    @Path("/findFlow")
+    @Path("/flow")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlow(@QueryParam(REST_PARAMETER_PACKAGING) String packaging,
-            @QueryParam(REST_PARAMETER_FORMAT) String format,
-            @QueryParam(REST_PARAMETER_CHARSET) String charset,
-            @QueryParam(REST_PARAMETER_SUBMITTER) Long submitter_number,
-            @QueryParam(REST_PARAMETER_DESTINATION) String destination) throws JsonException {
+    public Response getFlow(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitter_number,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination) throws JsonException {
 
-        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, REST_PARAMETER_PACKAGING);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(format, REST_PARAMETER_FORMAT);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(charset, REST_PARAMETER_CHARSET);
-        InvariantUtil.checkNotNullOrThrow(submitter_number, REST_PARAMETER_SUBMITTER);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(destination, REST_PARAMETER_DESTINATION);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, FlowBinderFlowQuery.REST_PARAMETER_PACKAGING);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(format, FlowBinderFlowQuery.REST_PARAMETER_FORMAT);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(charset, FlowBinderFlowQuery.REST_PARAMETER_CHARSET);
+        InvariantUtil.checkNotNullOrThrow(submitter_number, FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(destination, FlowBinderFlowQuery.REST_PARAMETER_DESTINATION);
 
         Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOW);
         try {

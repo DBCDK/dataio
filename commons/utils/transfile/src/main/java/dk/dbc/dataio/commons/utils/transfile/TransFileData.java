@@ -10,11 +10,11 @@ import java.util.Map;
 public class TransFileData {
 
     private final Map<TransFileField.TransFileFieldId, String> data = new HashMap<>();
-    
+
     /**
      * Accumulates single Trans File Fields in the class from the input string
-     * 
-     * @param transFileData 
+     *
+     * @param transFileData
      * @throws IllegalArgumentException
      */
     public TransFileData(String transFileData) throws IllegalArgumentException {
@@ -39,7 +39,7 @@ public class TransFileData {
         checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId.FILE_NAME);
         checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId.PRIMARY_EMAIL_ADDRESS);
     }
-    
+
     /**
      * Gets the Basename for the TransFile data element
      * @return The basename
@@ -47,7 +47,7 @@ public class TransFileData {
     public String getBaseName() {
         return data.get(TransFileField.TransFileFieldId.BASE_NAME);
     }
-    
+
     /**
      * Gets the Filename for the TransFile data element
      * @return The filename
@@ -64,7 +64,7 @@ public class TransFileData {
         final String filename = data.get(TransFileField.TransFileFieldId.FILE_NAME);
         return Long.valueOf(filename.substring(0, filename.indexOf(".")));
     }
-    
+
     /**
      * Gets the Technical Protocol for the TransFile data element
      * @return The Technical Protocol
@@ -72,7 +72,7 @@ public class TransFileData {
     public String getTechnicalProtocol() {
         return data.get(TransFileField.TransFileFieldId.TECHNICAL_PROTOCOL);
     }
-    
+
     /**
      * Gets the Character Set for the TransFile data element
      * @return The Character Set
@@ -80,7 +80,7 @@ public class TransFileData {
     public String getCharacterSet() {
         return data.get(TransFileField.TransFileFieldId.CHARACTER_SET);
     }
-    
+
     /**
      * Gets the Library Format for the TransFile data element
      * @return The Library Format
@@ -88,7 +88,7 @@ public class TransFileData {
     public String getLibraryFormat() {
         return data.get(TransFileField.TransFileFieldId.LIBRARY_FORMAT);
     }
-    
+
     /**
      * Gets the Primary Email Address for the TransFile data element
      * @return The Primary Email Address
@@ -96,7 +96,7 @@ public class TransFileData {
     public String getPrimaryEmailAddress() {
         return data.get(TransFileField.TransFileFieldId.PRIMARY_EMAIL_ADDRESS);
     }
-    
+
     /**
      * Gets the Secondary Email Address for the TransFile data element
      * @return The Secondary Email Address
@@ -104,7 +104,7 @@ public class TransFileData {
     public String getSecondaryEmailAddress() {
         return data.get(TransFileField.TransFileFieldId.SECONDARY_EMAIL_ADDRESS);
     }
-    
+
     /**
      * Gets the Initials for the TransFile data element
      * @return The Initials
@@ -112,13 +112,13 @@ public class TransFileData {
     public String getInitials() {
         return data.get(TransFileField.TransFileFieldId.INITIALS);
     }
-    
-    
+
+
     // Private methods
 
     /**
      * Checks if the accumulated data contains a mandatory field. If not, an exception is thrown
-     * @param mandatoryFieldId 
+     * @param mandatoryFieldId
      * @throws IllegalArgumentException
      */
     private void checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId mandatoryFieldId) throws IllegalArgumentException {
@@ -128,8 +128,8 @@ public class TransFileData {
     }
 
     /**
-     * Checks that the supplied string contains a key as supplied 
-     * @param fieldString 
+     * Checks that the supplied string contains a key as supplied
+     * @param fieldString
      * @throws IllegalArgumentException
      */
     private void checkCorrectTransFileFieldIdOrThrow(String fieldString, TransFileField.TransFileFieldId matchKey) throws IllegalArgumentException {
@@ -138,5 +138,14 @@ public class TransFileData {
             throw new IllegalArgumentException("Field 'b' must be the first field in the line");
         }
     }
-    
+
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for(TransFileField.TransFileFieldId id : data.keySet()) {
+            sb.append(" ").append(id).append(":").append(data.get(id));
+        }
+        return sb.toString();
+    }
 }

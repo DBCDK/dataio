@@ -71,12 +71,18 @@ public class EmbeddedEngineServlet extends HttpServlet {
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,
                 ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
 
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        if (status != Response.Status.CREATED) {
-            throw new ServletException(String.format("job-store service returned with unexpected status code: %s", status));
+        try {
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            if (status == Response.Status.PRECONDITION_FAILED) {
+                throw new IllegalArgumentException("Unable to resolve flow binder from job specification");
+            }
+            if (status != Response.Status.CREATED) {
+                throw new ServletException(String.format("job-store service returned with unexpected status code: %s", status));
+            }
+            return response.readEntity(JobInfo.class);
+        } finally {
+            response.close();
         }
-
-        return response.readEntity(JobInfo.class);
     }
 
     private TransFileData validateTransFile(File transFile, String dataFileName) throws IllegalArgumentException, IOException {
@@ -156,7 +162,14 @@ public class EmbeddedEngineServlet extends HttpServlet {
                     return;
                 }
 
-                final JobInfo jobInfo = executeJob(dataFile.getAbsolutePath(), transFileData);
+                JobInfo jobInfo = null;
+                try {
+                    jobInfo = executeJob(dataFile.getAbsolutePath(), transFileData);
+                } catch (IllegalArgumentException e) {
+                    resp.getWriter().write(String.format("<div>%s Der blev ikke fundet en matchende flowbinder.</div>", transFileData));
+                    return;
+                }
+
                 resp.getWriter().write(buildStatusFromJobInfo(jobInfo, transFileData, transFileOriginalName));
             } catch (Exception e) {
                 log.error("Exception caught", e);

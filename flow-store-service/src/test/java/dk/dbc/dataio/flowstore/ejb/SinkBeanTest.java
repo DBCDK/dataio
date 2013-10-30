@@ -1,16 +1,11 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import javax.persistence.EntityManager;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
-import org.junit.Ignore;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -44,12 +39,5 @@ public class SinkBeanTest {
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
 
         Response response = sink.createSink(uriInfo, "invalid Json");
-    }
-
-    @Ignore
-    @Test
-    public void createSink_validSinkComponent_success() throws JsonException {
-        SinksBean sink = new SinksBean();
-        sink.createSink(null, "");
     }
 }

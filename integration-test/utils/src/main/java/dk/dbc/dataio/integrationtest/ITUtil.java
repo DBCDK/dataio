@@ -41,6 +41,7 @@ public class ITUtil {
     public static final String FLOW_BINDERS_SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
     public static final String FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME = "flow_binders_search_index";
     public static final String SUBMITTERS_TABLE_NAME = "submitters";
+    public static final String SINKS_TABLE_NAME = "sinks";
 
     public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", FLOWS_TABLE_NAME);
@@ -50,6 +51,8 @@ public class ITUtil {
             "SELECT content FROM %s WHERE id=?", FLOW_COMPONENTS_TABLE_NAME);
     public static final String SUBMITTERS_TABLE_SELECT_CONTENT_STMT = String.format(
             "SELECT content FROM %s WHERE id=?", SUBMITTERS_TABLE_NAME);
+    public static final String SINKS_TABLE_SELECT_CONTENT_STMT = String.format(
+            "SELECT content FROM %s WHERE id=?", SINKS_TABLE_NAME);
 
     private ITUtil() { }
 
@@ -89,7 +92,8 @@ public class ITUtil {
                 FLOW_BINDERS_TABLE_NAME,
                 FLOW_COMPONENTS_TABLE_NAME,
                 FLOWS_TABLE_NAME,
-                SUBMITTERS_TABLE_NAME);
+                SUBMITTERS_TABLE_NAME,
+                SINKS_TABLE_NAME);
     }
 
     public static long createFlowComponentWithName(String name) {
@@ -694,6 +698,30 @@ public class ITUtil {
             stringBuilder.append(asLongMember("id", id)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asLongMember("version", version)); stringBuilder.append(MEMBER_DELIMITER);
             stringBuilder.append(asObjectMember("content", content));
+            stringBuilder.append(END_OBJECT);
+            return stringBuilder.toString();
+        }
+    }
+
+    public static class SinkContentJsonBuilder extends JsonBuilder {
+        private String name = "defaultSinkName";
+        private String resource = "defualtResource";
+
+        public SinkContentJsonBuilder setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public SinkContentJsonBuilder setResource(String resource) {
+            this.resource = resource;
+            return this;
+        }
+
+        public String build() {
+            final StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(START_OBJECT);
+            stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
+            stringBuilder.append(asTextMember("resource", resource));
             stringBuilder.append(END_OBJECT);
             return stringBuilder.toString();
         }

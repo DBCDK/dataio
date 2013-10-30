@@ -14,6 +14,13 @@
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-flow-store-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-integration-test-utils</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

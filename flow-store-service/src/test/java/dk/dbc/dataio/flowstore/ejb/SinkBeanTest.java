@@ -1,33 +1,55 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.flowstore.entity.FlowBinder;
+import javax.persistence.EntityManager;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.is;
 import org.junit.Ignore;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.Matchers.any;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 public class SinkBeanTest {
 
     @Test
     public void sinkBean_validConstructor_newInstance() {
-        SinkBean sink = new SinkBean();
+        SinksBean sink = new SinksBean();
     }
 
     @Test(expected = NullPointerException.class)
-    public void createSink_nullSinkContent_throws() {
-        SinkBean sink = new SinkBean();
+    public void createSink_nullSinkContent_throws() throws JsonException {
+        SinksBean sink = new SinksBean();
         sink.createSink(null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void createSink_emptySinkContent_throws() {
-        SinkBean sink = new SinkBean();
+    public void createSink_emptySinkContent_throws() throws JsonException {
+        SinksBean sink = new SinksBean();
         sink.createSink(null, "");
+    }
+
+    @Test(expected = JsonException.class)
+    public void createSink_invalidJSON_throwsJsonException() throws JsonException {
+        SinksBean sink = new SinksBean();
+        EntityManager entityManager = mock(EntityManager.class);
+        sink.entityManager = entityManager;
+
+        UriInfo uriInfo = mock(UriInfo.class);
+        UriBuilder uriBuilder = UriBuilder.fromPath("http://localhost:8080/sink");
+        when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
+
+        Response response = sink.createSink(uriInfo, "invalid Json");
     }
 
     @Ignore
     @Test
-    public void createSink_validSinkComponent_success() {
-        SinkBean sink = new SinkBean();
+    public void createSink_validSinkComponent_success() throws JsonException {
+        SinksBean sink = new SinksBean();
         sink.createSink(null, "");
     }
 }

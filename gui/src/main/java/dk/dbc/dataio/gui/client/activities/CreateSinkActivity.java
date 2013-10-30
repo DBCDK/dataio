@@ -43,7 +43,7 @@ public class CreateSinkActivity extends AbstractActivity implements SinkCreatePr
     }
 
     public void saveSink(String sinkName, String resourceName) {
-        Window.alert("Du forsøger nu at gemme en Sink");
+        sinkCreateView.onSaveSinkSuccess();
     }
 
 }

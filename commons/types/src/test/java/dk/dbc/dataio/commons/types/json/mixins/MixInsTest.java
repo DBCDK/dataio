@@ -18,6 +18,10 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobInfoTest;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobSpecificationTest;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.SinkContentTest;
+import dk.dbc.dataio.commons.types.SinkTest;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SubmitterContentTest;
@@ -90,5 +94,17 @@ public class MixInsTest {
     public void verify_jsonMixInForJobSpecification() throws Exception {
         final String json = JsonUtil.toJson(JobSpecificationTest.newJobSpecificationInstance());
         JsonUtil.fromJson(json, JobSpecification.class, MixIns.getMixIns());
+    }
+
+    @Test
+    public void verify_jsonMixInForSink() throws Exception {
+        final String json = JsonUtil.toJson(SinkTest.newSinkInstance());
+        JsonUtil.fromJson(json, Sink.class, MixIns.getMixIns());
+    }
+
+    @Test
+    public void verify_jsonMixInForSinkContent() throws Exception {
+        final String json = JsonUtil.toJson(SinkContentTest.newSinkContentInstance());
+        JsonUtil.fromJson(json, SinkContent.class, MixIns.getMixIns());
     }
 }

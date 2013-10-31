@@ -1,0 +1,83 @@
+package dk.dbc.dataio.sinkservice.ejb;
+
+import dk.dbc.dataio.commons.types.PingResponse;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.SinkServiceEntryPoint;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.sinkservice.ping.EsPing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+/**
+ * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
+ * exposed by the '/SinkServiceEntryPoint.PING' entry point
+ */
+@Stateless
+@Path(SinkServiceEntryPoint.PING)
+public class PingBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PingBean.class);
+
+    /**
+     * Pings sink defined by given content
+     *
+     * @param sinkContentData sink content as JSON string
+     *
+     * @return a HTTP 200 OK response with PingResponse entity.
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws EJBException when unable to obtain initial context
+     * @throws NullPointerException when given null-valued jobSpecData argument
+     * @throws IllegalArgumentException when given empty-valued jobSpecData argument
+     * @throws JsonException when given non-json sinkContent argument,
+     * or if JSON object does not comply with model schema
+     */
+    @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response ping(String sinkContentData) throws EJBException, JsonException {
+        LOGGER.trace("SinkContent: {}", sinkContentData);
+        final SinkContent sinkContent = JsonUtil.fromJson(sinkContentData, SinkContent.class, MixIns.getMixIns());
+        final InitialContext initialContext = getInitialContext();
+        final PingResponse pingResponse;
+        try {
+            pingResponse = EsPing.execute(initialContext, sinkContent);
+        } finally {
+            closeInitialContext(initialContext);
+        }
+        return Response.ok().entity(JsonUtil.toJson(pingResponse)).build();
+    }
+
+    private static InitialContext getInitialContext() throws EJBException {
+        final InitialContext initialContext;
+        try {
+            initialContext = new InitialContext();
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+        return initialContext;
+    }
+
+    private static void closeInitialContext(InitialContext initialContext) {
+        if (initialContext != null) {
+            try {
+                initialContext.close();
+            } catch (NamingException e) {
+                LOGGER.warn("Unable to close initial context", e);
+            }
+        }
+    }
+}

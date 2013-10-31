@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SinkServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.gui.client.exceptions.SinkServiceProxyError;
 import dk.dbc.dataio.gui.client.exceptions.SinkServiceProxyException;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
@@ -24,6 +25,8 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
 
     @Override
     public PingResponse ping(SinkContent sinkContent) throws SinkServiceProxyException {
+        InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
+
         final Response response;
         final PingResponse result;
         try {

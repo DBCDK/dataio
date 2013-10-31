@@ -38,7 +38,7 @@ public class EsPing {
         try {
             doDataSourceLookup(context, sinkContent.getResource());
             log.add(String.format("Found DataSource resource with name '%s'", sinkContent.getResource()));
-        } catch (Exception e) {
+        } catch (NamingException e) {
             status = PingResponse.Status.FAILED;
             log.add(String.format("Unable to find DataSource resource with name '%s' : %s", sinkContent.getResource(), e.getMessage()));
         }
@@ -46,7 +46,10 @@ public class EsPing {
     }
 
     private static void doDataSourceLookup(InitialContext context, String jndiName) throws NamingException {
-        DataSource lookup = (DataSource) context.lookup(jndiName);
+        final Object lookup = context.lookup(jndiName);
+        if (!(lookup instanceof DataSource)) {
+            throw new NamingException("Unexpected type of resource returned from lookup");
+        }
     }
 
 

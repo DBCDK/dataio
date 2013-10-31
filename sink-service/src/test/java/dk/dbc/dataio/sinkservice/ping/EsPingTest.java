@@ -41,7 +41,7 @@ public class EsPingTest {
     }
 
     @Test
-    public void execute_requiredResourcesAreNotAvailable_returnPingResponseWithStatusFailed() throws Exception {
+    public void execute_requiredResourceIsNotAvailable_returnsPingResponseWithStatusFailed() throws Exception {
         when(context.lookup(any(String.class))).thenThrow(new NamingException());
 
         final PingResponse response = EsPing.execute(context, getSinkContent());
@@ -50,12 +50,21 @@ public class EsPingTest {
     }
 
     @Test
-    public void execute_requiredResourcesAreAvailable_returnPingResponseWithStatusOk() throws Exception {
+    public void execute_requiredResourceIsAvailable_returnsPingResponseWithStatusOk() throws Exception {
         final DataSource dataSource = mock(DataSource.class);
         when(context.lookup(any(String.class))).thenReturn(dataSource);
 
         final PingResponse response = EsPing.execute(context, getSinkContent());
         assertThat(response.getStatus(), is(PingResponse.Status.OK));
+        assertThat(response.getLog().size(), is(1));
+    }
+
+    @Test
+    public void execute_requiredResourceIsAvailableButOfWrongType_returnsPingResponseWithStatusFailed() throws Exception {
+        when(context.lookup(any(String.class))).thenReturn(new Object());
+
+        final PingResponse response = EsPing.execute(context, getSinkContent());
+        assertThat(response.getStatus(), is(PingResponse.Status.FAILED));
         assertThat(response.getLog().size(), is(1));
     }
 

@@ -1,0 +1,40 @@
+package dk.dbc.dataio.gui.server;
+
+import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import dk.dbc.dataio.commons.types.PingResponse;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.gui.client.exceptions.SinkServiceProxyException;
+import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
+
+import javax.servlet.ServletException;
+
+public class SinkServiceProxyServlet extends RemoteServiceServlet implements SinkServiceProxy {
+    private static final long serialVersionUID = 6389757968008300151L;
+
+    private transient SinkServiceProxy sinkServiceProxy = null;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        sinkServiceProxy = new SinkServiceProxyImpl();
+    }
+
+    @Override
+    public PingResponse ping(SinkContent sinkContent) throws SinkServiceProxyException {
+        return sinkServiceProxy.ping(sinkContent);
+    }
+
+    @Override
+    public void close() {
+        if (sinkServiceProxy != null) {
+            sinkServiceProxy.close();
+            sinkServiceProxy = null;
+        }
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        close();
+    }
+}

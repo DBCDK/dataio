@@ -20,6 +20,14 @@ public class ServletUtil {
         }
     }
 
+    public static String getSinkServiceEndpoint() throws ServletException {
+        try {
+            return ServiceUtil.getSinkServiceEndpoint();
+        } catch (NamingException e) {
+            throw new ServletException(e);
+        }
+    }
+
     public static String getJobStoreServiceEndpoint() throws ServletException {
         try {
             return ServiceUtil.getJobStoreServiceEndpoint();

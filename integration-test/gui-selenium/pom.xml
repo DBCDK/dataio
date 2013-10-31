@@ -142,7 +142,7 @@
                 <property>dataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</property>
                 -->
                 <property>dataioJobStoreServiceEndpoint=http://localhost:${glassfish.port}/job-store</property>
-                <property>dataioSinkServiceEndpoints=http://localhost:${glassfish.port}/sink-service</property>
+                <property>dataioSinkServiceEndpoint=http://localhost:${glassfish.port}/sink-service</property>
               </systemProperties>
               <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
             </configuration>

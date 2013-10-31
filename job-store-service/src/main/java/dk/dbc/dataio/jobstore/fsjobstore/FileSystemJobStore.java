@@ -223,7 +223,7 @@ public class FileSystemJobStore implements JobStore {
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
             bw.write(JsonUtil.toJson(processChunkResult));
         } catch (IOException | JsonException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to write chunk result: {}", processChunkResult.getId()), e);
+            throw new JobStoreException(String.format("Exception caught when trying to write chunk result: %s", processChunkResult.getId()), e);
         }
     }
 

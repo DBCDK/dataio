@@ -198,7 +198,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
 
             final Path mainJsPath = Paths.get(projectPath.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
             final String mainJsContent = new String(Files.readAllBytes(mainJsPath), CHARSET);
-            final JavaScript mainJs = new JavaScript(Base64.encodeBase64String(mainJsContent.getBytes()), "");
+            final JavaScript mainJs = new JavaScript(Base64.encodeBase64String(mainJsContent.getBytes(CHARSET)), "");
             javaScripts.add(mainJs);
 
             for (String dependency : dependencies) {

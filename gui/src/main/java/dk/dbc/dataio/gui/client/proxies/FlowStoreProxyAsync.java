@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 
@@ -16,6 +17,7 @@ public interface FlowStoreProxyAsync {
     void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<Void> async);
     void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<Void> async);
     void createSubmitter(SubmitterContent submitterContent, AsyncCallback<Void> async);
+    void createSink(SinkContent sinkContent, AsyncCallback<Void> async);
 
     void findAllComponents(AsyncCallback<List<FlowComponent>> async);
     void findAllFlows(AsyncCallback<List<Flow>> async);

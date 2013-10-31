@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -87,6 +88,22 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             response = HttpClient.doPostWithJson(client, flowBinderContent,
                     ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.CREATED);
+        } finally {
+            response.close();
+        }
+    }
+
+    @Override
+    public void createSink(SinkContent sinkContent) throws NullPointerException, FlowStoreProxyException {
+        final Response response;
+        try {
+            response = HttpClient.doPostWithJson(client, sinkContent,
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS);
         } catch (ServletException e) {
             throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
         }

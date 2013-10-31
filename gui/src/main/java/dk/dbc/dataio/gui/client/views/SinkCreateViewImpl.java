@@ -33,7 +33,8 @@ public class SinkCreateViewImpl extends VerticalPanel implements SinkCreateView 
     public static final String SINK_CREATION_RESOURCE_NAME_LABEL = "Resource navn";
     public static final String SINK_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     
-    public static final String SINK_CREATION_xxxxx_ERROR = "xxxxx";
+    public static final String FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE = "En sink med det pågældende navn er allerede oprettet i flow store.";
+    public static final String FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE = "De udfyldte felter forårsagede en data valideringsfejl i flow store.";
     
     // Local variables
     private SinkCreatePresenter presenter;
@@ -81,10 +82,10 @@ public class SinkCreateViewImpl extends VerticalPanel implements SinkCreateView 
             errorMessage = detail;
         } else {
             switch (errorCode) {
-//                case NOT_ACCEPTABLE: errorMessage = FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE;
-//                    break;
-//                case BAD_REQUEST: errorMessage = FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE;
-//                    break;
+                case NOT_ACCEPTABLE: errorMessage = FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE;
+                    break;
+                case BAD_REQUEST: errorMessage = FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE;
+                    break;
                 default: errorMessage = detail;
                     break;
             }

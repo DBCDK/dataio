@@ -53,7 +53,7 @@ public class SinkCreationSeleniumIT {
 
     @After
     public void tearDown() throws SQLException {
-//        ITUtil.clearDbTables(conn, ITUtil.SUBMITTERS_TABLE_NAME);
+        ITUtil.clearDbTables(conn, ITUtil.SINKS_TABLE_NAME);
         driver.quit();
     }
 

@@ -114,29 +114,6 @@
       <build>
         <plugins>
 
-          <!--
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>1.7</version>
-            <executions>
-              <execution>
-                <id>reserve-network-port</id>
-                <goals>
-                  <goal>reserve-network-port</goal>
-                </goals>
-                <phase>initialize</phase>
-                <configuration>
-                  <portNames>
-                    <portName>glassfish.port</portName>
-                    <portName>h2.port</portName>
-                  </portNames>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          -->
-
           <plugin>
             <groupId>org.glassfish.embedded</groupId>
             <artifactId>maven-embedded-glassfish-plugin</artifactId>
@@ -165,6 +142,7 @@
                 <property>dataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</property>
                 -->
                 <property>dataioJobStoreServiceEndpoint=http://localhost:${glassfish.port}/job-store</property>
+                <property>dataioSinkServiceEndpoints=http://localhost:${glassfish.port}/sink-service</property>
               </systemProperties>
               <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
             </configuration>
@@ -199,6 +177,18 @@
                   <app>../../job-store-service/target/dataio-job-store-service-${project.version}.war</app>
                   <contextRoot>job-store</contextRoot>
                   <name>jobstore</name>
+                </configuration>
+              </execution>
+              <execution>
+                <id>sink-service-deploy</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+                <configuration>
+                  <app>../../sink-service/target/dataio-sink-service-${project.version}.war</app>
+                  <contextRoot>sink-service</contextRoot>
+                  <name>sink-service</name>
                 </configuration>
               </execution>
               <execution>
@@ -315,6 +305,18 @@
                 </configuration>
               </execution>
               <execution>
+                <id>sink-service-deploy</id>
+                <phase>this-phase-should-never-run</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+                <configuration>
+                  <app>../../sink-service/target/dataio-sink-service-${project.version}.war</app>
+                  <contextRoot>sink-service</contextRoot>
+                  <name>sink-service</name>
+                </configuration>
+              </execution>
+              <execution>
                 <id>run-glassfish</id>
                 <phase>integration-test</phase>
                 <goals>
@@ -327,18 +329,24 @@
       </build>
 
       <dependencies>
-          <dependency>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-flow-store-service</artifactId>
-              <version>${project.version}</version>
-              <type>war</type>
-          </dependency>
-          <dependency>
-              <groupId>dk.dbc</groupId>
-              <artifactId>dataio-job-store-service</artifactId>
-              <version>${project.version}</version>
-              <type>war</type>
-          </dependency>
+        <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dataio-flow-store-service</artifactId>
+          <version>${project.version}</version>
+          <type>war</type>
+        </dependency>
+        <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dataio-job-store-service</artifactId>
+          <version>${project.version}</version>
+          <type>war</type>
+        </dependency>
+        <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dataio-sink-service</artifactId>
+          <version>${project.version}</version>
+          <type>war</type>
+        </dependency>
       </dependencies>
 
     </profile>

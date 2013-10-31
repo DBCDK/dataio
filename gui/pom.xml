@@ -17,6 +17,7 @@
     <runTarget>gui.html</runTarget>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <developmentFlowStoreURLProperty> </developmentFlowStoreURLProperty>
+    <developmentSinkServiceURLProperty> </developmentSinkServiceURLProperty>
     <developmentDataioGuiSubversionScmEndpointProperty> </developmentDataioGuiSubversionScmEndpointProperty>
  </properties>
 
@@ -26,6 +27,7 @@
      <properties>
        <developmentFlowStoreURLProperty>-DflowStoreURL=http://localhost:8080/flow-store</developmentFlowStoreURLProperty>
        <developmentJobStoreURLProperty>-DdataioJobStoreServiceEndpoint=http://localhost:8080/job-store</developmentJobStoreURLProperty>
+       <developmentSinkServiceURLProperty>-DdataioSinkServiceEndpoints=http://localhost:8080/sink-service</developmentSinkServiceURLProperty>
        <developmentDataioGuiSubversionScmEndpointProperty>-DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</developmentDataioGuiSubversionScmEndpointProperty>
      </properties>
 
@@ -154,8 +156,7 @@
           </execution>
         </executions>
         <configuration>
-	  <!--extraJvmArgs>${developmentJobStoreURLProperty} ${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty}</extraJvmArgs-->
-	  <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty}</extraJvmArgs>
+	        <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty} ${developmentSinkServiceURLProperty}</extraJvmArgs>
           <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
           <!--localWorkers>1</localWorkers-->
         </configuration>

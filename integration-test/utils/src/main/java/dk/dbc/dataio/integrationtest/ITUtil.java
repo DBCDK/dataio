@@ -125,6 +125,11 @@ public class ITUtil {
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS));
     }
 
+    public static long createSink(Client restClient, String baseUrl, String content) {
+        return getResourceIdFromLocationHeaderAndAssertHasValue(
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.SINKS));
+    }
+
     /**
      * Extracts named header from given response while asserting that it is not null
      *

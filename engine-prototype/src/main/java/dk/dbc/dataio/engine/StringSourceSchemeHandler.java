@@ -13,7 +13,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 public class StringSourceSchemeHandler implements ISchemeHandler {
 
-    public static XLogger log = XLoggerFactory.getXLogger(StringSourceSchemeHandler.class);
+    public static final XLogger log = XLoggerFactory.getXLogger(StringSourceSchemeHandler.class);
     public static final String SCHEME = "string";
     public final List<Script> scripts;
 

@@ -23,7 +23,7 @@ public class Engine {
 
     private static final Logger log = LoggerFactory.getLogger(Engine.class);
 
-    private final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
+    public static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
     public Job insertIntoJobStore(Path dataObjectPath, String flowInfoJson, JobStore jobStore) throws JobStoreException {
         try {
@@ -92,7 +92,7 @@ public class Engine {
         BufferedReader br = Files.newBufferedReader(path, LOCAL_CHARSET);
         String line;
         long chunkId = 0;
-        int counter = 0; 
+        int counter = 0;
         Chunk chunk = new Chunk(chunkId, job.getFlow());
         while((line = br.readLine()) != null) {
             log.info("======> Before [" + line + "]");
@@ -147,7 +147,7 @@ public class Engine {
         List<String> records = chunk.getRecords();
 
         List<String> results = new ArrayList<>();
-        
+
         for(String record : records) {
             String recordResult = processRecord(flow, base64decode(record));
             String recordResultBase64 = base64encode(recordResult);
@@ -156,7 +156,7 @@ public class Engine {
 
         return new ProcessChunkResult(chunk.getId(), results);
     }
-    
+
     private String processRecord(Flow flow, String record) {
         log.info("Record: {}", record);
         return javascriptRecordHandler(flow, record);
@@ -173,14 +173,14 @@ public class Engine {
         Object res = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record});
         return (String)res;
     }
-    
-    
+
+
     public static String base64encode(String dataToEncode) {
-        return Base64.encodeBase64String(dataToEncode.getBytes());
+        return Base64.encodeBase64String(dataToEncode.getBytes(LOCAL_CHARSET));
     }
 
     public static String base64decode(String dataToDecode) {
-        return new String(Base64.decodeBase64(dataToDecode));
+        return new String(Base64.decodeBase64(dataToDecode), LOCAL_CHARSET);
     }
 
 }

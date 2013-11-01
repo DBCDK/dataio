@@ -2,6 +2,7 @@ package dk.dbc.dataio.sinkservice.ping;
 
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,6 +70,6 @@ public class EsPingTest {
     }
 
     private SinkContent getSinkContent() {
-        return new SinkContent("name", "dataio/resource");
+        return new SinkContentBuilder().build();
     }
 }

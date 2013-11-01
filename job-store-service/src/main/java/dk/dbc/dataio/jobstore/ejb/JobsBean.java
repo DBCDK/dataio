@@ -125,8 +125,8 @@ public class JobsBean {
 
     private String formatQueryParametersForLog(Map<String, Object> queryParameters) {
         StringBuilder sb = new StringBuilder();
-        for(String key : queryParameters.keySet()) {
-            sb.append(" ").append(key).append(":").append(queryParameters.get(key));
+        for(Map.Entry entry : queryParameters.entrySet()) {
+            sb.append(" ").append(entry.getKey()).append(":").append(entry.getValue());
         }
         return sb.toString();
     }

@@ -5,6 +5,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -60,7 +61,7 @@ public class FlowsIT {
     @Test
     public void createFlow_Ok() throws SQLException {
         // When...
-        final String flowContent = new ITUtil.FlowContentJsonBuilder().build();
+        final String flowContent = new FlowContentJsonBuilder().build();
         final Response response = HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceEntryPoint.FLOWS);
 
         // Then...
@@ -97,7 +98,7 @@ public class FlowsIT {
      */
     @Test
     public void createFlow_duplicateName() throws Exception {
-        final String flowContent = new ITUtil.FlowContentJsonBuilder().build();
+        final String flowContent = new FlowContentJsonBuilder().build();
 
         // Given...
         createFlow(restClient, baseUrl, flowContent);
@@ -132,7 +133,7 @@ public class FlowsIT {
     @Test
     public void getFlow_flowFound() throws Exception {
         // Given...
-        final String flowContent = new ITUtil.FlowContentJsonBuilder().build();
+        final String flowContent = new FlowContentJsonBuilder().build();
         final long flowId = getResourceIdFromLocationHeaderAndAssertHasValue(
                 HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceEntryPoint.FLOWS));
 
@@ -178,17 +179,17 @@ public class FlowsIT {
     @Test
     public void findAllFlows_Ok() throws Exception {
         // Given...
-        String flowContent = new ITUtil.FlowContentJsonBuilder()
+        String flowContent = new FlowContentJsonBuilder()
                 .setName("c")
                 .build();
         final long sortsThird = createFlow(restClient, baseUrl, flowContent);
 
-        flowContent = new ITUtil.FlowContentJsonBuilder()
+        flowContent = new FlowContentJsonBuilder()
                 .setName("a")
                 .build();
         final long sortsFirst = createFlow(restClient, baseUrl, flowContent);
 
-        flowContent = new ITUtil.FlowContentJsonBuilder()
+        flowContent = new FlowContentJsonBuilder()
                 .setName("b")
                 .build();
         final long sortsSecond = createFlow(restClient, baseUrl, flowContent);

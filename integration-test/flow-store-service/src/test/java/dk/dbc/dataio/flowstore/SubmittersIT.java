@@ -5,6 +5,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -60,7 +61,7 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_Ok() throws SQLException {
         // When...
-        final String submitterContent = new ITUtil.SubmitterContentJsonBuilder().build();
+        final String submitterContent = new SubmitterContentJsonBuilder().build();
         final Response response = HttpClient.doPostWithJson(restClient, submitterContent, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
 
         // Then...
@@ -99,13 +100,13 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateName() throws Exception {
         // Given...
-        final String submitterContent1 = new ITUtil.SubmitterContentJsonBuilder()
+        final String submitterContent1 = new SubmitterContentJsonBuilder()
                 .setNumber(1L)
                 .build();
         createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
-        final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
+        final String submitterContent2 = new SubmitterContentJsonBuilder()
                 .setNumber(2L)
                 .build();
         final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
@@ -122,13 +123,13 @@ public class SubmittersIT {
     @Test
     public void createSubmitter_duplicateNumber() throws Exception {
         // Given...
-        final String submitterContent1 = new ITUtil.SubmitterContentJsonBuilder()
+        final String submitterContent1 = new SubmitterContentJsonBuilder()
                 .setName("test1")
                 .build();
         createSubmitter(restClient, baseUrl, submitterContent1);
 
         // When...
-        final String submitterContent2 = new ITUtil.SubmitterContentJsonBuilder()
+        final String submitterContent2 = new SubmitterContentJsonBuilder()
                 .setName("test2")
                 .build();
         final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS);
@@ -167,19 +168,19 @@ public class SubmittersIT {
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
-        String submitterContent = new ITUtil.SubmitterContentJsonBuilder()
+        String submitterContent = new SubmitterContentJsonBuilder()
                 .setName("c")
                 .setNumber(1L)
                 .build();
         final long sortsThird = createSubmitter(restClient, baseUrl, submitterContent);
 
-        submitterContent = new ITUtil.SubmitterContentJsonBuilder()
+        submitterContent = new SubmitterContentJsonBuilder()
                 .setName("a")
                 .setNumber(2L)
                 .build();
         final long sortsFirst = createSubmitter(restClient, baseUrl, submitterContent);
 
-        submitterContent = new ITUtil.SubmitterContentJsonBuilder()
+        submitterContent = new SubmitterContentJsonBuilder()
                 .setName("b")
                 .setNumber(3L)
                 .build();

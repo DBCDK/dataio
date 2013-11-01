@@ -3,6 +3,9 @@ package dk.dbc.dataio.flowstore;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -61,12 +64,12 @@ public class FlowBindersIT {
     public void createFlowBinder_ok() throws Exception {
         // Given...
         final long flowId = createFlow(restClient, baseUrl,
-                new ITUtil.FlowContentJsonBuilder().build());
+                new FlowContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new ITUtil.SubmitterContentJsonBuilder().build());
+                new SubmitterContentJsonBuilder().build());
 
         // When...
-        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
@@ -111,12 +114,12 @@ public class FlowBindersIT {
 
         // Given...
         final long flowId = createFlow(restClient, baseUrl,
-                new ITUtil.FlowContentJsonBuilder().build());
+                new FlowContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new ITUtil.SubmitterContentJsonBuilder().build());
+                new SubmitterContentJsonBuilder().build());
 
         final String name = "createFlowBinder_duplicateName";
-        final String firstFlowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        final String firstFlowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base1")
                 .setFlowId(flowId)
@@ -125,7 +128,7 @@ public class FlowBindersIT {
         createFlowBinder(restClient, baseUrl, firstFlowBinderContent);
 
         // When...
-        final String secondFlowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        final String secondFlowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName(name)
                 .setDestination("base2")
                 .setFlowId(flowId)
@@ -147,8 +150,8 @@ public class FlowBindersIT {
     public void createFlowBinder_referencedSubmitterNotFound() throws Exception {
         // When...
         final long flowId = createFlow(restClient, baseUrl,
-                new ITUtil.FlowContentJsonBuilder().build());
-        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                new FlowContentJsonBuilder().build());
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(123456789L))
                 .build();
@@ -167,8 +170,8 @@ public class FlowBindersIT {
     public void createFlowBinder_referencedFlowNotFound() throws Exception {
         // When...
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new ITUtil.SubmitterContentJsonBuilder().build());
-        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+                new SubmitterContentJsonBuilder().build());
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setFlowId(987654321L)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
@@ -187,11 +190,11 @@ public class FlowBindersIT {
     public void createFlowBinder_searchKeyExistsInSearchIndex() throws Exception {
         // Given...
         final long flowId = createFlow(restClient, baseUrl,
-                new ITUtil.FlowContentJsonBuilder().build());
+                new FlowContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
-                new ITUtil.SubmitterContentJsonBuilder().build());
+                new SubmitterContentJsonBuilder().build());
 
-        String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_1")
                 .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))
@@ -199,7 +202,7 @@ public class FlowBindersIT {
         createFlowBinder(restClient, baseUrl, flowBinderContent);
 
         // When...
-        flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_2")
                 .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(submitterId))

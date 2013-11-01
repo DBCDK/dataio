@@ -10,7 +10,9 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
@@ -122,7 +124,7 @@ public class JobsBeanTest {
     @Test(expected = EJBException.class)
     public void createJob_jobStoreThrowsJobStoreException_throwsEJBException() throws Exception {
         final long flowId = 42L;
-        final String flowData = new ITUtil.FlowJsonBuilder()
+        final String flowData = new FlowJsonBuilder()
                 .setId(flowId)
                 .build();
         final String jobSpecData = getValidJobSpecificationString();
@@ -140,11 +142,11 @@ public class JobsBeanTest {
     @Test
     public void createJob_jobIsCreated_returnsStatusCreatedResponse() throws Exception {
         final long flowId = 42L;
-        final String flowData = new ITUtil.FlowJsonBuilder()
+        final String flowData = new FlowJsonBuilder()
                 .setId(flowId)
                 .build();
         final String jobSpecData = getValidJobSpecificationString();
-        final String jobInfoData = new ITUtil.JobInfoJsonBuilder().build();
+        final String jobInfoData = new JobInfoJsonBuilder().build();
         final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
                 JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
@@ -173,7 +175,7 @@ public class JobsBeanTest {
         final String destination = "idontknow";
         final Long submitterNumber = 123456L;
 
-        return new ITUtil.JobSpecificationJsonBuilder()
+        return new JobSpecificationJsonBuilder()
                 .setPackaging(packaging)
                 .setFormat(format)
                 .setCharset(charset)

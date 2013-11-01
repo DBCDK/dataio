@@ -10,7 +10,8 @@ import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -62,7 +63,7 @@ public class JobStoreBeanTest {
 
     @Test(expected = JobStoreException.class)
     public void gettingChunkFromUnknownJob_throwsException() throws JobStoreException, IOException, JsonException {
-        final String jobInfoData = new ITUtil.JobInfoJsonBuilder().build();
+        final String jobInfoData = new JobInfoJsonBuilder().build();
         final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
                 createDefaultFlow());
         jsb.getChunk(job, 1);
@@ -140,7 +141,7 @@ public class JobStoreBeanTest {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
-        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+        final String jobSpecificationData = new JobSpecificationJsonBuilder()
                 .setCharset("no-such-charset")
                 .setDataFile(f.toString())
                 .build();
@@ -156,7 +157,7 @@ public class JobStoreBeanTest {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
-        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+        final String jobSpecificationData = new JobSpecificationJsonBuilder()
                 .setCharset("utf8")
                 .setDataFile(f.toString())
                 .build();

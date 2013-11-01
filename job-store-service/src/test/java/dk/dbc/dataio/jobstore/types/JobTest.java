@@ -5,7 +5,8 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -40,7 +41,7 @@ public class JobTest {
 
     public static JobInfo createDefaultJobinfo() {
         try {
-            return JsonUtil.fromJson(new ITUtil.JobInfoJsonBuilder().build(), JobInfo.class, MixIns.getMixIns());
+            return JsonUtil.fromJson(new JobInfoJsonBuilder().build(), JobInfo.class, MixIns.getMixIns());
         } catch (JsonException e) {
             throw new IllegalStateException(e);
         }
@@ -48,7 +49,7 @@ public class JobTest {
 
     public static Flow createDefaultFlow() {
         try {
-            return JsonUtil.fromJson(new ITUtil.FlowJsonBuilder().build(), Flow.class, MixIns.getMixIns());
+            return JsonUtil.fromJson(new FlowJsonBuilder().build(), Flow.class, MixIns.getMixIns());
         } catch (JsonException e) {
             throw new IllegalStateException(e);
         }

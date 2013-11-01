@@ -4,8 +4,9 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
-import dk.dbc.dataio.integrationtest.ITUtil;
+
 import java.util.Arrays;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -94,7 +95,7 @@ public class FlowBindersBeanTest {
         Query query = mock(Query.class);
         when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOW)).thenReturn(query);
 
-        String flowStr = new ITUtil.FlowJsonBuilder().build();
+        String flowStr = new FlowJsonBuilder().build();
         Flow flow = JsonUtil.fromJson(flowStr, Flow.class, MixIns.getMixIns());
 
         when(query.getResultList()).thenReturn(Arrays.asList(flow));

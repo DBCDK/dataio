@@ -1,0 +1,31 @@
+package dk.dbc.dataio.commons.utils.test.json;
+
+public class FlowComponentJsonBuilder extends JsonBuilder {
+    private Long id = 42L;
+    private Long version = 1L;
+    private String content = new FlowComponentContentJsonBuilder().build();
+
+    public FlowComponentJsonBuilder setId(Long id) {
+        this.id = id;
+        return this;
+    }
+
+    public FlowComponentJsonBuilder setVersion(Long version) {
+        this.version = version;
+        return this;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String build() {
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(START_OBJECT);
+        stringBuilder.append(asLongMember("id", id)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asLongMember("version", version)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asObjectMember("content", content));
+        stringBuilder.append(END_OBJECT);
+        return stringBuilder.toString();
+    }
+}

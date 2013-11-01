@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.JobTest;
@@ -148,7 +148,7 @@ public class FileSystemJobStoreTest {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
-        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+        final String jobSpecificationData = new JobSpecificationJsonBuilder()
                 .setCharset("no-such-charset")
                 .setDataFile(f.toString())
                 .build();
@@ -166,7 +166,7 @@ public class FileSystemJobStoreTest {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</drocer></data>";
         Files.write(f, someXML.getBytes());
-        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+        final String jobSpecificationData = new JobSpecificationJsonBuilder()
                 .setDataFile(f.toString())
                 .setCharset("UTF-8")
                 .build();
@@ -184,7 +184,7 @@ public class FileSystemJobStoreTest {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
-        final String jobSpecificationData = new ITUtil.JobSpecificationJsonBuilder()
+        final String jobSpecificationData = new JobSpecificationJsonBuilder()
                 .setDataFile(f.toString())
                 .setCharset("UTF-8")
                 .build();

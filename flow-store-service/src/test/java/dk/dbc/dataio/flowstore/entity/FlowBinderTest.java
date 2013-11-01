@@ -1,9 +1,8 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ public class FlowBinderTest {
     @Test
     public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsNameIndexValue() throws Exception {
         final String name = "testbinder";
-        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName(name)
                 .build();
 
@@ -39,7 +38,7 @@ public class FlowBinderTest {
         final Set<Long> submitterIds = new HashSet<>(2);
         submitterIds.add(42L);
         submitterIds.add(43L);
-        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setSubmitterIds(new ArrayList<Long>(submitterIds))
                 .build();
 
@@ -51,7 +50,7 @@ public class FlowBinderTest {
     @Test
     public void setContent_jsonDataArgIsValidFlowBinderContentJson_setsFlowId() throws Exception {
         final long flowId = 42L;
-        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setFlowId(flowId)
                 .build();
 
@@ -103,13 +102,13 @@ public class FlowBinderTest {
         final String destination = "destination";
         final Submitter submitter1 = new Submitter();
         final Submitter submitter2 = new Submitter();
-        submitter1.setContent(new ITUtil.SubmitterContentJsonBuilder().build());
-        submitter2.setContent(new ITUtil.SubmitterContentJsonBuilder().build());
+        submitter1.setContent(new SubmitterContentJsonBuilder().build());
+        submitter2.setContent(new SubmitterContentJsonBuilder().build());
 
         Set<Submitter> submitters = new HashSet<>(2);
         submitters.add(submitter1);
         submitters.add(submitter2);
-        final String flowBinderContent = new ITUtil.FlowBinderContentJsonBuilder()
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setPackaging(packaging)
                 .setFormat(format)
                 .setCharset(charset)

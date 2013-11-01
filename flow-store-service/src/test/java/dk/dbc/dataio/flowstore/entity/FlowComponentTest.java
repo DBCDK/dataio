@@ -1,7 +1,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -18,7 +18,7 @@ public class FlowComponentTest {
     @Test
     public void setContent_jsonDataArgIsValidFlowComponentContentJson_setsNameIndexValue() throws Exception {
         final String name = "testComponent";
-        final String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder()
+        final String flowComponentContent = new FlowComponentContentJsonBuilder()
                 .setName(name)
                 .build();
 

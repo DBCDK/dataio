@@ -1,7 +1,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -18,7 +18,7 @@ public class SubmitterTest {
     @Test
     public void setContent_jsonDataArgIsValidSubmitterContentJson_setsNameIndexValue() throws Exception {
         final String name = "testsubmitter";
-        final String submitterContent = new ITUtil.SubmitterContentJsonBuilder()
+        final String submitterContent = new SubmitterContentJsonBuilder()
                 .setName(name)
                 .build();
 
@@ -30,7 +30,7 @@ public class SubmitterTest {
     @Test
     public void setContent_jsonDataArgIsValidSubmitterContentJson_setsNumberIndexValue() throws Exception {
         final Long number = 42L;
-        final String submitterContent = new ITUtil.SubmitterContentJsonBuilder()
+        final String submitterContent = new SubmitterContentJsonBuilder()
                 .setNumber(number)
                 .build();
 

@@ -3,6 +3,7 @@ package dk.dbc.dataio.flowstore;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -53,7 +54,7 @@ public class SinksIT {
     @Test
     public void createSink_ok() throws SQLException {
         // When...
-        final String sinkContent = new ITUtil.SinkContentJsonBuilder().build();
+        final String sinkContent = new SinkContentJsonBuilder().build();
         final Response response = HttpClient.doPostWithJson(restClient, sinkContent, baseUrl, FlowStoreServiceEntryPoint.SINKS);
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -86,10 +87,10 @@ public class SinksIT {
     @Test
     public void createSink_duplicateName_NotAcceptable() throws Exception {
         // Given...
-        final String sinkContent1 = new ITUtil.SinkContentJsonBuilder().build();
+        final String sinkContent1 = new SinkContentJsonBuilder().build();
         createSink(restClient, baseUrl, sinkContent1);
         // When...
-        final String sinkContent2 = new ITUtil.SinkContentJsonBuilder().build();
+        final String sinkContent2 = new SinkContentJsonBuilder().build();
         final Response response = HttpClient.doPostWithJson(restClient, sinkContent2, baseUrl, FlowStoreServiceEntryPoint.SINKS);
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));

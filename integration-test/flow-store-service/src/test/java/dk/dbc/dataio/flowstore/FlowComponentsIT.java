@@ -5,6 +5,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -60,7 +61,7 @@ public class FlowComponentsIT {
     @Test
     public void createComponent_Ok() throws SQLException {
         // When...
-        final String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder().build();
+        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
         final Response response = HttpClient.doPostWithJson(restClient, flowComponentContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
 
         // Then...
@@ -97,7 +98,7 @@ public class FlowComponentsIT {
      */
     @Test
     public void createFlowComponent_duplicateName() throws Exception {
-        final String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder().build();
+        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
 
         // Given...
         createFlowComponent(restClient, baseUrl, flowComponentContent);
@@ -140,17 +141,17 @@ public class FlowComponentsIT {
     public void findAllComponents_Ok() throws Exception {
         // Given...
         // Given...
-        String flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder()
+        String flowComponentContent = new FlowComponentContentJsonBuilder()
                 .setName("c")
                 .build();
         final long sortsThird = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
-        flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder()
+        flowComponentContent = new FlowComponentContentJsonBuilder()
                 .setName("a")
                 .build();
         final long sortsFirst = createFlowComponent(restClient, baseUrl, flowComponentContent);
 
-        flowComponentContent = new ITUtil.FlowComponentContentJsonBuilder()
+        flowComponentContent = new FlowComponentContentJsonBuilder()
                 .setName("b")
                 .build();
         final long sortsSecond = createFlowComponent(restClient, baseUrl, flowComponentContent);

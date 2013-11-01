@@ -261,10 +261,11 @@ public class FileSystemJobStore implements JobStore {
         Long chunkCounter;
         try (BufferedReader br = Files.newBufferedReader(chunkCounterFile, LOCAL_CHARSET)) {
             String value = br.readLine();
-            if (value == null) {
+            if (value != null) {
+                value = value.trim();
+            } else {
                 throw new NullPointerException("Value from chunk counter file is null");
             }
-            value = value.trim();
             LOGGER.info("Reading count value :  [{}]", value);
             chunkCounter = Long.valueOf(value);
         } catch (IOException e) {

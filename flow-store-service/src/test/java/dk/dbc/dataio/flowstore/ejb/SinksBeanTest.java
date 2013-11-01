@@ -9,10 +9,10 @@ import org.junit.Test;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-public class SinkBeanTest {
+public class SinksBeanTest {
 
     @Test
-    public void sinkBean_validConstructor_newInstance() {
+    public void sinksBean_validConstructor_newInstance() {
         SinksBean sink = new SinksBean();
     }
 

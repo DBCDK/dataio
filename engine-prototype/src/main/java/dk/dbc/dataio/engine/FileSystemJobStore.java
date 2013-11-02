@@ -14,14 +14,12 @@ import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 public class FileSystemJobStore implements JobStore {
     private static final Logger log = LoggerFactory.getLogger(FileSystemJobStore.class);
 
     private final Path storePath;
-    
+
     private final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
     public FileSystemJobStore(Path storePath) throws JobStoreException {
@@ -46,7 +44,7 @@ public class FileSystemJobStore implements JobStore {
 
         storeFlowInfoInJob(jobPath, flow);
         createJobChunkCounterFile(jobId);
-        
+
         return new Job(jobId, dataObjectPath, flow);
     }
 
@@ -61,7 +59,7 @@ public class FileSystemJobStore implements JobStore {
             log.warn("Exception caught when trying to write Flow: {}", flow.getId(), ex);
         }
     }
-    
+
     private boolean canUseExistingStorePath(Path storePath) throws JobStoreException {
         if (Files.exists(storePath)) {
             if (!Files.isDirectory(storePath)) {
@@ -175,7 +173,7 @@ public class FileSystemJobStore implements JobStore {
         Path jobPath = getJobPath(jobId);
         return new File(jobPath.toString()+File.separator+"chunk.cnt");
     }
-    
+
     private void createJobChunkCounterFile(long jobId) throws JobStoreException {
         File chunkCounterFile = getChunkCounterFile(jobId);
         if(chunkCounterFile.exists()) {
@@ -185,9 +183,9 @@ public class FileSystemJobStore implements JobStore {
         }
 
         writeLongValueToChunkCounterFile(chunkCounterFile, Long.valueOf(0));
-        log.info("Created chunk counter file: {}", chunkCounterFile);    
+        log.info("Created chunk counter file: {}", chunkCounterFile);
     }
-    
+
     private void incrementJobChunkCounter(Job job) throws JobStoreException {
         File chunkCounterFile = getChunkCounterFile(job.getId());
         if(!chunkCounterFile.exists()) {
@@ -205,10 +203,11 @@ public class FileSystemJobStore implements JobStore {
         Long chunkCounter = null;
         try(BufferedReader br = Files.newBufferedReader(chunkCounterFile.toPath(), LOCAL_CHARSET)) {
             String value = br.readLine();
-            if(value == null) {
+            if (value != null) {
+                value = value.trim();
+            } else {
                 throw new NullPointerException("Value from ChunkCounterFile is null!");
             }
-            value = value.trim();
             log.info("Reading count value :  [{}]", value);
             chunkCounter = Long.valueOf(value);
         } catch (IOException ex) {

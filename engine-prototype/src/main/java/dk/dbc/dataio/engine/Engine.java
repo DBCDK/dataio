@@ -42,6 +42,7 @@ public class Engine {
             log.info("Number of chunks: {}",  chunks.size());
         } catch (XMLStreamException | IOException ex) {
             log.info("An error occured: ", ex);
+            throw new JobStoreException("An error occured", ex);
         }
         for (Chunk chunk : chunks) {
             jobStore.addChunk(job, chunk);

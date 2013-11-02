@@ -149,12 +149,16 @@ public class EmbeddedEngineServlet extends HttpServlet {
                     }
                     resp.flushBuffer();
                 }
+                if(dataFile == null || transFile == null) {
+                    throw new IllegalArgumentException("dataFile or transFile was not initialized.");
+                }
+
                 log.info("data file {}", dataFile.getAbsolutePath());
                 log.info("trans file {}", transFile.getAbsolutePath());
 
                 resp.setContentType("text/html");
 
-                TransFileData transFileData = null;
+                TransFileData transFileData;
                 try {
                     transFileData = validateTransFile(transFile, dataFileOriginalName);
                 } catch (IllegalArgumentException e) {
@@ -162,7 +166,7 @@ public class EmbeddedEngineServlet extends HttpServlet {
                     return;
                 }
 
-                JobInfo jobInfo = null;
+                JobInfo jobInfo;
                 try {
                     jobInfo = executeJob(dataFile.getAbsolutePath(), transFileData);
                 } catch (IllegalArgumentException e) {
@@ -197,7 +201,9 @@ public class EmbeddedEngineServlet extends HttpServlet {
     private static void deleteFile(File uploadedFile) {
         if (uploadedFile != null) {
             log.info("Removing uploaded file {}", uploadedFile.getAbsolutePath());
-            uploadedFile.delete();
+            if(!uploadedFile.delete()) {
+                log.info("Could not delete uploaded file {}", uploadedFile.getAbsolutePath());
+            }
         }
     }
 

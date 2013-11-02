@@ -53,6 +53,7 @@ public class EngineGUI extends DockLayoutPanel {
             setMethod(FormPanel.METHOD_POST);
 
             addSubmitHandler(new FormPanel.SubmitHandler() {
+                @Override
                 public void onSubmit(SubmitEvent event) {
                     // This event is fired just before the form is submitted. We can
                     // take this opportunity to perform validation.
@@ -61,6 +62,7 @@ public class EngineGUI extends DockLayoutPanel {
             });
 
             addSubmitCompleteHandler(new FormPanel.SubmitCompleteHandler() {
+                @Override
                 public void onSubmitComplete(SubmitCompleteEvent event) {
                     // When the form submission is successfully completed, this
                     // event is fired.
@@ -71,7 +73,7 @@ public class EngineGUI extends DockLayoutPanel {
         }
     }
 
-    private class DataFilePanel extends HorizontalPanel {
+    private static class DataFilePanel extends HorizontalPanel {
         private final Label label = new Label("Data file");
         private final FileUpload upload = getFileUpload(FORM_FIELD_DATA_FILE);
 
@@ -86,7 +88,7 @@ public class EngineGUI extends DockLayoutPanel {
         }
     }
 
-    private class TransFilePanel extends HorizontalPanel {
+    private static class TransFilePanel extends HorizontalPanel {
         private final Label label = new Label("Trans file");
         private final FileUpload upload = getFileUpload(FORM_FIELD_TRANS_FILE);
 

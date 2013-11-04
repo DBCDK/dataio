@@ -87,6 +87,7 @@ public class Engine {
      * @param job
      * @return
      */
+    /*
     private List<Chunk> splitByLine(Path path, Job job) throws IOException {
         log.info("Got path: " + path.toString());
         List<Chunk> chunks = new ArrayList<>();
@@ -113,7 +114,8 @@ public class Engine {
         }
         return chunks;
     }
-
+    */
+    
     private List<Chunk> applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException {
         log.info("Got path: " + path.toString());
         final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(path));

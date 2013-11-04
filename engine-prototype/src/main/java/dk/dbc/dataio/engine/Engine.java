@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.stream.XMLStreamException;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -115,7 +114,7 @@ public class Engine {
         return chunks;
     }
     */
-    
+
     private List<Chunk> applyDefaultXmlSplitter(Path path, Job job) throws IOException, XMLStreamException {
         log.info("Got path: " + path.toString());
         final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(path));

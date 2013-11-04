@@ -2,16 +2,12 @@ package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.DualListEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
@@ -30,9 +26,6 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     
     public static final String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
     public static final String GUIID_FLOW_CREATION_FLOW_NAME_PANEL = "flow-name-panel-id";
-    
-    public static final String GUIID_FLOW_CREATION_SAVE_BUTTON = "flowcreationsavebutton";
-    public static final String GUIID_FLOW_CREATION_SAVE_RESULT_LABEL = "flowcreationsaveresultlabel";
     public static final String GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL = "flow-description-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL = "flow-component-selection-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_SAVE_PANEL = "flow-save-panel-id";
@@ -46,7 +39,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     private final TextEntry flowNamePanel = new TextEntry(GUIID_FLOW_CREATION_FLOW_NAME_PANEL, FLOW_CREATION_FLOW_NAME_LABEL);
     private final TextAreaEntry flowDescriptionPanel = new TextAreaEntry(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, FLOW_CREATION_DESCRIPTION_LABEL, FLOW_CREATION_DESCRIPTION_MAX_LENGTH);
     private final DualListEntry flowComponentSelectionPanel = new DualListEntry(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL, FLOW_CREATION_FLOW_COMPONENTS_LABEL);
-    private final FlowSavePanel flowSavePanel = new FlowSavePanel();
+    private final SaveButton saveButton = new SaveButton(GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, FLOW_CREATION_SAVE_BUTTON, new SaveButtonEvent());
     
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
@@ -65,7 +58,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         });
         add(flowComponentSelectionPanel);
         
-        add(flowSavePanel);
+        add(saveButton);
     }
 
     
@@ -88,7 +81,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
 
     @Override
     public void onSuccess(String message) {
-        flowSavePanel.setStatusText(message);
+        saveButton.setStatusText(message);
     }
 
     @Override
@@ -107,7 +100,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
      * Private methods
      */
     private void changeDetected() {
-        flowSavePanel.setStatusText("");
+        saveButton.setStatusText("");
     }
 
     private Collection<String> getSelectedFlowComponents() {
@@ -118,9 +111,10 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
    /*
     * Private classes
     */
-    private class SaveButtonHandler implements ClickHandler {
+
+    private class SaveButtonEvent implements SaveButton.ButtonEvent {
         @Override
-        public void onClick(ClickEvent event) {
+        public void buttonPressed() {
             String nameValue = flowNamePanel.getText();
             String descriptionValue = flowDescriptionPanel.getText();
             if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.getSelectedItemCount() > 0)) {
@@ -135,26 +129,6 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
             changeDetected();
-        }
-    }
-
-    
-    /*
-     * Panels
-     */
-    private class FlowSavePanel extends HorizontalPanel {
-        private final Button flowSaveButton = new Button(FLOW_CREATION_SAVE_BUTTON);
-        private final Label flowSaveResultLabel = new Label("");
-        public FlowSavePanel() {
-            getElement().setId(GUIID_FLOW_CREATION_FLOW_SAVE_PANEL);
-            flowSaveResultLabel.getElement().setId(GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
-            add(flowSaveResultLabel);
-            flowSaveButton.getElement().setId(GUIID_FLOW_CREATION_SAVE_BUTTON);
-            flowSaveButton.addClickHandler(new SaveButtonHandler());
-            add(flowSaveButton);
-        }
-        public void setStatusText(String statusText) {
-            flowSaveResultLabel.setText(statusText);
         }
     }
 

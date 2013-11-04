@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import com.google.common.base.Function;
 import dk.dbc.dataio.gui.client.components.DualList;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
@@ -72,13 +73,9 @@ public class SeleniumUtil {
         assertThat(selectedItems.get(0).getText(), is(itemName));
     }
 
-    public static boolean waitAndAssert(WebDriver webDriver, long timeToWait, WebElement elementToWaitFor, String messageToBePresent) {
-        String id = elementToWaitFor.getAttribute("id");
+    public static void waitAndAssert(WebDriver webDriver, long timeToWait, final String guiId, final String guiClass, String messageToBePresent) {
         WebDriverWait wait = new WebDriverWait(webDriver, timeToWait);
-        wait.until(ExpectedConditions.textToBePresentInElement(By.id(id), messageToBePresent));
-
-        // assertion of element contains the expected message
-        return elementToWaitFor.getText().equals(messageToBePresent);
+        wait.until(ExpectedConditions.textToBePresentInElement(By.cssSelector("#" + guiId + " ." + guiClass), messageToBePresent));
     }
 
     public static void selectItemInListBox(WebElement listBoxElement, String listItem) {

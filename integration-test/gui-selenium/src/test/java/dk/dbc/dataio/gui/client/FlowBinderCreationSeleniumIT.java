@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -25,6 +26,7 @@ import static org.junit.Assert.assertFalse;
 
 public class FlowBinderCreationSeleniumIT {
 
+    private static final long SAVE_TIMEOUT = 4;
     private WebDriver driver;
     private static String appUrl;
     private static Connection conn;
@@ -335,7 +337,7 @@ public class FlowBinderCreationSeleniumIT {
     private void populateAllInputFieldsAndClickSaveAndWaitForSuccess() {
         populateAllInputFields();
         findSaveButtonElement(driver).click();
-        SeleniumUtil.waitAndAssert(driver, 4, findSaveResultLabelElement(driver), FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS);
+        SeleniumUtil.waitAndAssert(driver, SAVE_TIMEOUT, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS);
     }
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {
@@ -387,10 +389,10 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     private static WebElement findSaveButtonElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_BUTTON);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultLabelElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 }

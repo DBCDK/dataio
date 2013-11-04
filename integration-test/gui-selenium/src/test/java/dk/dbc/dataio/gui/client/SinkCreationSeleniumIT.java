@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SinkCreateViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -162,24 +163,24 @@ public class SinkCreationSeleniumIT {
     }
 
     private static WebElement findSaveButton(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultLabel(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_RESULT_LABEL);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
     private void insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave() {
         findSinkNameElement(driver).sendKeys("name");
         findResourceNameElement(driver).sendKeys("resource");
         findSaveButton(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_SINK_TIMOUT, findSaveResultLabel(driver), SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(driver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
     /**
      * The following is public static helper methods.
      */
-    public static boolean createTestSink(WebDriver webDriver, String sinkName, String resourceName) {
+    public static void createTestSink(WebDriver webDriver, String sinkName, String resourceName) {
         navigateToSinkCreationWidget(webDriver);
         findSinkNameElement(webDriver).clear();
         findSinkNameElement(webDriver).sendKeys(sinkName);
@@ -187,6 +188,6 @@ public class SinkCreationSeleniumIT {
         findResourceNameElement(webDriver).sendKeys(sinkName);
         findSaveButton(webDriver).click();
 
-        return SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, findSaveResultLabel(webDriver), SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 }

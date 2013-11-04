@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -195,7 +196,7 @@ public class FlowCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys("b");
         SeleniumUtil.selectItemInDualList(findComponentSelectionElement(driver), flowComponentName);
         findSaveButtonElement(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_TIMEOUT, findSaveResultElement(driver), FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(driver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
     private static void navigateToFlowCreationWidget(WebDriver webDriver) {
@@ -223,11 +224,11 @@ public class FlowCreationSeleniumIT {
     }
 
     private static WebElement findSaveButtonElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_BUTTON);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_SAVE_RESULT_LABEL);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
     /**
@@ -237,7 +238,7 @@ public class FlowCreationSeleniumIT {
      * Creates a new Flow with the given values - NOTE: It is the callers
      * responsibility to create a flow-component beforehand with the given name.
      */
-    public static boolean createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
+    public static void createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
         findFlowCreationNavigationElement(webDriver).click();
 
         findNameElement(webDriver).clear();
@@ -250,6 +251,6 @@ public class FlowCreationSeleniumIT {
 
         findSaveButtonElement(webDriver).click();
 
-        return SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, findSaveResultElement(webDriver), FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 }

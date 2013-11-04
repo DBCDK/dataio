@@ -2,17 +2,13 @@ package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualListEntry;
 import dk.dbc.dataio.gui.client.components.ListEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
@@ -41,25 +37,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     
     public static final String GUIID_FLOWBINDER_CREATION_WIDGET = "flowbindercreationwidget";
     public static final String GUIID_FLOWBINDER_CREATION_NAME_PANEL = "flowbindercreationnamepanel";
-    public static final String GUIID_FLOWBINDER_CREATION_NAME_TEXT_BOX = "flowbindercreationnametextbox";
     public static final String GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL = "flowbindercreationdescriptionpanel";
-    public static final String GUIID_FLOWBINDER_CREATION_DESCRIPTION_TEXT_AREA = "flowbindercreationdescriptiontextarea";
     public static final String GUIID_FLOWBINDER_CREATION_FRAME_PANEL = "flowbindercreationframepanel";
-    public static final String GUIID_FLOWBINDER_CREATION_FRAME_TEXT_BOX = "flowbindercreationframetextbox";
     public static final String GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL = "flowbindercreationcontentformatpanel";
-    public static final String GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_TEXT_BOX = "flowbindercreationcontentformattextbox";
     public static final String GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL = "flowbindercreationcharactersetpanel";
-    public static final String GUIID_FLOWBINDER_CREATION_CHARACTER_SET_TEXT_BOX = "flowbindercreationcharactersettextbox";
     public static final String GUIID_FLOWBINDER_CREATION_SINK_PANEL = "flowbindercreationsinkpanel";
-    public static final String GUIID_FLOWBINDER_CREATION_SINK_TEXT_BOX = "flowbindercreationsinktextbox";
     public static final String GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL = "flowbindercreationrecordsplitterpanel";
-    public static final String GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_TEXT_BOX = "flowbindercreationrecordsplittertextbox";
     public static final String GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL = "flowbindercreationsubmittersduallist";
     public static final String GUIID_FLOWBINDER_CREATION_FLOW_PANEL = "flowbindercreationflowtextbox";
-    public static final String GUIID_FLOWBINDER_CREATION_FLOW_LIST_BOX = "flowbindercreationflowlistbox";
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_PANEL = "flowbindercreationsavepanel";
-    public static final String GUIID_FLOWBINDER_CREATION_SAVE_BUTTON = "flowbindercreationsavebutton";
-    public static final String GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL = "flowbindercreationsaveresultlabel";
+
     // Local variables
     private FlowbinderCreatePresenter presenter;
     private final TextEntry flowbinderNamePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_NAME_PANEL, FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL, FLOWBINDER_CREATION_NAME_MAX_LENGTH);
@@ -71,7 +58,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL);
     private final DualListEntry flowbinderSubmittersPanel = new DualListEntry(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL, FLOWBINDER_CREATION_SUBMITTERS_LABEL);
     private final ListEntry flowbinderFlowPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_FLOW_PANEL, FLOWBINDER_CREATION_FLOW_LABEL);
-    private final FlowbinderSavePanel flowbinderSavePanel = new FlowbinderSavePanel();
+    private final SaveButton saveButton = new SaveButton(GUIID_FLOWBINDER_CREATION_SAVE_PANEL, "Gem", new SaveButtonEvent());
 
     public FlowbinderCreateViewImpl() {
         getElement().setId(GUIID_FLOWBINDER_CREATION_WIDGET);
@@ -119,7 +106,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         });
         add(flowbinderFlowPanel);
         
-        add(flowbinderSavePanel);
+        add(saveButton);
     }
 
     
@@ -143,7 +130,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 
     @Override
     public void onSuccess(String message) {
-        flowbinderSavePanel.setStatusText(message);
+        saveButton.setStatusText(message);
     }
 
     @Override
@@ -173,16 +160,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
      * Private methods
      */
     private void changeDetected() {
-        flowbinderSavePanel.setStatusText("");  // If the user makes changes after a save, the status field shall be cleared
+        saveButton.setStatusText("");  // If the user makes changes after a save, the status field shall be cleared
     }
     
 
    /*
     * Private classes
     */
-    private class SaveButtonHandler implements ClickHandler {
+    private class SaveButtonEvent implements SaveButton.ButtonEvent {
         @Override
-        public void onClick(ClickEvent event) {
+        public void buttonPressed() {
             final String name = flowbinderNamePanel.getText();
             final String description = flowbinderDescriptionPanel.getText();
             final String packaging = flowbinderFramePanel.getText();
@@ -220,24 +207,4 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         }
     }
     
-    /*
-     * Panels
-     */
-    
-    private class FlowbinderSavePanel extends HorizontalPanel {
-        private final Button flowbinderSaveButton = new Button("Gem");
-        private final Label flowbinderSaveResultLabel = new Label("");
-        public FlowbinderSavePanel() {
-            flowbinderSaveResultLabel.getElement().setId(GUIID_FLOWBINDER_CREATION_SAVE_RESULT_LABEL);
-            add(flowbinderSaveResultLabel);
-            getElement().setId(GUIID_FLOWBINDER_CREATION_SAVE_PANEL);
-            flowbinderSaveButton.getElement().setId(GUIID_FLOWBINDER_CREATION_SAVE_BUTTON);
-            flowbinderSaveButton.addClickHandler(new SaveButtonHandler());
-            add(flowbinderSaveButton);
-        }
-        public void setStatusText(String statusText) {
-            flowbinderSaveResultLabel.setText(statusText);
-        }
-    }
-
 }

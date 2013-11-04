@@ -2,17 +2,14 @@ package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.components.ListEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
@@ -43,10 +40,8 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL = "flowcomponentcreationsvnrevisionpanel";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL = "flowcomponentcreationscriptnamepanel";
     public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL = "flow-component-invocation-method-panel-id";
-    
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL = "flowcomponentcreationsaveresultlabel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON = "flowcomponentcreationsavebutton";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_PANEL = "flow-component-save-panel-id";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL = "flow-component-save-panel-id";
+
     public static final String FORM_FIELD_COMPONENT_NAME = "formfieldcomponentname";
     public static final String FORM_FIELD_INVOCATION_METHOD = "formfieldinvocationmethod";
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
@@ -58,7 +53,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, FLOW_COMPONENT_CREATION_SVN_REVISION_LABEL);
     private ListEntry scriptNamePanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, FLOW_COMPONENT_CREATION_SCRIPT_NAME_LABEL);
     private ListEntry invocationMethodPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LABEL);
-    private FlowComponentSavePanel savePanel = new FlowComponentSavePanel();
+    private SaveButton saveButton = new SaveButton(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, FLOW_COMPONENT_CREATION_SAVE_BUTTON_LABEL, new SaveButtonEvent());
     private Label busyLabel = new Label(FLOW_COMPONENT_CREATION_BUSY_LABEL);
 
     
@@ -105,7 +100,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         });
         add(invocationMethodPanel);
         
-        add(savePanel);
+        add(saveButton);
         add(busyLabel);
         setAsBusy(false);
     }
@@ -118,13 +113,13 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     @Override
     public void onFailure(String message) {
         setAsBusy(false);
-        savePanel.setStatusText("");
+        saveButton.setStatusText("");
         Window.alert("Error: " + message);
     }
 
     @Override
     public void onSuccess(String message) {
-        savePanel.setStatusText(message);
+        saveButton.setStatusText(message);
     }
 
     @Override
@@ -221,56 +216,35 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
 
     private void svnProjectChanged() {
         setAsBusy(true);
-        savePanel.setStatusText("");
+        saveButton.setStatusText("");
         presenter.projectNameEntered(projectPanel.getText());
     }
 
     private void svnRevisionChanged() {
         setAsBusy(true);
-        savePanel.setStatusText("");
+        saveButton.setStatusText("");
         presenter.revisionSelected(projectPanel.getText(), Long.parseLong(revisionPanel.getSelectedText()));
     }
 
     private void scriptNameChanged() {
         setAsBusy(true);
-        savePanel.setStatusText("");
+        saveButton.setStatusText("");
         presenter.scriptNameSelected(projectPanel.getText(), Long.parseLong(revisionPanel.getSelectedText()), scriptNamePanel.getSelectedText());
     }
 
     private void invocationMethodNameChanged() {
-        savePanel.setStatusText("");
+        saveButton.setStatusText("");
     }
 
-
-    /**
-     * Panel: FlowComponentSavePanel
-     */
-    private class FlowComponentSavePanel extends HorizontalPanel {
-
-        private final Button flowComponentSaveButton = new Button(FLOW_COMPONENT_CREATION_SAVE_BUTTON_LABEL);
-        private final Label flowComponentSaveResultLabel = new Label("");
-
-        public FlowComponentSavePanel() {
-            flowComponentSaveResultLabel.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
-            add(flowComponentSaveResultLabel);
-            getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_PANEL);
-            flowComponentSaveButton.getElement().setId(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
-            flowComponentSaveButton.addClickHandler(new SaveButtonHandler());
-            add(flowComponentSaveButton);
-        }
-
-        public void setStatusText(String statusText) {
-            flowComponentSaveResultLabel.setText(statusText);
-        }
-    }
 
     /**
      * Event Handlers *
      */
-    private class SaveButtonHandler implements ClickHandler {
 
+    
+    private class SaveButtonEvent implements SaveButton.ButtonEvent {
         @Override
-        public void onClick(ClickEvent event) {
+        public void buttonPressed() {
             String name = namePanel.getText();
             String project = projectPanel.getText();
             long revision = Long.parseLong(revisionPanel.getSelectedText());
@@ -279,17 +253,16 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
                 onFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
             } else {
-                savePanel.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
+                saveButton.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
                 presenter.saveFlowComponent(name, project, revision, scriptName, invocationMethod);
             }
         }
     }
 
     private class InputFieldKeyDownHandler implements KeyDownHandler {
-
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
-            savePanel.setStatusText("");
+            saveButton.setStatusText("");
         }
     }
 }

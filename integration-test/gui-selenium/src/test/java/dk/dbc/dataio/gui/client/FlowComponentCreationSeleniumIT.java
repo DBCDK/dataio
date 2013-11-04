@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -168,7 +169,7 @@ public class FlowComponentCreationSeleniumIT {
         findComponentNameElement(driver).sendKeys("testComponent");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
-        SeleniumUtil.waitAndAssert(driver, 10, findComponentSaveResultLabelElement(driver), FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(driver, 10, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
     @Ignore
@@ -261,11 +262,11 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private WebElement findComponentSaveButtonElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private WebElement findComponentSaveResultLabelElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_RESULT_LABEL);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
     private void insertSvnProjectNameThatExistsInSvnRepository() {

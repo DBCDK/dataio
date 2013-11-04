@@ -1,14 +1,10 @@
 package dk.dbc.dataio.gui.client.views;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
@@ -23,8 +19,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     public static final String GUIID_SUBMITTER_CREATION_NUMBER_PANEL = "submittercreationnumberpanel";
     public static final String GUIID_SUBMITTER_CREATION_NAME_PANEL = "submittercreationnamepanel";
     public static final String GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL = "submittercreationdescriptionpanel";
-    public static final String GUIID_SUBMITTER_CREATION_SAVE_BUTTON = "submittercreationsavebutton";
-    public static final String GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL = "submittercreationsaveresultlabel";
+    public static final String GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL = "submittercreationsavebuttonpanel";
     
     public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
     public static final String SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL = "Submitternummer";
@@ -42,7 +37,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     private final TextEntry submitterNumberPanel = new TextEntry(GUIID_SUBMITTER_CREATION_NUMBER_PANEL, SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL);
     private final TextEntry submitterNamePanel = new TextEntry(GUIID_SUBMITTER_CREATION_NAME_PANEL, SUBMITTER_CREATION_SUBMITTER_NAME_LABEL);
     private final TextAreaEntry submitterDescriptionPanel = new TextAreaEntry(GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL ,SUBMITTER_CREATION_DESCRIPTION_LABEL, SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH);
-    private final SubmitterCreateViewImpl.SubmitterSavePanel submitterSavePanel = new SubmitterCreateViewImpl.SubmitterSavePanel();
+    private final SaveButton saveButton = new SaveButton(GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, "Gem", new SaveButtonEvent());
 
     public SubmitterCreateViewImpl() {
         getElement().setId(GUIID_SUBMITTER_CREATION_WIDGET);
@@ -56,7 +51,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
         submitterDescriptionPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(submitterDescriptionPanel);
 
-        add(submitterSavePanel);
+        add(saveButton);
     }
 
     @Override
@@ -71,7 +66,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
     @Override
     public void onSuccess(String message) {
-        submitterSavePanel.setStatusText(message);
+        saveButton.setStatusText(message);
     }
 
     @Override
@@ -101,28 +96,10 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
         onSuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
-    private class SubmitterSavePanel extends HorizontalPanel {
 
-        private final Button submitterSaveButton = new Button("Gem");
-        private final Label submitterSaveResultLabel = new Label("");
-
-        public SubmitterSavePanel() {
-            submitterSaveResultLabel.getElement().setId(GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL);
-            add(submitterSaveResultLabel);
-            getElement().setId("submitter-save-panel-id");
-            submitterSaveButton.getElement().setId(GUIID_SUBMITTER_CREATION_SAVE_BUTTON);
-            submitterSaveButton.addClickHandler(new SubmitterCreateViewImpl.SaveButtonHandler());
-            add(submitterSaveButton);
-        }
-
-        public void setStatusText(String statusText) {
-            submitterSaveResultLabel.setText(statusText);
-        }
-    }
-
-    private class SaveButtonHandler implements ClickHandler {
+    private class SaveButtonEvent implements SaveButton.ButtonEvent {
         @Override
-        public void onClick(ClickEvent event) {
+        public void buttonPressed() {
             final String nameValue = submitterNamePanel.getText();
             final String numberValue = submitterNumberPanel.getText();
             final String descriptionValue = submitterDescriptionPanel.getText();
@@ -150,7 +127,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     private class InputFieldKeyDownHandler implements KeyDownHandler {
         @Override
         public void onKeyDown(KeyDownEvent keyDownEvent) {
-            submitterSavePanel.setStatusText("");
+            saveButton.setStatusText("");
         }
     }
 }

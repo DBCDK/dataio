@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
+import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -16,6 +17,8 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -204,11 +207,11 @@ public class SubmitterCreationSeleniumIT {
     }
 
     private static WebElement findSaveButton(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultLabel(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_RESULT_LABEL);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
     private void insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave() {
@@ -216,13 +219,13 @@ public class SubmitterCreationSeleniumIT {
         findNumberElement(driver).sendKeys("1");
         findDescriptionElement(driver).sendKeys("d");
         findSaveButton(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_SUBMITTER_TIMOUT, findSaveResultLabel(driver), SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(driver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 
     /**
      * The following is public static helper methods.
      */
-    public static boolean createTestSubmitter(WebDriver webDriver, String name, String number, String description) {
+    public static void createTestSubmitter(WebDriver webDriver, String name, String number, String description) {
         navigateToSubmitterCreationWidget(webDriver);
         findNameElement(webDriver).clear();
         findNameElement(webDriver).sendKeys(name);
@@ -231,7 +234,6 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(webDriver).clear();
         findDescriptionElement(webDriver).sendKeys(description);
         findSaveButton(webDriver).click();
-
-        return SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, findSaveResultLabel(webDriver), SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }
 }

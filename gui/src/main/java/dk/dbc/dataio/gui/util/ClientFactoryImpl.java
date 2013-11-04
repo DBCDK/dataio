@@ -7,6 +7,8 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
+import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
+import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
@@ -20,19 +22,48 @@ import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 
 
 public class ClientFactoryImpl implements ClientFactory {
+    // Event Bus
     private final EventBus eventBus = new SimpleEventBus();
+
+    // Place Controller
+    private final PlaceController placeController = new PlaceController(eventBus);
+    
+    // Proxies
+    private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
+    private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
+    private final SinkServiceProxyAsync sinkServiceProxyAsync = SinkServiceProxy.Factory.getAsyncInstance();
+
+    // Views
     private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
     private final FlowComponentCreateView flowComponentCreateView = new FlowComponentCreateViewImpl();
     private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final SinkCreateView sinkCreateView = new SinkCreateViewImpl();
-    private final PlaceController placeController = new PlaceController(eventBus);
-    private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
-    private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
 
+    
     @Override
     public EventBus getEventBus() {
         return eventBus;
+    }
+
+    @Override
+    public PlaceController getPlaceController() {
+        return placeController;
+    }
+
+    @Override
+    public FlowStoreProxyAsync getFlowStoreProxyAsync() {
+        return flowStoreProxyAsync;
+    }
+
+    @Override
+    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync() {
+        return javaScriptProjectFetcher;
+    }
+
+    @Override
+    public SinkServiceProxyAsync getSinkServiceProxyAsync() {
+        return sinkServiceProxyAsync;
     }
 
     @Override
@@ -58,21 +89,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public SinkCreateView getSinkCreateView() {
         return sinkCreateView;
-    }
-
-    @Override
-    public PlaceController getPlaceController() {
-        return placeController;
-    }
-
-    @Override
-    public FlowStoreProxyAsync getFlowStoreProxyAsync() {
-        return flowStoreProxyAsync;
-    }
-
-    @Override
-    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync() {
-        return javaScriptProjectFetcher;
     }
 
 }

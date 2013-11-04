@@ -4,6 +4,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
+import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
@@ -17,13 +18,21 @@ import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
  * - any RPC proxies.
  */
 public interface ClientFactory {
+    // Event Bus
     public EventBus getEventBus();
+    
+    // Place Controller
+    public PlaceController getPlaceController();
+
+    // Proxies
+    public FlowStoreProxyAsync getFlowStoreProxyAsync();
+    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
+    public SinkServiceProxyAsync getSinkServiceProxyAsync();
+    
+    // Views
     public FlowCreateView getFlowCreateView();
     public FlowComponentCreateView getFlowComponentCreateView();
     public SubmitterCreateView getSubmitterCreateView();
     public FlowbinderCreateView getFlowbinderCreateView();
-    public PlaceController getPlaceController();
-    public FlowStoreProxyAsync getFlowStoreProxyAsync();
-    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
     public SinkCreateView getSinkCreateView();
 }

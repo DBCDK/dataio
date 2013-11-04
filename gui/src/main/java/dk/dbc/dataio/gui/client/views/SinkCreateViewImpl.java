@@ -27,7 +27,7 @@ public class SinkCreateViewImpl extends VerticalPanel implements SinkCreateView 
     
     public static final String FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE = "En sink med det pågældende navn er allerede oprettet i flow store.";
     public static final String FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE = "De udfyldte felter forårsagede en data valideringsfejl i flow store.";
-    
+        
     // Local variables
     private SinkCreatePresenter presenter;
     private final TextEntry sinkNamePanel = new TextEntry(GUIID_SINK_CREATION_SINK_NAME_PANEL, SINK_CREATION_SINK_NAME_LABEL);

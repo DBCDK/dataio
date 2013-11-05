@@ -26,7 +26,7 @@ import static org.hamcrest.CoreMatchers.is;
 public class SinkCreationSeleniumIT {
 
     public static final String SMALL_UNICODE_TEST_STRING = "test of unicode content æøåÆØÅ";
-    private static final int SAVE_SINK_TIMOUT = 6;
+    private static final int SAVE_SINK_TIMOUT = 60;
     private static final String SINK_NAME = "name";
     private static final String RESOURCE_NAME = "resource";
     private static WebDriver driver;

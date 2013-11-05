@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
-import dk.dbc.dataio.gui.client.exceptions.SinkServiceProxyException;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.SinkCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -21,8 +20,8 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * of sink data in the flow store via RPC proxy
  */
 public class CreateSinkActivity extends AbstractActivity implements SinkCreatePresenter {
-    private final String SINK_PING_COMMUNICATION_FAILURE = "Det kunne ikke undersøges, om det pågældende resource navn er en gyldig sink resource";
-    private final String SINK_RESOURCE_NAME_NOT_VALID_ERROR = "Det pågældende resource navn er ikke en gyldig sink resource";
+    public static final String SINK_PING_COMMUNICATION_FAILURE = "Det kunne ikke undersøges, om det pågældende resource navn er en gyldig sink resource";
+    public static final String SINK_RESOURCE_NAME_NOT_VALID_ERROR = "Det pågældende resource navn er ikke en gyldig sink resource";
     
     private ClientFactory clientFactory;
     private SinkCreateView sinkCreateView;
@@ -59,20 +58,21 @@ public class CreateSinkActivity extends AbstractActivity implements SinkCreatePr
     }
 
     public void doPingAndSaveSink(final SinkContent sinkContent) {
-        try {
-            sinkServiceProxy.ping(sinkContent, new AsyncCallback<PingResponse>() {
-                @Override
-                public void onFailure(Throwable caught) {
-                    sinkCreateView.onFailure(SINK_PING_COMMUNICATION_FAILURE);
-                }
-                @Override
-                public void onSuccess(PingResponse result) {
+        sinkServiceProxy.ping(sinkContent, new AsyncCallback<PingResponse>() {
+            @Override
+            public void onFailure(Throwable caught) {
+                sinkCreateView.onFailure(SINK_PING_COMMUNICATION_FAILURE);
+            }
+            @Override
+            public void onSuccess(PingResponse result) {
+                PingResponse.Status status = result.getStatus();
+                if (status == PingResponse.Status.OK) {
                     doSaveSink(sinkContent);
+                } else {
+                    sinkCreateView.onFailure(SINK_RESOURCE_NAME_NOT_VALID_ERROR);
                 }
-            });
-        } catch (SinkServiceProxyException ex) {
-            sinkCreateView.onFailure(SINK_RESOURCE_NAME_NOT_VALID_ERROR);
-        }
+            }
+        });
     }
 
     public void doSaveSink(SinkContent sinkContent) {

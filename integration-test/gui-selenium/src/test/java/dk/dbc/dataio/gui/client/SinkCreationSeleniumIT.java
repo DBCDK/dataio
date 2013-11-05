@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.activities.CreateSinkActivity;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.MainPanel;
@@ -24,11 +25,12 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 public class SinkCreationSeleniumIT {
-
     public static final String SMALL_UNICODE_TEST_STRING = "test of unicode content æøåÆØÅ";
-    private static final int SAVE_SINK_TIMOUT = 60;
     private static final String SINK_NAME = "name";
     private static final String RESOURCE_NAME = "resource";
+    private static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
+    private static final int SAVE_SINK_TIMOUT = 4;
+
     private static WebDriver driver;
     private static String APP_URL;
     private static Connection conn;
@@ -102,13 +104,13 @@ public class SinkCreationSeleniumIT {
     @Test
     public void testSinkCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
         navigateToSinkCreationWidget(driver);
-        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
+        insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
     }
 
     @Test
     public void testSinkCreationSinkNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToSinkCreationWidget(driver);
-        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
+        insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
         findSinkNameElement(driver).sendKeys(SINK_NAME);
         assertThat(findSaveResultLabel(driver).getText(), is(""));
     }
@@ -116,7 +118,7 @@ public class SinkCreationSeleniumIT {
     @Test
     public void testSinkCreationResourceNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
         navigateToSinkCreationWidget(driver);
-        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
+        insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
         findResourceNameElement(driver).sendKeys(RESOURCE_NAME);
         assertThat(findSaveResultLabel(driver).getText(), is(""));
     }
@@ -137,6 +139,25 @@ public class SinkCreationSeleniumIT {
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
         assertThat(s, is(SinkCreateViewImpl.SINK_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+    }
+
+    @Test
+    public void testSinkCreationUnknownResourceName_DisplayErrorPopup() throws Exception {
+        navigateToSinkCreationWidget(driver);
+        findSinkNameElement(driver).sendKeys("unknownresource-name");
+        findResourceNameElement(driver).sendKeys("unknownresource");
+        findSaveButton(driver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        assertThat(s, is("Error: " + CreateSinkActivity.SINK_RESOURCE_NAME_NOT_VALID_ERROR));  // Todo: Generalisering af fejlhåndtering
+    }
+
+    @Test
+    public void testSinkCreationSinkNameAlreadyExist_DisplayErrorPopup() throws Exception {
+        navigateToSinkCreationWidget(driver);
+        insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
+        findSaveButton(driver).click();  // Click enters the same data once again => Same Sink name
+        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        assertThat(s, is("Error: " + SinkCreateViewImpl.FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE));  // Todo: Generalisering af fejlhåndtering
     }
 
     /**
@@ -170,9 +191,9 @@ public class SinkCreationSeleniumIT {
         return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
-    private void insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave() {
-        findSinkNameElement(driver).sendKeys("name");
-        findResourceNameElement(driver).sendKeys("resource");
+    private void insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave() {
+        findSinkNameElement(driver).sendKeys("succesfull-name");
+        findResourceNameElement(driver).sendKeys(SINK_CREATION_KNOWN_RESOURCE_NAME);
         findSaveButton(driver).click();
         SeleniumUtil.waitAndAssert(driver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
     }

@@ -27,7 +27,6 @@ import static org.hamcrest.CoreMatchers.is;
 
 public class SubmitterCreationSeleniumIT {
 
-    public static final String SMALL_UNICODE_TEST_STRING = "test of unicode content æøåÆØÅ";
     private static final int SAVE_SUBMITTER_TIMOUT = 4;
     private static final String NAME = "name";
     private static final String NUMBER = "42";

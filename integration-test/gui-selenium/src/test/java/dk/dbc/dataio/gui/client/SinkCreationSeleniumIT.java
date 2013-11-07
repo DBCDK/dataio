@@ -25,10 +25,9 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 public class SinkCreationSeleniumIT {
-    public static final String SMALL_UNICODE_TEST_STRING = "test of unicode content æøåÆØÅ";
+    public static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
     private static final String SINK_NAME = "name";
     private static final String RESOURCE_NAME = "resource";
-    private static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
     private static final int SAVE_SINK_TIMOUT = 4;
 
     private static WebDriver driver;
@@ -206,7 +205,7 @@ public class SinkCreationSeleniumIT {
         findSinkNameElement(webDriver).clear();
         findSinkNameElement(webDriver).sendKeys(sinkName);
         findResourceNameElement(webDriver).clear();
-        findResourceNameElement(webDriver).sendKeys(sinkName);
+        findResourceNameElement(webDriver).sendKeys(resourceName);
         findSaveButton(webDriver).click();
 
         SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);

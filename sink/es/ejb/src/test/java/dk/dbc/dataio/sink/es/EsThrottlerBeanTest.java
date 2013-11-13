@@ -37,7 +37,7 @@ public class EsThrottlerBeanTest {
         getInitializedBean().releaseRecordSlots(0);
     }
 
-    private EsThrottlerBean getInitializedBean() {
+    private static EsThrottlerBean getInitializedBean() {
         final EsThrottlerBean esThrottler = new EsThrottlerBean();
         esThrottler.initialize();
         return esThrottler;

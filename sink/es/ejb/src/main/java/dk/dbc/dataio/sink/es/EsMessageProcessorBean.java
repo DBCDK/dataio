@@ -37,13 +37,13 @@ public class EsMessageProcessorBean {
 
     /* To prevent message poisoning where invalid messages will be re-delivered
        forever, all messages must be validated */
-    private void validateMessage(Message message) throws InvalidMessageSinkException {
+    void validateMessage(Message message) throws InvalidMessageSinkException {
         if (message == null) {
             throw new InvalidMessageSinkException("Message can not be null");
         }
     }
 
-    private void processMessage(Message message) throws InterruptedException {
+    void processMessage(Message message) throws InterruptedException {
         // ToDo: Number of record slots must be read from message.
         esThrottler.acquireRecordSlots(1);
 

@@ -1,0 +1,20 @@
+To control GlassFish specific properties, such as MDB pool size, place a
+glassfish-ejb-jar.xml file in the META-INF folder, see example file content
+below:
+
+<!DOCTYPE glassfish-ejb-jar PUBLIC "-//GlassFish.org// DTD GlassFish Application Server 3.1 EJB 3.1//EN"
+    "http://glassfish.org/dtds/glassfish-ejb-jar_3_1-1.dtd">
+<glassfish-ejb-jar>
+  <enterprise-beans>
+    <ejb>
+      <ejb-name>EsMessageProcessorBean</ejb-name>
+      <bean-pool>
+        <steady-pool-size>10</steady-pool-size>
+        <resize-quantity>10</resize-quantity>
+        <max-pool-size>100</max-pool-size>
+        <pool-idle-timeout-in-seconds>600</pool-idle-timeout-in-seconds>
+      </bean-pool>
+    </ejb>
+  </enterprise-beans>
+  <keep-state>true</keep-state>
+</glassfish-ejb-jar>

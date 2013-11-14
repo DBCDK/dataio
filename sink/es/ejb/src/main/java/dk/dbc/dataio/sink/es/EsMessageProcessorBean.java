@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.ejb.MessageDrivenContext;
+import javax.jms.JMSException;
 import javax.jms.Message;
 
 @MessageDriven
@@ -21,17 +22,16 @@ public class EsMessageProcessorBean {
     EsThrottlerBean esThrottler;
 
     public void onMessage(Message message) {
-        LOGGER.trace("Message received: <{}>", message);
         try {
             validateMessage(message);
             processMessage(message);
-        } catch (InterruptedException e) {
+        } catch (InvalidMessageSinkException e) {
+            LOGGER.error("Message <{}> rejected", e);
+        } catch (InterruptedException | JMSException | RuntimeException e) {
             // Ensure that this container-managed transaction can never commit
             // and therefore that this message subsequently will be re-delivered.
             messageDrivenContext.setRollbackOnly();
             LOGGER.error("Exception caught while processing message", e);
-        } catch (InvalidMessageSinkException e) {
-            LOGGER.error("Message <{}> rejected", e);
         }
     }
 
@@ -43,10 +43,10 @@ public class EsMessageProcessorBean {
         }
     }
 
-    void processMessage(Message message) throws InterruptedException {
+    void processMessage(Message message) throws InterruptedException, JMSException {
         // ToDo: Number of record slots must be read from message.
         esThrottler.acquireRecordSlots(1);
 
-        LOGGER.info("Simulating ES TP push for message {}", message);
+        LOGGER.info("Simulating ES TP push for message {} ({})", message.getJMSMessageID(), message.getIntProperty("JMSXDeliveryCount"));
     }
 }

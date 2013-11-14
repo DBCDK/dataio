@@ -45,8 +45,9 @@ public class MockedHttpClientResponse<T>  extends Response {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T readEntity(GenericType<T> tGenericType) {
-        return null;
+        return (T) mockedEntity;
     }
 
     @Override

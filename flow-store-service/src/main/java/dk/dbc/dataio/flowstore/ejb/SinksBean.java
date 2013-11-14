@@ -1,19 +1,27 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.flowstore.entity.Sink;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.flowstore.entity.Sink;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.List;
+
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
@@ -33,5 +41,20 @@ public class SinksBean {
         entityManager.flush();
 
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sink)).build();
+    }
+
+    /**
+     * Returns list of all stored sinks sorted by name in ascending order
+     *
+     * @return a HTTP OK response with result list as JSON
+     *
+     * @throws JsonException on failure to create result list as JSON
+     */
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllSinks() throws JsonException {
+        final TypedQuery<Sink> query = entityManager.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class);
+        final List<Sink> results = query.getResultList();
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 }

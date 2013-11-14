@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
@@ -162,6 +163,24 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             assertStatusCode(response, Response.Status.OK);
             result = response.readEntity(new GenericType<List<Flow>>() { });
+        } finally {
+            response.close();
+        }
+        return result;
+    }
+
+    @Override
+    public List<Sink> findAllSinks() throws FlowStoreProxyException {
+        final Response response;
+        final List<Sink> result;
+        try {
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS);
+        } catch (ServletException e) {
+            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+            result = response.readEntity(new GenericType<List<Sink>>() { });
         } finally {
             response.close();
         }

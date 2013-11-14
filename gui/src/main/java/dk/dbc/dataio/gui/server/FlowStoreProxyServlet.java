@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
@@ -68,6 +69,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public List<Flow> findAllFlows() throws FlowStoreProxyException {
         return flowStoreProxy.findAllFlows();
+    }
+
+    @Override
+    public List<Sink> findAllSinks() throws FlowStoreProxyException {
+        return flowStoreProxy.findAllSinks();
     }
 
     @Override

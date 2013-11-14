@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.commons.types.Flow;
@@ -9,6 +8,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
@@ -20,23 +20,18 @@ import java.util.List;
 public interface FlowStoreProxy extends RemoteService {
 
     void createFlow(FlowContent flowContent) throws NullPointerException, FlowStoreProxyException;
-
     void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, FlowStoreProxyException;
-
     void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, FlowStoreProxyException;
-
     void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, FlowStoreProxyException;
-
     void createSink(SinkContent sinkContent) throws NullPointerException, FlowStoreProxyException;
 
     List<FlowComponent> findAllComponents() throws FlowStoreProxyException;
-
     List<Submitter> findAllSubmitters() throws FlowStoreProxyException;
-
     List<Flow> findAllFlows() throws FlowStoreProxyException;
+    List<Sink> findAllSinks() throws FlowStoreProxyException;
 
     void close();
-    
+
     public static class Factory {
 
         private static FlowStoreProxyAsync asyncInstance = null;

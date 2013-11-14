@@ -4,9 +4,12 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -15,9 +18,12 @@ import javax.persistence.UniqueConstraint;
 uniqueConstraints = {
     @UniqueConstraint(columnNames = { Sink.NAME_INDEX_COLUMN }),
 })
+@NamedQueries({
+    @NamedQuery(name = Sink.QUERY_FIND_ALL, query = "SELECT sink FROM Sink sink ORDER BY sink.nameIndexValue ASC")
+})
 public class Sink extends VersionedEntity {
-
     public static final String TABLE_NAME = "sinks";
+    public static final String QUERY_FIND_ALL = "Sink.findAll";
     static final String NAME_INDEX_COLUMN = "name_idx";
 
     @Lob

@@ -19,6 +19,13 @@
   </properties>
 
   <dependencies>
+
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>opensearch-commons-harvester-es</artifactId>
+      <version>1.11-SNAPSHOT</version>
+      <type>jar</type>
+    </dependency>
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>

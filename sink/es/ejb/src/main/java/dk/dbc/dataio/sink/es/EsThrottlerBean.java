@@ -6,6 +6,8 @@ import org.slf4j.ext.XLoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.DependsOn;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -26,14 +28,12 @@ import java.util.concurrent.Semaphore;
 @Singleton
 @Startup
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+@DependsOn("EsSinkConfigurationBean")
 public class EsThrottlerBean {
-    // Maximum number of records to be "in-flight" in ES database.
-    // Be advised that this is not a hard limit, calling releaseRecordSlots
-    // with a value larger than RECORDS_CAPACITY is possible but not advisable.
-    // ToDo: should be made configurable
-    static final int RECORDS_CAPACITY = 100000;
-
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(EsThrottlerBean.class);
+
+    @EJB
+    EsSinkConfigurationBean configuration;
 
     private Semaphore availableRecordSlots;
 
@@ -42,7 +42,10 @@ public class EsThrottlerBean {
      */
     @PostConstruct
     public void initialize() {
-        availableRecordSlots = new Semaphore(RECORDS_CAPACITY, true);
+        // Maximum number of records to be "in-flight" in ES database is read from configuration.
+        // Be advised that this is not a hard limit, calling releaseRecordSlots
+        // with a value larger than this value is possible but not advisable.
+        availableRecordSlots = new Semaphore(configuration.getRecordsCapacity(), true);
     }
 
     /**

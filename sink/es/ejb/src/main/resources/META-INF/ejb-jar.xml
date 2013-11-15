@@ -23,11 +23,29 @@
         <!--
         <activation-config-property>
           <activation-config-property-name>messageSelector</activation-config-property-name>
-          <activation-config-property-value>resource = 'myEs'</activation-config-property-value>
+          <activation-config-property-value>resource = 'jdbc/dataio/es'</activation-config-property-value>
         </activation-config-property>
         -->
       </activation-config>
     </message-driven>
+    <session>
+      <ejb-name>EsSinkConfigurationBean</ejb-name>
+      <env-entry>
+        <env-entry-name>esResourceName</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>jdbc/dataio/es</env-entry-value>
+      </env-entry>
+      <env-entry>
+        <env-entry-name>esDatabaseName</env-entry-name>
+        <env-entry-type>java.lang.String</env-entry-type>
+        <env-entry-value>dbname</env-entry-value>
+      </env-entry>
+      <env-entry>
+        <env-entry-name>esRecordsCapacity</env-entry-name>
+        <env-entry-type>java.lang.Integer</env-entry-type>
+        <env-entry-value>100000</env-entry-value>
+      </env-entry>
+    </session>
   </enterprise-beans>
   <assembly-descriptor>
   </assembly-descriptor>

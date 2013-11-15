@@ -10,6 +10,7 @@ import org.junit.Test;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 public class EsThrottlerBeanTest {
+    private static final int RECORDS_CAPACITY = 42;
     private static final int NEGATIVE_NUMBER = -42;
 
     @Test(expected = IllegalArgumentException.class)
@@ -24,7 +25,7 @@ public class EsThrottlerBeanTest {
 
     @Test
     public void acquireRecordSlots_requestedNumberOfRecordSlotsIsAvailable_returns() throws InterruptedException {
-        getInitializedBean().acquireRecordSlots(EsThrottlerBean.RECORDS_CAPACITY);
+        getInitializedBean().acquireRecordSlots(RECORDS_CAPACITY);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -38,7 +39,10 @@ public class EsThrottlerBeanTest {
     }
 
     private static EsThrottlerBean getInitializedBean() {
+        final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
+        configuration.esRecordsCapacity = RECORDS_CAPACITY;
         final EsThrottlerBean esThrottler = new EsThrottlerBean();
+        esThrottler.configuration = configuration;
         esThrottler.initialize();
         return esThrottler;
     }

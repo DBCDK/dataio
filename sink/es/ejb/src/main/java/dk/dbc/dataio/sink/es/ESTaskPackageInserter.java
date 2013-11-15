@@ -3,12 +3,9 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.commons.types.Pair;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-// import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -23,27 +20,23 @@ public class ESTaskPackageInserter {
     private final long chunkId;
 
     /**
+     * Inserts the ChunkResult in the ES-base with the given dbname.
+     * After successful insertion, the object will contain the jobId, the chunkId and a targetreference.
      *
-     * @param conn
-     * @param dbname
-     * @param chunkResult
-     * @throws java.sql.SQLException
-     * @throws java.io.IOException
+     * @param esConn Database connection to the ES-base
+     * @param dbname ES internal databasename in which the taskpackage shall be associated.
+     * @param chunkResult Object containing the addi-records to insert into the ES-base.
+     * @throws java.sql.SQLException if a database error occurs.
+     * @throws java.io.IOException if an error occurs during reading of the addi-data.
      */
-    public ESTaskPackageInserter(Connection conn, String dbname, ChunkResult chunkResult) throws SQLException, IOException {
+    public ESTaskPackageInserter(Connection esConn, String dbname, ChunkResult chunkResult) throws IllegalStateException, IOException, SQLException{
         this.jobId = chunkResult.getJobId();
         this.chunkId = chunkResult.getChunkId();
-
         String creator = createCreatorString(jobId, chunkId);
-        List<AddiRecord> addiRecords = new ArrayList<>();
-        for(String result : chunkResult.getResults()) {
-            AddiReader addiReader = new AddiReader(new ByteArrayInputStream(result.getBytes(chunkResult.getEncoding())));
-            // todo: ensure that there is only one AddiRecord per result.
-            addiRecords.add(addiReader.getNextRecord());
-        }
-        Pair<Integer, Integer> result = ESUtil.insertAddiList(conn, addiRecords, dbname, chunkResult.getEncoding(), creator);
-        // todo: Change returnvalue of insertAddiList from Pair to a real object
-        this.targetReference = result.getFirst();
+        List<AddiRecord> addiRecords = getAddiRecordsFromChunk(chunkResult);
+        ESUtil.AddiListInsertionResult insertionResult = ESUtil.insertAddiList(esConn, addiRecords, dbname, chunkResult.getEncoding(), creator);
+        validateTaskPackageState(insertionResult, chunkResult);
+        this.targetReference = insertionResult.getTargetReference();
     }
 
     public int getTargetReference() {
@@ -64,5 +57,24 @@ public class ESTaskPackageInserter {
         sb.append("[ jobid: ").append(jobId);
         sb.append(" , chunkId: ").append(chunkId).append(" ]");
         return sb.toString();
+    }
+
+    private List<AddiRecord> getAddiRecordsFromChunk(ChunkResult chunkResult) throws IOException {
+        List<AddiRecord> addiRecords = new ArrayList<>();
+        for(String result : chunkResult.getResults()) {
+            AddiReader addiReader = new AddiReader(new ByteArrayInputStream(result.getBytes(chunkResult.getEncoding())));
+            // todo: ensure that there is only one AddiRecord per result.
+            addiRecords.add(addiReader.getNextRecord());
+        }
+        return addiRecords;
+    }
+
+    private void validateTaskPackageState(ESUtil.AddiListInsertionResult insertionResult, ChunkResult chunkResult) throws IllegalStateException {
+        int chunkResultSize = chunkResult.getResults().size();
+        if(chunkResultSize != insertionResult.getNumberOfInsertedRecords()) {
+            String errMsg = String.format("The number of records in the chunk and the number of records in the taskpackage differ. Chunk size: %d  TaskPackage size: %d",
+                    chunkResultSize, insertionResult.getNumberOfInsertedRecords());
+            throw new IllegalStateException(errMsg);
+        }
     }
 }

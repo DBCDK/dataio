@@ -4,6 +4,9 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.types.Pair;
+import dk.dbc.dataio.commons.types.ChunkResult;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 // import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
 import java.sql.Connection;
@@ -11,7 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ESTaskpackageInserter {
+public class ESTaskPackageInserter {
 
     private static final String ES_TASKPACKAGE_CREATOR_FIELD_PREFIX = "dataio: ";
 
@@ -23,19 +26,22 @@ public class ESTaskpackageInserter {
      *
      * @param conn
      * @param dbname
+     * @param chunkResult
+     * @throws java.sql.SQLException
+     * @throws java.io.IOException
      */
-    public ESTaskpackageInserter(Connection conn, String dbname /*, ProcessChunkResult chunkResult*/) throws SQLException {
-        this.jobId = 0;
-        this.chunkId = 0;
+    public ESTaskPackageInserter(Connection conn, String dbname, ChunkResult chunkResult) throws SQLException, IOException {
+        this.jobId = chunkResult.getJobId();
+        this.chunkId = chunkResult.getChunkId();
 
         String creator = createCreatorString(jobId, chunkId);
-        // todo: add code:
-        // For each result in chunk:
-        //   Convert result to AddiRecord and add it to a list
         List<AddiRecord> addiRecords = new ArrayList<>();
-        // Insert AddiRecord-list into es using connection
-        // todo: Get Charset from chunk
-        Pair<Integer, Integer> result = ESUtil.insertAddiList(conn, addiRecords, dbname, Charset.defaultCharset(), creator);
+        for(String result : chunkResult.getResults()) {
+            AddiReader addiReader = new AddiReader(new ByteArrayInputStream(result.getBytes(chunkResult.getEncoding())));
+            // todo: ensure that there is only one AddiRecord per result.
+            addiRecords.add(addiReader.getNextRecord());
+        }
+        Pair<Integer, Integer> result = ESUtil.insertAddiList(conn, addiRecords, dbname, chunkResult.getEncoding(), creator);
         // todo: Change returnvalue of insertAddiList from Pair to a real object
         this.targetReference = result.getFirst();
     }

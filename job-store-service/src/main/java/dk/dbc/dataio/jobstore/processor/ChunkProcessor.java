@@ -12,6 +12,7 @@ import java.util.List;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
+import java.nio.charset.Charset;
 
 public class ChunkProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessor.class);
@@ -28,7 +29,8 @@ public class ChunkProcessor {
             final String processedRecordBase64 = base64encode(processedRecord);
             processedResults.add(processedRecordBase64);
         }
-        return new ChunkResult(chunk.getId(), processedResults);
+        // todo: Change below to get actual jobId, chunkId and Charset
+        return new ChunkResult(chunk.getId(), chunk.getId(), Charset.defaultCharset(), processedResults);
     }
 
     private static String processRecord(Flow flow, String record) {

@@ -217,13 +217,13 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public void addChunkResult(Job job, ChunkResult processChunkResult) throws JobStoreException {
-        final Path chunkPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.res.json", processChunkResult.getId()));
+    public void addChunkResult(Job job, ChunkResult chunkResult) throws JobStoreException {
+        final Path chunkPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.res.json", chunkResult.getChunkId()));
         LOGGER.info("Creating chunk result json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
-            bw.write(JsonUtil.toJson(processChunkResult));
+            bw.write(JsonUtil.toJson(chunkResult));
         } catch (IOException | JsonException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to write chunk result: %s", processChunkResult.getId()), e);
+            throw new JobStoreException(String.format("Exception caught when trying to write chunk result: [%s, %s]", chunkResult.getJobId(), chunkResult.getChunkId()), e);
         }
     }
 

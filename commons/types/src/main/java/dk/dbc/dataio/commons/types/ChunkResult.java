@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,21 +14,33 @@ import java.util.List;
 public class ChunkResult implements Serializable {
     private static final long serialVersionUID = -8494583387561924223L;
 
+    private /* final */ long jobId;
+    private /* final */ long chunkId;
+    private /* final */ String encoding;
     private /* final */ List<String> results;
-    private /* final */ long id;
 
     private ChunkResult() { }
 
-    public ChunkResult(long id, List<String> results) {
-        this.id = id;
+    public ChunkResult(long jobId, long chunkId, Charset encoding, List<String> results) {
+        this.jobId = jobId;
+        this.chunkId = chunkId;
+        this.encoding = encoding.name();
         this.results = new ArrayList<String>(results);
+    }
+
+    public long getJobId() {
+        return jobId;
+    }
+
+    public long getChunkId() {
+        return chunkId;
+    }
+
+    public Charset getEncoding() {
+        return Charset.forName(encoding);
     }
 
     public List<String> getResults() {
         return new ArrayList<String>(results);
-    }
-
-    public long getId() {
-        return id;
     }
 }

@@ -1,12 +1,14 @@
 package dk.dbc.dataio.commons.types;
 
+import org.junit.Test;
+
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 public class ChunkResultTest {
 
@@ -64,5 +66,9 @@ public class ChunkResultTest {
         assertThat(results2.get(0), is("data1"));
         assertThat(results2.get(1), is("data2"));
         assertThat(results2.get(2), is("data3"));
+    }
+
+    public static ChunkResult newChunkResultInstance() {
+        return new ChunkResult(JOBID, CHUNKID, ENCODING, Collections.EMPTY_LIST);
     }
 }

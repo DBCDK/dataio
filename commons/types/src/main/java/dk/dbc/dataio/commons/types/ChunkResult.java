@@ -18,13 +18,18 @@ public class ChunkResult implements Serializable {
 
     private static final long serialVersionUID = -8494583387561924223L;
 
-
     private /* final */ long jobId;
     private /* final */ long chunkId;
     private /* final */ String encoding;
     private /* final */ List<String> results;
 
-    private ChunkResult() { }
+    private ChunkResult() {
+        // JSON Unmarshalling of '{}' will trigger default constructor
+        // causing getEncoding() and getResults() methods to throw NullPointerException
+        // unless we set reasonable defaults.
+        encoding = "DEFAULT";
+        results = new ArrayList<String>(0);
+    }
 
     public ChunkResult(long jobId, long chunkId, Charset encoding, List<String> results) {
         this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOBID_VERSION_LOWER_THRESHOLD);

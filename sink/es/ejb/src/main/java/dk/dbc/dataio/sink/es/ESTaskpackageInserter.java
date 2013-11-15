@@ -36,8 +36,20 @@ public class ESTaskpackageInserter {
         // Insert AddiRecord-list into es using connection
         // todo: Get Charset from chunk
         Pair<Integer, Integer> result = ESUtil.insertAddiList(conn, addiRecords, dbname, Charset.defaultCharset(), creator);
+        // todo: Change returnvalue of insertAddiList from Pair to a real object
         this.targetReference = result.getFirst();
+    }
 
+    public int getTargetReference() {
+        return targetReference;
+    }
+
+    public long getJobId() {
+        return jobId;
+    }
+
+    public long getChunkId() {
+        return chunkId;
     }
 
     private String createCreatorString(long jobId, long chunkId) {
@@ -47,5 +59,4 @@ public class ESTaskpackageInserter {
         sb.append(" , chunkId: ").append(chunkId).append(" ]");
         return sb.toString();
     }
-
 }

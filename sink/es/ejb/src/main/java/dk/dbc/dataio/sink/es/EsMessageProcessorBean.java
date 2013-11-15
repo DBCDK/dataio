@@ -26,6 +26,32 @@ public class EsMessageProcessorBean {
     @EJB
     EsThrottlerBean esThrottler;
 
+    /**
+     * Extracts ChunkResult object from message causing a Task Package to be generated
+     * in the ES database.
+     *
+     * The message must pass validation. Any Invalid message will be removed from the
+     * message queue. For a message to be deemed valid the following invariants must be
+     * upheld:
+     *   <ul>
+     *     <li>
+     *       message must be non-null and of type TextMessage
+     *     <li>
+     *       message payload must be non-null and non-empty
+     *     <li>
+     *       message payload must represent JSON able to unmarshall to ChunkResult object
+     *     <li>
+     *       message payload must not represent empty JSON object '{}'
+     *     <li>
+     *       ChunkResult object must contain results
+     *   </ul>
+     *
+     * Any exception (checked or unchecked) thrown after the validation step causes
+     * the message to be put back on the queue.
+     *
+     * @param message message to be processed.
+
+     */
     public void onMessage(Message message) {
         String messageId = null;
         try {

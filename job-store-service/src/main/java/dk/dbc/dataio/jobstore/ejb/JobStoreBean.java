@@ -8,7 +8,7 @@ import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,12 +60,12 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public void addChunkResult(Job job, ProcessChunkResult processedChunk) throws JobStoreException {
+    public void addChunkResult(Job job, ChunkResult processedChunk) throws JobStoreException {
         jobStore.addChunkResult(job, processedChunk);
     }
 
     @Override
-    public ProcessChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException {
+    public ChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException {
         return jobStore.getProcessChunkResult(job, chunkId);
     }
 

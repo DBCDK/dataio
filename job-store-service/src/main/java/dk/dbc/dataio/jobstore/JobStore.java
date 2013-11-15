@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
+import dk.dbc.dataio.commons.types.ChunkResult;
 
 
 public interface JobStore {
@@ -18,7 +18,7 @@ public interface JobStore {
 
     Chunk getChunk(Job job, long chunkId) throws JobStoreException;
 
-    void addChunkResult(Job job, ProcessChunkResult processChunkResult) throws JobStoreException;
+    void addChunkResult(Job job, ChunkResult processChunkResult) throws JobStoreException;
 
-    ProcessChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException;
+    ChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException;
 }

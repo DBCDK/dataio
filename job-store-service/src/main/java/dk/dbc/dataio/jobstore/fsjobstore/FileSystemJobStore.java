@@ -13,7 +13,7 @@ import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,16 +200,16 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public ProcessChunkResult getProcessChunkResult(Job job, long chunkResultId) throws JobStoreException {
+    public ChunkResult getProcessChunkResult(Job job, long chunkResultId) throws JobStoreException {
         final Path chunkResultPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.res.json", chunkResultId));
-        ProcessChunkResult chunkResult;
+        ChunkResult chunkResult;
         try (BufferedReader br = Files.newBufferedReader(chunkResultPath, LOCAL_CHARSET)) {
             final StringBuilder sb = new StringBuilder();
             String data;
             while ((data = br.readLine()) != null) {
                 sb.append(data);
             }
-            chunkResult = JsonUtil.fromJson(sb.toString(), ProcessChunkResult.class);
+            chunkResult = JsonUtil.fromJson(sb.toString(), ChunkResult.class);
         } catch (IOException | JsonException e) {
             throw new JobStoreException(String.format("Exception caught when trying to read chunk result: %d", chunkResultId), e);
         }
@@ -217,7 +217,7 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public void addChunkResult(Job job, ProcessChunkResult processChunkResult) throws JobStoreException {
+    public void addChunkResult(Job job, ChunkResult processChunkResult) throws JobStoreException {
         final Path chunkPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.res.json", processChunkResult.getId()));
         LOGGER.info("Creating chunk result json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {

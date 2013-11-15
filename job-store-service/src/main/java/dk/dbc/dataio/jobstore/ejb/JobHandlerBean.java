@@ -8,7 +8,7 @@ import dk.dbc.dataio.jobstore.processor.ChunkProcessor;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class JobHandlerBean {
         LOGGER.info("Processing {} chunks for job({})", numberOfChunks, job.getId());
         for (int chunkId = 1; chunkId <= numberOfChunks; chunkId++) {
             final Chunk chunk = jobStore.getChunk(job, chunkId);
-            final ProcessChunkResult processedChunk = ChunkProcessor.processChunk(chunk);
+            final ChunkResult processedChunk = ChunkProcessor.processChunk(chunk);
             jobStore.addChunkResult(job, processedChunk);
         }
     }
@@ -74,7 +74,7 @@ public class JobHandlerBean {
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
 
             for (int chunkId = 1; chunkId <= numberOfChunks; chunkId++) {
-                final ProcessChunkResult chunkResult = jobStore.getProcessChunkResult(job, chunkId);
+                final ChunkResult chunkResult = jobStore.getProcessChunkResult(job, chunkId);
                 for (String encodedRecord : chunkResult.getResults()) {
                     writer.write(base64decode(encodedRecord));
                     writer.newLine();

@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.processor;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.jobstore.types.Chunk;
-import dk.dbc.dataio.jobstore.types.ProcessChunkResult;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class ChunkProcessor {
 
     private ChunkProcessor() { }
 
-    public static ProcessChunkResult processChunk(Chunk chunk) {
+    public static ChunkResult processChunk(Chunk chunk) {
         LOGGER.info("Processing chunk: {}", chunk.getId());
         final Flow flow = chunk.getFlow();
 
@@ -28,7 +28,7 @@ public class ChunkProcessor {
             final String processedRecordBase64 = base64encode(processedRecord);
             processedResults.add(processedRecordBase64);
         }
-        return new ProcessChunkResult(chunk.getId(), processedResults);
+        return new ChunkResult(chunk.getId(), processedResults);
     }
 
     private static String processRecord(Flow flow, String record) {

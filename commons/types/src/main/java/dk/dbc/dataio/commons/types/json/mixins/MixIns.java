@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.types.json.mixins;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class MixIns {
     private static Map<Class<?>, Class<?>> mixIns = new HashMap<>();
     static {
+        mixIns.put(ChunkResult.class, ChunkResultMixIn.class);
         mixIns.put(Flow.class, FlowJsonMixIn.class);
         mixIns.put(FlowBinder.class, FlowBinderJsonMixIn.class);
         mixIns.put(FlowBinderContent.class, FlowBinderContentJsonMixIn.class);

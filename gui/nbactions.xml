@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-GWT Dev Mode Run</actionName>
+            <displayName>GWT Dev Mode Run</displayName>
+            <goals>
+                <goal>gwt:run</goal>
+                
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>dev</activatedProfile>
+            </activatedProfiles>
+        </action>
+    </actions>

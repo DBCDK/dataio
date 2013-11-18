@@ -15,6 +15,9 @@ import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
+import javax.naming.NamingException;
+import java.io.IOException;
+import java.sql.SQLException;
 
 @MessageDriven
 public class EsMessageProcessorBean {
@@ -24,7 +27,13 @@ public class EsMessageProcessorBean {
     MessageDrivenContext messageDrivenContext;
 
     @EJB
+    EsSinkConfigurationBean configuration;
+
+    @EJB
     EsThrottlerBean esThrottler;
+
+    @EJB
+    EsConnectorBean esConnector;
 
     /**
      * Extracts ChunkResult object from message causing a Task Package to be generated
@@ -60,7 +69,7 @@ public class EsMessageProcessorBean {
             processChunkResult(chunkResult);
         } catch (InvalidMessageSinkException e) {
             LOGGER.error("Message rejected", e);
-        } catch (InterruptedException | JMSException | RuntimeException e) {
+        } catch (InterruptedException | IOException | JMSException | NamingException | SQLException | RuntimeException e) {
             // Ensure that this container-managed transaction can never commit
             // and therefore that this message subsequently will be re-delivered.
             messageDrivenContext.setRollbackOnly();
@@ -109,7 +118,11 @@ public class EsMessageProcessorBean {
         return chunkResult;
     }
 
-    void processChunkResult(ChunkResult chunkResult) throws InterruptedException, JMSException {
+    void processChunkResult(ChunkResult chunkResult) throws InterruptedException, JMSException, IOException, SQLException, NamingException {
         esThrottler.acquireRecordSlots(chunkResult.getResults().size());
+        final ESTaskPackageInserter esTaskPackageInserter = new ESTaskPackageInserter(
+                esConnector.getConnection(), configuration.getEsDatabaseName(), chunkResult);
+        LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
+                esTaskPackageInserter.getTargetReference(), chunkResult.getChunkId(), chunkResult.getJobId());
     }
 }

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
@@ -8,6 +9,7 @@ import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
+import dk.dbc.dataio.gui.client.i18n.SubmitterCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
 
 
@@ -21,22 +23,14 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     public static final String GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL = "submittercreationdescriptionpanel";
     public static final String GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL = "submittercreationsavebuttonpanel";
     
-    public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
-    public static final String SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL = "Submitternummer";
-    public static final String SUBMITTER_CREATION_SUBMITTER_NAME_LABEL = "Submitternavn";
-    public static final String SUBMITTER_CREATION_DESCRIPTION_LABEL = "Beskrivelse";
-    
-    public static final String SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
-    public static final String SUBMITTER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR = "Nummer felt skal indeholde en numerisk talværdi.";
-    public static final String FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE = "Et eller flere af de unikke felter { navn, nummer } er allerede oprettet i flow store.";
-    public static final String FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE = "De udfyldte felter forårsagede en data valideringsfejl i flow store.";
     private static final int SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
 
     // Local variables
     private SubmitterCreatePresenter presenter;
-    private final TextEntry submitterNumberPanel = new TextEntry(GUIID_SUBMITTER_CREATION_NUMBER_PANEL, SUBMITTER_CREATION_SUBMITTER_NUMBER_LABEL);
-    private final TextEntry submitterNamePanel = new TextEntry(GUIID_SUBMITTER_CREATION_NAME_PANEL, SUBMITTER_CREATION_SUBMITTER_NAME_LABEL);
-    private final TextAreaEntry submitterDescriptionPanel = new TextAreaEntry(GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL ,SUBMITTER_CREATION_DESCRIPTION_LABEL, SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH);
+    private final SubmitterCreateConstants constants = GWT.create(SubmitterCreateConstants.class);
+    private final TextEntry submitterNumberPanel = new TextEntry(GUIID_SUBMITTER_CREATION_NUMBER_PANEL, constants.label_SubmitterNumber());
+    private final TextEntry submitterNamePanel = new TextEntry(GUIID_SUBMITTER_CREATION_NAME_PANEL, constants.label_SubmitterName());
+    private final TextAreaEntry submitterDescriptionPanel = new TextAreaEntry(GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, constants.label_Description(), SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH);
     private final SaveButton saveButton = new SaveButton(GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, "Gem", new SaveButtonEvent());
 
     public SubmitterCreateViewImpl() {
@@ -80,9 +74,9 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
             errorMessage = detail;
         } else {
             switch (errorCode) {
-                case NOT_ACCEPTABLE: errorMessage = FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE;
+                case NOT_ACCEPTABLE: errorMessage = constants.error_ProxyKeyViolationError();
                     break;
-                case BAD_REQUEST: errorMessage = FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE;
+                case BAD_REQUEST: errorMessage = constants.error_ProxyDataValidationError();
                     break;
                 default: errorMessage = detail;
                     break;
@@ -93,7 +87,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
     @Override
     public void onSaveSubmitterSuccess() {
-        onSuccess(SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        onSuccess(constants.status_SubmitterSuccessfullySaved());
     }
 
 
@@ -113,12 +107,12 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
 
         private String validateFields(final String nameValue, final String numberValue, final String descriptionValue) {
             if (nameValue.isEmpty() || numberValue.isEmpty() || descriptionValue.isEmpty()) {
-                return SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
+                return constants.error_InputFieldValidationError();
             }
             try {
                 Long.valueOf(numberValue);
             } catch (NumberFormatException e) {
-                return SUBMITTER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR;
+                return constants.error_NumberInputFieldValidationError();
             }
             return "";
         }

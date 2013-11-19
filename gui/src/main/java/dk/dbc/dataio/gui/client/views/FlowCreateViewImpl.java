@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
@@ -10,6 +11,7 @@ import dk.dbc.dataio.gui.client.components.DualListEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.i18n.FlowCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import java.util.Collection;
 import java.util.Map;
@@ -18,28 +20,21 @@ import java.util.Map;
 
 public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     // Constants (These are not all private since we use them in the selenium tests)
-    public static final String CONTEXT_HEADER = "Flow - opsætning";
-    public static final String FLOW_CREATION_FLOW_NAME_LABEL = "Flownavn";
-    public static final String FLOW_CREATION_DESCRIPTION_LABEL = "Beskrivelse";
-    public static final String FLOW_CREATION_FLOW_COMPONENTS_LABEL = "Flow komponenter";
-    public static final String FLOW_CREATION_SAVE_BUTTON = "Gem";
-    
     public static final String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
     public static final String GUIID_FLOW_CREATION_FLOW_NAME_PANEL = "flow-name-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL = "flow-description-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL = "flow-component-selection-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_SAVE_PANEL = "flow-save-panel-id";
     
-    public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
-    public static final String FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
     private static final int FLOW_CREATION_DESCRIPTION_MAX_LENGTH = 160;
     
     // Local variables
     private FlowCreatePresenter presenter;
-    private final TextEntry flowNamePanel = new TextEntry(GUIID_FLOW_CREATION_FLOW_NAME_PANEL, FLOW_CREATION_FLOW_NAME_LABEL);
-    private final TextAreaEntry flowDescriptionPanel = new TextAreaEntry(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, FLOW_CREATION_DESCRIPTION_LABEL, FLOW_CREATION_DESCRIPTION_MAX_LENGTH);
-    private final DualListEntry flowComponentSelectionPanel = new DualListEntry(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL, FLOW_CREATION_FLOW_COMPONENTS_LABEL);
-    private final SaveButton saveButton = new SaveButton(GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, FLOW_CREATION_SAVE_BUTTON, new SaveButtonEvent());
+    private final FlowCreateConstants constants = GWT.create(FlowCreateConstants.class);
+    private final TextEntry flowNamePanel = new TextEntry(GUIID_FLOW_CREATION_FLOW_NAME_PANEL, constants.label_FlowName());
+    private final TextAreaEntry flowDescriptionPanel = new TextAreaEntry(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, constants.label_Description(), FLOW_CREATION_DESCRIPTION_MAX_LENGTH);
+    private final DualListEntry flowComponentSelectionPanel = new DualListEntry(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL, constants.label_FlowComponents());
+    private final SaveButton saveButton = new SaveButton(GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, constants.button_Save(), new SaveButtonEvent());
     
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
@@ -120,7 +115,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
             if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.getSelectedItemCount() > 0)) {
                 presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
             } else {
-                Window.alert(FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+                Window.alert(constants.error_InputFieldValidationError());
             }
         }
     }

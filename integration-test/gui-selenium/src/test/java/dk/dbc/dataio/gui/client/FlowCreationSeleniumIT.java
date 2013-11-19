@@ -24,6 +24,13 @@ import static org.junit.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 
 public class FlowCreationSeleniumIT {
+// TODO: This is a hack - needs to be updated to utilize GWT's Constants API
+//    private static final FlowCreateConstants constants = GWT.create(FlowCreateConstants.class);
+    private static class FlowConstants {
+        String error_InputFieldValidationError()   { return "Alle felter skal udfyldes."; }
+        String status_FlowSuccessfullySaved()      { return "Opsætningen blev gemt"; }
+    }
+    private static final FlowConstants constants = new FlowConstants();
 
     private static final long SAVE_TIMEOUT = 4;
     private static WebDriver driver;
@@ -161,7 +168,7 @@ public class FlowCreationSeleniumIT {
         SeleniumUtil.selectItemInDualList(findComponentSelectionElement(driver), flowComponentName);
         findSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(FlowCreateViewImpl.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -173,7 +180,7 @@ public class FlowCreationSeleniumIT {
         SeleniumUtil.selectItemInDualList(findComponentSelectionElement(driver), flowComponentName);
         findSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(FlowCreateViewImpl.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -185,7 +192,7 @@ public class FlowCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys("b");
         findSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(FlowCreateViewImpl.FLOW_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     /**
@@ -196,7 +203,7 @@ public class FlowCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys("b");
         SeleniumUtil.selectItemInDualList(findComponentSelectionElement(driver), flowComponentName);
         findSaveButtonElement(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(driver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_FlowSuccessfullySaved());
     }
 
     private static void navigateToFlowCreationWidget(WebDriver webDriver) {
@@ -251,6 +258,6 @@ public class FlowCreationSeleniumIT {
 
         findSaveButtonElement(webDriver).click();
 
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_FlowSuccessfullySaved());
     }
 }

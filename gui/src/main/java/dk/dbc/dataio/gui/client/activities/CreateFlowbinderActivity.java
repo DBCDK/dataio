@@ -1,18 +1,18 @@
 package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.gui.client.i18n.FlowbinderCreateConstants;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
-import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +24,7 @@ import java.util.Map;
  * of flowbinder data in the flow store via RPC proxy
  */
 public class CreateFlowbinderActivity extends AbstractActivity implements FlowbinderCreatePresenter {
+    private final FlowbinderCreateConstants constants = GWT.create(FlowbinderCreateConstants.class);
     private ClientFactory clientFactory;
     private FlowbinderCreateView flowbinderCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
@@ -118,12 +119,11 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.createFlowBinder(flowbinderContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
-//                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
-                flowbinderCreateView.onFailure("Du forsøger at oprette en Flowbinder, der allerede eksisterer");
+                flowbinderCreateView.onFailure(constants.error_FlowbinderAlreadyExistsError());
             }
             @Override
             public void onSuccess(Void result) {
-                flowbinderCreateView.onSuccess(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS);
+                flowbinderCreateView.onSuccess(constants.status_SaveSuccess());
             }
         });
     }

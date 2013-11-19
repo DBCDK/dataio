@@ -5,6 +5,10 @@ import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -14,11 +18,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -26,6 +25,13 @@ import static org.junit.Assert.assertFalse;
 import org.junit.Ignore;
 
 public class FlowBinderCreationSeleniumIT {
+// TODO: This is a hack - needs to be updated to utilize GWT's Constants API
+//    private final FlowbinderCreateConstants constants = GWT.create(FlowbinderCreateConstants.class);
+    private static class FlowbinderConstants {
+        String error_InputFieldValidationError()       { return "Alle felter skal udfyldes."; }
+        String status_SaveSuccess()                    { return "Flowbinderen blev gemt"; }
+    }
+    private final FlowbinderConstants constants = new FlowbinderConstants();
 
     private static final long SAVE_TIMEOUT = 4;
     private WebDriver driver;
@@ -156,7 +162,7 @@ public class FlowBinderCreationSeleniumIT {
         populateAllInputFields();
         findNameTextElement(driver).clear();
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Ignore
@@ -165,7 +171,7 @@ public class FlowBinderCreationSeleniumIT {
         populateAllInputFields();
         findDescriptionTextElement(driver).clear();
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Ignore
@@ -174,7 +180,7 @@ public class FlowBinderCreationSeleniumIT {
         populateAllInputFields();
         findFrameTextElement(driver).clear();
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Ignore
@@ -183,7 +189,7 @@ public class FlowBinderCreationSeleniumIT {
         populateAllInputFields();
         findContentFormatTextElement(driver).clear();
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Ignore
@@ -192,7 +198,7 @@ public class FlowBinderCreationSeleniumIT {
         populateAllInputFields();
         findCharacterSetTextElement(driver).clear();
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -204,7 +210,7 @@ public class FlowBinderCreationSeleniumIT {
         selectSubmitterWhenInFlowbinderCreationWidget(submitter);
         selectFlowWhenInFlowbinderCreationWidget(flow);
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Ignore
@@ -217,7 +223,7 @@ public class FlowBinderCreationSeleniumIT {
         selectSinkWhenInFlowbinderCreationWidget(sink);
         selectFlowWhenInFlowbinderCreationWidget(flow);
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Ignore
@@ -230,7 +236,7 @@ public class FlowBinderCreationSeleniumIT {
         selectSinkWhenInFlowbinderCreationWidget(sink);
         selectSubmitterWhenInFlowbinderCreationWidget(submitter);
         findSaveButtonElement(driver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(FlowbinderCreateViewImpl.FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(driver), is(constants.error_InputFieldValidationError()));
     }
 
     @Ignore
@@ -384,7 +390,7 @@ public class FlowBinderCreationSeleniumIT {
     private void populateAllInputFieldsAndClickSaveAndWaitForSuccess() {
         populateAllInputFields();
         findSaveButtonElement(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_TIMEOUT, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, FlowbinderCreateViewImpl.FLOWBINDER_CREATION_SAVE_SUCCESS);
+        SeleniumUtil.waitAndAssert(driver, SAVE_TIMEOUT, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_SaveSuccess());
     }
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {

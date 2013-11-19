@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.activities.CreateSinkActivity;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.MainPanel;
@@ -25,6 +24,16 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 public class SinkCreationSeleniumIT {
+// TODO: This is a hack - needs to be updated to utilize GWT's Constants API
+//    private static final SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
+    private static class SinkConstants {
+        String error_InputFieldValidationError() { return "Alle felter skal udfyldes."; }
+        String error_ProxyKeyViolationError()    { return "En sink med det pågældende navn er allerede oprettet i flow store."; }
+        String error_ResourceNameNotValid()      { return "Det pågældende resource navn er ikke en gyldig sink resource"; }
+        String status_SinkSuccessfullySaved()    { return "Opsætningen blev gemt"; }
+    };
+    private static SinkConstants constants = new SinkConstants();
+    
     public static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
     private static final String SINK_NAME = "name";
     private static final String RESOURCE_NAME = "resource";
@@ -128,7 +137,7 @@ public class SinkCreationSeleniumIT {
         findResourceNameElement(driver).sendKeys(RESOURCE_NAME);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(SinkCreateViewImpl.SINK_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -137,7 +146,7 @@ public class SinkCreationSeleniumIT {
         findSinkNameElement(driver).sendKeys(SINK_NAME);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(SinkCreateViewImpl.SINK_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -147,7 +156,7 @@ public class SinkCreationSeleniumIT {
         findResourceNameElement(driver).sendKeys("unknownresource");
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is("Error: " + CreateSinkActivity.SINK_RESOURCE_NAME_NOT_VALID_ERROR));  // Todo: Generalisering af fejlhåndtering
+        assertThat(s, is("Error: " + constants.error_ResourceNameNotValid()));  // Todo: Generalisering af fejlhåndtering
     }
 
     @Test
@@ -156,7 +165,7 @@ public class SinkCreationSeleniumIT {
         insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
         findSaveButton(driver).click();  // Click enters the same data once again => Same Sink name
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is("Error: " + SinkCreateViewImpl.FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE));  // Todo: Generalisering af fejlhåndtering
+        assertThat(s, is("Error: " + constants.error_ProxyKeyViolationError()));  // Todo: Generalisering af fejlhåndtering
     }
 
     /**
@@ -194,7 +203,7 @@ public class SinkCreationSeleniumIT {
         findSinkNameElement(driver).sendKeys("succesfull-name");
         findResourceNameElement(driver).sendKeys(SINK_CREATION_KNOWN_RESOURCE_NAME);
         findSaveButton(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(driver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_SinkSuccessfullySaved());
     }
 
     /**
@@ -208,6 +217,6 @@ public class SinkCreationSeleniumIT {
         findResourceNameElement(webDriver).sendKeys(resourceName);
         findSaveButton(webDriver).click();
 
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SinkCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_SinkSuccessfullySaved());
     }
 }

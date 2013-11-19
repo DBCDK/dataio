@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
@@ -11,6 +12,7 @@ import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.i18n.FlowbinderCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,21 +21,8 @@ import java.util.Map;
 public class FlowbinderCreateViewImpl extends VerticalPanel implements FlowbinderCreateView {
 
     // Constants (These are not all private since we use them in the selenium tests)
-    public static final String CONTEXT_HEADER = "Flowbinder - opsætning";
     public static final int    FLOWBINDER_CREATION_NAME_MAX_LENGTH = 160;
     public static final int    FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
-    public static final String FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
-    public static final String FLOWBINDER_CREATION_SAVE_SUCCESS = "Flowbinderen blev gemt.";
-    public static final String FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL = "Flowbinder navn";
-    public static final String FLOWBINDER_CREATION_FLOWBINDER_DESCRIPTION_LABEL = "Beskrivelse";
-    public static final String FLOWBINDER_CREATION_FRAMEFORMAT_LABEL = "Rammeformat";
-    public static final String FLOWBINDER_CREATION_CONTENTFORMAT_LABEL = "Indholdsformat";
-    public static final String FLOWBINDER_CREATION_CHARACTERSET_LABEL = "Tegnsæt";
-    public static final String FLOWBINDER_CREATION_SINK_LABEL = "Destination";
-    public static final String FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL = "Recordsplitter";
-    public static final String FLOWBINDER_CREATION_SUBMITTERS_LABEL = "Submittere";
-    public static final String FLOWBINDER_CREATION_FLOW_LABEL = "Flow";
-    public static final String FLOWBINDER_CREATION_DEFAULT_RECORD_SPLITTER_LABEL = "Default Record Splitter";
     
     public static final String GUIID_FLOWBINDER_CREATION_WIDGET = "flowbindercreationwidget";
     public static final String GUIID_FLOWBINDER_CREATION_NAME_PANEL = "flowbindercreationnamepanel";
@@ -49,15 +38,16 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 
     // Local variables
     private FlowbinderCreatePresenter presenter;
-    private final TextEntry flowbinderNamePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_NAME_PANEL, FLOWBINDER_CREATION_FLOWBINDER_NAME_LABEL, FLOWBINDER_CREATION_NAME_MAX_LENGTH);
-    private final TextAreaEntry flowbinderDescriptionPanel = new TextAreaEntry(GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL ,FLOWBINDER_CREATION_FLOWBINDER_DESCRIPTION_LABEL, FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH);
-    private final TextEntry flowbinderFramePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_FRAME_PANEL, FLOWBINDER_CREATION_FRAMEFORMAT_LABEL);
-    private final TextEntry flowbinderContentFormatPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL, FLOWBINDER_CREATION_CONTENTFORMAT_LABEL);
-    private final TextEntry flowbinderCharacterSetPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, FLOWBINDER_CREATION_CHARACTERSET_LABEL);
-    private final ListEntry flowbinderSinkPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, FLOWBINDER_CREATION_SINK_LABEL);
-    private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, FLOWBINDER_CREATION_RECORD_SPLITTER_LABEL);
-    private final DualListEntry flowbinderSubmittersPanel = new DualListEntry(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL, FLOWBINDER_CREATION_SUBMITTERS_LABEL);
-    private final ListEntry flowbinderFlowPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_FLOW_PANEL, FLOWBINDER_CREATION_FLOW_LABEL);
+    private final FlowbinderCreateConstants constants = GWT.create(FlowbinderCreateConstants.class);
+    private final TextEntry flowbinderNamePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_NAME_PANEL, constants.label_FlowBinderName(), FLOWBINDER_CREATION_NAME_MAX_LENGTH);
+    private final TextAreaEntry flowbinderDescriptionPanel = new TextAreaEntry(GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL, constants.label_FlowBinderDescription(), FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH);
+    private final TextEntry flowbinderFramePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_FRAME_PANEL, constants.label_FrameFormat());
+    private final TextEntry flowbinderContentFormatPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL, constants.label_ContentFormat());
+    private final TextEntry flowbinderCharacterSetPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, constants.label_CharacterSet());
+    private final ListEntry flowbinderSinkPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, constants.label_Sink());
+    private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, constants.label_RecordSplitter());
+    private final DualListEntry flowbinderSubmittersPanel = new DualListEntry(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL, constants.label_Submitters());
+    private final ListEntry flowbinderFlowPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_FLOW_PANEL, constants.label_Flow());
     private final SaveButton saveButton = new SaveButton(GUIID_FLOWBINDER_CREATION_SAVE_PANEL, "Gem", new SaveButtonEvent());
 
     public FlowbinderCreateViewImpl() {
@@ -70,15 +60,15 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         add(flowbinderDescriptionPanel);
         
         flowbinderFramePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
-        flowbinderFramePanel.addToolTip("Rammeformat: Teknisk formatprotokol til brug for udveksling af data. Eksempelvis dm2iso, dm2lin, xml, csv, m.v.");
+        flowbinderFramePanel.addToolTip(constants.tooltip_FrameFormat());
         add(flowbinderFramePanel);
         
         flowbinderContentFormatPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
-        flowbinderContentFormatPanel.addToolTip("Indholdsformat: Bibliografisk format, f.eks. dbc, dfi, dkbilled, dsd, ebogsbib, ebrary, mv.");
+        flowbinderContentFormatPanel.addToolTip(constants.tooltip_ContentFormat());
         add(flowbinderContentFormatPanel);
         
         flowbinderCharacterSetPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
-        flowbinderCharacterSetPanel.addToolTip("Tegnsæt: F.eks. utf8, latin-1, samkat, m.v.");
+        flowbinderCharacterSetPanel.addToolTip(constants.tooltip_CharacterSet());
         add(flowbinderCharacterSetPanel);
         
         flowbinderSinkPanel.setEnabled(false);
@@ -86,7 +76,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         add(flowbinderSinkPanel);
         
         flowbinderRecordSplitterPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
-        flowbinderRecordSplitterPanel.setText(FLOWBINDER_CREATION_DEFAULT_RECORD_SPLITTER_LABEL);
+        flowbinderRecordSplitterPanel.setText(constants.label_DefaultRecordSplitter());
         flowbinderRecordSplitterPanel.setEnabled(false);
         add(flowbinderRecordSplitterPanel);
 
@@ -196,7 +186,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
                 final Map<String, String> submitters, final String flow) {
             if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || (sink==null) || sink.isEmpty() || recordSplitter.isEmpty()
                     || (submitters == null) || submitters.isEmpty() || (flow == null) || flow.isEmpty()) {
-                return FLOWBINDER_CREATION_INPUT_FIELD_VALIDATION_ERROR;
+                return constants.error_InputFieldValidationError();
             }
             return "";
         }

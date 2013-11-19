@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
@@ -7,32 +8,22 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
+import dk.dbc.dataio.gui.client.i18n.SinkCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.SinkCreatePresenter;
 
 
 public class SinkCreateViewImpl extends VerticalPanel implements SinkCreateView {
-    public static final String CONTEXT_HEADER = "Sink - opsætning";
-
     public static final String GUIID_SINK_CREATION_WIDGET = "sinkcreationwidget";
     public static final String GUIID_SINK_CREATION_SINK_NAME_PANEL = "sinkcreationsinknamepanel";
     public static final String GUIID_SINK_CREATION_RESOURCE_NAME_PANEL = "sinkcreationresourcenamepanel";
     public static final String GUIID_SINK_CREATION_SAVE_BUTTON_PANEL = "sinkcreationsavebuttonpanel";
-    
-    public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
-
-    public static final String SINK_CREATION_SINK_NAME_LABEL = "Sink navn";
-    public static final String SINK_CREATION_RESOURCE_NAME_LABEL = "Resource navn";
-    public static final String SINK_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
-    public static final String SINK_CREATION_SAVE_BUTTON_LABEL = "Gem";
-    
-    public static final String FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE = "En sink med det pågældende navn er allerede oprettet i flow store.";
-    public static final String FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE = "De udfyldte felter forårsagede en data valideringsfejl i flow store.";
-        
+            
     // Local variables
     private SinkCreatePresenter presenter;
-    private final TextEntry sinkNamePanel = new TextEntry(GUIID_SINK_CREATION_SINK_NAME_PANEL, SINK_CREATION_SINK_NAME_LABEL);
-    private final TextEntry resourceNamePanel = new TextEntry(GUIID_SINK_CREATION_RESOURCE_NAME_PANEL, SINK_CREATION_RESOURCE_NAME_LABEL);
-    private final SaveButton saveButton = new SaveButton(GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SINK_CREATION_SAVE_BUTTON_LABEL, new SaveButtonEvent());
+    private final SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
+    private final TextEntry sinkNamePanel = new TextEntry(GUIID_SINK_CREATION_SINK_NAME_PANEL, constants.label_SinkName());
+    private final TextEntry resourceNamePanel = new TextEntry(GUIID_SINK_CREATION_RESOURCE_NAME_PANEL, constants.label_ResourceName());
+    private final SaveButton saveButton = new SaveButton(GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
 
     
     public SinkCreateViewImpl() {
@@ -73,9 +64,9 @@ public class SinkCreateViewImpl extends VerticalPanel implements SinkCreateView 
             errorMessage = detail;
         } else {
             switch (errorCode) {
-                case NOT_ACCEPTABLE: errorMessage = FLOW_STORE_PROXY_KEY_VIOLATION_ERROR_MESSAGE;
+                case NOT_ACCEPTABLE: errorMessage = constants.error_ProxyKeyViolationError();
                     break;
-                case BAD_REQUEST: errorMessage = FLOW_STORE_PROXY_DATA_VALIDATION_ERROR_MESSAGE;
+                case BAD_REQUEST: errorMessage = constants.error_ProxyDataValidationError();
                     break;
                 default: errorMessage = detail;
                     break;
@@ -86,7 +77,7 @@ public class SinkCreateViewImpl extends VerticalPanel implements SinkCreateView 
 
     @Override
     public void onSaveSinkSuccess() {
-        onSuccess(SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        onSuccess(constants.status_SinkSuccessfullySaved());
     }
 
     
@@ -105,7 +96,7 @@ public class SinkCreateViewImpl extends VerticalPanel implements SinkCreateView 
 
         private String validateFields(final String nameValue, final String resourceValue) {
             if (nameValue.isEmpty() || resourceValue.isEmpty()) {
-                return SINK_CREATION_INPUT_FIELD_VALIDATION_ERROR;
+                return constants.error_InputFieldValidationError();
             }
             return "";
         }

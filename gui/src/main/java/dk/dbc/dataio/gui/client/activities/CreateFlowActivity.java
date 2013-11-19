@@ -1,17 +1,17 @@
 package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.gui.client.i18n.FlowCreateConstants;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
-import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
@@ -26,6 +26,7 @@ import java.util.Map;
  * of flow data in the flow store via RPC proxy
  */
 public class CreateFlowActivity extends AbstractActivity implements FlowCreatePresenter {
+    private final FlowCreateConstants constants = GWT.create(FlowCreateConstants.class);
     private ClientFactory clientFactory;
     private FlowCreateView flowCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
@@ -88,7 +89,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
             }
             @Override
             public void onSuccess(Void aVoid) {
-                flowCreateView.onSuccess(FlowCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+                flowCreateView.onSuccess(constants.status_FlowSuccessfullySaved());
             }
         });
     }

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
@@ -12,6 +13,7 @@ import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
+import dk.dbc.dataio.gui.client.i18n.FlowComponentCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
 import java.util.List;
 
@@ -19,21 +21,6 @@ import java.util.List;
 public class FlowComponentCreateViewImpl extends FlowPanel implements FlowComponentCreateView {
 
     // public Identifiers
-    public static final String CONTEXT_HEADER = "Flow Komponent - opsætning";
-    public static final String SAVE_RESULT_LABEL_SUCCES_MESSAGE = "Opsætningen blev gemt";
-    public static final String SAVE_RESULT_LABEL_PROCESSING_MESSAGE = "Opsætningen gemmes...";
-    public static final String FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR = "Alle felter skal udfyldes.";
-    public static final String FLOW_COMPONENT_CREATION_SCM_PROJECT_NOT_FOUND_ERROR = "Det angivne projekt findes ikke i SVN.";
-    public static final String FLOW_COMPONENT_CREATION_SCM_ILLEGAL_PROJECT_NAME_ERROR = "Det angivne projekt må ikke indeholde sti elementer.";
-    public static final String FLOW_COMPONENT_CREATION_JAVASCRIPT_REFERENCE_ERROR = "Der skete en fejl i forbindelse med kald til SVN. Prøv at vælge en anden revision eller et andet javascript.";
-    public static final String FLOW_COMPONENT_CREATION_BUSY_LABEL = "Busy...";
-    public static final String FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL = "Komponentnavn";
-    public static final String FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL = "SVN Projekt";
-    public static final String FLOW_COMPONENT_CREATION_SVN_REVISION_LABEL = "SVN Revision";
-    public static final String FLOW_COMPONENT_CREATION_SCRIPT_NAME_LABEL = "Script navn";
-    public static final String FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LABEL = "Invocation Method";
-    public static final String FLOW_COMPONENT_CREATION_SAVE_BUTTON_LABEL = "Gem";
-
     public static final String GUIID_FLOW_COMPONENT_CREATION_WIDGET = "flowcomponentcreationwidget";
     public static final String GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL = "flowcomponentcreationnamepanel";
     public static final String GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL = "flowcomponentcreationprojectpanel";
@@ -45,16 +32,17 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     public static final String FORM_FIELD_COMPONENT_NAME = "formfieldcomponentname";
     public static final String FORM_FIELD_INVOCATION_METHOD = "formfieldinvocationmethod";
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
+    
     // private objects
     private FlowComponentCreatePresenter presenter;
-
-    private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, FLOW_COMPONENT_CREATION_KOMPONENT_NAVN_LABEL);
-    private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, FLOW_COMPONENT_CREATION_SVN_PROJEKT_LABEL);
-    private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, FLOW_COMPONENT_CREATION_SVN_REVISION_LABEL);
-    private ListEntry scriptNamePanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, FLOW_COMPONENT_CREATION_SCRIPT_NAME_LABEL);
-    private ListEntry invocationMethodPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, FLOW_COMPONENT_CREATION_INVOCATION_METHOD_LABEL);
-    private SaveButton saveButton = new SaveButton(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, FLOW_COMPONENT_CREATION_SAVE_BUTTON_LABEL, new SaveButtonEvent());
-    private Label busyLabel = new Label(FLOW_COMPONENT_CREATION_BUSY_LABEL);
+    private final FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
+    private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, constants.label_ComponentName());
+    private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, constants.label_SvnProject());
+    private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, constants.label_SvnRevision());
+    private ListEntry scriptNamePanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, constants.label_ScriptName());
+    private ListEntry invocationMethodPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, constants.label_InvocationMethod());
+    private SaveButton saveButton = new SaveButton(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
+    private Label busyLabel = new Label(constants.status_Busy());
 
     
     public FlowComponentCreateViewImpl() {
@@ -179,9 +167,9 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             errorMessage = detail;
         } else {
             switch (errorCode) {
-                case SCM_RESOURCE_NOT_FOUND: errorMessage = FLOW_COMPONENT_CREATION_SCM_PROJECT_NOT_FOUND_ERROR;
+                case SCM_RESOURCE_NOT_FOUND: errorMessage = constants.error_ScmProjectNotFoundError();
                     break;
-                case SCM_ILLEGAL_PROJECT_NAME: errorMessage = FLOW_COMPONENT_CREATION_SCM_ILLEGAL_PROJECT_NAME_ERROR;
+                case SCM_ILLEGAL_PROJECT_NAME: errorMessage = constants.error_ScmIllegalProjectNameError();
                     break;
                 default: errorMessage = detail;
                     break;
@@ -205,7 +193,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             errorMessage = detail;
         } else {
             switch (errorCode) {
-                case JAVASCRIPT_REFERENCE_ERROR: errorMessage = FLOW_COMPONENT_CREATION_JAVASCRIPT_REFERENCE_ERROR;
+                case JAVASCRIPT_REFERENCE_ERROR: errorMessage = constants.error_JavaScriptReferenceError();
                     break;
                 default: errorMessage = detail;
                     break;
@@ -251,9 +239,9 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             String scriptName = scriptNamePanel.getSelectedText();
             String invocationMethod = invocationMethodPanel.getSelectedText();
             if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
-                onFailure(FLOW_COMPONENT_CREATION_INPUT_FIELD_VALIDATION_ERROR);
+                onFailure(constants.error_InputFieldValidationError());
             } else {
-                saveButton.setStatusText(SAVE_RESULT_LABEL_PROCESSING_MESSAGE);
+                saveButton.setStatusText(constants.status_SavingFlowComponent());
                 presenter.saveFlowComponent(name, project, revision, scriptName, invocationMethod);
             }
         }

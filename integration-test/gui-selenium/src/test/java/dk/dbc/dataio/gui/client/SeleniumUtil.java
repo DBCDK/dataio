@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client;
 
-import com.google.common.base.Function;
 import dk.dbc.dataio.gui.client.components.DualList;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;

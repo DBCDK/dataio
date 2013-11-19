@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -11,6 +12,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimpleLayoutPanel;
+import dk.dbc.dataio.gui.client.i18n.MainConstants;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
@@ -19,17 +21,16 @@ import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class MainPanel extends DockLayoutPanel {
+    private final MainConstants constants = GWT.create(MainConstants.class);
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION = "navigationbuttonflowcreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION = "navigationbuttonflowcomponentcreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION = "navigationbuttonsubmittercreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION = "navigationbuttonflowbindercreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_SINK_CREATION = "navigationbuttonsinkcreation";
-
-    private static final String CONTEXT_HEADER = "DBC Dataindsystem";
     private static final String GUIID_MAIN_PANEL_LAYOUT = "main-panel-layout";
 
     public final ContentPanel contentPanel = new ContentPanel("content-panel-layout");
-    private final HeaderLabelPanel headerLabel = new HeaderLabelPanel(CONTEXT_HEADER, "header-panel-layout");
+    private final HeaderLabelPanel headerLabel = new HeaderLabelPanel(constants.header_DataIO(), "header-panel-layout");
     private final NavigationPanel navigationPanel = new NavigationPanel("navigation-panel-layout");
 
     private PlaceController placeController = null;
@@ -73,11 +74,11 @@ public class MainPanel extends DockLayoutPanel {
         public NavigationPanel(String styleName) {
             setStylePrimaryName(styleName);
             add(new Image("images/dbclogo.gif"));
-            add(new NavigationButton(0, FlowCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
-            add(new NavigationButton(1, FlowComponentCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
-            add(new NavigationButton(2, SubmitterCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
-            add(new NavigationButton(3, FlowbinderCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION));
-            add(new NavigationButton(4, SinkCreateViewImpl.CONTEXT_HEADER, GUIID_NAVIGATION_MENU_ITEM_SINK_CREATION));
+            add(new NavigationButton(0, constants.header_FlowCreation(), GUIID_NAVIGATION_MENU_ITEM_FLOW_CREATION));
+            add(new NavigationButton(1, constants.header_FlowComponentCreation(), GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_CREATION));
+            add(new NavigationButton(2, constants.header_SubmitterCreation(), GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
+            add(new NavigationButton(3, constants.header_FlowbinderCreation(), GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION));
+            add(new NavigationButton(4, constants.header_SinkCreation(), GUIID_NAVIGATION_MENU_ITEM_SINK_CREATION));
             // ...
         }
     }
@@ -99,7 +100,7 @@ public class MainPanel extends DockLayoutPanel {
             }
             @Override
             public void onClick(ClickEvent event) {
-                headerLabel.setText(CONTEXT_HEADER + " >> " + caption);
+                headerLabel.setText(constants.header_DataIO() + " >> " + caption);
                 placeController.goTo(newPlace(subPanelIndex));
             }
         }

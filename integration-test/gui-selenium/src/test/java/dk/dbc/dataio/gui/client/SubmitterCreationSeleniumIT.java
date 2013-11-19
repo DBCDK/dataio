@@ -17,8 +17,6 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -26,6 +24,14 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 public class SubmitterCreationSeleniumIT {
+// TODO: This is a hack - needs to be updated to utilize GWT's Constants API
+//    private static final SubmitterCreateConstants constants = GWT.create(SubmitterCreateConstants.class);
+    private static class SubmitterConstants {
+        String error_InputFieldValidationError()       { return "Alle felter skal udfyldes."; }
+        String error_NumberInputFieldValidationError() { return "Nummer felt skal indeholde en numerisk talværdi."; }
+        String status_SubmitterSuccessfullySaved()     { return "Opsætningen blev gemt"; }
+    }
+    private static final SubmitterConstants constants = new SubmitterConstants();
 
     private static final int SAVE_SUBMITTER_TIMOUT = 4;
     private static final String NAME = "name";
@@ -144,7 +150,7 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys(DESCRIPTTION);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(SubmitterCreateViewImpl.SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -154,7 +160,7 @@ public class SubmitterCreationSeleniumIT {
         findNumberElement(driver).sendKeys(NUMBER);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(SubmitterCreateViewImpl.SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -164,7 +170,7 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys(DESCRIPTTION);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(SubmitterCreateViewImpl.SUBMITTER_CREATION_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_InputFieldValidationError()));
     }
 
     @Test
@@ -175,7 +181,7 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys(DESCRIPTTION);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(SubmitterCreateViewImpl.SUBMITTER_CREATION_NUMBER_INPUT_FIELD_VALIDATION_ERROR));
+        assertThat(s, is(constants.error_NumberInputFieldValidationError()));
     }
 
     /**
@@ -218,7 +224,7 @@ public class SubmitterCreationSeleniumIT {
         findNumberElement(driver).sendKeys("1");
         findDescriptionElement(driver).sendKeys("d");
         findSaveButton(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(driver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_SubmitterSuccessfullySaved());
     }
 
     /**
@@ -233,6 +239,6 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(webDriver).clear();
         findDescriptionElement(webDriver).sendKeys(description);
         findSaveButton(webDriver).click();
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, SubmitterCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_SubmitterSuccessfullySaved());
     }
 }

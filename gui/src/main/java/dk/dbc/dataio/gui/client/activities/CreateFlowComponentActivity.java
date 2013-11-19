@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -9,12 +10,12 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
+import dk.dbc.dataio.gui.client.i18n.FlowComponentCreateConstants;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
-import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.Arrays;
@@ -25,6 +26,7 @@ import java.util.List;
  * of flow data in the flow store via RPC proxy
  */
 public class CreateFlowComponentActivity extends AbstractActivity implements FlowComponentCreatePresenter {
+    private final FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
     private ClientFactory clientFactory;
     private FlowComponentCreateView flowComponentCreateView;
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
@@ -150,7 +152,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
 
             @Override
             public void onSuccess(Void aVoid) {
-                flowComponentCreateView.onSuccess(FlowComponentCreateViewImpl.SAVE_RESULT_LABEL_SUCCES_MESSAGE);
+                flowComponentCreateView.onSuccess(constants.status_FlowComponentSuccessfullySaved());
             }
         });
     }

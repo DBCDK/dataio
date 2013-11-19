@@ -14,6 +14,7 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
     private String recordSplitter = "recordSplitter";
     private Long flowId = 42L;
     private List<Long> submitterIds = new ArrayList<>(Arrays.asList(43L));
+    private Long sinkId = 44L;
 
     public FlowBinderContentJsonBuilder setCharset(String charset) {
         this.charset = charset;
@@ -55,6 +56,11 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
+
+    public FlowBinderContentJsonBuilder setSinkId(Long sinkId) {
+        this.sinkId = sinkId;
+        return this;
+    }
     public FlowBinderContentJsonBuilder setSubmitterIds(List<Long> submitterIds) {
         this.submitterIds = new ArrayList<>(submitterIds);
         return this;
@@ -71,7 +77,8 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("destination", destination)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("recordSplitter", recordSplitter)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("flowId", flowId)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asLongArray("submitterIds", submitterIds));
+        stringBuilder.append(asLongArray("submitterIds", submitterIds)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asLongMember("sinkId", sinkId));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

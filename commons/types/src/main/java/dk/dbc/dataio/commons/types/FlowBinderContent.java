@@ -24,6 +24,7 @@ public class FlowBinderContent implements Serializable {
     private /* final */ String recordSplitter;
     private /* final */ long flowId;
     private /* final */ List<Long> submitterIds;
+    private /* final */ long sinkId;
 
     private FlowBinderContent() { }
 
@@ -46,7 +47,7 @@ public class FlowBinderContent implements Serializable {
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String or List argument
      */
-    public FlowBinderContent(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, long flowId, List<Long> submitterIds) {
+    public FlowBinderContent(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, long flowId, List<Long> submitterIds, long sinkId) {
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
@@ -56,6 +57,7 @@ public class FlowBinderContent implements Serializable {
         this.recordSplitter = InvariantUtil.checkNotNullNotEmptyOrThrow(recordSplitter, "recordSplitter");
         this.flowId = InvariantUtil.checkAboveThresholdOrThrow(flowId, "flowId", Flow.ID_VERSION_LOWER_THRESHOLD);
         this.submitterIds = new ArrayList<Long>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
+        this.sinkId = InvariantUtil.checkAboveThresholdOrThrow(sinkId, "sinkId", Sink.ID_VERSION_LOWER_THRESHOLD);
         if (this.submitterIds.size() == 0) {
             throw new IllegalArgumentException("submitterIds can not be empty");
         }
@@ -91,6 +93,10 @@ public class FlowBinderContent implements Serializable {
 
     public String getRecordSplitter() {
         return recordSplitter;
+    }
+
+    public long getSinkId() {
+        return sinkId;
     }
 
     public List<Long> getSubmitterIds() {

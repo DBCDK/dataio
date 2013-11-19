@@ -86,6 +86,47 @@ public class FlowBindersBean {
         return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flows.get(0)));
     }
 
+    @GET
+    @Path("/resolve")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getFlowBinder(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitter_number,
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination) throws JsonException {
+
+        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, FlowBinderFlowQuery.REST_PARAMETER_PACKAGING);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(format, FlowBinderFlowQuery.REST_PARAMETER_FORMAT);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(charset, FlowBinderFlowQuery.REST_PARAMETER_CHARSET);
+        InvariantUtil.checkNotNullOrThrow(submitter_number, FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(destination, FlowBinderFlowQuery.REST_PARAMETER_DESTINATION);
+
+        Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER);
+        try {
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_PACKAGING, packaging);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FORMAT, format);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_CHARSET, charset);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number);
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_DESTINATION, destination);
+        } catch (IllegalArgumentException ex) {
+            String errMsg = String.format("Error while setting parameters for database query: %s", ex.getMessage());
+            log.warn(errMsg, ex);
+            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(errMsg));
+        }
+
+        List<FlowBinder> flowBinders = query.getResultList();
+        if (flowBinders.isEmpty()) {
+            String msg = getNoFlowFoundMessage(query);
+            log.info(msg);
+            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(msg));
+        }
+        if(flowBinders.size() > 1) {
+            String msg = getMoreThanOneFlowFoundMessage(query);
+            log.warn(msg);
+        }
+        return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinders.get(0)));
+    }
+
     private String getNoFlowFoundMessage(Query query) {
         return getQueryParametersStringify("No flows found for query with parameters", query);
     }

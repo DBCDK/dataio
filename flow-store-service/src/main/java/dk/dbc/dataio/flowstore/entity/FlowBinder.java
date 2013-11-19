@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
@@ -38,7 +39,8 @@ uniqueConstraints = {
     @UniqueConstraint(columnNames = { FlowBinder.NAME_INDEX_COLUMN }),
 })
 @NamedQueries({
-    @NamedQuery(name = FlowBinder.QUERY_FIND_FLOW, query = FlowBinder.FIND_FLOW_QUERY_STRING)
+    @NamedQuery(name = FlowBinder.QUERY_FIND_FLOW, query = FlowBinder.FIND_FLOW_QUERY_STRING),
+    @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING)
 })
 public class FlowBinder extends VersionedEntity {
     public static final String TABLE_NAME = "flow_binders";
@@ -51,6 +53,7 @@ public class FlowBinder extends VersionedEntity {
     static final String SUBMITTER_JOIN_COLUMN = "submitter_id";
 
     public static final String QUERY_FIND_FLOW = "FlowBinder.findFlow";
+    public static final String QUERY_FIND_FLOWBINDER = "FlowBinder.findFlowBinder";
     public static final String DB_QUERY_PARAMETER_SUBMITTER = "submitter";
     public static final String DB_QUERY_PARAMETER_FORMAT = "format";
     public static final String DB_QUERY_PARAMETER_DESTINATION = "destination";
@@ -58,6 +61,14 @@ public class FlowBinder extends VersionedEntity {
     public static final String DB_QUERY_PARAMETER_PACKAGING = "packaging";
     public static final String FIND_FLOW_QUERY_STRING =
             "SELECT indexes.flowBinder.flow"
+            + " FROM FlowBinderSearchIndexEntry indexes"
+            + " WHERE indexes.packaging = :" + FlowBinder.DB_QUERY_PARAMETER_PACKAGING
+            + " AND indexes.format = :" + FlowBinder.DB_QUERY_PARAMETER_FORMAT
+            + " AND indexes.charset = :" + FlowBinder.DB_QUERY_PARAMETER_CHARSET
+            + " AND indexes.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER
+            + " AND indexes.destination = :" + FlowBinder.DB_QUERY_PARAMETER_DESTINATION;
+    public static final String FIND_FLOWBINDER_QUERY_STRING =
+            "SELECT indexes.flowBinder"
             + " FROM FlowBinderSearchIndexEntry indexes"
             + " WHERE indexes.packaging = :" + FlowBinder.DB_QUERY_PARAMETER_PACKAGING
             + " AND indexes.format = :" + FlowBinder.DB_QUERY_PARAMETER_FORMAT
@@ -85,12 +96,22 @@ public class FlowBinder extends VersionedEntity {
     @Transient
     private Set<Long> submitterIds;
 
+    @Transient
+    private Long sinkId;
+
+    @JsonIgnore
     public Long getFlowId() {
         return flowId;
     }
 
+    @JsonIgnore
     public Set<Long> getSubmitterIds() {
         return new HashSet<>(submitterIds);
+    }
+
+    @JsonIgnore
+    public Long getSinkId() {
+        return sinkId;
     }
 
     public void setFlow(Flow flow) {
@@ -117,6 +138,7 @@ public class FlowBinder extends VersionedEntity {
         nameIndexValue = flowBinderContent.getName();
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
         flowId = flowBinderContent.getFlowId();
+        sinkId = flowBinderContent.getSinkId();
     }
 
     /**

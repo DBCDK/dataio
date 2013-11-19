@@ -110,7 +110,8 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
             for (String submitterId: submitters) {
                 submitterIds.add(availableSubmitters.get(submitterId).getId());
             }
-            flowbinderContent = new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds);
+            final long DIRTY_HACK_FOR_SETTING_SINKID_UNTIL_CORRECT_SOLUTION_IS_IMPLEMENTED = 1; // todo: Please implement correct solution!
+            flowbinderContent = new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, DIRTY_HACK_FOR_SETTING_SINKID_UNTIL_CORRECT_SOLUTION_IS_IMPLEMENTED);
         } catch (Exception e) {
             flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
         }

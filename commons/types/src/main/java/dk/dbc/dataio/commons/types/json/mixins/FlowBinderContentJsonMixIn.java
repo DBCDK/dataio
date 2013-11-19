@@ -27,5 +27,6 @@ public class FlowBinderContentJsonMixIn {
                                       @JsonProperty("destination") String destination,
                                       @JsonProperty("recordSplitter") String recordSplitter,
                                       @JsonProperty("flowId") long flowId,
-                                      @JsonProperty("submitterIds") List<Long> submitterIds) { }
+                                      @JsonProperty("submitterIds") List<Long> submitterIds,
+                                      @JsonProperty("sinkId") long sinkId) { }
 }

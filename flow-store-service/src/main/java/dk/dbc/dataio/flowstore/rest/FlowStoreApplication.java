@@ -58,6 +58,7 @@ public class FlowStoreApplication extends Application {
         resources.add(dk.dbc.dataio.flowstore.ejb.FlowBindersBean.class);
         resources.add(dk.dbc.dataio.flowstore.ejb.FlowComponentsBean.class);
         resources.add(dk.dbc.dataio.flowstore.ejb.FlowsBean.class);
+        resources.add(dk.dbc.dataio.flowstore.ejb.SinksBean.class);
         resources.add(dk.dbc.dataio.flowstore.ejb.SubmittersBean.class);
         resources.add(dk.dbc.dataio.flowstore.rest.JsonExceptionMapper.class);
         resources.add(dk.dbc.dataio.flowstore.rest.PersistenceExceptionMapper.class);

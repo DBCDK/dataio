@@ -47,11 +47,6 @@ public class FlowBinder extends VersionedEntity {
     public static final String SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
 
-    static final String NAME_INDEX_COLUMN = "name_idx";
-    static final String BINDER_JOIN_COLUMN = "flow_binder_id";
-    static final String FLOW_JOIN_COLUMN = "flow_id";
-    static final String SUBMITTER_JOIN_COLUMN = "submitter_id";
-
     public static final String QUERY_FIND_FLOW = "FlowBinder.findFlow";
     public static final String QUERY_FIND_FLOWBINDER = "FlowBinder.findFlowBinder";
     public static final String DB_QUERY_PARAMETER_SUBMITTER = "submitter";
@@ -76,6 +71,12 @@ public class FlowBinder extends VersionedEntity {
             + " AND indexes.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER
             + " AND indexes.destination = :" + FlowBinder.DB_QUERY_PARAMETER_DESTINATION;
 
+    static final String NAME_INDEX_COLUMN = "name_idx";
+    static final String BINDER_JOIN_COLUMN = "flow_binder_id";
+    static final String FLOW_JOIN_COLUMN = "flow_id";
+    static final String SINK_JOIN_COLUMN = "sink_id";
+    static final String SUBMITTER_JOIN_COLUMN = "submitter_id";
+
     @Lob
     @Column(name = NAME_INDEX_COLUMN, nullable = false)
     private String nameIndexValue;
@@ -89,6 +90,10 @@ public class FlowBinder extends VersionedEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = FLOW_JOIN_COLUMN)
     private Flow flow;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = SINK_JOIN_COLUMN)
+    private Sink sink;
 
     @Transient
     private Long flowId;
@@ -120,6 +125,10 @@ public class FlowBinder extends VersionedEntity {
 
     public void setSubmitters(Set<Submitter> submitters) {
         this.submitters = new HashSet<>(submitters);
+    }
+
+    public void setSink(Sink sink) {
+        this.sink = sink;
     }
 
     String getNameIndexValue() {

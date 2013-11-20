@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
@@ -22,6 +23,7 @@ import java.util.List;
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlowBinder;
+import static dk.dbc.dataio.integrationtest.ITUtil.createSink;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
@@ -54,8 +56,8 @@ public class FlowBindersIT {
     }
 
      /**
-     * Given: a deployed flow-store service with a flow and a submitter
-     * When: valid JSON is POSTed to the flow binders path referencing the flow and submitter
+     * Given: a deployed flow-store service with a flow, a sink and a submitter
+     * When: valid JSON is POSTed to the flow binders path referencing the flow, sink and submitter
      * Then: request returns with a CREATED http status code
      * And: request returns with a Location header pointing to the newly created resource
      * And: posted data can be found in the underlying database
@@ -65,12 +67,15 @@ public class FlowBindersIT {
         // Given...
         final long flowId = createFlow(restClient, baseUrl,
                 new FlowContentJsonBuilder().build());
+        final long sinkId = createSink(restClient, baseUrl,
+                new SinkContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
                 new SubmitterContentJsonBuilder().build());
 
         // When...
         final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setFlowId(flowId)
+                .setSinkId(sinkId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
@@ -115,6 +120,8 @@ public class FlowBindersIT {
         // Given...
         final long flowId = createFlow(restClient, baseUrl,
                 new FlowContentJsonBuilder().build());
+        final long sinkId = createSink(restClient, baseUrl,
+                new SinkContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
                 new SubmitterContentJsonBuilder().build());
 
@@ -123,6 +130,7 @@ public class FlowBindersIT {
                 .setName(name)
                 .setDestination("base1")
                 .setFlowId(flowId)
+                .setSinkId(sinkId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         createFlowBinder(restClient, baseUrl, firstFlowBinderContent);
@@ -132,6 +140,7 @@ public class FlowBindersIT {
                 .setName(name)
                 .setDestination("base2")
                 .setFlowId(flowId)
+                .setSinkId(sinkId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
@@ -151,6 +160,8 @@ public class FlowBindersIT {
         // When...
         final long flowId = createFlow(restClient, baseUrl,
                 new FlowContentJsonBuilder().build());
+        final long sinkId = createSink(restClient, baseUrl,
+                new SinkContentJsonBuilder().build());
         final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(123456789L))
@@ -171,8 +182,33 @@ public class FlowBindersIT {
         // When...
         final long submitterId = createSubmitter(restClient, baseUrl,
                 new SubmitterContentJsonBuilder().build());
+        final long sinkId = createSink(restClient, baseUrl,
+                new SinkContentJsonBuilder().build());
         final String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setFlowId(987654321L)
+                .setSubmitterIds(Arrays.asList(submitterId))
+                .build();
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When: adding flow binder which references non-existing sink
+     * Then: request returns with a PRECONDITION FAILED http status code
+     */
+    @Test
+    public void createFlowBinder_referencedSinkNotFound() throws Exception {
+        // When...
+        final long flowId = createFlow(restClient, baseUrl,
+                new FlowContentJsonBuilder().build());
+        final long submitterId = createSubmitter(restClient, baseUrl,
+                new SubmitterContentJsonBuilder().build());
+        final String flowBinderContent = new FlowBinderContentJsonBuilder()
+                .setFlowId(flowId)
+                .setSinkId(12121212L)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
@@ -191,12 +227,15 @@ public class FlowBindersIT {
         // Given...
         final long flowId = createFlow(restClient, baseUrl,
                 new FlowContentJsonBuilder().build());
+        final long sinkId = createSink(restClient, baseUrl,
+                new SinkContentJsonBuilder().build());
         final long submitterId = createSubmitter(restClient, baseUrl,
                 new SubmitterContentJsonBuilder().build());
 
         String flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_1")
                 .setFlowId(flowId)
+                .setSinkId(sinkId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
         createFlowBinder(restClient, baseUrl, flowBinderContent);
@@ -205,6 +244,7 @@ public class FlowBindersIT {
         flowBinderContent = new FlowBinderContentJsonBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_2")
                 .setFlowId(flowId)
+                .setSinkId(sinkId)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 

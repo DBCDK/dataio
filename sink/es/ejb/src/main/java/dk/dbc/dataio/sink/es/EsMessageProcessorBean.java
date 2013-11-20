@@ -5,6 +5,8 @@ import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.sink.InvalidMessageSinkException;
+import dk.dbc.dataio.sink.SinkException;
+import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +17,6 @@ import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
-import javax.naming.NamingException;
-import java.io.IOException;
-import java.sql.SQLException;
 
 @MessageDriven
 public class EsMessageProcessorBean {
@@ -27,13 +26,13 @@ public class EsMessageProcessorBean {
     MessageDrivenContext messageDrivenContext;
 
     @EJB
-    EsChunkResultProcessorBean chunkResultProcessor;
-
-    @EJB
     EsThrottlerBean esThrottler;
 
     @EJB
     EsConnectorBean esConnector;
+
+    @EJB
+    EsInFlightBean esInFlightAdmin;
 
     @EJB
     EsSinkConfigurationBean configuration;
@@ -121,10 +120,25 @@ public class EsMessageProcessorBean {
         return chunkResult;
     }
 
-    void processChunkResult(ChunkResult chunkResult) throws InterruptedException, JMSException, IOException, SQLException, NamingException {
+    void processChunkResult(ChunkResult chunkResult) throws InterruptedException, SinkException {
         esThrottler.acquireRecordSlots(chunkResult.getResults().size());
-        final int targetReference = chunkResultProcessor.process(chunkResult);
-        LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
-                targetReference, chunkResult.getChunkId(), chunkResult.getJobId());
+        try {
+            final int targetReference = esConnector.insertEsTaskPackage(chunkResult);
+
+            final EsInFlight esInFlight = new EsInFlight();
+            esInFlight.setResourceName(configuration.getEsResourceName());
+            esInFlight.setTargetReference(targetReference);
+            esInFlight.setJobId(chunkResult.getJobId());
+            esInFlight.setChunkId(chunkResult.getChunkId());
+            esInFlight.setRecordSlots(chunkResult.getResults().size());
+            esInFlightAdmin.addEsInFlight(esInFlight);
+
+            LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
+                    targetReference, chunkResult.getChunkId(), chunkResult.getJobId());
+
+        } catch (Throwable t) {
+            esThrottler.releaseRecordSlots(chunkResult.getResults().size());
+            throw t;
+        }
     }
 }

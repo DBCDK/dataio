@@ -1,5 +1,8 @@
 package dk.dbc.dataio.sink;
 
+import javax.ejb.ApplicationException;
+
+@ApplicationException(rollback = false)
 public class InvalidMessageSinkException extends SinkException {
     private static final long serialVersionUID = -3472257595510419494L;
 

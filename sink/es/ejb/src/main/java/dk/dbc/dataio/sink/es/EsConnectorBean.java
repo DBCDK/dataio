@@ -1,14 +1,18 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -32,6 +36,26 @@ public class EsConnectorBean {
             throw new EJBException(e);
         }
         return initialContext;
+    }
+
+    public void closeConnection(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                LOGGER.error("Unable to close connection to resource: {}", configuration.getEsResourceName());
+            }
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
+    public int insertEsTaskPackage(ChunkResult chunkResult) throws SQLException, NamingException, IOException {
+        try (final Connection connection = getConnection()) {
+            //connection.setAutoCommit(false);
+            final ESTaskPackageInserter esTaskPackageInserter = new ESTaskPackageInserter(
+                    connection, configuration.getEsDatabaseName(), chunkResult);
+            return esTaskPackageInserter.getTargetReference();
+        }
     }
 
     private void closeInitialContext(InitialContext initialContext) {

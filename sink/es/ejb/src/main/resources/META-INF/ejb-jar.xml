@@ -38,7 +38,7 @@
       <env-entry>
         <env-entry-name>esDatabaseName</env-entry-name>
         <env-entry-type>java.lang.String</env-entry-type>
-        <env-entry-value>dbname</env-entry-value>
+        <env-entry-value>ting</env-entry-value>
       </env-entry>
       <env-entry>
         <env-entry-name>esRecordsCapacity</env-entry-name>

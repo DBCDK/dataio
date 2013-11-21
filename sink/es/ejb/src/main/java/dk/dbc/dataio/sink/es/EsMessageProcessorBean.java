@@ -22,6 +22,8 @@ import javax.jms.TextMessage;
 public class EsMessageProcessorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsMessageProcessorBean.class);
 
+    private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
+
     @Resource
     MessageDrivenContext messageDrivenContext;
 
@@ -65,9 +67,12 @@ public class EsMessageProcessorBean {
      */
     public void onMessage(Message message) {
         String messageId = null;
+        int messageDeliveryCount = 0;
+
         try {
             final ChunkResult chunkResult = validateMessage(message);
             messageId = message.getJMSMessageID();
+            messageDeliveryCount = message.getIntProperty(DELIVERY_COUNT_PROPERTY);
             processChunkResult(chunkResult);
         } catch (InvalidMessageSinkException e) {
             LOGGER.error("Message rejected", e);
@@ -76,6 +81,7 @@ public class EsMessageProcessorBean {
             // and therefore that this message subsequently will be re-delivered.
             messageDrivenContext.setRollbackOnly();
             LOGGER.error("Exception caught while processing message<{}>: {}", messageId, t);
+            backoffOnFailureRetry(messageDeliveryCount);
         }
     }
 
@@ -89,7 +95,7 @@ public class EsMessageProcessorBean {
         ChunkResult chunkResult;
         try {
             final String messageId = message.getJMSMessageID();
-            LOGGER.info("Validating message<{}> with deliveryCount={}", messageId, message.getIntProperty("JMSXDeliveryCount"));
+            LOGGER.info("Validating message<{}> with deliveryCount={}", messageId, message.getIntProperty(DELIVERY_COUNT_PROPERTY));
             if (!(message instanceof TextMessage)) {
                 throw new InvalidMessageSinkException(String.format("Message<%s> was not of type TextMessage", messageId));
             }
@@ -139,6 +145,14 @@ public class EsMessageProcessorBean {
         } catch (Throwable t) {
             esThrottler.releaseRecordSlots(chunkResult.getResults().size());
             throw t;
+        }
+    }
+
+    void backoffOnFailureRetry(int deliveryCount) {
+        try {
+            Thread.sleep((deliveryCount / 10) * 1000);
+        } catch (InterruptedException e) {
+            LOGGER.info("Interrupted while backing off for failure retry");
         }
     }
 }

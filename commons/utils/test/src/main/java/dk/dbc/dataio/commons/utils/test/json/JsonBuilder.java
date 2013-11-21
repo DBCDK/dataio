@@ -32,6 +32,12 @@ public abstract class JsonBuilder {
         return String.format("\"%s\": %s", memberName, memberValueAsString);
     }
 
+    protected String asTextArray(String memberName, List<String> memberValues) {
+        final String memberValuesAsString = (memberValues == null) ? NULL_VALUE
+                : String.format("%s%s%s", START_ARRAY, joinTextValues(",", memberValues), END_ARRAY);
+        return String.format("\"%s\": %s", memberName, memberValuesAsString);
+    }
+
     protected String asObjectArray(String memberName, List<String> memberValues) {
         final String memberValuesAsString = (memberValues == null) ? NULL_VALUE
                 : String.format("%s%s%s", START_ARRAY, joinNonTextValues(",", memberValues), END_ARRAY);
@@ -42,6 +48,15 @@ public abstract class JsonBuilder {
         final String memberValuesAsString = (memberValues == null) ? NULL_VALUE
             : String.format("%s%s%s", START_ARRAY, joinLongs(",", memberValues), END_ARRAY);
         return String.format("\"%s\": %s", memberName, memberValuesAsString);
+    }
+
+    protected String joinTextValues(String delimiter, List<String> memberValues) {
+        final StringBuilder stringbuilder = new StringBuilder();
+        for (String memberValue : memberValues) {
+            final String value = (memberValue != null) ? "\"" + memberValue + "\"" : NULL_VALUE;
+            stringbuilder.append(value).append(delimiter);
+        }
+        return stringbuilder.toString().replaceFirst(String.format("%s$", delimiter), "");
     }
 
     protected String joinNonTextValues(String delimiter, List<String> memberValues) {

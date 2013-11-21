@@ -82,4 +82,10 @@ public class EsThrottlerBean {
             LOGGER.exit();
         }
     }
+
+    /* This method was added for testing purposes
+     */
+    int getAvailableSlots() {
+        return availableRecordSlots.availablePermits();
+    }
 }

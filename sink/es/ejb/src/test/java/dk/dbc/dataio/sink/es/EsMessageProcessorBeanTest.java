@@ -1,13 +1,34 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
 import dk.dbc.dataio.sink.InvalidMessageSinkException;
+import dk.dbc.dataio.sink.SinkException;
+import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import org.junit.Test;
 
+import javax.ejb.EJBHome;
+import javax.ejb.EJBLocalHome;
+import javax.ejb.MessageDrivenContext;
+import javax.ejb.TimerService;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
+import javax.transaction.UserTransaction;
+import java.security.Identity;
+import java.security.Principal;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.Properties;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.doNothing;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * EsMessageProcessorBean unit tests.
@@ -17,11 +38,16 @@ import java.util.Enumeration;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 public class EsMessageProcessorBeanTest {
+    private static final int RECORDS_CAPACITY = 1;
+    private static final String ES_DATABASE_NAME = "dbname";
+    private final EsConnectorBean esConnector = mock(EsConnectorBean.class);
+    private final EsInFlightBean esInFlightAdmin = mock(EsInFlightBean.class);
+
     @Test
-    public void onMessage_messageArgIsNull_messageDrivenContextIsNotAccessed() {
-        // We utilize the fact that since no MessageDrivenContext has been injected
-        // any access would throw java.lang.NullPointerException
-        getInitializedBean().onMessage(null);
+    public void onMessage_messageArgIsNull_noTransactionRollback() {
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        esMessageProcessorBean.onMessage(null);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
     }
 
     @Test(expected = InvalidMessageSinkException.class)
@@ -29,9 +55,25 @@ public class EsMessageProcessorBeanTest {
         getInitializedBean().validateMessage(null);
     }
 
+    @Test
+    public void onMessage_messageArgIsNotOfTypeTextMessage_noTransactionRollback() {
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        esMessageProcessorBean.onMessage(new NotTextMessage());
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
+    }
+
     @Test(expected = InvalidMessageSinkException.class)
     public void validateMessage_messageArgIsNotOfTypeTextMessage_throws() throws InvalidMessageSinkException {
         getInitializedBean().validateMessage(new NotTextMessage());
+    }
+
+    @Test
+    public void onMessage_messageArgIsPayloadIsNull_noTransactionRollback() throws JMSException {
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText(null);
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
     }
 
     @Test(expected = InvalidMessageSinkException.class)
@@ -41,11 +83,29 @@ public class EsMessageProcessorBeanTest {
         getInitializedBean().validateMessage(textMessage);
     }
 
+    @Test
+    public void onMessage_messageArgPayloadIsEmpty_noTransactionRollback() throws JMSException {
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText("");
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
+    }
+
     @Test(expected = InvalidMessageSinkException.class)
     public void validateMessage_messageArgPayloadIsEmpty_throws() throws InvalidMessageSinkException, JMSException {
         final MockedTextMessage textMessage = new MockedTextMessage();
         textMessage.setText("");
         getInitializedBean().validateMessage(textMessage);
+    }
+
+    @Test
+    public void onMessage_messageArgPayloadIsInvalidChunkResultJson_noTransactionRollback() throws JMSException {
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText("{'jobId': 42}");
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
     }
 
     @Test(expected = InvalidMessageSinkException.class)
@@ -55,6 +115,15 @@ public class EsMessageProcessorBeanTest {
         getInitializedBean().validateMessage(textMessage);
     }
 
+    @Test
+    public void onMessage_messageArgPayloadTriggersDefaultConstructorWhenUnmarshalling_noTransactionRollback() throws JMSException {
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText("{}");
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
+    }
+
     @Test(expected = InvalidMessageSinkException.class)
     public void validateMessage_messageArgPayloadTriggersDefaultConstructorWhenUnmarshalling_throws() throws InvalidMessageSinkException, JMSException {
         final MockedTextMessage textMessage = new MockedTextMessage();
@@ -62,8 +131,65 @@ public class EsMessageProcessorBeanTest {
         getInitializedBean().validateMessage(textMessage);
     }
 
-    private static EsMessageProcessorBean getInitializedBean() {
-        return new EsMessageProcessorBean();
+    @Test
+    public void onMessage_esConnectorThrowsSinkException_transactionRollback() throws JMSException, SinkException {
+        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenThrow(new SinkException("TEST"));
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText(new ChunkResultJsonBuilder().build());
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(true));
+        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
+    }
+
+    @Test
+    public void onMessage_esConnectorThrowsSystemException_transactionRollback() throws JMSException, SinkException {
+        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenThrow(new RuntimeException("TEST"));
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText(new ChunkResultJsonBuilder().build());
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(true));
+        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
+    }
+
+    @Test
+    public void onMessage_esInFlightAdminThrowsSystemException_transactionRollback() throws JMSException, SinkException {
+        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenReturn(42);
+        doThrow(new RuntimeException("TEST")).when(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText(new ChunkResultJsonBuilder().build());
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(true));
+        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
+    }
+
+    @Test
+    public void onMessage_processingSucceeds_esThrottlerIsUpdated() throws JMSException, SinkException {
+        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenReturn(42);
+        doNothing().when(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText(new ChunkResultJsonBuilder().build());
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
+        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY - 1));
+    }
+
+    private EsMessageProcessorBean getInitializedBean() {
+        final EsMessageProcessorBean esMessageProcessorBean = new EsMessageProcessorBean();
+        esMessageProcessorBean.messageDrivenContext = new MockedMessageDrivenContext();
+        final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
+        configuration.esRecordsCapacity = RECORDS_CAPACITY;
+        configuration.esDatabaseName = ES_DATABASE_NAME;
+        esMessageProcessorBean.configuration = configuration;
+        esMessageProcessorBean.esThrottler = new EsThrottlerBean();
+        esMessageProcessorBean.esThrottler.configuration = configuration;
+        esMessageProcessorBean.esThrottler.initialize();
+        esMessageProcessorBean.esConnector = esConnector;
+        esMessageProcessorBean.esInFlightAdmin = esInFlightAdmin;
+        return esMessageProcessorBean;
     }
 
     private static class MockedTextMessage implements TextMessage {
@@ -78,7 +204,7 @@ public class EsMessageProcessorBeanTest {
             return payload;
         }
 
-        @Override public String getJMSMessageID() throws JMSException { return null; }
+        @Override public String getJMSMessageID() throws JMSException { return "mockedMsg"; }
         @Override public void setJMSMessageID(String s) throws JMSException { }
         @Override public long getJMSTimestamp() throws JMSException { return 0; }
         @Override public void setJMSTimestamp(long l) throws JMSException { }
@@ -179,5 +305,22 @@ public class EsMessageProcessorBeanTest {
         @Override public void clearBody() throws JMSException { }
         @Override public <T> T getBody(Class<T> tClass) throws JMSException { return null; }
         @Override public boolean isBodyAssignableTo(Class aClass) throws JMSException { return false; }
+    }
+
+    private static class MockedMessageDrivenContext implements MessageDrivenContext {
+        private boolean rollbackOnly = false;
+        @Override public EJBHome getEJBHome() throws IllegalStateException { return null; }
+        @Override public EJBLocalHome getEJBLocalHome() throws IllegalStateException { return null; }
+        @Override public Properties getEnvironment() { return null; }
+        @Override public Identity getCallerIdentity() { return null; }
+        @Override public Principal getCallerPrincipal() throws IllegalStateException { return null; }
+        @Override public boolean isCallerInRole(Identity identity) { return false; }
+        @Override public boolean isCallerInRole(String s) throws IllegalStateException { return false; }
+        @Override public UserTransaction getUserTransaction() throws IllegalStateException { return null; }
+        @Override public void setRollbackOnly() throws IllegalStateException { rollbackOnly = true; }
+        @Override public boolean getRollbackOnly() throws IllegalStateException { return rollbackOnly; }
+        @Override public TimerService getTimerService() throws IllegalStateException { return null; }
+        @Override public Object lookup(String s) throws IllegalArgumentException { return null; }
+        @Override public Map<String, Object> getContextData() { return null; }
     }
 }

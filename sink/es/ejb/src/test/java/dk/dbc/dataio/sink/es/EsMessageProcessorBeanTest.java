@@ -307,6 +307,7 @@ public class EsMessageProcessorBeanTest {
         @Override public boolean isBodyAssignableTo(Class aClass) throws JMSException { return false; }
     }
 
+    @SuppressWarnings("deprecation")
     private static class MockedMessageDrivenContext implements MessageDrivenContext {
         private boolean rollbackOnly = false;
         @Override public EJBHome getEJBHome() throws IllegalStateException { return null; }

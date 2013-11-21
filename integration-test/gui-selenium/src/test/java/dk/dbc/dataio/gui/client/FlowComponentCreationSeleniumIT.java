@@ -40,13 +40,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class FlowComponentCreationSeleniumIT {
-// TODO: This is a hack - needs to be updated to utilize GWT's Constants API
-//    private static final FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
-    private static class FlowComponentConstants {
-        String error_InputFieldValidationError()         { return "Alle felter skal udfyldes."; }
-        String status_FlowComponentSuccessfullySaved()   { return "Opsætningen blev gemt"; }
-    }
-    private static final FlowComponentConstants constants = new FlowComponentConstants();
+    private static ConstantsProperties texts = new ConstantsProperties("FlowComponentCreateConstants_dk.properties");
 
     private static final String PROJECTS_PATH = "projects";
     private static final String SVN_PROJECT_NAME = "datawell-convert";
@@ -176,7 +170,7 @@ public class FlowComponentCreationSeleniumIT {
         findComponentNameElement(driver).sendKeys("testComponent");
         waitForListBoxToFillOut(FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS, SVN_TIMEOUT);
         findComponentSaveButtonElement(driver).click();
-        SeleniumUtil.waitAndAssert(driver, 10, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_FlowComponentSuccessfullySaved());
+        SeleniumUtil.waitAndAssert(driver, 10, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_FlowComponentSuccessfullySaved"));
     }
 
     @Ignore
@@ -188,7 +182,7 @@ public class FlowComponentCreationSeleniumIT {
         findComponentNameElement(driver).sendKeys("");
         findComponentSaveButtonElement(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is("Error: " + constants.error_InputFieldValidationError()));
+        assertThat(s, is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Ignore

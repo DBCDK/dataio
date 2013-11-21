@@ -48,7 +48,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, constants.label_RecordSplitter());
     private final DualListEntry flowbinderSubmittersPanel = new DualListEntry(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL, constants.label_Submitters());
     private final ListEntry flowbinderFlowPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_FLOW_PANEL, constants.label_Flow());
-    private final SaveButton saveButton = new SaveButton(GUIID_FLOWBINDER_CREATION_SAVE_PANEL, "Gem", new SaveButtonEvent());
+    private final SaveButton saveButton = new SaveButton(GUIID_FLOWBINDER_CREATION_SAVE_PANEL, constants.button_Save(), new SaveButtonEvent());
 
     public FlowbinderCreateViewImpl() {
         getElement().setId(GUIID_FLOWBINDER_CREATION_WIDGET);

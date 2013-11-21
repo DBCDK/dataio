@@ -6,37 +6,37 @@ import com.google.gwt.i18n.client.Constants;
 public interface SinkCreateConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("Sink navn")
+    @DefaultStringValue("<translated text is missing>")
     String label_SinkName();
 
-    @DefaultStringValue("Resource navn")
+    @DefaultStringValue("<translated text is missing>")
     String label_ResourceName();
 
     
     // Buttons
-    @DefaultStringValue("Gem")
+    @DefaultStringValue("<translated text is missing>")
     String button_Save();
 
 
     // Error messages
-    @DefaultStringValue("Alle felter skal udfyldes.")
+    @DefaultStringValue("<translated text is missing>")
     String error_InputFieldValidationError();
     
-    @DefaultStringValue("En sink med det pågældende navn er allerede oprettet i flow store.")
+    @DefaultStringValue("<translated text is missing>")
     String error_ProxyKeyViolationError();
     
-    @DefaultStringValue("De udfyldte felter forårsagede en data valideringsfejl i flow store.")
+    @DefaultStringValue("<translated text is missing>")
     String error_ProxyDataValidationError();
     
-    @DefaultStringValue("Det kunne ikke undersøges, om det pågældende resource navn er en gyldig sink resource")
+    @DefaultStringValue("<translated text is missing>")
     String error_PingCommunicationError();
     
-    @DefaultStringValue("Det pågældende resource navn er ikke en gyldig sink resource")
+    @DefaultStringValue("<translated text is missing>")
     String error_ResourceNameNotValid();
     
     
     // Status messages
-    @DefaultStringValue("Opsætningen blev gemt")
+    @DefaultStringValue("<translated text is missing>")
     String status_SinkSuccessfullySaved();
     
 }

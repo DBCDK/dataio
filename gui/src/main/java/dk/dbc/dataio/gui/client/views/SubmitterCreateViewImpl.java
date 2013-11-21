@@ -31,7 +31,7 @@ public class SubmitterCreateViewImpl extends VerticalPanel implements SubmitterC
     private final TextEntry submitterNumberPanel = new TextEntry(GUIID_SUBMITTER_CREATION_NUMBER_PANEL, constants.label_SubmitterNumber());
     private final TextEntry submitterNamePanel = new TextEntry(GUIID_SUBMITTER_CREATION_NAME_PANEL, constants.label_SubmitterName());
     private final TextAreaEntry submitterDescriptionPanel = new TextAreaEntry(GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, constants.label_Description(), SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH);
-    private final SaveButton saveButton = new SaveButton(GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, "Gem", new SaveButtonEvent());
+    private final SaveButton saveButton = new SaveButton(GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
 
     public SubmitterCreateViewImpl() {
         getElement().setId(GUIID_SUBMITTER_CREATION_WIDGET);

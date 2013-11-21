@@ -6,49 +6,49 @@ import com.google.gwt.i18n.client.Constants;
 public interface FlowComponentCreateConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("Komponentnavn")
+    @DefaultStringValue("<translated text is missing>")
     String label_ComponentName();
 
-    @DefaultStringValue("SVN Projekt")
+    @DefaultStringValue("<translated text is missing>")
     String label_SvnProject();
 
-    @DefaultStringValue("SVN Revision")
+    @DefaultStringValue("<translated text is missing>")
     String label_SvnRevision();
 
-    @DefaultStringValue("Script navn")
+    @DefaultStringValue("<translated text is missing>")
     String label_ScriptName();
 
-    @DefaultStringValue("Invocation Method")
+    @DefaultStringValue("<translated text is missing>")
     String label_InvocationMethod();
 
 
     // Button Texts
-    @DefaultStringValue("Gem")
+    @DefaultStringValue("<translated text is missing>")
     String button_Save();
 
 
     // Error messages
-    @DefaultStringValue("Alle felter skal udfyldes.")
+    @DefaultStringValue("<translated text is missing>")
     String error_InputFieldValidationError();
     
-    @DefaultStringValue("Det angivne projekt findes ikke i SVN.")
+    @DefaultStringValue("<translated text is missing>")
     String error_ScmProjectNotFoundError();
     
-    @DefaultStringValue("Det angivne projekt må ikke indeholde sti elementer.")
+    @DefaultStringValue("<translated text is missing>")
     String error_ScmIllegalProjectNameError();
     
-    @DefaultStringValue("Der skete en fejl i forbindelse med kald til SVN. Prøv at vælge en anden revision eller et andet javascript.")
+    @DefaultStringValue("<translated text is missing>")
     String error_JavaScriptReferenceError();
     
     
     // Status messages
-    @DefaultStringValue("Opsætningen blev gemt")
+    @DefaultStringValue("<translated text is missing>")
     String status_FlowComponentSuccessfullySaved();
     
-    @DefaultStringValue("Opsætningen gemmes...")
+    @DefaultStringValue("<translated text is missing>")
     String status_SavingFlowComponent();
     
-    @DefaultStringValue("Busy...")
+    @DefaultStringValue("<translated text is missing>")
     String status_Busy();
     
 }

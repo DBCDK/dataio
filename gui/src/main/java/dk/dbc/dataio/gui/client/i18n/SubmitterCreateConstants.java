@@ -6,37 +6,37 @@ import com.google.gwt.i18n.client.Constants;
 public interface SubmitterCreateConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("Submitternummer")
+    @DefaultStringValue("<translated text is missing>")
     String label_SubmitterNumber();
 
-    @DefaultStringValue("Submitternavn")
+    @DefaultStringValue("<translated text is missing>")
     String label_SubmitterName();
 
-    @DefaultStringValue("Beskrivelse")
+    @DefaultStringValue("<translated text is missing>")
     String label_Description();
 
 
     // Buttons
-    @DefaultStringValue("Gem")
+    @DefaultStringValue("<translated text is missing>")
     String button_Save();
 
 
     // Error messages
-    @DefaultStringValue("Alle felter skal udfyldes.")
+    @DefaultStringValue("<translated text is missing>")
     String error_InputFieldValidationError();
     
-    @DefaultStringValue("Nummer felt skal indeholde en numerisk talværdi.")
+    @DefaultStringValue("<translated text is missing>")
     String error_NumberInputFieldValidationError();
     
-    @DefaultStringValue("Et eller flere af de unikke felter { navn, nummer } er allerede oprettet i flow store.")
+    @DefaultStringValue("<translated text is missing>")
     String error_ProxyKeyViolationError();
     
-    @DefaultStringValue("De udfyldte felter forårsagede en data valideringsfejl i flow store.")
+    @DefaultStringValue("<translated text is missing>")
     String error_ProxyDataValidationError();
     
     
     // Status messages
-    @DefaultStringValue("Opsætningen blev gemt")
+    @DefaultStringValue("<translated text is missing>")
     String status_SubmitterSuccessfullySaved();
     
 }

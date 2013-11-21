@@ -5,58 +5,63 @@ import com.google.gwt.i18n.client.Constants;
 public interface FlowbinderCreateConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("Flowbinder navn")
+    @DefaultStringValue("<translated text is missing>")
     String label_FlowBinderName();
 
-    @DefaultStringValue("Beskrivelse")
+    @DefaultStringValue("<translated text is missing>")
     String label_FlowBinderDescription();
     
-    @DefaultStringValue("Rammeformat")
+    @DefaultStringValue("<translated text is missing>")
     String label_FrameFormat();
     
-    @DefaultStringValue("Indholdsformat")
+    @DefaultStringValue("<translated text is missing>")
     String label_ContentFormat();
     
-    @DefaultStringValue("Tegnsæt")
+    @DefaultStringValue("<translated text is missing>")
     String label_CharacterSet();
     
-    @DefaultStringValue("Destination")
+    @DefaultStringValue("<translated text is missing>")
     String label_Sink();
     
-    @DefaultStringValue("Recordsplitter")
+    @DefaultStringValue("<translated text is missing>")
     String label_RecordSplitter();
     
-    @DefaultStringValue("Submittere")
+    @DefaultStringValue("<translated text is missing>")
     String label_Submitters();
     
-    @DefaultStringValue("Flow")
+    @DefaultStringValue("<translated text is missing>")
     String label_Flow();
     
-    @DefaultStringValue("Default Record Splitter")
+    @DefaultStringValue("<translated text is missing>")
     String label_DefaultRecordSplitter();
     
 
     // Tooltips
-    @DefaultStringValue("Rammeformat: Teknisk formatprotokol til brug for udveksling af data. Eksempelvis dm2iso, dm2lin, xml, csv, m.v.")
+    @DefaultStringValue("<translated text is missing>")
     String tooltip_FrameFormat();
 
-    @DefaultStringValue("Indholdsformat: Bibliografisk format, f.eks. dbc, dfi, dkbilled, dsd, ebogsbib, ebrary, mv.")
+    @DefaultStringValue("<translated text is missing>")
     String tooltip_ContentFormat();
 
-    @DefaultStringValue("Tegnsæt: F.eks. utf8, latin-1, samkat, m.v.")
+    @DefaultStringValue("<translated text is missing>")
     String tooltip_CharacterSet();
 
     
+    // Buttons
+    @DefaultStringValue("<translated text is missing>")
+    String button_Save();
+
+
     // Error messages
-    @DefaultStringValue("Alle felter skal udfyldes.")
+    @DefaultStringValue("<translated text is missing>")
     String error_InputFieldValidationError();
     
-    @DefaultStringValue("Du forsøger at oprette en Flowbinder, der allerede eksisterer")
+    @DefaultStringValue("<translated text is missing>")
     String error_FlowbinderAlreadyExistsError();
 
     
     // Status messages
-    @DefaultStringValue("Flowbinderen blev gemt")
+    @DefaultStringValue("<translated text is missing>")
     String status_SaveSuccess();
     
 }

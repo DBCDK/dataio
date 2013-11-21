@@ -6,28 +6,28 @@ import com.google.gwt.i18n.client.Constants;
 public interface FlowCreateConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("Flownavn")
+    @DefaultStringValue("<translated text is missing>")
     String label_FlowName();
 
-    @DefaultStringValue("Beskrivelse")
+    @DefaultStringValue("<translated text is missing>")
     String label_Description();
 
-    @DefaultStringValue("Flow komponenter")
+    @DefaultStringValue("<translated text is missing>")
     String label_FlowComponents();
 
     
     // Buttons
-    @DefaultStringValue("Gem")
+    @DefaultStringValue("<translated text is missing>")
     String button_Save();
 
 
     // Error messages
-    @DefaultStringValue("Alle felter skal udfyldes.")
+    @DefaultStringValue("<translated text is missing>")
     String error_InputFieldValidationError();
     
     
     // Status messages
-    @DefaultStringValue("Opsætningen blev gemt")
+    @DefaultStringValue("<translated text is missing>")
     String status_FlowSuccessfullySaved();
     
 }

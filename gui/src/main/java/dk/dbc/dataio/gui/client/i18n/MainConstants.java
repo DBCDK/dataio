@@ -5,22 +5,22 @@ import com.google.gwt.i18n.client.Constants;
 public interface MainConstants extends Constants {
     
     // Headers
-    @DefaultStringValue("DBC Dataindsystem")
+    @DefaultStringValue("<translated text is missing>")
     String header_DataIO();
     
-    @DefaultStringValue("Flow - opsætning")
+    @DefaultStringValue("<translated text is missing>")
     String header_FlowCreation();
     
-    @DefaultStringValue("Flowkomponent - opsætning")
+    @DefaultStringValue("<translated text is missing>")
     String header_FlowComponentCreation();
     
-    @DefaultStringValue("Submitter - opsætning")
+    @DefaultStringValue("<translated text is missing>")
     String header_SubmitterCreation();
     
-    @DefaultStringValue("Flowbinder - opsætning")
+    @DefaultStringValue("<translated text is missing>")
     String header_FlowbinderCreation();
     
-    @DefaultStringValue("Sink - opsætning")
+    @DefaultStringValue("<translated text is missing>")
     String header_SinkCreation();
     
 }

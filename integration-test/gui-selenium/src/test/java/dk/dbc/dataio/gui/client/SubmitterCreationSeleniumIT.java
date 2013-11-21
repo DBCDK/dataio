@@ -24,15 +24,8 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 public class SubmitterCreationSeleniumIT {
-// TODO: This is a hack - needs to be updated to utilize GWT's Constants API
-//    private static final SubmitterCreateConstants constants = GWT.create(SubmitterCreateConstants.class);
-    private static class SubmitterConstants {
-        String error_InputFieldValidationError()       { return "Alle felter skal udfyldes."; }
-        String error_NumberInputFieldValidationError() { return "Nummer felt skal indeholde en numerisk talværdi."; }
-        String status_SubmitterSuccessfullySaved()     { return "Opsætningen blev gemt"; }
-    }
-    private static final SubmitterConstants constants = new SubmitterConstants();
-
+    private static ConstantsProperties texts = new ConstantsProperties("SubmitterCreateConstants_dk.properties");
+    
     private static final int SAVE_SUBMITTER_TIMOUT = 4;
     private static final String NAME = "name";
     private static final String NUMBER = "42";
@@ -150,7 +143,7 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys(DESCRIPTTION);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(constants.error_InputFieldValidationError()));
+        assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -160,7 +153,7 @@ public class SubmitterCreationSeleniumIT {
         findNumberElement(driver).sendKeys(NUMBER);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(constants.error_InputFieldValidationError()));
+        assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -170,7 +163,7 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys(DESCRIPTTION);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(constants.error_InputFieldValidationError()));
+        assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -181,7 +174,7 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(driver).sendKeys(DESCRIPTTION);
         findSaveButton(driver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(driver);
-        assertThat(s, is(constants.error_NumberInputFieldValidationError()));
+        assertThat(s, is(texts.translate("error_NumberInputFieldValidationError")));
     }
 
     /**
@@ -224,7 +217,7 @@ public class SubmitterCreationSeleniumIT {
         findNumberElement(driver).sendKeys("1");
         findDescriptionElement(driver).sendKeys("d");
         findSaveButton(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_SubmitterSuccessfullySaved());
+        SeleniumUtil.waitAndAssert(driver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
     }
 
     /**
@@ -239,6 +232,6 @@ public class SubmitterCreationSeleniumIT {
         findDescriptionElement(webDriver).clear();
         findDescriptionElement(webDriver).sendKeys(description);
         findSaveButton(webDriver).click();
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, constants.status_SubmitterSuccessfullySaved());
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
     }
 }

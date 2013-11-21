@@ -1,10 +1,12 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.types.restparameters.FlowBinderFlowQuery;
@@ -42,7 +44,7 @@ import javax.ws.rs.core.UriInfo;
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
 
-    public static final String REST_FLOW_QUERY_ENTRY_POINT = "/flow"; // todo: move this to a better place - this entrypoint is also hardcodet in FlowBindersBean.
+    public static final String REST_FLOWBINDER_QUERY_ENTRY_POINT = "/resolve"; // todo: move this to a better place - this entrypoint is also hardcodet in FlowBindersBean.
 
     @EJB
     JobHandlerBean jobHandler;
@@ -72,9 +74,11 @@ public class JobsBean {
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
             throws NullPointerException, IllegalArgumentException, EJBException, JsonException, ReferencedEntityNotFoundException {
         LOGGER.trace("JobSpec: {}", jobSpecData);
-
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
-        final Flow flow = lookupFlowInFlowStore(jobSpec);
+        final FlowBinder flowBinder = lookupFlowBinderInFlowStore(jobSpec);
+        LOGGER.info("flowBinder: {}", flowBinder.toString()); // todo: Change to trace!
+        final Flow flow = lookupFlowInFlowStore(flowBinder.getContent().getFlowId());
+        final Sink sink = lookupSinkInFlowStore(flowBinder.getContent().getSinkId());
         final JobInfo jobInfo;
         try {
             final Job job = jobHandler.createJob(jobSpec, flow);
@@ -88,18 +92,12 @@ public class JobsBean {
         return Response.created(uriInfo.getAbsolutePath()).entity(JsonUtil.toJson(jobInfo)).build();
     }
 
-    private Flow lookupFlowInFlowStore(JobSpecification jobSpec) throws EJBException, ReferencedEntityNotFoundException, JsonException {
+    private Flow lookupFlowInFlowStore(long flowId) throws EJBException, ReferencedEntityNotFoundException, JsonException {
         final Client client = HttpClient.newClient();
-        final Map<String, Object> queryParameters = new HashMap<>();
-        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, jobSpec.getPackaging());
-        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_FORMAT, jobSpec.getFormat());
-        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_CHARSET, jobSpec.getCharset());
-        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER, jobSpec.getSubmitterId());
-        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION, jobSpec.getDestination());
         String flowData = null;
         try {
-            final Response response = HttpClient.doGet(client, queryParameters, getFlowStoreServiceEndpoint(),
-                    FlowStoreServiceEntryPoint.FLOW_BINDERS, REST_FLOW_QUERY_ENTRY_POINT);
+            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
+            Map<String, Object> queryParameters = new HashMap<>();
             try {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {
@@ -123,6 +121,41 @@ public class JobsBean {
         return JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns());
     }
 
+    private FlowBinder lookupFlowBinderInFlowStore(JobSpecification jobSpec) throws EJBException, ReferencedEntityNotFoundException, JsonException {
+        final Client client = HttpClient.newClient();
+        final Map<String, Object> queryParameters = new HashMap<>();
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, jobSpec.getPackaging());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_FORMAT, jobSpec.getFormat());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_CHARSET, jobSpec.getCharset());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER, jobSpec.getSubmitterId());
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION, jobSpec.getDestination());
+        String flowBinderData = null;
+        try {
+            final Response response = HttpClient.doGet(client, queryParameters, getFlowStoreServiceEndpoint(),
+                    FlowStoreServiceEntryPoint.FLOW_BINDERS, REST_FLOWBINDER_QUERY_ENTRY_POINT);
+            try {
+                final int status = response.getStatus();
+                switch (Response.Status.fromStatusCode(status)) {
+                    case OK:
+                        flowBinderData = extractFlowDataFromFlowStoreResponse(response);
+                        break;
+                    case NOT_FOUND:
+                        throwOnFlowNotFoundInFlowStore(queryParameters);
+                        break;
+                    default:
+                        throwOnUnexpectedResponseFromFlowStore(queryParameters, status, response);
+                        break;
+                }
+            } finally {
+                response.close();
+            }
+            LOGGER.trace("Found flowbinder: {}", flowBinderData);
+        } finally {
+            HttpClient.closeClient(client);
+        }
+        return JsonUtil.fromJson(flowBinderData, FlowBinder.class, MixIns.getMixIns());
+    }
+
     private String formatQueryParametersForLog(Map<String, Object> queryParameters) {
         StringBuilder sb = new StringBuilder();
         for(Map.Entry entry : queryParameters.entrySet()) {
@@ -137,7 +170,7 @@ public class JobsBean {
     }
 
     private void throwOnFlowNotFoundInFlowStore(Map<String, Object> queryParameters) throws ReferencedEntityNotFoundException {
-        final String errorMessage = String.format("flow not found with paramters: %s", formatQueryParametersForLog(queryParameters));
+        final String errorMessage = String.format("flow not found with parameters: %s", formatQueryParametersForLog(queryParameters));
         LOGGER.error(errorMessage);
         throw new ReferencedEntityNotFoundException(errorMessage);
     }
@@ -159,5 +192,11 @@ public class JobsBean {
             throw new EJBException(e);
         }
         return flowStoreServiceEndpoint;
+    }
+
+    private Sink lookupSinkInFlowStore(long sinkId) {
+        // todo: fill in this method
+        // create rest-request to flowstore for retrieving a sink given an id.
+        return null;
     }
 }

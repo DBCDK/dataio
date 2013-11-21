@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.FlowBinderJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
@@ -103,7 +104,7 @@ public class JobsBeanTest {
 
     @Test(expected = EJBException.class)
     public void createJob_jndiLookupThrowsNamingException_throws() throws Exception {
-        final String jobSpecData = getValidJobSpecificationString();// new ITUtil.JobSpecificationJsonBuilder().build();
+        final String jobSpecData = getValidJobSpecificationString();
         when(ServiceUtil.getFlowStoreServiceEndpoint())
                 .thenThrow(new NamingException());
 
@@ -112,11 +113,10 @@ public class JobsBeanTest {
     }
 
     @Test(expected = ReferencedEntityNotFoundException.class)
-    public void createJob_noFlowCanBeFound_throws() throws Exception {
+    public void createJob_noFlowBinderCanBeFound_throws() throws Exception {
         final String jobSpecData = getValidJobSpecificationString();
-        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOW_QUERY_ENTRY_POINT)))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
                 .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), ""));
-
         final JobsBean jobsBean = new JobsBean();
         jobsBean.createJob(uriInfo, jobSpecData);
     }
@@ -124,14 +124,16 @@ public class JobsBeanTest {
     @Test(expected = EJBException.class)
     public void createJob_jobStoreThrowsJobStoreException_throwsEJBException() throws Exception {
         final long flowId = 42L;
-        final String flowData = new FlowJsonBuilder()
-                .setId(flowId)
-                .build();
+        final long flowBinderId = 31L;
+        final String flowData = new FlowJsonBuilder().setId(flowId).build();
+        final String flowBinderData = new FlowBinderJsonBuilder().setId(flowBinderId).build();
         final String jobSpecData = getValidJobSpecificationString();
 
-        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOW_QUERY_ENTRY_POINT)))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowBinderData));
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
-        when(jobHandler.createJob(any(JobSpecification.class), any(Flow.class)))
+        when(jobHandler.createJob(any(JobSpecification.class), any(Flow.class))) // todo: Change to take: FlowBinder, Flow and Sink
                 .thenThrow(new JobStoreException("die"));
 
         final JobsBean jobsBean = new JobsBean();
@@ -142,15 +144,17 @@ public class JobsBeanTest {
     @Test
     public void createJob_jobIsCreated_returnsStatusCreatedResponse() throws Exception {
         final long flowId = 42L;
-        final String flowData = new FlowJsonBuilder()
-                .setId(flowId)
-                .build();
+        final long flowBinderId = 31L;
+        final String flowData = new FlowJsonBuilder().setId(flowId).build();
+        final String flowBinderData = new FlowBinderJsonBuilder().setId(flowBinderId).build();
         final String jobSpecData = getValidJobSpecificationString();
         final String jobInfoData = new JobInfoJsonBuilder().build();
         final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
                 JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
-        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOW_QUERY_ENTRY_POINT)))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowBinderData));
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
         when(jobHandler.createJob(any(JobSpecification.class), any(Flow.class)))
                 .thenReturn(job);
@@ -159,13 +163,6 @@ public class JobsBeanTest {
         jobsBean.jobHandler = jobHandler;
         final Response response = jobsBean.createJob(uriInfo, jobSpecData);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-    }
-
-    @Test
-    public void test() throws Exception {
-        final String jobSpecData = getValidJobSpecificationString();
-        System.out.println("Hello: " + jobSpecData);
-        final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
     }
 
     private String getValidJobSpecificationString() {

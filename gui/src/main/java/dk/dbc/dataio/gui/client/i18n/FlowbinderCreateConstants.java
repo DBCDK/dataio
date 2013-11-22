@@ -21,7 +21,7 @@ public interface FlowbinderCreateConstants extends Constants {
     String label_CharacterSet();
     
     @DefaultStringValue("<translated text is missing>")
-    String label_Sink();
+    String label_Destination();
     
     @DefaultStringValue("<translated text is missing>")
     String label_RecordSplitter();
@@ -31,6 +31,9 @@ public interface FlowbinderCreateConstants extends Constants {
     
     @DefaultStringValue("<translated text is missing>")
     String label_Flow();
+    
+    @DefaultStringValue("<translated text is missing>")
+    String label_Sink();
     
     @DefaultStringValue("<translated text is missing>")
     String label_DefaultRecordSplitter();

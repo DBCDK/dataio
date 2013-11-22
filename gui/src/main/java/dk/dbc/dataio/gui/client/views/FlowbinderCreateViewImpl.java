@@ -30,10 +30,11 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public static final String GUIID_FLOWBINDER_CREATION_FRAME_PANEL = "flowbindercreationframepanel";
     public static final String GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL = "flowbindercreationcontentformatpanel";
     public static final String GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL = "flowbindercreationcharactersetpanel";
-    public static final String GUIID_FLOWBINDER_CREATION_SINK_PANEL = "flowbindercreationsinkpanel";
+    public static final String GUIID_FLOWBINDER_CREATION_DESTINATION_PANEL = "flowbindercreationdestinationpanel";
     public static final String GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL = "flowbindercreationrecordsplitterpanel";
     public static final String GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL = "flowbindercreationsubmittersduallist";
     public static final String GUIID_FLOWBINDER_CREATION_FLOW_PANEL = "flowbindercreationflowpanel";
+    public static final String GUIID_FLOWBINDER_CREATION_SINK_PANEL = "flowbindercreationsinkpanel";
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_PANEL = "flowbindercreationsavepanel";
 
     // Local variables
@@ -44,10 +45,11 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final TextEntry flowbinderFramePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_FRAME_PANEL, constants.label_FrameFormat());
     private final TextEntry flowbinderContentFormatPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL, constants.label_ContentFormat());
     private final TextEntry flowbinderCharacterSetPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, constants.label_CharacterSet());
-    private final ListEntry flowbinderSinkPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, constants.label_Sink());
+    private final TextEntry flowbinderDestinationPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_DESTINATION_PANEL, constants.label_Destination());
     private final TextEntry flowbinderRecordSplitterPanel = new TextEntry(GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, constants.label_RecordSplitter());
     private final DualListEntry flowbinderSubmittersPanel = new DualListEntry(GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL, constants.label_Submitters());
     private final ListEntry flowbinderFlowPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_FLOW_PANEL, constants.label_Flow());
+    private final ListEntry flowbinderSinkPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, constants.label_Sink());
     private final SaveButton saveButton = new SaveButton(GUIID_FLOWBINDER_CREATION_SAVE_PANEL, constants.button_Save(), new SaveButtonEvent());
 
     public FlowbinderCreateViewImpl() {
@@ -71,9 +73,8 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderCharacterSetPanel.addToolTip(constants.tooltip_CharacterSet());
         add(flowbinderCharacterSetPanel);
         
-        flowbinderSinkPanel.setEnabled(false);
-        flowbinderSinkPanel.addChangeHandler(new SomethingHasChanged());
-        add(flowbinderSinkPanel);
+        flowbinderDestinationPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
+        add(flowbinderDestinationPanel);
         
         flowbinderRecordSplitterPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         flowbinderRecordSplitterPanel.setText(constants.label_DefaultRecordSplitter());
@@ -86,6 +87,10 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderFlowPanel.setEnabled(false);
         flowbinderFlowPanel.addChangeHandler(new SomethingHasChanged());
         add(flowbinderFlowPanel);
+        
+        flowbinderSinkPanel.setEnabled(false);
+        flowbinderSinkPanel.addChangeHandler(new SomethingHasChanged());
+        add(flowbinderSinkPanel);
         
         add(saveButton);
     }
@@ -167,25 +172,26 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             final String packaging = flowbinderFramePanel.getText();
             final String format = flowbinderContentFormatPanel.getText();
             final String charset = flowbinderCharacterSetPanel.getText();
-            final String destination = flowbinderSinkPanel.getSelectedKey();
+            final String destination = flowbinderDestinationPanel.getText();
             final String recordSplitter = flowbinderRecordSplitterPanel.getText();
+            final String sink = flowbinderSinkPanel.getSelectedKey();
             final Map<String, String> submittersFromView = flowbinderSubmittersPanel.getSelectedItems();
             final List<String> submitters = new ArrayList<String>();
             final String flow = flowbinderFlowPanel.getSelectedKey();
-            final String validationError = validateFields(name, description, packaging, format, charset, destination, recordSplitter, submittersFromView, flow);
+            final String validationError = validateFields(name, description, packaging, format, charset, destination, recordSplitter, submittersFromView, flow, sink);
             if (!validationError.isEmpty()) {
                 Window.alert(validationError);
             } else {
                 for (String key: submittersFromView.keySet()) {
                     submitters.add(key);
                 }
-                presenter.saveFlowbinder(name, description, packaging, format, charset, destination, recordSplitter, flow, submitters);
+                presenter.saveFlowbinder(name, description, packaging, format, charset, destination, recordSplitter, flow, submitters, sink);
             }
         }
-        private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String sink, final String recordSplitter,
-                final Map<String, String> submitters, final String flow) {
-            if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || (sink==null) || sink.isEmpty() || recordSplitter.isEmpty()
-                    || (submitters == null) || submitters.isEmpty() || (flow == null) || flow.isEmpty()) {
+        private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String destination, final String recordSplitter,
+                final Map<String, String> submitters, final String flow, final String sink) {
+            if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || (destination==null) || destination.isEmpty() || recordSplitter.isEmpty()
+                    || (submitters == null) || submitters.isEmpty() || (flow == null) || flow.isEmpty() || (sink == null) || sink.isEmpty()) {
                 return constants.error_InputFieldValidationError();
             }
             return "";

@@ -9,6 +9,7 @@ import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,17 +35,15 @@ public class JobHandlerBean {
     @EJB
     JobStoreBean jobStore;
 
-    public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
-        Job job = jobStore.createJob(jobSpec, flow);
+    public JobInfo handleJob(Job job, Sink sink) throws JobStoreException {
         JobInfo jobInfo = job.getJobInfo();
         try {
             if (jobInfo.getJobState() == JobState.CREATED) {
                 processJob(job);
                 jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
                         JobState.COMPLETED, jobInfo.getJobErrorCode(), "Job processing completed", jobInfo.getJobRecordCount(), null);
-                job = new Job(jobInfo, flow);
             }
-            return job;
+            return jobInfo;
 
         } catch (JobStoreException e) {
             jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),

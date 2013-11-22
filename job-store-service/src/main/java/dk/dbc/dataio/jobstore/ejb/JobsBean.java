@@ -49,6 +49,9 @@ public class JobsBean {
     @EJB
     JobHandlerBean jobHandler;
 
+    @EJB
+    JobStoreBean jobStore;
+
     /**
      * Creates new job based on POSTed job specification and persists it in
      * the underlying data store
@@ -81,7 +84,8 @@ public class JobsBean {
         final Sink sink = lookupSinkInFlowStore(flowBinder.getContent().getSinkId());
         final JobInfo jobInfo;
         try {
-            final Job job = jobHandler.createJob(jobSpec, flow);
+            final Job job = jobStore.createJob(jobSpec, flow);
+            JobInfo info = jobHandler.handleJob(job, sink);
             final String sinkFile = jobHandler.sendToSink(job);
             jobInfo = new JobInfo(job.getId(), job.getJobInfo().getJobSpecification(), job.getJobInfo().getJobCreationTime(),
                     job.getJobInfo().getJobState(), job.getJobInfo().getJobErrorCode(), job.getJobInfo().getJobStatusMessage(), job.getJobInfo().getJobRecordCount(), sinkFile);

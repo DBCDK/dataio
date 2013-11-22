@@ -1,22 +1,29 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.processor.ChunkProcessor;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.commons.types.ChunkResult;
-import dk.dbc.dataio.commons.types.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.Singleton;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.TextMessage;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +39,12 @@ import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
 public class JobHandlerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobHandlerBean.class);
 
+    @Resource
+    private ConnectionFactory sinkQueueConnectionFactory;
+
+    @Resource(mappedName = "jms/dataio/sinks")
+    private Queue sinkQueue;
+
     @EJB
     JobStoreBean jobStore;
 
@@ -39,9 +52,9 @@ public class JobHandlerBean {
         JobInfo jobInfo = job.getJobInfo();
         try {
             if (jobInfo.getJobState() == JobState.CREATED) {
-                processJob(job);
                 jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
-                        JobState.COMPLETED, jobInfo.getJobErrorCode(), "Job processing completed", jobInfo.getJobRecordCount(), null);
+                        JobState.PROCESSING, jobInfo.getJobErrorCode(), "Job processing", jobInfo.getJobRecordCount(), null);
+                processJob(job, sink);
             }
             return jobInfo;
 
@@ -54,13 +67,28 @@ public class JobHandlerBean {
         }
     }
 
-    private void processJob(Job job) throws JobStoreException {
+    private void processJob(Job job, Sink sink) throws JobStoreException {
         final long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
         LOGGER.info("Processing {} chunks for job({})", numberOfChunks, job.getId());
         for (int chunkId = 1; chunkId <= numberOfChunks; chunkId++) {
-            final Chunk chunk = jobStore.getChunk(job, chunkId);
-            final ChunkResult processedChunk = ChunkProcessor.processChunk(chunk);
-            jobStore.addChunkResult(job, processedChunk);
+            processChunk(job, chunkId, sink);
+        }
+    }
+
+    private void processChunk(Job job, int chunkId, Sink sink) throws JobStoreException {
+        final Chunk chunk = jobStore.getChunk(job, chunkId);
+        final ChunkResult processedChunk = ChunkProcessor.processChunk(chunk);
+        jobStore.addChunkResult(job, processedChunk);
+        dispatchChunkResult(processedChunk, sink);
+    }
+
+    private void dispatchChunkResult(ChunkResult chunkResult, Sink sink) {
+        try (JMSContext context = sinkQueueConnectionFactory.createContext()) {
+            final TextMessage message = context.createTextMessage(JsonUtil.toJson(chunkResult));
+            message.setStringProperty("resource", sink.getContent().getResource());
+            context.createProducer().send(sinkQueue, message);
+        } catch (JsonException | JMSException e) {
+            throw new EJBException(e);
         }
     }
 

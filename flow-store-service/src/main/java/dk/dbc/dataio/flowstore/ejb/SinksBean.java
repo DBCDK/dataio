@@ -15,6 +15,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -29,8 +30,30 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Path(FlowStoreServiceEntryPoint.SINKS)
 public class SinksBean {
 
+    private static final String NOT_FOUND_MESSAGE = "resource not found";
+
     @PersistenceContext
     EntityManager entityManager;
+
+    /**
+     * Retrieves flow from underlying data store
+     *
+     * @param id flow identifier
+     *
+     * @return a HTTP 200 response with flow content as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     */
+    @GET
+    @Path("/{id}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getSink(@PathParam("id") Long id) throws JsonException {
+        final Sink sink = entityManager.find(Sink.class, id);
+        if (sink == null) {
+            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
+        }
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(sink));
+    }
 
     @POST
     @Consumes({MediaType.APPLICATION_JSON})

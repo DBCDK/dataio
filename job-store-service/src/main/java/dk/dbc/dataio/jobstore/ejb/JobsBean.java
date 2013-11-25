@@ -125,6 +125,35 @@ public class JobsBean {
         return JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns());
     }
 
+    private Sink lookupSinkInFlowStore(long sinkId) throws EJBException, ReferencedEntityNotFoundException, JsonException {
+        final Client client = HttpClient.newClient();
+        String sinkData = null;
+        try {
+            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS, Long.toString(sinkId));
+            Map<String, Object> queryParameters = new HashMap<>();
+            try {
+                final int status = response.getStatus();
+                switch (Response.Status.fromStatusCode(status)) {
+                    case OK:
+                        sinkData = extractFlowDataFromFlowStoreResponse(response);
+                        break;
+                    case NOT_FOUND:
+                        throwOnFlowNotFoundInFlowStore(queryParameters);
+                        break;
+                    default:
+                        throwOnUnexpectedResponseFromFlowStore(queryParameters, status, response);
+                        break;
+                }
+            } finally {
+                response.close();
+            }
+            LOGGER.trace("Found flow: {}", sinkData);
+        } finally {
+            HttpClient.closeClient(client);
+        }
+        return JsonUtil.fromJson(sinkData, Sink.class, MixIns.getMixIns());
+    }
+
     private FlowBinder lookupFlowBinderInFlowStore(JobSpecification jobSpec) throws EJBException, ReferencedEntityNotFoundException, JsonException {
         final Client client = HttpClient.newClient();
         final Map<String, Object> queryParameters = new HashMap<>();
@@ -198,9 +227,4 @@ public class JobsBean {
         return flowStoreServiceEndpoint;
     }
 
-    private Sink lookupSinkInFlowStore(long sinkId) {
-        // todo: fill in this method
-        // create rest-request to flowstore for retrieving a sink given an id.
-        return null;
-    }
 }

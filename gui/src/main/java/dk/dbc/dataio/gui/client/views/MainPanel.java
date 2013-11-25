@@ -14,6 +14,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimpleLayoutPanel;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
@@ -27,6 +28,7 @@ public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION = "navigationbuttonsubmittercreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION = "navigationbuttonflowbindercreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_SINK_CREATION = "navigationbuttonsinkcreation";
+    public static final String GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_SHOW = "navigationbuttonflowcomponentsshow";
     private static final String GUIID_MAIN_PANEL_LAYOUT = "main-panel-layout";
 
     public final ContentPanel contentPanel = new ContentPanel("content-panel-layout");
@@ -51,6 +53,7 @@ public class MainPanel extends DockLayoutPanel {
             case 2: return new SubmitterCreatePlace();
             case 3: return new FlowbinderCreatePlace();
             case 4: return new SinkCreatePlace();
+            case 5: return new FlowComponentsShowPlace();
             // ...
             default: return null;
         }
@@ -79,6 +82,7 @@ public class MainPanel extends DockLayoutPanel {
             add(new NavigationButton(2, constants.header_SubmitterCreation(), GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
             add(new NavigationButton(3, constants.header_FlowbinderCreation(), GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION));
             add(new NavigationButton(4, constants.header_SinkCreation(), GUIID_NAVIGATION_MENU_ITEM_SINK_CREATION));
+            add(new NavigationButton(5, constants.header_FlowComponentsShow(), GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_SHOW));
             // ...
         }
     }

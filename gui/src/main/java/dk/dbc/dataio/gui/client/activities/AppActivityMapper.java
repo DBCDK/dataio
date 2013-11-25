@@ -4,6 +4,7 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
@@ -38,6 +39,9 @@ public class AppActivityMapper implements ActivityMapper {
         }
         if (place instanceof SinkCreatePlace) {
             return new CreateSinkActivity((SinkCreatePlace) place, clientFactory);
+        }
+        if (place instanceof FlowComponentsShowPlace) {
+            return new ShowFlowComponentsActivity((FlowComponentsShowPlace) place, clientFactory);
         }
         return null;
     }

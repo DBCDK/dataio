@@ -11,6 +11,8 @@ import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
+import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
+import dk.dbc.dataio.gui.client.views.FlowComponentsShowViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
@@ -39,6 +41,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final SinkCreateView sinkCreateView = new SinkCreateViewImpl();
+    private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
 
     
     @Override
@@ -89,6 +92,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public SinkCreateView getSinkCreateView() {
         return sinkCreateView;
+    }
+
+    @Override
+    public FlowComponentsShowView getFlowComponentsShowView() {
+        return flowComponentsShowView;
     }
 
 }

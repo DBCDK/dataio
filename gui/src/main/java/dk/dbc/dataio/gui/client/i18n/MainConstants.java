@@ -23,4 +23,7 @@ public interface MainConstants extends Constants {
     @DefaultStringValue("<translated text is missing>")
     String header_SinkCreation();
     
+    @DefaultStringValue("<translated text is missing>")
+    String header_FlowComponentsShow();
+    
 }

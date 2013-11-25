@@ -6,6 +6,7 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
+import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
@@ -35,4 +36,5 @@ public interface ClientFactory {
     public SubmitterCreateView getSubmitterCreateView();
     public FlowbinderCreateView getFlowbinderCreateView();
     public SinkCreateView getSinkCreateView();
+    public FlowComponentsShowView getFlowComponentsShowView();
 }

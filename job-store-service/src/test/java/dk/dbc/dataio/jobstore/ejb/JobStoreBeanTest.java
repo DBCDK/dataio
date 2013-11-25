@@ -1,12 +1,16 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -27,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
+import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -51,7 +56,7 @@ public class JobStoreBeanTest {
         Files.write(f, someXML.getBytes());
 
         final JobSpecification jobSpec = createJobSpecification(f);
-        final Job job = jsb.createJob(jobSpec, createDefaultFlow());
+        final Job job = jsb.createJob(jobSpec, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
@@ -75,7 +80,7 @@ public class JobStoreBeanTest {
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
 
-        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         jsb.getChunk(job, jsb.getNumberOfChunksInJob(job) + 1);
     }
 
@@ -85,7 +90,7 @@ public class JobStoreBeanTest {
         final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -97,7 +102,7 @@ public class JobStoreBeanTest {
         final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</data>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -109,7 +114,7 @@ public class JobStoreBeanTest {
         final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -121,7 +126,7 @@ public class JobStoreBeanTest {
         final String xmlWithoutClosingOuterTag = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></wrong>";
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
-        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -130,7 +135,7 @@ public class JobStoreBeanTest {
     @Test
     public void createJob_dataFileDoesNotExist_returnsJobInFailedState() throws JobStoreException {
         final Path f = Paths.get("no-such-file");
-        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlow());
+        final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_NOT_FOUND));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -146,7 +151,7 @@ public class JobStoreBeanTest {
                 .setDataFile(f.toString())
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
-        final Job job = jsb.createJob(jobSpecification, createDefaultFlow());
+        final Job job = jsb.createJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -162,7 +167,7 @@ public class JobStoreBeanTest {
                 .setDataFile(f.toString())
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
-        final Job job = jsb.createJob(jobSpecification, createDefaultFlow());
+        final Job job = jsb.createJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
         assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(2L));
@@ -171,8 +176,17 @@ public class JobStoreBeanTest {
     /*
      * Private helper methods:
      */
+    private FlowBinder createDefaultFlowBinder() {
+        FlowBinderContent flowBinderContent = new FlowBinderContent("name", "description", "packaging", "format", "utf8", "destination", "Default Record Splitter", 1L, Arrays.asList(1L, 2L, 3L), 1L);
+        return new FlowBinder(1, 1, flowBinderContent);
+    }
+
     private Flow createDefaultFlow() {
         return new Flow(1, 1, new FlowContent("name", "description", new ArrayList<FlowComponent>()));
+    }
+
+    private Sink createDefaultSink() {
+        return new Sink(1, 1, new SinkContent("name", "ressource"));
     }
 
     private JobSpecification createJobSpecification(Path f) {

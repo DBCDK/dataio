@@ -1,10 +1,12 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
@@ -26,7 +28,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class FileSystemJobStoreTest {
+    private static final FlowBinder FLOWBINDER = JobTest.createDefaultFlowBinder();
     private static final Flow FLOW = JobTest.createDefaultFlow();
+    private static final Sink SINK = JobTest.createDefaultSink();
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -58,7 +62,15 @@ public class FileSystemJobStoreTest {
     @Test(expected = NullPointerException.class)
     public void createJob_dataObjectPathArg_isNull_throws() throws Exception {
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
-        instance.createJob(null, FLOW);
+        instance.createJob(null, FLOWBINDER, FLOW, SINK);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createJob_flowBinderArgisNull_throws() throws Exception {
+        final File dataFile = tmpFolder.newFile();
+        final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
+        JobSpecification jobSpec = createJobSpecification(dataFile.toPath());
+        instance.createJob(jobSpec, null, FLOW, SINK);
     }
 
     @Test(expected = NullPointerException.class)
@@ -66,7 +78,15 @@ public class FileSystemJobStoreTest {
         final File dataFile = tmpFolder.newFile();
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
         JobSpecification jobSpec = createJobSpecification(dataFile.toPath());
-        instance.createJob(jobSpec, null);
+        instance.createJob(jobSpec, FLOWBINDER, null, SINK);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void createJob_sinkArgisNull_throws() throws Exception {
+        final File dataFile = tmpFolder.newFile();
+        final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
+        JobSpecification jobSpec = createJobSpecification(dataFile.toPath());
+        instance.createJob(jobSpec, FLOWBINDER, FLOW, null);
     }
 
     @Test
@@ -74,7 +94,7 @@ public class FileSystemJobStoreTest {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
-        final Job job = instance.createJob(jobSpec, FLOW);
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
         assertThat(job, is(notNullValue()));
         assertThat(Files.exists(Paths.get(jobStorePath.toString(), Long.toString(job.getId()))), is(true));
     }
@@ -84,19 +104,23 @@ public class FileSystemJobStoreTest {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
-        final Job job = instance.createJob(jobSpec, FLOW);
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
         assertThat(job, is(notNullValue()));
         final Path flowFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.FLOW_FILE);
         assertThat(Files.exists(flowFile), is(true));
         assertThat(readFileIntoString(flowFile), is(JsonUtil.toJson(FLOW)));
     }
 
+    // todo: Add test for flowbinder added to jobstore
+    // todo: Add test for sink added to jobstore
+
+
     @Test
     public void createJob_newJobIsCreated_chunkCounterFileIsAddedToJobFolder() throws Exception {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
-        final Job job = instance.createJob(jobSpec, FLOW);
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
         assertThat(job, is(notNullValue()));
         final Path chunkCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.CHUNK_COUNTER_FILE);
         assertThat(Files.exists(chunkCounterFile), is(true));
@@ -108,7 +132,7 @@ public class FileSystemJobStoreTest {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
-        final Job job = instance.createJob(jobSpec, FLOW);
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
         assertThat(job, is(notNullValue()));
         final Path jobSpecificationFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.JOBSPECIFICATION_FILE);
         assertThat(Files.exists(jobSpecificationFile), is(true));
@@ -119,7 +143,7 @@ public class FileSystemJobStoreTest {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
-        final Job job = instance.createJob(jobSpec, FLOW);
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
         assertThat(job, is(notNullValue()));
         final Path jobInfoFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.JOBINFO_FILE);
         assertThat(Files.exists(jobInfoFile), is(true));
@@ -134,7 +158,7 @@ public class FileSystemJobStoreTest {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(Paths.get("no-such-file"));
-        final Job job = instance.createJob(jobSpec, FLOW);
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
         assertThat(job, is(notNullValue()));
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_NOT_FOUND));
@@ -153,7 +177,7 @@ public class FileSystemJobStoreTest {
                 .setDataFile(f.toString())
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
-        final Job job = instance.createJob(jobSpecification, FLOW);
+        final Job job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK);
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -171,7 +195,7 @@ public class FileSystemJobStoreTest {
                 .setCharset("UTF-8")
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
-        final Job job = instance.createJob(jobSpecification, FLOW);
+        final Job job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK);
         assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
@@ -189,7 +213,7 @@ public class FileSystemJobStoreTest {
                 .setCharset("UTF-8")
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
-        final Job job = instance.createJob(jobSpecification, FLOW);
+        final Job job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK);
         assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(2L));

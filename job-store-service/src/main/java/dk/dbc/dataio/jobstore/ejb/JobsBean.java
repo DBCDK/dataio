@@ -84,7 +84,7 @@ public class JobsBean {
         final Sink sink = lookupSinkInFlowStore(flowBinder.getContent().getSinkId());
         final JobInfo jobInfo;
         try {
-            final Job job = jobStore.createJob(jobSpec, flow);
+            final Job job = jobStore.createJob(jobSpec, flowBinder, flow, sink);
             JobInfo info = jobHandler.handleJob(job, sink);
             final String sinkFile = jobHandler.sendToSink(job);
             jobInfo = new JobInfo(job.getId(), job.getJobInfo().getJobSpecification(), job.getJobInfo().getJobCreationTime(),

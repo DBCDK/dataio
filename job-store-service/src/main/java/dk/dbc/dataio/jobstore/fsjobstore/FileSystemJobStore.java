@@ -14,6 +14,8 @@ import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +33,8 @@ import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 
 public class FileSystemJobStore implements JobStore {
     static final String FLOW_FILE = "flow.json";
+    static final String FLOWBINDER_FILE = "flowbinder.json";
+    static final String SINK_FILE = "sink.json";
     static final String JOBSPECIFICATION_FILE = "jobspec.json";
     static final String JOBINFO_FILE = "jobinfo.json";
     static final String CHUNK_COUNTER_FILE = "chunk.cnt";
@@ -54,7 +58,7 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
+    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
         final long jobId = System.currentTimeMillis();
         final Date jobCreationTime = new Date();
         final Path jobPath = getJobPath(jobId);
@@ -65,7 +69,9 @@ public class FileSystemJobStore implements JobStore {
         createDirectory(getJobPath(jobId));
         createDirectory(getChunksPath(jobId));
 
+        storeFlowBinderInJob(jobPath, flowBinder);
         storeFlowInJob(jobPath, flow);
+        storeSinkInJob(jobPath, sink);
         storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
 
@@ -110,6 +116,16 @@ public class FileSystemJobStore implements JobStore {
         storeJobInfoInJob(jobPath, jobInfo);
     }
 
+    private void storeFlowBinderInJob(Path jobPath, FlowBinder flowBinder) throws JobStoreException {
+        final Path flowPath = Paths.get(jobPath.toString(), FLOWBINDER_FILE);
+        LOGGER.info("Creating FlowBinder json-file: {}", flowPath);
+        try (BufferedWriter bw = Files.newBufferedWriter(flowPath, LOCAL_CHARSET)) {
+          bw.write(JsonUtil.toJson(flowBinder));
+        } catch (IOException | JsonException e) {
+            throw new JobStoreException(String.format("Exception caught when trying to write FlowBinder: %d", flowBinder.getId()), e);
+        }
+    }
+
     private void storeFlowInJob(Path jobPath, Flow flow) throws JobStoreException {
         final Path flowPath = Paths.get(jobPath.toString(), FLOW_FILE);
         LOGGER.info("Creating Flow json-file: {}", flowPath);
@@ -117,6 +133,16 @@ public class FileSystemJobStore implements JobStore {
           bw.write(JsonUtil.toJson(flow));
         } catch (IOException | JsonException e) {
             throw new JobStoreException(String.format("Exception caught when trying to write Flow: %d", flow.getId()), e);
+        }
+    }
+
+    private void storeSinkInJob(Path jobPath, Sink sink) throws JobStoreException {
+        final Path flowPath = Paths.get(jobPath.toString(), SINK_FILE);
+        LOGGER.info("Creating Sink json-file: {}", flowPath);
+        try (BufferedWriter bw = Files.newBufferedWriter(flowPath, LOCAL_CHARSET)) {
+          bw.write(JsonUtil.toJson(sink));
+        } catch (IOException | JsonException e) {
+            throw new JobStoreException(String.format("Exception caught when trying to write Sink: %d", sink.getId()), e);
         }
     }
 

@@ -1,12 +1,16 @@
 package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.test.json.FlowBinderJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.SinkJsonBuilder;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -47,9 +51,25 @@ public class JobTest {
         }
     }
 
+    public static FlowBinder createDefaultFlowBinder() {
+        try {
+            return JsonUtil.fromJson(new FlowBinderJsonBuilder().build(), FlowBinder.class, MixIns.getMixIns());
+        } catch (JsonException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public static Flow createDefaultFlow() {
         try {
             return JsonUtil.fromJson(new FlowJsonBuilder().build(), Flow.class, MixIns.getMixIns());
+        } catch (JsonException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static Sink createDefaultSink() {
+        try {
+            return JsonUtil.fromJson(new SinkJsonBuilder().build(), Sink.class, MixIns.getMixIns());
         } catch (JsonException e) {
             throw new IllegalStateException(e);
         }

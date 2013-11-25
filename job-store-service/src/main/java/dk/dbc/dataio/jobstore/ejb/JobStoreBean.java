@@ -9,6 +9,8 @@ import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +42,8 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public Job createJob(JobSpecification jobSpec, Flow flow) throws JobStoreException {
-        return jobStore.createJob(jobSpec, flow);
+    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
+        return jobStore.createJob(jobSpec, flowBinder, flow, sink);
     }
 
     @Override

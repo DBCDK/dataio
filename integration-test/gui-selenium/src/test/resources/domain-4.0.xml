@@ -61,15 +61,6 @@
       <property name="databaseName" value="${com.sun.aas.instanceRoot}/lib/databases/embedded_default" />
       <property name="connectionAttributes" value=";create=true" />
     </jdbc-connection-pool>
-<!--
-    <jdbc-connection-pool pool-resize-quantity="1" datasource-classname="org.h2.jdbcx.JdbcDataSource" max-pool-size="5" res-type="javax.sql.DataSource" steady-pool-size="0" statement-timeout-in-seconds="60" name="flowStoreDbPool">
-      <property name="driverClass" value="org.h2.Driver"/>
-      <property name="connectionAttributes" value=";create=true" />
-      <property name="URL" value="jdbc:h2:tcp://localhost:${h2.port}/mem:flow_store"/>
-      <property name="User" value="root"/>
-      <property name="Password" value="root"/>
-    </jdbc-connection-pool>
--->
     <jdbc-connection-pool datasource-classname="org.h2.jdbcx.JdbcDataSource" res-type="javax.sql.DataSource" name="flowStoreDbPool">
       <property name="driverClass" value="org.h2.Driver"></property>
       <property name="User" value="root"></property>
@@ -78,12 +69,32 @@
       <property name="LoginTimeout" value="0"></property>
     </jdbc-connection-pool>
     <jdbc-resource pool-name="flowStoreDbPool" jndi-name="jdbc/flowStoreDb"></jdbc-resource>
+    <jdbc-connection-pool datasource-classname="org.h2.jdbcx.JdbcDataSource" res-type="javax.sql.DataSource" name="jdbc/dataio/sinks/esInFlight/pool">
+      <property name="driverClass" value="org.h2.Driver"></property>
+      <property name="User" value="root"></property>
+      <property name="Password" value="root"></property>
+      <property name="URL" value="jdbc:h2:tcp://localhost:${h2.port}/mem:es_inflight"></property>
+      <property name="LoginTimeout" value="0"></property>
+    </jdbc-connection-pool>
+    <jdbc-resource pool-name="jdbc/dataio/sinks/esInFlight/pool" jndi-name="jdbc/dataio/sinks/esInFlight"></jdbc-resource>
+    <jdbc-connection-pool datasource-classname="oracle.jdbc.xa.client.OracleXADataSource" res-type="javax.sql.XADataSource" name="jdbc/dataio/es/pool">
+      <property name="url" value="jdbc:oracle:thin:@tora1.dbc.dk:1521/tora1.dbc.dk"></property>
+      <property name="username" value="jbn"></property>
+      <property name="password" value="jbn"></property>
+    </jdbc-connection-pool>
+    <jdbc-resource pool-name="jdbc/dataio/es/pool" jndi-name="jdbc/dataio/es"></jdbc-resource>
+    <admin-object-resource res-adapter="jmsra" res-type="javax.jms.Queue" jndi-name="jms/dataio/sinks">
+      <property name="Name" value="jmsDataioSinks"></property>
+    </admin-object-resource>
   </resources>
   <servers>
     <server name="server" config-ref="server-config">
       <resource-ref ref="jdbc/flowStoreDb"></resource-ref>
       <resource-ref ref="jdbc/__TimerPool" />
       <resource-ref ref="jdbc/__default" />
+      <resource-ref ref="jms/dataio/sinks"></resource-ref>
+      <resource-ref ref="jdbc/dataio/sinks/esInFlight"></resource-ref>
+      <resource-ref ref="jdbc/dataio/es"></resource-ref>
     </server>
   </servers>
  <configs>

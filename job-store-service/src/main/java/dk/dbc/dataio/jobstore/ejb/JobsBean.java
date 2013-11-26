@@ -79,14 +79,14 @@ public class JobsBean {
         LOGGER.trace("JobSpec: {}", jobSpecData);
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
         final FlowBinder flowBinder = lookupFlowBinderInFlowStore(jobSpec);
-        LOGGER.info("flowBinder: {}", flowBinder.toString()); // todo: Change to trace!
+        LOGGER.trace("flowBinder: {}", flowBinder.toString());
         final Flow flow = lookupFlowInFlowStore(flowBinder.getContent().getFlowId());
         final Sink sink = lookupSinkInFlowStore(flowBinder.getContent().getSinkId());
         final JobInfo jobInfo;
         try {
             final Job job = jobStore.createJob(jobSpec, flowBinder, flow, sink);
-            JobInfo info = jobHandler.handleJob(job, sink);
-            final String sinkFile = jobHandler.sendToSink(job);
+            jobHandler.handleJob(job, sink); //todo: This methodcall should return the actual jobinfo!
+            final String sinkFile = jobHandler.sendToSink(job);// todo: This is here for the benefit of tmpengine
             jobInfo = new JobInfo(job.getId(), job.getJobInfo().getJobSpecification(), job.getJobInfo().getJobCreationTime(),
                     job.getJobInfo().getJobState(), job.getJobInfo().getJobErrorCode(), job.getJobInfo().getJobStatusMessage(), job.getJobInfo().getJobRecordCount(), sinkFile);
         } catch (JobStoreException e) {
@@ -96,23 +96,24 @@ public class JobsBean {
         return Response.created(uriInfo.getAbsolutePath()).entity(JsonUtil.toJson(jobInfo)).build();
     }
 
+    // hardening: lookupFlowInFlowStore and lookupSinkInFlowStore is identical - replace them with a single generic function!
+
     private Flow lookupFlowInFlowStore(long flowId) throws EJBException, ReferencedEntityNotFoundException, JsonException {
         final Client client = HttpClient.newClient();
         String flowData = null;
         try {
             final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
-            Map<String, Object> queryParameters = new HashMap<>();
             try {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {
                     case OK:
-                        flowData = extractFlowDataFromFlowStoreResponse(response);
+                        flowData = extractDataFromFlowStoreResponse(response);
                         break;
                     case NOT_FOUND:
-                        throwOnFlowNotFoundInFlowStore(queryParameters);
+                        throwOnDataNotFoundInFlowStore(flowId, "flow");
                         break;
                     default:
-                        throwOnUnexpectedResponseFromFlowStore(queryParameters, status, response);
+                        throwOnUnexpectedResponseFromFlowStore(flowId, status, response, "flow");
                         break;
                 }
             } finally {
@@ -130,24 +131,23 @@ public class JobsBean {
         String sinkData = null;
         try {
             final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS, Long.toString(sinkId));
-            Map<String, Object> queryParameters = new HashMap<>();
             try {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {
                     case OK:
-                        sinkData = extractFlowDataFromFlowStoreResponse(response);
+                        sinkData = extractDataFromFlowStoreResponse(response);
                         break;
                     case NOT_FOUND:
-                        throwOnFlowNotFoundInFlowStore(queryParameters);
+                        throwOnDataNotFoundInFlowStore(sinkId, "sink");
                         break;
                     default:
-                        throwOnUnexpectedResponseFromFlowStore(queryParameters, status, response);
+                        throwOnUnexpectedResponseFromFlowStore(sinkId, status, response, "sink");
                         break;
                 }
             } finally {
                 response.close();
             }
-            LOGGER.trace("Found flow: {}", sinkData);
+            LOGGER.trace("Found sink: {}", sinkData);
         } finally {
             HttpClient.closeClient(client);
         }
@@ -170,10 +170,10 @@ public class JobsBean {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {
                     case OK:
-                        flowBinderData = extractFlowDataFromFlowStoreResponse(response);
+                        flowBinderData = extractDataFromFlowStoreResponse(response);
                         break;
                     case NOT_FOUND:
-                        throwOnFlowNotFoundInFlowStore(queryParameters);
+                        throwOnDataNotFoundInFlowStore(queryParameters);
                         break;
                     default:
                         throwOnUnexpectedResponseFromFlowStore(queryParameters, status, response);
@@ -197,13 +197,19 @@ public class JobsBean {
         return sb.toString();
     }
 
-    private String extractFlowDataFromFlowStoreResponse(Response response) {
+    private String extractDataFromFlowStoreResponse(Response response) {
         final String flowData = response.readEntity(String.class);
         return flowData;
     }
 
-    private void throwOnFlowNotFoundInFlowStore(Map<String, Object> queryParameters) throws ReferencedEntityNotFoundException {
+    private void throwOnDataNotFoundInFlowStore(Map<String, Object> queryParameters) throws ReferencedEntityNotFoundException {
         final String errorMessage = String.format("flow not found with parameters: %s", formatQueryParametersForLog(queryParameters));
+        LOGGER.error(errorMessage);
+        throw new ReferencedEntityNotFoundException(errorMessage);
+    }
+
+    private void throwOnDataNotFoundInFlowStore(long id, String entityType) throws ReferencedEntityNotFoundException {
+        final String errorMessage = String.format("%s not found with id: %d", entityType, id);
         LOGGER.error(errorMessage);
         throw new ReferencedEntityNotFoundException(errorMessage);
     }
@@ -212,6 +218,14 @@ public class JobsBean {
         final String errorDetails = response.readEntity(String.class);
         final String errorMessage = String.format("Attempt to resolve flow with parameters [ %s ] returned with status code %d: %s",
                 queryParameters, status, errorDetails);
+        LOGGER.error(errorMessage);
+        throw new EJBException(errorMessage);
+    }
+
+    private void throwOnUnexpectedResponseFromFlowStore(long id, int status, Response response, String entityType) throws EJBException {
+        final String errorDetails = response.readEntity(String.class);
+        final String errorMessage = String.format("Attempt to resolve %s with id: %d returned with status code %d: %s",
+                entityType, id, status, errorDetails);
         LOGGER.error(errorMessage);
         throw new EJBException(errorMessage);
     }

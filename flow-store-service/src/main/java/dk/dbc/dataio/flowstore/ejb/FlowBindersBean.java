@@ -42,50 +42,9 @@ import java.util.Set;
 public class FlowBindersBean {
 
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
+
     @PersistenceContext
-    protected EntityManager entityManager; // protected for testing purposes
-    // todo: Is it ok to have EntityManager protected for testing purposes?
-
-    @GET
-    @Path("/flow")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlow(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
-            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
-            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
-            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitter_number,
-            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination) throws JsonException {
-
-        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, FlowBinderFlowQuery.REST_PARAMETER_PACKAGING);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(format, FlowBinderFlowQuery.REST_PARAMETER_FORMAT);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(charset, FlowBinderFlowQuery.REST_PARAMETER_CHARSET);
-        InvariantUtil.checkNotNullOrThrow(submitter_number, FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(destination, FlowBinderFlowQuery.REST_PARAMETER_DESTINATION);
-
-        Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOW);
-        try {
-            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_PACKAGING, packaging);
-            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FORMAT, format);
-            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_CHARSET, charset);
-            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number);
-            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_DESTINATION, destination);
-        } catch (IllegalArgumentException ex) {
-            String errMsg = String.format("Error while setting parameters for database query: %s", ex.getMessage());
-            log.warn(errMsg, ex);
-            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(errMsg));
-        }
-
-        List<Flow> flows = query.getResultList();
-        if (flows.isEmpty()) {
-            String msg = getNoFlowFoundMessage(query);
-            log.info(msg);
-            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(msg));
-        }
-        if(flows.size() > 1) {
-            String msg = getMoreThanOneFlowFoundMessage(query);
-            log.warn(msg);
-        }
-        return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flows.get(0)));
-    }
+    EntityManager entityManager;
 
     @GET
     @Path("/resolve")

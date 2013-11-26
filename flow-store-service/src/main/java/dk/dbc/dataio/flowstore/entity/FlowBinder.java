@@ -39,7 +39,6 @@ uniqueConstraints = {
     @UniqueConstraint(columnNames = { FlowBinder.NAME_INDEX_COLUMN }),
 })
 @NamedQueries({
-    @NamedQuery(name = FlowBinder.QUERY_FIND_FLOW, query = FlowBinder.FIND_FLOW_QUERY_STRING),
     @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING)
 })
 public class FlowBinder extends VersionedEntity {
@@ -47,7 +46,6 @@ public class FlowBinder extends VersionedEntity {
     public static final String SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
 
-    public static final String QUERY_FIND_FLOW = "FlowBinder.findFlow";
     public static final String QUERY_FIND_FLOWBINDER = "FlowBinder.findFlowBinder";
     public static final String DB_QUERY_PARAMETER_SUBMITTER = "submitter";
     public static final String DB_QUERY_PARAMETER_FORMAT = "format";

@@ -23,55 +23,55 @@ public class FlowBindersBeanTest {
     @Test(expected = NullPointerException.class)
     public void getFlow_nullPackagingParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow(null, "nmalbum", "utf8", 654321L, "someDestination");
+        fbb.getFlowBinder(null, "nmalbum", "utf8", 654321L, "someDestination");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getFlow_emptyPackagingParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("", "nmalbum", "utf8", 654321L, "someDestination");
+        fbb.getFlowBinder("", "nmalbum", "utf8", 654321L, "someDestination");
     }
 
     @Test(expected = NullPointerException.class)
     public void getFlow_nullFormatParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("xml", null, "utf8", 654321L, "someDestination");
+        fbb.getFlowBinder("xml", null, "utf8", 654321L, "someDestination");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getFlow_emptyFormatParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("xml", "", "utf8", 654321L, "someDestination");
+        fbb.getFlowBinder("xml", "", "utf8", 654321L, "someDestination");
     }
 
     @Test(expected = NullPointerException.class)
     public void getFlow_nullCharsetParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("xml", "nmalbum", null, 654321L, "someDestination");
+        fbb.getFlowBinder("xml", "nmalbum", null, 654321L, "someDestination");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getFlow_emptyCharsetParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("xml", "nmalbum", "", 654321L, "someDestination");
+        fbb.getFlowBinder("xml", "nmalbum", "", 654321L, "someDestination");
     }
 
     @Test(expected = NullPointerException.class)
     public void getFlow_nullSubmitterParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("xml", "nmalbum", "utf8", null, "someDestination");
+        fbb.getFlowBinder("xml", "nmalbum", "utf8", null, "someDestination");
     }
 
     @Test(expected = NullPointerException.class)
     public void getFlow_nullDestinationParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("xml", "nmalbum", "utf8", 654321L, null);
+        fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getFlow_emptyDestinationParameter_throws() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
-        fbb.getFlow("xml", "nmalbum", "utf8", 654321L, "");
+        fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "");
     }
 
     @Test
@@ -80,10 +80,10 @@ public class FlowBindersBeanTest {
         EntityManager entityManager = mock(EntityManager.class);
         fbb.entityManager = entityManager;
         Query query = mock(Query.class);
-        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOW)).thenReturn(query);
+        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER)).thenReturn(query);
 
         when(query.getResultList()).thenReturn(Arrays.asList());
-        Response response = fbb.getFlow("xml", "nmalbum", "utf8", 654321L, "someDestination");
+        Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
         assertThat(response.getStatus(), is(404));
     }
 
@@ -93,13 +93,13 @@ public class FlowBindersBeanTest {
         EntityManager entityManager = mock(EntityManager.class);
         fbb.entityManager = entityManager;
         Query query = mock(Query.class);
-        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOW)).thenReturn(query);
+        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER)).thenReturn(query);
 
         String flowStr = new FlowJsonBuilder().build();
         Flow flow = JsonUtil.fromJson(flowStr, Flow.class, MixIns.getMixIns());
 
         when(query.getResultList()).thenReturn(Arrays.asList(flow));
-        Response response = fbb.getFlow("xml", "nmalbum", "utf8", 654321L, "someDestination");
+        Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
         assertThat(response.getStatus(), is(200));
     }
 }

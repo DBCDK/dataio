@@ -17,6 +17,7 @@
     <runTarget>gui.html</runTarget>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <developmentFlowStoreURLProperty> </developmentFlowStoreURLProperty>
+    <developmentJobStoreURLProperty> </developmentJobStoreURLProperty>
     <developmentSinkServiceURLProperty> </developmentSinkServiceURLProperty>
     <developmentDataioGuiSubversionScmEndpointProperty> </developmentDataioGuiSubversionScmEndpointProperty>
  </properties>
@@ -171,7 +172,7 @@
           </execution>
         </executions>
         <configuration>
-	        <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty} ${developmentSinkServiceURLProperty}</extraJvmArgs>
+	        <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty} ${developmentSinkServiceURLProperty} ${developmentJobStoreURLProperty}</extraJvmArgs>
           <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
           <!--localWorkers>1</localWorkers-->
         </configuration>

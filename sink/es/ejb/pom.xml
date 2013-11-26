@@ -37,8 +37,8 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>opensearch-commons-harvester-es</artifactId>
-      <version>1.11-SNAPSHOT</version>
+      <artifactId>dbc-commons-es</artifactId>
+      <version>1.3-SNAPSHOT</version>
       <type>jar</type>
     </dependency>
     <dependency>

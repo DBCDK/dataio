@@ -36,7 +36,7 @@ public class EmbeddedEngineServlet extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(EmbeddedEngineServlet.class);
     private static final long serialVersionUID = 5701538885619048769L;
     private String localhostname;
-    private Client client;
+    private transient Client client;
 
     @Override
     public void init() throws ServletException {

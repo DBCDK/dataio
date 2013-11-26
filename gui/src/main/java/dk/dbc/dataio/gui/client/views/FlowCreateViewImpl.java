@@ -25,9 +25,9 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     public static final String GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL = "flow-description-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL = "flow-component-selection-panel-id";
     public static final String GUIID_FLOW_CREATION_FLOW_SAVE_PANEL = "flow-save-panel-id";
-    
+
     private static final int FLOW_CREATION_DESCRIPTION_MAX_LENGTH = 160;
-    
+
     // Local variables
     private FlowCreatePresenter presenter;
     private final FlowCreateConstants constants = GWT.create(FlowCreateConstants.class);
@@ -35,10 +35,10 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     private final TextAreaEntry flowDescriptionPanel = new TextAreaEntry(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, constants.label_Description(), FLOW_CREATION_DESCRIPTION_MAX_LENGTH);
     private final DualListEntry flowComponentSelectionPanel = new DualListEntry(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL, constants.label_FlowComponents());
     private final SaveButton saveButton = new SaveButton(GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, constants.button_Save(), new SaveButtonEvent());
-    
+
     public FlowCreateViewImpl() {
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
-        
+
         flowNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowNamePanel);
 
@@ -52,14 +52,14 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
             }
         });
         add(flowComponentSelectionPanel);
-        
+
         add(saveButton);
     }
 
-    
+
     /*
      * Implementation of interface methods
-     */    
+     */
     @Override
     public void setPresenter(FlowCreatePresenter presenter) {
         this.presenter = presenter;
@@ -83,14 +83,14 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
     public void setAvailableFlowComponents(Map<String, String> availableFlowComponents) {
         flowComponentSelectionPanel.clear();
         if (!availableFlowComponents.isEmpty()) {
-            for (String key: availableFlowComponents.keySet()) {
-               flowComponentSelectionPanel.addAvailableItem(availableFlowComponents.get(key), key);
+            for(Map.Entry<String, String> entry : availableFlowComponents.entrySet()) {
+               flowComponentSelectionPanel.addAvailableItem(entry.getValue(), entry.getKey());
             }
             flowComponentSelectionPanel.setEnabled(true);
         }
     }
 
-    
+
     /*
      * Private methods
      */
@@ -102,7 +102,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         return flowComponentSelectionPanel.getSelectedItems().keySet();
     }
 
-    
+
    /*
     * Private classes
     */

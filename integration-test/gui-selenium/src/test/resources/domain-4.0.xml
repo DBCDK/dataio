@@ -83,6 +83,8 @@
       <property name="password" value="jbn"></property>
     </jdbc-connection-pool>
     <jdbc-resource pool-name="jdbc/dataio/es/pool" jndi-name="jdbc/dataio/es"></jdbc-resource>
+    <connector-connection-pool name="jms/__defaultConnectionFactory-Connection-Pool" resource-adapter-name="jmsra" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>
+    <connector-resource pool-name="jms/__defaultConnectionFactory-Connection-Pool" jndi-name="jms/__defaultConnectionFactory" object-type="system-all-req"></connector-resource>
     <admin-object-resource res-adapter="jmsra" res-type="javax.jms.Queue" jndi-name="jms/dataio/sinks">
       <property name="Name" value="jmsDataioSinks"></property>
     </admin-object-resource>
@@ -92,6 +94,7 @@
       <resource-ref ref="jdbc/flowStoreDb"></resource-ref>
       <resource-ref ref="jdbc/__TimerPool" />
       <resource-ref ref="jdbc/__default" />
+      <resource-ref ref="jms/__defaultConnectionFactory"></resource-ref>
       <resource-ref ref="jms/dataio/sinks"></resource-ref>
       <resource-ref ref="jdbc/dataio/sinks/esInFlight"></resource-ref>
       <resource-ref ref="jdbc/dataio/es"></resource-ref>

@@ -20,12 +20,10 @@
           <activation-config-property-name>sendUndeliverableMsgsToDMQ</activation-config-property-name>
           <activation-config-property-value>false</activation-config-property-value>
         </activation-config-property>
-        <!--
         <activation-config-property>
           <activation-config-property-name>messageSelector</activation-config-property-name>
           <activation-config-property-value>resource = 'jdbc/dataio/es'</activation-config-property-value>
         </activation-config-property>
-        -->
       </activation-config>
     </message-driven>
     <session>

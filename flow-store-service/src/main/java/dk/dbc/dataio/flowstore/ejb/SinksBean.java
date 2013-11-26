@@ -29,18 +29,17 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Stateless
 @Path(FlowStoreServiceEntryPoint.SINKS)
 public class SinksBean {
-
     private static final String NOT_FOUND_MESSAGE = "resource not found";
 
     @PersistenceContext
     EntityManager entityManager;
 
     /**
-     * Retrieves flow from underlying data store
+     * Retrieves sink from underlying data store
      *
-     * @param id flow identifier
+     * @param id sink identifier
      *
-     * @return a HTTP 200 response with flow content as JSON,
+     * @return a HTTP 200 response with sink content as JSON,
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
      */

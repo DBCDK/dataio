@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -17,8 +18,15 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SinksBeanTest {
+    Logger logger = LoggerFactory.getLogger(SinksBeanTest.class);
+
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
 
     @Test
@@ -83,6 +91,28 @@ public class SinksBeanTest {
         assertThat(entityNode.size(), is(2));
         assertThat(entityNode.get(0).get("content").get("name").textValue(), is(nameSinkA));
         assertThat(entityNode.get(1).get("content").get("name").textValue(), is(nameSinkB));
+    }
+
+    @Test
+    public void getSink_noSinkFound_returnsResponseWithHttpStatusNotFound() throws JsonException {
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(null);
+        Response response = sinksBean.getSink(1L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void getSink_sinkFound_returnsResponseWithHttpStatusOK() throws JsonException {
+        final Sink sink = new Sink();
+        sink.setContent(new SinkContentJsonBuilder().setName("testSink").build());
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(sink);
+
+        Response response = sinksBean.getSink(1L);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        assertThat(entityNode.get("content").get("name").textValue(), is("testSink"));
     }
 
     public static SinksBean newSinksBeanWithMockedEntityManager() {

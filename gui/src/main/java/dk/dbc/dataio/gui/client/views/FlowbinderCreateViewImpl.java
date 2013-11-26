@@ -23,7 +23,7 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     // Constants (These are not all private since we use them in the selenium tests)
     public static final int    FLOWBINDER_CREATION_NAME_MAX_LENGTH = 160;
     public static final int    FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
-    
+
     public static final String GUIID_FLOWBINDER_CREATION_WIDGET = "flowbindercreationwidget";
     public static final String GUIID_FLOWBINDER_CREATION_NAME_PANEL = "flowbindercreationnamepanel";
     public static final String GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL = "flowbindercreationdescriptionpanel";
@@ -54,28 +54,28 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
 
     public FlowbinderCreateViewImpl() {
         getElement().setId(GUIID_FLOWBINDER_CREATION_WIDGET);
-        
+
         flowbinderNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderNamePanel);
-        
+
         flowbinderDescriptionPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderDescriptionPanel);
-        
+
         flowbinderFramePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         flowbinderFramePanel.addToolTip(constants.tooltip_FrameFormat());
         add(flowbinderFramePanel);
-        
+
         flowbinderContentFormatPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         flowbinderContentFormatPanel.addToolTip(constants.tooltip_ContentFormat());
         add(flowbinderContentFormatPanel);
-        
+
         flowbinderCharacterSetPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         flowbinderCharacterSetPanel.addToolTip(constants.tooltip_CharacterSet());
         add(flowbinderCharacterSetPanel);
-        
+
         flowbinderDestinationPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(flowbinderDestinationPanel);
-        
+
         flowbinderRecordSplitterPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         flowbinderRecordSplitterPanel.setText(constants.label_DefaultRecordSplitter());
         flowbinderRecordSplitterPanel.setEnabled(false);
@@ -87,15 +87,15 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderFlowPanel.setEnabled(false);
         flowbinderFlowPanel.addChangeHandler(new SomethingHasChanged());
         add(flowbinderFlowPanel);
-        
+
         flowbinderSinkPanel.setEnabled(false);
         flowbinderSinkPanel.addChangeHandler(new SomethingHasChanged());
         add(flowbinderSinkPanel);
-        
+
         add(saveButton);
     }
 
-    
+
     /*
      * Implementation of interface methods
      */
@@ -124,8 +124,8 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderFlowPanel.clear();
         if (!availableFlows.isEmpty()) {
             flowbinderFlowPanel.setEnabled(true);
-            for (String key: availableFlows.keySet()) {
-               flowbinderFlowPanel.setAvailableItem(availableFlows.get(key), key);
+            for(Map.Entry<String, String> entry : availableFlows.entrySet()) {
+                flowbinderFlowPanel.setAvailableItem(entry.getValue(), entry.getKey());
             }
         }
     }
@@ -135,8 +135,8 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderSubmittersPanel.clear();
         if (!availableSubmitters.isEmpty()) {
             flowbinderSubmittersPanel.setEnabled(true);
-            for (String key: availableSubmitters.keySet()) {
-                flowbinderSubmittersPanel.addAvailableItem(availableSubmitters.get(key), key);
+            for(Map.Entry<String, String> entry : availableSubmitters.entrySet()) {
+                flowbinderSubmittersPanel.addAvailableItem(entry.getValue(), entry.getKey());
             }
         }
     }
@@ -146,13 +146,13 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         flowbinderSinkPanel.clear();
         if (!availableSinks.isEmpty()) {
             flowbinderSinkPanel.setEnabled(true);
-            for (String key: availableSinks.keySet()) {
-               flowbinderSinkPanel.setAvailableItem(availableSinks.get(key), key);
+            for(Map.Entry<String, String> entry : availableSinks.entrySet()) {
+               flowbinderSinkPanel.setAvailableItem(entry.getValue(), entry.getKey());
             }
         }
     }
-    
-    
+
+
     /*
      * Private methods
      */
@@ -204,13 +204,13 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
             changeDetected();
         }
     }
-    
+
     private class SomethingHasChanged implements ChangeHandler {
         @Override
         public void onChange(ChangeEvent event) {
             changeDetected();
         }
-        
+
     }
-    
+
 }

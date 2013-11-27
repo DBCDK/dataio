@@ -1,10 +1,13 @@
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.sink.InvalidMessageSinkException;
 import dk.dbc.dataio.sink.SinkException;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
 import javax.ejb.EJBHome;
@@ -16,8 +19,14 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 import javax.transaction.UserTransaction;
-import java.security.Identity;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
@@ -40,6 +49,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class EsMessageProcessorBeanTest {
     private static final int RECORDS_CAPACITY = 1;
     private static final String ES_DATABASE_NAME = "dbname";
+    private final String chunkResultWithOneValidAddiRecord = generateChunkResultJsonWithResource("/1record.addi");
     private final EsConnectorBean esConnector = mock(EsConnectorBean.class);
     private final EsInFlightBean esInFlightAdmin = mock(EsInFlightBean.class);
 
@@ -125,6 +135,22 @@ public class EsMessageProcessorBeanTest {
     }
 
     @Test(expected = InvalidMessageSinkException.class)
+    public void validateMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_throws() throws InvalidMessageSinkException, JMSException {
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText(new ChunkResultJsonBuilder().build());
+        getInitializedBean().validateMessage(textMessage);
+    }
+
+    @Test
+    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_noTransactionRollback() throws JMSException {
+        final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
+        final MockedTextMessage textMessage = new MockedTextMessage();
+        textMessage.setText(new ChunkResultJsonBuilder().build());
+        esMessageProcessorBean.onMessage(textMessage);
+        assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
+    }
+
+    @Test(expected = InvalidMessageSinkException.class)
     public void validateMessage_messageArgPayloadTriggersDefaultConstructorWhenUnmarshalling_throws() throws InvalidMessageSinkException, JMSException {
         final MockedTextMessage textMessage = new MockedTextMessage();
         textMessage.setText("{}");
@@ -133,10 +159,10 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void onMessage_esConnectorThrowsSinkException_transactionRollback() throws JMSException, SinkException {
-        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenThrow(new SinkException("TEST"));
+        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenThrow(new SinkException("TEST"));
         final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
         final MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText(new ChunkResultJsonBuilder().build());
+        textMessage.setText(chunkResultWithOneValidAddiRecord);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(true));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
@@ -144,10 +170,10 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void onMessage_esConnectorThrowsSystemException_transactionRollback() throws JMSException, SinkException {
-        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenThrow(new RuntimeException("TEST"));
+        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenThrow(new RuntimeException("TEST"));
         final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
         final MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText(new ChunkResultJsonBuilder().build());
+        textMessage.setText(chunkResultWithOneValidAddiRecord);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(true));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
@@ -155,11 +181,11 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void onMessage_esInFlightAdminThrowsSystemException_transactionRollback() throws JMSException, SinkException {
-        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenReturn(42);
+        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenReturn(42);
         doThrow(new RuntimeException("TEST")).when(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
         final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
         final MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText(new ChunkResultJsonBuilder().build());
+        textMessage.setText(chunkResultWithOneValidAddiRecord);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(true));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
@@ -167,11 +193,11 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void onMessage_processingSucceeds_esThrottlerIsUpdated() throws JMSException, SinkException {
-        when(esConnector.insertEsTaskPackage(any(ChunkResult.class))).thenReturn(42);
+        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenReturn(42);
         doNothing().when(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
         final EsMessageProcessorBean esMessageProcessorBean = getInitializedBean();
         final MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText(new ChunkResultJsonBuilder().build());
+        textMessage.setText(chunkResultWithOneValidAddiRecord);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.messageDrivenContext.getRollbackOnly(), is(false));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY - 1));
@@ -184,12 +210,36 @@ public class EsMessageProcessorBeanTest {
         configuration.esRecordsCapacity = RECORDS_CAPACITY;
         configuration.esDatabaseName = ES_DATABASE_NAME;
         esMessageProcessorBean.configuration = configuration;
+        esMessageProcessorBean.esTaskPackageInserter = new ESTaskPackageInserterBean();
         esMessageProcessorBean.esThrottler = new EsThrottlerBean();
         esMessageProcessorBean.esThrottler.configuration = configuration;
         esMessageProcessorBean.esThrottler.initialize();
         esMessageProcessorBean.esConnector = esConnector;
         esMessageProcessorBean.esInFlightAdmin = esInFlightAdmin;
         return esMessageProcessorBean;
+    }
+
+    private String generateChunkResultJsonWithResource(String resourceName) {
+        try {
+            return JsonUtil.toJson(new ChunkResultBuilder()
+                    .setResults(Arrays.asList(encodeBase64(getResourceAsString(resourceName))))
+                    .build());
+        } catch (JsonException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private String getResourceAsString(String resourceName) {
+        final URL resource = EsMessageProcessorBeanTest.class.getResource(resourceName);
+        try {
+            return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
+        } catch (IOException | URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private String encodeBase64(String dataToEncode) {
+        return Base64.encodeBase64String(dataToEncode.getBytes(StandardCharsets.UTF_8));
     }
 
     private static class MockedTextMessage implements TextMessage {
@@ -313,9 +363,9 @@ public class EsMessageProcessorBeanTest {
         @Override public EJBHome getEJBHome() throws IllegalStateException { return null; }
         @Override public EJBLocalHome getEJBLocalHome() throws IllegalStateException { return null; }
         @Override public Properties getEnvironment() { return null; }
-        @Override public Identity getCallerIdentity() { return null; }
+        @Override public java.security.Identity getCallerIdentity() { return null; }
         @Override public Principal getCallerPrincipal() throws IllegalStateException { return null; }
-        @Override public boolean isCallerInRole(Identity identity) { return false; }
+        @Override public boolean isCallerInRole(java.security.Identity identity) { return false; }
         @Override public boolean isCallerInRole(String s) throws IllegalStateException { return false; }
         @Override public UserTransaction getUserTransaction() throws IllegalStateException { return null; }
         @Override public void setRollbackOnly() throws IllegalStateException { rollbackOnly = true; }

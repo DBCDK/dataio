@@ -1,6 +1,5 @@
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.sink.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,6 @@ import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -21,6 +19,9 @@ public class EsConnectorBean {
 
     @EJB
     EsSinkConfigurationBean configuration;
+
+    @EJB
+    ESTaskPackageInserterBean esTaskPackageInserter;
 
     public Connection getConnection() throws SQLException, NamingException {
         final DataSource dataSource = doDataSourceLookup();
@@ -37,12 +38,11 @@ public class EsConnectorBean {
         return initialContext;
     }
 
-    public int insertEsTaskPackage(ChunkResult chunkResult) throws SinkException {
+    public int insertEsTaskPackage(EsWorkload esWorkload) throws SinkException {
         try (final Connection connection = getConnection()) {
-            final ESTaskPackageInserter esTaskPackageInserter = new ESTaskPackageInserter(
-                    connection, configuration.getEsDatabaseName(), chunkResult);
-            return esTaskPackageInserter.getTargetReference();
-        } catch (SQLException | NamingException | IOException e) {
+            return esTaskPackageInserter.insertTaskPackage(
+                    connection, configuration.getEsDatabaseName(), esWorkload);
+        } catch (SQLException | NamingException e) {
             throw new SinkException("Failed to insert ES task package", e);
         }
     }

@@ -17,6 +17,7 @@ import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
+import java.io.IOException;
 
 @MessageDriven
 public class EsMessageProcessorBean {
@@ -32,6 +33,9 @@ public class EsMessageProcessorBean {
 
     @EJB
     EsConnectorBean esConnector;
+
+    @EJB
+    ESTaskPackageInserterBean esTaskPackageInserter;
 
     @EJB
     EsInFlightBean esInFlightAdmin;
@@ -70,10 +74,10 @@ public class EsMessageProcessorBean {
         int messageDeliveryCount = 0;
 
         try {
-            final ChunkResult chunkResult = validateMessage(message);
+            final EsWorkload workload = validateMessage(message);
             messageId = message.getJMSMessageID();
             messageDeliveryCount = message.getIntProperty(DELIVERY_COUNT_PROPERTY);
-            processChunkResult(chunkResult);
+            processWorkload(workload);
         } catch (InvalidMessageSinkException e) {
             LOGGER.error("Message rejected", e);
         } catch (Throwable t) {
@@ -87,27 +91,27 @@ public class EsMessageProcessorBean {
 
     /* To prevent message poisoning where invalid messages will be re-delivered
        forever, all messages must be validated */
-    ChunkResult validateMessage(Message message) throws InvalidMessageSinkException {
+    EsWorkload validateMessage(Message message) throws InvalidMessageSinkException {
         if (message == null) {
             throw new InvalidMessageSinkException("Message can not be null");
         }
 
-        ChunkResult chunkResult;
+        final EsWorkload workload;
         try {
             final String messageId = message.getJMSMessageID();
             LOGGER.info("Validating message<{}> with deliveryCount={}", messageId, message.getIntProperty(DELIVERY_COUNT_PROPERTY));
             if (!(message instanceof TextMessage)) {
                 throw new InvalidMessageSinkException(String.format("Message<%s> was not of type TextMessage", messageId));
             }
-            chunkResult = validateMessagePayload(messageId, ((TextMessage) message).getText());
+            workload = validateMessagePayload(messageId, ((TextMessage) message).getText());
 
         } catch (JMSException e) {
             throw new InvalidMessageSinkException("Unexpected exception during message validation");
         }
-        return chunkResult;
+        return workload;
     }
 
-    private ChunkResult validateMessagePayload(String messageId, String messagePayload) throws JMSException, InvalidMessageSinkException {
+    private EsWorkload validateMessagePayload(String messageId, String messagePayload) throws JMSException, InvalidMessageSinkException {
         ChunkResult chunkResult;
         if (messagePayload == null) {
             throw new InvalidMessageSinkException(String.format("Message<%s> payload was null", messageId));
@@ -118,32 +122,39 @@ public class EsMessageProcessorBean {
         try {
             chunkResult = JsonUtil.fromJson(messagePayload, ChunkResult.class, MixIns.getMixIns());
         } catch (JsonException e) {
-            throw new InvalidMessageSinkException(String.format("Message<%s> payload was not valid ChunkResult type: %s", messageId, e));
+            throw new InvalidMessageSinkException(String.format("Message<%s> payload was not valid ChunkResult type", messageId), e);
         }
-        if (chunkResult.getResults().isEmpty()) {
-            throw new InvalidMessageSinkException(String.format("Message<%s> ChunkResult payload contains no results: payload='%s'", messageId, messagePayload));
-        }
-        return chunkResult;
+        return validateChunkResult(messageId, chunkResult);
     }
 
-    void processChunkResult(ChunkResult chunkResult) throws InterruptedException, SinkException {
-        esThrottler.acquireRecordSlots(chunkResult.getResults().size());
+    private EsWorkload validateChunkResult(String messageId, ChunkResult chunkResult) throws InvalidMessageSinkException {
+        if (chunkResult.getResults().isEmpty()) {
+            throw new InvalidMessageSinkException(String.format("Message<%s> ChunkResult payload contains no results", messageId));
+        }
         try {
-            final int targetReference = esConnector.insertEsTaskPackage(chunkResult);
+            return new EsWorkload(chunkResult, esTaskPackageInserter.getAddiRecordsFromChunk(chunkResult));
+        } catch (RuntimeException | IOException e) {
+            throw new InvalidMessageSinkException(String.format("Message<%s> ChunkResult payload contained invalid addi", messageId), e);
+        }
+    }
 
+    void processWorkload(EsWorkload workload) throws InterruptedException, SinkException {
+        esThrottler.acquireRecordSlots(workload.getAddiRecords().size());
+        try {
+            final int targetReference = esConnector.insertEsTaskPackage(workload);
             final EsInFlight esInFlight = new EsInFlight();
             esInFlight.setResourceName(configuration.getEsResourceName());
+            esInFlight.setJobId(workload.getChunkResult().getJobId());
+            esInFlight.setChunkId(workload.getChunkResult().getChunkId());
+            esInFlight.setRecordSlots(workload.getAddiRecords().size());
             esInFlight.setTargetReference(targetReference);
-            esInFlight.setJobId(chunkResult.getJobId());
-            esInFlight.setChunkId(chunkResult.getChunkId());
-            esInFlight.setRecordSlots(chunkResult.getResults().size());
             esInFlightAdmin.addEsInFlight(esInFlight);
 
             LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
-                    targetReference, chunkResult.getChunkId(), chunkResult.getJobId());
+                    targetReference, workload.getChunkResult().getChunkId(), workload.getChunkResult().getJobId());
 
         } catch (Throwable t) {
-            esThrottler.releaseRecordSlots(chunkResult.getResults().size());
+            esThrottler.releaseRecordSlots(workload.getAddiRecords().size());
             throw t;
         }
     }

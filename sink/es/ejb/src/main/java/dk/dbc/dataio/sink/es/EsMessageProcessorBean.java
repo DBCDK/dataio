@@ -35,9 +35,6 @@ public class EsMessageProcessorBean {
     EsConnectorBean esConnector;
 
     @EJB
-    ESTaskPackageInserterBean esTaskPackageInserter;
-
-    @EJB
     EsInFlightBean esInFlightAdmin;
 
     @EJB
@@ -132,7 +129,7 @@ public class EsMessageProcessorBean {
             throw new InvalidMessageSinkException(String.format("Message<%s> ChunkResult payload contains no results", messageId));
         }
         try {
-            return new EsWorkload(chunkResult, esTaskPackageInserter.getAddiRecordsFromChunk(chunkResult));
+            return new EsWorkload(chunkResult, ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult));
         } catch (RuntimeException | IOException e) {
             throw new InvalidMessageSinkException(String.format("Message<%s> ChunkResult payload contained invalid addi", messageId), e);
         }

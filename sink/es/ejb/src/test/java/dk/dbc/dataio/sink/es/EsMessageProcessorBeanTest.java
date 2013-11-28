@@ -210,7 +210,6 @@ public class EsMessageProcessorBeanTest {
         configuration.esRecordsCapacity = RECORDS_CAPACITY;
         configuration.esDatabaseName = ES_DATABASE_NAME;
         esMessageProcessorBean.configuration = configuration;
-        esMessageProcessorBean.esTaskPackageInserter = new ESTaskPackageInserterBean();
         esMessageProcessorBean.esThrottler = new EsThrottlerBean();
         esMessageProcessorBean.esThrottler.configuration = configuration;
         esMessageProcessorBean.esThrottler.initialize();

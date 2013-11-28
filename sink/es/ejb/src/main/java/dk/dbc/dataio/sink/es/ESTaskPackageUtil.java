@@ -1,6 +1,14 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,12 +16,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 public class ESTaskPackageUtil {
 
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(ESTaskPackageUtil.class);
+    private static final String ES_TASKPACKAGE_CREATOR_FIELD_PREFIX = "dataio: ";
 
     public static List<TaskStatus> findCompletionStatusForTaskpackages(Connection conn, List<Integer> taskpackages) {
         LOGGER.entry();
@@ -61,6 +71,83 @@ public class ESTaskPackageUtil {
         }
     }
 
+    private static String commaSeparatedQuestionMarks(int size) {
+        LOGGER.entry();
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < size; i++) {
+                sb.append(i < size - 1 ? "?, " : "?");
+            }
+            return sb.toString();
+        } finally {
+            LOGGER.exit();
+        }
+    }
+
+    private static String decodeBase64(String dataToDecode, Charset charset) {
+        return new String(Base64.decodeBase64(dataToDecode), charset);
+    }
+
+    /**
+     * Extracts addi-records from given chunk result.
+     *
+     * Records in chunk result are assumed to be base64 encoded.
+     *
+     * @param chunkResult Object containing base64 encoded addi-records
+     *
+     * @return list of AddiRecord objects.
+     *
+     * @throws IOException if an error occurs during reading of the addi-data.
+     * @throws IllegalStateException if any contained addi-records are invalid.
+     * @throws NumberFormatException if any contained records are not addi-format or not base64 encoded.
+     */
+    public static List getAddiRecordsFromChunk(ChunkResult chunkResult) throws IllegalStateException, NumberFormatException, IOException {
+        final List<AddiRecord> addiRecords = new ArrayList<>();
+        for (String result : chunkResult.getResults()) {
+            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(decodeBase64(result, chunkResult.getEncoding()).getBytes(chunkResult.getEncoding())));
+            addiRecords.add(addiReader.getNextRecord());
+            if (addiReader.getNextRecord() != null) {
+                throw new IllegalStateException(String.format("More than one Addi in record in: [jobId, chunkId] [%d, %d]", chunkResult.getJobId(), chunkResult.getChunkId()));
+            }
+        }
+        return addiRecords;
+    }
+
+    /**
+     * Inserts the addi-records contained in given workload into the ES-base with the given dbname.
+     *
+     * @param esConn Database connection to the ES-base.
+     * @param dbname ES internal database name in which the task package shall be associated.
+     * @param esWorkload Object containing both the addi-records to insert into the ES-base and the originating chunk result.
+     *
+     * @throws SQLException if a database error occurs.
+     * @throws IllegalStateException if the number of records in the chunk and the task package differ.
+     */
+    public static int insertTaskPackage(Connection esConn, String dbname, EsWorkload esWorkload) throws IllegalStateException, SQLException {
+        InvariantUtil.checkNotNullOrThrow(esConn, "esConn");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(dbname, "dbname");
+        InvariantUtil.checkNotNullOrThrow(esWorkload, "esInFlight");
+        final String creator = createCreatorString(esWorkload.getChunkResult().getJobId(), esWorkload.getChunkResult().getChunkId());
+        final ESUtil.AddiListInsertionResult insertionResult = ESUtil.insertAddiList(esConn, esWorkload.getAddiRecords(), dbname, esWorkload.getChunkResult().getEncoding(), creator);
+        validateTaskPackageState(insertionResult, esWorkload);
+        return insertionResult.getTargetReference();
+    }
+
+    private static void validateTaskPackageState(ESUtil.AddiListInsertionResult insertionResult, EsWorkload esWorkload) throws IllegalStateException {
+        final int recordSlots = esWorkload.getAddiRecords().size();
+        if (recordSlots != insertionResult.getNumberOfInsertedRecords()) {
+            throw new IllegalStateException(String.format("The number of records in the chunk and the number of records in the taskpackage differ. Chunk size: %d  TaskPackage size: %d", recordSlots, insertionResult.getNumberOfInsertedRecords()));
+        }
+    }
+
+    private static String createCreatorString(long jobId, long chunkId) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(ES_TASKPACKAGE_CREATOR_FIELD_PREFIX);
+        sb.append("[ jobid: ").append(jobId);
+        sb.append(" , chunkId: ").append(chunkId).append(" ]");
+        return sb.toString();
+    }
+
     public static class TaskStatus {
 
         private final TaskStatusCode taskStatus;
@@ -82,12 +169,9 @@ public class ESTaskPackageUtil {
 
     public static enum TaskStatusCode {
 
-        PENDING(0), ACTIVE(1), COMPLETE(2), ABORTED(3);
+        PENDING, ACTIVE, COMPLETE, ABORTED;
 
-        private final int status;
-
-        private TaskStatusCode(int status) {
-            this.status = status;
+        private TaskStatusCode() {
         }
 
         public static TaskStatusCode getStatusCode(int i) {
@@ -103,19 +187,6 @@ public class ESTaskPackageUtil {
                 default:
                     throw new IllegalArgumentException(i + " is not a valid code for TaskStatusCode.");
             }
-        }
-    }
-
-    private static String commaSeparatedQuestionMarks(int size) {
-        LOGGER.entry();
-        try {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < size; i++) {
-                sb.append(i < size - 1 ? "?, " : "?");
-            }
-            return sb.toString();
-        } finally {
-            LOGGER.exit();
         }
     }
 }

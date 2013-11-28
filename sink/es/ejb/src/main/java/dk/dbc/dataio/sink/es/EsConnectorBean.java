@@ -20,9 +20,6 @@ public class EsConnectorBean {
     @EJB
     EsSinkConfigurationBean configuration;
 
-    @EJB
-    ESTaskPackageInserterBean esTaskPackageInserter;
-
     public Connection getConnection() throws SQLException, NamingException {
         final DataSource dataSource = doDataSourceLookup();
         return dataSource.getConnection();
@@ -40,7 +37,7 @@ public class EsConnectorBean {
 
     public int insertEsTaskPackage(EsWorkload esWorkload) throws SinkException {
         try (final Connection connection = getConnection()) {
-            return esTaskPackageInserter.insertTaskPackage(
+            return ESTaskPackageUtil.insertTaskPackage(
                     connection, configuration.getEsDatabaseName(), esWorkload);
         } catch (SQLException | NamingException e) {
             throw new SinkException("Failed to insert ES task package", e);

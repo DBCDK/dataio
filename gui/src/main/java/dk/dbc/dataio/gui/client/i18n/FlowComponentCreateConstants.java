@@ -6,49 +6,49 @@ import com.google.gwt.i18n.client.Constants;
 public interface FlowComponentCreateConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_ComponentName();
 
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SvnProject();
 
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SvnRevision();
 
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_ScriptName();
 
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_InvocationMethod();
 
 
     // Button Texts
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
 
 
     // Error messages
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ScmProjectNotFoundError();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ScmIllegalProjectNameError();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_JavaScriptReferenceError();
     
     
     // Status messages
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_FlowComponentSuccessfullySaved();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_SavingFlowComponent();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_Busy();
     
 }

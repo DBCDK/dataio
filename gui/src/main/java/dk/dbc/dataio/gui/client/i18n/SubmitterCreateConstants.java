@@ -6,37 +6,37 @@ import com.google.gwt.i18n.client.Constants;
 public interface SubmitterCreateConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SubmitterNumber();
 
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SubmitterName();
 
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Description();
 
 
     // Buttons
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
 
 
     // Error messages
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NumberInputFieldValidationError();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ProxyKeyViolationError();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ProxyDataValidationError();
     
     
     // Status messages
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_SubmitterSuccessfullySaved();
     
 }

@@ -6,24 +6,24 @@ import com.google.gwt.i18n.client.Constants;
 public interface FlowComponentsShowConstants extends Constants {
     
     // Labels
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_FlowComponents();
 
     
     // Column Headers
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Name();
 
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Project();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Revision();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_ScriptName();
     
-    @DefaultStringValue("<translated text is missing>")
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_InvocationMethod();
 
 }

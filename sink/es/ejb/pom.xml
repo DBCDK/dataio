@@ -86,6 +86,7 @@
         <version>2.3</version>
         <configuration>
           <ejbVersion>3.1</ejbVersion>
+          <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
         </configuration>
       </plugin>
       <plugin>

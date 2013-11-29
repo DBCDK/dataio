@@ -25,25 +25,26 @@ public class ESTaskPackageUtil {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(ESTaskPackageUtil.class);
     private static final String ES_TASKPACKAGE_CREATOR_FIELD_PREFIX = "dataio: ";
 
-    public static List<TaskStatus> findCompletionStatusForTaskpackages(Connection conn, List<Integer> taskpackages) {
+    public static List<TaskStatus> findCompletionStatusForTaskpackages(Connection conn, List<Integer> targetreferences) throws SQLException {
         LOGGER.entry();
         try {
             // Tested through integrationtests
             final String retrieveStatement = "select targetreference, taskstatus from taskpackage where targetreference in ("
-                    + commaSeparatedQuestionMarks(taskpackages.size()) + ")";
+                    + commaSeparatedQuestionMarks(targetreferences.size()) + ")";
             List<TaskStatus> taskStatusList = new ArrayList<>();
             PreparedStatement ps = null;
             ResultSet rs = null;
             try {
-                ps = JDBCUtil.query(conn, retrieveStatement, taskpackages.toArray());
+                ps = JDBCUtil.query(conn, retrieveStatement, targetreferences.toArray());
                 rs = ps.getResultSet();
                 while (rs.next()) {
-                    int taskpackage = rs.getInt(1);
+                    int targetreference = rs.getInt(1);
                     int statusCode = rs.getInt(2);
-                    taskStatusList.add(new TaskStatus(taskpackage, statusCode));
+                    taskStatusList.add(new TaskStatus(targetreference, statusCode));
                 }
             } catch (SQLException ex) {
-                // todo:  Fill in the blank!
+                LOGGER.warn("SQLException caught while trying to find completion status for taskpackages with retrieve statement: {}", retrieveStatement, ex);
+                throw ex;
             } finally {
                 JDBCUtil.closeResultSet(rs);
                 JDBCUtil.closeStatement(ps);
@@ -150,42 +151,42 @@ public class ESTaskPackageUtil {
 
     public static class TaskStatus {
 
-        private final TaskStatusCode taskStatus;
+        private final Code taskStatus;
         private final int targetreference;
 
         public TaskStatus(int taskStatus, int targetreference) {
-            this.taskStatus = TaskStatusCode.getStatusCode(taskStatus);
+            this.taskStatus = Code.getCode(taskStatus);
             this.targetreference = targetreference;
         }
 
-        public TaskStatusCode getTaskStatus() {
+        public Code getTaskStatus() {
             return taskStatus;
         }
 
         public int getTargetReference() {
             return targetreference;
         }
-    }
 
-    public static enum TaskStatusCode {
+        public static enum Code {
 
-        PENDING, ACTIVE, COMPLETE, ABORTED;
+            PENDING, ACTIVE, COMPLETE, ABORTED;
 
-        private TaskStatusCode() {
-        }
+            private Code() {
+            }
 
-        public static TaskStatusCode getStatusCode(int i) {
-            switch (i) {
-                case 0:
-                    return PENDING;
-                case 1:
-                    return ACTIVE;
-                case 2:
-                    return COMPLETE;
-                case 3:
-                    return ABORTED;
-                default:
-                    throw new IllegalArgumentException(i + " is not a valid code for TaskStatusCode.");
+            private static Code getCode(int i) {
+                switch (i) {
+                    case 0:
+                        return PENDING;
+                    case 1:
+                        return ACTIVE;
+                    case 2:
+                        return COMPLETE;
+                    case 3:
+                        return ABORTED;
+                    default:
+                        throw new IllegalArgumentException(i + " is not a valid taskstatus code.");
+                }
             }
         }
     }

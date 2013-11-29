@@ -52,7 +52,7 @@ public class ESTaskPackageUtilTest {
         assertThat(status.size(), is(1));
         ESTaskPackageUtil.TaskStatus taskStatus = status.get(0);
         assertThat(taskStatus.getTargetReference(), is(42));
-        assertThat(taskStatus.getTaskStatus(), is(ESTaskPackageUtil.TaskStatusCode.COMPLETE));
+        assertThat(taskStatus.getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.COMPLETE));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -131,6 +131,45 @@ public class ESTaskPackageUtilTest {
 
         ESTaskPackageUtil.insertTaskPackage(esConn, DB_NAME, esWorkload);
     }
+
+    @Test
+    public void taskStatus_PendingCode() {
+        final int targetReference = 42;
+        ESTaskPackageUtil.TaskStatus ts = new ESTaskPackageUtil.TaskStatus(0, targetReference);
+        assertThat(ts.getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.PENDING));
+        assertThat(ts.getTargetReference(), is(targetReference));
+    }
+
+    @Test
+    public void taskStatus_ActiveCode() {
+        final int targetReference = 42;
+        ESTaskPackageUtil.TaskStatus ts = new ESTaskPackageUtil.TaskStatus(1, targetReference);
+        assertThat(ts.getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.ACTIVE));
+        assertThat(ts.getTargetReference(), is(targetReference));
+    }
+
+    @Test
+    public void taskStatus_CompleteCode() {
+        final int targetReference = 42;
+        ESTaskPackageUtil.TaskStatus ts = new ESTaskPackageUtil.TaskStatus(2, targetReference);
+        assertThat(ts.getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.COMPLETE));
+        assertThat(ts.getTargetReference(), is(targetReference));
+    }
+
+    @Test
+    public void taskStatus_AbortedCode() {
+        final int targetReference = 42;
+        ESTaskPackageUtil.TaskStatus ts = new ESTaskPackageUtil.TaskStatus(3, targetReference);
+        assertThat(ts.getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.ABORTED));
+        assertThat(ts.getTargetReference(), is(targetReference));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void taskStatus_IllegalCode_throws() {
+        final int targetReference = 42;
+        new ESTaskPackageUtil.TaskStatus(5, targetReference);
+    }
+
 
     private EsWorkload newEsWorkload(String record) throws IOException {
         return new EsWorkload(newChunkResult(record), Arrays.asList(newAddiRecordFromString(record)));

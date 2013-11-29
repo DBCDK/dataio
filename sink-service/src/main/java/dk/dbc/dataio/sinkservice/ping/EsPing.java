@@ -3,8 +3,6 @@ package dk.dbc.dataio.sinkservice.ping;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -16,7 +14,6 @@ import java.util.List;
  * Pings application server for resources necessary for sink ESbase connectivity
  */
 public class EsPing {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EsPing.class);
 
     private EsPing() { }
 

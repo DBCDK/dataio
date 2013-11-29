@@ -13,12 +13,8 @@ import java.util.ArrayList;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.ScriptableObject;
-import org.slf4j.ext.XLoggerFactory;
-import org.slf4j.ext.XLogger;
 
 public class JavascriptUtil {
-
-    private static XLogger log = XLoggerFactory.getXLogger(JavascriptUtil.class);
 
     /**
      * Function for retrieving the top-level function names from a javascript.

@@ -28,7 +28,7 @@ public class MainPanel extends DockLayoutPanel {
     public static final String GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION = "navigationbuttonsubmittercreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION = "navigationbuttonflowbindercreation";
     public static final String GUIID_NAVIGATION_MENU_ITEM_SINK_CREATION = "navigationbuttonsinkcreation";
-    public static final String GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_SHOW = "navigationbuttonflowcomponentsshow";
+    public static final String GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENTS_SHOW = "navigationbuttonflowcomponentsshow";
     private static final String GUIID_MAIN_PANEL_LAYOUT = "main-panel-layout";
 
     public final ContentPanel contentPanel = new ContentPanel("content-panel-layout");
@@ -82,7 +82,7 @@ public class MainPanel extends DockLayoutPanel {
             add(new NavigationButton(2, constants.header_SubmitterCreation(), GUIID_NAVIGATION_MENU_ITEM_SUBMITTER_CREATION));
             add(new NavigationButton(3, constants.header_FlowbinderCreation(), GUIID_NAVIGATION_MENU_ITEM_FLOWBINDER_CREATION));
             add(new NavigationButton(4, constants.header_SinkCreation(), GUIID_NAVIGATION_MENU_ITEM_SINK_CREATION));
-            add(new NavigationButton(5, constants.header_FlowComponentsShow(), GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENT_SHOW));
+            add(new NavigationButton(5, constants.header_FlowComponentsShow(), GUIID_NAVIGATION_MENU_ITEM_FLOW_COMPONENTS_SHOW));
             // ...
         }
     }

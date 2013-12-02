@@ -320,7 +320,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         return Collections.emptyList();
     }
 
-
+    @SuppressWarnings("PMD.CollapsibleIfStatements") // The code is more readable without collapsed if-statements
     private static JavaScriptProjectFetcherError interpretSvnException(SVNException e) {
         final String message = e.getMessage();
         if (message != null) {

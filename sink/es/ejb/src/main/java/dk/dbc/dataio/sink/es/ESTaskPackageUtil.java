@@ -40,7 +40,7 @@ public class ESTaskPackageUtil {
                 while (rs.next()) {
                     int targetreference = rs.getInt(1);
                     int statusCode = rs.getInt(2);
-                    taskStatusList.add(new TaskStatus(targetreference, statusCode));
+                    taskStatusList.add(new TaskStatus(statusCode, targetreference));
                 }
             } catch (SQLException ex) {
                 LOGGER.warn("SQLException caught while trying to find completion status for taskpackages with retrieve statement: {}", retrieveStatement, ex);

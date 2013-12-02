@@ -12,6 +12,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 @Stateless
 public class EsConnectorBean {
@@ -41,6 +42,22 @@ public class EsConnectorBean {
                     connection, configuration.getEsDatabaseName(), esWorkload);
         } catch (SQLException | NamingException e) {
             throw new SinkException("Failed to insert ES task package", e);
+        }
+    }
+
+    public List<ESTaskPackageUtil.TaskStatus> getCompletionStatusForESTaskpackages(List<Integer> targetReferences) throws SinkException {
+        try (final Connection connection = getConnection()) {
+            return ESTaskPackageUtil.findCompletionStatusForTaskpackages(connection, targetReferences);
+        } catch (SQLException | NamingException e) {
+            throw new SinkException("Failed to get targetreferences for task packages", e);
+        }
+    }
+
+    public void deleteESTaskpackages(List<Integer> targetReferences) throws SinkException {
+        try (final Connection connection = getConnection()) {
+            ESTaskPackageUtil.deleteTaskpackages(connection, targetReferences);
+        } catch (SQLException | NamingException e) {
+            throw new SinkException("Failed to delete task packages", e);
         }
     }
 

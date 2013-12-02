@@ -44,8 +44,8 @@ public class ESTaskPackageUtilTest {
         when(JDBCUtil.query(any(Connection.class), any(String.class), eq(targetReference))).thenReturn(mockStmt);
         when(mockStmt.getResultSet()).thenReturn(mockRs);
         when(mockRs.next()).thenReturn(true, false);// true first iteration, false second iteration
-        when(mockRs.getInt(eq(1))).thenReturn(2);
-        when(mockRs.getInt(eq(2))).thenReturn(targetReference);
+        when(mockRs.getInt(eq(1))).thenReturn(targetReference);
+        when(mockRs.getInt(eq(2))).thenReturn(2);
 
         List<ESTaskPackageUtil.TaskStatus> status = ESTaskPackageUtil.findCompletionStatusForTaskpackages(mockConn, Arrays.asList(targetReference));
 

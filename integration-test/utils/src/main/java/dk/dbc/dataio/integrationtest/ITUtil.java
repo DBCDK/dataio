@@ -55,9 +55,14 @@ public class ITUtil {
      * @return new connection to underlying h2 database
      */
     public static Connection newDbConnection() throws ClassNotFoundException, SQLException {
+        return newDbConnection("flow_store");
+    }
+
+    public static Connection newDbConnection(String dbname) throws ClassNotFoundException, SQLException {
         Class.forName("org.h2.Driver");
+        System.out.println(String.format("jdbc:h2:tcp://localhost:%s/mem:%s", System.getProperty("h2.port"), dbname));
         Connection conn = DriverManager.getConnection(
-                String.format("jdbc:h2:tcp://localhost:%s/mem:flow_store", System.getProperty("h2.port")),
+                String.format("jdbc:h2:tcp://localhost:%s/mem:%s", System.getProperty("h2.port"), dbname),
                 "root", getDBPasswordInAWayThatFindBugsAccepts());
         conn.setAutoCommit(true);
         return conn;

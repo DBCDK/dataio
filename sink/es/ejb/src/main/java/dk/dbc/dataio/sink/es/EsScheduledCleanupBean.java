@@ -20,7 +20,7 @@ import java.util.Map;
 @LocalBean
 @Singleton
 @Startup
-@DependsOn({"EsSinkConfigurationBean", "EsThrottlerBean"})
+@DependsOn("EsThrottlerBean")
 public class EsScheduledCleanupBean {
 
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(EsScheduledCleanupBean.class);
@@ -40,12 +40,24 @@ public class EsScheduledCleanupBean {
         LOGGER.info("Startup of EsScheduledCleanupBean!");
     }
 
+    /**
+     * Cleanup of ES/Inflight.
+     *
+     * When this thread awakens, it will find the current inflight
+     * targetreferences, find those targetreferences in the ES-base, and if any
+     * of the corresponding taskpackages are completed or aborted they will be
+     * removed. Both from the ES-base and the InFlight-base.
+     *
+     * After that, the semaphore will be decremented with the amount of slots
+     * previously held by the completed/aborted taskpackages.
+     */
     @Schedule(second = "*/30", minute = "*", hour = "*")
     public void cleanup() {
         LOGGER.info("Cleaning up ES-base");
         try {
             Map<Integer, EsInFlight> esInFlightMap = createEsInFlightMap(esInFlightAdmin.listEsInFlight());
             if (esInFlightMap.isEmpty()) {
+                LOGGER.info("No records in ES InFlight.");
                 return;
             }
             List<Integer> targetReferences = new ArrayList<>(esInFlightMap.keySet());
@@ -54,6 +66,7 @@ public class EsScheduledCleanupBean {
             List<TaskStatus> finishedTaskpackages = filterFinsihedTaskpackages(taskStatus);
             List<Integer> finishedTargetReferences = filterTargetReferencesFromTaskStatusList(finishedTaskpackages);
             if (finishedTargetReferences.isEmpty()) {
+                LOGGER.info("No finished taskpackages ES.");
                 return;
             }
             esConnector.deleteESTaskpackages(finishedTargetReferences);
@@ -65,10 +78,9 @@ public class EsScheduledCleanupBean {
             }
 
             // todo: Missing implementation of "callback" to jobhandler of finished chunks with results.
-
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
-            // todo: Fill in the blank!
+            LOGGER.error("A SinkExceptin was thrown during cleanup of ES/inFlight: {}", ex.getMessage(), ex);
         }
     }
 

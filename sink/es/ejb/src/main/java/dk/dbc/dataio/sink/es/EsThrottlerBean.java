@@ -11,6 +11,8 @@ import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -27,6 +29,7 @@ import java.util.concurrent.Semaphore;
 @LocalBean
 @Singleton
 @Startup
+@TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 @DependsOn("EsSinkConfigurationBean")
 public class EsThrottlerBean {

@@ -152,6 +152,7 @@ public class EsMessageProcessorBean {
 
         } catch (Throwable t) {
             esThrottler.releaseRecordSlots(workload.getAddiRecords().size());
+            LOGGER.error("Exception caught during workload processing", t);
             throw t;
         }
     }

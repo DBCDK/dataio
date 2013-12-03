@@ -6,6 +6,10 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -16,9 +20,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.codec.binary.Base64;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 public class ESTaskPackageUtil {
 
@@ -102,7 +103,7 @@ public class ESTaskPackageUtil {
      * @throws IllegalStateException if any contained addi-records are invalid.
      * @throws NumberFormatException if any contained records are not addi-format or not base64 encoded.
      */
-    public static List getAddiRecordsFromChunk(ChunkResult chunkResult) throws IllegalStateException, NumberFormatException, IOException {
+    public static List<AddiRecord> getAddiRecordsFromChunk(ChunkResult chunkResult) throws IllegalStateException, NumberFormatException, IOException {
         final List<AddiRecord> addiRecords = new ArrayList<>();
         for (String result : chunkResult.getResults()) {
             final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(decodeBase64(result, chunkResult.getEncoding()).getBytes(chunkResult.getEncoding())));

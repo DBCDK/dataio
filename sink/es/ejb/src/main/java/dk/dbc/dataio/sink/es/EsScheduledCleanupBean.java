@@ -36,14 +36,18 @@ public class EsScheduledCleanupBean {
     EsThrottlerBean esThrottler;
 
     @PostConstruct
-    public void startup() throws IllegalArgumentException, InterruptedException {
+    public void startup() {
         LOGGER.info("Startup of EsScheduledCleanupBean!");
         List<EsInFlight> esInFlightList = esInFlightAdmin.listEsInFlight();
         LOGGER.info("The following targetrefernces are inFlight in the sink at startup: {}",
                 Arrays.toString( createEsInFlightMap(esInFlightList).keySet().toArray()) );
         int slotsInFlight = sumRecordSlotsInEsInFlightList(esInFlightList);
         LOGGER.info("Sum of recordSlots for inFlight Chunks: [{}]", slotsInFlight);
-        esThrottler.acquireRecordSlots(slotsInFlight);
+        try {
+            esThrottler.acquireRecordSlots(slotsInFlight);
+        } catch(IllegalArgumentException | InterruptedException e) {
+            LOGGER.error("An exception was caught while trying to count down the esThrotler: {}", e.getMessage(), e);
+        }
         // Integrity-test is deffered to the first run of cleanup().
     }
 

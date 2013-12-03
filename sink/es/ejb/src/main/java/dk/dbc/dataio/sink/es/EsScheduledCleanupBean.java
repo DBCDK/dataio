@@ -98,6 +98,7 @@ public class EsScheduledCleanupBean {
         //       then that particular job should be aborted??? Or should we just keep on going???
         //       Or should we set up some mean for adding the taskpackage again and retry???
         LOGGER.info("Method not yet implemented!");
+        LOGGER.info("Number of [taskstatus/esInFlight] : [{}/{}]", taskStatus.size(), esInFlightMap.size());
     }
 
     private List<TaskStatus> filterFinsihedTaskpackages(List<TaskStatus> taskStatus) {

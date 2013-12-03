@@ -19,7 +19,7 @@ import java.util.List;
  * This class represents the show flows activity 
  */
 public class ShowFlowComponentsActivity extends AbstractActivity implements FlowComponentsShowPresenter {
-    private final FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
+//    private final FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
     private ClientFactory clientFactory;
     private FlowComponentsShowView flowComponentsShowView;
     private FlowStoreProxyAsync flowStoreProxy;

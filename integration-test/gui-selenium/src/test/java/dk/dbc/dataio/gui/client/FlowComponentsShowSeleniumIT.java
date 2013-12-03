@@ -23,13 +23,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertTrue;
-import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+
+import org.openqa.selenium.TimeoutException;
 
 public class FlowComponentsShowSeleniumIT {
-//    private static ConstantsProperties texts = new ConstantsProperties("Constants_dk.properties");
-
     private static WebDriver driver;
     private static String appUrl;
     private static Connection conn;
@@ -61,35 +60,46 @@ public class FlowComponentsShowSeleniumIT {
     }
 
     @Test
-    public void testInitialVisibilityOfElements() throws IOException {
-        testFlowComponentsShowNavigationItemIsVisibleAndClickable();
-        testFlowComponentsShowEmptyList_NoContentIsShown();
-    }
-
     public void testFlowComponentsShowNavigationItemIsVisibleAndClickable() {
         assertTrue("Navigation element 'Flowkomponenter' is not shown", findFlowComponentCreateNavigationElement(driver).isDisplayed());
         findFlowComponentCreateNavigationElement(driver).click();
         assertTrue("Flow Component View is not shown", findFlowComponentsShowWidget(driver).isDisplayed());
     }
 
-    public void testFlowComponentsShowEmptyList_NoContentIsShown() {
+    @Test(expected = TimeoutException.class)
+    public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException {
         navigateToFlowComponentsShowWidget(driver);
-        assertTrue("Flow Component table is not empty as expected", findFlowComponentsShowTableElements(driver).isEmpty());
+        SeleniumGWTTable table = new SeleniumGWTTable(driver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
+        table.waitAssertNextRowPresent();
     }
 
     @Test
-    public void testFlowComponentsShowNotEmptyList_ElementsShown() {
+    public void testFlowComponentsInsertOneRow_OneElementShown() {
         final String COMPONENT_NAME = "Flow-component-name";
         FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, COMPONENT_NAME);
         navigateToFlowComponentsShowWidget(driver);
-        waitForTableDataAndAssert(driver, 2, 0, COMPONENT_NAME);
+        SeleniumGWTTable table = new SeleniumGWTTable(driver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
+        table.waitAssertNextRowPresent();
+        List<String> rowData = table.getRow(0);
+        assertThat(rowData.get(0), is(COMPONENT_NAME));
+        assertThat(rowData.get(1), is("invocationMethod"));
     }
     
-//    @Test
-//    public void testxxx() {
-//        navigateToFlowComponentsShowWidget(driver);
-//        tableData = driver.getTable();
-//    }
+    @Test
+    public void testFlowComponentsInsertTwoRows_TwoElementsShown() {
+        final String COMPONENT_NAME_1 = "FlowCoOne";
+        final String COMPONENT_NAME_2 = "FlowCoTwo";
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, COMPONENT_NAME_1);
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, COMPONENT_NAME_2);
+        navigateToFlowComponentsShowWidget(driver);
+        SeleniumGWTTable table = new SeleniumGWTTable(driver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
+        table.waitAssertNextRowPresent(2);
+        List<List<String>> rowData = table.get();
+        assertThat(rowData.get(0).get(0), is(COMPONENT_NAME_1));
+        assertThat(rowData.get(0).get(1), is("invocationMethod"));
+        assertThat(rowData.get(1).get(0), is(COMPONENT_NAME_2));
+        assertThat(rowData.get(1).get(1), is("invocationMethod"));
+    }
     
     private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
         findFlowComponentCreateNavigationElement(webDriver).click();
@@ -103,15 +113,4 @@ public class FlowComponentsShowSeleniumIT {
         return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
     }
 
-    private static List<WebElement> findFlowComponentsShowTableElements(WebDriver webDriver) {
-        return driver.findElement(By.id(FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET)).findElements(By.cssSelector("table>tbody>tr[__gwt_row=\"0\"]>td>div"));
-    }
-    
-    private static void waitForTableDataAndAssert(WebDriver webDriver, long timeToWait, long row, String expectedText) {
-        WebDriverWait wait = new WebDriverWait(webDriver, timeToWait);
-        String cssSelector = "#" + FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET;
-        cssSelector += ">table>tbody>tr[__gwt_row=\"" + row + "\"]>td>div";
-        wait.until(ExpectedConditions.textToBePresentInElement(By.cssSelector(cssSelector), expectedText));
-    }
-    
 }

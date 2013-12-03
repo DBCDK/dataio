@@ -14,6 +14,7 @@ import javax.ejb.Startup;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,9 +36,23 @@ public class EsScheduledCleanupBean {
     EsThrottlerBean esThrottler;
 
     @PostConstruct
-    public void startup() {
-        // Do an initial integrity-check and cleanup of system with respect to the ES-db.
+    public void startup() throws IllegalArgumentException, InterruptedException {
         LOGGER.info("Startup of EsScheduledCleanupBean!");
+        List<EsInFlight> esInFlightList = esInFlightAdmin.listEsInFlight();
+        LOGGER.info("The following targetrefernces are inFlight in the sink at startup: {}",
+                Arrays.toString( createEsInFlightMap(esInFlightList).keySet().toArray()) );
+        int slotsInFlight = sumRecordSlotsInEsInFlightList(esInFlightList);
+        LOGGER.info("Sum of recordSlots for inFlight Chunks: [{}]", slotsInFlight);
+        esThrottler.acquireRecordSlots(slotsInFlight);
+        // Integrity-test is deffered to the first run of cleanup().
+    }
+
+    private int sumRecordSlotsInEsInFlightList(List<EsInFlight> esInFlightList) {
+        int res = 0;
+        for(EsInFlight esInFlight : esInFlightList) {
+            res += esInFlight.getRecordSlots();
+        }
+        return res;
     }
 
     /**

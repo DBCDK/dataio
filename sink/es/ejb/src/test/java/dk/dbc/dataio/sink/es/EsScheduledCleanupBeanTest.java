@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
  * This is a simple white-box test of the EsScheduledCleanupBean.cleanup() method.
  */
 public class EsScheduledCleanupBeanTest {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(EsSinkConfigurationBeanTest.class);
 
     private EsScheduledCleanupBean cleanupBean;
@@ -83,6 +84,24 @@ public class EsScheduledCleanupBeanTest {
         taskStatus_123 = new TaskStatus(2, 123);
         taskStatus_124 = new TaskStatus(1, 124);
         taskStatus_125 = new TaskStatus(0, 125);
+    }
+
+    @Test
+    public void startup_elementsInFlight_throtlerIsCountedDown() throws IllegalArgumentException, InterruptedException {
+        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
+
+        cleanupBean.startup();
+
+        verify(esThrottler).acquireRecordSlots(esInFlight41_1.getRecordSlots() + esInFlight42_1.getRecordSlots() + esInFlight42_2.getRecordSlots() + esInFlight43_1.getRecordSlots());
+    }
+
+    @Test
+    public void startup_noElementsInFlight_throtlerIsNotCountedDown() throws IllegalArgumentException, InterruptedException {
+        when(esInFlightAdmin.listEsInFlight()).thenReturn(emptyEsInFlightList);
+
+        cleanupBean.startup();
+
+        verify(esThrottler).acquireRecordSlots(0);
     }
 
     @Test

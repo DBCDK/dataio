@@ -11,10 +11,14 @@ import javax.persistence.NamedQuery;
 @Entity
 @IdClass(value = EsInFlightPK.class)
 @NamedQueries({
-    @NamedQuery(name = EsInFlight.QUERY_FIND_ALL, query = "SELECT esInFlight FROM EsInFlight esInFlight")
+    @NamedQuery(name = EsInFlight.FIND_ALL, query = EsInFlight.QUERY_FIND_ALL)
 })
 public class EsInFlight {
-    public static final String QUERY_FIND_ALL = "EsInFlight.findAll";
+    public static final String FIND_ALL = "EsInFlight.findAll";
+    public static final String QUERY_PARAMETER_RESOURCENAME = "resourcename";
+    public static final String QUERY_FIND_ALL =
+            "SELECT esInFlight FROM EsInFlight esInFlight WHERE esInFlight.resourcename = :"
+                    + QUERY_PARAMETER_RESOURCENAME;
 
     @Id
     @Lob

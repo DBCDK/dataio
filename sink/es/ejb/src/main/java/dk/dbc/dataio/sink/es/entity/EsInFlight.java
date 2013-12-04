@@ -15,9 +15,9 @@ import javax.persistence.NamedQuery;
 })
 public class EsInFlight {
     public static final String FIND_ALL = "EsInFlight.findAll";
-    public static final String QUERY_PARAMETER_RESOURCENAME = "resourcename";
+    public static final String QUERY_PARAMETER_RESOURCENAME = "resourceName";
     public static final String QUERY_FIND_ALL =
-            "SELECT esInFlight FROM EsInFlight esInFlight WHERE esInFlight.resourcename = :"
+            "SELECT esInFlight FROM EsInFlight esInFlight WHERE esInFlight.resourceName = :"
                     + QUERY_PARAMETER_RESOURCENAME;
 
     @Id

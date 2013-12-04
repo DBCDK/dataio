@@ -1,9 +1,11 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.sink.SinkException;
+import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
-import java.util.ArrayList;
-import java.util.List;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
@@ -11,11 +13,10 @@ import javax.ejb.LocalBean;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @LocalBean
@@ -70,7 +71,7 @@ public class EsScheduledCleanupBean {
      * After that, the semaphore will be decremented with the amount of slots
      * previously held by the completed/aborted taskpackages.
      */
-    @Schedule(second = "*/30", minute = "*", hour = "*")
+    @Schedule(second = "*/30", minute = "*", hour = "*", persistent = false)
     public void cleanup() {
         LOGGER.info("Cleaning up ES-base");
         try {

@@ -57,6 +57,7 @@ public class EsConnectorBean {
         try (final Connection connection = getConnection()) {
             ESTaskPackageUtil.deleteTaskpackages(connection, targetReferences);
         } catch (SQLException | NamingException e) {
+            LOGGER.warn("Exception caught while deleting ES-taskpackages.", e);
             throw new SinkException("Failed to delete task packages", e);
         }
     }

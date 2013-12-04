@@ -68,6 +68,8 @@ public class ESTaskPackageUtil {
                 PreparedStatement ps = JDBCUtil.query(conn, deleteStatement, targetReferences.toArray());
                 JDBCUtil.closeStatement(ps);
             }
+        } catch(SQLException ex) {
+            LOGGER.warn("SQLException caught while deleting taskpackages: ", ex);
         } finally {
             LOGGER.exit();
         }

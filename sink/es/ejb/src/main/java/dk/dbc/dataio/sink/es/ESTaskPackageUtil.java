@@ -63,13 +63,14 @@ public class ESTaskPackageUtil {
             if(! targetReferences.isEmpty()) {
                 String deleteStatement = "delete from taskpackage where targetreference in (" +
 			commaSeparatedQuestionMarks(targetReferences.size()) + ")";
-                LOGGER.trace(deleteStatement);
+                LOGGER.info(deleteStatement);
 	        LOGGER.info("targetRefs to delete: {}", Arrays.toString(targetReferences.toArray()));
-                PreparedStatement ps = JDBCUtil.query(conn, deleteStatement, targetReferences.toArray());
-                JDBCUtil.closeStatement(ps);
+                int deleted = JDBCUtil.update(conn, deleteStatement, targetReferences.toArray());
+                LOGGER.info("Deleted {} rows", deleted);
             }
         } catch(SQLException ex) {
             LOGGER.warn("SQLException caught while deleting taskpackages: ", ex);
+            throw ex;
         } finally {
             LOGGER.exit();
         }

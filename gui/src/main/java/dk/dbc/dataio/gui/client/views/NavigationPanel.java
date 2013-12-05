@@ -37,7 +37,7 @@ public class NavigationPanel extends FlowPanel {
      * @param guiId The GUI Id for the Navigation panel
      */
     NavigationPanel(ClientFactory clientFactory, String guiId) {
-        this.placeNavigator = new PlaceNavigator(clientFactory.getPlaceController());
+        NavigationPanel.placeNavigator = new PlaceNavigator(clientFactory.getPlaceController());
         getElement().setId(guiId);
         add(new Image("images/dbclogo.gif"));
         add(new MenuPanel(GUIID_NAVIGATION_MENU_PANEL));
@@ -50,7 +50,7 @@ public class NavigationPanel extends FlowPanel {
      * @param handler Callback class (NavigationFeedbackHandler)
      */
     void injectNavigationFeedback(NavigationFeedbackHandler handler) {
-        feedbackHandler = handler;
+        NavigationPanel.feedbackHandler = handler;
     }
     
     /**

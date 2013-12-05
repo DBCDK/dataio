@@ -68,7 +68,7 @@ public interface JavaScriptProjectFetcher extends RemoteService {
     /**
      * The factory class for JavaScriptProjectFetcher
      */
-    static class Factory {
+    class Factory {
         private static JavaScriptProjectFetcherAsync asyncInstance = null;
         public static JavaScriptProjectFetcherAsync getAsyncInstance() {
             if (asyncInstance == null) {

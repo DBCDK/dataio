@@ -94,7 +94,7 @@ public final class MenuData {
      * MainMenuData.structure contains the static definition of the complete
      * menu structure for the User Interface
      */
-    public static final MainMenuData structure[] = {
+    static final MainMenuData structure[] = {
         new MainMenuData(constants.mainMenu_Submitters(), null, GUIID_MAIN_MENU_ITEM_SUBMITTERS, new SubMenuData[] {
             new SubMenuData(constants.subMenu_SubmitterCreation(), new SubmitterCreatePlace(), GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION), 
         }),

@@ -59,7 +59,7 @@ public class FlowBinderCreationSeleniumIT {
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
-        testFlowBinderCreationNavigationItemIsVisibleAndClickable();
+        testFlowBinderCreationWidgetIsVisible();
         testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationFrameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
@@ -73,13 +73,9 @@ public class FlowBinderCreationSeleniumIT {
         testFlowbinderCreationSaveResultLabeINotVisibleAndEmptyByDefault();
     }
 
-    public void testFlowBinderCreationNavigationItemIsVisibleAndClickable() {
-        WebElement element = findFlowbinderCreationContextElement(driver);
-        assertTrue(element.isDisplayed());
-        element.click();
-
-        WebElement widget = findFlowbinderCreationWidget(driver);
-        assertTrue(widget.isDisplayed());
+    public void testFlowBinderCreationWidgetIsVisible() {
+        navigateToFlowbinderCreationWidget(driver);
+        assertTrue(findFlowbinderCreationWidget(driver).isDisplayed());
     }
 
     public void testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
@@ -401,11 +397,7 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {
-        findFlowbinderCreationContextElement(webDriver).click();
-    }
-
-    private static WebElement findFlowbinderCreationContextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, MenuData.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, MenuData.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION);
     }
 
     private static WebElement findFlowbinderCreationWidget(WebDriver webDriver) {

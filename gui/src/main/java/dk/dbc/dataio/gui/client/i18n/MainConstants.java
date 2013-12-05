@@ -9,22 +9,4 @@ public interface MainConstants extends Constants {
     @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
     String header_DataIO();
     
-    @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
-    String header_FlowCreation();
-    
-    @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
-    String header_FlowComponentCreation();
-    
-    @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
-    String header_SubmitterCreation();
-    
-    @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
-    String header_FlowbinderCreation();
-    
-    @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
-    String header_SinkCreation();
-    
-    @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
-    String header_FlowComponentsShow();
-    
 }

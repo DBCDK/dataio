@@ -14,10 +14,18 @@ import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
+/**
+ * 
+ * Main Entry Point for the GWT GUI
+ * 
+ */
 public class MainEntryPoint implements EntryPoint {
     final ClientFactory clientFactory = GWT.create(ClientFactory.class);
     final private MainPanel appPanel = new MainPanel(clientFactory);
 
+    /**
+     * onModuleLoad
+     */
     @Override
     public void onModuleLoad() {
         EventBus eventBus = clientFactory.getEventBus();

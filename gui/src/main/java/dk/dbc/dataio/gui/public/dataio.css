@@ -1,25 +1,25 @@
-.main-panel-layout {
+#main-panel {
     background-color: #f9f9f7;
 }
 
-.header-panel-layout {
+#header-panel {
     background-color: #f2f0ec;
     color: #81a932;
     font-size: 12px;
     padding: 0.4em;
 }
 
-.navigation-panel-layout {
+#navigation-panel {
     background-color: #f2f0ec;
     background-image: url('/dataio/gui/images/navigationbg.gif');
     background-repeat: repeat-y;
     background-position: right;
 }
-.navigation-panel-layout button {
+#navigation-panel button {
     background-color: #098dbd;
     background-image: none;
     color: white;
-    width: 90%;
+    width: 14em;
     margin: 0 0.5em ;
     text-align: left;
     font-size: 14px;
@@ -28,8 +28,21 @@
     border-radius: 0.5em;
 }
 
-.navigation-panel-layout .gwt-Image {
+#navigation-panel .gwt-Image {
     margin: 1.5em 0 3em 1.5em;
+}
+
+#navigationmenupanel {
+    width: 90%;
+    margin-left: 5%;
+}
+
+#content-panel {
+    margin: 0.5em;
+}
+
+#content-panel textarea, #content-panel input, #content-panel select {
+    border: solid #4f6853 2px;
 }
 
 .gwt-Button {
@@ -57,12 +70,4 @@
 
 .dio-DataEntry-PromptLabelClass {
     width: 9em;
-}
-
-.content-panel-layout {
-    margin: 0.5em;
-}
-
-.content-panel-layout textarea, .content-panel-layout input, .content-panel-layout select {
-    border: solid #4f6853 2px;
 }

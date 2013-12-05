@@ -40,7 +40,7 @@ public class EsScheduledCleanupBean {
     public void startup() {
         LOGGER.info("Startup of EsScheduledCleanupBean!");
         List<EsInFlight> esInFlightList = esInFlightAdmin.listEsInFlight();
-        LOGGER.info("The following targetrefernces are inFlight in the sink at startup: {}",
+        LOGGER.info("The following targetreferences are inFlight in the sink at startup: {}",
                 Arrays.toString( createEsInFlightMap(esInFlightList).keySet().toArray()) );
         int slotsInFlight = sumRecordSlotsInEsInFlightList(esInFlightList);
         LOGGER.info("Sum of recordSlots for inFlight Chunks: [{}]", slotsInFlight);
@@ -49,7 +49,7 @@ public class EsScheduledCleanupBean {
         } catch(IllegalArgumentException | InterruptedException e) {
             LOGGER.error("An exception was caught while trying to count down the esThrotler: {}", e.getMessage(), e);
         }
-        // Integrity-test is deffered to the first run of cleanup().
+        // Integrity-test is deferred to the first run of cleanup().
     }
 
     private int sumRecordSlotsInEsInFlightList(List<EsInFlight> esInFlightList) {
@@ -100,7 +100,7 @@ public class EsScheduledCleanupBean {
             // todo: Missing implementation of "callback" to jobhandler of finished chunks with results.
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
-            LOGGER.error("A SinkExceptin was thrown during cleanup of ES/inFlight: {}", ex.getMessage(), ex);
+            LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
         }
     }
 

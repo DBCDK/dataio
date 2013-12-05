@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.i18n.FlowbinderCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -93,7 +94,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
                     String key = Long.toString(submitter.getId());
                     try {
                         availableSubmitters.put(key, submitter);
-                        submittersToView.put(key, submitter.getContent().getName());
+                        submittersToView.put(key, formatSubmitterName(submitter.getContent()));
                     } catch (Exception e) {
                         flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
                     }
@@ -154,4 +155,8 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
         });
     }
 
+    private String formatSubmitterName(SubmitterContent content) {
+        return content.getNumber() + " (" + content.getName() + ")";
+    }
+    
 }

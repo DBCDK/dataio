@@ -37,10 +37,19 @@ public class NavigationPanel extends FlowPanel {
      * @param guiId The GUI Id for the Navigation panel
      */
     NavigationPanel(ClientFactory clientFactory, String guiId) {
-        NavigationPanel.placeNavigator = new PlaceNavigator(clientFactory.getPlaceController());
+        injectPlaceNavigator(new PlaceNavigator(clientFactory.getPlaceController()));
         getElement().setId(guiId);
         add(new Image("images/dbclogo.gif"));
         add(new MenuPanel(GUIID_NAVIGATION_MENU_PANEL));
+    }
+    
+    /**
+     * The caller of this class can inject a PlaceNavigator class, to be activated
+     * upon activation of a menu. 
+     * @param navigator The PlaceNavigator for this menu item
+     */
+    static void injectPlaceNavigator(PlaceNavigator navigator) {
+        placeNavigator = navigator;
     }
     
     /**
@@ -49,8 +58,8 @@ public class NavigationPanel extends FlowPanel {
      * in the callback.
      * @param handler Callback class (NavigationFeedbackHandler)
      */
-    void injectNavigationFeedback(NavigationFeedbackHandler handler) {
-        NavigationPanel.feedbackHandler = handler;
+    static void injectNavigationFeedback(NavigationFeedbackHandler handler) {
+        feedbackHandler = handler;
     }
     
     /**

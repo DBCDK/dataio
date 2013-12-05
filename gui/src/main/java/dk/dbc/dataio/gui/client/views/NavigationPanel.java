@@ -146,7 +146,7 @@ public class NavigationPanel extends FlowPanel {
          * @param menuIndex The menuIndex for the View to activate
          */
         void navigateTo(Integer menuIndex) {
-            if ((placeController != null) && (places.containsKey(menuIndex))) {
+            if (placeController != null && places.containsKey(menuIndex)) {
                 placeController.goTo(places.get(menuIndex));
             }
         }

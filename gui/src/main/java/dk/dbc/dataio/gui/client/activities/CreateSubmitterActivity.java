@@ -7,7 +7,6 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
-import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
@@ -22,7 +21,7 @@ public class CreateSubmitterActivity extends AbstractActivity implements Submitt
     private SubmitterCreateView submitterCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
 
-    public CreateSubmitterActivity(SubmitterCreatePlace place, ClientFactory clientFactory) {
+    public CreateSubmitterActivity(/*SubmitterCreatePlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

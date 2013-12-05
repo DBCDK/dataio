@@ -13,7 +13,7 @@ public interface SinkServiceProxy extends RemoteService {
 
     void close();
     
-    public static class Factory {
+    static class Factory {
         private static SinkServiceProxyAsync asyncInstance = null;
 
         public static SinkServiceProxyAsync getAsyncInstance() {

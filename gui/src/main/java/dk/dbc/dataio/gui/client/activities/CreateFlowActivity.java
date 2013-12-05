@@ -8,7 +8,6 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.gui.client.i18n.FlowCreateConstants;
-import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
@@ -32,7 +31,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
     private FlowStoreProxyAsync flowStoreProxy;
     private Map<String, FlowComponent> availableFlowComponents = new HashMap<String, FlowComponent>();
 
-    public CreateFlowActivity(FlowCreatePlace place, ClientFactory clientFactory) {
+    public CreateFlowActivity(/* FlowCreatePlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
@@ -55,7 +54,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
         flowStoreProxy.findAllComponents(new AsyncCallback<List<FlowComponent>>() {
             @Override
             public void onFailure(Throwable e) {
-                flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                onFailureSendExceptionToView(e);
             }
             @Override
             public void onSuccess(List<FlowComponent> result) {
@@ -66,7 +65,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
                         availableFlowComponents.put(key, component);
                         flowComponentsToView.put(key, component.getContent().getName());
                     } catch (Exception e) {
-                        flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                        onFailureSendExceptionToView(e);
                     }
                 }
                 flowCreateView.setAvailableFlowComponents(flowComponentsToView);
@@ -85,7 +84,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
         flowStoreProxy.createFlow(flowContent, new AsyncCallback<Void>() {
             @Override
             public void onFailure(Throwable e) {
-                flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                onFailureSendExceptionToView(e);
             }
             @Override
             public void onSuccess(Void aVoid) {
@@ -94,4 +93,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
         });
     }
     
+    private void onFailureSendExceptionToView(Throwable e) {
+        flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+    }
 }

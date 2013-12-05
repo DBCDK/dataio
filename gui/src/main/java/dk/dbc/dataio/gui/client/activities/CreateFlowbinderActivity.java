@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.i18n.FlowbinderCreateConstants;
-import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
@@ -33,7 +32,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     private Map<String, Submitter> availableSubmitters = new HashMap<String, Submitter>();
     private Map<String, Flow> availableFlows = new HashMap<String, Flow>();
 
-    public CreateFlowbinderActivity(FlowbinderCreatePlace place, ClientFactory clientFactory) {
+    public CreateFlowbinderActivity(/*FlowbinderCreatePlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

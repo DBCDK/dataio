@@ -1,14 +1,11 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
 
 public class ServletUtil {
-    private static final Logger log = LoggerFactory.getLogger(ServletUtil.class);
 
     private ServletUtil() { }
     

@@ -32,7 +32,7 @@ public interface FlowStoreProxy extends RemoteService {
 
     void close();
 
-    public static class Factory {
+    static class Factory {
 
         private static FlowStoreProxyAsync asyncInstance = null;
 

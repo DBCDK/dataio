@@ -20,21 +20,21 @@ import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
  */
 public interface ClientFactory {
     // Event Bus
-    public EventBus getEventBus();
+    EventBus getEventBus();
     
     // Place Controller
-    public PlaceController getPlaceController();
+    PlaceController getPlaceController();
 
     // Proxies
-    public FlowStoreProxyAsync getFlowStoreProxyAsync();
-    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
-    public SinkServiceProxyAsync getSinkServiceProxyAsync();
+    FlowStoreProxyAsync getFlowStoreProxyAsync();
+    JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
+    SinkServiceProxyAsync getSinkServiceProxyAsync();
     
     // Views
-    public FlowCreateView getFlowCreateView();
-    public FlowComponentCreateView getFlowComponentCreateView();
-    public SubmitterCreateView getSubmitterCreateView();
-    public FlowbinderCreateView getFlowbinderCreateView();
-    public SinkCreateView getSinkCreateView();
-    public FlowComponentsShowView getFlowComponentsShowView();
+    FlowCreateView getFlowCreateView();
+    FlowComponentCreateView getFlowComponentCreateView();
+    SubmitterCreateView getSubmitterCreateView();
+    FlowbinderCreateView getFlowbinderCreateView();
+    SinkCreateView getSinkCreateView();
+    FlowComponentsShowView getFlowComponentsShowView();
 }

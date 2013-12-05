@@ -16,8 +16,6 @@ import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
@@ -26,8 +24,6 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
-
-    private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     Client client = null;
 
     public FlowStoreProxyImpl() {

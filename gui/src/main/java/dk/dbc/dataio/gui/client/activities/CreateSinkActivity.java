@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.i18n.SinkCreateConstants;
-import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.SinkCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
@@ -29,7 +28,7 @@ public class CreateSinkActivity extends AbstractActivity implements SinkCreatePr
     private SinkServiceProxyAsync sinkServiceProxy;
     private FlowStoreProxyAsync flowStoreProxy;
     
-    public CreateSinkActivity(SinkCreatePlace place, ClientFactory clientFactory) {
+    public CreateSinkActivity(/*SinkCreatePlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         sinkServiceProxy = clientFactory.getSinkServiceProxyAsync();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();

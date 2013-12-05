@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.i18n.FlowComponentCreateConstants;
-import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
@@ -32,7 +31,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     private FlowStoreProxyAsync flowStoreProxy;
     
-    public CreateFlowComponentActivity(FlowComponentCreatePlace place, ClientFactory clientFactory) {
+    public CreateFlowComponentActivity(/*FlowComponentCreatePlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         javaScriptProjectFetcher = clientFactory.getJavaScriptProjectFetcherAsync();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();

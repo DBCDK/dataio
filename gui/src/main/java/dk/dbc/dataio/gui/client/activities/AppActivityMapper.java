@@ -26,22 +26,22 @@ public class AppActivityMapper implements ActivityMapper {
     @Override
     public Activity getActivity(Place place) {
         if (place instanceof FlowCreatePlace) {
-            return new CreateFlowActivity((FlowCreatePlace) place, clientFactory);
+            return new CreateFlowActivity(/*(FlowCreatePlace) place,*/ clientFactory);
         }
         if (place instanceof FlowComponentCreatePlace) {
-            return new CreateFlowComponentActivity((FlowComponentCreatePlace) place, clientFactory);
+            return new CreateFlowComponentActivity(/*(FlowComponentCreatePlace) place,*/ clientFactory);
         }
         if (place instanceof SubmitterCreatePlace) {
-            return new CreateSubmitterActivity((SubmitterCreatePlace) place, clientFactory);
+            return new CreateSubmitterActivity(/*(SubmitterCreatePlace) place,*/ clientFactory);
         }
         if (place instanceof FlowbinderCreatePlace) {
-            return new CreateFlowbinderActivity((FlowbinderCreatePlace) place, clientFactory);
+            return new CreateFlowbinderActivity(/*(FlowbinderCreatePlace) place,*/ clientFactory);
         }
         if (place instanceof SinkCreatePlace) {
-            return new CreateSinkActivity((SinkCreatePlace) place, clientFactory);
+            return new CreateSinkActivity(/*(SinkCreatePlace) place,*/ clientFactory);
         }
         if (place instanceof FlowComponentsShowPlace) {
-            return new ShowFlowComponentsActivity((FlowComponentsShowPlace) place, clientFactory);
+            return new ShowFlowComponentsActivity(/*(FlowComponentsShowPlace) place,*/ clientFactory);
         }
         return null;
     }

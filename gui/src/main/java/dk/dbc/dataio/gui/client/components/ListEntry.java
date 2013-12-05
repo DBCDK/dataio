@@ -2,11 +2,8 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.ListBox;
-import java.lang.String;
 
 
 public class ListEntry extends DataEntry {

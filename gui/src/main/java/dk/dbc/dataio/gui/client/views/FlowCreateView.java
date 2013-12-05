@@ -5,5 +5,5 @@ import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import java.util.Map;
 
 public interface FlowCreateView extends IsWidget, View<FlowCreatePresenter> {
-    public void setAvailableFlowComponents(Map<String, String> availableFlowComponents);
+    void setAvailableFlowComponents(Map<String, String> availableFlowComponents);
 }

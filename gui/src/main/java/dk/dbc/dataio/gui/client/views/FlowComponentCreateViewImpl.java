@@ -238,7 +238,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             long revision = Long.parseLong(revisionPanel.getSelectedText());
             String scriptName = scriptNamePanel.getSelectedText();
             String invocationMethod = invocationMethodPanel.getSelectedText();
-            if (name.isEmpty() || project.isEmpty() || (revision == 0) || scriptName.isEmpty() || invocationMethod.isEmpty()) {
+            if (name.isEmpty() || project.isEmpty() || revision == 0 || scriptName.isEmpty() || invocationMethod.isEmpty()) {
                 onFailure(constants.error_InputFieldValidationError());
             } else {
                 saveButton.setStatusText(constants.status_SavingFlowComponent());

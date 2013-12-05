@@ -190,8 +190,20 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         }
         private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String destination, final String recordSplitter,
                 final Map<String, String> submitters, final String flow, final String sink) {
-            if (name.isEmpty() || description.isEmpty() || frameFormat.isEmpty() || contentFormat.isEmpty() || characterSet.isEmpty() || (destination==null) || destination.isEmpty() || recordSplitter.isEmpty()
-                    || (submitters == null) || submitters.isEmpty() || (flow == null) || flow.isEmpty() || (sink == null) || sink.isEmpty()) {
+            if (name.isEmpty() || 
+                description.isEmpty() || 
+                frameFormat.isEmpty() || 
+                contentFormat.isEmpty() || 
+                characterSet.isEmpty() || 
+                destination==null || 
+                destination.isEmpty() || 
+                recordSplitter.isEmpty() ||
+                submitters == null || 
+                submitters.isEmpty() || 
+                flow == null || 
+                flow.isEmpty() || 
+                sink == null || 
+                sink.isEmpty()) {
                 return constants.error_InputFieldValidationError();
             }
             return "";

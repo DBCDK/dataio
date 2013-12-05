@@ -19,7 +19,7 @@ public class SaveButton extends HorizontalPanel {
      * Event interface for signalling button pressed event
      */
     public interface ButtonEvent {
-        public void buttonPressed();
+        void buttonPressed();
     }
     
     /**

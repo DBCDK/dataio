@@ -112,7 +112,7 @@ public class FlowCreateViewImpl extends FlowPanel implements FlowCreateView {
         public void buttonPressed() {
             String nameValue = flowNamePanel.getText();
             String descriptionValue = flowDescriptionPanel.getText();
-            if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && (flowComponentSelectionPanel.getSelectedItemCount() > 0)) {
+            if (!nameValue.isEmpty() && !descriptionValue.isEmpty() && flowComponentSelectionPanel.getSelectedItemCount() > 0) {
                 presenter.saveFlow(flowNamePanel.getText(), flowDescriptionPanel.getText(), getSelectedFlowComponents());
             } else {
                 Window.alert(constants.error_InputFieldValidationError());

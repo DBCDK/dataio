@@ -25,7 +25,7 @@ uniqueConstraints = {
     @UniqueConstraint(columnNames = { Submitter.NUMBER_INDEX_COLUMN }),
 })
 @NamedQueries({
-    @NamedQuery(name = Submitter.QUERY_FIND_ALL, query = "SELECT submitter FROM Submitter submitter ORDER BY submitter.nameIndexValue ASC")
+    @NamedQuery(name = Submitter.QUERY_FIND_ALL, query = "SELECT submitter FROM Submitter submitter ORDER BY submitter.numberIndexValue ASC")
 })
 public class Submitter extends VersionedEntity {
     public static final String TABLE_NAME = "submitters";

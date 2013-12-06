@@ -163,26 +163,26 @@ public class SubmittersIT {
      * Given: a deployed flow-store service containing three submitters
      * When: GETing submitters collection
      * Then: request returns with a OK http status code
-     * And: request returns with list as JSON of submitters sorted alphabetically by name
+     * And: request returns with list as JSON of submitters sorted alphabetically by number
      */
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
         String submitterContent = new SubmitterContentJsonBuilder()
-                .setName("c")
-                .setNumber(1L)
+                .setName("a")
+                .setNumber(3L)
                 .build();
         final long sortsThird = createSubmitter(restClient, baseUrl, submitterContent);
 
         submitterContent = new SubmitterContentJsonBuilder()
-                .setName("a")
-                .setNumber(2L)
+                .setName("b")
+                .setNumber(1L)
                 .build();
         final long sortsFirst = createSubmitter(restClient, baseUrl, submitterContent);
 
         submitterContent = new SubmitterContentJsonBuilder()
-                .setName("b")
-                .setNumber(3L)
+                .setName("c")
+                .setNumber(2L)
                 .build();
         final long sortsSecond = createSubmitter(restClient, baseUrl, submitterContent);
 

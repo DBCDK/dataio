@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * This class represents the create flowbinder activity encompassing saving
@@ -89,7 +90,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
             }
             @Override
             public void onSuccess(List<Submitter> result) {
-                Map<String, String> submittersToView = new HashMap<String, String>();
+                Map<String, String> submittersToView = new TreeMap<String, String>();
                 for (Submitter submitter: result) {
                     String key = Long.toString(submitter.getId());
                     try {

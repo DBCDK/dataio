@@ -10,6 +10,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.StackPanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import dk.dbc.dataio.gui.client.views.Menu.MenuItem;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,22 +18,23 @@ import java.util.Map;
 
 /**
  *
- * Navigation Panel for the left menu.
+ * Navigation Panel for the left menuData.
  * Contains the Placecontroller, and the logic to control activation of the
  * different views, using the placeController
- * 
- * TODO: Clicking a Main Menu items opens up the Sub Menu's, but the 
- * place activation, as defined in MenuData has not yet been implemented.
- * 
+ *
+ * TODO: Clicking a Main Menu items opens up the Sub Menu's, but the
+ * place activation, as defined in Menu has not yet been implemented.
+ *
  */
 public class NavigationPanel extends FlowPanel {
     public static final String GUIID_NAVIGATION_MENU_PANEL = "navigationmenupanel";
     private static PlaceNavigator placeNavigator = null;
     private static NavigationFeedbackHandler feedbackHandler;
+    private final Menu menuStructure = new Menu();
 
 
     /**
-     * Constructor 
+     * Constructor
      * @param clientFactory Client Factory to be injected
      * @param guiId The GUI Id for the Navigation panel
      */
@@ -42,55 +44,54 @@ public class NavigationPanel extends FlowPanel {
         add(new Image("images/dbclogo.gif"));
         add(new MenuPanel(GUIID_NAVIGATION_MENU_PANEL));
     }
-    
+
     /**
      * The caller of this class can inject a PlaceNavigator class, to be activated
-     * upon activation of a menu. 
-     * @param navigator The PlaceNavigator for this menu item
+     * upon activation of a menuData.
+     * @param navigator The PlaceNavigator for this menuData item
      */
     static void injectPlaceNavigator(PlaceNavigator navigator) {
         placeNavigator = navigator;
     }
-    
+
     /**
      * The caller of this class can inject a callback class, to be activated
-     * upon activation of a menu. The Menu Text will be passed as a parameter
+     * upon activation of a menuData. The Menu Text will be passed as a parameter
      * in the callback.
      * @param handler Callback class (NavigationFeedbackHandler)
      */
     static void injectNavigationFeedback(NavigationFeedbackHandler handler) {
         feedbackHandler = handler;
     }
-    
+
     /**
-     * 
+     *
      * Menu Panel
-     * 
+     *
      * This panel holds the Main Menu and all the Sub Menu items
-     * 
+     *
      */
-    private static class MenuPanel extends StackPanel {
+    private class MenuPanel extends StackPanel {
 
         /**
          * Constructor
-         * 
-         * The MenuPanel constructor builds up the menu tree, by iterating
-         * through the static MenuData structure, and instantiating the 
+         * The MenuPanel constructor builds up the menuData tree, by iterating
+         * through the Menu structure, and instantiating the
          * appropriate GUI components accordingly.
-         * Furthermore, a menuIndex is also maintained, incrementing from 0 and
-         * upwards. In order to be able to map a menuIndex to a Place (that 
-         * activates the correct View), the constructor also feeds the 
-         * menuIndex/Place pairs to the PlaceNavigator
-         * 
-         * @param guiId 
+         * Furthermore, a menuDataIndex is also maintained, incrementing from 0 and
+         * upwards. In order to be able to map a menuDataIndex to a Place (that
+         * activates the correct View), the constructor also feeds the
+         * menuDataIndex/Place pairs to the PlaceNavigator
+         *
+         * @param guiId
          */
         public MenuPanel(String guiId) {
             super();
             getElement().setId(guiId);
             int counter = 0;
-            for (MenuData.MainMenuData mainMenuItem: MenuData.structure) {
+            for (MenuItem mainMenuItem: menuStructure.menuData.subMenuItem) {
                 VerticalPanel panel = new VerticalPanel();
-                for (MenuData.SubMenuData subMenuItem: mainMenuItem.subMenu) {
+                for (MenuItem subMenuItem: mainMenuItem.subMenuItem) {
                     panel.add(new MenuButton(counter, subMenuItem.label, subMenuItem.guiId));
                     placeNavigator.add(counter, subMenuItem.place);
                     counter++;
@@ -104,26 +105,26 @@ public class NavigationPanel extends FlowPanel {
 
     /**
      * NavigationFeedbackHandler
-     * A callback class to be used to signal a menu change to the caller of 
+     * A callback class to be used to signal a menuData change to the caller of
      * the Navigation Class
      */
     interface NavigationFeedbackHandler {
         /**
-         * Callback method - transfers the menu text to the caller
+         * Callback method - transfers the menuData text to the caller
          * @param text Menu text
          */
         void navigationChanged(String text);
     }
-    
+
     /**
-     * 
+     *
      * PlaceNavigator
-     * 
+     *
      * The purpose of the PlaceNavigator is to maintain a relation between
      * menuIndex'es and Place's.
-     * MenuIndex'es are sent from the buttons, when clicking, and Place's 
+     * MenuIndex'es are sent from the buttons, when clicking, and Place's
      * are the object to invoke, when instantiating the appropriate views.
-     * 
+     *
      */
     private static class PlaceNavigator {
         PlaceController placeController = null;
@@ -131,7 +132,7 @@ public class NavigationPanel extends FlowPanel {
 
         /**
          * Constructor
-         * 
+         *
          * @param placeController The PlaceController, that controls
          *                        instantiation of Views
          */
@@ -140,19 +141,19 @@ public class NavigationPanel extends FlowPanel {
         }
 
         /**
-         * Add a menuIndex/Place pair to the PlaceNavigator
-         * 
+         * Add a menuDataIndex/Place pair to the PlaceNavigator
+         *
          * @param menuIndex Menu index
          * @param place Place
          */
         void add(Integer menuIndex, Place place) {
             places.put(menuIndex, place);
         }
-        
+
         /**
-         * Navigates to the View, pointed out by the menuIndex given as a parameter
-         * 
-         * @param menuIndex The menuIndex for the View to activate
+         * Navigates to the View, pointed out by the menuDataIndex given as a parameter
+         *
+         * @param menuIndex The menuDataIndex for the View to activate
          */
         void navigateTo(Integer menuIndex) {
             if (placeController != null && places.containsKey(menuIndex)) {
@@ -160,24 +161,23 @@ public class NavigationPanel extends FlowPanel {
             }
         }
     }
-    
+
     /**
-     * 
+     *
      * MenuButton
-     * 
      * The panel for a Sub Menu button
-     * Upon instantiation, a menu index is passed to it, and whenever
-     * activated, the button sends this menu index to the PlaceNavigator
-     * 
+     * Upon instantiation, a menuData index is passed to it, and whenever
+     * activated, the button sends this menuData index to the PlaceNavigator
+     *
      */
     private static class MenuButton extends Button {
         private String caption = null;
-       
+
         /**
          * Constructor
-         * 
+         *
          * @param menuIndex The Menu Index for this button
-         * @param caption The caption text for the menu button
+         * @param caption The caption text for the menuData button
          * @param guiId A unique GUI Id for identification in the DOM tree
          */
         public MenuButton(int menuIndex, String caption, String guiId) {
@@ -189,7 +189,7 @@ public class NavigationPanel extends FlowPanel {
 
         /**
          * The ClickHandler for the MenuButton class
-         * Sends the menuIndex to the PlaceNavigator for further processing
+         * Sends the menuDataIndex to the PlaceNavigator for further processing
          */
         private class ButtonHandler implements ClickHandler {
             private int subPanelIndex;
@@ -205,5 +205,5 @@ public class NavigationPanel extends FlowPanel {
             }
         }
     }
-    
+
 }

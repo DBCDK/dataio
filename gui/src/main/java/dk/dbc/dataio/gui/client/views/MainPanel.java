@@ -9,13 +9,13 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
- * 
+ *
  * This is the main panel for the dataio user interface
  * The main panel is divided in three areas:
  *  o The Header area (maintained by Header Panel)
  *  o The Navigation area (maintained by Navigation Panel)
  *  o The Content area (maintained by Content Panel)
- * 
+ *
  */
 public class MainPanel extends DockLayoutPanel {
     private static final String GUIID_MAIN_PANEL = "main-panel";
@@ -31,8 +31,8 @@ public class MainPanel extends DockLayoutPanel {
 
     /**
      * Constructor for Main Panel
-     * 
-     * @param clientFactory 
+     *
+     * @param clientFactory
      */
     public MainPanel(ClientFactory clientFactory) {
         super(Style.Unit.PX);

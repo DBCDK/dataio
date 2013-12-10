@@ -3,26 +3,25 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.MenuData;
+import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
+import static org.hamcrest.CoreMatchers.is;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import org.junit.Ignore;
 
 @Ignore
 public class FlowBinderCreationSeleniumIT {
@@ -397,7 +396,7 @@ public class FlowBinderCreationSeleniumIT {
     }
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, MenuData.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION);
     }
 
     private static WebElement findFlowbinderCreationWidget(WebDriver webDriver) {

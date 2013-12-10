@@ -3,26 +3,24 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.MenuData;
+import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+import static org.hamcrest.CoreMatchers.is;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-import org.junit.Ignore;
 
 @Ignore
 public class FlowCreationSeleniumIT {
@@ -207,7 +205,7 @@ public class FlowCreationSeleniumIT {
     }
 
     private static WebElement findFlowCreationNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, MenuData.GUIID_SUB_MENU_ITEM_FLOW_CREATION);
+        return SeleniumUtil.findElementInCurrentView(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION);
     }
 
     private static WebElement findFlowCreationWidget(WebDriver webDriver) {

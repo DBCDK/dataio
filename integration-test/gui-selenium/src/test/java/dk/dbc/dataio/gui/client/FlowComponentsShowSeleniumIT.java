@@ -1,33 +1,30 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.views.FlowComponentsShowViewImpl;
-import dk.dbc.dataio.gui.client.views.MenuData;
+import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.tmatesoft.svn.core.SVNException;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import org.junit.After;
+import org.junit.AfterClass;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
-
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.tmatesoft.svn.core.SVNException;
 
 @Ignore
 public class FlowComponentsShowSeleniumIT {
@@ -108,7 +105,7 @@ public class FlowComponentsShowSeleniumIT {
     }
 
     private static WebElement findFlowComponentCreateNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, MenuData.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
+        return SeleniumUtil.findElementInCurrentView(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
     }
 
     private static WebElement findFlowComponentsShowWidget(WebDriver webDriver) {

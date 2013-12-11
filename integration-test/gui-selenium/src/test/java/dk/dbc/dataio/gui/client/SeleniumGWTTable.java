@@ -10,23 +10,23 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
- * 
+ *
  * This class eases Selenium test of GWT Tables, by offering wait, assert and get data.
- * 
+ *
  * Basic assumptions:
- * 
+ *
  * 1) The class assumes, that when data is added to a GWT table, complete rows are added at a time.
  *    It is therefore assumed, that whenever one cell in a row is present, all other cells in the
  *    row are also present
- * 2) A GWT table contains the html tags: 
+ * 2) A GWT table contains the html tags:
  *      <table>
  *        <tbody ...>...</tbody>
  *        <tbody ...>...</tbody>
  *      </table>
  * 3) There are two tbody tags within the table tag (one with data and one with a waiting animation)
- * 4) The animation tbody looks like this (both when there is data, and when there is no data): 
+ * 4) The animation tbody looks like this (both when there is data, and when there is no data):
  *      <tbody ...>
- *        <tr>                                // Note a: No attributes set at all 
+ *        <tr>                                // Note a: No attributes set at all
  *          <td ...><div>...</div></td>
  *        </tr>
  *      </tbody>
@@ -46,7 +46,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  *       </tr>
  *       ...
  *     </tbody>
- * 
+ *
  */
 
 public class SeleniumGWTTable {
@@ -59,12 +59,12 @@ public class SeleniumGWTTable {
 
     /**
      * Constructor
-     * 
+     *
      * @param webDriver The webdriver to use as the root
      * @param guiId The guiId for the html tag, that contains the table
-     * @param timeout The timeout value to be used when waiting for data
-     * 
-     * @throws TimeoutException 
+     * @param timeout The timeout value to be used when waiting for data in seconds
+     *
+     * @throws TimeoutException
      */
     SeleniumGWTTable(WebDriver webDriver, String guiId, long timeout) throws TimeoutException {
         this.webDriver = webDriver;
@@ -75,25 +75,25 @@ public class SeleniumGWTTable {
 
     /**
      * Constructor
-     * 
+     *
      * @param webDriver The webdriver to use as the root
      * @param guiId The guiId for the html tag, that contains the table
-     * 
-     * @throws TimeoutException 
+     *
+     * @throws TimeoutException
      */
     SeleniumGWTTable(WebDriver webDriver, String guiId) throws TimeoutException {
         this(webDriver, guiId, DEFAULT_TIMEOUT);
     }
-    
+
     /**
      * Waits for the next table row to be inserted.
-     * 
+     *
      * If not inserted within the timeout period, the method throws a TimeoutException.
      * If a row is being inserted within the timeout period, the data is ready to be fetched with the methods get() or getRow().
-     * 
+     *
      * @throws TimeoutException
      */
-     void waitAssertNextRowPresent() throws TimeoutException {
+     void waitAssertRows() throws TimeoutException {
          WebElement trElement = waitAndFindNextTrTagContainingData();
          List<String> currentRow = new ArrayList();
          for(WebElement tdElement: trElement.findElements(By.tagName("td"))) {
@@ -105,23 +105,23 @@ public class SeleniumGWTTable {
 
     /**
      * Waits for the next number of table rows to be inserted.
-     * 
+     *
      * If not inserted within the timeout period, the method throws a TimeoutException.
      * If the rows are being inserted within the timeout period, the data is ready to be fetched with the methods get() or getRow().
-     * 
+     *
      * @param count The number of rows to wait for
-     * 
+     *
      * @throws TimeoutException
      */
-    void waitAssertNextRowPresent(long count) throws TimeoutException {
+    void waitAssertRows(long count) throws TimeoutException {
         for (long i=0; i<count; i++) {
-            waitAssertNextRowPresent();
+            waitAssertRows();
         }
     }
 
     /**
      * Fetches the complete table data, fetched with the corresponding waitXXX methods
-     * 
+     *
      * @return The complete table data as fetched with the corresponding waitXXX methods
      */
      List<List<String>> get() {
@@ -130,7 +130,7 @@ public class SeleniumGWTTable {
 
     /**
      * Fetches one row of table data pointed out by a row index
-     * 
+     *
      * @param row The row index
      * @return The row data
      */
@@ -138,14 +138,14 @@ public class SeleniumGWTTable {
          return tableData.get(row);
      }
 
-    
+
     // Private methods
 
     private WebElement waitAndFindNextTrTagContainingData() throws TimeoutException {
         WebDriverWait wait = new WebDriverWait(webDriver, timeout);
         final String xpathSelector = ".//*[@id='" + guiId + "']/table/tbody/tr[@class][" + ++lastRowFound + "]";
         // Explanation: According to Note c in Assumption 6, a valid row with data is identified by a tr, where class is set to 'something'
-        // Sample xpathSelector: ".//*[@id='flowcomponentsshowwidget']/table/tbody/tr[@class][1]" 
+        // Sample xpathSelector: ".//*[@id='flowcomponentsshowwidget']/table/tbody/tr[@class][1]"
         //  - finds the first (number 1) table row (tr) as a WebElement under the tree defined by the guiId: 'flowcomponentsshowwidget'
         return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathSelector)));
     }

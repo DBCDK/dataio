@@ -15,9 +15,7 @@ import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -28,8 +26,6 @@ public class FlowComponentsShowSeleniumIT {
     private static WebDriver driver;
     private static String appUrl;
     private static Connection conn;
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException, SVNException, URISyntaxException, IOException {
@@ -60,7 +56,7 @@ public class FlowComponentsShowSeleniumIT {
     public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException {
         navigateToFlowComponentsShowWidget(driver);
         SeleniumGWTTable table = new SeleniumGWTTable(driver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
-        table.waitAssertNextRowPresent();
+        table.waitAssertRows();
     }
 
     @Test
@@ -69,7 +65,7 @@ public class FlowComponentsShowSeleniumIT {
         FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, COMPONENT_NAME);
         navigateToFlowComponentsShowWidget(driver);
         SeleniumGWTTable table = new SeleniumGWTTable(driver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
-        table.waitAssertNextRowPresent();
+        table.waitAssertRows();
         List<String> rowData = table.getRow(0);
         assertThat(rowData.get(0), is(COMPONENT_NAME));
         assertThat(rowData.get(1), is("invocationMethod"));
@@ -83,7 +79,7 @@ public class FlowComponentsShowSeleniumIT {
         FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, COMPONENT_NAME_2);
         navigateToFlowComponentsShowWidget(driver);
         SeleniumGWTTable table = new SeleniumGWTTable(driver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
-        table.waitAssertNextRowPresent(2);
+        table.waitAssertRows(2);
         List<List<String>> rowData = table.get();
         assertThat(rowData.get(0).get(0), is(COMPONENT_NAME_1));
         assertThat(rowData.get(0).get(1), is("invocationMethod"));

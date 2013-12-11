@@ -7,24 +7,22 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
-
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import org.junit.After;
+import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * Integration tests for the submitters collection part of the flow store service
@@ -163,7 +161,7 @@ public class SubmittersIT {
      * Given: a deployed flow-store service containing three submitters
      * When: GETing submitters collection
      * Then: request returns with a OK http status code
-     * And: request returns with list as JSON of submitters sorted alphabetically by number
+     * And: request returns with list as JSON of submitters sorted numerically by number
      */
     @Test
     public void findAllSubmitters_Ok() throws Exception {

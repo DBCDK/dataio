@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
+import static dk.dbc.dataio.gui.client.SeleniumUtil.findElementInCurrentView;
+import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.NavigationPanel;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import java.sql.Connection;
@@ -10,14 +12,12 @@ import org.junit.AfterClass;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
-@Ignore
 public class NavigationPanelSeleniumIT {
     private static ConstantsProperties texts = new ConstantsProperties("MenuConstants_dk.properties");
 
@@ -55,37 +55,64 @@ public class NavigationPanelSeleniumIT {
         assertTrue(navigationPanelElement.isDisplayed());
     }
 
-    @Ignore
     @Test
     public void testMainMenuItemsVisible() {
-//        for (String mainMenuId: Menu.findAllMainMenuIds()) {
-//            assertTrue(findNavigationElement(driver, mainMenuId).isDisplayed());
-//        }
+        assertTrue(findNavigationElement(driver, Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS).isDisplayed());
+        assertTrue(findNavigationElement(driver, Menu.GUIID_MAIN_MENU_ITEM_FLOWS).isDisplayed());
+        assertTrue(findNavigationElement(driver, Menu.GUIID_MAIN_MENU_ITEM_SINKS).isDisplayed());
     }
-    
-    
-    // Private utility methods
+
+    @Test
+    public void testSubmitterMenuItemsVisible() {
+        findNavigationElement(driver, Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS).click();
+        assertTrue(findNavigationElement(driver, Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION).isDisplayed());
+    }
+
+    @Test
+    public void testFlowsMenuItemsVisible() {
+        findNavigationElement(driver, Menu.GUIID_MAIN_MENU_ITEM_FLOWS).click();
+        assertTrue(findNavigationElement(driver, Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION).isDisplayed());
+        assertTrue(findNavigationElement(driver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION).isDisplayed());
+        assertTrue(findNavigationElement(driver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW).isDisplayed());
+        assertTrue(findNavigationElement(driver, Menu.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION).isDisplayed());
+    }
+
+    @Test
+    public void testSinksMenuItemsVisible() {
+        findNavigationElement(driver, Menu.GUIID_MAIN_MENU_ITEM_SINKS).click();
+        assertTrue(findNavigationElement(driver, Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION).isDisplayed());
+    }
+
+
+    // Utility methods
     private static WebElement findNavigationPanelElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, NavigationPanel.GUIID_NAVIGATION_MENU_PANEL);
+        return findElementInCurrentView(webDriver, NavigationPanel.GUIID_NAVIGATION_MENU_PANEL);
     }
-    
+
     private static WebElement findNavigationElement(WebDriver webDriver, String menuId) {
         return webDriver.findElement(By.id(menuId));
     }
-    
+
     public static void navigateTo(WebDriver webDriver, String menuId) {
         WebElement menuElement = webDriver.findElement(By.id(menuId));
-        System.out.println("Navigate to: " + menuId);
+        assertTrue(menuElement != null);
         if (!menuElement.isDisplayed()) {  // The menu in question is not displayed, so we need to make it visible
-            System.out.println("menuId is not displayed");
-//            if (Menu.isSubMenuItem(menuId)) {  // Now we assume, that menuId is a Sub Menu (if this is not true, an exception is thrown)
-//                // Now find the parent Main Menu and click on it
-//                System.out.println("menuId is a sub menu, its parent menu is: " + Menu.findMainMenuItem(menuId));
-//                webDriver.findElement(By.id(Menu.findMainMenuItem(menuId))).click();
-//            }
+            switch (menuId) {
+                case Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION:
+                    findNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS).click();
+                    break;
+                case Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION:
+                case Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION:
+                case Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW:
+                case Menu.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION:
+                    findNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_FLOWS).click();
+                    break;
+                case Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION:
+                    findNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SINKS).click();
+                    break;
+            }
         }
-//        menuElement.click();  // Now the element is visble, click on it
-//        System.out.println("return from navigate to");
+        menuElement.click();  // Now the element is visble, click on it
     }
-    
+
 }

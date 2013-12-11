@@ -13,10 +13,8 @@ import static org.hamcrest.CoreMatchers.is;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -26,7 +24,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.tmatesoft.svn.core.SVNException;
 
-@Ignore
 public class FlowComponentsShowSeleniumIT {
     private static WebDriver driver;
     private static String appUrl;
@@ -58,12 +55,6 @@ public class FlowComponentsShowSeleniumIT {
         driver.quit();
     }
 
-    @Test
-    public void testFlowComponentsShowNavigationItemIsVisibleAndClickable() {
-        assertTrue("Navigation element 'Flowkomponenter' is not shown", findFlowComponentCreateNavigationElement(driver).isDisplayed());
-        findFlowComponentCreateNavigationElement(driver).click();
-        assertTrue("Flow Component View is not shown", findFlowComponentsShowWidget(driver).isDisplayed());
-    }
 
     @Test(expected = TimeoutException.class)
     public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException {
@@ -83,7 +74,7 @@ public class FlowComponentsShowSeleniumIT {
         assertThat(rowData.get(0), is(COMPONENT_NAME));
         assertThat(rowData.get(1), is("invocationMethod"));
     }
-    
+
     @Test
     public void testFlowComponentsInsertTwoRows_TwoElementsShown() {
         final String COMPONENT_NAME_1 = "FlowCoOne";
@@ -99,9 +90,9 @@ public class FlowComponentsShowSeleniumIT {
         assertThat(rowData.get(1).get(0), is(COMPONENT_NAME_2));
         assertThat(rowData.get(1).get(1), is("invocationMethod"));
     }
-    
+
     private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
-        findFlowComponentCreateNavigationElement(webDriver).click();
+        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
     }
 
     private static WebElement findFlowComponentCreateNavigationElement(WebDriver webDriver) {

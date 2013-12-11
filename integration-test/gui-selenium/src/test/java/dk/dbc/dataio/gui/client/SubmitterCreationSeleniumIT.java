@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import static dk.dbc.dataio.gui.client.NavigationPanelSeleniumIT.navigateTo;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.Menu;
@@ -16,16 +17,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
-@Ignore
 public class SubmitterCreationSeleniumIT {
     private static ConstantsProperties texts = new ConstantsProperties("SubmitterCreateConstants_dk.properties");
-    
+
     private static final int SAVE_SUBMITTER_TIMOUT = 4;
     private static final String NAME = "name";
     private static final String NUMBER = "42";
@@ -61,22 +60,11 @@ public class SubmitterCreationSeleniumIT {
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() {
-        testSubmitterCreationNavigationItemIsVisible();
-        testSubmitterCreationNavigationItemIsClickable();
         testSubmitterCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testSubmitterCreationNumberInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testSubmitterCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testSubmitterCreationSaveButtonIsVisible();
         testSubmitterCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault();
-    }
-
-    public void testSubmitterCreationNavigationItemIsVisible() {
-        assertTrue(findSubmitterCreationNavigationElement(driver).isDisplayed());
-    }
-
-    public void testSubmitterCreationNavigationItemIsClickable() {
-        navigateToSubmitterCreationWidget(driver);
-        assertTrue(findSubmitterCreationWidget(driver).isDisplayed());
     }
 
     public void testSubmitterCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
@@ -181,11 +169,7 @@ public class SubmitterCreationSeleniumIT {
      * The following is private static helper methods.
      */
     private static void navigateToSubmitterCreationWidget(WebDriver webDriver) {
-        findSubmitterCreationNavigationElement(webDriver).click();
-    }
-
-    private static WebElement findSubmitterCreationNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION);
+        navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION);
     }
 
     private static WebElement findSubmitterCreationWidget(WebDriver webDriver) {

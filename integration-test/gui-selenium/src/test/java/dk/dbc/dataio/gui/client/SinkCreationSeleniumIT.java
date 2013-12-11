@@ -16,16 +16,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
-@Ignore
 public class SinkCreationSeleniumIT {
     private static ConstantsProperties texts = new ConstantsProperties("SinkCreateConstants_dk.properties");
-    
+
     public static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
     private static final String SINK_NAME = "name";
     private static final String RESOURCE_NAME = "resource";
@@ -62,21 +60,10 @@ public class SinkCreationSeleniumIT {
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() {
-        testSinkCreationNavigationItemIsVisible();
-        testSinkCreationNavigationItemIsClickable();
         testSinkCreationSinkNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testSinkCreationResourceNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testSinkCreationSaveButtonIsVisible();
         testSinkCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault();
-    }
-
-    public void testSinkCreationNavigationItemIsVisible() {
-        assertTrue(findSinkCreationNavigationElement(driver).isDisplayed());
-    }
-
-    public void testSinkCreationNavigationItemIsClickable() {
-        navigateToSinkCreationWidget(driver);
-        assertTrue(findSinkCreationWidget(driver).isDisplayed());
     }
 
     public void testSinkCreationSinkNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
@@ -164,7 +151,7 @@ public class SinkCreationSeleniumIT {
      * The following is private static helper methods.
      */
     private static void navigateToSinkCreationWidget(WebDriver webDriver) {
-        findSinkCreationNavigationElement(webDriver).click();
+        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION);
     }
 
     private static WebElement findSinkCreationNavigationElement(WebDriver webDriver) {

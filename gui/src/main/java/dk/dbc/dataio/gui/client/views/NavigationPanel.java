@@ -97,6 +97,38 @@ public class NavigationPanel extends FlowPanel {
                     counter++;
                 }
                 add(panel, mainMenuItem.label);
+                /*
+                 * Now we need to set the id for the Main menu item, which is a bit difficult.
+                 * First, we need to know, how the DOM looks like in this case:
+                 * ...
+                 * <table>
+                 *   <tbody>
+                 *     <tr>                   // Position D
+                 *       <td>                 // Position E
+                 *         <div>Main Menu Label</div>        // Main Menu "button"
+                 *       </td>
+                 *     </tr>
+                 *     <tr>                   // Position C
+                 *       <td>                 // Position B
+                 *         <table>            // Position A
+                 *           ...                             // Table containing submenu buttons
+                 *         </table>
+                 *       </td>
+                 *     </tr>
+                 *     <tr>
+                 *       ...                  // Second Main Menu Item
+                 *     </tr>
+                 *     ...
+                 *   </tbody>
+                 * </table>
+                 * ...
+                 */
+                panel.getElement().                // Position A
+                    getParentElement().            // Position B
+                    getParentElement().            // Position C
+                    getPreviousSiblingElement().   // Position D
+                    getFirstChildElement().        // Position E
+                    setId(mainMenuItem.guiId);
                 placeNavigator.add(counter, mainMenuItem.place);
                 counter++;
             }

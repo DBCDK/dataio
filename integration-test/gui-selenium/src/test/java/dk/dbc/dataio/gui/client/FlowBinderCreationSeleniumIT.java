@@ -17,13 +17,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
-@Ignore
 public class FlowBinderCreationSeleniumIT {
     private static ConstantsProperties texts = new ConstantsProperties("FlowbinderCreateConstants_dk.properties");
 
@@ -58,7 +56,6 @@ public class FlowBinderCreationSeleniumIT {
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
-        testFlowBinderCreationWidgetIsVisible();
         testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowbinderCreationFrameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
@@ -70,11 +67,6 @@ public class FlowBinderCreationSeleniumIT {
         //testFlowbinderCreationSinkListIsVisibleAndAnElementCanBeSelected();
         testFlowbinderCreationSaveButtonIsVisible();
         testFlowbinderCreationSaveResultLabeINotVisibleAndEmptyByDefault();
-    }
-
-    public void testFlowBinderCreationWidgetIsVisible() {
-        navigateToFlowbinderCreationWidget(driver);
-        assertTrue(findFlowbinderCreationWidget(driver).isDisplayed());
     }
 
     public void testFlowbinderCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
@@ -110,10 +102,12 @@ public class FlowBinderCreationSeleniumIT {
     // This can, for some reason, not be included with the other visibility tests
     @Test
     public void testFlowbinderCreationSubmitterDualListIsVisibleAndAnElementCanBeChosen() {
-        String submitterName = "submitter1";
-        SubmitterCreationSeleniumIT.createTestSubmitter(driver, submitterName, "123456", "Description");
+        final String submitterName = "submitter1";
+        final String submitterNumber = "123456";
+        final String expectedDisplayName = submitterNumber + " (" + submitterName + ")";
+        SubmitterCreationSeleniumIT.createTestSubmitter(driver, submitterName, submitterNumber, "Description");
         navigateToFlowbinderCreationWidget(driver);
-        SeleniumUtil.assertDualListIsVisibleAndElementCanBeChosen(driver, findSubmitterPanelElement(driver), submitterName);
+        SeleniumUtil.assertDualListIsVisibleAndElementCanBeChosen(driver, findSubmitterPanelElement(driver), expectedDisplayName);
     }
 
     // This can, for some reason, not be included with the other visibility tests
@@ -123,7 +117,6 @@ public class FlowBinderCreationSeleniumIT {
         String flowName = "flowName";
         FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, flowComponentName);
         FlowCreationSeleniumIT.createTestFlow(driver, flowName, "description", flowComponentName);
-
         navigateToFlowbinderCreationWidget(driver);
         SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(driver, findFlowListElement(driver), flowName);
     }
@@ -284,9 +277,11 @@ public class FlowBinderCreationSeleniumIT {
     @Test
     public void testFlowBinderCreationSubmitterInputFieldUpdate_clearsSaveResultLabel() {
         final String submitterName = "anotherSubmitter";
-        SubmitterCreationSeleniumIT.createTestSubmitter(driver, submitterName, "42", "Description");
+        final String submitterNumber = "42";
+        final String displayName = submitterNumber + " (" + submitterName + ")";
+        SubmitterCreationSeleniumIT.createTestSubmitter(driver, submitterName, submitterNumber, "Description");
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
-        SeleniumUtil.selectItemInDualList(findSubmitterPanelElement(driver), submitterName);
+        SeleniumUtil.selectItemInDualList(findSubmitterPanelElement(driver), displayName);
         assertThat(findSaveResultLabelElement(driver).getText(), is(""));
     }
 
@@ -310,8 +305,8 @@ public class FlowBinderCreationSeleniumIT {
         assertThat(findSaveResultLabelElement(driver).getText(), is(""));
     }
 
-    
-    
+
+
     /**
      * The following is private helper methods
      */
@@ -381,8 +376,10 @@ public class FlowBinderCreationSeleniumIT {
 
     private String createDefaultSubmitter() {
         final String defaultSubmitterName = "defaultSubmitter";
-        SubmitterCreationSeleniumIT.createTestSubmitter(driver, defaultSubmitterName, "123456", "Description");
-        return defaultSubmitterName;
+        final String defaultSubmitterNumber = "123456";
+        final String displayName = defaultSubmitterNumber + " (" + defaultSubmitterName + ")";
+        SubmitterCreationSeleniumIT.createTestSubmitter(driver, defaultSubmitterName, defaultSubmitterNumber, "Description");
+        return displayName;
     }
 
     private void selectSubmitterWhenInFlowbinderCreationWidget(String submitter) {

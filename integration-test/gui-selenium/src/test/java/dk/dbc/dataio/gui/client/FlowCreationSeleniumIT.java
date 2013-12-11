@@ -16,13 +16,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
-@Ignore
 public class FlowCreationSeleniumIT {
     private static ConstantsProperties texts = new ConstantsProperties("FlowCreateConstants_dk.properties");
 
@@ -58,18 +56,12 @@ public class FlowCreationSeleniumIT {
 
     @Test
     public void testInitialVisibililtyAndAccessabilityOfElements() {
-        testFlowCreationNavigationItemIsVisible();
         testFlowCreationNavigationItemIsClickable();
         testFlowCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead();
-        testFlowCreationFlowComponentSelectionFieldIsVisibleAndAnElementCanBeChosen();
+//        testFlowCreationFlowComponentSelectionFieldIsVisibleAndAnElementCanBeChosen();
         testFlowCreationSaveButtonIsVisible();
         testFlowCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault();
-    }
-
-//    @Test
-    public void testFlowCreationNavigationItemIsVisible() {
-        assertTrue(findFlowCreationNavigationElement(driver).isDisplayed());
     }
 
 //    @Test
@@ -90,13 +82,13 @@ public class FlowCreationSeleniumIT {
         SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(findDescriptionElement(driver), 160);
     }
 
-//    @Test
+    @Test
     public void testFlowCreationFlowComponentSelectionFieldIsVisibleAndAnElementCanBeChosen() {
         String flowComponentName = "testComponent";
         FlowComponentCreationSeleniumIT.createTestFlowComponent(driver, flowComponentName);
         navigateToFlowCreationWidget(driver);
         SeleniumUtil.assertDualListIsVisibleAndElementCanBeChosen(driver, findComponentSelectionElement(driver), flowComponentName);
-    }
+   }
 
 //    @Test
     public void testFlowCreationSaveButtonIsVisible() {
@@ -201,11 +193,7 @@ public class FlowCreationSeleniumIT {
     }
 
     private static void navigateToFlowCreationWidget(WebDriver webDriver) {
-        findFlowCreationNavigationElement(webDriver).click();
-    }
-
-    private static WebElement findFlowCreationNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION);
     }
 
     private static WebElement findFlowCreationWidget(WebDriver webDriver) {
@@ -240,7 +228,7 @@ public class FlowCreationSeleniumIT {
      * responsibility to create a flow-component beforehand with the given name.
      */
     public static void createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
-        findFlowCreationNavigationElement(webDriver).click();
+        navigateToFlowCreationWidget(webDriver);
 
         findNameElement(webDriver).clear();
         findNameElement(webDriver).sendKeys(name);

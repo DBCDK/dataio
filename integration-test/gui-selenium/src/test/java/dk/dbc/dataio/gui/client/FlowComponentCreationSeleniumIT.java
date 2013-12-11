@@ -37,7 +37,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 
-@Ignore
 public class FlowComponentCreationSeleniumIT {
     private static ConstantsProperties texts = new ConstantsProperties("FlowComponentCreateConstants_dk.properties");
 
@@ -85,7 +84,6 @@ public class FlowComponentCreationSeleniumIT {
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
-        testFlowComponentCreationNavigationItemIsVisibleAndClickable();
         testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowComponentCreationSvnProjectInputFieldIsVisibleAndDataCanBeInsertedAndRead();
         testFlowComponentCreationSvnRevisionSelectionFieldIsVisible();
@@ -93,12 +91,6 @@ public class FlowComponentCreationSeleniumIT {
         testFlowComponentCreationInvocationMethodSelectionFieldIsVisible();
         testFlowComponentCreationSaveButtonIsVisible();
         testFlowComponentCreationSaveResultLabelIsVisibleAndEmpty();
-    }
-
-    public void testFlowComponentCreationNavigationItemIsVisibleAndClickable() {
-        assertTrue(findFlowComponentCreateNavigationElement(driver).isDisplayed());
-        findFlowComponentCreateNavigationElement(driver).click();
-        assertTrue(findFlowComponentCreationWidget(driver).isDisplayed());
     }
 
     public void testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
@@ -230,7 +222,7 @@ public class FlowComponentCreationSeleniumIT {
     }
 
     private static void navigateToFlowComponentCreationWidget(WebDriver webDriver) {
-        findFlowComponentCreateNavigationElement(webDriver).click();
+        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION);
     }
 
     private static WebElement findFlowComponentCreateNavigationElement(WebDriver webDriver) {

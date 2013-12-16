@@ -1,62 +1,26 @@
 package dk.dbc.dataio.gui.client;
 
-import static dk.dbc.dataio.gui.client.NavigationPanelSeleniumIT.navigateTo;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
-import dk.dbc.dataio.integrationtest.ITUtil;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
-import static org.hamcrest.CoreMatchers.is;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
 
-public class SubmitterCreationSeleniumIT {
+import static dk.dbc.dataio.gui.client.NavigationPanelSeleniumIT.navigateTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("SubmitterCreateConstants_dk.properties");
 
     private static final int SAVE_SUBMITTER_TIMOUT = 4;
     private static final String NAME = "name";
     private static final String NUMBER = "42";
     private static final String DESCRIPTTION = "desc";
-    private static WebDriver driver;
-    private static String APP_URL;
-    private static Connection conn;
-
-    @BeforeClass
-    public static void setUpClass() throws ClassNotFoundException, SQLException {
-        String glassfishPort = System.getProperty("glassfish.port");
-        APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
-        conn = ITUtil.newDbConnection();
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws SQLException {
-        conn.close();
-    }
-
-    @Before
-    public void setUp() {
-        driver = new FirefoxDriver();
-        driver.get(APP_URL);
-        driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
-    }
-
-    @After
-    public void tearDown() throws SQLException {
-        ITUtil.clearDbTables(conn, ITUtil.SUBMITTERS_TABLE_NAME);
-        driver.quit();
-    }
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() {
@@ -68,100 +32,100 @@ public class SubmitterCreationSeleniumIT {
     }
 
     public void testSubmitterCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToSubmitterCreationWidget(driver);
-        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findNameElement(driver));
+        navigateToSubmitterCreationWidget(webDriver);
+        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findNameElement(webDriver));
     }
 
     public void testSubmitterCreationNumberInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToSubmitterCreationWidget(driver);
-        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findNumberElement(driver));
+        navigateToSubmitterCreationWidget(webDriver);
+        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findNumberElement(webDriver));
     }
 
     public void testSubmitterCreationDescriptionInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToSubmitterCreationWidget(driver);
-        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(findDescriptionElement(driver), 160);
+        navigateToSubmitterCreationWidget(webDriver);
+        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndReadWithMaxSize(findDescriptionElement(webDriver), 160);
     }
 
     public void testSubmitterCreationSaveButtonIsVisible() {
-        navigateToSubmitterCreationWidget(driver);
-        assertTrue(findSaveButton(driver).isDisplayed());
+        navigateToSubmitterCreationWidget(webDriver);
+        assertTrue(findSaveButton(webDriver).isDisplayed());
     }
 
     public void testSubmitterCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() {
-        navigateToSubmitterCreationWidget(driver);
-        WebElement element = findSaveResultLabel(driver);
+        navigateToSubmitterCreationWidget(webDriver);
+        WebElement element = findSaveResultLabel(webDriver);
         assertFalse(element.isDisplayed());
         assertThat(element.getText(), is(""));
     }
 
     @Test
     public void testSubmitterCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
-        navigateToSubmitterCreationWidget(driver);
+        navigateToSubmitterCreationWidget(webDriver);
         insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
     }
 
     @Test
     public void testSubmitterCreationNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
-        navigateToSubmitterCreationWidget(driver);
+        navigateToSubmitterCreationWidget(webDriver);
         insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
-        findNameElement(driver).sendKeys(NAME);
-        assertThat(findSaveResultLabel(driver).getText(), is(""));
+        findNameElement(webDriver).sendKeys(NAME);
+        assertThat(findSaveResultLabel(webDriver).getText(), is(""));
     }
 
     @Test
     public void testSubmitterCreationNumberInputFieldUpdate_clearsSaveResultLabel() throws Exception {
-        navigateToSubmitterCreationWidget(driver);
+        navigateToSubmitterCreationWidget(webDriver);
         insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
-        findNumberElement(driver).sendKeys(DESCRIPTTION);
-        assertThat(findSaveResultLabel(driver).getText(), is(""));
+        findNumberElement(webDriver).sendKeys(DESCRIPTTION);
+        assertThat(findSaveResultLabel(webDriver).getText(), is(""));
     }
 
     @Test
     public void testSubmitterCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
-        navigateToSubmitterCreationWidget(driver);
+        navigateToSubmitterCreationWidget(webDriver);
         insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
-        findDescriptionElement(driver).sendKeys(DESCRIPTTION);
-        assertThat(findSaveResultLabel(driver).getText(), is(""));
+        findDescriptionElement(webDriver).sendKeys(DESCRIPTTION);
+        assertThat(findSaveResultLabel(webDriver).getText(), is(""));
     }
 
     @Test
     public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() {
-        navigateToSubmitterCreationWidget(driver);
-        findNumberElement(driver).sendKeys(NUMBER);
-        findDescriptionElement(driver).sendKeys(DESCRIPTTION);
-        findSaveButton(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        navigateToSubmitterCreationWidget(webDriver);
+        findNumberElement(webDriver).sendKeys(NUMBER);
+        findDescriptionElement(webDriver).sendKeys(DESCRIPTTION);
+        findSaveButton(webDriver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
     public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() {
-        navigateToSubmitterCreationWidget(driver);
-        findNameElement(driver).sendKeys(NAME);
-        findNumberElement(driver).sendKeys(NUMBER);
-        findSaveButton(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        navigateToSubmitterCreationWidget(webDriver);
+        findNameElement(webDriver).sendKeys(NAME);
+        findNumberElement(webDriver).sendKeys(NUMBER);
+        findSaveButton(webDriver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
     public void testSaveButton_EmptyNumberInputField_DisplayErrorPopup() {
-        navigateToSubmitterCreationWidget(driver);
-        findNameElement(driver).sendKeys(NAME);
-        findDescriptionElement(driver).sendKeys(DESCRIPTTION);
-        findSaveButton(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        navigateToSubmitterCreationWidget(webDriver);
+        findNameElement(webDriver).sendKeys(NAME);
+        findDescriptionElement(webDriver).sendKeys(DESCRIPTTION);
+        findSaveButton(webDriver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
     public void testSaveButton_numberInputFieldContainsNonNumericValue_DisplayErrorPopup() {
-        navigateToSubmitterCreationWidget(driver);
-        findNameElement(driver).sendKeys(NAME);
-        findNumberElement(driver).sendKeys("fourty-two");
-        findDescriptionElement(driver).sendKeys(DESCRIPTTION);
-        findSaveButton(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        navigateToSubmitterCreationWidget(webDriver);
+        findNameElement(webDriver).sendKeys(NAME);
+        findNumberElement(webDriver).sendKeys("fourty-two");
+        findDescriptionElement(webDriver).sendKeys(DESCRIPTTION);
+        findSaveButton(webDriver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_NumberInputFieldValidationError")));
     }
 
@@ -197,11 +161,11 @@ public class SubmitterCreationSeleniumIT {
     }
 
     private void insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave() {
-        findNameElement(driver).sendKeys("n");
-        findNumberElement(driver).sendKeys("1");
-        findDescriptionElement(driver).sendKeys("d");
-        findSaveButton(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
+        findNameElement(webDriver).sendKeys("n");
+        findNumberElement(webDriver).sendKeys("1");
+        findDescriptionElement(webDriver).sendKeys("d");
+        findSaveButton(webDriver).click();
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
     }
 
     /**

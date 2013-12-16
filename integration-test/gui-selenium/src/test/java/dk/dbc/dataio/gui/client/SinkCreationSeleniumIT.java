@@ -4,59 +4,22 @@ import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.SinkCreateViewImpl;
-import dk.dbc.dataio.integrationtest.ITUtil;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
-import static org.hamcrest.CoreMatchers.is;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
 
-public class SinkCreationSeleniumIT {
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("SinkCreateConstants_dk.properties");
 
     public static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
     private static final String SINK_NAME = "name";
     private static final String RESOURCE_NAME = "resource";
     private static final int SAVE_SINK_TIMOUT = 4;
-
-    private static WebDriver driver;
-    private static String APP_URL;
-    private static Connection conn;
-
-    @BeforeClass
-    public static void setUpClass() throws ClassNotFoundException, SQLException {
-        String glassfishPort = System.getProperty("glassfish.port");
-        APP_URL = "http://localhost:" + glassfishPort + "/gui/gui.html";
-        conn = ITUtil.newDbConnection();
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws SQLException {
-        conn.close();
-    }
-
-    @Before
-    public void setUp() {
-        driver = new FirefoxDriver();
-        driver.get(APP_URL);
-        driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
-    }
-
-    @After
-    public void tearDown() throws SQLException {
-        ITUtil.clearDbTables(conn, ITUtil.SINKS_TABLE_NAME);
-        driver.quit();
-    }
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() {
@@ -67,83 +30,83 @@ public class SinkCreationSeleniumIT {
     }
 
     public void testSinkCreationSinkNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToSinkCreationWidget(driver);
-        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findSinkNameElement(driver));
+        navigateToSinkCreationWidget(webDriver);
+        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findSinkNameElement(webDriver));
     }
 
     public void testSinkCreationResourceNameInputFieldIsVisibleAndDataCanBeInsertedAndRead() {
-        navigateToSinkCreationWidget(driver);
-        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findResourceNameElement(driver));
+        navigateToSinkCreationWidget(webDriver);
+        SeleniumUtil.assertFieldIsVisbleAndDataCanBeInsertedAndRead(findResourceNameElement(webDriver));
     }
 
     public void testSinkCreationSaveButtonIsVisible() {
-        navigateToSinkCreationWidget(driver);
-        assertTrue(findSaveButton(driver).isDisplayed());
+        navigateToSinkCreationWidget(webDriver);
+        assertTrue(findSaveButton(webDriver).isDisplayed());
     }
 
     public void testSinkCreationSaveResultLabelIsNotVisibleAndEmptyAsDefault() {
-        navigateToSinkCreationWidget(driver);
-        WebElement element = findSaveResultLabel(driver);
+        navigateToSinkCreationWidget(webDriver);
+        WebElement element = findSaveResultLabel(webDriver);
         assertFalse(element.isDisplayed());
         assertThat(element.getText(), is(""));
     }
 
     @Test
     public void testSinkCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
-        navigateToSinkCreationWidget(driver);
+        navigateToSinkCreationWidget(webDriver);
         insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
     }
 
     @Test
     public void testSinkCreationSinkNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
-        navigateToSinkCreationWidget(driver);
+        navigateToSinkCreationWidget(webDriver);
         insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
-        findSinkNameElement(driver).sendKeys(SINK_NAME);
-        assertThat(findSaveResultLabel(driver).getText(), is(""));
+        findSinkNameElement(webDriver).sendKeys(SINK_NAME);
+        assertThat(findSaveResultLabel(webDriver).getText(), is(""));
     }
 
     @Test
     public void testSinkCreationResourceNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
-        navigateToSinkCreationWidget(driver);
+        navigateToSinkCreationWidget(webDriver);
         insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
-        findResourceNameElement(driver).sendKeys(RESOURCE_NAME);
-        assertThat(findSaveResultLabel(driver).getText(), is(""));
+        findResourceNameElement(webDriver).sendKeys(RESOURCE_NAME);
+        assertThat(findSaveResultLabel(webDriver).getText(), is(""));
     }
 
     @Test
     public void testSaveButton_EmptySinkNameInputField_DisplayErrorPopup() {
-        navigateToSinkCreationWidget(driver);
-        findResourceNameElement(driver).sendKeys(RESOURCE_NAME);
-        findSaveButton(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        navigateToSinkCreationWidget(webDriver);
+        findResourceNameElement(webDriver).sendKeys(RESOURCE_NAME);
+        findSaveButton(webDriver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
     public void testSaveButton_EmptyResourceNameInputField_DisplayErrorPopup() {
-        navigateToSinkCreationWidget(driver);
-        findSinkNameElement(driver).sendKeys(SINK_NAME);
-        findSaveButton(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        navigateToSinkCreationWidget(webDriver);
+        findSinkNameElement(webDriver).sendKeys(SINK_NAME);
+        findSaveButton(webDriver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
     public void testSinkCreationUnknownResourceName_DisplayErrorPopup() throws Exception {
-        navigateToSinkCreationWidget(driver);
-        findSinkNameElement(driver).sendKeys("unknownresource-name");
-        findResourceNameElement(driver).sendKeys("unknownresource");
-        findSaveButton(driver).click();
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        navigateToSinkCreationWidget(webDriver);
+        findSinkNameElement(webDriver).sendKeys("unknownresource-name");
+        findResourceNameElement(webDriver).sendKeys("unknownresource");
+        findSaveButton(webDriver).click();
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is("Error: " + texts.translate("error_ResourceNameNotValid")));  // Todo: Generalisering af fejlhåndtering
     }
 
     @Test
     public void testSinkCreationSinkNameAlreadyExist_DisplayErrorPopup() throws Exception {
-        navigateToSinkCreationWidget(driver);
+        navigateToSinkCreationWidget(webDriver);
         insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave();
-        findSaveButton(driver).click();  // Click enters the same data once again => Same Sink name
-        String s = SeleniumUtil.getAlertStringAndAccept(driver);
+        findSaveButton(webDriver).click();  // Click enters the same data once again => Same Sink name
+        String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is("Error: " + texts.translate("error_ProxyKeyViolationError")));  // Todo: Generalisering af fejlhåndtering
     }
 
@@ -179,10 +142,10 @@ public class SinkCreationSeleniumIT {
     }
 
     private void insertKnownTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave() {
-        findSinkNameElement(driver).sendKeys("succesfull-name");
-        findResourceNameElement(driver).sendKeys(SINK_CREATION_KNOWN_RESOURCE_NAME);
-        findSaveButton(driver).click();
-        SeleniumUtil.waitAndAssert(driver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SinkSuccessfullySaved"));
+        findSinkNameElement(webDriver).sendKeys("succesfull-name");
+        findResourceNameElement(webDriver).sendKeys(SINK_CREATION_KNOWN_RESOURCE_NAME);
+        findSaveButton(webDriver).click();
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateViewImpl.GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SinkSuccessfullySaved"));
     }
 
     /**

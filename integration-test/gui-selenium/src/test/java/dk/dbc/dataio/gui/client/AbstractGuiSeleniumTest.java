@@ -22,7 +22,7 @@ public abstract class AbstractGuiSeleniumTest {
     @BeforeClass
     public static void setUpContext() throws ClassNotFoundException, SQLException {
         applicationUrl = String.format("http://localhost:%s/gui/gui.html", System.getProperty("glassfish.port"));
-        flowStoreDbConnection = ITUtil.newDbConnection();
+        flowStoreDbConnection = ITUtil.newDbConnection("flow_store");
         webDriver = new FirefoxDriver();
         webDriver.manage().timeouts().implicitlyWait(IMPLICIT_WEBDRIVER_WAIT_IN_SECONDS, TimeUnit.SECONDS);
     }

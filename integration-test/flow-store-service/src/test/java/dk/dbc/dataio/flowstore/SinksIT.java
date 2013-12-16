@@ -36,7 +36,7 @@ public class SinksIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         restClient = HttpClient.newClient();
-        dbConnection = newDbConnection();
+        dbConnection = newDbConnection("flow_store");
     }
 
     @AfterClass

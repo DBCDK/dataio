@@ -37,11 +37,6 @@ public class MainPanel extends DockLayoutPanel {
     public MainPanel(ClientFactory clientFactory) {
         super(Style.Unit.PX);
         navigationPanel = new NavigationPanel(clientFactory, GUIID_NAVIGATION_PANEL);
-        navigationPanel.injectNavigationFeedback(new NavigationPanel.NavigationFeedbackHandler() {
-            @Override public void navigationChanged(String text) {
-                headerPanel.setText(constants.header_DataIO() + " >> " + text);
-            }
-        });
         getElement().setId(GUIID_MAIN_PANEL);
         addWest(navigationPanel, 250);
         addNorth(headerPanel, 30);

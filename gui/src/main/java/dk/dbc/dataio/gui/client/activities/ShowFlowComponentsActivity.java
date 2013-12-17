@@ -13,14 +13,14 @@ import java.util.List;
 
 
 /**
- * This class represents the show flows activity 
+ * This class represents the show flows activity
  */
 public class ShowFlowComponentsActivity extends AbstractActivity implements FlowComponentsShowPresenter {
 //    private final FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
     private ClientFactory clientFactory;
     private FlowComponentsShowView flowComponentsShowView;
     private FlowStoreProxyAsync flowStoreProxy;
-    
+
     public ShowFlowComponentsActivity(/*FlowComponentsShowPlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
@@ -36,15 +36,15 @@ public class ShowFlowComponentsActivity extends AbstractActivity implements Flow
     public void reload() {
 		flowComponentsShowView.refresh();
     }
-    
+
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowComponentsShowView.asWidget());
         fetchFlowComponents();
     }
-    
-    
+
+
     // Local methods
     private void fetchFlowComponents() {
         flowStoreProxy.findAllComponents(new AsyncCallback<List<FlowComponent>>() {

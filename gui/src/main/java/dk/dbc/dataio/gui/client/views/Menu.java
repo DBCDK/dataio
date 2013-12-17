@@ -8,6 +8,7 @@ import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
+import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.views.Menu.MenuItem;
@@ -50,7 +51,7 @@ public final class Menu {
         MenuItem createFlowComponent = new MenuItem(GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION, constants.subMenu_FlowComponentCreation(), new FlowComponentCreatePlace());
         MenuItem showFlowComponents = new MenuItem(GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW, constants.subMenu_FlowComponentsShow(), new FlowComponentsShowPlace());
         MenuItem createFlowBinder = new MenuItem(GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION, constants.subMenu_FlowbinderCreation(), new FlowbinderCreatePlace());
-        MenuItem flowsMenu = new MenuItem(GUIID_MAIN_MENU_ITEM_FLOWS, constants.mainMenu_Flows(), NOWHERE, createFlow, createFlowComponent, showFlowComponents, createFlowBinder);
+        MenuItem flowsMenu = new MenuItem(GUIID_MAIN_MENU_ITEM_FLOWS, constants.mainMenu_Flows(), new FlowsShowPlace(), createFlow, createFlowComponent, showFlowComponents, createFlowBinder);
 
         // Sink Main Menu
         MenuItem createSink = new MenuItem(GUIID_SUB_MENU_ITEM_SINK_CREATION, constants.subMenu_SinkCreation(), new SinkCreatePlace());
@@ -61,7 +62,7 @@ public final class Menu {
     }
 
 
-    public final class MenuItem {
+    public final static class MenuItem {
         public String guiId;
         String label;
         Place place;

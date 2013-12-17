@@ -17,6 +17,8 @@ import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
+import dk.dbc.dataio.gui.client.views.FlowsShowView;
+import dk.dbc.dataio.gui.client.views.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
 import dk.dbc.dataio.gui.client.views.SinkCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
@@ -29,7 +31,7 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Place Controller
     private final PlaceController placeController = new PlaceController(eventBus);
-    
+
     // Proxies
     private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
     private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
@@ -42,8 +44,9 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final SinkCreateView sinkCreateView = new SinkCreateViewImpl();
     private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
+    private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
 
-    
+
     @Override
     public EventBus getEventBus() {
         return eventBus;
@@ -88,7 +91,7 @@ public class ClientFactoryImpl implements ClientFactory {
     public FlowbinderCreateView getFlowbinderCreateView() {
         return flowbinderCreateView;
     }
-    
+
     @Override
     public SinkCreateView getSinkCreateView() {
         return sinkCreateView;
@@ -97,6 +100,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public FlowComponentsShowView getFlowComponentsShowView() {
         return flowComponentsShowView;
+    }
+
+    @Override
+    public FlowsShowView getFlowsShowView() {
+        return flowsShowView;
     }
 
 }

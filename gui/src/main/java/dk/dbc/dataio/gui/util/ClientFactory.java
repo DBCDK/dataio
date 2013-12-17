@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.views.FlowsShowView;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 
@@ -21,7 +22,7 @@ import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 public interface ClientFactory {
     // Event Bus
     EventBus getEventBus();
-    
+
     // Place Controller
     PlaceController getPlaceController();
 
@@ -29,7 +30,7 @@ public interface ClientFactory {
     FlowStoreProxyAsync getFlowStoreProxyAsync();
     JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
     SinkServiceProxyAsync getSinkServiceProxyAsync();
-    
+
     // Views
     FlowCreateView getFlowCreateView();
     FlowComponentCreateView getFlowComponentCreateView();
@@ -37,4 +38,5 @@ public interface ClientFactory {
     FlowbinderCreateView getFlowbinderCreateView();
     SinkCreateView getSinkCreateView();
     FlowComponentsShowView getFlowComponentsShowView();
+    FlowsShowView getFlowsShowView();
 }

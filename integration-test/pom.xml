@@ -19,6 +19,7 @@
     <!--module>sink-es</module-->
     <module>sink-es-queue-service</module>
     <module>utils</module>
+    <module>glassfish</module>
   </modules>
 
   <!-- Hardening: how do we get random ports for integration tests - embedded glassfish does not work with different ports across reactor modules -->

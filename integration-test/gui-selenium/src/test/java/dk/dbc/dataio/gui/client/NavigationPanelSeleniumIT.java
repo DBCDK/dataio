@@ -3,6 +3,9 @@ package dk.dbc.dataio.gui.client;
 import static dk.dbc.dataio.gui.client.SeleniumUtil.findElementInCurrentView;
 import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.NavigationPanel;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,6 +16,106 @@ import org.openqa.selenium.WebElement;
 public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("MenuConstants_dk.properties");
 
+    /**
+     * When modifying the menu structure, do also remember to change the structure below,
+     * since the test is based on this structure.
+     */
+    private final static class MenuItems {
+        private final String[] mainItems;
+        private final Map<String, String[]> subItems;
+        /**
+         * Constructor, where the expected menu structure is defined
+         */
+        public MenuItems() {
+            // First initialize the list of main menu items
+            mainItems = new String[] {
+                Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS,
+                Menu.GUIID_MAIN_MENU_ITEM_FLOWS,
+                Menu.GUIID_MAIN_MENU_ITEM_SINKS,
+            };
+            // Then all of the sub menus
+            subItems = new HashMap<>();
+            // Submenus for Submitters Main Menu
+            subItems.put(
+                Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS,
+                new String[] {
+                    Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION,
+                }
+            );
+            // Submenus for Flows Main Menu
+            subItems.put(
+                Menu.GUIID_MAIN_MENU_ITEM_FLOWS,
+                new String[] {
+                    Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION,
+                    Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION,
+                    Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW,
+                    Menu.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION,
+                }
+            );
+            // Submenus for Sinks Main Menu
+            subItems.put(
+                Menu.GUIID_MAIN_MENU_ITEM_SINKS,
+                new String[] {
+                    Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION,
+                }
+            );
+        }
+
+        /**
+         * isMainMenuItem returns true, if the parameter is a Main Menu, false if not
+         * @param item The menu item to test
+         * @return true, if the item is a Main Menu, false if not
+         */
+        public boolean isMainMenuItem(String item) {
+            return Arrays.asList(mainItems).contains(item);
+        }
+
+        /**
+         * isSubMenuUnder returns the parent Main Menu item, if the parameter
+         * is a Sub Menu, null if it is not a sub menu
+         * @param item The menu item to test
+         * @return The parent Main Menu, if the item is a Sub Menu, null if not
+         */
+        public String isSubMenuUnder(String item) {
+            for (String key: subItems.keySet()) {
+                if (Arrays.asList(subItems.get(key)).contains(item)) {
+                    return key;
+                }
+            }
+            return null;
+        }
+
+        /**
+         * isSubMenuItem returns true, if the parameter is a Sub Menu, false if not
+         * @param item The menu item to test
+         * @return true, if the item is a Sub Menu, false if not
+         */
+        public boolean isSubMenuItem(String item) {
+            return isSubMenuUnder(item) != null;
+        }
+
+        /**
+         * Gets the list of Main Menus
+         * @return The list of Main Menus
+         */
+        public String[] getMainMenus() {
+            return mainItems;
+        }
+
+        /**
+         * Gets the list of Sub Menus for a given Main Menu
+         * @param mainMenu The Main Menu to fetch Sub Menus for
+         * @return The list of Sub Menus
+         */
+        public String[] getSubMenus(String mainMenu) {
+            return subItems.get(mainMenu);
+        }
+    }
+    private final static MenuItems menuItems = new MenuItems();
+
+
+    // Tests begin here...
+
     @Ignore("Temporary disabled because test fails with new Navigation Panel")
     @Test
     public void testNavigationMenuPanelVisible() {
@@ -21,37 +124,23 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Ignore("Temporary disabled because test fails with new Navigation Panel")
     @Test
-    public void testMainMenuItemsVisible() {
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS).isDisplayed());
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_FLOWS).isDisplayed());
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SINKS).isDisplayed());
-    }
-
-    @Ignore("Temporary disabled because test fails with new Navigation Panel")
-    public void testSubmitterMenuItemsVisible() {
-        findMainMenuFoldUnfoldElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS).click();
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION).isDisplayed());
-
-//        webDriver.get(applicationUrl);
-//        assertTrue(findNavigationPanelElement(webDriver).isDisplayed());
+    public void testMainMenuItemsAreVisible() {
+        for (String mainMenu: menuItems.getMainMenus()) {
+            assertTrue("Main menu '" + mainMenu + "' is not visible", findMenuNavigationElement(webDriver, mainMenu).isDisplayed());
+        }
     }
 
     @Ignore("Temporary disabled because test fails with new Navigation Panel")
     @Test
-    public void testFlowsMenuItemsVisible() {
-        findMainMenuFoldUnfoldElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_FLOWS).click();
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION).isDisplayed());
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION).isDisplayed());
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW).isDisplayed());
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION).isDisplayed());
+    public void testSubMenuItemsAreVisible() {
+        for (String mainMenu: menuItems.getMainMenus()) {
+            findMainMenuFoldUnfoldElement(webDriver, mainMenu).click();
+            for (String subMenu: menuItems.getSubMenus(mainMenu)) {
+                assertTrue("Sub menu '" + subMenu + "' is not visible", findMenuNavigationElement(webDriver, subMenu).isDisplayed());
+            }
+        }
     }
 
-    @Ignore("Temporary disabled because test fails with new Navigation Panel")
-    @Test
-    public void testSinksMenuItemsVisible() {
-        findMainMenuFoldUnfoldElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SINKS).click();
-        assertTrue(findMenuNavigationElement(webDriver, Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION).isDisplayed());
-    }
 
 
     // Utility methods
@@ -60,33 +149,34 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static WebElement findMainMenuFoldUnfoldElement(WebDriver webDriver, String menuId) {
-        return webDriver.findElement(By.id(menuId)).findElement(By.tagName("img"));
+        return findMenuNavigationElement(webDriver, menuId).findElement(By.tagName("img"));
     }
 
     private static WebElement findMenuNavigationElement(WebDriver webDriver, String menuId) {
-        return webDriver.findElement(By.id(menuId));
+        return findElementInCurrentView(webDriver, menuId);
     }
 
+
+    // Public Utility method
+
+    /**
+     * Navigate to a sub page, pointed out by either a Main Menu Id or a Sub Menu Id (guiId)
+     * @param webDriver The Selenium Web Driver
+     * @param menuId The menu to navigate to
+     */
     public static void navigateTo(WebDriver webDriver, String menuId) {
-        WebElement menuElement = webDriver.findElement(By.id(menuId));
-        assertTrue(menuElement != null);
-        if (!menuElement.isDisplayed()) {  // The menu in question is not displayed, so we need to make it visible
-            switch (menuId) {
-                case Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION:
-                    findMenuNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS).click();
-                    break;
-                case Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION:
-                case Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION:
-                case Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW:
-                case Menu.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION:
-                    findMenuNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_FLOWS).click();
-                    break;
-                case Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION:
-                    findMenuNavigationElement(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SINKS).click();
-                    break;
-            }
+        if (menuItems.isMainMenuItem(menuId)) {
+            findMenuNavigationElement(webDriver, menuId).click();
         }
-        menuElement.click();  // Now the element is visble, click on it
+        else if (menuItems.isSubMenuItem(menuId)) {
+            // First check, that submenu is visible
+            if (!findMenuNavigationElement(webDriver, menuId).isDisplayed()) {
+                findMainMenuFoldUnfoldElement(webDriver, menuItems.isSubMenuUnder(menuId)).click();  // Unfold the parent main menu
+            }
+            findMenuNavigationElement(webDriver, menuId).click();
+        } else {  // The menu item is neither a Main Menu nor a Sub Menu
+            assertTrue("That menu element does not exist", false);
+        }
     }
 
 }

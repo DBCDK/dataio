@@ -143,7 +143,7 @@ public class SeleniumGWTTable {
 
     private WebElement waitAndFindNextTrTagContainingData() throws TimeoutException {
         WebDriverWait wait = new WebDriverWait(webDriver, timeout);
-        final String xpathSelector = ".//*[@id='" + guiId + "']/table/tbody/tr[@class][" + ++lastRowFound + "]";
+        final String xpathSelector = ".//*[@id='" + guiId + "']//table/tbody/tr[@class][" + ++lastRowFound + "]";
         // Explanation: According to Note c in Assumption 6, a valid row with data is identified by a tr, where class is set to 'something'
         // Sample xpathSelector: ".//*[@id='flowcomponentsshowwidget']/table/tbody/tr[@class][1]"
         //  - finds the first (number 1) table row (tr) as a WebElement under the tree defined by the guiId: 'flowcomponentsshowwidget'

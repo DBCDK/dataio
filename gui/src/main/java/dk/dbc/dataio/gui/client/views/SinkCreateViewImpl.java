@@ -24,7 +24,6 @@ public class SinkCreateViewImpl extends ContentPanel<SinkCreatePresenter> implem
     public static final String GUIID_SINK_CREATION_SAVE_BUTTON_PANEL = "sinkcreationsavebuttonpanel";
 
     // Local variables
-    private SinkCreatePresenter presenter;
     private final SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
     private final TextEntry sinkNamePanel = new TextEntry(GUIID_SINK_CREATION_SINK_NAME_PANEL, constants.label_SinkName());
     private final TextEntry resourceNamePanel = new TextEntry(GUIID_SINK_CREATION_RESOURCE_NAME_PANEL, constants.label_ResourceName());

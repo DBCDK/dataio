@@ -13,7 +13,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("MenuConstants_dk.properties");
 
     /**
      * When modifying the menu structure, do also remember to change the structure below,

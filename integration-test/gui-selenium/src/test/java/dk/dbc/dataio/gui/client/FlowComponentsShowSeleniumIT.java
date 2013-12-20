@@ -5,13 +5,11 @@ import dk.dbc.dataio.gui.client.views.Menu;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-@Ignore("Temporary disabled because test fails with new Navigation Panel")
 public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test(expected = TimeoutException.class)
     public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException {

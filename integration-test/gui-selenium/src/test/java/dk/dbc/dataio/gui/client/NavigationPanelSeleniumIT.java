@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import static org.junit.Assert.assertTrue;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -116,13 +115,11 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
 
     // Tests begin here...
 
-@Ignore("Temporary disabled because test fails with new Navigation Panel")
     @Test
     public void testNavigationMenuPanelVisible() {
         assertTrue(findNavigationPanelElement(webDriver).isDisplayed());
     }
 
-@Ignore("Temporary disabled because test fails with new Navigation Panel")
     @Test
     public void testMainMenuItemsAreVisible() {
         for (String mainMenu: menuItems.getMainMenus()) {
@@ -130,7 +127,6 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
         }
     }
 
-@Ignore("Temporary disabled because test fails with new Navigation Panel")
     @Test
     public void testSubMenuItemsAreVisible() {
         for (String mainMenu: menuItems.getMainMenus()) {

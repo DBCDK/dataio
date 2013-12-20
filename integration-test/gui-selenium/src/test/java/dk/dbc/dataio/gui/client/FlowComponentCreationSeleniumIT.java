@@ -30,7 +30,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 
-@Ignore("Temporary disabled because test fails with new Navigation Panel")
 public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("FlowComponentCreateConstants_dk.properties");
 

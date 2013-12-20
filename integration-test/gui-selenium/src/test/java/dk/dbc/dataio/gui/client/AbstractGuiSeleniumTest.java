@@ -9,7 +9,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.safari.SafariDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 
 public abstract class AbstractGuiSeleniumTest {
     private static final int IMPLICIT_WEBDRIVER_WAIT_IN_SECONDS = 2;
@@ -22,8 +22,7 @@ public abstract class AbstractGuiSeleniumTest {
     public static void setUpContext() throws ClassNotFoundException, SQLException {
         applicationUrl = String.format("http://localhost:%s/gui/gui.html", System.getProperty("glassfish.port"));
         flowStoreDbConnection = ITUtil.newDbConnection("flow_store");
-//        webDriver = new FirefoxDriver();
-        webDriver = new SafariDriver();
+        webDriver = new FirefoxDriver();
         webDriver.manage().timeouts().implicitlyWait(IMPLICIT_WEBDRIVER_WAIT_IN_SECONDS, TimeUnit.SECONDS);
     }
 

@@ -15,9 +15,9 @@ import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
- * 
+ *
  * Main Entry Point for the GWT GUI
- * 
+ *
  */
 public class MainEntryPoint implements EntryPoint {
     final ClientFactory clientFactory = GWT.create(ClientFactory.class);
@@ -34,7 +34,7 @@ public class MainEntryPoint implements EntryPoint {
         // Start ActivityManager for the main widget with our ActivityMapper
         ActivityMapper activityMapper = new AppActivityMapper(clientFactory);
         ActivityManager activityManager = new ActivityManager(activityMapper, eventBus);
-        activityManager.setDisplay(appPanel.contentPanel);
+        activityManager.setDisplay(appPanel.applicationPanel);
 
         // Start PlaceHistoryHandler with our PlaceHistoryMapper
         AppPlaceHistoryMapper historyMapper= GWT.create(AppPlaceHistoryMapper.class);

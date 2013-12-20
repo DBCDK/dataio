@@ -12,7 +12,6 @@ import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.util.ClientFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -73,7 +72,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
 
         });
     }
- 
+
     @Override
     public void saveFlow(String name, String description, Collection<String> selectedFlowComponents) {
         final List<FlowComponent> flowComponents = new ArrayList<FlowComponent>();
@@ -92,7 +91,7 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
             }
         });
     }
-    
+
     private void onFailureSendExceptionToView(Throwable e) {
         flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
     }

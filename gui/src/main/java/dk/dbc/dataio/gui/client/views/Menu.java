@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.place.shared.Place;
-import dk.dbc.dataio.gui.client.i18n.MenuConstants;
+import dk.dbc.dataio.gui.client.i18n.MainConstants;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
@@ -36,7 +36,7 @@ public final class Menu {
 
     public final static Place NOWHERE = null;
 
-    private final static MenuConstants constants = GWT.create(MenuConstants.class);
+    private final static MainConstants constants = GWT.create(MainConstants.class);
 
     public final MenuItem menuData;
 

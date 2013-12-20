@@ -6,7 +6,6 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import dk.dbc.dataio.gui.client.components.DualListEntry;
 import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
@@ -18,12 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FlowbinderCreateViewImpl extends VerticalPanel implements FlowbinderCreateView {
-
-    // Constants (These are not all private since we use them in the selenium tests)
+/**
+ *
+ * This is the implementation of the Flow Binder Creation View
+ *
+ */
+public class FlowbinderCreateViewImpl extends ContentPanel<FlowbinderCreatePresenter> implements FlowbinderCreateView {
     public static final int    FLOWBINDER_CREATION_NAME_MAX_LENGTH = 160;
     public static final int    FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
-
     public static final String GUIID_FLOWBINDER_CREATION_WIDGET = "flowbindercreationwidget";
     public static final String GUIID_FLOWBINDER_CREATION_NAME_PANEL = "flowbindercreationnamepanel";
     public static final String GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL = "flowbindercreationdescriptionpanel";
@@ -38,7 +39,6 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_PANEL = "flowbindercreationsavepanel";
 
     // Local variables
-    private FlowbinderCreatePresenter presenter;
     private final FlowbinderCreateConstants constants = GWT.create(FlowbinderCreateConstants.class);
     private final TextEntry flowbinderNamePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_NAME_PANEL, constants.label_FlowBinderName(), FLOWBINDER_CREATION_NAME_MAX_LENGTH);
     private final TextAreaEntry flowbinderDescriptionPanel = new TextAreaEntry(GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL, constants.label_FlowBinderDescription(), FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH);
@@ -52,7 +52,19 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
     private final ListEntry flowbinderSinkPanel = new ListEntry(GUIID_FLOWBINDER_CREATION_SINK_PANEL, constants.label_Sink());
     private final SaveButton saveButton = new SaveButton(GUIID_FLOWBINDER_CREATION_SAVE_PANEL, constants.button_Save(), new SaveButtonEvent());
 
+
+    /**
+     * Constructor
+     */
     public FlowbinderCreateViewImpl() {
+        super(mainConstants.subMenu_FlowbinderCreation());
+    }
+
+
+    /**
+     * Initializations of the view
+     */
+    public void init() {
         getElement().setId(GUIID_FLOWBINDER_CREATION_WIDGET);
 
         flowbinderNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
@@ -100,25 +112,26 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
      * Implementation of interface methods
      */
 
-    @Override
-    public void setPresenter(FlowbinderCreatePresenter presenter) {
-        this.presenter = presenter;
-    }
-
+    /**
+     * Refresh
+     */
     @Override
     public void refresh() {
     }
 
-    @Override
-    public void onFailure(String message) {
-        Window.alert("Error: " + message);
-    }
-
+    /**
+     * OnSuccess
+     * @param message The message to display to the user
+     */
     @Override
     public void onSuccess(String message) {
         saveButton.setStatusText(message);
     }
 
+    /**
+     * This method is called by the presenter, when pushing Flows to the view
+     * @param availableFlows The flows to display
+     */
     @Override
     public void setAvailableFlows(Map<String, String> availableFlows) {
         flowbinderFlowPanel.clear();
@@ -130,6 +143,10 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         }
     }
 
+    /**
+     * This method is called by the presenter, when pushing Submitters to the view
+     * @param availableSubmitters The submitters to display
+     */
     @Override
     public void setAvailableSubmitters(Map<String, String> availableSubmitters) {
         flowbinderSubmittersPanel.clear();
@@ -141,6 +158,10 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         }
     }
 
+    /**
+     * This method is called by the presenter, when pushing Sinks to the view
+     * @param availableSinks The sinks to display
+     */
     @Override
     public void setAvailableSinks(Map<String, String> availableSinks) {
         flowbinderSinkPanel.clear();
@@ -190,19 +211,19 @@ public class FlowbinderCreateViewImpl extends VerticalPanel implements Flowbinde
         }
         private String validateFields(final String name, final String description, final String frameFormat, final String contentFormat, final String characterSet, final String destination, final String recordSplitter,
                 final Map<String, String> submitters, final String flow, final String sink) {
-            if (name.isEmpty() || 
-                description.isEmpty() || 
-                frameFormat.isEmpty() || 
-                contentFormat.isEmpty() || 
-                characterSet.isEmpty() || 
-                destination==null || 
-                destination.isEmpty() || 
+            if (name.isEmpty() ||
+                description.isEmpty() ||
+                frameFormat.isEmpty() ||
+                contentFormat.isEmpty() ||
+                characterSet.isEmpty() ||
+                destination==null ||
+                destination.isEmpty() ||
                 recordSplitter.isEmpty() ||
-                submitters == null || 
-                submitters.isEmpty() || 
-                flow == null || 
-                flow.isEmpty() || 
-                sink == null || 
+                submitters == null ||
+                submitters.isEmpty() ||
+                flow == null ||
+                flow.isEmpty() ||
+                sink == null ||
                 sink.isEmpty()) {
                 return constants.error_InputFieldValidationError();
             }

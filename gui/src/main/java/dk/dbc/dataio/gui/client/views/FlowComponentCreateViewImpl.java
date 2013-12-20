@@ -6,7 +6,6 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.components.ListEntry;
@@ -18,7 +17,12 @@ import dk.dbc.dataio.gui.client.presenters.FlowComponentCreatePresenter;
 import java.util.List;
 
 
-public class FlowComponentCreateViewImpl extends FlowPanel implements FlowComponentCreateView {
+/**
+ *
+ * This is the implementation of the Flow Component Creation View
+ *
+ */
+public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreatePresenter> implements FlowComponentCreateView {
 
     // public Identifiers
     public static final String GUIID_FLOW_COMPONENT_CREATION_WIDGET = "flowcomponentcreationwidget";
@@ -28,13 +32,11 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     public static final String GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL = "flowcomponentcreationscriptnamepanel";
     public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL = "flow-component-invocation-method-panel-id";
     public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL = "flow-component-save-panel-id";
-
     public static final String FORM_FIELD_COMPONENT_NAME = "formfieldcomponentname";
     public static final String FORM_FIELD_INVOCATION_METHOD = "formfieldinvocationmethod";
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
-    
+
     // private objects
-    private FlowComponentCreatePresenter presenter;
     private final FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
     private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, constants.label_ComponentName());
     private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, constants.label_SvnProject());
@@ -44,14 +46,24 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
     private SaveButton saveButton = new SaveButton(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
     private Label busyLabel = new Label(constants.status_Busy());
 
-    
+
+    /**
+     * Constructor
+     */
     public FlowComponentCreateViewImpl() {
-        super();
+        super(mainConstants.subMenu_FlowComponentCreation());
+    }
+
+
+    /**
+     * Initializations of the view
+     */
+    public void init() {
         getElement().setId(GUIID_FLOW_COMPONENT_CREATION_WIDGET);
-        
+
         namePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(namePanel);
-        
+
         projectPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         projectPanel.addChangeHandler(new ChangeHandler() {
             @Override
@@ -60,7 +72,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             }
         });
         add(projectPanel);
-        
+
         revisionPanel.setEnabled(false);
         revisionPanel.addChangeHandler(new ChangeHandler() {
             @Override
@@ -69,7 +81,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             }
         });
         add(revisionPanel);
-        
+
         scriptNamePanel.setEnabled(false);
         scriptNamePanel.addChangeHandler(new ChangeHandler() {
             @Override
@@ -78,7 +90,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             }
         });
         add(scriptNamePanel);
-        
+
         invocationMethodPanel.setEnabled(false);
         invocationMethodPanel.addChangeHandler(new ChangeHandler() {
             @Override
@@ -87,17 +99,27 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             }
         });
         add(invocationMethodPanel);
-        
+
         add(saveButton);
         add(busyLabel);
         setAsBusy(false);
     }
 
+    /*
+     * Implementation of interface methods
+     */
+
+    /**
+     * Refresh
+     */
     @Override
-    public void setPresenter(FlowComponentCreatePresenter presenter) {
-        this.presenter = presenter;
+    public void refresh() {
     }
 
+    /**
+     * onFailure
+     * @param message The fail message to display to the user
+     */
     @Override
     public void onFailure(String message) {
         setAsBusy(false);
@@ -105,19 +127,19 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         Window.alert("Error: " + message);
     }
 
+    /**
+     * OnSuccess
+     * @param message The message to display to the user
+     */
     @Override
     public void onSuccess(String message) {
         saveButton.setStatusText(message);
     }
 
-    @Override
-    public void refresh() {
-    }
-
-    public void setAsBusy(Boolean busy) {
-        busyLabel.setVisible(busy);
-    }
-
+    /**
+     * This method is called by the presenter, when pushing Revisions to the view
+     * @param availableRevisions
+     */
     @Override
     public void setAvailableRevisions(List<RevisionInfo> availableRevisions) {
         setAsBusy(false);
@@ -131,6 +153,10 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         }
     }
 
+    /**
+     * This method is called by the presenter, when pushing Script Names to the view
+     * @param availableScriptNames
+     */
     @Override
     public void setAvailableScriptNames(List<String> availableScriptNames) {
         setAsBusy(false);
@@ -144,6 +170,10 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         }
     }
 
+    /**
+     * This method is called by the presenter, when pushing Invocation Method names to the view
+     * @param availableInvocationMethods
+     */
     @Override
     public void setAvailableInvocationMethods(List<String> availableInvocationMethods) {
         setAsBusy(false);
@@ -157,6 +187,11 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         }
     }
 
+    /**
+     * This method is called by the presenter, when signalling an error, when fetching Revisions.
+     * @param errorCode Error code for the error
+     * @param detail Details about the error
+     */
     @Override
     public void fetchRevisionFailed(JavaScriptProjectFetcherError errorCode, String detail) {
         revisionPanel.setEnabled(false);
@@ -178,6 +213,10 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         onFailure(errorMessage);
     }
 
+    /**
+     * This method is called by the presenter, when signalling an error, when fetching Script Names
+     * @param failText The error text
+     */
     @Override
     public void fetchScriptNamesFailed(String failText) {
         scriptNamePanel.setEnabled(false);
@@ -185,6 +224,11 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
         onFailure(failText);
     }
 
+    /**
+     * This method is called by the presenter, when signalling an error, when fetching Invocation Method names
+     * @param errorCode Error code for the error
+     * @param detail Details about the error
+     */
     @Override
     public void fetchInvocationMethodsFailed(JavaScriptProjectFetcherError errorCode, String detail) {
         invocationMethodPanel.setEnabled(false);
@@ -200,6 +244,14 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
             }
         }
         onFailure(errorMessage);
+    }
+
+
+    /*
+     * Private methods
+     */
+    private void setAsBusy(Boolean busy) {
+        busyLabel.setVisible(busy);
     }
 
     private void svnProjectChanged() {
@@ -229,7 +281,7 @@ public class FlowComponentCreateViewImpl extends FlowPanel implements FlowCompon
      * Event Handlers *
      */
 
-    
+
     private class SaveButtonEvent implements SaveButton.ButtonEvent {
         @Override
         public void buttonPressed() {

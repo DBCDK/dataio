@@ -16,7 +16,11 @@ import java.util.Collection;
 import java.util.Map;
 
 
-
+/**
+ *
+ * This is the implementation of the Flow Creation View
+ *
+ */
 public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implements FlowCreateView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_FLOW_CREATION_WIDGET = "flowcreationwidget";
@@ -47,7 +51,6 @@ public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implem
      * Initializations of the view
      */
     public void init() {
-        Window.alert("init");
         getElement().setId(GUIID_FLOW_CREATION_WIDGET);
 
         flowNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
@@ -70,16 +73,27 @@ public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implem
     /*
      * Implementation of interface methods
      */
+
+    /**
+     * Refresh
+     */
     @Override
     public void refresh() {
-        Window.alert("Så er refresh kaldt");
     }
 
+    /**
+     * OnSuccess
+     * @param message The message to display to the user
+     */
     @Override
     public void onSuccess(String message) {
         saveButton.setStatusText(message);
     }
 
+    /**
+     * This method is called by the presenter, when pushing Flow Components to the view
+     * @param availableFlowComponents The flowcomponents to display
+     */
     @Override
     public void setAvailableFlowComponents(Map<String, String> availableFlowComponents) {
         flowComponentSelectionPanel.clear();

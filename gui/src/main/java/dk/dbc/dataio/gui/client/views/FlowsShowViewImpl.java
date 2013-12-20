@@ -3,8 +3,6 @@ package dk.dbc.dataio.gui.client.views;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.FlowPanel;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.gui.client.i18n.FlowsShowConstants;
@@ -18,83 +16,76 @@ import java.util.List;
  *  o Description
  *  o List of Flowcomponents, which are the Flowcomponent names separated by commas
  */
-public class FlowsShowViewImpl extends FlowPanel implements FlowsShowView {
-
-    // public Identifiers
+public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implements FlowsShowView {
+    // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_FLOWS_SHOW_WIDGET = "flowsshowwidget";
 
-    // private objects
-//    private FlowsShowPresenter presenter;
+    // Local variables
     private final FlowsShowConstants constants = GWT.create(FlowsShowConstants.class);
+    private final CellTable<Flow> table = new CellTable<Flow>();
 
-    private CellTable<Flow> table = new CellTable<Flow>();
 
     /**
      * Constructor
-     * Sets up the three columns in the CellTable
      */
     public FlowsShowViewImpl() {
-        super();
+        super(mainConstants.mainMenu_Flows());
+    }
+
+    /**
+     * Initializations of the view
+     * Sets up the three columns in the CellTable
+     */
+    public void init() {
         getElement().setId(GUIID_FLOWS_SHOW_WIDGET);
 
-        TextColumn<Flow> nameColumn = new TextColumn<Flow>() {
-            @Override
-            public String getValue(Flow content) {
-                return content.getContent().getName();
-            }
-        };
-        table.addColumn(nameColumn, constants.columnHeader_Name());
+        if (table.getColumnCount() == 0) {
+            TextColumn<Flow> nameColumn = new TextColumn<Flow>() {
+                @Override
+                public String getValue(Flow content) {
+                    return content.getContent().getName();
+                }
+            };
+            table.addColumn(nameColumn, constants.columnHeader_Name());
 
-        TextColumn<Flow> descriptionColumn = new TextColumn<Flow>() {
-            @Override
-            public String getValue(Flow content) {
-                return content.getContent().getDescription();
-            }
-        };
-        table.addColumn(descriptionColumn, constants.columnHeader_Description());
+            TextColumn<Flow> descriptionColumn = new TextColumn<Flow>() {
+                @Override
+                public String getValue(Flow content) {
+                    return content.getContent().getDescription();
+                }
+            };
+            table.addColumn(descriptionColumn, constants.columnHeader_Description());
 
-        TextColumn<Flow> flowComponentsColumn = new TextColumn<Flow>() {
-            @Override
-            public String getValue(Flow content) {
-                return formatFlowComponents(content.getContent().getComponents());
-            }
-        };
-        table.addColumn(flowComponentsColumn, constants.columnHeader_FlowComponents());
+            TextColumn<Flow> flowComponentsColumn = new TextColumn<Flow>() {
+                @Override
+                public String getValue(Flow content) {
+                    return formatFlowComponents(content.getContent().getComponents());
+                }
+            };
+            table.addColumn(flowComponentsColumn, constants.columnHeader_FlowComponents());
 
-        add(table);
+            add(table);
+        }
     }
 
-    /**
-     * setPresenter
-     * @param presenter
+
+    /*
+     * Implementation of interface methods
      */
-    @Override
-    public void setPresenter(FlowsShowPresenter presenter) {
-//        this.presenter = presenter;
-    }
 
     /**
-     * onFailure is called by the presenter upon failure
-     * @param message
-     */
-    @Override
-    public void onFailure(String message) {
-        Window.alert("Error: " + message);
-    }
-
-    /**
-     * onFailure is called by the presenter upon successful operation
-     * @param message
-     */
-    @Override
-    public void onSuccess(String message) {
-    }
-
-    /**
-     * refresh
+     * Refresh
      */
     @Override
     public void refresh() {
+    }
+
+    /**
+     * OnSuccess
+     * @param message The message to display to the user
+     */
+    @Override
+    public void onSuccess(String message) {
     }
 
     /**

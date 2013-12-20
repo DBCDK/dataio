@@ -3,68 +3,84 @@ package dk.dbc.dataio.gui.client.views;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.FlowPanel;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.gui.client.i18n.FlowComponentsShowConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentsShowPresenter;
 import java.util.List;
 
 
-public class FlowComponentsShowViewImpl extends FlowPanel implements FlowComponentsShowView {
-
-    // public Identifiers
+/**
+ *
+ * This is the implementation of the Flow Components Show View
+ *
+ */
+public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowPresenter> implements FlowComponentsShowView {
+    // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_FLOW_COMPONENTS_SHOW_WIDGET = "flowcomponentsshowwidget";
 
-    // private objects
-//    private FlowComponentsShowPresenter presenter;
+    // Local variables
     private final FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
-
     private CellTable<FlowComponent> table = new CellTable<FlowComponent>();
-    
-    
-    
+
+
+    /**
+     * Constructor
+     */
     public FlowComponentsShowViewImpl() {
-        super();
+        super(mainConstants.subMenu_FlowComponentsShow());
+    }
+
+
+    /**
+     * Initializations of the view
+     */
+    public void init() {
         getElement().setId(GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
-    
-        TextColumn<FlowComponent> nameColumn = new TextColumn<FlowComponent>() {
-            @Override
-            public String getValue(FlowComponent content) {
-                return content.getContent().getName();
-            }
-        };
-        table.addColumn(nameColumn, constants.columnHeader_Name());
 
-        TextColumn<FlowComponent> invocationMethodColumn = new TextColumn<FlowComponent>() {
-            @Override
-            public String getValue(FlowComponent content) {
-                return content.getContent().getInvocationMethod();
-            }
-        };
-        table.addColumn(invocationMethodColumn, constants.columnHeader_InvocationMethod());
-        
-        add(table);
+        if (table.getColumnCount() == 0) {
+            TextColumn<FlowComponent> nameColumn = new TextColumn<FlowComponent>() {
+                @Override
+                public String getValue(FlowComponent content) {
+                    return content.getContent().getName();
+                }
+            };
+            table.addColumn(nameColumn, constants.columnHeader_Name());
+
+            TextColumn<FlowComponent> invocationMethodColumn = new TextColumn<FlowComponent>() {
+                @Override
+                public String getValue(FlowComponent content) {
+                    return content.getContent().getInvocationMethod();
+                }
+            };
+            table.addColumn(invocationMethodColumn, constants.columnHeader_InvocationMethod());
+
+            add(table);
+        }
     }
 
-    @Override
-    public void setPresenter(FlowComponentsShowPresenter presenter) {
-//        this.presenter = presenter;
-    }
+    /*
+     * Implementation of interface methods
+     */
 
-    @Override
-    public void onFailure(String message) {
-        Window.alert("Error: " + message);
-    }
-
-    @Override
-    public void onSuccess(String message) {
-    }
-
+    /**
+     * Refresh
+     */
     @Override
     public void refresh() {
     }
 
+    /**
+     * OnSuccess
+     * @param message The message to display to the user
+     */
+    @Override
+    public void onSuccess(String message) {
+    }
+
+    /**
+     * This method is called by the presenter, when pushing Flow Components to the view
+     * @param flowComponents The flowcomponents to display
+     */
     @Override
     public void setFlowComponents(List<FlowComponent> flowComponents) {
         table.setRowData(0, flowComponents);

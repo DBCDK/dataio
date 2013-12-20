@@ -20,14 +20,19 @@
     <module>sink-es-queue-service</module>
     <module>utils</module>
     <module>glassfish</module>
+    <module>h2</module>
   </modules>
-
-  <!-- Hardening: how do we get random ports for integration tests - embedded glassfish does not work with different ports across reactor modules -->
 
   <properties>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <glassfish.port>42006</glassfish.port>
     <h2.port>42005</h2.port>
+    <container.id>glassfish4</container.id>
+    <container.http.port>42006</container.http.port>
+    <container.admin.port>42007</container.admin.port>
+    <container.hostname>localhost</container.hostname>
+    <container.username>admin</container.username>
+    <container.password></container.password>
   </properties>
 
 </project>

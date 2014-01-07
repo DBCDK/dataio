@@ -17,9 +17,9 @@ import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * This class represents the create flowbinder activity encompassing saving
@@ -90,7 +90,7 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
             }
             @Override
             public void onSuccess(List<Submitter> result) {
-                Map<String, String> submittersToView = new TreeMap<String, String>();
+                Map<String, String> submittersToView = new LinkedHashMap<String, String>();
                 for (Submitter submitter: result) {
                     String key = Long.toString(submitter.getId());
                     try {
@@ -99,8 +99,8 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
                     } catch (Exception e) {
                         flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
                     }
-                    flowbinderCreateView.setAvailableSubmitters(submittersToView);
                 }
+                flowbinderCreateView.setAvailableSubmitters(submittersToView);
             }
         });
     }
@@ -159,5 +159,5 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     private String formatSubmitterName(SubmitterContent content) {
         return content.getNumber() + " (" + content.getName() + ")";
     }
-    
+
 }

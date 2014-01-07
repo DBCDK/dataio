@@ -287,7 +287,13 @@ public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreat
         public void buttonPressed() {
             String name = namePanel.getText();
             String project = projectPanel.getText();
-            long revision = Long.parseLong(revisionPanel.getSelectedText());
+            Long revision = 0L;
+            try {
+                revision = Long.parseLong(revisionPanel.getSelectedText());
+            } catch (NumberFormatException e) {
+                onFailure(constants.error_InputFieldValidationError());
+                return;
+            }
             String scriptName = scriptNamePanel.getSelectedText();
             String invocationMethod = invocationMethodPanel.getSelectedText();
             if (name.isEmpty() || project.isEmpty() || revision == 0 || scriptName.isEmpty() || invocationMethod.isEmpty()) {

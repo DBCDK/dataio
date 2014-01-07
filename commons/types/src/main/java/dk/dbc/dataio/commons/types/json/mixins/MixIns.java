@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
@@ -38,6 +39,7 @@ public class MixIns {
         mixIns.put(JobInfo.class, JobInfoJsonMixIn.class);
         mixIns.put(JobSpecification.class, JobSpecificationJsonMixIn.class);
         mixIns.put(Sink.class, SinkJsonMixIn.class);
+        mixIns.put(SinkChunkResult.class, SinkChunkResultMixIn.class);
         mixIns.put(SinkContent.class, SinkContentJsonMixIn.class);
         mixIns.put(PingResponse.class, PingResponseJsonMixIn.class);
     }

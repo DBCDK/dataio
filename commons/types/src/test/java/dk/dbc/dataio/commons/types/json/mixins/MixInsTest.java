@@ -123,4 +123,10 @@ public class MixInsTest {
         final String json = JsonUtil.toJson(ChunkResultTest.newChunkResultInstance());
         JsonUtil.fromJson(json, ChunkResult.class, MixIns.getMixIns());
     }
+
+    @Test
+    public void verify_jsonMixInForSinkChunkResult() throws Exception {
+        final String json = JsonUtil.toJson(ChunkResultTest.newChunkResultInstance());
+        JsonUtil.fromJson(json, ChunkResult.class, MixIns.getMixIns());
+    }
 }

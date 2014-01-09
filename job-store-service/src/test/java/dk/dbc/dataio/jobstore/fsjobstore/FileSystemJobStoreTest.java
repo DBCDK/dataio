@@ -152,6 +152,19 @@ public class FileSystemJobStoreTest {
     }
 
     @Test
+    public void createJob_newJobIsCreated_jobStateFileIsAddedToJobFolder() throws Exception {
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final JobSpecification jobSpec = createJobSpecification(getDataFile());
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
+        assertThat(job, is(notNullValue()));
+        final Path jobStateFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.JOBSTATE_FILE);
+        assertThat(Files.exists(jobStateFile), is(true));
+        final JobState jobState = JsonUtil.fromJson(readFileIntoString(jobStateFile), JobState.class);
+        assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
+    }
+
+    @Test
     public void createJob_dataFileDoesNotExist_returnsJobInFailedState() throws Exception {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);

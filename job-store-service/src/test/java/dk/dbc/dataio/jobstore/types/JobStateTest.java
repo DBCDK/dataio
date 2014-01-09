@@ -1,7 +1,5 @@
 package dk.dbc.dataio.jobstore.types;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -34,12 +32,6 @@ public class JobStateTest {
         jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
         jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
         jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.PENDING);
-    }
-
-    @Test
-    public void test() throws JsonException {
-        final JobState jobState = new JobState();
-        System.out.println(JsonUtil.toJson(jobState));
     }
 
     @Test(expected = NullPointerException.class)

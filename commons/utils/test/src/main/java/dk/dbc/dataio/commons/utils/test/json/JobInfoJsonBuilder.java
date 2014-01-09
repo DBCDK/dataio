@@ -1,7 +1,6 @@
 package dk.dbc.dataio.commons.utils.test.json;
 
 import dk.dbc.dataio.commons.types.JobErrorCode;
-import dk.dbc.dataio.commons.types.JobState;
 
 import java.util.Date;
 
@@ -10,7 +9,6 @@ public class JobInfoJsonBuilder extends JsonBuilder {
     private long jobCreationTime = new Date().getTime();
     private long jobRecordCount = 0;
     private String jobSpecification = new JobSpecificationJsonBuilder().build();
-    private JobState jobState = JobState.INCOMPLETE;
     private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
     private String jobStatusMessage = "status";
     private String jobResultDataFile = "file";
@@ -35,16 +33,6 @@ public class JobInfoJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public JobInfoJsonBuilder setJobState(JobState jobState) {
-        this.jobState = jobState;
-        return this;
-    }
-
-    public JobInfoJsonBuilder setJobStatusMessage(String jobStatusMessage) {
-        this.jobStatusMessage = jobStatusMessage;
-        return this;
-    }
-
     public JobInfoJsonBuilder setJobResultDataFile(String jobResultDataFile) {
         this.jobResultDataFile = jobResultDataFile;
         return this;
@@ -62,9 +50,7 @@ public class JobInfoJsonBuilder extends JsonBuilder {
         stringBuilder.append(asLongMember("jobCreationTime", jobCreationTime)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("jobRecordCount", jobRecordCount)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("jobSpecification", jobSpecification)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("jobState", jobState.name())); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("jobErrorCode", jobErrorCode.name())); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("jobStatusMessage", jobStatusMessage)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("jobResultDataFile", jobResultDataFile));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();

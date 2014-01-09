@@ -2,13 +2,13 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.processor.ChunkProcessor;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,21 +49,14 @@ public class JobHandlerBean {
     JobStoreBean jobStore;
 
     public JobInfo handleJob(Job job, Sink sink) throws JobStoreException {
-        JobInfo jobInfo = job.getJobInfo();
         try {
-            if (jobInfo.getJobState() == JobState.CREATED) {
-                jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
-                        JobState.PROCESSING, jobInfo.getJobErrorCode(), "Job processing", jobInfo.getJobRecordCount(), null);
-                processJob(job, sink);
-            }
-            return jobInfo;
-
-        } catch (JobStoreException e) {
-            jobInfo = new JobInfo(jobInfo.getJobId(), jobInfo.getJobSpecification(), jobInfo.getJobCreationTime(),
-                    JobState.FAILED_DURING_PROCESSING, jobInfo.getJobErrorCode(), e.getMessage(), jobInfo.getJobRecordCount(), null);
-            throw e;
+            job.getJobState().setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.ACTIVE);
+            jobStore.updateJobState(job);
+            processJob(job, sink);
+            return job.getJobInfo();
         } finally {
-            jobStore.updateJobInfo(job, jobInfo);
+            job.getJobState().setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
+            jobStore.updateJobState(job);
         }
     }
 

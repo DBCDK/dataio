@@ -14,6 +14,7 @@ import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -150,7 +151,7 @@ public class JobsBeanTest {
         final String flowBinderData = new FlowBinderJsonBuilder().setId(flowBinderId).build();
         final String jobSpecData = getValidJobSpecificationString();
         final String jobInfoData = new JobInfoJsonBuilder().build();
-        final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
+        final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()), new JobState(),
                 JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
         when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))

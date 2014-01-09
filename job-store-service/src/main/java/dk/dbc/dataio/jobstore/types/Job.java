@@ -13,10 +13,12 @@ public class Job implements Serializable {
     private static final long serialVersionUID = 592111006810833332L;
 
     private final JobInfo jobInfo;
+    private final JobState jobState;
     private final Flow flow;
 
-    public Job(JobInfo jobInfo, Flow flow) {
+    public Job(JobInfo jobInfo, JobState jobState, Flow flow) {
         this.jobInfo = InvariantUtil.checkNotNullOrThrow(jobInfo, "jobInfo");
+        this.jobState = InvariantUtil.checkNotNullOrThrow(jobState, "jobState");
         this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
     }
 
@@ -26,6 +28,10 @@ public class Job implements Serializable {
 
     public JobInfo getJobInfo() {
         return jobInfo;
+    }
+
+    public JobState getJobState() {
+        return jobState;
     }
 
     public Flow getFlow() {

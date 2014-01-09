@@ -19,27 +19,33 @@ import static org.junit.Assert.assertThat;
 
 public class JobTest {
     private static final JobInfo JOB_INFO = createDefaultJobinfo();
+    private static final JobState JOB_STATE = new JobState();
     private static final Flow FLOW = createDefaultFlow();
 
     @Test(expected = NullPointerException.class)
     public void constructor_jobInfoArgIsNull_throws() {
-        new Job(null, FLOW);
+        new Job(null, JOB_STATE, FLOW);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_jobStateArgIsNull_throws() {
+        new Job(JOB_INFO, null, FLOW);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_flowArgIsNull_throws() {
-        new Job(JOB_INFO, null);
+        new Job(JOB_INFO, JOB_STATE, null);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final Job instance = new Job(JOB_INFO, FLOW);
+        final Job instance = new Job(JOB_INFO, JOB_STATE, FLOW);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void getId_returnsIdFromEmbeddedJobInfo() {
-        final Job instance = new Job(JOB_INFO, FLOW);
+        final Job instance = new Job(JOB_INFO, JOB_STATE, FLOW);
         assertThat(instance.getId(), is(JOB_INFO.getJobId()));
     }
 

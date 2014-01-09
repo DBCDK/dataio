@@ -1,16 +1,16 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.commons.types.ChunkResult;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +49,11 @@ public class JobStoreBean implements JobStore {
     @Override
     public void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException {
         jobStore.updateJobInfo(job, jobInfo);
+    }
+
+    @Override
+    public void updateJobState(Job job) throws JobStoreException {
+        jobStore.updateJobState(job);
     }
 
     @Override

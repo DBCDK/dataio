@@ -88,7 +88,7 @@ public class JobsBean {
             jobHandler.handleJob(job, sink); //todo: This methodcall should return the actual jobinfo!
             final String sinkFile = jobHandler.sendToSink(job);// todo: This is here for the benefit of tmpengine
             jobInfo = new JobInfo(job.getId(), job.getJobInfo().getJobSpecification(), job.getJobInfo().getJobCreationTime(),
-                    job.getJobInfo().getJobState(), job.getJobInfo().getJobErrorCode(), job.getJobInfo().getJobStatusMessage(), job.getJobInfo().getJobRecordCount(), sinkFile);
+                    job.getJobInfo().getJobErrorCode(), job.getJobInfo().getJobRecordCount(), sinkFile);
         } catch (JobStoreException e) {
             throw new EJBException(e);
         }

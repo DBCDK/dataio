@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
@@ -18,6 +17,7 @@ import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,9 +29,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
-import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -57,7 +57,7 @@ public class JobStoreBeanTest {
 
         final JobSpecification jobSpec = createJobSpecification(f);
         final Job job = jsb.createJob(jobSpec, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
         assertThat(jsb.getNumberOfChunksInJob(job), is(1L));
@@ -69,7 +69,7 @@ public class JobStoreBeanTest {
     @Test(expected = JobStoreException.class)
     public void gettingChunkFromUnknownJob_throwsException() throws JobStoreException, IOException, JsonException {
         final String jobInfoData = new JobInfoJsonBuilder().build();
-        final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()),
+        final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()), new JobState(),
                 createDefaultFlow());
         jsb.getChunk(job, 1);
     }
@@ -91,7 +91,7 @@ public class JobStoreBeanTest {
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -103,7 +103,7 @@ public class JobStoreBeanTest {
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -115,7 +115,7 @@ public class JobStoreBeanTest {
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -127,7 +127,7 @@ public class JobStoreBeanTest {
         Files.write(f, xmlWithoutClosingOuterTag.getBytes());
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -136,7 +136,7 @@ public class JobStoreBeanTest {
     public void createJob_dataFileDoesNotExist_returnsJobInFailedState() throws JobStoreException {
         final Path f = Paths.get("no-such-file");
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_NOT_FOUND));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -152,7 +152,7 @@ public class JobStoreBeanTest {
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job = jsb.createJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -168,7 +168,7 @@ public class JobStoreBeanTest {
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job = jsb.createJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(2L));
     }

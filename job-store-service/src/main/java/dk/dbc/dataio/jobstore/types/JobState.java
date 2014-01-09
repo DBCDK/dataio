@@ -23,16 +23,16 @@ public class JobState {
      */
     public enum OperationalState { CHUNKIFYING, PROCESSING, DELIVERING }
 
-    private /* final */ Map<OperationalState, LifeCycleState> stateEntries;
+    private /* final */ Map<OperationalState, LifeCycleState> states;
 
     /**
      * Default constructor. Initializes all possible operational states to
      * be at the LifeCycleState.PENDING stage of its life cycle
      */
     public JobState() {
-        stateEntries = new HashMap<OperationalState, LifeCycleState>(OperationalState.values().length);
+        states = new HashMap<OperationalState, LifeCycleState>(OperationalState.values().length);
         for (OperationalState operationalState : OperationalState.values()) {
-            stateEntries.put(operationalState, LifeCycleState.PENDING);
+            states.put(operationalState, LifeCycleState.PENDING);
         }
     }
 
@@ -53,7 +53,7 @@ public class JobState {
             throw new IllegalStateException("LifeCycleState regression not allowed " +
                     currentLifeCycleState.name() + " -> " + lifeCycleState.name());
         }
-        stateEntries.put(operationalState, lifeCycleState);
+        states.put(operationalState, lifeCycleState);
     }
 
     /**
@@ -65,6 +65,10 @@ public class JobState {
      */
     public LifeCycleState getLifeCycleStateFor(OperationalState operationalState)
             throws NullPointerException {
-        return stateEntries.get(InvariantUtil.checkNotNullOrThrow(operationalState, "operationalState"));
+        return states.get(InvariantUtil.checkNotNullOrThrow(operationalState, "operationalState"));
+    }
+
+    public Map<OperationalState, LifeCycleState> getStates() {
+        return new HashMap<OperationalState, LifeCycleState>(states);
     }
 }

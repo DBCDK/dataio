@@ -3,14 +3,13 @@ package dk.dbc.dataio.jobstore.fsjobstore;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobErrorCode;
-import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.JobTest;
 import org.junit.Rule;
@@ -147,8 +146,7 @@ public class FileSystemJobStoreTest {
         assertThat(job, is(notNullValue()));
         final Path jobInfoFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.JOBINFO_FILE);
         assertThat(Files.exists(jobInfoFile), is(true));
-        final JobInfo jobInfo = JsonUtil.fromJson(readFileIntoString(jobInfoFile), JobInfo.class, MixIns.getMixIns());
-        assertThat(jobInfo.getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
     }
@@ -160,7 +158,7 @@ public class FileSystemJobStoreTest {
         final JobSpecification jobSpec = createJobSpecification(Paths.get("no-such-file"));
         final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
         assertThat(job, is(notNullValue()));
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_NOT_FOUND));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -178,7 +176,7 @@ public class FileSystemJobStoreTest {
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK);
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -196,7 +194,7 @@ public class FileSystemJobStoreTest {
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK);
-        assertThat(job.getJobInfo().getJobState(), is(JobState.FAILED_DURING_CREATION));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
         assertThat(job.getJobInfo().getJobRecordCount(), is(0L));
     }
@@ -214,7 +212,7 @@ public class FileSystemJobStoreTest {
                 .build();
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK);
-        assertThat(job.getJobInfo().getJobState(), is(JobState.CREATED));
+        assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(2L));
     }

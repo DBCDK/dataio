@@ -1,10 +1,12 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.JobStore;
@@ -12,10 +14,8 @@ import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
 import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.commons.types.ChunkResult;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.Sink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +37,7 @@ public class FileSystemJobStore implements JobStore {
     static final String SINK_FILE = "sink.json";
     static final String JOBSPECIFICATION_FILE = "jobspec.json";
     static final String JOBINFO_FILE = "jobinfo.json";
+    static final String JOBSTATE_FILE = "jobstate.json";
     static final String CHUNK_COUNTER_FILE = "chunk.cnt";
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
@@ -75,32 +76,37 @@ public class FileSystemJobStore implements JobStore {
         storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
 
-        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.INCOMPLETE, JobErrorCode.NO_ERROR, "Incomplete - awaiting partitioning", 0, null);
-        Job job = new Job(jobInfo, flow);
+        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0, null);
 
+        Job job = new Job(jobInfo, new JobState(), flow);
         try {
+            job.getJobState().setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.ACTIVE);
+            updateJobState(job);
+
             final DefaultXMLRecordSplitter recordSplitter;
             try {
                 recordSplitter = newRecordSplitter(jobSpec, dataObjectPath);
-                recordCount = applyDefaultXmlSplitter(new Job(jobInfo, flow), recordSplitter);
+                recordCount = applyDefaultXmlSplitter(job, recordSplitter);
             } catch (IOException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, JobErrorCode.DATA_FILE_NOT_FOUND, e.getMessage(), 0, null);
-                job = new Job(jobInfo, flow);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_NOT_FOUND, 0, null);
+                job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             } catch (IllegalStateException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, JobErrorCode.DATA_FILE_ENCODING_MISMATCH, e.getMessage(), 0, null);
-                job = new Job(jobInfo, flow);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_ENCODING_MISMATCH, 0, null);
+                job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             } catch (XMLStreamException | IllegalDataException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.FAILED_DURING_CREATION, JobErrorCode.DATA_FILE_INVALID, e.getMessage(), 0, null);
-                job = new Job(jobInfo, flow);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_INVALID, 0, null);
+                job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             }
 
-            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobState.CREATED, JobErrorCode.NO_ERROR, "Job created", recordCount, null);
-            job = new Job(jobInfo, flow);
+            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, recordCount, null);
+            job = new Job(jobInfo, job.getJobState(), flow);
             return job;
         } finally {
+            job.getJobState().setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
+            updateJobState(job);
             updateJobInfo(job, jobInfo);
         }
     }
@@ -114,6 +120,17 @@ public class FileSystemJobStore implements JobStore {
         }
         final Path jobPath = getJobPath(job.getId());
         storeJobInfoInJob(jobPath, jobInfo);
+    }
+
+    @Override
+    public void updateJobState(Job job) throws JobStoreException {
+        try {
+            LOGGER.debug("Updating job state: {}", JsonUtil.toJson(job.getJobState()));
+        } catch (JsonException e) {
+            LOGGER.error("Error marshalling JobState object into JSON", e);
+        }
+        final Path jobPath = getJobPath(job.getId());
+        storeJobStateInJob(jobPath, job.getJobState());
     }
 
     private void storeFlowBinderInJob(Path jobPath, FlowBinder flowBinder) throws JobStoreException {
@@ -163,6 +180,16 @@ public class FileSystemJobStore implements JobStore {
           bw.write(JsonUtil.toJson(jobInfo));
         } catch (IOException | JsonException e) {
             throw new JobStoreException(String.format("Exception caught when trying to write JobInfo: %s", jobInfoPath.toString()), e);
+        }
+    }
+
+    private void storeJobStateInJob(Path jobPath, JobState jobState) throws JobStoreException {
+        final Path jobStatePath = Paths.get(jobPath.toString(), JOBSTATE_FILE);
+        LOGGER.info("Creating JobState json-file: {}", jobStatePath);
+        try (BufferedWriter bw = Files.newBufferedWriter(jobStatePath, LOCAL_CHARSET)) {
+            bw.write(JsonUtil.toJson(jobState));
+        } catch (IOException | JsonException e) {
+            throw new JobStoreException(String.format("Exception caught when trying to write JobState: %s", jobStatePath.toString()), e);
         }
     }
 

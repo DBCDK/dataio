@@ -10,7 +10,6 @@ public class JobInfoJsonBuilder extends JsonBuilder {
     private long jobRecordCount = 0;
     private String jobSpecification = new JobSpecificationJsonBuilder().build();
     private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
-    private String jobStatusMessage = "status";
     private String jobResultDataFile = "file";
 
     public JobInfoJsonBuilder setJobId(long jobId) {

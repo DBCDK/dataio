@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
@@ -68,6 +69,11 @@ public class JsonBuilderTest {
     @Test
     public void JobSpecificationJsonBuilderProducesValidJson() throws JsonException {
         JsonUtil.fromJson(new JobSpecificationJsonBuilder().build(), JobSpecification.class, MixIns.getMixIns());
+    }
+
+    @Test
+    public void SinkChunkResultJsonBuilderProducesValidJson() throws JsonException {
+        JsonUtil.fromJson(new SinkChunkResultJsonBuilder().build(), SinkChunkResult.class, MixIns.getMixIns());
     }
 
     @Test

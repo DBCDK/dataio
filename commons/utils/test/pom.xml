@@ -19,5 +19,11 @@
       <artifactId>dataio-commons-types</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>${javaee.api.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>

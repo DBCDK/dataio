@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +12,9 @@ import java.util.Map;
  *
  * This class is not thread safe.
  */
-public class JobState {
+public class JobState implements Serializable {
+    private static final long serialVersionUID = 2913818143190068326L;
+
     /** Possible life cycle stages
      */
     // Note that the order of the enum values is important since

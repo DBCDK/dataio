@@ -6,7 +6,7 @@
   <display-name>DataIO Job Processor</display-name>
   <enterprise-beans>
     <message-driven>
-      <ejb-name>MessageReceiverBean</ejb-name>
+      <ejb-name>SinkMessageReceiverBean</ejb-name>
       <activation-config>
         <activation-config-property>
           <activation-config-property-name>destinationType</activation-config-property-name>

@@ -14,16 +14,15 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
-public class MessageReceiverBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageReceiverBean.class);
+public class SinkMessageReceiverBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageReceiverBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
 
     @Resource
     MessageDrivenContext messageDrivenContext;
 
     /**
-     * Reacts to messages received for the job processor by calling the relevant piece
-     * of business logic.
+     * Reacts to messages received from sinks.
      *
      * A message must pass validation. Any Invalid message will be removed from the
      * message queue. For a message to be deemed valid the following invariants must be
@@ -92,7 +91,7 @@ public class MessageReceiverBean {
             SinkChunkResult sinkChunkResult = JsonUtil.fromJson(jobProcessorMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
             LOGGER.info("Received SinkChunkResult for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());
         } catch (JsonException e) {
-            throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid ChunkResult type", jobProcessorMessage.getMessageId()), e);
+            throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid SinkChunkResult type", jobProcessorMessage.getMessageId()), e);
         }
     }
 

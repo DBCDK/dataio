@@ -11,6 +11,7 @@ import com.google.gwt.place.shared.WithTokenizers;
     SinkCreatePlace.Tokenizer.class,
     FlowComponentsShowPlace.Tokenizer.class,
     FlowsShowPlace.Tokenizer.class,
+    SubmittersShowPlace.Tokenizer.class,
 })
 
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper

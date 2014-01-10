@@ -12,6 +12,7 @@ import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.views.FlowsShowView;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
+import dk.dbc.dataio.gui.client.views.SubmittersShowView;
 
 /**
  * Provides access to common objects across the application including:
@@ -39,4 +40,5 @@ public interface ClientFactory {
     SinkCreateView getSinkCreateView();
     FlowComponentsShowView getFlowComponentsShowView();
     FlowsShowView getFlowsShowView();
+    SubmittersShowView getSubmittersShowView();
 }

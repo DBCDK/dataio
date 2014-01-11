@@ -107,14 +107,14 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      * @return
      */
     private String formatFlowComponents(List<FlowComponent> flowComponents) {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (FlowComponent component: flowComponents) {
-            if (!result.isEmpty()) {
-                result += ", ";
+            if (result.length() > 0) {
+                result.append(", ");
             }
-            result += component.getContent().getName();
+            result.append(component.getContent().getName());
         }
-        return result;
+        return result.toString();
     }
 
 }

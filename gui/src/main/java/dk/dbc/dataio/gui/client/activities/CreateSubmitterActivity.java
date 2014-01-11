@@ -39,7 +39,7 @@ public class CreateSubmitterActivity extends AbstractActivity implements Submitt
 
     @Override
     public void saveSubmitter(String name, String number, String description) {
-        final SubmitterContent submitterContent = new SubmitterContent(Long.valueOf(number), name, description);
+        final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(number), name, description);
 
         flowStoreProxy.createSubmitter(submitterContent, new AsyncCallback<Void>() {
             @Override

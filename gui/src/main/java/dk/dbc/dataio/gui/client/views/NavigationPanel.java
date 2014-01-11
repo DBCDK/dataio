@@ -26,7 +26,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  */
 public class NavigationPanel extends FlowPanel {
     public static final String GUIID_NAVIGATION_MENU_PANEL = "navigationmenupanel";
-    private static PlaceController placeController;
+    private final PlaceController placeController;
     private final Menu menuStructure = new Menu();
 
 

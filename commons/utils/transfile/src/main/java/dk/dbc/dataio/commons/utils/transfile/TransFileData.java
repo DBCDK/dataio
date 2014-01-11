@@ -62,7 +62,7 @@ public class TransFileData {
      */
     public long getSubmitterNumber() {
         final String filename = data.get(TransFileField.TransFileFieldId.FILE_NAME);
-        return Long.valueOf(filename.substring(0, filename.indexOf(".")));
+        return Long.parseLong(filename.substring(0, filename.indexOf(".")));
     }
 
     /**

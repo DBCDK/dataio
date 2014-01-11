@@ -154,7 +154,7 @@ public class ITUtil {
 
         final String id = locationHeaderValueParts[locationHeaderValueParts.length - 1];
 
-        return Long.valueOf(id);
+        return Long.parseLong(id);
     }
 
     /**

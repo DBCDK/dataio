@@ -6,11 +6,18 @@ import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.JMSProducer;
+import javax.jms.TextMessage;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 import org.slf4j.Logger;
@@ -27,6 +34,10 @@ public class EsScheduledCleanupBeanTest {
     private EsInFlightBean esInFlightAdmin;
     private EsConnectorBean esConnector;
     private EsThrottlerBean esThrottler;
+    private ConnectionFactory jobProcessorQueueConnectionFactory;
+    private JMSContext jmsContext;
+    private JMSProducer jmsProducer;
+    private TextMessage textMessage;
     private EsInFlight esInFlight41_1;
     private EsInFlight esInFlight42_1;
     private EsInFlight esInFlight42_2;
@@ -51,6 +62,13 @@ public class EsScheduledCleanupBeanTest {
 
         esThrottler = mock(EsThrottlerBean.class);
         cleanupBean.esThrottler = esThrottler;
+
+        jobProcessorQueueConnectionFactory = mock(ConnectionFactory.class);
+        cleanupBean.jobHandlerQueueConnectionFactory = jobProcessorQueueConnectionFactory;
+
+        jmsContext = mock(JMSContext.class);
+        jmsProducer = mock(JMSProducer.class);
+        textMessage = mock(TextMessage.class);
 
         esInFlight41_1 = new EsInFlight();
         esInFlight41_1.setJobId(41L);
@@ -120,14 +138,19 @@ public class EsScheduledCleanupBeanTest {
     }
 
     @Test
-    public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedIsCleanedUp() throws SinkException {
+    public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedIsCleanedUp() throws SinkException, JMSException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
         when(esConnector.getCompletionStatusForESTaskpackages(any(List.class))).thenReturn(Arrays.asList(taskStatus_122, taskStatus_123, taskStatus_124, taskStatus_125));
+        when(jobProcessorQueueConnectionFactory.createContext()).thenReturn(jmsContext);
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(textMessage);
+        when(jmsContext.createProducer()).thenReturn(jmsProducer);
 
         cleanupBean.cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esConnector).deleteESTaskpackages(any(List.class));
         verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
+        verify(textMessage, times(2)).setStringProperty(any(String.class), any(String.class));
+        verify(jmsProducer, times(2)).send(any(Destination.class), any(TextMessage.class));
     }
 }

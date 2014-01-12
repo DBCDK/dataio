@@ -1,8 +1,12 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.sink.SinkException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
+import java.nio.charset.Charset;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -15,9 +19,17 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
+import javax.ejb.EJBException;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.TextMessage;
 
 @LocalBean
 @Singleton
@@ -36,17 +48,27 @@ public class EsScheduledCleanupBean {
     @EJB
     EsThrottlerBean esThrottler;
 
+    @EJB
+    EsSinkConfigurationBean configuration;
+
+    @Resource
+    ConnectionFactory jobHandlerQueueConnectionFactory;
+
+    // todo: us#232 - move resource parameters into deploy descriptors.
+    @Resource(name="jobHandlerJMSQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
+    Queue jobHandlerQueue;
+
     @PostConstruct
     public void startup() {
         LOGGER.info("Startup of EsScheduledCleanupBean!");
         List<EsInFlight> esInFlightList = esInFlightAdmin.listEsInFlight();
         LOGGER.info("The following targetreferences are inFlight in the sink at startup: {}",
-                Arrays.toString( createEsInFlightMap(esInFlightList).keySet().toArray()) );
+                Arrays.toString(createEsInFlightMap(esInFlightList).keySet().toArray()));
         int slotsInFlight = sumRecordSlotsInEsInFlightList(esInFlightList);
         LOGGER.info("Sum of recordSlots for inFlight Chunks: [{}]", slotsInFlight);
         try {
             esThrottler.acquireRecordSlots(slotsInFlight);
-        } catch(IllegalArgumentException | InterruptedException e) {
+        } catch (IllegalArgumentException | InterruptedException e) {
             LOGGER.error("An exception was caught while trying to count down the esThrotler: {}", e.getMessage(), e);
         }
         // Integrity-test is deferred to the first run of cleanup().
@@ -54,7 +76,7 @@ public class EsScheduledCleanupBean {
 
     private int sumRecordSlotsInEsInFlightList(List<EsInFlight> esInFlightList) {
         int res = 0;
-        for(EsInFlight esInFlight : esInFlightList) {
+        for (EsInFlight esInFlight : esInFlightList) {
             res += esInFlight.getRecordSlots();
         }
         return res;
@@ -80,28 +102,59 @@ public class EsScheduledCleanupBean {
                 LOGGER.info("No records in ES InFlight.");
                 return;
             }
-            List<Integer> targetReferences = new ArrayList<>(esInFlightMap.keySet());
-            List<TaskStatus> taskStatus = esConnector.getCompletionStatusForESTaskpackages(targetReferences);
-            validateTaskStatusVsTargetReference(taskStatus, esInFlightMap);
-            List<TaskStatus> finishedTaskpackages = filterFinsihedTaskpackages(taskStatus);
-            List<Integer> finishedTargetReferences = filterTargetReferencesFromTaskStatusList(finishedTaskpackages);
+            List<Integer> finishedTargetReferences = findTargetReferencesForCompletedTaskpackagesFromEsInFightMap(esInFlightMap);
             if (finishedTargetReferences.isEmpty()) {
-                LOGGER.info("No finished taskpackages ES.");
+                LOGGER.info("No finished taskpackages in ES.");
                 return;
             }
             esConnector.deleteESTaskpackages(finishedTargetReferences);
             List<EsInFlight> finishedEsInFlight = getEsInFlightsFromTargetReferences(esInFlightMap, finishedTargetReferences);
-            int recordSlotsToRelease = 0;
-            for (EsInFlight esInFlight : finishedEsInFlight) {
-                recordSlotsToRelease += esInFlight.getRecordSlots();
-                esInFlightAdmin.removeEsInFlight(esInFlight);
-            }
-
-            // todo: Missing implementation of "callback" to jobhandler of finished chunks with results.
+            int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(finishedEsInFlight);
+            removeEsInFlights(finishedEsInFlight);
+            List<SinkChunkResult> sinkChunkResults = createSinkChunkResults(finishedEsInFlight);
+            sendSinkResultsToJobHandler(sinkChunkResults);
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
         }
+    }
+
+    private void sendSinkResultsToJobHandler(List<SinkChunkResult> sinkChunkResults) {
+        try (JMSContext context = jobHandlerQueueConnectionFactory.createContext()) {
+            for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
+                final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
+                message.setStringProperty("chunkResultSource", "sink"); // todo: US#232 Get these values from configuration
+                context.createProducer().send(jobHandlerQueue, message);
+            }
+        } catch (JsonException | JMSException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    private void removeEsInFlights(List<EsInFlight> esInFlightList) {
+        for (EsInFlight esInFlight : esInFlightList) {
+            esInFlightAdmin.removeEsInFlight(esInFlight);
+        }
+    }
+
+    private List<Integer> findTargetReferencesForCompletedTaskpackagesFromEsInFightMap(Map<Integer, EsInFlight> esInFlightMap) throws SinkException {
+        List<Integer> targetReferences = new ArrayList<>(esInFlightMap.keySet());
+        List<TaskStatus> taskStatus = esConnector.getCompletionStatusForESTaskpackages(targetReferences);
+        validateTaskStatusVsTargetReference(taskStatus, esInFlightMap);
+        List<TaskStatus> finishedTaskpackages = filterFinsihedTaskpackages(taskStatus);
+        return filterTargetReferencesFromTaskStatusList(finishedTaskpackages);
+    }
+
+    private List<SinkChunkResult> createSinkChunkResults(List<EsInFlight> finshedEsInFlight) {
+        List<SinkChunkResult> sinkChunkResults = new ArrayList<>(finshedEsInFlight.size());
+        for (EsInFlight esInFlight : finshedEsInFlight) {
+            sinkChunkResults.add(createSinkChunkResult(esInFlight));
+        }
+        return sinkChunkResults;
+    }
+
+    private SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) {
+        return new SinkChunkResult(esInFlight.getJobId(), esInFlight.getChunkId(), Charset.defaultCharset(), Collections.EMPTY_LIST);
     }
 
     private Map<Integer, EsInFlight> createEsInFlightMap(List<EsInFlight> esInFlightList) {

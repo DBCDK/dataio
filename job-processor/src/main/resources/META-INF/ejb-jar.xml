@@ -22,10 +22,28 @@
         </activation-config-property>
         <activation-config-property>
           <activation-config-property-name>messageSelector</activation-config-property-name>
-          <activation-config-property-value>payload = 'SinkChunkResult'</activation-config-property-value>
+          <activation-config-property-value>chunkResultSource = 'sink'</activation-config-property-value>
         </activation-config-property>
       </activation-config>
     </message-driven>
+    <session>
+      <ejb-name>ProcessorResultDispatcherBean</ejb-name>
+      <message-destination-ref>
+        <message-destination-ref-name>sinkJmsQueue</message-destination-ref-name>
+        <message-destination-type>javax.jms.Queue</message-destination-type>
+      </message-destination-ref>
+      <message-destination-ref>
+        <message-destination-ref-name>jobStoreJmsQueue</message-destination-ref-name>
+        <message-destination-type>javax.jms.Queue</message-destination-type>
+      </message-destination-ref>
+    </session>
+    <session>
+      <ejb-name>SinkResultRelayerBean</ejb-name>
+      <message-destination-ref>
+        <message-destination-ref-name>jobStoreJmsQueue</message-destination-ref-name>
+        <message-destination-type>javax.jms.Queue</message-destination-type>
+      </message-destination-ref>
+    </session>
   </enterprise-beans>
   <assembly-descriptor>
   </assembly-descriptor>

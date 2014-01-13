@@ -4,12 +4,14 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 import java.util.Enumeration;
+import java.util.Properties;
 
 public class MockedJmsTextMessage implements TextMessage {
     public static final String DEFAULT_MESSAGE_ID = "mockedMsg";
 
     private String messageId = DEFAULT_MESSAGE_ID;
     private String payload;
+    private Properties properties = new Properties();
 
     @Override
     public void setText(String s) throws JMSException {
@@ -26,8 +28,19 @@ public class MockedJmsTextMessage implements TextMessage {
         return messageId;
     }
 
-    @Override public void setJMSMessageID(String s) throws JMSException {
+    @Override
+    public void setJMSMessageID(String s) throws JMSException {
         messageId = s;
+    }
+
+    @Override
+    public void setStringProperty(String name, String value) throws JMSException {
+        properties.put(name, value);
+    }
+
+    @Override
+    public String getStringProperty(String name) throws JMSException {
+        return properties.getProperty(name);
     }
 
     @Override public long getJMSTimestamp() throws JMSException { return 0; }
@@ -61,7 +74,6 @@ public class MockedJmsTextMessage implements TextMessage {
     @Override public long getLongProperty(String s) throws JMSException { return 0; }
     @Override public float getFloatProperty(String s) throws JMSException { return 0; }
     @Override public double getDoubleProperty(String s) throws JMSException { return 0; }
-    @Override public String getStringProperty(String s) throws JMSException { return null; }
     @Override public Object getObjectProperty(String s) throws JMSException { return null; }
     @Override public Enumeration getPropertyNames() throws JMSException { return null; }
     @Override public void setBooleanProperty(String s, boolean b) throws JMSException { }
@@ -71,7 +83,6 @@ public class MockedJmsTextMessage implements TextMessage {
     @Override public void setLongProperty(String s, long l) throws JMSException { }
     @Override public void setFloatProperty(String s, float v) throws JMSException { }
     @Override public void setDoubleProperty(String s, double v) throws JMSException { }
-    @Override public void setStringProperty(String s, String s2) throws JMSException { }
     @Override public void setObjectProperty(String s, Object o) throws JMSException { }
     @Override public void acknowledge() throws JMSException { }
     @Override public void clearBody() throws JMSException { }

@@ -19,6 +19,8 @@ import javax.jms.TextMessage;
 public class SinkResultRelayerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkResultRelayerBean.class);
 
+    public static final String CHUNK_RESULT_SOURCE_PROPERTY = "processor";
+
     @Resource
     ConnectionFactory jobStoreQueueConnectionFactory;
 
@@ -28,11 +30,16 @@ public class SinkResultRelayerBean {
     public void relay(SinkChunkResult sinkChunkResult) {
         LOGGER.info("Relaying SinkChunkResult for chunk {} in job {}", sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
         try (JMSContext context = jobStoreQueueConnectionFactory.createContext()) {
-            final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
-            message.setStringProperty("chunkResultSource", "processor"); // todo: US#232 Get these values from configuration
+            final TextMessage message = createMessage(context, sinkChunkResult);
             context.createProducer().send(jobStoreQueue, message);
         } catch (JsonException | JMSException e) {
             throw new EJBException(e);
         }
+    }
+
+    TextMessage createMessage(JMSContext context, SinkChunkResult sinkChunkResult) throws JsonException, JMSException {
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
+        message.setStringProperty("chunkResultSource", CHUNK_RESULT_SOURCE_PROPERTY); // todo: US#232 Get these values from configuration
+        return message;
     }
 }

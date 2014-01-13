@@ -64,7 +64,7 @@ public class EsScheduledCleanupBeanTest {
         cleanupBean.esThrottler = esThrottler;
 
         jobProcessorQueueConnectionFactory = mock(ConnectionFactory.class);
-        cleanupBean.jobHandlerQueueConnectionFactory = jobProcessorQueueConnectionFactory;
+        cleanupBean.jobProcessorQueueConnectionFactory = jobProcessorQueueConnectionFactory;
 
         jmsContext = mock(JMSContext.class);
         jmsProducer = mock(JMSProducer.class);

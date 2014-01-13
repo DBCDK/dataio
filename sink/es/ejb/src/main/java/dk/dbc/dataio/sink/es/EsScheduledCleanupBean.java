@@ -39,6 +39,9 @@ public class EsScheduledCleanupBean {
 
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(EsScheduledCleanupBean.class);
 
+    private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME = "chunkResultSource";
+    private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE = "sink";
+
     @EJB
     EsConnectorBean esConnector;
 
@@ -52,11 +55,10 @@ public class EsScheduledCleanupBean {
     EsSinkConfigurationBean configuration;
 
     @Resource
-    ConnectionFactory jobHandlerQueueConnectionFactory;
+    ConnectionFactory jobProcessorQueueConnectionFactory;
 
-    // todo: us#232 - move resource parameters into deploy descriptors.
-    @Resource(name="jobHandlerJMSQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
-    Queue jobHandlerQueue;
+    @Resource(name = "jobProcessorJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
+    Queue jobProcessorJmsQueue;
 
     @PostConstruct
     public void startup() {
@@ -112,19 +114,19 @@ public class EsScheduledCleanupBean {
             int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(finishedEsInFlight);
             removeEsInFlights(finishedEsInFlight);
             List<SinkChunkResult> sinkChunkResults = createSinkChunkResults(finishedEsInFlight);
-            sendSinkResultsToJobHandler(sinkChunkResults);
+            sendSinkResultsToJobProcessor(sinkChunkResults);
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
         }
     }
 
-    private void sendSinkResultsToJobHandler(List<SinkChunkResult> sinkChunkResults) {
-        try (JMSContext context = jobHandlerQueueConnectionFactory.createContext()) {
+    private void sendSinkResultsToJobProcessor(List<SinkChunkResult> sinkChunkResults) {
+        try (JMSContext context = jobProcessorQueueConnectionFactory.createContext()) {
             for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
                 final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
-                message.setStringProperty("chunkResultSource", "sink"); // todo: US#232 Get these values from configuration
-                context.createProducer().send(jobHandlerQueue, message);
+                message.setStringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE);
+                context.createProducer().send(jobProcessorJmsQueue, message);
             }
         } catch (JsonException | JMSException e) {
             throw new EJBException(e);

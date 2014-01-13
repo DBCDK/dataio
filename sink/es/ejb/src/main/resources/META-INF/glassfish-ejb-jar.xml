@@ -5,7 +5,7 @@
         <ejb>
             <ejb-name>EsScheduledCleanupBean</ejb-name>
             <message-destination-ref>
-                <message-destination-ref-name>jobHandlerJMSQueue</message-destination-ref-name>
+                <message-destination-ref-name>jobProcessorJmsQueue</message-destination-ref-name>
                 <jndi-name>jms/dataio/sinks</jndi-name>
             </message-destination-ref>
         </ejb>

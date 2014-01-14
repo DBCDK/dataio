@@ -18,7 +18,7 @@ import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-public class SinkResultRelayerBeanTest {
+public class JobStoreMessageProducerBeanTest {
     private ConnectionFactory jmsConnectionFactory;
     private JMSContext jmsContext;
     private JMSProducer jmsProducer;
@@ -35,21 +35,21 @@ public class SinkResultRelayerBeanTest {
 
     @Test(expected = NullPointerException.class)
     public void relay_sinkChunkResultArgIsNull_throws() {
-        final SinkResultRelayerBean sinkResultRelayerBean = getInitializedBean();
-        sinkResultRelayerBean.relay(null);
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        jobStoreMessageProducerBean.relay(null);
     }
 
     @Test
     public void createMessage_sinkChunkResultArgIsValid_returnsMessageWithChunkResultSourceProperty() throws JMSException, JsonException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
-        final SinkResultRelayerBean sinkResultRelayerBean = getInitializedBean();
-        TextMessage message = sinkResultRelayerBean.createMessage(jmsContext, new SinkChunkResultBuilder().build());
-        assertThat(message.getStringProperty("chunkResultSource"), is(SinkResultRelayerBean.CHUNK_RESULT_SOURCE_PROPERTY));
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        TextMessage message = jobStoreMessageProducerBean.createMessage(jmsContext, new SinkChunkResultBuilder().build());
+        assertThat(message.getStringProperty("chunkResultSource"), is(JobStoreMessageProducerBean.CHUNK_RESULT_SOURCE_PROPERTY));
     }
 
-    private SinkResultRelayerBean getInitializedBean() {
-        final SinkResultRelayerBean sinkResultRelayerBean = new SinkResultRelayerBean();
-        sinkResultRelayerBean.jobStoreQueueConnectionFactory = jmsConnectionFactory;
-        return sinkResultRelayerBean;
+    private JobStoreMessageProducerBean getInitializedBean() {
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = new JobStoreMessageProducerBean();
+        jobStoreMessageProducerBean.jobStoreQueueConnectionFactory = jmsConnectionFactory;
+        return jobStoreMessageProducerBean;
     }
 }

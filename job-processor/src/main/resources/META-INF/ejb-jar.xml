@@ -27,7 +27,7 @@
       </activation-config>
     </message-driven>
     <session>
-      <ejb-name>SinkResultRelayerBean</ejb-name>
+      <ejb-name>JobStoreMessageProducerBean</ejb-name>
       <message-destination-ref>
         <message-destination-ref-name>jobStoreJmsQueue</message-destination-ref-name>
         <message-destination-type>javax.jms.Queue</message-destination-type>

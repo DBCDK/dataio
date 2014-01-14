@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -16,8 +17,9 @@ import javax.jms.Queue;
 import javax.jms.TextMessage;
 
 @LocalBean
-public class SinkResultRelayerBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SinkResultRelayerBean.class);
+@Stateless
+public class JobStoreMessageProducerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageProducerBean.class);
 
     public static final String CHUNK_RESULT_SOURCE_PROPERTY = "processor";
 

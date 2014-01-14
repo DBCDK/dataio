@@ -3,7 +3,7 @@
 <glassfish-ejb-jar>
   <enterprise-beans>
     <ejb>
-      <ejb-name>SinkResultRelayerBean</ejb-name>
+      <ejb-name>JobStoreMessageProducerBean</ejb-name>
       <message-destination-ref>
         <message-destination-ref-name>jobStoreJmsQueue</message-destination-ref-name>
         <jndi-name>jms/dataio/processor</jndi-name>

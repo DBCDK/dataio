@@ -6,7 +6,7 @@
   <display-name>DataIO Job Processor</display-name>
   <enterprise-beans>
     <message-driven>
-      <ejb-name>SinkMessageReceiverBean</ejb-name>
+      <ejb-name>SinkMessageConsumerBean</ejb-name>
       <activation-config>
         <activation-config-property>
           <activation-config-property-name>destinationType</activation-config-property-name>
@@ -26,17 +26,6 @@
         </activation-config-property>
       </activation-config>
     </message-driven>
-    <session>
-      <ejb-name>ProcessorResultDispatcherBean</ejb-name>
-      <message-destination-ref>
-        <message-destination-ref-name>sinkJmsQueue</message-destination-ref-name>
-        <message-destination-type>javax.jms.Queue</message-destination-type>
-      </message-destination-ref>
-      <message-destination-ref>
-        <message-destination-ref-name>jobStoreJmsQueue</message-destination-ref-name>
-        <message-destination-type>javax.jms.Queue</message-destination-type>
-      </message-destination-ref>
-    </session>
     <session>
       <ejb-name>SinkResultRelayerBean</ejb-name>
       <message-destination-ref>

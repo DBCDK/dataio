@@ -3,17 +3,6 @@
 <glassfish-ejb-jar>
   <enterprise-beans>
     <ejb>
-      <ejb-name>ProcessorResultDispatcherBean</ejb-name>
-      <message-destination-ref>
-        <message-destination-ref-name>jobStoreJmsQueue</message-destination-ref-name>
-        <jndi-name>jms/dataio/processor</jndi-name>
-      </message-destination-ref>
-      <message-destination-ref>
-        <message-destination-ref-name>sinkJmsQueue</message-destination-ref-name>
-        <jndi-name>jms/dataio/sinks</jndi-name>
-      </message-destination-ref>
-    </ejb>
-    <ejb>
       <ejb-name>SinkResultRelayerBean</ejb-name>
       <message-destination-ref>
         <message-destination-ref-name>jobStoreJmsQueue</message-destination-ref-name>

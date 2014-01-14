@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.jobprocessor.dto.JobProcessorMessage;
+import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
 import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +51,9 @@ public class SinkMessageConsumerBean {
     public void onMessage(Message message) {
         String messageId = null;
         try {
-            final JobProcessorMessage jobProcessorMessage = validateMessage(message);
-            messageId = jobProcessorMessage.getMessageId();
-            handleJobProcessorMessage(jobProcessorMessage);
+            final ConsumedMessage consumedMessage = validateMessage(message);
+            messageId = consumedMessage.getMessageId();
+            handleConsumedMessage(consumedMessage);
         } catch (InvalidMessageJobProcessorException e) {
             LOGGER.error("Message rejected", e);
         } catch (Throwable t) {
@@ -66,7 +66,7 @@ public class SinkMessageConsumerBean {
 
     /* To prevent message poisoning where invalid messages will be re-delivered
        forever, all messages must be validated */
-    JobProcessorMessage validateMessage(Message message) throws InvalidMessageJobProcessorException {
+    ConsumedMessage validateMessage(Message message) throws InvalidMessageJobProcessorException {
         if (message == null) {
             throw new InvalidMessageJobProcessorException("Message can not be null");
         }
@@ -83,18 +83,18 @@ public class SinkMessageConsumerBean {
             if (messagePayload.isEmpty()) {
                 throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload is empty string", messageId));
             }
-            return new JobProcessorMessage(messageId, messagePayload);
+            return new ConsumedMessage(messageId, messagePayload);
         } catch (JMSException e) {
             throw new InvalidMessageJobProcessorException("Unexpected exception during message validation");
         }
     }
 
-    void handleJobProcessorMessage(JobProcessorMessage jobProcessorMessage) throws InvalidMessageJobProcessorException {
+    void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageJobProcessorException {
         try {
-            SinkChunkResult sinkChunkResult = JsonUtil.fromJson(jobProcessorMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
+            SinkChunkResult sinkChunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
             LOGGER.info("Received SinkChunkResult for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());
         } catch (JsonException e) {
-            throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid SinkChunkResult type", jobProcessorMessage.getMessageId()), e);
+            throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid SinkChunkResult type", consumedMessage.getMessageId()), e);
         }
     }
 

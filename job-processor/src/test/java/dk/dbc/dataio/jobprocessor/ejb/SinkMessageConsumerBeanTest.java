@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jms.NotJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.json.SinkChunkResultJsonBuilder;
-import dk.dbc.dataio.jobprocessor.dto.JobProcessorMessage;
+import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
 import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
 import org.junit.Test;
 
@@ -71,13 +71,13 @@ public class SinkMessageConsumerBeanTest {
     }
 
     @Test
-    public void validateMessage_onValidMessage_returnsJobProcessorMessage() throws JMSException, InvalidMessageJobProcessorException {
+    public void validateMessage_onValidMessage_returnsConsumedMessage() throws JMSException, InvalidMessageJobProcessorException {
         final String payload = "payload";
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         textMessage.setText(payload);
-        JobProcessorMessage jobProcessorMessage = getInitializedBean().validateMessage(textMessage);
-        assertThat(jobProcessorMessage.getMessageId(), is(MockedJmsTextMessage.DEFAULT_MESSAGE_ID));
-        assertThat(jobProcessorMessage.getMessagePayload(), is(payload));
+        ConsumedMessage consumedMessage = getInitializedBean().validateMessage(textMessage);
+        assertThat(consumedMessage.getMessageId(), is(MockedJmsTextMessage.DEFAULT_MESSAGE_ID));
+        assertThat(consumedMessage.getMessagePayload(), is(payload));
     }
 
     @Test
@@ -90,9 +90,9 @@ public class SinkMessageConsumerBeanTest {
     }
 
     @Test(expected = InvalidMessageJobProcessorException.class)
-    public void handleJobProcessorMessage_messageArgPayloadIsInvalidSinkChunkResult_throws() throws InvalidMessageJobProcessorException, JMSException {
-        final JobProcessorMessage jobProcessorMessage = new JobProcessorMessage("id", "{'invalid': 'instance'}");
-        getInitializedBean().handleJobProcessorMessage(jobProcessorMessage);
+    public void handleConsumedMessage_messageArgPayloadIsInvalidSinkChunkResult_throws() throws InvalidMessageJobProcessorException, JMSException {
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "{'invalid': 'instance'}");
+        getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 
     @Test

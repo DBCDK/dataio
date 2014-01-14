@@ -1,10 +1,10 @@
 package dk.dbc.dataio.jobprocessor.dto;
 
-public class JobProcessorMessage {
+public class ConsumedMessage {
     private final String messageId;
     private final String messagePayload;
 
-    public JobProcessorMessage(String messageId, String messagePayload) {
+    public ConsumedMessage(String messageId, String messagePayload) {
         this.messageId = messageId;
         this.messagePayload = messagePayload;
     }

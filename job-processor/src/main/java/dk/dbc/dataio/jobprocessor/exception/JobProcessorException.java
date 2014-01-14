@@ -2,9 +2,9 @@ package dk.dbc.dataio.jobprocessor.exception;
 
 import javax.ejb.ApplicationException;
 
-@ApplicationException(rollback = false)
-public class InvalidMessageJobProcessorException extends JobProcessorException {
-    private static final long serialVersionUID = 2550554342946863031L;
+@ApplicationException(rollback = true)
+public class JobProcessorException extends Exception {
+    private static final long serialVersionUID = -4334811455450628052L;
 
     /**
      * Constructs a new exception with the specified detail message
@@ -15,7 +15,7 @@ public class InvalidMessageJobProcessorException extends JobProcessorException {
      * @param message detail message saved for later retrieval by the
      *                {@link #getMessage()} method. May be null.
      */
-    public InvalidMessageJobProcessorException(String message) {
+    public JobProcessorException(String message) {
         super(message);
     }
 
@@ -33,7 +33,7 @@ public class InvalidMessageJobProcessorException extends JobProcessorException {
      *               permitted, and indicates that the cause is nonexistent or
      *               unknown).
      */
-    public InvalidMessageJobProcessorException(String message, Exception cause) {
+    public JobProcessorException(String message, Exception cause) {
         super(message, cause);
     }
 }

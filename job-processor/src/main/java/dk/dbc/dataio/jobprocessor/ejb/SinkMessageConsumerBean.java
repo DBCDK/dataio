@@ -4,18 +4,21 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jobprocessor.dto.JobProcessorMessage;
 import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.MessageDriven;
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
 
-public class SinkMessageReceiverBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageReceiverBean.class);
+@MessageDriven
+public class SinkMessageConsumerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
 
     @Resource
@@ -95,21 +98,4 @@ public class SinkMessageReceiverBean {
         }
     }
 
-    public static class JobProcessorMessage {
-        private final String messageId;
-        private final String messagePayload;
-
-        public JobProcessorMessage(String messageId, String messagePayload) {
-            this.messageId = messageId;
-            this.messagePayload = messagePayload;
-        }
-
-        public String getMessageId() {
-            return messageId;
-        }
-
-        public String getMessagePayload() {
-            return messagePayload;
-        }
-    }
 }

@@ -1,19 +1,26 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jms.NotJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.json.SinkChunkResultJsonBuilder;
 import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
 import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
+import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.junit.Test;
 
 import javax.jms.JMSException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 public class SinkMessageConsumerBeanTest {
+    private JobStoreMessageProducerBean jobStoreMessageProducer = mock(JobStoreMessageProducerBean.class);
+
     @Test
     public void onMessage_messageArgIsNull_noTransactionRollback() {
         final SinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
@@ -90,7 +97,7 @@ public class SinkMessageConsumerBeanTest {
     }
 
     @Test(expected = InvalidMessageJobProcessorException.class)
-    public void handleConsumedMessage_messageArgPayloadIsInvalidSinkChunkResult_throws() throws InvalidMessageJobProcessorException, JMSException {
+    public void handleConsumedMessage_messageArgPayloadIsInvalidSinkChunkResult_throws() throws JobProcessorException, JMSException {
         final ConsumedMessage consumedMessage = new ConsumedMessage("id", "{'invalid': 'instance'}");
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
@@ -104,9 +111,20 @@ public class SinkMessageConsumerBeanTest {
         assertThat(sinkMessageConsumerBean.messageDrivenContext.getRollbackOnly(), is(false));
     }
 
+    @Test
+    public void onMessage_handlingThrowsJobProcessorException_transactionRollback() throws JMSException, JobProcessorException {
+        doThrow(new JobProcessorException("JobProcessorException")).when(jobStoreMessageProducer).send(any(SinkChunkResult.class));
+        final SinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setText(new SinkChunkResultJsonBuilder().build());
+        sinkMessageConsumerBean.onMessage(textMessage);
+        assertThat(sinkMessageConsumerBean.messageDrivenContext.getRollbackOnly(), is(true));
+    }
+
     private SinkMessageConsumerBean getInitializedBean() {
         final SinkMessageConsumerBean sinkMessageConsumerBean = new SinkMessageConsumerBean();
         sinkMessageConsumerBean.messageDrivenContext = new MockedJmsMessageDrivenContext();
+        sinkMessageConsumerBean.jobStoreMessageProducer = jobStoreMessageProducer;
         return sinkMessageConsumerBean;
     }
 }

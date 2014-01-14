@@ -6,10 +6,12 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
 import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
+import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
@@ -23,6 +25,9 @@ public class SinkMessageConsumerBean {
 
     @Resource
     MessageDrivenContext messageDrivenContext;
+
+    @EJB
+    JobStoreMessageProducerBean jobStoreMessageProducer;
 
     /**
      * Reacts to messages received from sinks.
@@ -89,10 +94,11 @@ public class SinkMessageConsumerBean {
         }
     }
 
-    void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageJobProcessorException {
+    void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
         try {
             SinkChunkResult sinkChunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
             LOGGER.info("Received SinkChunkResult for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());
+            jobStoreMessageProducer.send(sinkChunkResult);
         } catch (JsonException e) {
             throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid SinkChunkResult type", consumedMessage.getMessageId()), e);
         }

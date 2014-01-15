@@ -118,7 +118,7 @@ public class FlowsIT {
     @Test
     public void getFlow_flowNotFound() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS, Long.toString(42L));
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS, Long.toString(420L));
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));

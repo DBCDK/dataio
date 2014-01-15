@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter> implements SubmittersShowView {
     // Constants (These are not all private since we use them in the selenium tests)
-    public static final String GUIID_FLOWS_SHOW_WIDGET = "submittersshowwidget";
+    public static final String GUIID_SUBMITTERS_SHOW_WIDGET = "submittersshowwidget";
 
     // Local variables
     private final SubmittersShowConstants constants = GWT.create(SubmittersShowConstants.class);
@@ -35,7 +35,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
      * Sets up the three columns in the CellTable
      */
     public void init() {
-        getElement().setId(GUIID_FLOWS_SHOW_WIDGET);
+        getElement().setId(GUIID_SUBMITTERS_SHOW_WIDGET);
         if (table.getColumnCount() == 0) {
             TextColumn<Submitter> numberColumn = new TextColumn<Submitter>() {
                 @Override

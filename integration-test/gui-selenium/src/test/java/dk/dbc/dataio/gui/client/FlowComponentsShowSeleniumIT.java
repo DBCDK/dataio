@@ -8,14 +8,13 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
-    @Test(expected = TimeoutException.class)
-    public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException {
+    @Test
+    public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException, Exception {
         navigateToFlowComponentsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
-        table.waitAssertRows();
+        table.waitAssertNoRows();
     }
 
     @Test
@@ -48,14 +47,6 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
-    }
-
-    private static WebElement findFlowComponentCreateNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
-    }
-
-    private static WebElement findFlowComponentsShowWidget(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
     }
 
 }

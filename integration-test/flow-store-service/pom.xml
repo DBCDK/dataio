@@ -95,7 +95,7 @@
         </executions>
       </plugin>
 
-      <plugin>
+      <!--plugin>
         <groupId>com.edugility</groupId>
         <artifactId>h2-maven-plugin</artifactId>
         <version>1.0</version>
@@ -170,9 +170,8 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin-->
 
-      <!--
       <plugin>
         <groupId>org.codehaus.cargo</groupId>
         <artifactId>cargo-maven2-plugin</artifactId>
@@ -226,7 +225,6 @@
           </execution>
         </executions>
       </plugin>
-      -->
 
       <plugin>
         <!-- Integrationtest plugin - just like the surefire plugin,

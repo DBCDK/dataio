@@ -1,10 +1,10 @@
 package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.i18n.FlowsShowConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowsShowPresenter;
 import java.util.List;
@@ -22,7 +22,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
 
     // Local variables
     private final FlowsShowConstants constants = GWT.create(FlowsShowConstants.class);
-    private final CellTable<Flow> table = new CellTable<Flow>();
+    private final DioCellTable<Flow> table = new DioCellTable<Flow>();
 
 
     /**
@@ -96,6 +96,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
     public void setFlows(List<Flow> flows) {
         table.setRowData(0, flows);
         table.setRowCount(flows.size());
+        table.updateDone();
     }
 
 

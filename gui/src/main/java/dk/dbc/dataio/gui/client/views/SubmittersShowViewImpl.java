@@ -1,9 +1,9 @@
 package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.i18n.SubmittersShowConstants;
 import dk.dbc.dataio.gui.client.presenters.SubmittersShowPresenter;
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Show Submitters view implementation
  * Shows a table, containing:
+ *  o Number
  *  o Name
  *  o Description
  */
@@ -20,7 +21,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
 
     // Local variables
     private final SubmittersShowConstants constants = GWT.create(SubmittersShowConstants.class);
-    private final CellTable<Submitter> table = new CellTable<Submitter>();
+    private final DioCellTable<Submitter> table = new DioCellTable<Submitter>();
 
 
     /**
@@ -93,6 +94,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
     public void setSubmitters(List<Submitter> submitters) {
         table.setRowData(0, submitters);
         table.setRowCount(submitters.size());
+        table.updateDone();
     }
 
 }

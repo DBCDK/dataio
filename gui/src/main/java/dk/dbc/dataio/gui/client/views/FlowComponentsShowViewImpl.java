@@ -1,9 +1,9 @@
 package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.i18n.FlowComponentsShowConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowComponentsShowPresenter;
 import java.util.List;
@@ -20,7 +20,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
 
     // Local variables
     private final FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
-    private CellTable<FlowComponent> table = new CellTable<FlowComponent>();
+    private DioCellTable<FlowComponent> table = new DioCellTable<FlowComponent>();
 
 
     /**
@@ -85,6 +85,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
     public void setFlowComponents(List<FlowComponent> flowComponents) {
         table.setRowData(0, flowComponents);
         table.setRowCount(flowComponents.size());
+        table.updateDone();
     }
 
 }

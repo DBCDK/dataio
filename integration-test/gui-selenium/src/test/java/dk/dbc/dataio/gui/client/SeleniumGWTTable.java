@@ -1,7 +1,10 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.gui.client.components.DioCellTable;
 import java.util.ArrayList;
 import java.util.List;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -32,58 +35,27 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  *      <table ...>
  *        <thead ...>...</thead>
  *        <colgroup>...</colgroup>
- *        <tbody style="display: none;"></tbody>            // The first tbody contains the table data (which is invisible)
- *        <tbody>                                           // The second tbody contains the no-data waiting animation
- *          <tr>
- *            <td ...>
- *              <div>
- *                <div ... style="... display: none;">
- *                  <div ... style="... display: none;"></div>
- *                </div>
- *                <div ...>
- *                  <div ...>
- *                    <img class="gwt-Image" .../>
- *                  </div>
- *                </div>
- *              </div>
- *            </td>
- *          </tr>
- *        </tbody>
- *        <tfoot ... style="display: none;"></tfoot>
+ *        <tbody style="display: none;"></tbody>            // The first tbody contains the table data (which is invisible and empty)
+ *        <tbody>...</tbody>
+ *        <tfoot ...></tfoot>
  *      </table>
  *
  * 4) After data has been loaded to the table, the GWT table looks like this:
- *      <table>
+ *      <table class="... dio-celltable-update-done">       // The class name dio-celltable-update-done has been added here
  *        <thead ...>...</thead>
  *        <colgroup>...</colgroup>
- *        <tbody ...>                            // The first tbody contains the table data
- *          <tr ...>
- *            <td ...>...</td>
- *            <td ...>...</td>
+ *        <tbody ...>               // The first tbody contains the table data
+ *          <tr ...>                // First row
+ *            <td ...>...</td>      // First cell
+ *            <td ...>...</td>      // Second cell
  *            <td ...>...</td>
  *          </tr>
+ *          <tr>...</tr>            // Second row
+ *          ...
  *        </tbody>
- *        <tbody ... style="... display: none;"> // The second tbody contains the no-data waiting animation (which is invisible) - see also Note below
- *          <tr>
- *            <td ...>
- *              <div>
- *                <div ...>
- *                  <div ...></div>
- *                </div>
- *                <div ... style="... display: none;">  // See note below
- *                  <div ... style="... display: none;">  // See note below
- *                    <img class="gwt-Image" .../>
- *                  </div>
- *                </div>
- *              </div>
- *            </td>
- *          </tr>
- *        </tbody>
- *        <tfoot ... style="display: none;"></tfoot>
+ *        <tbody ...>...</tbody>
+ *        <tfoot ...></tfoot>
  *      </table>
- *   Note:
- *   Please note, that the invisiblity style code may occur in any combination. Experiments have
- *   shown, that sometimes, only the first one is present, sometimes only the last two... !!!
  *
  */
 
@@ -127,16 +99,13 @@ public class SeleniumGWTTable {
     /**
      * Waits and asserts, that the table is empty (and is not in the process of being filled up).
      * If the table is never filled up (the animation logo never disappears) a TimeoutException is
-     * thrown, but if there is unexpected data in the table, an Exception is thrown.
+     * thrown.
      *
      * @throws TimeoutException
-     * @throws Exception
      */
-    public void waitAssertNoRows() throws Exception, TimeoutException {
+    public void waitAssertNoRows() throws TimeoutException {
          waitForTableDataSetup();  // First wait for the waiting animation to disappear
-         if (getTableRowCount() != 0) {
-             throw new Exception("Unexpected data in table");
-         }
+         assertThat("Unexpected data in table", getTableRowCount(), is(0));
      }
 
     /**
@@ -250,12 +219,10 @@ public class SeleniumGWTTable {
      */
     private void waitForTableDataSetup() throws TimeoutException {
         WebDriverWait wait = new WebDriverWait(webDriver, timeout);
-        final String xpathTbodyInvisible = "//*[@id='" + guiId + "']/*/table/tbody[2][contains(@style,'display: none')]";
-        final String xpathDivInvisible = "//*[@id='" + guiId + "']/*/table/tbody[2]/tr/td/*/div[contains(@style,'display: none')]/*/img[@class='gwt-Image']";
-        final String xpathAnimationInvisible = "." + xpathTbodyInvisible + " | " + xpathDivInvisible;
+        final String xpathUpdateDone = ".//*[@id='" + guiId + "']/*/table[contains(@class,'" + DioCellTable.DIO_CELLTABLE_UPDATE_DONE + "')]";
         // Explanation: The function waits for a situation, where the table is no more waiting for data.
-        // This is happening exactly at the moment, where the animation logo is no more displayed.
-        // In other words, the function waits for the invisiblity of the animation logo
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathAnimationInvisible)));
+        // This is happening when the activity signals an updateDone() to the DioCellTable component
+        // - resulting in the class DIO_CELLTABLE_UPDATE_DONE to be added to the table class
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpathUpdateDone)));
     }
 }

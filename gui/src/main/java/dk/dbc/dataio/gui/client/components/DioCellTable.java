@@ -5,7 +5,7 @@ import com.google.gwt.user.cellview.client.CellTable;
 
 /**
  * Specialization of the CellTable class.
- * Maintains an "updated done" style name upon call of the updateStarted() and updateDon() methods.
+ * Maintains an "updated done" style name upon call of the updateStarted() and updateDone() methods.
  Selenium can then easily determine, when an update has been done.
  *
  * @param <T>
@@ -25,7 +25,7 @@ public class DioCellTable<T> extends CellTable<T> {
      * This method should be called upon completion of an update, in order to signal to
      * Selenium, that data is ready.
      */
-    public void updateDon() {
+    public void updateDone() {
         addStyleName(DIO_CELLTABLE_UPDATE_DONE);
     }
 }

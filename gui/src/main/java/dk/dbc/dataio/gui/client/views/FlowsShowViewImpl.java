@@ -97,7 +97,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
     @Override
     public void onFailure(String message) {
         super.onFailure(message);
-        table.updateDon();
+        table.updateDone();
     }
 
     /**
@@ -108,7 +108,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
     public void setFlows(List<Flow> flows) {
         table.setRowData(0, flows);
         table.setRowCount(flows.size());
-        table.updateDon();
+        table.updateDone();
     }
 
 

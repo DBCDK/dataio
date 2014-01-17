@@ -95,7 +95,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
     @Override
     public void onFailure(String message) {
         super.onFailure(message);
-        table.updateDon();
+        table.updateDone();
     }
 
     /**
@@ -106,7 +106,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
     public void setSubmitters(List<Submitter> submitters) {
         table.setRowData(0, submitters);
         table.setRowCount(submitters.size());
-        table.updateDon();
+        table.updateDone();
     }
 
 }

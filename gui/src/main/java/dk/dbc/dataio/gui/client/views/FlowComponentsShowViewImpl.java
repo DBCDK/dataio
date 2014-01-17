@@ -86,7 +86,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
     @Override
     public void onFailure(String message) {
         super.onFailure(message);
-        table.updateDon();
+        table.updateDone();
     }
 
     /**
@@ -97,7 +97,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
     public void setFlowComponents(List<FlowComponent> flowComponents) {
         table.setRowData(0, flowComponents);
         table.setRowCount(flowComponents.size());
-        table.updateDon();
+        table.updateDone();
     }
 
 }

@@ -4,14 +4,23 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 import java.util.Enumeration;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MockedJmsTextMessage implements TextMessage {
     public static final String DEFAULT_MESSAGE_ID = "mockedMsg";
 
     private String messageId = DEFAULT_MESSAGE_ID;
     private String payload;
-    private Properties properties = new Properties();
+    private Map<String, String> properties = new HashMap<>();
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 
     @Override
     public void setText(String s) throws JMSException {
@@ -40,9 +49,10 @@ public class MockedJmsTextMessage implements TextMessage {
 
     @Override
     public String getStringProperty(String name) throws JMSException {
-        return properties.getProperty(name);
+        return properties.get(name);
     }
 
+    @Override public Enumeration getPropertyNames() throws JMSException { return null; }
     @Override public long getJMSTimestamp() throws JMSException { return 0; }
     @Override public void setJMSTimestamp(long l) throws JMSException { }
     @Override public byte[] getJMSCorrelationIDAsBytes() throws JMSException { return new byte[0]; }
@@ -75,7 +85,6 @@ public class MockedJmsTextMessage implements TextMessage {
     @Override public float getFloatProperty(String s) throws JMSException { return 0; }
     @Override public double getDoubleProperty(String s) throws JMSException { return 0; }
     @Override public Object getObjectProperty(String s) throws JMSException { return null; }
-    @Override public Enumeration getPropertyNames() throws JMSException { return null; }
     @Override public void setBooleanProperty(String s, boolean b) throws JMSException { }
     @Override public void setByteProperty(String s, byte b) throws JMSException { }
     @Override public void setShortProperty(String s, short i) throws JMSException { }

@@ -18,6 +18,7 @@
     <module>gui-selenium</module>
     <!--module>sink-es</module-->
     <module>sink-es-queue-service</module>
+    <module>jms-queue-service</module>
     <module>utils</module>
     <module>glassfish</module>
     <module>h2</module>

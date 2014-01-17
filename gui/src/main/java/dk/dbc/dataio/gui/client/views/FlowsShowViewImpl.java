@@ -37,6 +37,8 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      * Sets up the three columns in the CellTable
      */
     public void init() {
+        table.updateStarted();
+
         getElement().setId(GUIID_FLOWS_SHOW_WIDGET);
 
         if (table.getColumnCount() == 0) {
@@ -89,6 +91,16 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
     }
 
     /**
+     * OnFailure
+     * @param message The message to display to the user
+     */
+    @Override
+    public void onFailure(String message) {
+        super.onFailure(message);
+        table.updateDon();
+    }
+
+    /**
      * setFlows is called by the presenter, to push table data to the view
      * @param flows List of flows to view
      */
@@ -96,7 +108,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
     public void setFlows(List<Flow> flows) {
         table.setRowData(0, flows);
         table.setRowCount(flows.size());
-        table.updateDone();
+        table.updateDon();
     }
 
 

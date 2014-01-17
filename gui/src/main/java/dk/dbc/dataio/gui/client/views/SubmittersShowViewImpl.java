@@ -36,6 +36,8 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
      * Sets up the three columns in the CellTable
      */
     public void init() {
+        table.updateStarted();
+
         getElement().setId(GUIID_SUBMITTERS_SHOW_WIDGET);
         if (table.getColumnCount() == 0) {
             TextColumn<Submitter> numberColumn = new TextColumn<Submitter>() {
@@ -87,6 +89,16 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
     }
 
     /**
+     * OnFailure
+     * @param message The message to display to the user
+     */
+    @Override
+    public void onFailure(String message) {
+        super.onFailure(message);
+        table.updateDon();
+    }
+
+    /**
      * setSubmitters is called by the presenter, to push table data to the view
      * @param submitters List of submitters to view
      */
@@ -94,7 +106,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
     public void setSubmitters(List<Submitter> submitters) {
         table.setRowData(0, submitters);
         table.setRowCount(submitters.size());
-        table.updateDone();
+        table.updateDon();
     }
 
 }

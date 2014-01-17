@@ -35,6 +35,8 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
      * Initializations of the view
      */
     public void init() {
+        table.updateStarted();
+
         getElement().setId(GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
 
         if (table.getColumnCount() == 0) {
@@ -78,6 +80,16 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
     }
 
     /**
+     * OnFailure
+     * @param message The message to display to the user
+     */
+    @Override
+    public void onFailure(String message) {
+        super.onFailure(message);
+        table.updateDon();
+    }
+
+    /**
      * This method is called by the presenter, when pushing Flow Components to the view
      * @param flowComponents The flowcomponents to display
      */
@@ -85,7 +97,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
     public void setFlowComponents(List<FlowComponent> flowComponents) {
         table.setRowData(0, flowComponents);
         table.setRowCount(flowComponents.size());
-        table.updateDone();
+        table.updateDon();
     }
 
 }

@@ -26,14 +26,14 @@
 
   <properties>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <glassfish.port>42006</glassfish.port>
-    <h2.port>42005</h2.port>
+    <h2.port>9092</h2.port>
     <container.id>glassfish4</container.id>
-    <container.http.port>42006</container.http.port>
-    <container.admin.port>42007</container.admin.port>
+    <container.http.port>8080</container.http.port>
+    <container.admin.port>4848</container.admin.port>
     <container.hostname>localhost</container.hostname>
     <container.username>admin</container.username>
     <container.password></container.password>
+    <glassfish.port>${container.http.port}</glassfish.port>
   </properties>
 
 </project>

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+BASEDIR=$(cd "$(dirname "$0")"; pwd)
+
+function startup {
+    # Starts h2 and glassfish
+    $BASEDIR/integration-test/h2/bin/start_h2
+    $BASEDIR/integration-test/glassfish/bin/start_glassfish4
+}
+
+function shutdown {
+    # Stops h2 and glassfish
+    $BASEDIR/integration-test/glassfish/bin/stop_glassfish4
+    $BASEDIR/integration-test/h2/bin/stop_h2
+}
+
+trap shutdown SIGHUP SIGINT SIGTERM EXIT ERR
+
+startup
+mvn -f $BASEDIR/pom.xml -P dev -pl integration-test/gui-selenium -am verify
+# shutdown

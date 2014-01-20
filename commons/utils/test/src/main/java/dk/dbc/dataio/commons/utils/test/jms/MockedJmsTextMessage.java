@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.utils.test.jms;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
@@ -52,7 +54,9 @@ public class MockedJmsTextMessage implements TextMessage {
         return properties.get(name);
     }
 
+    @JsonIgnore
     @Override public Enumeration getPropertyNames() throws JMSException { return null; }
+
     @Override public long getJMSTimestamp() throws JMSException { return 0; }
     @Override public void setJMSTimestamp(long l) throws JMSException { }
     @Override public byte[] getJMSCorrelationIDAsBytes() throws JMSException { return new byte[0]; }

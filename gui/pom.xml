@@ -26,9 +26,9 @@
    <profile>
      <id>dev</id>
      <properties>
-       <developmentFlowStoreURLProperty>-DflowStoreURL=http://localhost:42006/flow-store</developmentFlowStoreURLProperty>
-       <developmentJobStoreURLProperty>-DdataioJobStoreServiceEndpoint=http://localhost:42006/job-store</developmentJobStoreURLProperty>
-       <developmentSinkServiceURLProperty>-DdataioSinkServiceEndpoint=http://localhost:42006/sink-service</developmentSinkServiceURLProperty>
+       <developmentFlowStoreURLProperty>-DflowStoreURL=http://localhost:8080/flow-store</developmentFlowStoreURLProperty>
+       <developmentJobStoreURLProperty>-DdataioJobStoreServiceEndpoint=http://localhost:8080/job-store</developmentJobStoreURLProperty>
+       <developmentSinkServiceURLProperty>-DdataioSinkServiceEndpoint=http://localhost:8080/sink-service</developmentSinkServiceURLProperty>
        <developmentDataioGuiSubversionScmEndpointProperty>-DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</developmentDataioGuiSubversionScmEndpointProperty>
      </properties>
 

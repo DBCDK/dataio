@@ -80,6 +80,17 @@
           </compilerArgs>
         </configuration>
       </plugin>
+
+          <plugin>
+	    <!-- Move to dev-profile -->
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven2-plugin</artifactId>
+            <version>1.4.6</version>
+            <configuration>
+	      <skip>true</skip>
+            </configuration>
+	  </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ejb-plugin</artifactId>

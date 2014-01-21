@@ -15,11 +15,11 @@ function shutdown {
 }
 
 function deploy {
-    mvn -f $BASEDIR/pom.xml -P dev -pl integration-test/gui-selenium -am package cargo:deploy
+    mvn -f $BASEDIR/pom.xml -P dev -pl integration-test/gui-selenium -am package org.codehaus.cargo:cargo-maven2-plugin:deploy
 }
 
 function undeploy {
-    mvn -f $BASEDIR/pom.xml -P dev -pl integration-test/gui-selenium -DskipTests -am package cargo:undeploy
+    mvn -f $BASEDIR/pom.xml -P dev -pl integration-test/gui-selenium -DskipTests -am package org.codehaus.cargo:cargo-maven2-plugin:undeploy
 }
 
 trap shutdown SIGHUP SIGINT SIGTERM

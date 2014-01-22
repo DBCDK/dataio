@@ -3,10 +3,10 @@ package dk.dbc.dataio.gui.client.activities;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.i18n.SinkCreateConstants;
@@ -22,12 +22,12 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  */
 public class CreateSinkActivity extends AbstractActivity implements SinkCreatePresenter {
     private final SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
-    
+
     private ClientFactory clientFactory;
     private SinkCreateView sinkCreateView;
     private SinkServiceProxyAsync sinkServiceProxy;
     private FlowStoreProxyAsync flowStoreProxy;
-    
+
     public CreateSinkActivity(/*SinkCreatePlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         sinkServiceProxy = clientFactory.getSinkServiceProxyAsync();
@@ -58,9 +58,9 @@ public class CreateSinkActivity extends AbstractActivity implements SinkCreatePr
     }
 
     public void doPingAndSaveSink(final SinkContent sinkContent) {
-        sinkServiceProxy.ping(sinkContent, new AsyncCallback<PingResponse>() {
+        sinkServiceProxy.ping(sinkContent, new FilteredAsyncCallback<PingResponse>() {
             @Override
-            public void onFailure(Throwable caught) {
+            public void onFilteredFailure(Throwable caught) {
                 sinkCreateView.onFailure(constants.error_PingCommunicationError());
             }
             @Override
@@ -76,9 +76,9 @@ public class CreateSinkActivity extends AbstractActivity implements SinkCreatePr
     }
 
     public void doSaveSink(SinkContent sinkContent) {
-        flowStoreProxy.createSink(sinkContent, new AsyncCallback<Void>() {
+        flowStoreProxy.createSink(sinkContent, new FilteredAsyncCallback<Void>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 sinkCreateView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
             }
             @Override
@@ -95,5 +95,5 @@ public class CreateSinkActivity extends AbstractActivity implements SinkCreatePr
         }
         return errorCode;
     }
-    
+
 }

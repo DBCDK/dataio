@@ -3,10 +3,10 @@ package dk.dbc.dataio.gui.client.activities;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.i18n.FlowCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -50,9 +50,9 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowCreateView.asWidget());
-        flowStoreProxy.findAllComponents(new AsyncCallback<List<FlowComponent>>() {
+        flowStoreProxy.findAllComponents(new FilteredAsyncCallback<List<FlowComponent>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 onFailureSendExceptionToView(e);
             }
             @Override
@@ -80,9 +80,9 @@ public class CreateFlowActivity extends AbstractActivity implements FlowCreatePr
             flowComponents.add(availableFlowComponents.get(flowComponentId));
         }
         final FlowContent flowContent = new FlowContent(name, description, flowComponents);
-        flowStoreProxy.createFlow(flowContent, new AsyncCallback<Void>() {
+        flowStoreProxy.createFlow(flowContent, new FilteredAsyncCallback<Void>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 onFailureSendExceptionToView(e);
             }
             @Override

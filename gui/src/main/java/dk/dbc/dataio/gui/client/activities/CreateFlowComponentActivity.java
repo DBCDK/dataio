@@ -3,11 +3,11 @@ package dk.dbc.dataio.gui.client.activities;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.RevisionInfo;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.i18n.FlowComponentCreateConstants;
@@ -16,7 +16,6 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.util.ClientFactory;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +29,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     private FlowComponentCreateView flowComponentCreateView;
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     private FlowStoreProxyAsync flowStoreProxy;
-    
+
     public CreateFlowComponentActivity(/*FlowComponentCreatePlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         javaScriptProjectFetcher = clientFactory.getJavaScriptProjectFetcherAsync();
@@ -47,7 +46,7 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     public void reload() {
 		flowComponentCreateView.refresh();
     }
-    
+
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
@@ -55,9 +54,9 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     }
 
     private void fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException {
-        javaScriptProjectFetcher.fetchRevisions(projectUrl, new AsyncCallback<List<RevisionInfo>>() {
+        javaScriptProjectFetcher.fetchRevisions(projectUrl, new FilteredAsyncCallback<List<RevisionInfo>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowComponentCreateView.fetchRevisionFailed(getJavaScriptProjectFetcherError(e),
                         e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
@@ -69,9 +68,9 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     }
 
     private void fetchScriptNames(String projectUrl, long revision) throws JavaScriptProjectFetcherException {
-        javaScriptProjectFetcher.fetchJavaScriptFileNames(projectUrl, revision, new AsyncCallback<List<String>>() {
+        javaScriptProjectFetcher.fetchJavaScriptFileNames(projectUrl, revision, new FilteredAsyncCallback<List<String>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowComponentCreateView.fetchScriptNamesFailed(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
             @Override
@@ -82,9 +81,9 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     }
 
     private void fetchInvocationMethods(String projectUrl, long revision, String scriptName) throws JavaScriptProjectFetcherException {
-        javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectUrl, revision, scriptName, new AsyncCallback<List<String>>() {
+        javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectUrl, revision, scriptName, new FilteredAsyncCallback<List<String>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowComponentCreateView.fetchInvocationMethodsFailed(getJavaScriptProjectFetcherError(e),
                         e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
@@ -128,9 +127,9 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
     }
 
     private void fetchJavaScriptsAndSave(final String componentName, String svnProject, long svnRevision, String javaScriptName, final String invocationMethod) {
-        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProject, svnRevision, javaScriptName, invocationMethod, new AsyncCallback<List<JavaScript>>() {
+        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProject, svnRevision, javaScriptName, invocationMethod, new FilteredAsyncCallback<List<JavaScript>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowComponentCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
@@ -143,9 +142,9 @@ public class CreateFlowComponentActivity extends AbstractActivity implements Flo
 
     private void saveFlowComponentWithJavaScripts(String componentName, List<JavaScript> javaScripts, String invocationMethod) {
         final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, javaScripts, invocationMethod);
-        flowStoreProxy.createFlowComponent(flowComponentContent, new AsyncCallback<Void>() {
+        flowStoreProxy.createFlowComponent(flowComponentContent, new FilteredAsyncCallback<Void>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowComponentCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 

@@ -2,9 +2,9 @@ package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.presenters.SubmittersShowPresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.SubmittersShowView;
@@ -46,11 +46,12 @@ public class ShowSubmittersActivity extends AbstractActivity implements Submitte
 
     // Local methods
     private void fetchSubmitters() {
-        flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
+        flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<Submitter>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 submittersShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
+
             @Override
             public void onSuccess(List<Submitter> submitters) {
                 submittersShowView.setSubmitters(submitters);

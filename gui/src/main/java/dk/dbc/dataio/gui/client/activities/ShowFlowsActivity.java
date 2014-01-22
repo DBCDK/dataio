@@ -2,9 +2,9 @@ package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.presenters.FlowsShowPresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowsShowView;
@@ -46,9 +46,9 @@ public class ShowFlowsActivity extends AbstractActivity implements FlowsShowPres
 
     // Local methods
     private void fetchFlows() {
-        flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
+        flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<Flow>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowsShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override

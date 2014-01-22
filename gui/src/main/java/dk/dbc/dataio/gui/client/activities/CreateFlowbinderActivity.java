@@ -3,13 +3,13 @@ package dk.dbc.dataio.gui.client.activities;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.i18n.FlowbinderCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.FlowbinderCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -60,9 +60,9 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchSinks() {
-        flowStoreProxy.findAllSinks(new AsyncCallback<List<Sink>>() {
+        flowStoreProxy.findAllSinks(new FilteredAsyncCallback<List<Sink>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
@@ -83,9 +83,9 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchAvailableSubmitters() {
-        flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
+        flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<Submitter>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
@@ -106,9 +106,9 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchFlows() {
-        flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
+        flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<Flow>>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
@@ -144,9 +144,9 @@ public class CreateFlowbinderActivity extends AbstractActivity implements Flowbi
         } catch (Exception e) {
             flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
         }
-        flowStoreProxy.createFlowBinder(flowbinderContent, new AsyncCallback<Void>() {
+        flowStoreProxy.createFlowBinder(flowbinderContent, new FilteredAsyncCallback<Void>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.onFailure(constants.error_FlowbinderAlreadyExistsError());
             }
             @Override

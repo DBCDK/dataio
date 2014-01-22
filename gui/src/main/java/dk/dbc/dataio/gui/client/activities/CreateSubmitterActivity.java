@@ -2,9 +2,9 @@ package dk.dbc.dataio.gui.client.activities;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
 import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
@@ -41,9 +41,9 @@ public class CreateSubmitterActivity extends AbstractActivity implements Submitt
     public void saveSubmitter(String name, String number, String description) {
         final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(number), name, description);
 
-        flowStoreProxy.createSubmitter(submitterContent, new AsyncCallback<Void>() {
+        flowStoreProxy.createSubmitter(submitterContent, new FilteredAsyncCallback<Void>() {
             @Override
-            public void onFailure(Throwable e) {
+            public void onFilteredFailure(Throwable e) {
                 submitterCreateView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
             }
 

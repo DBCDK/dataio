@@ -1,0 +1,86 @@
+package dk.dbc.dataio.jobprocessor.ejb;
+
+import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Resource;
+import javax.ejb.LocalBean;
+import javax.ejb.Stateless;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.TextMessage;
+
+/**
+ * This Enterprise Java Bean (EJB) functions as JMS message producer for
+ * communication going to the sinks
+ */
+@LocalBean
+@Stateless
+public class SinkMessageProducerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
+
+    public static final String SOURCE_PROPERTY_NAME = "source";
+    public static final String SOURCE_PROPERTY_VALUE = "processor";
+    public static final String PAYLOAD_PROPERTY_NAME = "payload";
+    public static final String PAYLOAD_PROPERTY_VALUE = "ChunkResult";
+    public static final String RESOURCE_PROPERTY_NAME = "resource";
+
+    @Resource
+    ConnectionFactory sinksQueueConnectionFactory;
+
+    @Resource(name="sinksJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
+    Queue sinksQueue;
+
+    /**
+     * Sends given ChunkResult instance as JMS message with JSON payload to sink queue destination
+     *
+     * @param chunkResult ChunkResult instance to be inserted as message payload
+     * @param destination Sink instance for sink target
+     *
+     * @throws NullPointerException when given null-valued argument
+     * @throws JobProcessorException when unable to send given ChunkResult to destination
+     */
+    public void send(ChunkResult chunkResult, Sink destination) throws NullPointerException, JobProcessorException {
+        LOGGER.info("Sending ChunkResult for chunk {} in job {} to sink {}",
+                chunkResult.getChunkId(), chunkResult.getJobId(), destination.getContent().getName());
+        try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
+            final TextMessage message = createMessage(context, chunkResult, destination);
+            context.createProducer().send(sinksQueue, message);
+        } catch (JsonException | JMSException e) {
+            final String errorMessage = String.format("Exception caught while sending ChunkResult for chunk %d in job %s",
+                    chunkResult.getChunkId(), chunkResult.getJobId());
+            throw new JobProcessorException(errorMessage, e);
+        }
+    }
+
+    /**
+     * Creates new TextMessage with given ChunkResult instance as JSON payload with
+     * header properties '{@value #SOURCE_PROPERTY_NAME}' and '{@value #PAYLOAD_PROPERTY_NAME}'
+     * set to '{@value #SOURCE_PROPERTY_VALUE}' and '{@value #PAYLOAD_PROPERTY_VALUE}' respectively,
+     * and header property '{@value #RESOURCE_PROPERTY_NAME}' to the resource value contained
+     * in given Sink instance.
+     *
+     * @param context active JMS context
+     * @param chunkResult ChunkResult instance to be added as payload
+     * @param destination Sink instance for sink target
+     *
+     * @return TextMessage instance
+     *
+     * @throws JsonException when unable to marshall ChunkResult instance to JSON
+     * @throws JMSException when unable to create JMS message
+     */
+    TextMessage createMessage(JMSContext context, ChunkResult chunkResult, Sink destination) throws JsonException, JMSException {
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(chunkResult));
+        message.setStringProperty(SOURCE_PROPERTY_NAME, SOURCE_PROPERTY_VALUE);
+        message.setStringProperty(PAYLOAD_PROPERTY_NAME, PAYLOAD_PROPERTY_VALUE);
+        message.setStringProperty(RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
+        return message;
+    }
+}

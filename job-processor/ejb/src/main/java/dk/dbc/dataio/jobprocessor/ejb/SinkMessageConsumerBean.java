@@ -10,91 +10,30 @@ import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.ejb.MessageDrivenContext;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.TextMessage;
 
+/**
+ * Handles messages received from sinks.
+ */
 @MessageDriven
-public class SinkMessageConsumerBean {
+public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageConsumerBean.class);
-    private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
-
-    @Resource
-    MessageDrivenContext messageDrivenContext;
 
     @EJB
     JobStoreMessageProducerBean jobStoreMessageProducer;
 
     /**
-     * Reacts to messages received from sinks.
+     * Handles consumed message by forwarding SinkChunkResult payload from
+     * received message to the job-store.
      *
-     * A message must pass validation. Any Invalid message will be removed from the
-     * message queue. For a message to be deemed valid the following invariants must be
-     * upheld:
-     *   <ul>
-     *     <li>
-     *       message must be non-null and of type TextMessage
-     *     <li>
-     *       message payload must be non-null and non-empty
-     *     <li>
-     *       message payload must represent JSON able to unmarshall to SinkChunkResult object
-     *     <li>
-     *       message payload must not represent empty JSON object '{}'
-     *     <li>
-     *       ChunkResult object must contain results
-     *   </ul>
+     * @param consumedMessage message to be handled
      *
-     * Any exception (checked or unchecked) thrown after the validation step causes
-     * the message to be put back on the queue.
-     *
-     * @param message message to be handled
+     * @throws InvalidMessageJobProcessorException if message payload can not be marshalled to SinkChunkResult instance
+     * @throws JobProcessorException on general handling error
      */
-    public void onMessage(Message message) {
-        String messageId = null;
-        try {
-            final ConsumedMessage consumedMessage = validateMessage(message);
-            messageId = consumedMessage.getMessageId();
-            handleConsumedMessage(consumedMessage);
-        } catch (InvalidMessageJobProcessorException e) {
-            LOGGER.error("Message rejected", e);
-        } catch (Throwable t) {
-            // Ensure that this container-managed transaction can never commit
-            // and therefore that this message subsequently will be re-delivered.
-            messageDrivenContext.setRollbackOnly();
-            LOGGER.error("Exception caught while processing message<{}>: {}", messageId, t);
-        }
-    }
-
-    /* To prevent message poisoning where invalid messages will be re-delivered
-       forever, all messages must be validated */
-    ConsumedMessage validateMessage(Message message) throws InvalidMessageJobProcessorException {
-        if (message == null) {
-            throw new InvalidMessageJobProcessorException("Message can not be null");
-        }
-        try {
-            final String messageId = message.getJMSMessageID();
-            LOGGER.info("Validating message<{}> with deliveryCount={}", messageId, message.getIntProperty(DELIVERY_COUNT_PROPERTY));
-            if (!(message instanceof TextMessage)) {
-                throw new InvalidMessageJobProcessorException(String.format("Message<%s> was not of type TextMessage", messageId));
-            }
-            final String messagePayload = ((TextMessage) message).getText();
-            if (messagePayload == null) {
-                throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was null", messageId));
-            }
-            if (messagePayload.isEmpty()) {
-                throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload is empty string", messageId));
-            }
-            return new ConsumedMessage(messageId, messagePayload);
-        } catch (JMSException e) {
-            throw new InvalidMessageJobProcessorException("Unexpected exception during message validation");
-        }
-    }
-
-    void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
+    @Override
+    protected void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
         try {
             SinkChunkResult sinkChunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
             LOGGER.info("Received SinkChunkResult for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());

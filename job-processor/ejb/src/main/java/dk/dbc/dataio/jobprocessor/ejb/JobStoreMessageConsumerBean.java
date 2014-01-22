@@ -1,0 +1,40 @@
+package dk.dbc.dataio.jobprocessor.ejb;
+
+import dk.dbc.dataio.commons.types.NewJob;
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
+import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
+import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.MessageDriven;
+
+/**
+ * Handles messages received from the job-store
+ */
+@MessageDriven
+public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreMessageConsumerBean.class);
+
+    /**
+     * Handles consumed message by notifying the job processor that a new job is available
+     *
+     * @param consumedMessage message to be handled
+     *
+     * @throws InvalidMessageJobProcessorException if message payload can not be marshalled to NewJob instance
+     * @throws JobProcessorException on general handling error
+     */
+    protected void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
+        try {
+            NewJob newJob = JsonUtil.fromJson(consumedMessage.getMessagePayload(), NewJob.class, MixIns.getMixIns());
+            LOGGER.info("Received NewJob for jobId={}", newJob.getJobId());
+            // Todo: Start processing...
+        } catch (JsonException e) {
+            throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid NewJob type", consumedMessage.getMessageId()), e);
+        }
+    }
+
+}

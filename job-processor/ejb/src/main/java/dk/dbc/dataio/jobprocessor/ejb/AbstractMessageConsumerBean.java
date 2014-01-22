@@ -5,7 +5,6 @@ import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.annotation.Resource;
 import javax.ejb.MessageDrivenContext;
@@ -99,6 +98,6 @@ public abstract class AbstractMessageConsumerBean {
      * @throws JobProcessorException
      */
     protected void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 }

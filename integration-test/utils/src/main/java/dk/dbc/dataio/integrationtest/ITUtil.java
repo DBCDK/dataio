@@ -56,7 +56,6 @@ public class ITUtil {
      */
     public static Connection newDbConnection(String dbname) throws ClassNotFoundException, SQLException {
         Class.forName("org.h2.Driver");
-        System.out.println(String.format("jdbc:h2:tcp://localhost:%s/mem:%s", System.getProperty("h2.port"), dbname));
         Connection conn = DriverManager.getConnection(
                 String.format("jdbc:h2:tcp://localhost:%s/mem:%s", System.getProperty("h2.port"), dbname),
                 "root", getDBPasswordInAWayThatFindBugsAccepts());

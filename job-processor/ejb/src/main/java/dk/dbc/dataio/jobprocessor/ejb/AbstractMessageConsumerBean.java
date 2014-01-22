@@ -97,7 +97,5 @@ public abstract class AbstractMessageConsumerBean {
      *
      * @throws JobProcessorException
      */
-    protected void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException;
 }

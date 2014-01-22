@@ -74,7 +74,7 @@ public class SeleniumUtil {
 
     public static void waitAndAssert(WebDriver webDriver, long timeToWait, final String guiId, final String guiClass, String messageToBePresent) {
         WebDriverWait wait = new WebDriverWait(webDriver, timeToWait);
-        wait.until(ExpectedConditions.textToBePresentInElement(By.cssSelector("#" + guiId + " ." + guiClass), messageToBePresent));
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(By.cssSelector("#" + guiId + " ." + guiClass), messageToBePresent));
     }
 
     public static void selectItemInListBox(WebElement listBoxElement, String listItem) {

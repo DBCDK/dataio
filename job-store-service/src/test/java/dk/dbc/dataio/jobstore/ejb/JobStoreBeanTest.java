@@ -15,7 +15,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
-import dk.dbc.dataio.jobstore.types.Chunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -33,6 +33,7 @@ import java.util.Arrays;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class JobStoreBeanTest {
@@ -61,27 +62,27 @@ public class JobStoreBeanTest {
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
         assertThat(jsb.getNumberOfChunksInJob(job), is(1L));
-        final Chunk chunk = jsb.getChunk(job, 1);
+        final Chunk chunk = jsb.getChunk(job.getId(), 1);
         assertThat(chunk.getRecords().size(), is(1));
         assertThat(base64decode(chunk.getRecords().get(0)), is(xmlHeader + someXML));
     }
 
-    @Test(expected = JobStoreException.class)
-    public void gettingChunkFromUnknownJob_throwsException() throws JobStoreException, IOException, JsonException {
+    @Test
+    public void gettingChunkFromUnknownJob_returnsNull() throws JobStoreException, IOException, JsonException {
         final String jobInfoData = new JobInfoJsonBuilder().build();
         final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()), new JobState(),
                 createDefaultFlow());
-        jsb.getChunk(job, 1);
+        assertThat(jsb.getChunk(job.getId(), 1), is(nullValue()));
     }
 
-    @Test(expected = JobStoreException.class)
-    public void gettingUnknownChunk_throwsException() throws JobStoreException, IOException {
+    @Test
+    public void gettingUnknownChunk_returnsNull() throws JobStoreException, IOException {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        jsb.getChunk(job, jsb.getNumberOfChunksInJob(job) + 1);
+        assertThat(jsb.getChunk(job.getId(), jsb.getNumberOfChunksInJob(job) + 1), is(nullValue()));
     }
 
     @Test

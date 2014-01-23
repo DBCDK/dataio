@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.processor.ChunkProcessor;
-import dk.dbc.dataio.jobstore.types.Chunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -69,7 +69,7 @@ public class JobHandlerBean {
     }
 
     private void processChunk(Job job, int chunkId, Sink sink) throws JobStoreException {
-        final Chunk chunk = jobStore.getChunk(job, chunkId);
+        final Chunk chunk = jobStore.getChunk(job.getId(), chunkId);
         final ChunkResult processedChunk = ChunkProcessor.processChunk(chunk);
         jobStore.addChunkResult(job, processedChunk);
         dispatchChunkResult(processedChunk, sink);

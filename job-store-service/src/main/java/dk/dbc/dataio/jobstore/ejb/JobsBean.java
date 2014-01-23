@@ -14,10 +14,9 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,14 +25,18 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -95,6 +98,37 @@ public class JobsBean {
 
         return Response.created(uriInfo.getAbsolutePath()).entity(JsonUtil.toJson(jobInfo)).build();
     }
+
+    /**
+     * Retrieves chunk from the underlying data store
+     *
+     * @param jobId Id of job containing chunk
+     * @param chunkId Id of chunk
+     *
+     * @return a HTTP 200 OK response with chunk as JSON,
+     *         a HTTP 404 NOT_FOUND if unable to locate chunk,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading chunk from store, or if unable
+     * to marshall retrieved chunk to JSON.
+     */
+    @GET
+    @Path("{jobId}/chunk/{chunkId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getChunk(@PathParam("jobId") Long jobId, @PathParam("chunkId") Long chunkId) throws JobStoreException {
+        final Chunk chunk = jobStore.getChunk(jobId, chunkId);
+        if (chunk == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(chunk);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling chunk %d for job %d", chunkId, jobId), e);
+        }
+        return Response.ok().entity(entity).build();
+    }
+
 
     // hardening: lookupFlowInFlowStore and lookupSinkInFlowStore is identical - replace them with a single generic function!
 

@@ -1,6 +1,6 @@
-package dk.dbc.dataio.jobstore.types;
+package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,28 +8,31 @@ import java.util.List;
 
 /**
  * Chunk DTO class.
- *
- * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class Chunk implements Serializable {
     public static final int MAX_RECORDS_PER_CHUNK = 10;
+    static /* final */ long CHUNKID_LOWER_THRESHOLD = 0L;
     private static final long serialVersionUID = -6317006704089913073L;
 
     private /* final */ List<String> records;
     private /* final */ long id;
     private /* final */ Flow flow;
 
-    private Chunk() { }
+    private Chunk() {
+        // JSON Unmarshalling of '{}' will trigger default constructor
+        // causing getRecords() methods to throw NullPointerException
+        // unless we set reasonable defaults.
+        records = new ArrayList<String>(0);
+    }
 
     public Chunk(long id, Flow flow) {
         this(id, flow, new ArrayList<String>(MAX_RECORDS_PER_CHUNK));
     }
 
-    Chunk(long id, Flow flow, List<String> records) {
-        this.id = id;
-        this.flow = flow;
-        this.records = records;
+    public Chunk(long id, Flow flow, List<String> records) throws NullPointerException, IllegalArgumentException {
+        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", CHUNKID_LOWER_THRESHOLD);
+        this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
+        this.records = InvariantUtil.checkNotNullOrThrow(records, "records");
         if (this.records.size() > MAX_RECORDS_PER_CHUNK) {
             throw new IllegalArgumentException("Number of records exceeds MAX_RECORDS_PER_CHUNK");
         }
@@ -52,6 +55,6 @@ public class Chunk implements Serializable {
     }
 
     public List<String> getRecords() {
-        return records;
+        return new ArrayList<String>(records);
     }
 }

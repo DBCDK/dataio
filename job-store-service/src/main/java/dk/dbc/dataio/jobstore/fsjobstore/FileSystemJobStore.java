@@ -11,7 +11,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
-import dk.dbc.dataio.jobstore.types.Chunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
@@ -236,8 +236,11 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public Chunk getChunk(Job job, long chunkId) throws JobStoreException {
-        final Path chunkPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.json", chunkId));
+    public Chunk getChunk(long jobId, long chunkId) throws JobStoreException {
+        final Path chunkPath = Paths.get(getJobPath(jobId).toString(), String.format("%d.json", chunkId));
+        if (!Files.exists(chunkPath)) {
+            return null;
+        }
         Chunk chunk;
         try (BufferedReader br = Files.newBufferedReader(chunkPath, LOCAL_CHARSET)) {
             final StringBuilder sb = new StringBuilder();

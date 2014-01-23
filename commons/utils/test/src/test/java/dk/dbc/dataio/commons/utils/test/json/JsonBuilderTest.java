@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.test.json;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -21,6 +22,11 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.junit.Test;
 
 public class JsonBuilderTest {
+    @Test
+    public void ChunkJsonBuilderProducesValidJson() throws JsonException {
+        JsonUtil.fromJson(new ChunkJsonBuilder().build(), Chunk.class, MixIns.getMixIns());
+    }
+
     @Test
     public void ChunkResultJsonBuilderProducesValidJson() throws JsonException {
         JsonUtil.fromJson(new ChunkResultJsonBuilder().build(), ChunkResult.class, MixIns.getMixIns());

@@ -1,18 +1,18 @@
 package dk.dbc.dataio.jobstore.processor;
 
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.jobstore.types.Chunk;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
-import java.nio.charset.Charset;
 
 public class ChunkProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessor.class);

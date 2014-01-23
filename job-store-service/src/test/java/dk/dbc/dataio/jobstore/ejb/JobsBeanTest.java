@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
@@ -13,8 +15,10 @@ import dk.dbc.dataio.commons.utils.test.json.FlowBinderJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -61,7 +65,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
         HttpClient.class,
         JobHandlerBean.class,
         ServiceUtil.class,
-        UriInfo.class
+        UriInfo.class,
+        JsonUtil.class
 })
 public class JobsBeanTest {
     private final String flowStoreUrl = "http://dataio/flow-store";
@@ -165,6 +170,63 @@ public class JobsBeanTest {
         jobsBean.jobHandler = jobHandler;
         final Response response = jobsBean.createJob(uriInfo, jobSpecData);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+    }
+
+    @Test
+    public void getChunk_jobStoreReturnsNull_returnsStatusNotFoundResponse() throws JobStoreException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getChunk(jobId, chunkId)).thenReturn(null);
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getChunk(jobId, chunkId);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getChunk_jobStoreThrowsJobStoreException_throws() throws JobStoreException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getChunk(jobId, chunkId)).thenThrow(new JobStoreException("JobStoreException"));
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        jobsBean.getChunk(jobId, chunkId);
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getChunk_chunkCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(Chunk.class))).thenThrow(new JsonException("JsonException"));
+        when(jobStore.getChunk(jobId, chunkId)).thenReturn(new ChunkBuilder().build());
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getChunk(jobId, chunkId);
+        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+    }
+
+    @Test
+    public void getChunk_jobStoreReturnsChunk_returnsStatusOkResponseWithChunkEntity() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final Chunk chunk = new ChunkBuilder().build();
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getChunk(jobId, chunkId)).thenReturn(chunk);
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getChunk(jobId, chunkId);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        final JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        assertThat(entityNode.get("id").longValue(), is(chunk.getId()));
     }
 
     private String getValidJobSpecificationString() {

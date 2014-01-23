@@ -8,6 +8,7 @@ import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
+import dk.dbc.dataio.gui.client.places.JobsShowPlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.places.SubmittersShowPlace;
@@ -50,6 +51,9 @@ public class AppActivityMapper implements ActivityMapper {
         }
         if (place instanceof SubmittersShowPlace) {
             return new ShowSubmittersActivity(/*(SubmittersShowPlace) place,*/ clientFactory);
+        }
+        if (place instanceof JobsShowPlace) {
+            return new ShowJobsActivity(/*(SubmittersShowPlace) place,*/ clientFactory);
         }
         return null;
     }

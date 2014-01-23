@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
+import dk.dbc.dataio.gui.client.places.JobsShowPlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.places.SubmittersShowPlace;
@@ -27,6 +28,7 @@ public final class Menu {
     public final static String GUIID_MAIN_MENU_ITEM_SUBMITTERS = "mainmenuitemsubmitters";
     public final static String GUIID_MAIN_MENU_ITEM_FLOWS = "mainmenuitemflows";
     public final static String GUIID_MAIN_MENU_ITEM_SINKS = "mainmenuitemsinks";
+    public final static String GUIID_MAIN_MENU_ITEM_JOBS = "mainmenuitemjobs";
     // Sub Menu GUI Id's
     public final static String GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION = "submenuitemsubmittercreation";
     public final static String GUIID_SUB_MENU_ITEM_FLOW_CREATION = "submenuitemflowcreation";
@@ -62,16 +64,20 @@ public final class Menu {
             showFlowComponents,
             createFlowBinder);
 
-        // Sink Main Menu
+        // Sinks Main Menu
         MenuItem createSink = new MenuItem(GUIID_SUB_MENU_ITEM_SINK_CREATION, constants.subMenu_SinkCreation(), new SinkCreatePlace());
-        MenuItem sinkMenu = new MenuItem(GUIID_MAIN_MENU_ITEM_SINKS, constants.mainMenu_Sinks(), NOWHERE,
+        MenuItem sinksMenu = new MenuItem(GUIID_MAIN_MENU_ITEM_SINKS, constants.mainMenu_Sinks(), NOWHERE,
             createSink);
+
+        // Jobs Main Menu
+        MenuItem jobsMenu = new MenuItem(GUIID_MAIN_MENU_ITEM_JOBS, constants.mainMenu_Jobs(), new JobsShowPlace());
 
         // Toplevel Main Menu Container
         menuData = new MenuItem("toplevelmainmenu", "Toplevel Main Menu", NOWHERE,
             submittersMenu,
             flowsMenu,
-            sinkMenu);
+            sinksMenu,
+            jobsMenu);
     }
 
 

@@ -20,6 +20,9 @@ public interface MainConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String mainMenu_Sinks();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String mainMenu_Jobs();
+
 
     // Sub menu items
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

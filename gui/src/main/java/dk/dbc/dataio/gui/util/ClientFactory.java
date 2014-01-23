@@ -10,6 +10,7 @@ import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.views.FlowsShowView;
+import dk.dbc.dataio.gui.client.views.JobsShowView;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.views.SubmittersShowView;
@@ -41,4 +42,5 @@ public interface ClientFactory {
     FlowComponentsShowView getFlowComponentsShowView();
     FlowsShowView getFlowsShowView();
     SubmittersShowView getSubmittersShowView();
+    JobsShowView getJobsShowView();
 }

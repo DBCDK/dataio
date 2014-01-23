@@ -11,6 +11,7 @@ import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
 import dk.dbc.dataio.gui.client.places.JobsShowPlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
+import dk.dbc.dataio.gui.client.places.SinksShowPlace;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.places.SubmittersShowPlace;
 import dk.dbc.dataio.gui.client.views.Menu.MenuItem;
@@ -66,7 +67,7 @@ public final class Menu {
 
         // Sinks Main Menu
         MenuItem createSink = new MenuItem(GUIID_SUB_MENU_ITEM_SINK_CREATION, constants.subMenu_SinkCreation(), new SinkCreatePlace());
-        MenuItem sinksMenu = new MenuItem(GUIID_MAIN_MENU_ITEM_SINKS, constants.mainMenu_Sinks(), NOWHERE,
+        MenuItem sinksMenu = new MenuItem(GUIID_MAIN_MENU_ITEM_SINKS, constants.mainMenu_Sinks(), new SinksShowPlace(),
             createSink);
 
         // Jobs Main Menu

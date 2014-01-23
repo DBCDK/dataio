@@ -13,6 +13,7 @@ import com.google.gwt.place.shared.WithTokenizers;
     FlowsShowPlace.Tokenizer.class,
     SubmittersShowPlace.Tokenizer.class,
     JobsShowPlace.Tokenizer.class,
+    SinksShowPlace.Tokenizer.class,
 })
 
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper

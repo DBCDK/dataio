@@ -23,6 +23,8 @@ import dk.dbc.dataio.gui.client.views.JobsShowView;
 import dk.dbc.dataio.gui.client.views.JobsShowViewImpl;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
 import dk.dbc.dataio.gui.client.views.SinkCreateViewImpl;
+import dk.dbc.dataio.gui.client.views.SinksShowView;
+import dk.dbc.dataio.gui.client.views.SinksShowViewImpl;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.SubmittersShowView;
@@ -51,6 +53,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
     private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
     private final JobsShowView jobsShowView = new JobsShowViewImpl();
+    private final SinksShowView sinksShowView = new SinksShowViewImpl();
 
 
     @Override
@@ -121,6 +124,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public JobsShowView getJobsShowView() {
         return jobsShowView;
+    }
+
+    @Override
+    public SinksShowView getSinksShowView() {
+        return sinksShowView;
     }
 
 }

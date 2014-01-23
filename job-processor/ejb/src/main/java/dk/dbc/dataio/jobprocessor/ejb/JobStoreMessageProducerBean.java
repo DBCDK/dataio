@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -28,7 +29,8 @@ public class JobStoreMessageProducerBean {
     public static final String SOURCE_PROPERTY_NAME = "source";
     public static final String SOURCE_PROPERTY_VALUE = "processor";
     public static final String PAYLOAD_PROPERTY_NAME = "payload";
-    public static final String PAYLOAD_PROPERTY_VALUE = "SinkChunkResult";
+    public static final String SINK_RESULT_PAYLOAD_PROPERTY_VALUE = "SinkChunkResult";
+    public static final String PROCESSOR_RESULT_PAYLOAD_PROPERTY_VALUE = "ChunkResult";
 
     @Resource
     ConnectionFactory jobStoreQueueConnectionFactory;
@@ -57,22 +59,62 @@ public class JobStoreMessageProducerBean {
     }
 
     /**
+     * Sends given ChunkResult instance as JMS message with JSON payload to job-store queue destination
+     *
+     * @param processorResult ChunkResult instance to be inserted as message payload
+     *
+     * @throws NullPointerException when given null-valued sinkChunkResult argument
+     * @throws JobProcessorException when unable to send given ChunkResult to destination
+     */
+    public void send(ChunkResult processorResult) throws NullPointerException, JobProcessorException {
+        LOGGER.info("Sending processor result for chunk {} in job {}", processorResult.getChunkId(), processorResult.getJobId());
+        try (JMSContext context = jobStoreQueueConnectionFactory.createContext()) {
+            final TextMessage message = createMessage(context, processorResult);
+            context.createProducer().send(jobStoreQueue, message);
+        } catch (JsonException | JMSException e) {
+            final String errorMessage = String.format("Exception caught while sending processor result for chunk %d in job %s",
+                    processorResult.getChunkId(), processorResult.getJobId());
+            throw new JobProcessorException(errorMessage, e);
+        }
+    }
+
+    /**
      * Creates new TextMessage with given SinkChunkResult instance as JSON payload with
      * header properties '{@value #SOURCE_PROPERTY_NAME}' and '{@value #PAYLOAD_PROPERTY_NAME}'
-     * set to '{@value #SOURCE_PROPERTY_VALUE}' and '{@value #PAYLOAD_PROPERTY_VALUE}' respectively
+     * set to '{@value #SOURCE_PROPERTY_VALUE}' and '{@value #SINK_RESULT_PAYLOAD_PROPERTY_VALUE}' respectively
      *
      * @param context active JMS context
-     * @param sinkChunkResult SinkChunkResult instance to be added as payload
+     * @param sinkResult SinkChunkResult instance to be added as payload
      *
      * @return TextMessage instance
      *
      * @throws JsonException when unable to marshall SinkChunkResult instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    TextMessage createMessage(JMSContext context, SinkChunkResult sinkChunkResult) throws JsonException, JMSException {
-        final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
+    TextMessage createMessage(JMSContext context, SinkChunkResult sinkResult) throws JsonException, JMSException {
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkResult));
         message.setStringProperty(SOURCE_PROPERTY_NAME, SOURCE_PROPERTY_VALUE);
-        message.setStringProperty(PAYLOAD_PROPERTY_NAME, PAYLOAD_PROPERTY_VALUE);
+        message.setStringProperty(PAYLOAD_PROPERTY_NAME, SINK_RESULT_PAYLOAD_PROPERTY_VALUE);
+        return message;
+    }
+
+    /**
+     * Creates new TextMessage with given ChunkResult instance as JSON payload with
+     * header properties '{@value #SOURCE_PROPERTY_NAME}' and '{@value #PAYLOAD_PROPERTY_NAME}'
+     * set to '{@value #SOURCE_PROPERTY_VALUE}' and '{@value #PROCESSOR_RESULT_PAYLOAD_PROPERTY_VALUE}' respectively
+     *
+     * @param context active JMS context
+     * @param processorResult ChunkResult instance to be added as payload
+     *
+     * @return TextMessage instance
+     *
+     * @throws JsonException when unable to marshall ChunkResult instance to JSON
+     * @throws JMSException when unable to create JMS message
+     */
+    TextMessage createMessage(JMSContext context, ChunkResult processorResult) throws JsonException, JMSException {
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(processorResult));
+        message.setStringProperty(SOURCE_PROPERTY_NAME, SOURCE_PROPERTY_VALUE);
+        message.setStringProperty(PAYLOAD_PROPERTY_NAME, PROCESSOR_RESULT_PAYLOAD_PROPERTY_VALUE);
         return message;
     }
 }

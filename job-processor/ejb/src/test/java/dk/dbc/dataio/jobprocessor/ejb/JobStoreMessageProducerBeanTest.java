@@ -1,9 +1,11 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
+import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.junit.Before;
@@ -48,13 +50,13 @@ public class JobStoreMessageProducerBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void send_sinkChunkResultArgIsNull_throws() throws JobProcessorException {
+    public void send_sinkResultArgIsNull_throws() throws JobProcessorException {
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
-        jobStoreMessageProducerBean.send(null);
+        jobStoreMessageProducerBean.send((SinkChunkResult) null);
     }
 
     @Test(expected = JobProcessorException.class)
-    public void send_createMessageThrowsJMSException_throws() throws JobProcessorException, JMSException {
+    public void send_createMessageWithSinkResultPayloadThrowsJMSException_throws() throws JobProcessorException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(textMessage);
         doThrow(new JMSException("JMSException"))
                 .when(textMessage).setStringProperty(JobStoreMessageProducerBean.SOURCE_PROPERTY_NAME, JobStoreMessageProducerBean.SOURCE_PROPERTY_VALUE);
@@ -63,20 +65,52 @@ public class JobStoreMessageProducerBeanTest {
     }
 
     @Test(expected = JobProcessorException.class)
-    public void send_createMessageThrowsJsonException_throws() throws JobProcessorException, JsonException {
+    public void send_createMessageWithSinkResultPayloadThrowsJsonException_throws() throws JobProcessorException, JsonException {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
         jobStoreMessageProducerBean.send(new SinkChunkResultBuilder().build());
     }
 
+    @Test(expected = NullPointerException.class)
+    public void send_processorResultArgIsNull_throws() throws JobProcessorException {
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        jobStoreMessageProducerBean.send((ChunkResult) null);
+    }
+
+    @Test(expected = JobProcessorException.class)
+    public void send_createMessageWithProcessorResultPayloadThrowsJMSException_throws() throws JobProcessorException, JMSException {
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(textMessage);
+        doThrow(new JMSException("JMSException"))
+                .when(textMessage).setStringProperty(JobStoreMessageProducerBean.SOURCE_PROPERTY_NAME, JobStoreMessageProducerBean.SOURCE_PROPERTY_VALUE);
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        jobStoreMessageProducerBean.send(new ChunkResultBuilder().build());
+    }
+
+    @Test(expected = JobProcessorException.class)
+    public void send_createMessageWithProcessorResultPayloadThrowsJsonException_throws() throws JobProcessorException, JsonException {
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        jobStoreMessageProducerBean.send(new ChunkResultBuilder().build());
+    }
+
     @Test
-    public void createMessage_sinkChunkResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
+    public void createMessage_sinkResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
         TextMessage message = jobStoreMessageProducerBean.createMessage(jmsContext, new SinkChunkResultBuilder().build());
         assertThat(message.getStringProperty(JobStoreMessageProducerBean.SOURCE_PROPERTY_NAME), is(JobStoreMessageProducerBean.SOURCE_PROPERTY_VALUE));
-        assertThat(message.getStringProperty(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_VALUE));
+        assertThat(message.getStringProperty(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(JobStoreMessageProducerBean.SINK_RESULT_PAYLOAD_PROPERTY_VALUE));
+    }
+
+    @Test
+    public void createMessage_processorResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        TextMessage message = jobStoreMessageProducerBean.createMessage(jmsContext, new ChunkResultBuilder().build());
+        assertThat(message.getStringProperty(JobStoreMessageProducerBean.SOURCE_PROPERTY_NAME), is(JobStoreMessageProducerBean.SOURCE_PROPERTY_VALUE));
+        assertThat(message.getStringProperty(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(JobStoreMessageProducerBean.PROCESSOR_RESULT_PAYLOAD_PROPERTY_VALUE));
     }
 
     private JobStoreMessageProducerBean getInitializedBean() {

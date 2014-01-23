@@ -58,7 +58,7 @@ public class SinkMessageConsumerBeanIT {
     public static void assertSinkMessageForJobStore(MockedJmsTextMessage message, long jobId) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
         assertThat(message.getStringProperty(JobStoreMessageProducerBean.SOURCE_PROPERTY_NAME), is(JobStoreMessageProducerBean.SOURCE_PROPERTY_VALUE));
-        assertThat(message.getStringProperty(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_VALUE));
+        assertThat(message.getStringProperty(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(JobStoreMessageProducerBean.SINK_RESULT_PAYLOAD_PROPERTY_VALUE));
         final SinkChunkResult sinkResultOut = JsonUtil.fromJson(message.getText(), SinkChunkResult.class, MixIns.getMixIns());
         assertThat(sinkResultOut.getJobId(), is(jobId));
     }

@@ -82,7 +82,7 @@ public class JobStoreMessageConsumerBeanTest {
     }
 
     @Test
-    public void onMessage_messageArgPayloadIsInvalidSinkChunkResult_noTransactionRollback() throws JMSException {
+    public void onMessage_messageArgPayloadIsInvalidNewJob_noTransactionRollback() throws JMSException {
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         textMessage.setText("{'invalid': 'instance'}");
@@ -91,7 +91,7 @@ public class JobStoreMessageConsumerBeanTest {
     }
 
     @Test(expected = InvalidMessageJobProcessorException.class)
-    public void handleConsumedMessage_messageArgPayloadIsInvalidSinkChunkResult_throws() throws JobProcessorException, JMSException {
+    public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() throws JobProcessorException, JMSException {
         final ConsumedMessage consumedMessage = new ConsumedMessage("id", "{'invalid': 'instance'}");
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
@@ -105,17 +105,12 @@ public class JobStoreMessageConsumerBeanTest {
         assertThat(jobStoreMessageConsumerBean.messageDrivenContext.getRollbackOnly(), is(false));
     }
 
-    /*
-    @Test
-    public void onMessage_handlingThrowsJobProcessorException_transactionRollback() throws JMSException, JobProcessorException {
-        doThrow(new JobProcessorException("JobProcessorException")).when(jobStoreMessageProducer).send(any(SinkChunkResult.class));
-        final SinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
-        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setText(new SinkChunkResultJsonBuilder().build());
-        sinkMessageConsumerBean.onMessage(textMessage);
-        assertThat(sinkMessageConsumerBean.messageDrivenContext.getRollbackOnly(), is(true));
+    @Test(expected = JobProcessorException.class)
+    public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() throws JobProcessorException {
+        final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
+        final ConsumedMessage message = new ConsumedMessage("id", "invalid");
+        jobStoreMessageConsumerBean.handleConsumedMessage(message);
     }
-    */
 
     private JobStoreMessageConsumerBean getInitializedBean() {
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = new JobStoreMessageConsumerBean();

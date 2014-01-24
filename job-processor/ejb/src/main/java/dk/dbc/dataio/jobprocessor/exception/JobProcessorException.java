@@ -36,4 +36,6 @@ public class JobProcessorException extends Exception {
     public JobProcessorException(String message, Exception cause) {
         super(message, cause);
     }
+
+
 }

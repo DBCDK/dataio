@@ -18,8 +18,9 @@ public class FlowComponentBuilder {
         return this;
     }
 
-    public void setContent(FlowComponentContent content) {
+    public FlowComponentBuilder setContent(FlowComponentContent content) {
         this.content = content;
+        return this;
     }
 
     public FlowComponent build() {

@@ -113,7 +113,7 @@ public class JobsBean {
      * to marshall retrieved chunk to JSON.
      */
     @GET
-    @Path("{jobId}/chunk/{chunkId}")
+    @Path("{jobId}/chunks/{chunkId}")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getChunk(@PathParam("jobId") Long jobId, @PathParam("chunkId") Long chunkId) throws JobStoreException {
         final Chunk chunk = jobStore.getChunk(jobId, chunkId);

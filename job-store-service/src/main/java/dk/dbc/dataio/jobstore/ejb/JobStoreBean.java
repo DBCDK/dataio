@@ -19,10 +19,12 @@ import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.List;
 
 @LocalBean
 @Singleton
 public class JobStoreBean implements JobStore {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
     private static final String JOB_STORE_NAME = "dataio-job-store";
 
@@ -57,6 +59,11 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
+    public List<JobInfo> getAllJobInfos() throws JobStoreException {
+        return jobStore.getAllJobInfos();
+    }
+
+    @Override
     public long getNumberOfChunksInJob(Job job) throws JobStoreException {
         return jobStore.getNumberOfChunksInJob(job);
     }
@@ -75,6 +82,5 @@ public class JobStoreBean implements JobStore {
     public ChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException {
         return jobStore.getProcessChunkResult(job, chunkId);
     }
-
 
 }

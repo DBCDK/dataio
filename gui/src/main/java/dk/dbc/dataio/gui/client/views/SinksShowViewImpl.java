@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.TextColumn;
-import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.i18n.SinksShowConstants;
 import dk.dbc.dataio.gui.client.presenters.SinksShowPresenter;
@@ -20,7 +20,7 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
 
     // Local variables
     private final SinksShowConstants constants = GWT.create(SinksShowConstants.class);
-    private final DioCellTable<SinkContent> table = new DioCellTable<SinkContent>();
+    private final DioCellTable<Sink> table = new DioCellTable<Sink>();
 
 
     /**
@@ -40,18 +40,18 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
         getElement().setId(GUIID_SINKS_SHOW_WIDGET);
 
         if (table.getColumnCount() == 0) {
-            TextColumn<SinkContent> sinkNameColumn = new TextColumn<SinkContent>() {
+            TextColumn<Sink> sinkNameColumn = new TextColumn<Sink>() {
                 @Override
-                public String getValue(SinkContent content) {
-                    return content.getName();
+                public String getValue(Sink sink) {
+                    return sink.getContent().getName();
                 }
             };
             table.addColumn(sinkNameColumn, constants.columnHeader_Name());
 
-            TextColumn<SinkContent> resourceName = new TextColumn<SinkContent>() {
+            TextColumn<Sink> resourceName = new TextColumn<Sink>() {
                 @Override
-                public String getValue(SinkContent content) {
-                    return content.getResource();
+                public String getValue(Sink sink) {
+                    return sink.getContent().getResource();
                 }
             };
             table.addColumn(resourceName, constants.columnHeader_ResourceName());
@@ -95,7 +95,7 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
      * @param sinks List of sinks to view
      */
     @Override
-    public void setSinks(List<SinkContent> sinks) {
+    public void setSinks(List<Sink> sinks) {
         table.setRowData(0, sinks);
         table.setRowCount(sinks.size());
         table.updateDone();

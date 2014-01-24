@@ -30,6 +30,9 @@ import java.nio.file.Paths;
 import java.util.Date;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
+import java.nio.file.DirectoryStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileSystemJobStore implements JobStore {
     static final String FLOW_FILE = "flow.json";
@@ -133,6 +136,16 @@ public class FileSystemJobStore implements JobStore {
         storeJobStateInJob(jobPath, job.getJobState());
     }
 
+    @Override
+    public List<JobInfo> getAllJobInfos() throws JobStoreException {
+        final List<Path> jobPaths = getDirectories(storePath);
+        List<JobInfo> jobInfos = new ArrayList<>(jobPaths.size());
+        for(Path jobPath : jobPaths) {
+            jobInfos.add(readJobInfoFromJob(jobPath));
+        }
+        return jobInfos;
+    }
+
     private void storeFlowBinderInJob(Path jobPath, FlowBinder flowBinder) throws JobStoreException {
         final Path flowPath = Paths.get(jobPath.toString(), FLOWBINDER_FILE);
         LOGGER.info("Creating FlowBinder json-file: {}", flowPath);
@@ -174,13 +187,34 @@ public class FileSystemJobStore implements JobStore {
     }
 
     private void storeJobInfoInJob(Path jobPath, JobInfo jobInfo) throws JobStoreException {
-        final Path jobInfoPath = Paths.get(jobPath.toString(), JOBINFO_FILE);
+        final Path jobInfoPath = getJobInfoPath(jobPath);
         LOGGER.info("Creating JobInfo json-file: {}", jobInfoPath);
         try (BufferedWriter bw = Files.newBufferedWriter(jobInfoPath, LOCAL_CHARSET)) {
           bw.write(JsonUtil.toJson(jobInfo));
         } catch (IOException | JsonException e) {
             throw new JobStoreException(String.format("Exception caught when trying to write JobInfo: %s", jobInfoPath.toString()), e);
         }
+    }
+
+    private JobInfo readJobInfoFromJob(Path jobPath) throws JobStoreException {
+        final Path jobInfoPath = getJobInfoPath(jobPath);
+        JobInfo jobInfo;
+        try(BufferedReader br = Files.newBufferedReader(jobInfoPath, LOCAL_CHARSET)) {
+            final StringBuilder sb = new StringBuilder();
+            String data;
+            while ((data = br.readLine()) != null) {
+                sb.append(data);
+            }
+            jobInfo = JsonUtil.fromJson(sb.toString(), JobInfo.class);
+        } catch(IOException | JsonException e) {
+            LOGGER.error(e.getMessage());
+            throw new JobStoreException(String.format("Exception caught while reading JobInfo from Path: %s", jobInfoPath.toString()));
+        }
+        return jobInfo;
+    }
+
+    private Path getJobInfoPath(Path jobPath) {
+        return Paths.get(jobPath.toString(), JOBINFO_FILE);
     }
 
     private void storeJobStateInJob(Path jobPath, JobState jobState) throws JobStoreException {
@@ -191,6 +225,20 @@ public class FileSystemJobStore implements JobStore {
         } catch (IOException | JsonException e) {
             throw new JobStoreException(String.format("Exception caught when trying to write JobState: %s", jobStatePath.toString()), e);
         }
+    }
+
+    private static List<Path> getDirectories(final Path dir) throws JobStoreException {
+        List<Path> directories = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
+            for (Path path : directoryStream) {
+                if(Files.isDirectory(path)) {
+                    directories.add(path);
+                }
+            }
+        } catch (IOException e) {
+                throw new JobStoreException("Exception caught while reading job-directories in jobStore", e);
+        }
+        return directories;
     }
 
     private boolean canUseExistingStorePath(Path storePath) throws JobStoreException {

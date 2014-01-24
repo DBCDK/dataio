@@ -230,6 +230,12 @@ public class FileSystemJobStoreTest {
         assertThat(job.getJobInfo().getJobRecordCount(), is(2L));
     }
 
+    @Test
+    public void getAllJobInfos_happyPath_allJobInfosRetrieved() {
+
+    }
+
+
     private Path getJobStorePath() throws IOException {
         final File root = tmpFolder.newFolder();
         final String jobStoreName = "dataio-job-store";

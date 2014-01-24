@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import java.util.List;
 
 
 public interface JobStore {
@@ -16,6 +17,8 @@ public interface JobStore {
 
     void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException;
     void updateJobState(Job job) throws JobStoreException;
+
+    List<JobInfo> getAllJobInfos() throws JobStoreException;
 
     long getNumberOfChunksInJob(Job job) throws JobStoreException;
 

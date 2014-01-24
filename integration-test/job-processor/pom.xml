@@ -34,6 +34,13 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-job-store-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-integration-test-jms-queue-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
@@ -49,6 +56,12 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-integration-test-utils</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -94,6 +107,14 @@
               <groupId>dk.dbc</groupId>
               <artifactId>dataio-job-processor-ear</artifactId>
               <type>ear</type>
+            </deployable>
+            <deployable>
+              <groupId>dk.dbc</groupId>
+              <artifactId>dataio-job-store-service</artifactId>
+              <type>war</type>
+              <properties>
+                <context>job-store</context>
+              </properties>
             </deployable>
           </deployables>
         </configuration>

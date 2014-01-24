@@ -78,6 +78,12 @@ public class JmsQueueConnector {
         return sinkMessage;
     }
 
+    public static MockedJmsTextMessage newJobStoreMessageForJobProcessor() throws JMSException {
+        final MockedJmsTextMessage jobStoreMessage = new MockedJmsTextMessage();
+        jobStoreMessage.setStringProperty("source", "jobstore");
+        return jobStoreMessage;
+    }
+
     private static void assertOkStatusCode(Response response) {
         assert response.getStatus() == Response.Status.OK.getStatusCode() :
                 String.format("Expected status code is %d was %d", Response.Status.OK.getStatusCode(), response.getStatus());

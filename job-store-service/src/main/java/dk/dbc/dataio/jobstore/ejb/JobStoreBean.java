@@ -17,12 +17,14 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.List;
 
 @LocalBean
 @Singleton
+@Startup
 public class JobStoreBean implements JobStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);

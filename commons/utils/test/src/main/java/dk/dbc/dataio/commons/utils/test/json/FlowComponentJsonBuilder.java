@@ -15,8 +15,9 @@ public class FlowComponentJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public void setContent(String content) {
+    public FlowComponentJsonBuilder setContent(String content) {
         this.content = content;
+        return this;
     }
 
     public String build() {

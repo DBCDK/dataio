@@ -39,6 +39,7 @@ public class ChunkProcessorBeanTest {
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         final ChunkResult chunkResult = chunkProcessorBean.process(jobId, emptyChunk);
+        assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(emptyChunk.getId()));
         assertThat(chunkResult.getResults().size(), is(0));
     }
@@ -54,6 +55,7 @@ public class ChunkProcessorBeanTest {
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         final ChunkResult chunkResult = chunkProcessorBean.process(jobId, chunk);
+        assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getId()));
         assertThat(chunkResult.getResults().size(), is(2));
         assertThat(base64decode(chunkResult.getResults().get(0)), is(record1.toUpperCase()));

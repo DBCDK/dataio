@@ -116,6 +116,7 @@ public class JobsBean {
     @Path("{jobId}/chunks/{chunkId}")
     @Produces({MediaType.APPLICATION_JSON})
     public Response getChunk(@PathParam("jobId") Long jobId, @PathParam("chunkId") Long chunkId) throws JobStoreException {
+        LOGGER.info("Getting chunk {} for job {}", chunkId, jobId);
         final Chunk chunk = jobStore.getChunk(jobId, chunkId);
         if (chunk == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -128,7 +129,6 @@ public class JobsBean {
         }
         return Response.ok().entity(entity).build();
     }
-
 
     // hardening: lookupFlowInFlowStore and lookupSinkInFlowStore is identical - replace them with a single generic function!
 

@@ -44,7 +44,7 @@ public class ChunkProcessorBean {
             results.add(processedRecordBase64);
         }
         // todo: Change Chunk to get actual Charset
-        return new ChunkResult(chunk.getId(), chunk.getId(), Charset.defaultCharset(), results);
+        return new ChunkResult(jobId, chunk.getId(), Charset.defaultCharset(), results);
     }
 
     private String invokeJavaScript(Flow flow, String record) {

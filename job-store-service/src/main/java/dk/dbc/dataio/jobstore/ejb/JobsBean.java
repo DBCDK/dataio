@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
@@ -14,12 +15,11 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -35,8 +35,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.HashMap;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -129,6 +129,34 @@ public class JobsBean {
         }
         return Response.ok().entity(entity).build();
     }
+
+    /**
+     * Retrieves list of jobs from the underlying data store
+     *
+     * @return a HTTP 200 OK response with chunk as JSON,
+     *         a HTTP 404 NOT_FOUND if unable to locate chunk,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading list from store, or if unable
+     * to marshall retrieved data to JSON.
+     */
+    @GET
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getJobs() throws JobStoreException {
+        LOGGER.info("Getting Jobs list");
+        final List<JobInfo> jobInfo = jobStore.getAllJobInfos();
+        if (jobInfo == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(jobInfo);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling job list"), e);
+        }
+        return Response.ok().entity(entity).build();
+    }
+
 
     // hardening: lookupFlowInFlowStore and lookupSinkInFlowStore is identical - replace them with a single generic function!
 

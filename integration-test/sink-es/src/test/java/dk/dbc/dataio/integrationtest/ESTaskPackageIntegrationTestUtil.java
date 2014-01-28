@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.es;
+package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import java.sql.Connection;

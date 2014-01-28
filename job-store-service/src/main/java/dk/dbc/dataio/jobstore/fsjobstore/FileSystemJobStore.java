@@ -82,6 +82,7 @@ public class FileSystemJobStore implements JobStore {
         JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0, null);
 
         Job job = new Job(jobInfo, new JobState(), flow);
+        // The Pending-State for chunkify is never written to the filesystem!!!
         try {
             job.getJobState().setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.ACTIVE);
             updateJobState(job);

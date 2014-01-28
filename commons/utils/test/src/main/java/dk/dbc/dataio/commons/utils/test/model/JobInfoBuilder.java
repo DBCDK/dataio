@@ -31,7 +31,7 @@ public class JobInfoBuilder {
     }
 
     public JobInfoBuilder setJobCreationTime(Date jobCreationTime) {
-        this.jobCreationTime = jobCreationTime;
+        this.jobCreationTime = new Date(jobCreationTime.getTime());
         return this;
     }
 

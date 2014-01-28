@@ -114,7 +114,7 @@ public class JobStoreMessageConsumerBeanIT {
 
     private Path setupJobStore(long jobId, String... chunks) throws IOException {
         // This method is tightly bound to job-store internal workings...
-        final Path jobPath = FileSystems.getDefault().getPath("/tmp/dataio-job-store", Long.toString(jobId));
+        final Path jobPath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "dataio-job-store", Long.toString(jobId));
         FileUtils.deleteQuietly(jobPath.toFile());
         Files.createDirectories(jobPath);
         for (int i = 0; i < chunks.length; i++) {

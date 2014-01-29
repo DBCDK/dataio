@@ -32,6 +32,7 @@
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
     
     <extend-property name="locale" values="dk"/>
+    <set-property name="locale" value="dk"/>
     
 	<replace-with class="dk.dbc.dataio.gui.util.ClientFactoryImpl">
 		<when-type-is class="dk.dbc.dataio.gui.util.ClientFactory" />

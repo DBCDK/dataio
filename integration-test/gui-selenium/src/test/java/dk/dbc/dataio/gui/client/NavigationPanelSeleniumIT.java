@@ -5,6 +5,7 @@ import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.NavigationPanel;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
@@ -129,9 +130,12 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testSubMenuItemsAreVisible() {
         for (String mainMenu: menuItems.getMainMenus()) {
-            findMainMenuFoldUnfoldElement(webDriver, mainMenu).click();
-            for (String subMenu: menuItems.getSubMenus(mainMenu)) {
-                assertTrue("Sub menu '" + subMenu + "' is not visible", findMenuNavigationElement(webDriver, subMenu).isDisplayed());
+            clickOnMainMenuFoldUnfoldElement(webDriver, mainMenu);
+            String[] subMenus = menuItems.getSubMenus(mainMenu);
+            if (subMenus != null) {
+                for (String subMenu: subMenus) {
+                    assertTrue("Sub menu '" + subMenu + "' is not visible", findMenuNavigationElement(webDriver, subMenu).isDisplayed());
+                }
             }
         }
     }
@@ -143,8 +147,11 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
         return findElementInCurrentView(webDriver, NavigationPanel.GUIID_NAVIGATION_MENU_PANEL);
     }
 
-    private static WebElement findMainMenuFoldUnfoldElement(WebDriver webDriver, String menuId) {
-        return findMenuNavigationElement(webDriver, menuId).findElement(By.tagName("img"));
+    private static void clickOnMainMenuFoldUnfoldElement(WebDriver webDriver, String menuId) {
+        List<WebElement> foldUnfoldElements = findMenuNavigationElement(webDriver, menuId).findElements(By.tagName("img"));
+        if (foldUnfoldElements.size() > 0) {  // Check if any <img> tags were found
+            foldUnfoldElements.get(0).click();  // If so - the first one is the one to use
+        }
     }
 
     private static WebElement findMenuNavigationElement(WebDriver webDriver, String menuId) {
@@ -166,7 +173,7 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
         else if (menuItems.isSubMenuItem(menuId)) {
             // First check, that submenu is visible
             if (!findMenuNavigationElement(webDriver, menuId).isDisplayed()) {
-                findMainMenuFoldUnfoldElement(webDriver, menuItems.isSubMenuUnder(menuId)).click();  // Unfold the parent main menu
+                clickOnMainMenuFoldUnfoldElement(webDriver, menuItems.isSubMenuUnder(menuId));  // Unfold the parent main menu
             }
             findMenuNavigationElement(webDriver, menuId).click();
         } else {  // The menu item is neither a Main Menu nor a Sub Menu

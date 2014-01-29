@@ -91,7 +91,7 @@ public class JobStoreMessageProducerBean {
      * @throws JsonException when unable to marshall SinkChunkResult instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    TextMessage createMessage(JMSContext context, SinkChunkResult sinkResult) throws JsonException, JMSException {
+    public TextMessage createMessage(JMSContext context, SinkChunkResult sinkResult) throws JsonException, JMSException {
         final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkResult));
         message.setStringProperty(SOURCE_PROPERTY_NAME, SOURCE_PROPERTY_VALUE);
         message.setStringProperty(PAYLOAD_PROPERTY_NAME, SINK_RESULT_PAYLOAD_PROPERTY_VALUE);
@@ -111,7 +111,7 @@ public class JobStoreMessageProducerBean {
      * @throws JsonException when unable to marshall ChunkResult instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    TextMessage createMessage(JMSContext context, ChunkResult processorResult) throws JsonException, JMSException {
+    public TextMessage createMessage(JMSContext context, ChunkResult processorResult) throws JsonException, JMSException {
         final TextMessage message = context.createTextMessage(JsonUtil.toJson(processorResult));
         message.setStringProperty(SOURCE_PROPERTY_NAME, SOURCE_PROPERTY_VALUE);
         message.setStringProperty(PAYLOAD_PROPERTY_NAME, PROCESSOR_RESULT_PAYLOAD_PROPERTY_VALUE);

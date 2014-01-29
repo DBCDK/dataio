@@ -5,7 +5,6 @@ import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
-import javax.jms.JMSException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -70,18 +69,6 @@ public class JmsQueueConnector {
         }
         assertOkStatusCode(response);
         return response.readEntity(Integer.class);
-    }
-
-    public static MockedJmsTextMessage newSinkMessageForJobProcessor() throws JMSException {
-        final MockedJmsTextMessage sinkMessage = new MockedJmsTextMessage();
-        sinkMessage.setStringProperty("chunkResultSource", "sink");
-        return sinkMessage;
-    }
-
-    public static MockedJmsTextMessage newJobStoreMessageForJobProcessor() throws JMSException {
-        final MockedJmsTextMessage jobStoreMessage = new MockedJmsTextMessage();
-        jobStoreMessage.setStringProperty("source", "jobstore");
-        return jobStoreMessage;
     }
 
     private static void assertOkStatusCode(Response response) {

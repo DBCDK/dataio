@@ -1,6 +1,9 @@
 package dk.dbc.dataio.jobprocessor;
 
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.NewJob;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -11,15 +14,18 @@ import dk.dbc.dataio.commons.utils.test.json.FlowComponentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JavaScriptJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.NewJobJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SinkJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.NewJobBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
+import dk.dbc.dataio.jobstore.ejb.JobProcessorMessageProducerBean;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -34,12 +40,23 @@ import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64encode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 public class JobStoreMessageConsumerBeanIT {
     private final String javaScriptInvocationMethod = "toUpper";
     private final String modulesInfoModuleResource = "/ModulesInfo.json";
     private final String useModuleResource = "/Use.json";
     private final String sinkResourceName = "sinkResourceName";
+
+    private JMSContext jmsContext;
+
+    @Before
+    public void setupMocks() {
+        jmsContext = mock(JMSContext.class);
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
+    }
 
     @After
     public void emptyQueues() {
@@ -48,8 +65,8 @@ public class JobStoreMessageConsumerBeanIT {
     }
 
     @Test
-    public void jobStoreMessageConsumerBean_invalidNewJobOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, InterruptedException {
-        final MockedJmsTextMessage jobStoreMessage = JmsQueueConnector.newJobStoreMessageForJobProcessor();
+    public void jobStoreMessageConsumerBean_invalidNewJobOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, InterruptedException, JsonException {
+        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(new NewJobBuilder().build());
         jobStoreMessage.setText("invalid");
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
@@ -70,13 +87,13 @@ public class JobStoreMessageConsumerBeanIT {
         final String chunk2 = getChunk(2, flow, base64encode(record2));
         setupJobStore(jobId, chunk1, chunk2);
 
-        final String newJob = new NewJobJsonBuilder()
+        final NewJob newJob = new NewJobBuilder()
                 .setJobId(jobId)
                 .setChunkCount(2)
                 .setSink(getSink())
                 .build();
-        final MockedJmsTextMessage jobStoreMessage = JmsQueueConnector.newJobStoreMessageForJobProcessor();
-        jobStoreMessage.setText(newJob);
+
+        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(newJob);
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
 
@@ -104,7 +121,7 @@ public class JobStoreMessageConsumerBeanIT {
         assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME), is(2));
     }
 
-    public ChunkResult assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {
+    private ChunkResult assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
         assertThat(message.getStringProperty(SinkMessageProducerBean.SOURCE_PROPERTY_NAME), is(SinkMessageProducerBean.SOURCE_PROPERTY_VALUE));
         assertThat(message.getStringProperty(SinkMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(SinkMessageProducerBean.PAYLOAD_PROPERTY_VALUE));
@@ -123,14 +140,21 @@ public class JobStoreMessageConsumerBeanIT {
         return jobPath;
     }
 
-    private String getSink() throws Exception {
-        return new SinkJsonBuilder()
+    private MockedJmsTextMessage newJobStoreMessageForJobProcessor(NewJob newJob) throws JMSException, JsonException {
+        final MockedJmsTextMessage message = (MockedJmsTextMessage) new JobProcessorMessageProducerBean()
+                .createMessage(jmsContext, newJob);
+        message.setText(JsonUtil.toJson(newJob));
+        return message;
+    }
+
+    private Sink getSink() throws Exception {
+        return new SinkBuilder()
                 .setContent(getSinkContent())
                 .build();
     }
 
-    private String getSinkContent() throws Exception {
-        return new SinkContentJsonBuilder()
+    private SinkContent getSinkContent() throws Exception {
+        return new SinkContentBuilder()
                 .setResource(sinkResourceName)
                 .build();
     }

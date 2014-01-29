@@ -44,7 +44,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             TextColumn<JobInfo> jobIdColumn = new TextColumn<JobInfo>() {
                 @Override
                 public String getValue(JobInfo content) {
-                    return Long.toString(content.getJobId());
+                    return getJobIdColumn(content);
                 }
             };
             table.addColumn(jobIdColumn, constants.columnHeader_JobId());
@@ -52,7 +52,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             TextColumn<JobInfo> fileNameColumn = new TextColumn<JobInfo>() {
                 @Override
                 public String getValue(JobInfo content) {
-                    return "Filename - TBD";
+                    return getFileNameColumn();
                 }
             };
             table.addColumn(fileNameColumn, constants.columnHeader_FileName());
@@ -60,7 +60,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             TextColumn<JobInfo> submitterNumberColumn = new TextColumn<JobInfo>() {
                 @Override
                 public String getValue(JobInfo content) {
-                    return "Submitter Number - TBD";
+                    return getSubmitterNumberColumn();
                 }
             };
             table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
@@ -68,7 +68,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             add(table);
         }
     }
-
 
     /*
      * Implementation of interface methods
@@ -112,5 +111,17 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
 
     // Private methods
+
+    private String getJobIdColumn(JobInfo content) {
+        return Long.toString(content.getJobId());
+    }
+
+    private String getFileNameColumn() {
+        return "Filename - TBD";
+    }
+
+    private String getSubmitterNumberColumn() {
+        return "Submitter Number - TBD";
+    }
 
 }

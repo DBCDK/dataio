@@ -29,7 +29,7 @@ public class JobProcessorMessageProducerBean {
     @Resource
     ConnectionFactory processorQueueConnectionFactory;
 
-    //@Resource(name = "processorJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
+    @Resource(name = "processorJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
     Queue processorQueue;
 
     /**

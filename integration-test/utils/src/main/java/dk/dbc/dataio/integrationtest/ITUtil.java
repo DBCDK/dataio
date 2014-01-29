@@ -2,6 +2,7 @@ package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.hamcrest.CoreMatchers;
@@ -30,6 +31,12 @@ import java.util.List;
  * Integration test utility
  */
 public class ITUtil {
+    public static final String FLOW_STORE_BASE_URL = String.format("http://%s:%s/flow-store",
+                System.getProperty("container.hostname"), System.getProperty("container.http.port"));
+    public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s/job-store",
+                System.getProperty("container.hostname"), System.getProperty("container.http.port"));
+
+    public static final String FLOW_STORE_DATABASE_NAME = "flow_store";
     public static final String FLOWS_TABLE_NAME = "flows";
     public static final String FLOW_COMPONENTS_TABLE_NAME = "flow_components";
     public static final String FLOW_BINDERS_TABLE_NAME = "flow_binders";
@@ -127,6 +134,10 @@ public class ITUtil {
     public static long createSink(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.SINKS));
+    }
+
+    public static Response createJob(Client restClient, String content) {
+        return HttpClient.doPostWithJson(restClient, content, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS);
     }
 
     /**

@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
@@ -45,19 +46,19 @@ import org.slf4j.LoggerFactory;
 @Stateless
 @Path(JobStoreServiceEntryPoint.JOBS)
 public class JobsBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-
     public static final String REST_FLOWBINDER_QUERY_ENTRY_POINT = "/resolve"; // todo: move this to a better place - this entrypoint is also hardcodet in FlowBindersBean.
 
-    @EJB
-    JobHandlerBean jobHandler;
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
 
     @EJB
     JobStoreBean jobStore;
 
+    @EJB
+    JobProcessorMessageProducerBean jobProcessorMessageProducer;
+
     /**
-     * Creates new job based on POSTed job specification and persists it in
-     * the underlying data store
+     * Creates new job based on POSTed job specification, persists it in
+     * the underlying data store and notifies job processor of its existence
      *
      * @param uriInfo application and request URI information
      * @param jobSpecData job specification as JSON string
@@ -85,18 +86,18 @@ public class JobsBean {
         LOGGER.trace("flowBinder: {}", flowBinder.toString());
         final Flow flow = lookupFlowInFlowStore(flowBinder.getContent().getFlowId());
         final Sink sink = lookupSinkInFlowStore(flowBinder.getContent().getSinkId());
-        final JobInfo jobInfo;
+        final Job job;
+        final String jobInfoJson;
         try {
-            final Job job = jobStore.createJob(jobSpec, flowBinder, flow, sink);
-            jobHandler.handleJob(job, sink); //todo: This methodcall should return the actual jobinfo!
-            final String sinkFile = jobHandler.sendToSink(job);// todo: This is here for the benefit of tmpengine
-            jobInfo = new JobInfo(job.getId(), job.getJobInfo().getJobSpecification(), job.getJobInfo().getJobCreationTime(),
-                    job.getJobInfo().getJobErrorCode(), job.getJobInfo().getJobRecordCount(), sinkFile);
-        } catch (JobStoreException e) {
+            job = jobStore.createJob(jobSpec, flowBinder, flow, sink);
+            jobInfoJson = JsonUtil.toJson(job.getJobInfo());
+            final NewJob newJob = new NewJob(job.getId(), jobStore.getNumberOfChunksInJob(job), sink);
+            jobProcessorMessageProducer.send(newJob);
+        } catch (JobStoreException | JsonException e) {
             throw new EJBException(e);
         }
 
-        return Response.created(uriInfo.getAbsolutePath()).entity(JsonUtil.toJson(jobInfo)).build();
+        return Response.created(uriInfo.getAbsolutePath()).entity(jobInfoJson).build();
     }
 
     /**

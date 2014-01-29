@@ -138,8 +138,10 @@ public class EsMessageProcessorBeanIT {
         final Sink sink = new SinkBuilder()
                 .setContent(sinkContent)
                 .build();
-        return (MockedJmsTextMessage) new SinkMessageProducerBean()
+        final MockedJmsTextMessage message = (MockedJmsTextMessage) new SinkMessageProducerBean()
                 .createMessage(jmsContext, processorResult, sink);
+        message.setText(JsonUtil.toJson(processorResult));
+        return message;
     }
 
     private int getNumberOfRecordsInFlight() throws SQLException, ClassNotFoundException {

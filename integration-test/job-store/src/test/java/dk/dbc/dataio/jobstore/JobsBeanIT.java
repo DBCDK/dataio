@@ -15,6 +15,7 @@ import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -40,6 +41,11 @@ public class JobsBeanIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException {
         restClient = HttpClient.newClient();
+    }
+
+    @AfterClass
+    public static void clearJobStore() {
+        ITUtil.clearJobStore();
     }
 
     @After

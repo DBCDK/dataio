@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
+import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.tmatesoft.svn.core.SVNCommitInfo;
@@ -21,6 +22,7 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -100,6 +102,14 @@ public class ITUtil {
                 FLOWS_TABLE_NAME,
                 SUBMITTERS_TABLE_NAME,
                 SINKS_TABLE_NAME);
+    }
+
+    /**
+     * Deletes all job-store filesystem content
+     */
+    public static void clearJobStore() {
+        final Path jobStorePath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "dataio-job-store");
+        FileUtils.deleteQuietly(jobStorePath.toFile());
     }
 
     public static long createFlowComponentWithName(String name) {

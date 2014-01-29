@@ -17,11 +17,13 @@ import dk.dbc.dataio.commons.utils.test.json.JavaScriptJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.NewJobBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
 import dk.dbc.dataio.jobstore.ejb.JobProcessorMessageProducerBean;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,6 +53,11 @@ public class JobStoreMessageConsumerBeanIT {
     private final String sinkResourceName = "sinkResourceName";
 
     private JMSContext jmsContext;
+
+    @AfterClass
+    public static void clearJobStore() {
+        ITUtil.clearJobStore();
+    }
 
     @Before
     public void setupMocks() {

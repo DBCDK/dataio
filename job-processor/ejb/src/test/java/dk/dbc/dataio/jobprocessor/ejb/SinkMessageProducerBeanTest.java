@@ -35,7 +35,6 @@ public class SinkMessageProducerBeanTest {
     private ConnectionFactory jmsConnectionFactory;
     private JMSContext jmsContext;
     private JMSProducer jmsProducer;
-    private TextMessage textMessage;
     private ChunkResult chunkResult = new ChunkResultBuilder().build();
     private Sink sink = new SinkBuilder().build();
 
@@ -44,7 +43,6 @@ public class SinkMessageProducerBeanTest {
         jmsConnectionFactory = mock(ConnectionFactory.class);
         jmsContext = mock(JMSContext.class);
         jmsProducer = mock(JMSProducer.class);
-        textMessage = mock(TextMessage.class);
 
         when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);
@@ -75,9 +73,9 @@ public class SinkMessageProducerBeanTest {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
         TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunkResult, sink);
-        assertThat(message.getStringProperty(SinkMessageProducerBean.SOURCE_PROPERTY_NAME), is(SinkMessageProducerBean.SOURCE_PROPERTY_VALUE));
-        assertThat(message.getStringProperty(SinkMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(SinkMessageProducerBean.PAYLOAD_PROPERTY_VALUE));
-        assertThat(message.getStringProperty(SinkMessageProducerBean.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
+        assertThat(message.getStringProperty("source"), is("processor"));
+        assertThat(message.getStringProperty("payload"), is("ChunkResult"));
+        assertThat(message.getStringProperty("resource"), is(sink.getContent().getResource()));
     }
 
     private SinkMessageProducerBean getInitializedBean() {

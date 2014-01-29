@@ -7,11 +7,11 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class JobInfoBuilder {
-    private long jobId = 1;
+    private long jobId = 1L;
     private JobSpecification jobSpecification = new JobSpecificationBuilder().build();
     private Date jobCreationTime;
     private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
-    private long jobRecordCount = 1;
+    private long jobRecordCount = 1L;
     private String jobResultDataFile = "-jobResultDataFile-";
 
     public JobInfoBuilder() {

@@ -222,7 +222,7 @@ public class JobsBeanTest {
         final JobsBean jobsBean = new JobsBean();
         jobsBean.jobStore = jobStore;
         final Response response = jobsBean.getJobs();
-        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
     }
 
     @Test(expected = JobStoreException.class)
@@ -236,7 +236,7 @@ public class JobsBeanTest {
     }
 
     @Test(expected = JobStoreException.class)
-    public void getJobs_chunkCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
+    public void getJobs_jobListCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
         final JobStoreBean jobStore = mock(JobStoreBean.class);
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(Chunk.class))).thenThrow(new JsonException("JsonException"));
@@ -267,7 +267,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void getJobs_jobStoreReturnsChunk_returnsStatusOkResponseWithChunkEntity() throws JobStoreException, JsonException {
+    public void getJobs_jobStoreReturnsJobList_returnsStatusOkResponseWithJobList() throws JobStoreException, JsonException {
         final JobStoreBean jobStore = mock(JobStoreBean.class);
         final List<JobInfo> jobInfoList = new ArrayList<>();
         jobInfoList.add(new JobInfoBuilder().build());

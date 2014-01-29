@@ -134,9 +134,8 @@ public class JobsBean {
     /**
      * Retrieves list of jobs from the underlying data store
      *
-     * @return a HTTP 200 OK response with chunk as JSON,
-     *         a HTTP 404 NOT_FOUND if unable to locate chunk,
-     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     * @return a HTTP 200 OK response with list of jobs as JSON,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR if unable to locate list of jobs,
      *
      * @throws JobStoreException on error reading list from store, or if unable
      * to marshall retrieved data to JSON.
@@ -147,7 +146,7 @@ public class JobsBean {
         LOGGER.info("Getting Jobs list");
         final List<JobInfo> jobInfo = jobStore.getAllJobInfos();
         if (jobInfo == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         final String entity;
         try {

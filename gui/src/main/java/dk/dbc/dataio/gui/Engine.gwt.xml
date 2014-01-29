@@ -33,4 +33,6 @@
     
     <entry-point class="dk.dbc.dataio.gui.client.tmpengine.EngineEntryPoint"/>
 
+    <set-property name="user.agent" value="gecko1_8"/>
+
 </module>

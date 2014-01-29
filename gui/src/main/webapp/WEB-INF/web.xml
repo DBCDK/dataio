@@ -16,6 +16,11 @@
     <servlet-name>JavaScriptProjectFetcher</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.JavaScriptProjectFetcherServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>JobStoreProxyServlet</servlet-name>
+    <servlet-class>dk.dbc.dataio.gui.server.JobStoreProxyServlet</servlet-class>
+  </servlet>
+
   <servlet-mapping>
     <servlet-name>FlowStoreProxyServlet</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/FlowStoreProxy</url-pattern>
@@ -36,6 +41,11 @@
     <servlet-name>JavaScriptProjectFetcher</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/JavaScriptProjectFetcher</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>JobStoreProxyServlet</servlet-name>
+    <url-pattern>/dk.dbc.dataio.gui.Main/JobStoreProxy</url-pattern>
+  </servlet-mapping>
+
   <session-config>
         <session-timeout>
             30

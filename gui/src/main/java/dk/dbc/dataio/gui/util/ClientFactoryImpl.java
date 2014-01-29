@@ -7,6 +7,8 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
@@ -42,6 +44,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
     private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
     private final SinkServiceProxyAsync sinkServiceProxyAsync = SinkServiceProxy.Factory.getAsyncInstance();
+    private final JobStoreProxyAsync jobStoreProxyAsync = JobStoreProxy.Factory.getAsyncInstance();
 
     // Views
     private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
@@ -79,6 +82,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public SinkServiceProxyAsync getSinkServiceProxyAsync() {
         return sinkServiceProxyAsync;
+    }
+
+    @Override
+    public JobStoreProxyAsync getJobStoreProxyAsync() {
+        return jobStoreProxyAsync;
     }
 
     @Override

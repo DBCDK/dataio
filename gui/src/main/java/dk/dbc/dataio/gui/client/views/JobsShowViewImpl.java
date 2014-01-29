@@ -52,7 +52,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             TextColumn<JobInfo> fileNameColumn = new TextColumn<JobInfo>() {
                 @Override
                 public String getValue(JobInfo content) {
-                    return getFileNameColumn();
+                    return getFileNameColumn(content);
                 }
             };
             table.addColumn(fileNameColumn, constants.columnHeader_FileName());
@@ -60,7 +60,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             TextColumn<JobInfo> submitterNumberColumn = new TextColumn<JobInfo>() {
                 @Override
                 public String getValue(JobInfo content) {
-                    return getSubmitterNumberColumn();
+                    return getSubmitterNumberColumn(content);
                 }
             };
             table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
@@ -116,12 +116,12 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         return Long.toString(content.getJobId());
     }
 
-    private String getFileNameColumn() {
-        return "Filename - TBD";
+    private String getFileNameColumn(JobInfo content) {
+        return content.getJobSpecification().getDataFile();
     }
 
-    private String getSubmitterNumberColumn() {
-        return "Submitter Number - TBD";
+    private String getSubmitterNumberColumn(JobInfo content) {
+        return Long.toString(content.getJobSpecification().getSubmitterId());
     }
 
 }

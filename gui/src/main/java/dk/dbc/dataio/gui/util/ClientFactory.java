@@ -4,6 +4,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
@@ -33,6 +34,7 @@ public interface ClientFactory {
     FlowStoreProxyAsync getFlowStoreProxyAsync();
     JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
     SinkServiceProxyAsync getSinkServiceProxyAsync();
+    JobStoreProxyAsync getJobStoreProxyAsync();
 
     // Views
     FlowCreateView getFlowCreateView();

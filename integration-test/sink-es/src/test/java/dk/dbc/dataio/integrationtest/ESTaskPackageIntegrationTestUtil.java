@@ -36,7 +36,7 @@ public class ESTaskPackageIntegrationTestUtil {
 
         PreparedStatement ps = null;
         try {
-            ps = JDBCUtil.query(connection, stmt);
+            ps = JDBCUtil.query(connection, stmt, dbname);
             ResultSet rs = ps.getResultSet();
             while (rs.next()) {
                 taskpackages.add(rs.getInt(1));

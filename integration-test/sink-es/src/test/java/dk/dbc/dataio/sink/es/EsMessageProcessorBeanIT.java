@@ -21,7 +21,6 @@ import dk.dbc.dataio.jobprocessor.util.Base64Util;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.JMSContext;
@@ -41,7 +40,6 @@ import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@Ignore
 public class EsMessageProcessorBeanIT {
     private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
 

@@ -24,6 +24,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 public class SinkMessageConsumerBeanIT {
+    private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
     private JMSContext jmsContext;
 
     @Before
@@ -45,9 +46,8 @@ public class SinkMessageConsumerBeanIT {
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, sinkMessage);
 
-        Thread.sleep(500);
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME), is(0));
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME), is(0));
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
     }
 
     @Test
@@ -60,10 +60,8 @@ public class SinkMessageConsumerBeanIT {
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, sinkMessage);
 
-        Thread.sleep(500);
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME), is(0));
-        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.listQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
-        assertThat(processorQueue.size(), is(1));
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
+        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
         assertSinkMessageForJobStore(processorQueue.get(0), jobId);
     }
 

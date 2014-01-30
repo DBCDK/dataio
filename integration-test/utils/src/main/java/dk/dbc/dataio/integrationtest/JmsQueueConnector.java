@@ -10,6 +10,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class JmsQueueConnector {
@@ -20,9 +21,10 @@ public class JmsQueueConnector {
     public static final String PROCESSOR_QUEUE_NAME = "jms/dataio/processor";
 
     private static final Client REST_CLIENT = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
-    private static final String ENCODING = "UTF-8";
+    private static final String ENCODING = StandardCharsets.UTF_8.name();
+    private static final long SLEEP_INTERVAL_IN_MS = 250;
 
-    private JmsQueueConnector() {}
+    private JmsQueueConnector() { }
 
     public static List<MockedJmsTextMessage> listQueue(String queueName) {
         final Response response;
@@ -69,6 +71,29 @@ public class JmsQueueConnector {
         }
         assertOkStatusCode(response);
         return response.readEntity(Integer.class);
+    }
+
+    public static void awaitQueueSize(String queueName, int expectedQueueSize, long maxWaitInMs) {
+        long remainingWaitInMs = maxWaitInMs;
+        int actualQueueSize = getQueueSize(queueName);
+        while ((actualQueueSize != expectedQueueSize) && (remainingWaitInMs > 0)) {
+            try {
+                Thread.sleep(SLEEP_INTERVAL_IN_MS);
+                remainingWaitInMs -= SLEEP_INTERVAL_IN_MS;
+                actualQueueSize = getQueueSize(queueName);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+        if (actualQueueSize != expectedQueueSize) {
+            throw new IllegalStateException(String.format("Expected size %d of queue %s differs from actual size %d",
+                    expectedQueueSize, queueName, actualQueueSize));
+        }
+    }
+
+    public static List<MockedJmsTextMessage> awaitQueueList(String queueName, int expectedQueueSize, long maxWaitInMs) {
+        awaitQueueSize(queueName, expectedQueueSize, maxWaitInMs);
+        return listQueue(queueName);
     }
 
     private static void assertOkStatusCode(Response response) {

@@ -43,6 +43,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @Ignore
 public class EsMessageProcessorBeanIT {
+    private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
+
     private static final String SINK_NAME = "esSinkIT";
     private static final String ES_RESOURCE_NAME = "jdbc/dataio/es";
     private static final String ES_INFLIGHT_DATABASE_NAME = "es_inflight";
@@ -91,14 +93,13 @@ public class EsMessageProcessorBeanIT {
 
     @Test
     public void esMessageProcessorBean_invalidProcessorResultOnSinksQueue_eventuallyRemovedFromSinksQueue()
-            throws JMSException, InterruptedException, JsonException, SQLException, ClassNotFoundException {
+            throws JMSException, JsonException, SQLException, ClassNotFoundException {
         final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(new ChunkResultBuilder().build());
         processorMessage.setText("invalid");
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
-        Thread.sleep(500);
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME), is(0));
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
         assertThat(getNumberOfRecordsInFlight(), is(0));
     }
 
@@ -112,8 +113,7 @@ public class EsMessageProcessorBeanIT {
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
-        Thread.sleep(1000);
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME), is(0));
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
         assertThat(getNumberOfRecordsInFlight(), is(1));
         final List<Integer> esTaskPackages = getEsTaskPackages();
         assertThat(esTaskPackages.size(), is(1));
@@ -123,8 +123,7 @@ public class EsMessageProcessorBeanIT {
 
         assertThat(getNumberOfRecordsInFlight(), is(0));
         assertThat(getEsTaskPackages().size(), is(0));
-        final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.listQueue(JmsQueueConnector.SINKS_QUEUE_NAME);
-        assertThat(sinksQueue.size(), is(1));
+        final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
         final SinkChunkResult sinkResult = assertSinkMessageForProcessor(sinksQueue.get(0));
         assertThat(sinkResult.getJobId(), is(processorResult.getJobId()));
         assertThat(sinkResult.getChunkId(), is(processorResult.getChunkId()));

@@ -47,6 +47,8 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 public class JobStoreMessageConsumerBeanIT {
+    private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
+
     private final String javaScriptInvocationMethod = "toUpper";
     private final String modulesInfoModuleResource = "/ModulesInfo.json";
     private final String useModuleResource = "/Use.json";
@@ -72,15 +74,14 @@ public class JobStoreMessageConsumerBeanIT {
     }
 
     @Test
-    public void jobStoreMessageConsumerBean_invalidNewJobOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, InterruptedException, JsonException {
+    public void jobStoreMessageConsumerBean_invalidNewJobOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, JsonException {
         final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(new NewJobBuilder().build());
         jobStoreMessage.setText("invalid");
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
 
-        Thread.sleep(500);
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME), is(0));
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME), is(0));
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
     }
 
     @Test
@@ -104,10 +105,7 @@ public class JobStoreMessageConsumerBeanIT {
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
 
-        Thread.sleep(2000);
-
-        final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.listQueue(JmsQueueConnector.SINKS_QUEUE_NAME);
-        assertThat(sinksQueue.size(), is(2));
+        final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
 
         ChunkResult processorResult;
 
@@ -125,7 +123,7 @@ public class JobStoreMessageConsumerBeanIT {
 
         // When the job-store starts reacting to these messages,
         // this assertion won't work any longer.
-        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME), is(2));
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
     }
 
     private ChunkResult assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {

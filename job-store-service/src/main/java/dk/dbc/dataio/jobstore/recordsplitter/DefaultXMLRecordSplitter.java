@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -78,17 +79,15 @@ import java.util.List;
  * interface does not allow checked exceptions to be thrown.
  */
 public class DefaultXMLRecordSplitter implements Iterable<String> {
-
-    private XLogger log = XLoggerFactory.getXLogger(DefaultXMLRecordSplitter.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DefaultXMLRecordSplitter.class);
 
     private final XMLEventReader xmlReader;
     private final XMLEventFactory xmlEventFactory;
     private final XMLOutputFactory xmlOutputFactory;
-    //
     private final List<XMLEvent> preRecordEvents;
     private final String rootTag;
 
-    private String encoding;
+    private String encoding = StandardCharsets.UTF_8.name();
 
     /**
      * Creates an instance of DefaultXMLRecordSplitter ready to read from {@code inputStream}.
@@ -182,7 +181,7 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
             return xmlReader.peek().getEventType() == XMLEvent.START_ELEMENT;
         } catch (XMLStreamException ex) {
             String errMsg = "Could not peek at next event";
-            log.error(errMsg, ex);
+            LOGGER.error(errMsg, ex);
             throw new IllegalDataException(errMsg, ex);
         }
     }
@@ -192,7 +191,7 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
             return xmlReader.peek().getEventType() == XMLEvent.END_ELEMENT;
         } catch (XMLStreamException ex) {
             String errMsg = "Could not peek at next event";
-            log.error(errMsg, ex);
+            LOGGER.error(errMsg, ex);
             throw new IllegalDataException(errMsg, ex);
         }
     }
@@ -246,7 +245,7 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
 
                     return baos.toString(encoding);
                 } catch (XMLStreamException | UnsupportedEncodingException ex) {
-                    log.error("Exception", ex);
+                    LOGGER.error("Exception", ex);
                     throw new IllegalDataException(ex);
                 }
             }

@@ -89,6 +89,16 @@ public class DefaultXMLRecordSplitterTest {
         assertThat(it.hasNext(), is(false));
     }
 
+    @Test
+    public void testMissingXMLHeaderDefaultEncodingIsReturned() throws UnsupportedEncodingException, XMLStreamException {
+        final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
+
+        final DefaultXMLRecordSplitter xmlRecordSplitter = new DefaultXMLRecordSplitter(new ByteArrayInputStream(xml.getBytes(UTF8_CHARSET)));
+        final Iterator<String> it = xmlRecordSplitter.iterator();
+        assertThat(it.hasNext(), is(true));
+        assertThat(xmlRecordSplitter.getEncoding(), is(StandardCharsets.UTF_8.name()));
+    }
+
     @Test(expected = IllegalDataException.class)
     public void testErrornousXMLContainingOnlyRootStartElement_throwsException() throws XMLStreamException, UnsupportedEncodingException {
         String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>";

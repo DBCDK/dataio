@@ -22,46 +22,46 @@
     <developmentDataioGuiSubversionScmEndpointProperty> </developmentDataioGuiSubversionScmEndpointProperty>
  </properties>
 
- <profiles>
-   <profile>
-     <id>dev</id>
-     <properties>
-       <developmentFlowStoreURLProperty>-DflowStoreURL=http://localhost:${container.http.port}/flow-store</developmentFlowStoreURLProperty>
-       <developmentJobStoreURLProperty>-DdataioJobStoreServiceEndpoint=http://localhost:${container.http.port}/job-store</developmentJobStoreURLProperty>
-       <developmentSinkServiceURLProperty>-DdataioSinkServiceEndpoint=http://localhost:${container.http.port}/sink-service</developmentSinkServiceURLProperty>
-       <developmentDataioGuiSubversionScmEndpointProperty>-DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</developmentDataioGuiSubversionScmEndpointProperty>
-     </properties>
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <developmentFlowStoreURLProperty>-DflowStoreURL=http://localhost:${container.http.port}/flow-store</developmentFlowStoreURLProperty>
+        <developmentJobStoreURLProperty>-DdataioJobStoreServiceEndpoint=http://localhost:${container.http.port}/job-store</developmentJobStoreURLProperty>
+        <developmentSinkServiceURLProperty>-DdataioSinkServiceEndpoint=http://localhost:${container.http.port}/sink-service</developmentSinkServiceURLProperty>
+        <developmentDataioGuiSubversionScmEndpointProperty>-DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</developmentDataioGuiSubversionScmEndpointProperty>
+      </properties>
 
-  <dependencies>
+      <dependencies>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+          <version>1.7.2</version>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven2-plugin</artifactId>
+            <version>${cargo.version}</version>
+            <dependencies>
               <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>1.7.2</version>
+                <groupId>org.glassfish.main.deployment</groupId>
+                <artifactId>deployment-client</artifactId>
+                <version>${glassfish.version}</version>
               </dependency>
-  </dependencies>
+            </dependencies>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
 
-     <build>
-       <plugins>
-         <plugin>
-           <groupId>org.codehaus.cargo</groupId>
-           <artifactId>cargo-maven2-plugin</artifactId>
-           <version>${cargo.version}</version>
-           <dependencies>
-             <dependency>
-               <groupId>org.glassfish.main.deployment</groupId>
-               <artifactId>deployment-client</artifactId>
-               <version>${glassfish.version}</version>
-             </dependency>
-           </dependencies>
-           <configuration>
-             <skip>true</skip>
-           </configuration>
-         </plugin>
-       </plugins>
-     </build>
-
-   </profile>
- </profiles>
+    </profile>
+  </profiles>
 
 
   <dependencies>
@@ -151,14 +151,14 @@
 
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-	<version>2.4</version>
+        <version>2.4</version>
         <executions>
           <execution>
-            <id>classbundle</id>
+            <id>classes</id>
             <goals><goal>jar</goal></goals>
             <phase>package</phase>
             <configuration>
-              <classifier>classbundle</classifier>
+              <classifier>classes</classifier>
               <includes>
                 <include>**/*</include>
               </includes>
@@ -201,7 +201,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
+        <version>2.3</version>
       </plugin>
 
     </plugins>

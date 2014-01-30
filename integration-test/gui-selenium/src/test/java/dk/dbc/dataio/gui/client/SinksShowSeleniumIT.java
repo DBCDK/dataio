@@ -20,18 +20,6 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSinksInsertOneRow_OneElementShown() {
-        final String SINK_NAME = "Sink-name";
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME, RESOURCE_NAME);
-        navigateToSinksShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SinksShowViewImpl.GUIID_SINKS_SHOW_WIDGET);
-        table.waitAssertRows(1);
-        List<String> rowData = table.getRow(0);
-        assertThat(rowData.get(0), is(SINK_NAME));
-        assertThat(rowData.get(1), is(RESOURCE_NAME));
-    }
-
-    @Test
     public void testSinksInsertTwoRows_TwoElementsShown() {
         final String SINK_NAME_1 = "NamoUno";
         final String SINK_NAME_2 = "NamoDuo";

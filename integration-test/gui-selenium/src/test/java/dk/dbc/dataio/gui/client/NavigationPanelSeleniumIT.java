@@ -31,6 +31,7 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
                 Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS,
                 Menu.GUIID_MAIN_MENU_ITEM_FLOWS,
                 Menu.GUIID_MAIN_MENU_ITEM_SINKS,
+                Menu.GUIID_MAIN_MENU_ITEM_JOBS,
             };
             // Then all of the sub menus
             subItems = new HashMap<>();
@@ -56,6 +57,12 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
                 Menu.GUIID_MAIN_MENU_ITEM_SINKS,
                 new String[] {
                     Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION,
+                }
+            );
+            // Submenus for Jobs Main Menu
+            subItems.put(
+                Menu.GUIID_MAIN_MENU_ITEM_JOBS,
+                new String[] {
                 }
             );
         }

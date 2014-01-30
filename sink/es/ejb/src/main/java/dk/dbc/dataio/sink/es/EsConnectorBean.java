@@ -22,7 +22,9 @@ public class EsConnectorBean {
     EsSinkConfigurationBean configuration;
 
     public Connection getConnection() throws SQLException, NamingException {
+        LOGGER.info("TEST: getConnection");
         final DataSource dataSource = doDataSourceLookup();
+        LOGGER.info("TEST: got datasource");
         return dataSource.getConnection();
     }
 
@@ -37,7 +39,9 @@ public class EsConnectorBean {
     }
 
     public int insertEsTaskPackage(EsWorkload esWorkload) throws SinkException {
+        LOGGER.info("TEST: trying");
         try (final Connection connection = getConnection()) {
+            LOGGER.info("TEST: inside try");
             return ESTaskPackageUtil.insertTaskPackage(
                     connection, configuration.getEsDatabaseName(), esWorkload);
         } catch (SQLException | NamingException e) {
@@ -73,17 +77,22 @@ public class EsConnectorBean {
     }
 
     private DataSource doDataSourceLookup() throws NamingException {
+        LOGGER.info("TEST: doDataSourceLookup Begin");
         final InitialContext initialContext = getInitialContext();
         try {
             final String esResourceName = configuration.getEsResourceName();
+            LOGGER.info("TEST: Looking up ES resource {}", esResourceName);
             LOGGER.debug("Looking up ES resource {}", esResourceName);
             final Object lookup = initialContext.lookup(esResourceName);
+            LOGGER.info("TEST: Done! Looking up ES resource {}", esResourceName);
             if (!(lookup instanceof DataSource)) {
                 throw new NamingException("Unexpected type of resource returned from lookup");
             }
             return (DataSource) lookup;
         } finally {
+            LOGGER.info("TEST: doDataSourceLookup END 1");
             closeInitialContext(initialContext);
+            LOGGER.info("TEST: doDataSourceLookup END 2");
         }
     }
 }

@@ -41,7 +41,8 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 public class EsMessageProcessorBeanIT {
-    private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
+    // todo: investigate why it takes a very long time (30+ secs) to obtain a ES db connection in certain cases (fx. on the Jenkins node)
+    private static final long MAX_QUEUE_WAIT_IN_MS = 120000;
 
     private static final String SINK_NAME = "esSinkIT";
     private static final String ES_RESOURCE_NAME = "jdbc/dataio/es";
@@ -111,7 +112,7 @@ public class EsMessageProcessorBeanIT {
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
-        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, 120000);
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
         assertThat(getNumberOfRecordsInFlight(), is(1));
         final List<Integer> esTaskPackages = getEsTaskPackages();
         assertThat(esTaskPackages.size(), is(1));

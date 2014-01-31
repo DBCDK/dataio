@@ -111,7 +111,7 @@ public class EsMessageProcessorBeanIT {
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
-        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, 120000);
         assertThat(getNumberOfRecordsInFlight(), is(1));
         final List<Integer> esTaskPackages = getEsTaskPackages();
         assertThat(esTaskPackages.size(), is(1));

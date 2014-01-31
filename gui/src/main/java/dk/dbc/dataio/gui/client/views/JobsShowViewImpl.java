@@ -117,7 +117,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     }
 
     private String getFileNameColumn(JobInfo content) {
-        return content.getJobSpecification().getDataFile();
+        return content.getJobSpecification().getDataFile().replaceFirst("^/tmp/", "");
     }
 
     private String getSubmitterNumberColumn(JobInfo content) {

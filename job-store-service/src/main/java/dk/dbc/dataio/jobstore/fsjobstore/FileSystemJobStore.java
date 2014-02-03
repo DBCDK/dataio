@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -11,28 +12,26 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.stream.XMLStreamException;
+import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
-
-import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
-import java.nio.file.DirectoryStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import javax.xml.stream.XMLStreamException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileSystemJobStore implements JobStore {
     static final String FLOW_FILE = "flow.json";
@@ -239,6 +238,7 @@ public class FileSystemJobStore implements JobStore {
         } catch (IOException e) {
                 throw new JobStoreException("Exception caught while reading job-directories in jobStore", e);
         }
+        Collections.sort(directories);
         return directories;
     }
 

@@ -10,7 +10,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 
 import javax.servlet.ServletException;
@@ -28,47 +28,47 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public void createFlow(FlowContent flowContent) throws NullPointerException, FlowStoreProxyException {
+    public void createFlow(FlowContent flowContent) throws NullPointerException, ProxyException {
         flowStoreProxy.createFlow(flowContent);
     }
 
     @Override
-    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, FlowStoreProxyException {
+    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException {
         flowStoreProxy.createFlowComponent(flowComponentContent);
     }
 
     @Override
-    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, FlowStoreProxyException {
+    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException {
         flowStoreProxy.createSubmitter(submitterContent);
     }
 
     @Override
-    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, FlowStoreProxyException {
+    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
         flowStoreProxy.createFlowBinder(flowBinderContent);
     }
 
     @Override
-    public void createSink(SinkContent sinkContent) throws NullPointerException, FlowStoreProxyException {
+    public void createSink(SinkContent sinkContent) throws NullPointerException, ProxyException {
         flowStoreProxy.createSink(sinkContent);
     }
 
     @Override
-    public List<FlowComponent> findAllComponents() throws FlowStoreProxyException {
+    public List<FlowComponent> findAllComponents() throws ProxyException {
         return flowStoreProxy.findAllComponents();
     }
 
     @Override
-    public List<Submitter> findAllSubmitters() throws FlowStoreProxyException {
+    public List<Submitter> findAllSubmitters() throws ProxyException {
         return flowStoreProxy.findAllSubmitters();
     }
 
     @Override
-    public List<Flow> findAllFlows() throws FlowStoreProxyException {
+    public List<Flow> findAllFlows() throws ProxyException {
         return flowStoreProxy.findAllFlows();
     }
 
     @Override
-    public List<Sink> findAllSinks() throws FlowStoreProxyException {
+    public List<Sink> findAllSinks() throws ProxyException {
         return flowStoreProxy.findAllSinks();
     }
 

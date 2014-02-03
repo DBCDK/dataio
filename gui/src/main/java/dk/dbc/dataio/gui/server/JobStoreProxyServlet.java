@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.gui.client.exceptions.JobStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -19,7 +19,7 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
-    public List<JobInfo> findAllJobs() throws JobStoreProxyException {
+    public List<JobInfo> findAllJobs() throws ProxyException {
         return jobStoreProxy.findAllJobs();
     }
 

@@ -5,27 +5,25 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SinkServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.gui.client.exceptions.SinkServiceProxyError;
-import dk.dbc.dataio.gui.client.exceptions.SinkServiceProxyException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import java.util.Arrays;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -50,20 +48,20 @@ public class SinkServiceProxyImplTest {
         sinkServiceProxy.ping(null);
     }
 
-    @Test(expected = SinkServiceProxyException.class)
+    @Test(expected = ProxyException.class)
     public void ping_sinkServiceEndpointCanNotBeLookedUp_throws() throws Exception {
         when(ServiceUtil.getSinkServiceEndpoint()).thenThrow(new NamingException());
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
             sinkServiceProxy.ping(getValidSinkContent());
-        } catch (SinkServiceProxyException e) {
-            assertThat(e.getErrorCode(), is(SinkServiceProxyError.SERVICE_NOT_FOUND));
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
             throw e;
         }
     }
 
-    @Test(expected = SinkServiceProxyException.class)
+    @Test(expected = ProxyException.class)
     public void ping_remoteServiceReturnsHttpStatusBadRequest_throws() throws Exception {
         when(HttpClient.doPostWithJson(any(Client.class), any(SinkContent.class), eq(sinkServiceUrl), eq(SinkServiceEntryPoint.PING)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.BAD_REQUEST.getStatusCode(), ""));
@@ -71,13 +69,13 @@ public class SinkServiceProxyImplTest {
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
             sinkServiceProxy.ping(getValidSinkContent());
-        } catch (SinkServiceProxyException e) {
-            assertThat(e.getErrorCode(), is(SinkServiceProxyError.BAD_REQUEST));
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.BAD_REQUEST));
             throw e;
         }
     }
 
-    @Test(expected = SinkServiceProxyException.class)
+    @Test(expected = ProxyException.class)
     public void ping_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
         when(HttpClient.doPostWithJson(any(Client.class), any(SinkContent.class), eq(sinkServiceUrl), eq(SinkServiceEntryPoint.PING)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.NOT_FOUND.getStatusCode(), ""));
@@ -85,13 +83,13 @@ public class SinkServiceProxyImplTest {
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
             sinkServiceProxy.ping(getValidSinkContent());
-        } catch (SinkServiceProxyException e) {
-            assertThat(e.getErrorCode(), is(SinkServiceProxyError.SERVICE_NOT_FOUND));
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
             throw e;
         }
     }
 
-    @Test(expected = SinkServiceProxyException.class)
+    @Test(expected = ProxyException.class)
     public void ping_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         when(HttpClient.doPostWithJson(any(Client.class), any(SinkContent.class), eq(sinkServiceUrl), eq(SinkServiceEntryPoint.PING)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
@@ -99,8 +97,8 @@ public class SinkServiceProxyImplTest {
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
             sinkServiceProxy.ping(getValidSinkContent());
-        } catch (SinkServiceProxyException e) {
-            assertThat(e.getErrorCode(), is(SinkServiceProxyError.INTERNAL_SERVER_ERROR));
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
             throw e;
         }
     }

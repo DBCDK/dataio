@@ -7,8 +7,8 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.i18n.SinkCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.SinkCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -88,10 +88,10 @@ public class CreateSinkActivity extends AbstractActivity implements SinkCreatePr
         });
     }
 
-    private FlowStoreProxyError getErrorCode(Throwable e) {
-        FlowStoreProxyError errorCode = null;
-        if (e instanceof FlowStoreProxyException) {
-            errorCode = ((FlowStoreProxyException) e).getErrorCode();
+    private ProxyError getErrorCode(Throwable e) {
+        ProxyError errorCode = null;
+        if (e instanceof ProxyException) {
+            errorCode = ((ProxyException) e).getErrorCode();
         }
         return errorCode;
     }

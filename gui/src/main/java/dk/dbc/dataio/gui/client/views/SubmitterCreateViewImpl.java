@@ -7,7 +7,7 @@ import com.google.gwt.user.client.Window;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.i18n.SubmitterCreateConstants;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
 
@@ -85,7 +85,7 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
      * @param detail Details about the error
      */
     @Override
-    public void onFlowStoreProxyFailure(FlowStoreProxyError errorCode, String detail) {
+    public void onFlowStoreProxyFailure(ProxyError errorCode, String detail) {
         final String errorMessage;
         if (errorCode == null) {
             errorMessage = detail;

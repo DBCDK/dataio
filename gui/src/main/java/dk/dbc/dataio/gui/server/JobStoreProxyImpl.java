@@ -3,8 +3,8 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.gui.client.exceptions.JobStoreProxyError;
-import dk.dbc.dataio.gui.client.exceptions.JobStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import java.util.List;
 import javax.servlet.ServletException;
@@ -23,13 +23,13 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public List<JobInfo> findAllJobs() throws JobStoreProxyException {
+    public List<JobInfo> findAllJobs() throws ProxyException {
         final Response response;
         final List<JobInfo> result;
         try {
             response = HttpClient.doGet(client, ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
         } catch (ServletException e) {
-            throw new JobStoreProxyException(JobStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.OK);
@@ -44,21 +44,21 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         HttpClient.closeClient(client);
     }
 
-    private void assertStatusCode(Response response, Response.Status expectedStatus) throws JobStoreProxyException {
+    private void assertStatusCode(Response response, Response.Status expectedStatus) throws ProxyException {
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         if (status != expectedStatus) {
-            final JobStoreProxyError errorCode;
+            final ProxyError errorCode;
             switch (status) {
-                case BAD_REQUEST: errorCode = JobStoreProxyError.BAD_REQUEST;
+                case BAD_REQUEST: errorCode = ProxyError.BAD_REQUEST;
                     break;
-                case NOT_ACCEPTABLE: errorCode = JobStoreProxyError.NOT_ACCEPTABLE;
+                case NOT_ACCEPTABLE: errorCode = ProxyError.NOT_ACCEPTABLE;
                     break;
-                case PRECONDITION_FAILED: errorCode = JobStoreProxyError.ENTITY_NOT_FOUND;
+                case PRECONDITION_FAILED: errorCode = ProxyError.ENTITY_NOT_FOUND;
                     break;
                 default:
-                    errorCode = JobStoreProxyError.INTERNAL_SERVER_ERROR;
+                    errorCode = ProxyError.INTERNAL_SERVER_ERROR;
             }
-            throw new JobStoreProxyException(errorCode, response.readEntity(String.class));
+            throw new ProxyException(errorCode, response.readEntity(String.class));
         }
     }
 

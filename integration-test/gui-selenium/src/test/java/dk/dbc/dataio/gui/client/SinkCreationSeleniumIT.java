@@ -18,7 +18,7 @@ public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
     public static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
     private static final String SINK_NAME = "name";
     private static final String RESOURCE_NAME = "resource";
-    private static final int SAVE_SINK_TIMOUT = 4;
+    private static final int SAVE_SINK_TIMOUT = 10;  // Todo: Decrease to 4 seconds - is this the oracle error? Only a problem when starting up
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() {

@@ -5,8 +5,8 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.presenters.SubmitterCreatePresenter;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
@@ -60,10 +60,10 @@ public class CreateSubmitterActivity extends AbstractActivity implements Submitt
         containerWidget.setWidget(submitterCreateView.asWidget());
     }
 
-    private FlowStoreProxyError getErrorCode(Throwable e) {
-        FlowStoreProxyError errorCode = null;
-        if (e instanceof FlowStoreProxyException) {
-            errorCode = ((FlowStoreProxyException) e).getErrorCode();
+    private ProxyError getErrorCode(Throwable e) {
+        ProxyError errorCode = null;
+        if (e instanceof ProxyException) {
+            errorCode = ((ProxyException) e).getErrorCode();
         }
         return errorCode;
     }

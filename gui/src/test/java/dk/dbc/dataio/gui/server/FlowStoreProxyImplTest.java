@@ -5,8 +5,8 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,20 +45,20 @@ public class FlowStoreProxyImplTest {
         when(HttpClient.newClient()).thenReturn(client);
     }
 
-    @Test(expected = FlowStoreProxyException.class)
+    @Test(expected = ProxyException.class)
     public void findAllSinks_flowStoreServiceEndpointCanNotBeLookedUp_throws() throws Exception {
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
 
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
         try {
             flowStoreProxy.findAllSinks();
-        } catch (FlowStoreProxyException e) {
-            assertThat(e.getErrorCode(), is(FlowStoreProxyError.SERVICE_NOT_FOUND));
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
             throw e;
         }
     }
 
-    @Test(expected = FlowStoreProxyException.class)
+    @Test(expected = ProxyException.class)
     public void findAllSinks_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceEntryPoint.SINKS)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
@@ -66,8 +66,8 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
         try {
             flowStoreProxy.findAllSinks();
-        } catch (FlowStoreProxyException e) {
-            assertThat(e.getErrorCode(), is(FlowStoreProxyError.INTERNAL_SERVER_ERROR));
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
             throw e;
         }
     }

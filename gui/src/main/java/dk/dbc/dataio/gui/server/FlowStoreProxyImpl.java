@@ -11,8 +11,8 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyError;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -32,13 +32,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createFlow(FlowContent flowContent) throws NullPointerException, FlowStoreProxyException {
+    public void createFlow(FlowContent flowContent) throws NullPointerException, ProxyException {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, flowContent,
                     ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.CREATED);
@@ -48,13 +48,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, FlowStoreProxyException {
+    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, flowComponentContent,
                     ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.CREATED);
@@ -64,13 +64,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, FlowStoreProxyException {
+    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, ProxyException {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, submitterContent,
                     ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SUBMITTERS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.CREATED);
@@ -80,13 +80,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, FlowStoreProxyException {
+    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, flowBinderContent,
                     ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_BINDERS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.CREATED);
@@ -96,13 +96,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createSink(SinkContent sinkContent) throws NullPointerException, FlowStoreProxyException {
+    public void createSink(SinkContent sinkContent) throws NullPointerException, ProxyException {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, sinkContent,
                     ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.CREATED);
@@ -112,13 +112,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<FlowComponent> findAllComponents() throws FlowStoreProxyException {
+    public List<FlowComponent> findAllComponents() throws ProxyException {
         final Response response;
         final List<FlowComponent> result;
         try {
             response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.OK);
@@ -130,13 +130,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Submitter> findAllSubmitters() throws FlowStoreProxyException {
+    public List<Submitter> findAllSubmitters() throws ProxyException {
         final Response response;
         final List<Submitter> result;
         try {
             response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SUBMITTERS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.OK);
@@ -148,13 +148,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Flow> findAllFlows() throws FlowStoreProxyException {
+    public List<Flow> findAllFlows() throws ProxyException {
         final Response response;
         final List<Flow> result;
         try {
             response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.OK);
@@ -166,13 +166,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Sink> findAllSinks() throws FlowStoreProxyException {
+    public List<Sink> findAllSinks() throws ProxyException {
         final Response response;
         final List<Sink> result;
         try {
             response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS);
         } catch (ServletException e) {
-            throw new FlowStoreProxyException(FlowStoreProxyError.SERVICE_NOT_FOUND, e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
             assertStatusCode(response, Response.Status.OK);
@@ -187,21 +187,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         HttpClient.closeClient(client);
     }
 
-    private void assertStatusCode(Response response, Response.Status expectedStatus) throws FlowStoreProxyException {
+    private void assertStatusCode(Response response, Response.Status expectedStatus) throws ProxyException {
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         if (status != expectedStatus) {
-            final FlowStoreProxyError errorCode;
+            final ProxyError errorCode;
             switch (status) {
-                case BAD_REQUEST: errorCode = FlowStoreProxyError.BAD_REQUEST;
+                case BAD_REQUEST: errorCode = ProxyError.BAD_REQUEST;
                     break;
-                case NOT_ACCEPTABLE: errorCode = FlowStoreProxyError.NOT_ACCEPTABLE;
+                case NOT_ACCEPTABLE: errorCode = ProxyError.NOT_ACCEPTABLE;
                     break;
-                case PRECONDITION_FAILED: errorCode = FlowStoreProxyError.ENTITY_NOT_FOUND;
+                case PRECONDITION_FAILED: errorCode = ProxyError.ENTITY_NOT_FOUND;
                     break;
                 default:
-                    errorCode = FlowStoreProxyError.INTERNAL_SERVER_ERROR;
+                    errorCode = ProxyError.INTERNAL_SERVER_ERROR;
             }
-            throw new FlowStoreProxyException(errorCode, response.readEntity(String.class));
+            throw new ProxyException(errorCode, response.readEntity(String.class));
         }
     }
 

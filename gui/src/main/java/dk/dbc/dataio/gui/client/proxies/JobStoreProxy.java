@@ -4,13 +4,13 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.gui.client.exceptions.JobStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import java.util.List;
 
 @RemoteServiceRelativePath("JobStoreProxy")
 public interface JobStoreProxy extends RemoteService {
 
-    List<JobInfo> findAllJobs() throws JobStoreProxyException;
+    List<JobInfo> findAllJobs() throws ProxyException;
 
     void close();
 

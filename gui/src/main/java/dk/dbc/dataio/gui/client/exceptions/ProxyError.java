@@ -1,6 +1,6 @@
 package dk.dbc.dataio.gui.client.exceptions;
 
-public enum JobStoreProxyError {
+public enum ProxyError {
     SERVICE_NOT_FOUND,
     BAD_REQUEST,                // invalid data content
     NOT_ACCEPTABLE,             // violation of unique key contraints

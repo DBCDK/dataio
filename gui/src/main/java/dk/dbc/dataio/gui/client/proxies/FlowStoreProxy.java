@@ -12,23 +12,23 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.exceptions.FlowStoreProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 
 import java.util.List;
 
 @RemoteServiceRelativePath("FlowStoreProxy")
 public interface FlowStoreProxy extends RemoteService {
 
-    void createFlow(FlowContent flowContent) throws NullPointerException, FlowStoreProxyException;
-    void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, FlowStoreProxyException;
-    void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, FlowStoreProxyException;
-    void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, FlowStoreProxyException;
-    void createSink(SinkContent sinkContent) throws NullPointerException, FlowStoreProxyException;
+    void createFlow(FlowContent flowContent) throws NullPointerException, ProxyException;
+    void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
+    void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException;
+    void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException;
+    void createSink(SinkContent sinkContent) throws NullPointerException, ProxyException;
 
-    List<FlowComponent> findAllComponents() throws FlowStoreProxyException;
-    List<Submitter> findAllSubmitters() throws FlowStoreProxyException;
-    List<Flow> findAllFlows() throws FlowStoreProxyException;
-    List<Sink> findAllSinks() throws FlowStoreProxyException;
+    List<FlowComponent> findAllComponents() throws ProxyException;
+    List<Submitter> findAllSubmitters() throws ProxyException;
+    List<Flow> findAllFlows() throws ProxyException;
+    List<Sink> findAllSinks() throws ProxyException;
 
     void close();
 

@@ -1,9 +1,11 @@
 package dk.dbc.dataio.jobprocessor.exception;
 
+import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+
 import javax.ejb.ApplicationException;
 
 @ApplicationException(rollback = true)
-public class JobProcessorException extends Exception {
+public class JobProcessorException extends ServiceException {
     private static final long serialVersionUID = -4334811455450628052L;
 
     /**

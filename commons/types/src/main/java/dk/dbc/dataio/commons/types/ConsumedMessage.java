@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobprocessor.dto;
+package dk.dbc.dataio.commons.types;
 
 public class ConsumedMessage {
     private final String messageId;

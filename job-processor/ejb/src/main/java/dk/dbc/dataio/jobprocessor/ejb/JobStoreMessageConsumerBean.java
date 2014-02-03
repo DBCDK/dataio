@@ -4,8 +4,9 @@ import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
-import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
+import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,16 +29,16 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
      *
      * @param consumedMessage message to be handled
      *
-     * @throws InvalidMessageJobProcessorException if message payload can not be unmarshalled to NewJob instance
+     * @throws InvalidMessageException if message payload can not be unmarshalled to NewJob instance
      * @throws JobProcessorException on general handling error
      */
-    protected void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            NewJob newJob = JsonUtil.fromJson(consumedMessage.getMessagePayload(), NewJob.class, MixIns.getMixIns());
+            final NewJob newJob = JsonUtil.fromJson(consumedMessage.getMessagePayload(), NewJob.class, MixIns.getMixIns());
             LOGGER.info("Received NewJob for jobId={}", newJob.getJobId());
             jobProcessor.process(newJob);
         } catch (JsonException e) {
-            throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid NewJob type", consumedMessage.getMessageId()), e);
+            throw new InvalidMessageException(String.format("Message<%s> payload was not valid NewJob type", consumedMessage.getMessageId()), e);
         }
     }
 

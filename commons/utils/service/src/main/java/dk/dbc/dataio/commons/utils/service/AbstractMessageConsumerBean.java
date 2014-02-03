@@ -1,8 +1,8 @@
-package dk.dbc.dataio.jobprocessor.ejb;
+package dk.dbc.dataio.commons.utils.service;
 
-import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
-import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
-import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public abstract class AbstractMessageConsumerBean {
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
 
     @Resource
-    MessageDrivenContext messageDrivenContext;
+    protected MessageDrivenContext messageDrivenContext;
 
     /**
      * Message validation.
@@ -35,28 +35,28 @@ public abstract class AbstractMessageConsumerBean {
      *
      * @return message as ConsumedMessage instance
      *
-     * @throws InvalidMessageJobProcessorException when massage fails to validate
+     * @throws InvalidMessageException when message fails to validate
      */
-    protected ConsumedMessage validateMessage(Message message) throws InvalidMessageJobProcessorException {
+    public ConsumedMessage validateMessage(Message message) throws InvalidMessageException {
         if (message == null) {
-            throw new InvalidMessageJobProcessorException("Message can not be null");
+            throw new InvalidMessageException("Message can not be null");
         }
         try {
             final String messageId = message.getJMSMessageID();
             LOGGER.info("Validating message<{}> with deliveryCount={}", messageId, message.getIntProperty(DELIVERY_COUNT_PROPERTY));
             if (!(message instanceof TextMessage)) {
-                throw new InvalidMessageJobProcessorException(String.format("Message<%s> was not of type TextMessage", messageId));
+                throw new InvalidMessageException(String.format("Message<%s> was not of type TextMessage", messageId));
             }
             final String messagePayload = ((TextMessage) message).getText();
             if (messagePayload == null) {
-                throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was null", messageId));
+                throw new InvalidMessageException(String.format("Message<%s> payload was null", messageId));
             }
             if (messagePayload.isEmpty()) {
-                throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload is empty string", messageId));
+                throw new InvalidMessageException(String.format("Message<%s> payload is empty string", messageId));
             }
             return new ConsumedMessage(messageId, messagePayload);
         } catch (JMSException e) {
-            throw new InvalidMessageJobProcessorException("Unexpected exception during message validation");
+            throw new InvalidMessageException("Unexpected exception during message validation");
         }
     }
 
@@ -80,7 +80,7 @@ public abstract class AbstractMessageConsumerBean {
             final ConsumedMessage consumedMessage = validateMessage(message);
             messageId = consumedMessage.getMessageId();
             handleConsumedMessage(consumedMessage);
-        } catch (InvalidMessageJobProcessorException e) {
+        } catch (InvalidMessageException e) {
             LOGGER.error("Message rejected", e);
         } catch (Throwable t) {
             // Ensure that this container-managed transaction can never commit
@@ -95,7 +95,8 @@ public abstract class AbstractMessageConsumerBean {
      *
      * @param consumedMessage message to be handled
      *
-     * @throws JobProcessorException
+     * @throws InvalidMessageException
+     * @throws ServiceException
      */
-    protected abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException;
+    public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException;
 }

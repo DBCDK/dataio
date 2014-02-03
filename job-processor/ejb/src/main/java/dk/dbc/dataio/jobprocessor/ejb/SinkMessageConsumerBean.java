@@ -4,8 +4,9 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.jobprocessor.dto.ConsumedMessage;
-import dk.dbc.dataio.jobprocessor.exception.InvalidMessageJobProcessorException;
+import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,17 +30,17 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
      *
      * @param consumedMessage message to be handled
      *
-     * @throws InvalidMessageJobProcessorException if message payload can not be marshalled to SinkChunkResult instance
+     * @throws InvalidMessageException if message payload can not be marshalled to SinkChunkResult instance
      * @throws JobProcessorException on general handling error
      */
     @Override
-    protected void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException {
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            SinkChunkResult sinkChunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
+            final SinkChunkResult sinkChunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
             LOGGER.info("Received SinkChunkResult for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());
             jobStoreMessageProducer.send(sinkChunkResult);
         } catch (JsonException e) {
-            throw new InvalidMessageJobProcessorException(String.format("Message<%s> payload was not valid SinkChunkResult type", consumedMessage.getMessageId()), e);
+            throw new InvalidMessageException(String.format("Message<%s> payload was not valid SinkChunkResult type", consumedMessage.getMessageId()), e);
         }
     }
 

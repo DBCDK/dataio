@@ -71,7 +71,7 @@ public class JobHandlerBean {
     private void processChunk(Job job, int chunkId, Sink sink) throws JobStoreException {
         final Chunk chunk = jobStore.getChunk(job.getId(), chunkId);
         final ChunkResult processedChunk = ChunkProcessor.processChunk(chunk);
-        jobStore.addChunkResult(job, processedChunk);
+        //jobStore.addProcessorResult(job, processedChunk);
         dispatchChunkResult(processedChunk, sink);
     }
 

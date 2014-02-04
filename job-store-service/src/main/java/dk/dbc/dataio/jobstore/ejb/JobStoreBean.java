@@ -76,8 +76,8 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public void addChunkResult(Job job, ChunkResult processedChunk) throws JobStoreException {
-        jobStore.addChunkResult(job, processedChunk);
+    public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
+        jobStore.addProcessorResult(processorResult);
     }
 
     @Override

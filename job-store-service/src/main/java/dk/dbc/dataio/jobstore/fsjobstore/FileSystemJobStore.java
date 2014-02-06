@@ -16,7 +16,10 @@ import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.stream.XMLStreamException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -29,9 +32,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import javax.xml.stream.XMLStreamException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 
 public class FileSystemJobStore implements JobStore {
     static final String FLOW_FILE = "flow.json";
@@ -41,6 +43,8 @@ public class FileSystemJobStore implements JobStore {
     static final String JOBINFO_FILE = "jobinfo.json";
     static final String JOBSTATE_FILE = "jobstate.json";
     static final String CHUNK_COUNTER_FILE = "chunk.cnt";
+    static final String PROCESSOR_COUNTER_FILE = "processor.cnt";
+    static final String PROCESSOR_RESULT_FILENAME_PATTERN = "%d.res.json";
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemJobStore.class);
@@ -77,6 +81,7 @@ public class FileSystemJobStore implements JobStore {
         storeSinkInJob(jobPath, sink);
         storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
+        createProcessorCounterFile(jobId);
 
         JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0, null);
 
@@ -126,7 +131,7 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public void updateJobState(Job job) throws JobStoreException {
+    public synchronized void updateJobState(Job job) throws JobStoreException {
         try {
             LOGGER.debug("Updating job state: {}", JsonUtil.toJson(job.getJobState()));
         } catch (JsonException e) {
@@ -306,7 +311,7 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public ChunkResult getProcessChunkResult(Job job, long chunkResultId) throws JobStoreException {
-        final Path chunkResultPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.res.json", chunkResultId));
+        final Path chunkResultPath = Paths.get(getJobPath(job.getId()).toString(), String.format(PROCESSOR_RESULT_FILENAME_PATTERN, chunkResultId));
         ChunkResult chunkResult;
         try (BufferedReader br = Files.newBufferedReader(chunkResultPath, LOCAL_CHARSET)) {
             final StringBuilder sb = new StringBuilder();
@@ -323,20 +328,23 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
-        final Path chunkPath = Paths.get(getJobPath(processorResult.getJobId()).toString(), String.format("%d.res.json", processorResult.getChunkId()));
-        LOGGER.info("Creating chunk result json-file: {}", chunkPath);
+        final Path chunkPath = Paths.get(getJobPath(processorResult.getJobId()).toString(), String.format(PROCESSOR_RESULT_FILENAME_PATTERN, processorResult.getChunkId()));
+        LOGGER.info("Creating processor result json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
             bw.write(JsonUtil.toJson(processorResult));
         } catch (IOException | JsonException e) {
-            LOGGER.info("CAUGHT", e);
-            throw new JobStoreException(String.format("Exception caught when trying to write chunk result: [%s, %s]", processorResult.getJobId(), processorResult.getChunkId()), e);
+            final String errorMsg = String.format("Exception caught when trying to write processor result: [%s, %s]",
+                    processorResult.getJobId(), processorResult.getChunkId());
+            LOGGER.error(errorMsg, e);
+            throw new JobStoreException(errorMsg, e);
         }
+        incrementProcessorCounter(processorResult.getJobId());
     }
 
     @Override
     public long getNumberOfChunksInJob(Job job) throws JobStoreException {
         final Path chunkCounterFile = getChunkCounterFile(job.getId());
-        return readLongValueFromChunkCounterFile(chunkCounterFile);
+        return readLongValueFromCounterFile(chunkCounterFile);
     }
 
     private Path getChunkCounterFile(long jobId) {
@@ -349,7 +357,7 @@ public class FileSystemJobStore implements JobStore {
         if (Files.exists(chunkCounterFile)) {
             throw new JobStoreException("Chunk counter file already exists");
         }
-        writeLongValueToChunkCounterFile(chunkCounterFile, 0L);
+        writeLongValueToCounterFile(chunkCounterFile, 0L);
         LOGGER.info("Created chunk counter file: {}", chunkCounterFile);
     }
 
@@ -358,33 +366,55 @@ public class FileSystemJobStore implements JobStore {
         if (!Files.exists(chunkCounterFile)) {
             throw new JobStoreException("Chunk counter file not found");
         }
-        Long chunkCounter = readLongValueFromChunkCounterFile(chunkCounterFile);
+        Long chunkCounter = readLongValueFromCounterFile(chunkCounterFile);
         chunkCounter++;
-        writeLongValueToChunkCounterFile(chunkCounterFile, chunkCounter);
+        writeLongValueToCounterFile(chunkCounterFile, chunkCounter);
     }
 
-    private Long readLongValueFromChunkCounterFile(Path chunkCounterFile) throws JobStoreException {
-        Long chunkCounter;
-        try (BufferedReader br = Files.newBufferedReader(chunkCounterFile, LOCAL_CHARSET)) {
+    private Path getProcessorCounterFile(long jobId) {
+        final Path jobPath = getJobPath(jobId);
+        return Paths.get(jobPath.toString(), PROCESSOR_COUNTER_FILE);
+    }
+
+    private void createProcessorCounterFile(long jobId) throws JobStoreException {
+        final Path processorCounterFile = getProcessorCounterFile(jobId);
+        if (Files.exists(processorCounterFile)) {
+            throw new JobStoreException("Processor counter file already exists");
+        }
+        writeLongValueToCounterFile(processorCounterFile, 0L);
+        LOGGER.info("Created processor counter file: {}", processorCounterFile);
+    }
+
+    private synchronized void incrementProcessorCounter(long jobId) throws JobStoreException {
+        final Path processorCounterFile = getProcessorCounterFile(jobId);
+        if (!Files.exists(processorCounterFile)) {
+            throw new JobStoreException(String.format("Processor counter file %s not found", processorCounterFile));
+        }
+        Long processorCounter = readLongValueFromCounterFile(processorCounterFile);
+        writeLongValueToCounterFile(processorCounterFile, ++processorCounter);
+    }
+
+    private Long readLongValueFromCounterFile(Path counterFile) throws JobStoreException {
+        Long counter;
+        try (BufferedReader br = Files.newBufferedReader(counterFile, LOCAL_CHARSET)) {
             String value = br.readLine();
             if (value != null) {
                 value = value.trim();
             } else {
-                throw new NullPointerException("Value from chunk counter file is null");
+                throw new NullPointerException(String.format("Value from counter file %s is null", counterFile));
             }
-            LOGGER.info("Reading count value :  [{}]", value);
-            chunkCounter = Long.valueOf(value);
+            counter = Long.valueOf(value);
         } catch (IOException e) {
-            throw new JobStoreException("Exception caught when trying to read from chunk counter file", e);
+            throw new JobStoreException(String.format("Exception caught when trying to read from counter file %s", counterFile), e);
         }
-        return chunkCounter;
+        return counter;
     }
 
-    private void writeLongValueToChunkCounterFile(Path chunkCounterFile, Long chunkCounter) throws JobStoreException {
-        try (BufferedWriter bw = Files.newBufferedWriter(chunkCounterFile, LOCAL_CHARSET)) {
-            bw.write(chunkCounter.toString());
+    private void writeLongValueToCounterFile(Path counterFile, Long counter) throws JobStoreException {
+        try (BufferedWriter bw = Files.newBufferedWriter(counterFile, LOCAL_CHARSET)) {
+            bw.write(counter.toString());
         } catch (IOException e) {
-            throw new JobStoreException("Exception caught when trying to write to chunk counter file", e);
+            throw new JobStoreException(String.format("Exception caught when trying to write to counter file %s", counterFile), e);
         }
     }
 

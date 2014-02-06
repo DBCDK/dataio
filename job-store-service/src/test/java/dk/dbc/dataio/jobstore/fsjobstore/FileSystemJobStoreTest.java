@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobErrorCode;
@@ -8,6 +9,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -127,6 +129,18 @@ public class FileSystemJobStoreTest {
     }
 
     @Test
+    public void createJob_newJobIsCreated_processorCounterFileIsAddedToJobFolder() throws Exception {
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final JobSpecification jobSpec = createJobSpecification(getDataFile());
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
+        assertThat(job, is(notNullValue()));
+        final Path processorCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.PROCESSOR_COUNTER_FILE);
+        assertThat(Files.exists(processorCounterFile), is(true));
+        assertThat(readFileIntoString(processorCounterFile), is("0"));
+    }
+
+    @Test
     public void createJob_newJobIsCreated_jobSpecificationFileIsAddedToJobFolder() throws Exception {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
@@ -231,10 +245,24 @@ public class FileSystemJobStoreTest {
     }
 
     @Test
-    public void getAllJobInfos_happyPath_allJobInfosRetrieved() {
-
+    public void addProcessorResult_processorResultIsAdded_writesResultFileAndIncrementsProcessorCounter() throws IOException, JobStoreException {
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final JobSpecification jobSpec = createJobSpecification(getDataFile());
+        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
+        assertThat(job, is(notNullValue()));
+        final ChunkResult processorResult = new ChunkResultBuilder()
+                .setJobId(job.getId())
+                .build();
+        instance.addProcessorResult(processorResult);
+        final Path processorResultFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
+                String.format(FileSystemJobStore.PROCESSOR_RESULT_FILENAME_PATTERN, processorResult.getChunkId()));
+        assertThat(Files.exists(processorResultFile), is(true));
+        final Path processorCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
+                FileSystemJobStore.PROCESSOR_COUNTER_FILE);
+        assertThat(Files.exists(processorCounterFile), is(true));
+        assertThat(readFileIntoString(processorCounterFile), is("1"));
     }
-
 
     private Path getJobStorePath() throws IOException {
         final File root = tmpFolder.newFolder();

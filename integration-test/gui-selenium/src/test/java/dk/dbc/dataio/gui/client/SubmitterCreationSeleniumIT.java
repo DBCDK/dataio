@@ -16,7 +16,7 @@ import org.openqa.selenium.WebElement;
 public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("SubmitterCreateConstants_dk.properties");
 
-    private static final int SAVE_SUBMITTER_TIMOUT = 10;  // Todo: Decrease to 4 seconds - is this the oracle error? Only a problem when starting up
+    private static final int SAVE_SUBMITTER_TIMOUT = 4;
     private static final String NAME = "name";
     private static final String NUMBER = "42";
     private static final String DESCRIPTTION = "desc";

@@ -16,7 +16,7 @@ import org.openqa.selenium.WebElement;
 public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("FlowbinderCreateConstants_dk.properties");
 
-    private static final long SAVE_TIMEOUT = 10;  // Todo: Decrease to 4 seconds - is this the oracle error? Only a problem when starting up
+    private static final long SAVE_TIMEOUT = 4;
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {

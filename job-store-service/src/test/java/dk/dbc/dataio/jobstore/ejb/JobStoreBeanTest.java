@@ -61,7 +61,7 @@ public class JobStoreBeanTest {
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
-        assertThat(jsb.getNumberOfChunksInJob(job), is(1L));
+        assertThat(jsb.getNumberOfChunksInJob(job.getId()), is(1L));
         final Chunk chunk = jsb.getChunk(job.getId(), 1);
         assertThat(chunk.getRecords().size(), is(1));
         assertThat(base64decode(chunk.getRecords().get(0)), is(xmlHeader + someXML));
@@ -82,7 +82,7 @@ public class JobStoreBeanTest {
         Files.write(f, someXML.getBytes());
 
         final Job job = jsb.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink());
-        assertThat(jsb.getChunk(job.getId(), jsb.getNumberOfChunksInJob(job) + 1), is(nullValue()));
+        assertThat(jsb.getChunk(job.getId(), jsb.getNumberOfChunksInJob(job.getId()) + 1), is(nullValue()));
     }
 
     @Test

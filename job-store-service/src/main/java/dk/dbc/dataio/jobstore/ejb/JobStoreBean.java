@@ -56,18 +56,13 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public void updateJobState(Job job) throws JobStoreException {
-        jobStore.updateJobState(job);
-    }
-
-    @Override
     public List<JobInfo> getAllJobInfos() throws JobStoreException {
         return jobStore.getAllJobInfos();
     }
 
     @Override
-    public long getNumberOfChunksInJob(Job job) throws JobStoreException {
-        return jobStore.getNumberOfChunksInJob(job);
+    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
+        return jobStore.getNumberOfChunksInJob(jobId);
     }
 
     @Override

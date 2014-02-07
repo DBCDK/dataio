@@ -51,17 +51,17 @@ public class JobHandlerBean {
     public JobInfo handleJob(Job job, Sink sink) throws JobStoreException {
         try {
             job.getJobState().setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.ACTIVE);
-            jobStore.updateJobState(job);
+            //jobStore.updateJobState(job);
             processJob(job, sink);
             return job.getJobInfo();
         } finally {
             job.getJobState().setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
-            jobStore.updateJobState(job);
+            //jobStore.updateJobState(job);
         }
     }
 
     private void processJob(Job job, Sink sink) throws JobStoreException {
-        final long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
+        final long numberOfChunks = jobStore.getNumberOfChunksInJob(job.getId());
         LOGGER.info("Processing {} chunks for job({})", numberOfChunks, job.getId());
         for (int chunkId = 1; chunkId <= numberOfChunks; chunkId++) {
             processChunk(job, chunkId, sink);
@@ -86,7 +86,7 @@ public class JobHandlerBean {
     }
 
     public String sendToSink(Job job) throws JobStoreException {
-        final long numberOfChunks = jobStore.getNumberOfChunksInJob(job);
+        final long numberOfChunks = jobStore.getNumberOfChunksInJob(job.getId());
         final String sinkFileName = String.format("%s.sink.txt", job.getId());
         final Path sinkFilePath = Paths.get(jobStore.jobStorePath.toString(), sinkFileName);
         LOGGER.info("Combining decoded chunk results from {} chunks for jobId {} in {}", numberOfChunks, job.getId(), sinkFilePath);

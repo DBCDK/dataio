@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
@@ -245,7 +246,7 @@ public class FileSystemJobStoreTest {
     }
 
     @Test
-    public void addProcessorResult_processorResultIsAdded_writesResultFileAndIncrementsProcessorCounter() throws IOException, JobStoreException {
+    public void addProcessorResult_processorResultIsAdded_writesResultFileAndIncrementsProcessorCounterAndUpdatesState() throws IOException, JobStoreException, JsonException {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
@@ -262,6 +263,10 @@ public class FileSystemJobStoreTest {
                 FileSystemJobStore.PROCESSOR_COUNTER_FILE);
         assertThat(Files.exists(processorCounterFile), is(true));
         assertThat(readFileIntoString(processorCounterFile), is("1"));
+        final Path stateFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
+                FileSystemJobStore.JOBSTATE_FILE);
+        final JobState jobState = JsonUtil.fromJson(readFileIntoString(stateFile), JobState.class, MixIns.getMixIns());
+        assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.PROCESSING), is(JobState.LifeCycleState.DONE));
     }
 
     private Path getJobStorePath() throws IOException {

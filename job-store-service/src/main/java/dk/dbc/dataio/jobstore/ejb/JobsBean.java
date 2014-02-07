@@ -18,9 +18,9 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -36,8 +36,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -91,7 +92,7 @@ public class JobsBean {
         try {
             job = jobStore.createJob(jobSpec, flowBinder, flow, sink);
             jobInfoJson = JsonUtil.toJson(job.getJobInfo());
-            final NewJob newJob = new NewJob(job.getId(), jobStore.getNumberOfChunksInJob(job), sink);
+            final NewJob newJob = new NewJob(job.getId(), jobStore.getNumberOfChunksInJob(job.getId()), sink);
             jobProcessorMessageProducer.send(newJob);
         } catch (JobStoreException | JsonException e) {
             throw new EJBException(e);

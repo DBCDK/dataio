@@ -86,10 +86,10 @@ public class FileSystemJobStore implements JobStore {
         JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0, null);
 
         Job job = new Job(jobInfo, new JobState(), flow);
-        // The Pending-State for chunkify is never written to the filesystem!!!
+        setJobState(jobId, job.getJobState());
         try {
             job.getJobState().setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.ACTIVE);
-            updateJobState(job);
+            setJobState(jobId, job.getJobState());
 
             final DefaultXMLRecordSplitter recordSplitter;
             try {
@@ -114,7 +114,7 @@ public class FileSystemJobStore implements JobStore {
             return job;
         } finally {
             job.getJobState().setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
-            updateJobState(job);
+            setJobState(jobId, job.getJobState());
             updateJobInfo(job, jobInfo);
         }
     }
@@ -130,15 +130,42 @@ public class FileSystemJobStore implements JobStore {
         storeJobInfoInJob(jobPath, jobInfo);
     }
 
-    @Override
-    public synchronized void updateJobState(Job job) throws JobStoreException {
-        try {
-            LOGGER.debug("Updating job state: {}", JsonUtil.toJson(job.getJobState()));
-        } catch (JsonException e) {
-            LOGGER.error("Error marshalling JobState object into JSON", e);
+    // Not thread-safe
+    private void setJobState(long jobId, JobState jobState) throws JobStoreException {
+        writeObjectToFile(getJobStatePath(jobId), jobState);
+    }
+
+    // Not thread-safe
+    private JobState getJobState(long jobId) throws JobStoreException {
+        return readObjectFromFile(getJobStatePath(jobId), JobState.class);
+    }
+
+    private static <T> T readObjectFromFile(Path objectPath, Class<T> tClass) throws JobStoreException {
+        T object;
+        try (BufferedReader br = Files.newBufferedReader(objectPath, LOCAL_CHARSET)) {
+            final StringBuilder sb = new StringBuilder();
+            String data;
+            while ((data = br.readLine()) != null) {
+                sb.append(data);
+            }
+            object = JsonUtil.fromJson(sb.toString(), tClass);
+        } catch (IOException | JsonException e) {
+            final String errorMsg = String.format("Exception caught while reading object from Path: %s", objectPath.toString());
+            LOGGER.error(errorMsg, e);
+            throw new JobStoreException(errorMsg, e);
         }
-        final Path jobPath = getJobPath(job.getId());
-        storeJobStateInJob(jobPath, job.getJobState());
+        return object;
+    }
+
+    private static <T> void writeObjectToFile(Path objectPath, T object) throws JobStoreException {
+        LOGGER.info("Writing JSON file: {}", objectPath);
+        try (BufferedWriter bw = Files.newBufferedWriter(objectPath, LOCAL_CHARSET)) {
+            bw.write(JsonUtil.toJson(object));
+        } catch (IOException | JsonException e) {
+            final String errorMsg = String.format("Exception caught when trying to write object to Path: %s", objectPath.toString());
+            LOGGER.error(errorMsg, e);
+            throw new JobStoreException(errorMsg, e);
+        }
     }
 
     @Override
@@ -222,14 +249,8 @@ public class FileSystemJobStore implements JobStore {
         return Paths.get(jobPath.toString(), JOBINFO_FILE);
     }
 
-    private void storeJobStateInJob(Path jobPath, JobState jobState) throws JobStoreException {
-        final Path jobStatePath = Paths.get(jobPath.toString(), JOBSTATE_FILE);
-        LOGGER.info("Creating JobState json-file: {}", jobStatePath);
-        try (BufferedWriter bw = Files.newBufferedWriter(jobStatePath, LOCAL_CHARSET)) {
-            bw.write(JsonUtil.toJson(jobState));
-        } catch (IOException | JsonException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to write JobState: %s", jobStatePath.toString()), e);
-        }
+    private Path getJobStatePath(long jobId) {
+        return Paths.get(getJobPath(jobId).toString(), JOBSTATE_FILE);
     }
 
     private static List<Path> getDirectories(final Path dir) throws JobStoreException {
@@ -339,12 +360,29 @@ public class FileSystemJobStore implements JobStore {
             throw new JobStoreException(errorMsg, e);
         }
         incrementProcessorCounter(processorResult.getJobId());
+        updateJobState(processorResult.getJobId());
+    }
+
+    private synchronized void updateJobState(long jobId) throws JobStoreException {
+        final long chunkCount = getNumberOfChunksInJob(jobId);
+        final long processorCount = getNumberOfProcessedChunksInJob(jobId);
+        JobState jobState = null;
+        if (processorCount == chunkCount) {
+            jobState = getJobState(jobId);
+            jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
+        } else if (processorCount == 1) {
+            jobState = getJobState(jobId);
+            jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.ACTIVE);
+        }
+        if (jobState != null) {
+            LOGGER.debug("Updating job state for job {}", jobId);
+            setJobState(jobId, jobState);
+        }
     }
 
     @Override
-    public long getNumberOfChunksInJob(Job job) throws JobStoreException {
-        final Path chunkCounterFile = getChunkCounterFile(job.getId());
-        return readLongValueFromCounterFile(chunkCounterFile);
+    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
+        return readLongValueFromCounterFile(getChunkCounterFile(jobId));
     }
 
     private Path getChunkCounterFile(long jobId) {
@@ -369,6 +407,10 @@ public class FileSystemJobStore implements JobStore {
         Long chunkCounter = readLongValueFromCounterFile(chunkCounterFile);
         chunkCounter++;
         writeLongValueToCounterFile(chunkCounterFile, chunkCounter);
+    }
+
+    private long getNumberOfProcessedChunksInJob(long jobId) throws JobStoreException {
+        return readLongValueFromCounterFile(getProcessorCounterFile(jobId));
     }
 
     private Path getProcessorCounterFile(long jobId) {

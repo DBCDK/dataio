@@ -16,11 +16,10 @@ public interface JobStore {
     Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException;
 
     void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException;
-    void updateJobState(Job job) throws JobStoreException;
 
     List<JobInfo> getAllJobInfos() throws JobStoreException;
 
-    long getNumberOfChunksInJob(Job job) throws JobStoreException;
+    long getNumberOfChunksInJob(long jobId) throws JobStoreException;
 
     Chunk getChunk(long jobId, long chunkId) throws JobStoreException;
 

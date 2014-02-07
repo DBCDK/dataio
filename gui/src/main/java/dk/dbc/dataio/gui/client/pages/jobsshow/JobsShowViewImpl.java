@@ -1,11 +1,13 @@
-package dk.dbc.dataio.gui.client.views;
+package dk.dbc.dataio.gui.client.pages.jobsshow;
 
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
-import dk.dbc.dataio.gui.client.i18n.JobsShowConstants;
-import dk.dbc.dataio.gui.client.presenters.JobsShowPresenter;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowConstants;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPresenter;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.List;
 
 /**

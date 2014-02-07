@@ -9,7 +9,7 @@ import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
-import dk.dbc.dataio.gui.client.places.JobsShowPlace;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.places.SinksShowPlace;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;

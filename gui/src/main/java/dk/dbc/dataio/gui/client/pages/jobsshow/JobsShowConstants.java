@@ -1,6 +1,7 @@
-package dk.dbc.dataio.gui.client.i18n;
+package dk.dbc.dataio.gui.client.pages.jobsshow;
 
 import com.google.gwt.i18n.client.Constants;
+import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
 public interface JobsShowConstants extends Constants {

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.places;
 
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
 import com.google.gwt.place.shared.PlaceHistoryMapper;
 import com.google.gwt.place.shared.WithTokenizers;
 

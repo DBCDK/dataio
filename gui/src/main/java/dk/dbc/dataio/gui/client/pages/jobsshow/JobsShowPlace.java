@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.places;
+package dk.dbc.dataio.gui.client.pages.jobsshow;
 
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;

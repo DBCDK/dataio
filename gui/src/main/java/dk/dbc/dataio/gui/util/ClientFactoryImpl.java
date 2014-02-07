@@ -12,7 +12,7 @@ import dk.dbc.dataio.gui.client.activities.CreateSinkActivity;
 import dk.dbc.dataio.gui.client.activities.CreateSubmitterActivity;
 import dk.dbc.dataio.gui.client.activities.ShowFlowComponentsActivity;
 import dk.dbc.dataio.gui.client.activities.ShowFlowsActivity;
-import dk.dbc.dataio.gui.client.activities.ShowJobsActivity;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowActivity;
 import dk.dbc.dataio.gui.client.activities.ShowSinksActivity;
 import dk.dbc.dataio.gui.client.activities.ShowSubmittersActivity;
 import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
@@ -20,7 +20,7 @@ import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
-import dk.dbc.dataio.gui.client.places.JobsShowPlace;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
 import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.places.SinksShowPlace;
 import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
@@ -43,8 +43,8 @@ import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.FlowsShowView;
 import dk.dbc.dataio.gui.client.views.FlowsShowViewImpl;
-import dk.dbc.dataio.gui.client.views.JobsShowView;
-import dk.dbc.dataio.gui.client.views.JobsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
 import dk.dbc.dataio.gui.client.views.SinkCreateViewImpl;
 import dk.dbc.dataio.gui.client.views.SinksShowView;
@@ -121,7 +121,7 @@ public class ClientFactoryImpl implements ClientFactory {
             return new ShowSubmittersActivity(/*(SubmittersShowPlace) place,*/ this);
         }
         if (place instanceof JobsShowPlace) {
-            return new ShowJobsActivity(/*(JobsShowPlace) place,*/ this);
+            return new JobsShowActivity(/*(JobsShowPlace) place,*/ this);
         }
         if (place instanceof SinksShowPlace) {
             return new ShowSinksActivity(/*(SinksShowPlace) place,*/ this);

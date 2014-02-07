@@ -1,8 +1,30 @@
 package dk.dbc.dataio.gui.util;
 
+import com.google.gwt.activity.shared.Activity;
+import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import dk.dbc.dataio.gui.client.activities.CreateFlowActivity;
+import dk.dbc.dataio.gui.client.activities.CreateFlowComponentActivity;
+import dk.dbc.dataio.gui.client.activities.CreateFlowbinderActivity;
+import dk.dbc.dataio.gui.client.activities.CreateSinkActivity;
+import dk.dbc.dataio.gui.client.activities.CreateSubmitterActivity;
+import dk.dbc.dataio.gui.client.activities.ShowFlowComponentsActivity;
+import dk.dbc.dataio.gui.client.activities.ShowFlowsActivity;
+import dk.dbc.dataio.gui.client.activities.ShowJobsActivity;
+import dk.dbc.dataio.gui.client.activities.ShowSinksActivity;
+import dk.dbc.dataio.gui.client.activities.ShowSubmittersActivity;
+import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
+import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
+import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
+import dk.dbc.dataio.gui.client.places.JobsShowPlace;
+import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
+import dk.dbc.dataio.gui.client.places.SinksShowPlace;
+import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
+import dk.dbc.dataio.gui.client.places.SubmittersShowPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -59,16 +81,56 @@ public class ClientFactoryImpl implements ClientFactory {
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
 
 
+    // Event Bus
     @Override
     public EventBus getEventBus() {
         return eventBus;
     }
 
+
+    // Place Controller
     @Override
     public PlaceController getPlaceController() {
         return placeController;
     }
 
+    @Override
+    public Activity getActivity(Place place) {
+        if (place instanceof FlowCreatePlace) {
+            return new CreateFlowActivity(/*(FlowCreatePlace) place,*/ this);
+        }
+        if (place instanceof FlowComponentCreatePlace) {
+            return new CreateFlowComponentActivity(/*(FlowComponentCreatePlace) place,*/ this);
+        }
+        if (place instanceof SubmitterCreatePlace) {
+            return new CreateSubmitterActivity(/*(SubmitterCreatePlace) place,*/ this);
+        }
+        if (place instanceof FlowbinderCreatePlace) {
+            return new CreateFlowbinderActivity(/*(FlowbinderCreatePlace) place,*/ this);
+        }
+        if (place instanceof SinkCreatePlace) {
+            return new CreateSinkActivity(/*(SinkCreatePlace) place,*/ this);
+        }
+        if (place instanceof FlowComponentsShowPlace) {
+            return new ShowFlowComponentsActivity(/*(FlowComponentsShowPlace) place,*/ this);
+        }
+        if (place instanceof FlowsShowPlace) {
+            return new ShowFlowsActivity(/*(FlowsShowPlace) place,*/ this);
+        }
+        if (place instanceof SubmittersShowPlace) {
+            return new ShowSubmittersActivity(/*(SubmittersShowPlace) place,*/ this);
+        }
+        if (place instanceof JobsShowPlace) {
+            return new ShowJobsActivity(/*(JobsShowPlace) place,*/ this);
+        }
+        if (place instanceof SinksShowPlace) {
+            return new ShowSinksActivity(/*(SinksShowPlace) place,*/ this);
+        }
+        return null;
+    }
+
+
+    // Proxies
     @Override
     public FlowStoreProxyAsync getFlowStoreProxyAsync() {
         return flowStoreProxyAsync;
@@ -89,6 +151,8 @@ public class ClientFactoryImpl implements ClientFactory {
         return jobStoreProxyAsync;
     }
 
+
+    // Views
     @Override
     public FlowCreateView getFlowCreateView() {
         return flowCreateView;

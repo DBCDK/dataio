@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.util;
 
+import com.google.gwt.activity.shared.Activity;
+import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -29,6 +31,8 @@ public interface ClientFactory {
 
     // Place Controller
     PlaceController getPlaceController();
+    Activity getActivity(Place place);
+
 
     // Proxies
     FlowStoreProxyAsync getFlowStoreProxyAsync();

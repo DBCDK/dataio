@@ -3,16 +3,6 @@ package dk.dbc.dataio.gui.client.activities;
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.place.shared.Place;
-import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
-import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
-import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
-import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
-import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
-import dk.dbc.dataio.gui.client.places.JobsShowPlace;
-import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
-import dk.dbc.dataio.gui.client.places.SinksShowPlace;
-import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
-import dk.dbc.dataio.gui.client.places.SubmittersShowPlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -29,36 +19,7 @@ public class AppActivityMapper implements ActivityMapper {
 
     @Override
     public Activity getActivity(Place place) {
-        if (place instanceof FlowCreatePlace) {
-            return new CreateFlowActivity(/*(FlowCreatePlace) place,*/ clientFactory);
-        }
-        if (place instanceof FlowComponentCreatePlace) {
-            return new CreateFlowComponentActivity(/*(FlowComponentCreatePlace) place,*/ clientFactory);
-        }
-        if (place instanceof SubmitterCreatePlace) {
-            return new CreateSubmitterActivity(/*(SubmitterCreatePlace) place,*/ clientFactory);
-        }
-        if (place instanceof FlowbinderCreatePlace) {
-            return new CreateFlowbinderActivity(/*(FlowbinderCreatePlace) place,*/ clientFactory);
-        }
-        if (place instanceof SinkCreatePlace) {
-            return new CreateSinkActivity(/*(SinkCreatePlace) place,*/ clientFactory);
-        }
-        if (place instanceof FlowComponentsShowPlace) {
-            return new ShowFlowComponentsActivity(/*(FlowComponentsShowPlace) place,*/ clientFactory);
-        }
-        if (place instanceof FlowsShowPlace) {
-            return new ShowFlowsActivity(/*(FlowsShowPlace) place,*/ clientFactory);
-        }
-        if (place instanceof SubmittersShowPlace) {
-            return new ShowSubmittersActivity(/*(SubmittersShowPlace) place,*/ clientFactory);
-        }
-        if (place instanceof JobsShowPlace) {
-            return new ShowJobsActivity(/*(JobsShowPlace) place,*/ clientFactory);
-        }
-        if (place instanceof SinksShowPlace) {
-            return new ShowSinksActivity(/*(SinksShowPlace) place,*/ clientFactory);
-        }
-        return null;
+        return clientFactory.getActivity(place);
     }
+    
 }

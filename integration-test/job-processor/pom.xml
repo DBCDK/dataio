@@ -33,17 +33,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-store-service</artifactId>
-      <version>${project.version}</version>
-      <type>war</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
+      <!-- must be included before the mocked job-store service -->
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-job-store-service</artifactId>
       <version>${project.version}</version>
       <classifier>classes</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-integration-test-mocked-job-store-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -117,7 +118,7 @@
             </deployable>
             <deployable>
               <groupId>dk.dbc</groupId>
-              <artifactId>dataio-job-store-service</artifactId>
+              <artifactId>dataio-integration-test-mocked-job-store-service</artifactId>
               <type>war</type>
               <properties>
                 <context>job-store</context>

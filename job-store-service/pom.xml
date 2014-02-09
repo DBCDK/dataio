@@ -29,6 +29,27 @@
       </plugin>
 
       <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <id>jobstoreimplfree</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+              <classifier>mockablejobstore</classifier>
+              <includes>
+                <include>**/ejb/JobsBean.class</include>
+                <include>**/types/*</include>
+                <include>**/util/*</include>
+                <include>**/JobStore.class</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <!-- Move to dev-profile -->
         <groupId>org.codehaus.cargo</groupId>
         <artifactId>cargo-maven2-plugin</artifactId>

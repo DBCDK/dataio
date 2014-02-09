@@ -19,6 +19,7 @@
     <module>sink-es</module>
     <module>job-processor</module>
     <module>job-store</module>
+    <module>mocked-job-store-service</module>
     <module>jms-queue-service</module>
     <module>utils</module>
     <module>glassfish</module>

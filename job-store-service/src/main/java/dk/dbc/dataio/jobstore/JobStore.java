@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -26,8 +27,9 @@ public interface JobStore {
     Chunk getChunk(long jobId, long chunkId) throws JobStoreException;
 
     void addProcessorResult(ChunkResult processorResult) throws JobStoreException;
-
     ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException;
+
+    void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException;
 
     JobState getJobState(long jobId) throws JobStoreException;
 }

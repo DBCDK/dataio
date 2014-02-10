@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.JobStore;
@@ -355,6 +356,11 @@ public class FileSystemJobStore implements JobStore {
         }
         incrementProcessorCounter(processorResult.getJobId());
         updateJobState(processorResult.getJobId());
+    }
+
+    @Override
+    public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
+
     }
 
     private synchronized void updateJobState(long jobId) throws JobStoreException {

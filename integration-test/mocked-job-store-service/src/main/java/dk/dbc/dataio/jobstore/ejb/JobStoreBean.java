@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
@@ -102,6 +103,11 @@ public class JobStoreBean implements JobStore {
     @Override
     public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
         return null;
+    }
+
+    @Override
+    public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
+
     }
 
     @Override

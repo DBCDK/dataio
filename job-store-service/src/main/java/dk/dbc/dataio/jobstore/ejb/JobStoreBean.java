@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.commons.types.Chunk;
@@ -79,6 +80,11 @@ public class JobStoreBean implements JobStore {
     @Override
     public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
         return jobStore.getProcessorResult(jobId, chunkId);
+    }
+
+    @Override
+    public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
+        jobStore.addSinkResult(sinkResult);
     }
 
     @Override

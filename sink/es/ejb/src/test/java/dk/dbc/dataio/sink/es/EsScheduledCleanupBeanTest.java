@@ -3,25 +3,27 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.dataio.sink.SinkException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * This is a simple white-box test of the EsScheduledCleanupBean.cleanup() method.
@@ -150,7 +152,7 @@ public class EsScheduledCleanupBeanTest {
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esConnector).deleteESTaskpackages(any(List.class));
         verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
-        verify(textMessage, times(2)).setStringProperty(any(String.class), any(String.class));
+        verify(textMessage, times(4)).setStringProperty(any(String.class), any(String.class));
         verify(jmsProducer, times(2)).send(any(Destination.class), any(TextMessage.class));
     }
 }

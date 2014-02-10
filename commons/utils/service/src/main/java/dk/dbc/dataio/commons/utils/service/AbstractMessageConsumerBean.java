@@ -16,6 +16,8 @@ public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
 
+    public static final String PAYLOAD_TYPE_PROPERTY = "payload";
+
     @Resource
     protected MessageDrivenContext messageDrivenContext;
 
@@ -29,6 +31,8 @@ public abstract class AbstractMessageConsumerBean {
      *       message must be non-null and of type TextMessage
      *     <li>
      *       message payload must be non-null and non-empty
+     *     <li>
+     *       message must must have a non-null and non-empty '{@value #PAYLOAD_TYPE_PROPERTY}' header property
      *   </ul>
      *
      * @param message message to be validated
@@ -54,7 +58,11 @@ public abstract class AbstractMessageConsumerBean {
             if (messagePayload.isEmpty()) {
                 throw new InvalidMessageException(String.format("Message<%s> payload is empty string", messageId));
             }
-            return new ConsumedMessage(messageId, messagePayload);
+            final String payloadType = message.getStringProperty(PAYLOAD_TYPE_PROPERTY);
+            if (payloadType == null || payloadType.trim().isEmpty()) {
+                throw new InvalidMessageException(String.format("Message<%s> has no %s property", messageId, PAYLOAD_TYPE_PROPERTY));
+            }
+            return new ConsumedMessage(messageId, payloadType, messagePayload);
         } catch (JMSException e) {
             throw new InvalidMessageException("Unexpected exception during message validation");
         }

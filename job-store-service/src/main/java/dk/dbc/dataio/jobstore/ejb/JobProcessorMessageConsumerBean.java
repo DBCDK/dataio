@@ -36,7 +36,7 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobStoreException, InvalidMessageException {
         try {
-            switch (consumedMessage.getMessagePayload()) {
+            switch (consumedMessage.getPayloadType()) {
                 case "ChunkResult": handleProcessorResult(consumedMessage);
                     break;
                 case "SinkChunkResult": handleSinkResult(consumedMessage);

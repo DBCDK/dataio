@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jms.NotJmsTextMessage;
@@ -76,6 +77,7 @@ public class JobStoreMessageConsumerBeanTest {
     public void validateMessage_onValidMessage_returnsConsumedMessage() throws JMSException, InvalidMessageException {
         final String payload = "payload";
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "NewJob");
         textMessage.setText(payload);
         final ConsumedMessage consumedMessage = getInitializedBean().validateMessage(textMessage);
         assertThat(consumedMessage.getMessageId(), is(MockedJmsTextMessage.DEFAULT_MESSAGE_ID));
@@ -93,7 +95,7 @@ public class JobStoreMessageConsumerBeanTest {
 
     @Test(expected = InvalidMessageException.class)
     public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() throws JobProcessorException, JMSException, InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "{'invalid': 'instance'}");
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "NewJob", "{'invalid': 'instance'}");
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 
@@ -109,7 +111,7 @@ public class JobStoreMessageConsumerBeanTest {
     @Test(expected = InvalidMessageException.class)
     public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() throws JobProcessorException, InvalidMessageException {
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
-        final ConsumedMessage message = new ConsumedMessage("id", "invalid");
+        final ConsumedMessage message = new ConsumedMessage("id", "NewJob", "invalid");
         jobStoreMessageConsumerBean.handleConsumedMessage(message);
     }
 

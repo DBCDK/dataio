@@ -75,6 +75,7 @@ public class SinkMessageConsumerBeanIT {
 
     private MockedJmsTextMessage newSinkMessageForJobProcessor(SinkChunkResult sinkResult) throws JMSException, JsonException {
         final MockedJmsTextMessage message = new MockedJmsTextMessage();
+        message.setStringProperty("payload", "SinkChunkResult");
         message.setStringProperty("chunkResultSource", "sink");
         message.setText(JsonUtil.toJson(sinkResult));
         return message;

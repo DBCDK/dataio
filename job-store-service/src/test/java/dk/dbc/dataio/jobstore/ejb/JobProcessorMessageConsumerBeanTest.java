@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jms.NotJmsTextMessage;
@@ -73,10 +74,26 @@ public class JobProcessorMessageConsumerBeanTest {
         getInitializedBean().validateMessage(textMessage);
     }
 
+    @Test(expected = InvalidMessageException.class)
+    public void validateMessage_messageArgHasNoPayloadTypeProperty_throws() throws InvalidMessageException, JMSException {
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setText("{'key': 'value'}");
+        getInitializedBean().validateMessage(textMessage);
+    }
+
+    @Test(expected = InvalidMessageException.class)
+    public void validateMessage_messageArgHasEmptyPayloadTypeProperty_throws() throws InvalidMessageException, JMSException {
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "  ");
+        textMessage.setText("{'key': 'value'}");
+        getInitializedBean().validateMessage(textMessage);
+    }
+
     @Test
     public void validateMessage_onValidMessage_returnsConsumedMessage() throws JMSException, InvalidMessageException {
         final String payload = "payload";
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "Payload");
         textMessage.setText(payload);
         final ConsumedMessage consumedMessage = getInitializedBean().validateMessage(textMessage);
         assertThat(consumedMessage.getMessageId(), is(MockedJmsTextMessage.DEFAULT_MESSAGE_ID));
@@ -84,17 +101,69 @@ public class JobProcessorMessageConsumerBeanTest {
     }
 
     @Test
-    public void onMessage_messageArgPayloadIsInvalidNewJob_noTransactionRollback() throws JMSException {
+    public void onMessage_messageArgHasNoPayloadTypeProperty_noTransactionRollback() throws JMSException {
         final TestableJobProcessorMessageConsumerBean jobProcessorMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setText("{'key': 'value'}");
+        jobProcessorMessageConsumerBean.onMessage(textMessage);
+        assertThat(jobProcessorMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+    }
+
+    @Test
+    public void onMessage_messageArgHasEmptyPayloadTypeProperty_noTransactionRollback() throws JMSException {
+        final TestableJobProcessorMessageConsumerBean jobProcessorMessageConsumerBean = getInitializedBean();
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "   ");
+        textMessage.setText("{'key': 'value'}");
+        jobProcessorMessageConsumerBean.onMessage(textMessage);
+        assertThat(jobProcessorMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+    }
+
+    @Test
+    public void onMessage_messageArgPayloadIsInvalidProcessorResult_noTransactionRollback() throws JMSException {
+        final TestableJobProcessorMessageConsumerBean jobProcessorMessageConsumerBean = getInitializedBean();
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "ChunkResult");
+        textMessage.setText("{'invalid': 'instance'}");
+        jobProcessorMessageConsumerBean.onMessage(textMessage);
+        assertThat(jobProcessorMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+    }
+
+    @Test
+    public void onMessage_messageArgPayloadIsInvalidSinkResult_noTransactionRollback() throws JMSException {
+        final TestableJobProcessorMessageConsumerBean jobProcessorMessageConsumerBean = getInitializedBean();
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "SinkChunkResult");
+        textMessage.setText("{'invalid': 'instance'}");
+        jobProcessorMessageConsumerBean.onMessage(textMessage);
+        assertThat(jobProcessorMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+    }
+
+    @Test
+    public void onMessage_messageArgPayloadIsUnknown_noTransactionRollback() throws JMSException {
+        final TestableJobProcessorMessageConsumerBean jobProcessorMessageConsumerBean = getInitializedBean();
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "Unknown");
         textMessage.setText("{'invalid': 'instance'}");
         jobProcessorMessageConsumerBean.onMessage(textMessage);
         assertThat(jobProcessorMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
     }
 
     @Test(expected = InvalidMessageException.class)
-    public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() throws JobStoreException, JMSException, InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "{'invalid': 'instance'}");
+    public void handleConsumedMessage_messageArgPayloadIsInvalidProcessorResult_throws() throws JobStoreException, JMSException, InvalidMessageException {
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "ChunkResult", "{'invalid': 'instance'}");
+        getInitializedBean().handleConsumedMessage(consumedMessage);
+    }
+
+    @Test(expected = InvalidMessageException.class)
+    public void handleConsumedMessage_messageArgPayloadIsInvalidSinkResult_throws() throws JobStoreException, JMSException, InvalidMessageException {
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "SinkChunkResult", "{'invalid': 'instance'}");
+        getInitializedBean().handleConsumedMessage(consumedMessage);
+    }
+
+    @Test(expected = InvalidMessageException.class)
+    public void handleConsumedMessage_messageArgPayloadIsUnknown_throws() throws JobStoreException, JMSException, InvalidMessageException {
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "Unknown", "{'unknown': 'instance'}");
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 
@@ -105,13 +174,6 @@ public class JobProcessorMessageConsumerBeanTest {
         textMessage.setText(new ChunkResultJsonBuilder().build());
         jobProcessorMessageConsumerBean.onMessage(textMessage);
         assertThat(jobProcessorMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-    }
-
-    @Test(expected = InvalidMessageException.class)
-    public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() throws JobStoreException, InvalidMessageException {
-        final JobProcessorMessageConsumerBean jobProcessorMessageConsumerBean = getInitializedBean();
-        final ConsumedMessage message = new ConsumedMessage("id", "invalid");
-        jobProcessorMessageConsumerBean.handleConsumedMessage(message);
     }
 
     private TestableJobProcessorMessageConsumerBean getInitializedBean() {

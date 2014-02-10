@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobprocessor.ejb;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jms.NotJmsTextMessage;
@@ -82,6 +83,7 @@ public class SinkMessageConsumerBeanTest {
     public void validateMessage_onValidMessage_returnsConsumedMessage() throws JMSException, InvalidMessageException {
         final String payload = "payload";
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "SinkChunkResult");
         textMessage.setText(payload);
         final ConsumedMessage consumedMessage = getInitializedBean().validateMessage(textMessage);
         assertThat(consumedMessage.getMessageId(), is(MockedJmsTextMessage.DEFAULT_MESSAGE_ID));
@@ -99,7 +101,7 @@ public class SinkMessageConsumerBeanTest {
 
     @Test(expected = InvalidMessageException.class)
     public void handleConsumedMessage_messageArgPayloadIsInvalidSinkChunkResult_throws() throws JobProcessorException, JMSException, InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "{'invalid': 'instance'}");
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "SinkChunkResult", "{'invalid': 'instance'}");
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 
@@ -117,6 +119,7 @@ public class SinkMessageConsumerBeanTest {
         doThrow(new JobProcessorException("JobProcessorException")).when(jobStoreMessageProducer).send(any(SinkChunkResult.class));
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(AbstractMessageConsumerBean.PAYLOAD_TYPE_PROPERTY, "SinkChunkResult");
         textMessage.setText(new SinkChunkResultJsonBuilder().build());
         sinkMessageConsumerBean.onMessage(textMessage);
         assertThat(sinkMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(true));

@@ -6,30 +6,30 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.sink.SinkException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
-import java.nio.charset.Charset;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
+import javax.jms.Queue;
+import javax.jms.TextMessage;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Resource;
-import javax.ejb.EJBException;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
-import javax.jms.JMSException;
-import javax.jms.Queue;
-import javax.jms.TextMessage;
 
 @LocalBean
 @Singleton
@@ -39,6 +39,8 @@ public class EsScheduledCleanupBean {
 
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(EsScheduledCleanupBean.class);
 
+    private static final String PAYLOAD_PROPERTY_NAME = "payload";
+    private static final String PAYLOAD_PROPERTY_VALUE = "chunkResultSource";
     private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME = "chunkResultSource";
     private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE = "sink";
 
@@ -125,6 +127,7 @@ public class EsScheduledCleanupBean {
         try (JMSContext context = jobProcessorQueueConnectionFactory.createContext()) {
             for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
                 final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
+                message.setStringProperty(PAYLOAD_PROPERTY_NAME, PAYLOAD_PROPERTY_VALUE);
                 message.setStringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE);
                 context.createProducer().send(jobProcessorJmsQueue, message);
             }

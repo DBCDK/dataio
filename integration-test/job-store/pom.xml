@@ -27,6 +27,20 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-job-processor-ejb</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-job-store-service</artifactId>
+      <version>${project.version}</version>
+      <classifier>classes</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-flow-store-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>

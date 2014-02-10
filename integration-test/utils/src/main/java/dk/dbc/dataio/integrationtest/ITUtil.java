@@ -22,7 +22,9 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -110,6 +112,11 @@ public class ITUtil {
     public static void clearJobStore() {
         final Path jobStorePath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "dataio-job-store");
         FileUtils.deleteQuietly(jobStorePath.toFile());
+        try {
+            Files.createDirectory(jobStorePath);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public static long createFlowComponentWithName(String name) {
@@ -148,6 +155,14 @@ public class ITUtil {
 
     public static Response createJob(Client restClient, String content) {
         return HttpClient.doPostWithJson(restClient, content, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS);
+    }
+
+    public static Response getJobState(Client restClient, long jobId) {
+        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), "state");
+    }
+
+    public static Response getJobProcessorResult(Client restClient, long jobId, long chunkId) {
+        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), "processed", Long.toString(chunkId));
     }
 
     /**

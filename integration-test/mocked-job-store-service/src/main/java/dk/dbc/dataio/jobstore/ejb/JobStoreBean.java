@@ -19,6 +19,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +100,12 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public ChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException {
+    public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
+        return null;
+    }
+
+    @Override
+    public JobState getJobState(long jobId) throws JobStoreException {
         return null;
     }
 

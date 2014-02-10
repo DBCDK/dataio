@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore;
 
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.NewJob;
@@ -14,6 +15,7 @@ import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
+import dk.dbc.dataio.jobstore.types.JobState;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -34,9 +36,10 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class JobsBeanIT {
-    private static Client restClient;
+    private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
+    private static final String DATA_FILE_RESOURCE = "/data.xml";
 
-    private final String dataFileResource = "/data.xml";
+    private static Client restClient;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException {
@@ -62,18 +65,13 @@ public class JobsBeanIT {
 
     @Test
     public void createJob_newJobIsCreated_newJobMessagePutOnProcessorQueue() throws InterruptedException, JsonException, URISyntaxException, JMSException {
-        final JobSpecification jobSpecification = setupJobPrerequisites();
+        final JobInfo jobInfo = createJob(restClient);
 
-        final Response response = ITUtil.createJob(restClient, JsonUtil.toJson(jobSpecification));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
-        final JobInfo jobInfo = JsonUtil.fromJson(response.readEntity(String.class), JobInfo.class, MixIns.getMixIns());
-
-        Thread.sleep(500);
-        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.listQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
+        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
         assertThat(processorQueue.size(), is(1));
         final NewJob newJob = assertNewJobMessageForProcessor(processorQueue.get(0));
         assertThat(newJob.getJobId(), is(jobInfo.getJobId()));
-        assertThat(newJob.getChunkCount(), is(1L));
+        assertThat(newJob.getChunkCount(), is(2L));
     }
 
     private NewJob assertNewJobMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {
@@ -81,7 +79,26 @@ public class JobsBeanIT {
         return JsonUtil.fromJson(message.getText(), NewJob.class, MixIns.getMixIns());
     }
 
-    private JobSpecification setupJobPrerequisites() throws URISyntaxException {
+    static JobInfo createJob(Client restClient) throws URISyntaxException, JsonException {
+        final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
+        final Response response = ITUtil.createJob(restClient, JsonUtil.toJson(jobSpecification));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
+        return JsonUtil.fromJson(response.readEntity(String.class), JobInfo.class, MixIns.getMixIns());
+    }
+
+    static JobState getState(Client restClient, long jobId) throws JsonException {
+        final Response response = ITUtil.getJobState(restClient, jobId);
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+        return JsonUtil.fromJson(response.readEntity(String.class), JobState.class, MixIns.getMixIns());
+    }
+
+    static ChunkResult getProcessorResult(Client restClient, long jobId, long chunkId) throws JsonException {
+        final Response response = ITUtil.getJobProcessorResult(restClient, jobId, chunkId);
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+        return JsonUtil.fromJson(response.readEntity(String.class), ChunkResult.class, MixIns.getMixIns());
+    }
+
+    private static JobSpecification setupJobPrerequisites(Client restClient) throws URISyntaxException {
         final String packaging = "xml";
         final String format = "nmxml";
         final String charset = "utf8";
@@ -105,7 +122,7 @@ public class JobsBeanIT {
                         .setSubmitterIds(Arrays.asList(submitterId))
                         .build());
 
-        final Path dataFile = java.nio.file.Paths.get(JobsBeanIT.class.getResource(dataFileResource).toURI());
+        final Path dataFile = java.nio.file.Paths.get(JobsBeanIT.class.getResource(DATA_FILE_RESOURCE).toURI());
 
         return new JobSpecification(packaging, format, charset, destination, submitterNumber, "", "", "",
                 dataFile.toAbsolutePath().toString());

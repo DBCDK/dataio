@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
@@ -16,6 +17,7 @@ import dk.dbc.dataio.commons.utils.test.json.FlowJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.types.Job;
@@ -212,6 +214,113 @@ public class JobsBeanTest {
         assertThat(response.hasEntity(), is(true));
         final JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
         assertThat(entityNode.get("id").longValue(), is(chunk.getId()));
+    }
+
+    @Test
+    public void getState_jobStoreReturnsNull_returnsStatusNotFoundResponse() throws JobStoreException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getJobState(jobId)).thenReturn(null);
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getState(jobId);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getState_jobStoreThrowsJobStoreException_throws() throws JobStoreException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getJobState(jobId)).thenThrow(new JobStoreException("JobStoreException"));
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        jobsBean.getState(jobId);
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getState_stateCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(JobState.class))).thenThrow(new JsonException("JsonException"));
+        when(jobStore.getJobState(jobId)).thenReturn(new JobState());
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getState(jobId);
+        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+    }
+
+    @Test
+    public void getState_jobStoreReturnsState_returnsStatusOkResponseWithEntity() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getJobState(jobId)).thenReturn(new JobState());
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getState(jobId);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+    }
+
+    @Test
+    public void getProcessorResult_jobStoreReturnsNull_returnsStatusNotFoundResponse() throws JobStoreException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getProcessorResult(jobId, chunkId)).thenReturn(null);
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getProcessorResult(jobId, chunkId);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getProcessorResult_jobStoreThrowsJobStoreException_throws() throws JobStoreException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getProcessorResult(jobId, chunkId)).thenThrow(new JobStoreException("JobStoreException"));
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        jobsBean.getProcessorResult(jobId, chunkId);
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getProcessorResult_chunkCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(Chunk.class))).thenThrow(new JsonException("JsonException"));
+        when(jobStore.getProcessorResult(jobId, chunkId)).thenReturn(new ChunkResultBuilder().build());
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getProcessorResult(jobId, chunkId);
+        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+    }
+
+    @Test
+    public void getProcessorResult_jobStoreReturnsResult_returnsStatusOkResponseWithEntity() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final long chunkId = 1;
+        final ChunkResult processorResult = new ChunkResultBuilder().build();
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getProcessorResult(jobId, chunkId)).thenReturn(processorResult);
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getProcessorResult(jobId, chunkId);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        final JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        assertThat(entityNode.get("jobId").longValue(), is(processorResult.getJobId()));
     }
 
     @Test

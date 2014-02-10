@@ -15,6 +15,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.JMSContext;
@@ -65,6 +66,7 @@ public class JobProcessorMessageConsumerBeanIT {
         }
     }
 
+    @Ignore
     @Test
     public void onMessage_processorResultsReceived_processorResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException {
         final JobInfo jobInfo = JobsBeanIT.createJob(restClient);

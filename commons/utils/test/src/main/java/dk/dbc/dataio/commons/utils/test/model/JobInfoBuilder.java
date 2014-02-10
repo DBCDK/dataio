@@ -12,7 +12,6 @@ public class JobInfoBuilder {
     private Date jobCreationTime;
     private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
     private long jobRecordCount = 1L;
-    private String jobResultDataFile = "-jobResultDataFile-";
 
     public JobInfoBuilder() {
         Calendar cal = Calendar.getInstance();
@@ -45,13 +44,8 @@ public class JobInfoBuilder {
         return this;
     }
 
-    public JobInfoBuilder setJobResultDataFile(String jobResultDataFile) {
-        this.jobResultDataFile = jobResultDataFile;
-        return this;
-    }
-
     public JobInfo build() {
-        return new JobInfo(jobId, jobSpecification, jobCreationTime, jobErrorCode, jobRecordCount, jobResultDataFile);
+        return new JobInfo(jobId, jobSpecification, jobCreationTime, jobErrorCode, jobRecordCount);
 
     }
 }

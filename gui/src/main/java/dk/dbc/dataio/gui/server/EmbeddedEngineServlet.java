@@ -27,8 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 public class EmbeddedEngineServlet extends HttpServlet {
@@ -110,9 +108,8 @@ public class EmbeddedEngineServlet extends HttpServlet {
                 status = String.format("<div>Validering af rammeformat: Filen %s indeholder ikke well-formed xml.</div>", transFileData.getFileName());
                 break;
             case NO_ERROR:
-                final Path sinkFile = Paths.get(jobInfo.getJobResultDataFile());
-                status = String.format("<div>%s - Status: OK. Filen %s med %d poster er modtaget. <a href='%s'>Link til sink fil</a></div>", transFileName, transFileData.getFileName(), jobInfo.getJobRecordCount(),
-                    String.format("http://%s/%s/%s", localhostname, sinkFile.getParent().getFileName(), sinkFile.getFileName()));
+                status = String.format("<div>%s - Status: OK. Filen %s med %d poster er modtaget. <a href='%s'>Link til job</a></div>", transFileName, transFileData.getFileName(), jobInfo.getJobRecordCount(),
+                    String.format("http://%s/%s/%s", localhostname, "dataio-job-store", jobInfo.getJobId()));
                 break;
             default:
                 status = String.format("<div>Ukendt job fejlkode: %s</div>", jobInfo.getJobErrorCode().toString());

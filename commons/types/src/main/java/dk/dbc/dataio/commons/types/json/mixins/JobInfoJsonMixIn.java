@@ -25,6 +25,5 @@ public class JobInfoJsonMixIn {
                             @JsonProperty("jobSpecification") JobSpecification jobSpecification,
                             @JsonProperty("jobCreationTime") Date jobCreationTime,
                             @JsonProperty("jobErrorCode") JobErrorCode jobErrorCode,
-                            @JsonProperty("jobRecordCount") long jobRecordCount,
-                            @JsonProperty("jobResultDataFile") String jobResultDataFile) { }
+                            @JsonProperty("jobRecordCount") long jobRecordCount) { }
 }

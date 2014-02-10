@@ -10,7 +10,6 @@ public class JobInfoJsonBuilder extends JsonBuilder {
     private long jobRecordCount = 0;
     private String jobSpecification = new JobSpecificationJsonBuilder().build();
     private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
-    private String jobResultDataFile = "file";
 
     public JobInfoJsonBuilder setJobId(long jobId) {
         this.jobId = jobId;
@@ -32,11 +31,6 @@ public class JobInfoJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public JobInfoJsonBuilder setJobResultDataFile(String jobResultDataFile) {
-        this.jobResultDataFile = jobResultDataFile;
-        return this;
-    }
-
     public JobInfoJsonBuilder setJobErrorCode(JobErrorCode jobErrorCode) {
         this.jobErrorCode = jobErrorCode;
         return this;
@@ -49,8 +43,7 @@ public class JobInfoJsonBuilder extends JsonBuilder {
         stringBuilder.append(asLongMember("jobCreationTime", jobCreationTime)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("jobRecordCount", jobRecordCount)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("jobSpecification", jobSpecification)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("jobErrorCode", jobErrorCode.name())); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("jobResultDataFile", jobResultDataFile));
+        stringBuilder.append(asTextMember("jobErrorCode", jobErrorCode.name()));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

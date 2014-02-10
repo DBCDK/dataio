@@ -83,7 +83,7 @@ public class FileSystemJobStore implements JobStore {
         createJobChunkCounterFile(jobId);
         createProcessorCounterFile(jobId);
 
-        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0, null);
+        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0);
 
         Job job = new Job(jobInfo, new JobState(), flow);
         setJobState(jobId, job.getJobState());
@@ -96,20 +96,20 @@ public class FileSystemJobStore implements JobStore {
                 recordSplitter = newRecordSplitter(jobSpec, dataObjectPath);
                 recordCount = applyDefaultXmlSplitter(job, recordSplitter);
             } catch (IOException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_NOT_FOUND, 0, null);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_NOT_FOUND, 0);
                 job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             } catch (IllegalStateException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_ENCODING_MISMATCH, 0, null);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_ENCODING_MISMATCH, 0);
                 job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             } catch (XMLStreamException | IllegalDataException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_INVALID, 0, null);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_INVALID, 0);
                 job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             }
 
-            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, recordCount, null);
+            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, recordCount);
             job = new Job(jobInfo, job.getJobState(), flow);
             return job;
         } finally {

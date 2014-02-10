@@ -24,9 +24,6 @@ public class JobInfo implements Serializable {
 
     private /* final */ long jobRecordCount;
 
-    // Temporary placeholder for URL to job result
-    private /* final */ String jobResultDataFile;
-
     private JobInfo() { }
 
     /**
@@ -39,18 +36,16 @@ public class JobInfo implements Serializable {
      * @param jobSpecification job specification
      * @param jobCreationTime job creation time
      * @param jobErrorCode job error code
-     * @param jobResultDataFile uri of job result data file (can be null or empty)
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if value of jobId argument is <= {@value #JOB_ID_LOWER_THRESHOLD}
      */
-    public JobInfo(long jobId, JobSpecification jobSpecification, Date jobCreationTime, JobErrorCode jobErrorCode, long jobRecordCount, String jobResultDataFile) {
+    public JobInfo(long jobId, JobSpecification jobSpecification, Date jobCreationTime, JobErrorCode jobErrorCode, long jobRecordCount) {
         this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOB_ID_LOWER_THRESHOLD);
         this.jobSpecification = InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
         this.jobCreationTime = new Date(InvariantUtil.checkNotNullOrThrow(jobCreationTime, "jobCreationTime").getTime());
         this.jobErrorCode = InvariantUtil.checkNotNullOrThrow(jobErrorCode, "jobErrorCode");
         this.jobRecordCount = InvariantUtil.checkAboveThresholdOrThrow(jobRecordCount, "jobRecordCount", -1);
-        this.jobResultDataFile = jobResultDataFile;
     }
 
     public Date getJobCreationTime() {
@@ -59,10 +54,6 @@ public class JobInfo implements Serializable {
 
     public long getJobId() {
         return jobId;
-    }
-
-    public String getJobResultDataFile() {
-        return jobResultDataFile;
     }
 
     public JobSpecification getJobSpecification() {

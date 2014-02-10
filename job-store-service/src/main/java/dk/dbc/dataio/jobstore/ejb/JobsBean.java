@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
@@ -17,6 +18,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +109,7 @@ public class JobsBean {
      * @param jobId Id of job containing chunk
      * @param chunkId Id of chunk
      *
-     * @return a HTTP 200 OK response with chunk as JSON,
+     * @return a HTTP 200 OK response with Chunk entity as JSON string,
      *         a HTTP 404 NOT_FOUND if unable to locate chunk,
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
@@ -117,7 +119,7 @@ public class JobsBean {
     @GET
     @Path("{jobId}/chunks/{chunkId}")
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getChunk(@PathParam("jobId") Long jobId, @PathParam("chunkId") Long chunkId) throws JobStoreException {
+    public Response getChunk(@PathParam("jobId") long jobId, @PathParam("chunkId") long chunkId) throws JobStoreException {
         LOGGER.info("Getting chunk {} for job {}", chunkId, jobId);
         final Chunk chunk = jobStore.getChunk(jobId, chunkId);
         if (chunk == null) {
@@ -128,6 +130,67 @@ public class JobsBean {
             entity = JsonUtil.toJson(chunk);
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling chunk %d for job %d", chunkId, jobId), e);
+        }
+        return Response.ok().entity(entity).build();
+    }
+
+    /**
+     * Retrieves job state from the underlying data store
+     *
+     * @param jobId Id of job
+     *
+     * @return a HTTP 200 OK response with JobState entity as JSON string,
+     *         a HTTP 404 NOT_FOUND if unable to locate job,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading JobState from store, or if unable
+     * to marshall retrieved JobState to JSON.
+     */
+    @GET
+    @Path("{jobId}/state")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getState(@PathParam("jobId") long jobId) throws JobStoreException {
+        LOGGER.info("Getting state for job {}", jobId);
+        final JobState jobState = jobStore.getJobState(jobId);
+        if (jobState == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(jobState);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling state for job %d", jobId), e);
+        }
+        return Response.ok().entity(entity).build();
+    }
+
+    /**
+     * Retrieves processor result from the underlying data store
+     *
+     * @param jobId Id of job containing processor result
+     * @param chunkId Id of chunk for which to retrieve processor result
+     *
+     * @return a HTTP 200 OK response with ChunkResult entity as JSON string,
+     *         a HTTP 404 NOT_FOUND if unable to locate processor result,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading processor result from store, or if unable
+     * to marshall retrieved processor result to JSON.
+     */
+    @GET
+    @Path("{jobId}/processed/{chunkId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getProcessorResult(@PathParam("jobId") long jobId, @PathParam("chunkId") long chunkId) throws JobStoreException {
+        LOGGER.info("Getting processor result for chunk {} in job {}", chunkId, jobId);
+        final ChunkResult processorResult = jobStore.getProcessorResult(jobId, chunkId);
+        if (processorResult == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(processorResult);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling processor result %d for job %d", chunkId, jobId), e);
         }
         return Response.ok().entity(entity).build();
     }

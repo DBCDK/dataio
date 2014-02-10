@@ -1,14 +1,16 @@
 package dk.dbc.dataio.jobstore;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+
 import java.util.List;
 
 
@@ -25,5 +27,7 @@ public interface JobStore {
 
     void addProcessorResult(ChunkResult processorResult) throws JobStoreException;
 
-    ChunkResult getProcessChunkResult(Job job, long chunkId) throws JobStoreException;
+    ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException;
+
+    JobState getJobState(long jobId) throws JobStoreException;
 }

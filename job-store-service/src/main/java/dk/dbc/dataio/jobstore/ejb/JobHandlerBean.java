@@ -94,7 +94,7 @@ public class JobHandlerBean {
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
 
             for (int chunkId = 1; chunkId <= numberOfChunks; chunkId++) {
-                final ChunkResult chunkResult = jobStore.getProcessChunkResult(job, chunkId);
+                final ChunkResult chunkResult = jobStore.getProcessorResult(job.getId(), chunkId);
                 for (String encodedRecord : chunkResult.getResults()) {
                     writer.write(base64decode(encodedRecord));
                     writer.newLine();

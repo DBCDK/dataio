@@ -135,9 +135,14 @@ public class FileSystemJobStore implements JobStore {
         writeObjectToFile(getJobStatePath(jobId), jobState);
     }
 
-    // Not thread-safe
-    private JobState getJobState(long jobId) throws JobStoreException {
-        return readObjectFromFile(getJobStatePath(jobId), JobState.class);
+    @Override
+    public synchronized JobState getJobState(long jobId) throws JobStoreException {
+        final Path jobStatePath = getJobStatePath(jobId);
+        if (Files.exists(jobStatePath)) {
+            return readObjectFromFile(jobStatePath, JobState.class);
+        } else {
+            return null;
+        }
     }
 
     private static <T> T readObjectFromFile(Path objectPath, Class<T> tClass) throws JobStoreException {
@@ -331,20 +336,9 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public ChunkResult getProcessChunkResult(Job job, long chunkResultId) throws JobStoreException {
-        final Path chunkResultPath = Paths.get(getJobPath(job.getId()).toString(), String.format(PROCESSOR_RESULT_FILENAME_PATTERN, chunkResultId));
-        ChunkResult chunkResult;
-        try (BufferedReader br = Files.newBufferedReader(chunkResultPath, LOCAL_CHARSET)) {
-            final StringBuilder sb = new StringBuilder();
-            String data;
-            while ((data = br.readLine()) != null) {
-                sb.append(data);
-            }
-            chunkResult = JsonUtil.fromJson(sb.toString(), ChunkResult.class);
-        } catch (IOException | JsonException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to read chunk result: %d", chunkResultId), e);
-        }
-        return chunkResult;
+    public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
+        final Path processorResultPath = Paths.get(getJobPath(jobId).toString(), String.format(PROCESSOR_RESULT_FILENAME_PATTERN, chunkId));
+        return readObjectFromFile(processorResultPath, ChunkResult.class);
     }
 
     @Override

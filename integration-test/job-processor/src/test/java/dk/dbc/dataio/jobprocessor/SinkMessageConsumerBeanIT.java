@@ -1,13 +1,13 @@
 package dk.dbc.dataio.jobprocessor;
 
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
-import dk.dbc.dataio.jobprocessor.ejb.JobStoreMessageProducerBean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,15 +67,15 @@ public class SinkMessageConsumerBeanIT {
 
     private static void assertSinkMessageForJobStore(MockedJmsTextMessage message, long jobId) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
-        assertThat(message.getStringProperty(JobStoreMessageProducerBean.SOURCE_PROPERTY_NAME), is(JobStoreMessageProducerBean.SOURCE_PROPERTY_VALUE));
-        assertThat(message.getStringProperty(JobStoreMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(JobStoreMessageProducerBean.SINK_RESULT_PAYLOAD_PROPERTY_VALUE));
+        assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
+        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
         final SinkChunkResult sinkResultOut = JsonUtil.fromJson(message.getText(), SinkChunkResult.class, MixIns.getMixIns());
         assertThat(sinkResultOut.getJobId(), is(jobId));
     }
 
     private MockedJmsTextMessage newSinkMessageForJobProcessor(SinkChunkResult sinkResult) throws JMSException, JsonException {
         final MockedJmsTextMessage message = new MockedJmsTextMessage();
-        message.setStringProperty("payload", "SinkChunkResult");
+        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
         message.setStringProperty("chunkResultSource", "sink");
         message.setText(JsonUtil.toJson(sinkResult));
         return message;

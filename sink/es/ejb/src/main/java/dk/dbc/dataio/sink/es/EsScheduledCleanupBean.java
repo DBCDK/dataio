@@ -1,6 +1,7 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.sink.SinkException;
@@ -39,8 +40,6 @@ public class EsScheduledCleanupBean {
 
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(EsScheduledCleanupBean.class);
 
-    private static final String PAYLOAD_PROPERTY_NAME = "payload";
-    private static final String PAYLOAD_PROPERTY_VALUE = "chunkResultSource";
     private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME = "chunkResultSource";
     private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE = "sink";
 
@@ -127,7 +126,7 @@ public class EsScheduledCleanupBean {
         try (JMSContext context = jobProcessorQueueConnectionFactory.createContext()) {
             for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
                 final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
-                message.setStringProperty(PAYLOAD_PROPERTY_NAME, PAYLOAD_PROPERTY_VALUE);
+                message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
                 message.setStringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE);
                 context.createProducer().send(jobProcessorJmsQueue, message);
             }

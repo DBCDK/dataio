@@ -3,6 +3,7 @@ package dk.dbc.dataio.commons.utils.service;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +16,6 @@ import javax.jms.TextMessage;
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
-
-    public static final String PAYLOAD_TYPE_PROPERTY = "payload";
 
     @Resource
     protected MessageDrivenContext messageDrivenContext;
@@ -32,7 +31,7 @@ public abstract class AbstractMessageConsumerBean {
      *     <li>
      *       message payload must be non-null and non-empty
      *     <li>
-     *       message must must have a non-null and non-empty '{@value #PAYLOAD_TYPE_PROPERTY}' header property
+     *       message must must have a non-null and non-empty JmsConstants.PAYLOAD_PROPERTY_NAME header property
      *   </ul>
      *
      * @param message message to be validated
@@ -58,9 +57,9 @@ public abstract class AbstractMessageConsumerBean {
             if (messagePayload.isEmpty()) {
                 throw new InvalidMessageException(String.format("Message<%s> payload is empty string", messageId));
             }
-            final String payloadType = message.getStringProperty(PAYLOAD_TYPE_PROPERTY);
+            final String payloadType = message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME);
             if (payloadType == null || payloadType.trim().isEmpty()) {
-                throw new InvalidMessageException(String.format("Message<%s> has no %s property", messageId, PAYLOAD_TYPE_PROPERTY));
+                throw new InvalidMessageException(String.format("Message<%s> has no %s property", messageId, JmsConstants.PAYLOAD_PROPERTY_NAME));
             }
             return new ConsumedMessage(messageId, payloadType, messagePayload);
         } catch (JMSException e) {

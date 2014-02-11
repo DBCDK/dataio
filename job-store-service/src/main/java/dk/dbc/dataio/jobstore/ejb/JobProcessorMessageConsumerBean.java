@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -37,9 +38,11 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobStoreException, InvalidMessageException {
         try {
             switch (consumedMessage.getPayloadType()) {
-                case "ChunkResult": handleProcessorResult(consumedMessage);
+                case JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE:
+                    handleProcessorResult(consumedMessage);
                     break;
-                case "SinkChunkResult": handleSinkResult(consumedMessage);
+                case JmsConstants.SINK_RESULT_PAYLOAD_TYPE:
+                    handleSinkResult(consumedMessage);
                     break;
                 default:
                     throw new InvalidMessageException(String.format("Message<%s> payload was unknown type %s",

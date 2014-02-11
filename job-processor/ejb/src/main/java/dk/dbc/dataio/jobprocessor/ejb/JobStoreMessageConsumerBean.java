@@ -35,10 +35,11 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
             final NewJob newJob = JsonUtil.fromJson(consumedMessage.getMessagePayload(), NewJob.class, MixIns.getMixIns());
-            LOGGER.info("Received NewJob for jobId={}", newJob.getJobId());
+            LOGGER.info("Received job announcement for jobId={}", newJob.getJobId());
             jobProcessor.process(newJob);
         } catch (JsonException e) {
-            throw new InvalidMessageException(String.format("Message<%s> payload was not valid NewJob type", consumedMessage.getMessageId()), e);
+            throw new InvalidMessageException(String.format("Message<%s> payload was not valid job announcement type %s",
+                    consumedMessage.getMessageId(), consumedMessage.getPayloadType()), e);
         }
     }
 

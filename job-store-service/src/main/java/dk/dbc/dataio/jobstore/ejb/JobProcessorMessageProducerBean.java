@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.NewJob;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -19,11 +20,6 @@ import javax.jms.TextMessage;
 @LocalBean
 @Stateless
 public class JobProcessorMessageProducerBean {
-    public static final String SOURCE_PROPERTY_NAME = "source";
-    public static final String SOURCE_PROPERTY_VALUE = "jobstore";
-    public static final String PAYLOAD_PROPERTY_NAME = "payload";
-    public static final String PAYLOAD_PROPERTY_VALUE = "NewJob";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageProducerBean.class);
 
     @Resource
@@ -46,7 +42,7 @@ public class JobProcessorMessageProducerBean {
             final TextMessage message = createMessage(context, newJob);
             context.createProducer().send(processorQueue, message);
         } catch (JsonException | JMSException e) {
-            final String errorMessage = String.format("Exception caught while sending NewJob for job %s",
+            final String errorMessage = String.format("Exception caught while announcing job %s",
                     newJob.getJobId());
             throw new JobStoreException(errorMessage, e);
         }
@@ -54,8 +50,10 @@ public class JobProcessorMessageProducerBean {
 
     /**
      * Creates new TextMessage with given NewJob instance as JSON payload with
-     * header properties '{@value #SOURCE_PROPERTY_NAME}' and '{@value #PAYLOAD_PROPERTY_NAME}'
-     * set to '{@value #SOURCE_PROPERTY_VALUE}' and '{@value #PAYLOAD_PROPERTY_VALUE}' respectively.
+     * header properties '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SOURCE_PROPERTY_NAME}'
+     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PAYLOAD_PROPERTY_NAME}'
+     * set to '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#JOB_STORE_SOURCE_VALUE}'
+     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#NEW_JOB_PAYLOAD_TYPE}' respectively.
      *
      * @param context active JMS context
      * @param newJob NewJob instance to be added as payload
@@ -67,8 +65,8 @@ public class JobProcessorMessageProducerBean {
      */
     public TextMessage createMessage(JMSContext context, NewJob newJob) throws JsonException, JMSException {
         final TextMessage message = context.createTextMessage(JsonUtil.toJson(newJob));
-        message.setStringProperty(SOURCE_PROPERTY_NAME, SOURCE_PROPERTY_VALUE);
-        message.setStringProperty(PAYLOAD_PROPERTY_NAME, PAYLOAD_PROPERTY_VALUE);
+        message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
+        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.NEW_JOB_PAYLOAD_TYPE);
         return message;
     }
 }

@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -72,10 +73,10 @@ public class SinkMessageProducerBeanTest {
     public void createMessage_chunkResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
-        TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunkResult, sink);
-        assertThat(message.getStringProperty("source"), is("processor"));
-        assertThat(message.getStringProperty("payload"), is("ChunkResult"));
-        assertThat(message.getStringProperty("resource"), is(sink.getContent().getResource()));
+        final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunkResult, sink);
+        assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
+        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
+        assertThat(message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
     }
 
     private SinkMessageProducerBean getInitializedBean() {

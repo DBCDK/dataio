@@ -1,34 +1,37 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.NewJob;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.NewJobBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
-import static org.hamcrest.CoreMatchers.instanceOf;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-    JsonUtil.class,})
+    JsonUtil.class,
+})
 public class JobProcessorMessageProducerBeanTest {
 
     private ConnectionFactory jmsConnectionFactory;
@@ -71,9 +74,9 @@ public class JobProcessorMessageProducerBeanTest {
     public void createMessage_NewJobArgIsValid_returnsMessageWithHeaderProperties() throws JsonException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new NewJobBuilder().build());
-        assertThat(message.getStringProperty("source"), is("jobstore"));
-        assertThat(message.getStringProperty("payload"), is("NewJob"));
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new NewJobBuilder().build());
+        assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.JOB_STORE_SOURCE_VALUE));
+        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.NEW_JOB_PAYLOAD_TYPE));
     }
 
     private JobProcessorMessageProducerBean getInitializedBean() {

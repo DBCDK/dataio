@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -12,7 +13,6 @@ import dk.dbc.dataio.commons.utils.test.model.NewJobBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
-import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
 import dk.dbc.dataio.jobstore.ejb.JobProcessorMessageProducerBean;
 import org.junit.After;
 import org.junit.Before;
@@ -95,9 +95,9 @@ public class JobStoreMessageConsumerBeanIT {
 
     private ChunkResult assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
-        assertThat(message.getStringProperty(SinkMessageProducerBean.SOURCE_PROPERTY_NAME), is(SinkMessageProducerBean.SOURCE_PROPERTY_VALUE));
-        assertThat(message.getStringProperty(SinkMessageProducerBean.PAYLOAD_PROPERTY_NAME), is(SinkMessageProducerBean.PAYLOAD_PROPERTY_VALUE));
-        assertThat(message.getStringProperty(SinkMessageProducerBean.RESOURCE_PROPERTY_NAME), is(sinkResourceName));
+        assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
+        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
+        assertThat(message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sinkResourceName));
         return JsonUtil.fromJson(message.getText(), ChunkResult.class, MixIns.getMixIns());
     }
 

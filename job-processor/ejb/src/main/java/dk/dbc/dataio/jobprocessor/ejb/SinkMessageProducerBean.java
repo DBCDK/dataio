@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
@@ -26,12 +27,6 @@ import javax.jms.TextMessage;
 public class SinkMessageProducerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(SinkMessageProducerBean.class);
 
-    public static final String SOURCE_PROPERTY_NAME = "source";
-    public static final String SOURCE_PROPERTY_VALUE = "processor";
-    public static final String PAYLOAD_PROPERTY_NAME = "payload";
-    public static final String PAYLOAD_PROPERTY_VALUE = "ChunkResult";
-    public static final String RESOURCE_PROPERTY_NAME = "resource";
-
     @Resource
     ConnectionFactory sinksQueueConnectionFactory;
 
@@ -39,48 +34,50 @@ public class SinkMessageProducerBean {
     Queue sinksQueue;
 
     /**
-     * Sends given ChunkResult instance as JMS message with JSON payload to sink queue destination
+     * Sends given processor result instance as JMS message with JSON payload to sink queue destination
      *
-     * @param chunkResult ChunkResult instance to be inserted as message payload
+     * @param processorResult processor result instance to be inserted as JSON string message payload
      * @param destination Sink instance for sink target
      *
      * @throws NullPointerException when given null-valued argument
-     * @throws JobProcessorException when unable to send given ChunkResult to destination
+     * @throws JobProcessorException when unable to send given processor result to destination
      */
-    public void send(ChunkResult chunkResult, Sink destination) throws NullPointerException, JobProcessorException {
-        LOGGER.info("Sending ChunkResult for chunk {} in job {} to sink {}",
-                chunkResult.getChunkId(), chunkResult.getJobId(), destination.getContent().getName());
+    public void send(ChunkResult processorResult, Sink destination) throws NullPointerException, JobProcessorException {
+        LOGGER.info("Sending processor for chunk {} in job {} to sink {}",
+                processorResult.getChunkId(), processorResult.getJobId(), destination.getContent().getName());
         try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
-            final TextMessage message = createMessage(context, chunkResult, destination);
+            final TextMessage message = createMessage(context, processorResult, destination);
             context.createProducer().send(sinksQueue, message);
         } catch (JsonException | JMSException e) {
-            final String errorMessage = String.format("Exception caught while sending ChunkResult for chunk %d in job %s",
-                    chunkResult.getChunkId(), chunkResult.getJobId());
+            final String errorMessage = String.format("Exception caught while sending processor result for chunk %d in job %s",
+                    processorResult.getChunkId(), processorResult.getJobId());
             throw new JobProcessorException(errorMessage, e);
         }
     }
 
     /**
-     * Creates new TextMessage with given ChunkResult instance as JSON payload with
-     * header properties '{@value #SOURCE_PROPERTY_NAME}' and '{@value #PAYLOAD_PROPERTY_NAME}'
-     * set to '{@value #SOURCE_PROPERTY_VALUE}' and '{@value #PAYLOAD_PROPERTY_VALUE}' respectively,
-     * and header property '{@value #RESOURCE_PROPERTY_NAME}' to the resource value contained
-     * in given Sink instance.
+     * Creates new TextMessage with given processor result instance as JSON payload with
+     * header properties '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SOURCE_PROPERTY_NAME}'
+     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PAYLOAD_PROPERTY_NAME}'
+     * set to '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_SOURCE_VALUE}'
+     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_RESULT_PAYLOAD_TYPE}' respectively,
+     * and header property '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#RESOURCE_PROPERTY_NAME}'
+     * to the resource value contained in given Sink instance.
      *
      * @param context active JMS context
-     * @param chunkResult ChunkResult instance to be added as payload
+     * @param processorResult processor result instance to be added as JSON string payload
      * @param destination Sink instance for sink target
      *
      * @return TextMessage instance
      *
-     * @throws JsonException when unable to marshall ChunkResult instance to JSON
+     * @throws JsonException when unable to marshall processor result instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, ChunkResult chunkResult, Sink destination) throws JsonException, JMSException {
-        final TextMessage message = context.createTextMessage(JsonUtil.toJson(chunkResult));
-        message.setStringProperty(SOURCE_PROPERTY_NAME, SOURCE_PROPERTY_VALUE);
-        message.setStringProperty(PAYLOAD_PROPERTY_NAME, PAYLOAD_PROPERTY_VALUE);
-        message.setStringProperty(RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
+    public TextMessage createMessage(JMSContext context, ChunkResult processorResult, Sink destination) throws JsonException, JMSException {
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(processorResult));
+        message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
+        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE);
+        message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
         return message;
     }
 }

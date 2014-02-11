@@ -25,7 +25,7 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     JobStoreMessageProducerBean jobStoreMessageProducer;
 
     /**
-     * Handles consumed message by forwarding SinkChunkResult payload from
+     * Handles consumed message by forwarding sink result payload from
      * received message to the job-store.
      *
      * @param consumedMessage message to be handled
@@ -37,10 +37,11 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
             final SinkChunkResult sinkChunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
-            LOGGER.info("Received SinkChunkResult for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());
+            LOGGER.info("Received sink result for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());
             jobStoreMessageProducer.send(sinkChunkResult);
         } catch (JsonException e) {
-            throw new InvalidMessageException(String.format("Message<%s> payload was not valid SinkChunkResult type", consumedMessage.getMessageId()), e);
+            throw new InvalidMessageException(String.format("Message<%s> payload was not valid sink result type %s",
+                    consumedMessage.getMessageId(), consumedMessage.getPayloadType()), e);
         }
     }
 

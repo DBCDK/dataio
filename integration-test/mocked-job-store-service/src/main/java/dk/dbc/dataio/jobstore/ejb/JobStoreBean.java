@@ -111,6 +111,11 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
+    public SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException {
+        return null;
+    }
+
+    @Override
     public JobState getJobState(long jobId) throws JobStoreException {
         return null;
     }

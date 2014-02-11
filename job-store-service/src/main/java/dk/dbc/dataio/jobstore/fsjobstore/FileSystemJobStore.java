@@ -51,7 +51,7 @@ public class FileSystemJobStore implements JobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemJobStore.class);
 
     private final Path storePath;
-    private final ChunkFileHandler processorResultFiles;
+    private final ChunkFileHandler processorChunkFileHandler;
 
     public FileSystemJobStore(Path storePath) throws JobStoreException {
         if (storePath == null) {
@@ -61,7 +61,7 @@ public class FileSystemJobStore implements JobStore {
             createDirectory(storePath);
         }
         this.storePath = storePath;
-        this.processorResultFiles = new ChunkFileHandler(storePath, PROCESSOR_COUNTER_FILE, PROCESSOR_RESULT_FILENAME_PATTERN);
+        this.processorChunkFileHandler = new ChunkFileHandler(storePath, PROCESSOR_COUNTER_FILE, PROCESSOR_RESULT_FILENAME_PATTERN);
 
         LOGGER.info("Placing job store in {}", this.storePath);
     }
@@ -83,7 +83,7 @@ public class FileSystemJobStore implements JobStore {
         storeSinkInJob(jobPath, sink);
         storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
-        processorResultFiles.createProcessorCounterFile(jobId);
+        processorChunkFileHandler.createCounterFile(jobId);
 
         JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0);
 
@@ -339,12 +339,12 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
-        return processorResultFiles.getProcessorResult(jobId, chunkId);
+        return processorChunkFileHandler.getResult(jobId, chunkId);
     }
 
     @Override
     public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
-        processorResultFiles.addProcessorResult(processorResult);
+        processorChunkFileHandler.addResult(processorResult);
         updateJobState(processorResult.getJobId());
     }
 
@@ -360,7 +360,7 @@ public class FileSystemJobStore implements JobStore {
 
     private synchronized void updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
-        final long processorCount = processorResultFiles.getNumberOfProcessedChunksInJob(jobId);
+        final long processorCount = processorChunkFileHandler.getNumberOfChunksInJob(jobId);
         JobState jobState = null;
         if (processorCount == chunkCount) {
             jobState = getJobState(jobId);

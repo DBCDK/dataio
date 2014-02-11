@@ -29,49 +29,49 @@ public class ChunkFileHandler {
         this.resultFilenamePattern = resultFilenamePattern;
     }
 
-    public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
-        final Path processorResultPath = Paths.get(getJobPath(jobId).toString(), String.format(resultFilenamePattern, chunkId));
-        return readObjectFromFile(processorResultPath, ChunkResult.class);
+    public ChunkResult getResult(long jobId, long chunkId) throws JobStoreException {
+        final Path resultPath = Paths.get(getJobPath(jobId).toString(), String.format(resultFilenamePattern, chunkId));
+        return readObjectFromFile(resultPath, ChunkResult.class);
     }
 
-    public void createProcessorCounterFile(long jobId) throws JobStoreException {
-        final Path processorCounterFile = getProcessorCounterFile(jobId);
-        if (Files.exists(processorCounterFile)) {
-            throw new JobStoreException("Processor counter file already exists");
+    public void createCounterFile(long jobId) throws JobStoreException {
+        final Path counterFile = getCounterFile(jobId);
+        if (Files.exists(counterFile)) {
+            throw new JobStoreException("Counter file already exists");
         }
-        writeLongValueToCounterFile(processorCounterFile, 0L);
-        LOGGER.info("Created processor counter file: {}", processorCounterFile);
+        writeLongValueToCounterFile(counterFile, 0L);
+        LOGGER.info("Created counter file: {}", counterFile);
     }
 
-    public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
-        final Path chunkPath = Paths.get(getJobPath(processorResult.getJobId()).toString(), String.format(resultFilenamePattern, processorResult.getChunkId()));
-        LOGGER.info("Creating processor result json-file: {}", chunkPath);
+    public void addResult(ChunkResult result) throws JobStoreException {
+        final Path chunkPath = Paths.get(getJobPath(result.getJobId()).toString(), String.format(resultFilenamePattern, result.getChunkId()));
+        LOGGER.info("Creating result json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
-            bw.write(JsonUtil.toJson(processorResult));
+            bw.write(JsonUtil.toJson(result));
         } catch (IOException | JsonException e) {
-            final String errorMsg = String.format("Exception caught when trying to write processor result: [%s, %s]",
-                    processorResult.getJobId(), processorResult.getChunkId());
+            final String errorMsg = String.format("Exception caught when trying to write result: [%s, %s]",
+                    result.getJobId(), result.getChunkId());
             LOGGER.error(errorMsg, e);
             throw new JobStoreException(errorMsg, e);
         }
-        incrementProcessorCounter(processorResult.getJobId());
+        incrementCounter(result.getJobId());
     }
 
-    public long getNumberOfProcessedChunksInJob(long jobId) throws JobStoreException {
-        return readLongValueFromCounterFile(getProcessorCounterFile(jobId));
+    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
+        return readLongValueFromCounterFile(getCounterFile(jobId));
     }
 
-    private Path getProcessorCounterFile(long jobId) {
+    private Path getCounterFile(long jobId) {
         return Paths.get(getJobPath(jobId).toString(), counterFile);
     }
 
-    private synchronized void incrementProcessorCounter(long jobId) throws JobStoreException {
-        final Path processorCounterFile = getProcessorCounterFile(jobId);
-        if (!Files.exists(processorCounterFile)) {
-            throw new JobStoreException(String.format("Processor counter file %s not found", processorCounterFile));
+    private synchronized void incrementCounter(long jobId) throws JobStoreException {
+        final Path counterFile = getCounterFile(jobId);
+        if (!Files.exists(counterFile)) {
+            throw new JobStoreException(String.format("Counter file %s not found", counterFile));
         }
-        Long processorCounter = readLongValueFromCounterFile(processorCounterFile);
-        writeLongValueToCounterFile(processorCounterFile, ++processorCounter);
+        Long counter = readLongValueFromCounterFile(counterFile);
+        writeLongValueToCounterFile(counterFile, ++counter);
     }
 
     // Following are currently duplicated in FSJobStore.java

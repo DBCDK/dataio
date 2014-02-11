@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -59,7 +59,7 @@ public class JobStoreServiceConnectorBean {
             final String baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
 
             final Response response = HttpClient.doGet(client, baseUrl,
-                    JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), JobStoreServiceEntryPoint.CHUNKS, Long.toString(chunkId));
+                    JobStoreServiceConstants.JOBS, Long.toString(jobId), JobStoreServiceConstants.CHUNKS, Long.toString(chunkId));
             verifyStatusCode(response, Response.Status.OK);
 
             return JsonUtil.fromJson(response.readEntity(String.class), Chunk.class, MixIns.getMixIns());

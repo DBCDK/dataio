@@ -1,7 +1,7 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -27,7 +27,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         final Response response;
         final List<JobInfo> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
+            response = HttpClient.doGet(client, ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceConstants.JOBS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }

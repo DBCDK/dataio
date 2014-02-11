@@ -1,7 +1,7 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
@@ -57,7 +57,7 @@ public class JobStoreProxyImplTest {
 
     @Test(expected = ProxyException.class)
     public void findAllSinks_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-        when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceEntryPoint.JOBS)))
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceConstants.JOBS)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
@@ -72,7 +72,7 @@ public class JobStoreProxyImplTest {
     @Test
     public void findAllSinks_remoteServiceReturnsHttpStatusOk_returnsListOfSinkEntity() throws Exception {
         final JobInfo job = new JobInfoBuilder().setJobId(666L).build();
-        when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceEntryPoint.JOBS)))
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceConstants.JOBS)))
                 .thenReturn(new MockedHttpClientResponse<List<JobInfo>>(Response.Status.OK.getStatusCode(), Arrays.asList(job)));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();

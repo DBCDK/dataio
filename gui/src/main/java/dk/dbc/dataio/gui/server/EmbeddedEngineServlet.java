@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.transfile.TransFile;
 import dk.dbc.dataio.commons.utils.transfile.TransFileData;
@@ -67,7 +67,7 @@ public class EmbeddedEngineServlet extends HttpServlet {
                 initials,
                 dataPath);
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,
-                ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceEntryPoint.JOBS);
+                ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceConstants.JOBS);
 
         try {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());

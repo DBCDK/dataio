@@ -2,7 +2,7 @@ package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.apache.commons.io.FileUtils;
@@ -154,19 +154,19 @@ public class ITUtil {
     }
 
     public static Response createJob(Client restClient, String content) {
-        return HttpClient.doPostWithJson(restClient, content, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS);
+        return HttpClient.doPostWithJson(restClient, content, JOB_STORE_BASE_URL, JobStoreServiceConstants.JOBS);
     }
 
     public static Response getJobState(Client restClient, long jobId) {
-        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), "state");
+        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceConstants.JOBS, Long.toString(jobId), "state");
     }
 
     public static Response getJobProcessorResult(Client restClient, long jobId, long chunkId) {
-        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), "processed", Long.toString(chunkId));
+        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceConstants.JOBS, Long.toString(jobId), "processed", Long.toString(chunkId));
     }
 
     public static Response getSinkResult(Client restClient, long jobId, long chunkId) {
-        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), "delivered", Long.toString(chunkId));
+        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceConstants.JOBS, Long.toString(jobId), "delivered", Long.toString(chunkId));
     }
 
     /**

@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
@@ -45,10 +45,10 @@ import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the '/JobStoreServiceEntryPoint.JOBS' entry point
+ * exposed by the '/JobStoreServiceConstants.JOBS' entry point
  */
 @Stateless
-@Path(JobStoreServiceEntryPoint.JOBS)
+@Path(JobStoreServiceConstants.JOBS)
 public class JobsBean {
     public static final String REST_FLOWBINDER_QUERY_ENTRY_POINT = "/resolve"; // todo: move this to a better place - this entrypoint is also hardcodet in FlowBindersBean.
 

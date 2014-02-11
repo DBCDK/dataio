@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.json.ChunkJsonBuilder;
@@ -54,7 +54,7 @@ public class JobStoreServiceConnectorBeanTest {
 
     @Test(expected = JobProcessorException.class)
     public void getChunk_jobStoreReturnsNotFoundResponse_throws() throws JobProcessorException {
-        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceEntryPoint.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceEntryPoint.CHUNKS), eq(Long.toString(chunkId))))
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceConstants.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceConstants.CHUNKS), eq(Long.toString(chunkId))))
                 .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), ""));
         final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
         jobStoreServiceConnectorBean.getChunk(jobId, chunkId);
@@ -62,7 +62,7 @@ public class JobStoreServiceConnectorBeanTest {
 
     @Test(expected = JobProcessorException.class)
     public void getChunk_jobStoreReturnsInternalServerErrorResponse_throws() throws JobProcessorException {
-        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceEntryPoint.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceEntryPoint.CHUNKS), eq(Long.toString(chunkId))))
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceConstants.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceConstants.CHUNKS), eq(Long.toString(chunkId))))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
         final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
         jobStoreServiceConnectorBean.getChunk(jobId, chunkId);
@@ -70,7 +70,7 @@ public class JobStoreServiceConnectorBeanTest {
 
     @Test(expected = JobProcessorException.class)
     public void getChunk_jobStoreReturnsInvalidChunkEntity_throws() throws JobProcessorException {
-        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceEntryPoint.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceEntryPoint.CHUNKS), eq(Long.toString(chunkId))))
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceConstants.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceConstants.CHUNKS), eq(Long.toString(chunkId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), "invalid"));
         final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
         jobStoreServiceConnectorBean.getChunk(jobId, chunkId);
@@ -82,7 +82,7 @@ public class JobStoreServiceConnectorBeanTest {
         final String expectedChunk = new ChunkJsonBuilder()
                 .setId(expectedChunkId)
                 .build();
-        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceEntryPoint.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceEntryPoint.CHUNKS), eq(Long.toString(chunkId))))
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), eq(JobStoreServiceConstants.JOBS), eq(Long.toString(jobId)), eq(JobStoreServiceConstants.CHUNKS), eq(Long.toString(chunkId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedChunk));
         final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
         final Chunk chunk = jobStoreServiceConnectorBean.getChunk(jobId, chunkId);

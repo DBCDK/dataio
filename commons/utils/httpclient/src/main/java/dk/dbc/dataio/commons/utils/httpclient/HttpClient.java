@@ -142,4 +142,23 @@ public class HttpClient {
         }
         return target.request().delete();
     }
+
+    /**
+     * Interpolates embedded path variables on the form {key} with value
+     * found by doing values.get(key), if any.
+     *
+     * @param path path containing path variables on the form {key}, can be null
+     * @param values key-to-value mappings, can be null
+     *
+     * @return path with values interpolated
+     */
+    public static String interpolatePathValues(String path, Map<String, String> values) {
+        String interpolatedPath = path;
+        if (interpolatedPath != null && values != null) {
+            for (Map.Entry<String, String> entry : values.entrySet()) {
+                interpolatedPath = interpolatedPath.replaceAll(String.format("\\{%s\\}", entry.getKey()), entry.getValue());
+            }
+        }
+        return interpolatedPath;
+    }
 }

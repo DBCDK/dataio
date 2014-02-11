@@ -2,7 +2,7 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
-import dk.dbc.dataio.commons.types.restparameters.FlowBinderFlowQuery;
+import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;

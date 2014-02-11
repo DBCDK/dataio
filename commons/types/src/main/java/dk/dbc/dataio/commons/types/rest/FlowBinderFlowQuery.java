@@ -1,4 +1,4 @@
-package dk.dbc.dataio.commons.types.restparameters;
+package dk.dbc.dataio.commons.types.rest;
 
 public class FlowBinderFlowQuery {
     public static final String REST_PARAMETER_DESTINATION = "destination";

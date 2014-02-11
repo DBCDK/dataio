@@ -12,7 +12,7 @@ import java.util.List;
  * In all essence objects of this class are immutable, but due to GWT serialization
  * issues we cannot have final fields and need a default no-arg constructor.
  */
-public class ChunkResult implements Serializable {
+public class ChunkResult extends AbstractChunk implements Serializable {
      static /* final */ long JOBID_VERSION_LOWER_THRESHOLD = 0L;
      static /* final */ long CHUNKID_VERSION_LOWER_THRESHOLD = 0L;
 

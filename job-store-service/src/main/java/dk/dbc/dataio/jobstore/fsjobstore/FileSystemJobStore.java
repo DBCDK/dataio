@@ -46,12 +46,15 @@ public class FileSystemJobStore implements JobStore {
     static final String CHUNK_COUNTER_FILE = "chunk.cnt";
     static final String PROCESSOR_COUNTER_FILE = "processor.cnt";
     static final String PROCESSOR_RESULT_FILENAME_PATTERN = "%d.res.json";
+    static final String SINK_COUNTER_FILE = "sink.cnt";
+    static final String SINK_RESULT_FILENAME_PATTERN = "%d.sink.json";
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemJobStore.class);
 
     private final Path storePath;
-    private final ChunkFileHandler processorChunkFileHandler;
+    private final ChunkFileHandler<ChunkResult> processorResultFileHandler;
+    private final ChunkFileHandler<SinkChunkResult> sinkResultFileHandler;
 
     public FileSystemJobStore(Path storePath) throws JobStoreException {
         if (storePath == null) {
@@ -61,7 +64,8 @@ public class FileSystemJobStore implements JobStore {
             createDirectory(storePath);
         }
         this.storePath = storePath;
-        this.processorChunkFileHandler = new ChunkFileHandler(storePath, PROCESSOR_COUNTER_FILE, PROCESSOR_RESULT_FILENAME_PATTERN);
+        this.processorResultFileHandler = new ChunkFileHandler(storePath, PROCESSOR_COUNTER_FILE, PROCESSOR_RESULT_FILENAME_PATTERN);
+        this.sinkResultFileHandler = new ChunkFileHandler(storePath, SINK_COUNTER_FILE, SINK_RESULT_FILENAME_PATTERN);
 
         LOGGER.info("Placing job store in {}", this.storePath);
     }
@@ -83,7 +87,7 @@ public class FileSystemJobStore implements JobStore {
         storeSinkInJob(jobPath, sink);
         storeJobSpecificationInJob(jobPath, jobSpec);
         createJobChunkCounterFile(jobId);
-        processorChunkFileHandler.createCounterFile(jobId);
+        processorResultFileHandler.createCounterFile(jobId);
 
         JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0);
 
@@ -339,28 +343,29 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
-        return processorChunkFileHandler.getResult(jobId, chunkId);
+        return processorResultFileHandler.getResult(jobId, chunkId, ChunkResult.class);
     }
 
     @Override
     public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
-        processorChunkFileHandler.addResult(processorResult);
+        processorResultFileHandler.addResult(processorResult);
         updateJobState(processorResult.getJobId());
     }
 
     @Override
     public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
-
+        sinkResultFileHandler.addResult(sinkResult);
+        updateJobState(sinkResult.getJobId());
     }
 
     @Override
     public SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException {
-        return null;
+        return sinkResultFileHandler.getResult(jobId, chunkId, SinkChunkResult.class);
     }
 
     private synchronized void updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
-        final long processorCount = processorChunkFileHandler.getNumberOfChunksInJob(jobId);
+        final long processorCount = processorResultFileHandler.getNumberOfChunksInJob(jobId);
         JobState jobState = null;
         if (processorCount == chunkCount) {
             jobState = getJobState(jobId);

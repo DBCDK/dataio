@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
+import dk.dbc.dataio.commons.types.AbstractChunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -14,7 +15,7 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ChunkFileHandler {
+public class ChunkFileHandler<X extends AbstractChunk> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkFileHandler.class);
 
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
@@ -29,21 +30,12 @@ public class ChunkFileHandler {
         this.resultFilenamePattern = resultFilenamePattern;
     }
 
-    public ChunkResult getResult(long jobId, long chunkId) throws JobStoreException {
+    public X getResult(long jobId, long chunkId, Class<X> clazz) throws JobStoreException {
         final Path resultPath = Paths.get(getJobPath(jobId).toString(), String.format(resultFilenamePattern, chunkId));
-        return readObjectFromFile(resultPath, ChunkResult.class);
+        return readObjectFromFile(resultPath, clazz);
     }
 
-    public void createCounterFile(long jobId) throws JobStoreException {
-        final Path counterFile = getCounterFile(jobId);
-        if (Files.exists(counterFile)) {
-            throw new JobStoreException("Counter file already exists");
-        }
-        writeLongValueToCounterFile(counterFile, 0L);
-        LOGGER.info("Created counter file: {}", counterFile);
-    }
-
-    public void addResult(ChunkResult result) throws JobStoreException {
+    public void addResult(X result) throws JobStoreException {
         final Path chunkPath = Paths.get(getJobPath(result.getJobId()).toString(), String.format(resultFilenamePattern, result.getChunkId()));
         LOGGER.info("Creating result json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
@@ -55,6 +47,15 @@ public class ChunkFileHandler {
             throw new JobStoreException(errorMsg, e);
         }
         incrementCounter(result.getJobId());
+    }
+
+    public void createCounterFile(long jobId) throws JobStoreException {
+        final Path counterFile = getCounterFile(jobId);
+        if (Files.exists(counterFile)) {
+            throw new JobStoreException("Counter file already exists");
+        }
+        writeLongValueToCounterFile(counterFile, 0L);
+        LOGGER.info("Created counter file: {}", counterFile);
     }
 
     public long getNumberOfChunksInJob(long jobId) throws JobStoreException {

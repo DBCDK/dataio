@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
  * In all essence objects of this class are immutable, but due to GWT serialization
  * issues we cannot have final fields and need a default no-arg constructor.
  */
-public class SinkChunkResult {
+public class SinkChunkResult extends AbstractChunk implements Serializable {
 
     static /* final */ long JOBID_VERSION_LOWER_THRESHOLD = 0L;
     static /* final */ long CHUNKID_VERSION_LOWER_THRESHOLD = 0L;

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.AbstractChunk;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;

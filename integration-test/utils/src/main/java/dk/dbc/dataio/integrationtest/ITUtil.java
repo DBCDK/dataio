@@ -165,6 +165,10 @@ public class ITUtil {
         return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), "processed", Long.toString(chunkId));
     }
 
+    public static Response getSinkResult(Client restClient, long jobId, long chunkId) {
+        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceEntryPoint.JOBS, Long.toString(jobId), "delivered", Long.toString(chunkId));
+    }
+
     /**
      * Extracts named header from given response while asserting that it is not null
      *

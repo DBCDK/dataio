@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.NewJob;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -96,6 +97,12 @@ public class JobsBeanIT {
         final Response response = ITUtil.getJobProcessorResult(restClient, jobId, chunkId);
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
         return JsonUtil.fromJson(response.readEntity(String.class), ChunkResult.class, MixIns.getMixIns());
+    }
+
+    static SinkChunkResult getSinkResult(Client restClient, long jobId, long chunkId) throws JsonException {
+        final Response response = ITUtil.getSinkResult(restClient, jobId, chunkId);
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+        return JsonUtil.fromJson(response.readEntity(String.class), SinkChunkResult.class, MixIns.getMixIns());
     }
 
     private static JobSpecification setupJobPrerequisites(Client restClient) throws URISyntaxException {

@@ -353,6 +353,11 @@ public class FileSystemJobStore implements JobStore {
 
     }
 
+    @Override
+    public SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException {
+        return null;
+    }
+
     private synchronized void updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
         final long processorCount = processorResultFiles.getNumberOfProcessedChunksInJob(jobId);

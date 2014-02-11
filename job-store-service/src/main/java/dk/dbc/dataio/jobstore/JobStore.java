@@ -30,6 +30,7 @@ public interface JobStore {
     ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException;
 
     void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException;
+    SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException;
 
     JobState getJobState(long jobId) throws JobStoreException;
 }

@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.types.restparameters.FlowBinderFlowQuery;
@@ -191,6 +192,37 @@ public class JobsBean {
             entity = JsonUtil.toJson(processorResult);
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling processor result %d for job %d", chunkId, jobId), e);
+        }
+        return Response.ok().entity(entity).build();
+    }
+
+    /**
+     * Retrieves sink result from the underlying data store
+     *
+     * @param jobId Id of job containing sink result
+     * @param chunkId Id of chunk for which to retrieve sink result
+     *
+     * @return a HTTP 200 OK response with SinkChunkResult entity as JSON string,
+     *         a HTTP 404 NOT_FOUND if unable to locate sink result,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading sink result from store, or if unable
+     * to marshall retrieved sink result to JSON.
+     */
+    @GET
+    @Path("{jobId}/delivered/{chunkId}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getSinkResult(@PathParam("jobId") long jobId, @PathParam("chunkId") long chunkId) throws JobStoreException {
+        LOGGER.info("Getting sink result for chunk {} in job {}", chunkId, jobId);
+        final SinkChunkResult sinkResult = jobStore.getSinkResult(jobId, chunkId);
+        if (sinkResult == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(sinkResult);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling sink result %d for job %d", chunkId, jobId), e);
         }
         return Response.ok().entity(entity).build();
     }

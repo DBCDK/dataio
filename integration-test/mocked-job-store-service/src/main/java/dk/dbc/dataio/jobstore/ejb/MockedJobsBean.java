@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
 
 import javax.ejb.Stateless;
 import javax.ws.rs.Path;

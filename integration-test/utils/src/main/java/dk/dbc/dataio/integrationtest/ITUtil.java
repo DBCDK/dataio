@@ -2,7 +2,7 @@ package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
-import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.apache.commons.io.FileUtils;

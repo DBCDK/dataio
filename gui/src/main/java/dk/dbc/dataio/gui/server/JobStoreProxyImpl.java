@@ -1,7 +1,7 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;

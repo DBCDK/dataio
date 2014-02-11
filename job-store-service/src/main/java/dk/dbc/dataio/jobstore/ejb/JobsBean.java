@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;

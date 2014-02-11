@@ -1,7 +1,7 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.JobStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.json.ChunkJsonBuilder;

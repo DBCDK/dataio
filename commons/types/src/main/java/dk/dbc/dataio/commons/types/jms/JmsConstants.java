@@ -1,5 +1,8 @@
 package dk.dbc.dataio.commons.types.jms;
 
+/**
+ * Constant values used be the dataIO JMS messaging protocol.
+ */
 public class JmsConstants {
     public static final String SOURCE_PROPERTY_NAME = "source";
     public static final String PAYLOAD_PROPERTY_NAME = "payload";

@@ -79,7 +79,7 @@ public class FileSystemJobStore implements JobStore {
         final Date jobCreationTime = new Date();
         final Path jobPath = getJobPath(jobId);
         final Path dataObjectPath = Paths.get(jobSpec.getDataFile());
-        long recordCount = 0;
+        long recordCount;
 
         LOGGER.info("Creating job in {}", jobPath);
         createDirectory(getJobPath(jobId));

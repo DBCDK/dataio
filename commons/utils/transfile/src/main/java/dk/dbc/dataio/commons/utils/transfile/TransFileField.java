@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class TransFileField {
-    
+
     public enum TransFileFieldId { BASE_NAME, FILE_NAME, TECHNICAL_PROTOCOL, CHARACTER_SET, LIBRARY_FORMAT, PRIMARY_EMAIL_ADDRESS, SECONDARY_EMAIL_ADDRESS, INITIALS }
 
     private final static Map<String, TransFileFieldId> idMap = new HashMap<>();
@@ -40,7 +40,7 @@ public class TransFileField {
     /**
      * Constructor: Construct the TransFileField object
      * @param field A string, containing Field Identifier and Field content in the form: fieldId=fieldContent
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
     public TransFileField(final String field) throws IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(field, "field");
@@ -60,7 +60,7 @@ public class TransFileField {
 
     /**
      * Getter: name The name of the TransFile Field
-     * @return 
+     * @return
      */
     public TransFileFieldId getKey() {
         return key;
@@ -68,18 +68,18 @@ public class TransFileField {
 
     /**
      * Getter: content The content of the TransFile Field
-     * @return 
+     * @return
      */
     public String getContent() {
         return content;
     }
-    
+
     // Private methods
-    
+
     /**
      * Checks if the format for the Field Identifier is valid
      * @param fieldIdentifier
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
     private void checkValidFieldIdentifierOrThrow(String fieldIdentifier) throws IllegalArgumentException {
         if (!idMap.containsKey(fieldIdentifier)) {
@@ -91,7 +91,7 @@ public class TransFileField {
      * Checks if the fieldContent is valid. If not, an exception (IllegalArgumentException) is thrown.
      * @param fieldIdentifier
      * @param fieldContent
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
     private void checkValidFieldContentOrThrow(TransFileFieldId fieldIdentifier, String fieldContent) throws IllegalArgumentException {
         switch (fieldIdentifier) {
@@ -119,26 +119,25 @@ public class TransFileField {
                 break;
             default:
                 // Unreachable statement... fieldIdentifier has been validated already
-                assert(false);
         }
     }
-    
+
     /**
      * Checks if the supplied fieldContent is in the valid range (given by the validFieldContent parameter)
      * @param validFieldContent The valid range
      * @param fieldContent
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
     private void checkValidEnumeratedFieldContentValueOrThrow(final Set<String> validFieldContent, String fieldContent) throws IllegalArgumentException {
         if (!validFieldContent.contains(fieldContent)) {
             throw new IllegalArgumentException("Field content: '" + fieldContent + "' is not valid in this context");
         }
     }
-    
+
     /**
      * Checks if the supplied email address is legal. Throws an IllegalArgumentException if not
      * @param email
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
     private void checkValidEmailAddressOrThrow(String email) throws IllegalArgumentException {
         if (!EMAIL_PATTERN.matcher(email).matches()) {
@@ -149,7 +148,7 @@ public class TransFileField {
     /**
      * Checks if the supplied filename is a valid filename reference in the TransFile
      * @param fieldContent
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
     private void checkValidFileNameFieldOrThrow(String fieldContent) throws IllegalArgumentException {
         if (!fieldContent.matches("[0-9]{6}\\.[0-9a-zA-Z-_.]*")) {
@@ -160,12 +159,12 @@ public class TransFileField {
     /**
      * Checks if the supplied parameter is a valid Initials field
      * @param fieldContent
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
     private void checkValidInitialsOrThrow(String fieldContent) throws IllegalArgumentException {
         if (!fieldContent.matches("[0-9a-zA-Z]*")) {
             throw new IllegalArgumentException("File name is not valid: '" + fieldContent + "'");
         }
     }
-    
+
 }

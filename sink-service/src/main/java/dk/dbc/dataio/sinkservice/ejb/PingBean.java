@@ -2,7 +2,7 @@ package dk.dbc.dataio.sinkservice.ejb;
 
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.types.SinkServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -23,10 +23,10 @@ import javax.ws.rs.core.Response;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the '/SinkServiceEntryPoint.PING' entry point
+ * exposed by the '/SinkServiceConstants.PING' entry point
  */
 @Stateless
-@Path(SinkServiceEntryPoint.PING)
+@Path(SinkServiceConstants.PING)
 public class PingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(PingBean.class);
 

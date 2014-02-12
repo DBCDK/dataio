@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import java.io.FileWriter;
@@ -31,7 +31,7 @@ import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 
 public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("FlowComponentCreateConstants_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("pages/flowcomponentcreate/FlowComponentCreateConstants_dk.properties");
 
     private static final String PROJECTS_PATH = "projects";
     private static final String SVN_PROJECT_NAME = "datawell-convert";

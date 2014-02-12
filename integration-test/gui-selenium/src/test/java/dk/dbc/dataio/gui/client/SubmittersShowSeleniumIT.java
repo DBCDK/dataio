@@ -1,6 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.views.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;

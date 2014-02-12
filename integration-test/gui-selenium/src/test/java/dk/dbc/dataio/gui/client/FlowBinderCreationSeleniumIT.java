@@ -14,7 +14,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("FlowbinderCreateConstants_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("pages/flowbindercreate/FlowbinderCreateConstants_dk.properties");
 
     private static final long SAVE_TIMEOUT = 4;
 

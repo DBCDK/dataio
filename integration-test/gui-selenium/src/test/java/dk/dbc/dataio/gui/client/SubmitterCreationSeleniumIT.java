@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client;
 import static dk.dbc.dataio.gui.client.NavigationPanelSeleniumIT.navigateTo;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
@@ -14,7 +14,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("SubmitterCreateConstants_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("pages/submittercreate/SubmitterCreateConstants_dk.properties");
 
     private static final int SAVE_SUBMITTER_TIMOUT = 4;
     private static final String NAME = "name";

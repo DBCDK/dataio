@@ -1,6 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.views.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;

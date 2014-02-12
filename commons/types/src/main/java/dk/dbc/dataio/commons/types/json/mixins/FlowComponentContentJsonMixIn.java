@@ -3,7 +3,6 @@ package dk.dbc.dataio.commons.types.json.mixins;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.JavaScript;
-
 import java.util.List;
 
 /**
@@ -23,6 +22,8 @@ public class FlowComponentContentJsonMixIn {
      */
     @JsonCreator
     public FlowComponentContentJsonMixIn(@JsonProperty("name") String name,
+                                         @JsonProperty("svnProject") String svnProject,
+                                         @JsonProperty("svnRevision") long svnRevision,
                                          @JsonProperty("javascripts") List<JavaScript> javascripts,
                                          @JsonProperty("invocationMethod") String invocationMethod) {
     }

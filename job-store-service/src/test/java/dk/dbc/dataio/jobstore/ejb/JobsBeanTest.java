@@ -215,7 +215,7 @@ public class JobsBeanTest {
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
         final JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
-        assertThat(entityNode.get("id").longValue(), is(chunk.getId()));
+        assertThat(entityNode.get("chunkId").longValue(), is(chunk.getChunkId()));
     }
 
     @Test

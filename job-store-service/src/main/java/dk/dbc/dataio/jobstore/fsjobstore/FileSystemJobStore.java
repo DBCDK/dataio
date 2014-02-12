@@ -64,8 +64,8 @@ public class FileSystemJobStore implements JobStore {
             createDirectory(storePath);
         }
         this.storePath = storePath;
-        this.processorResultFileHandler = new ChunkFileHandler(storePath, PROCESSOR_COUNTER_FILE, PROCESSOR_RESULT_FILENAME_PATTERN);
-        this.sinkResultFileHandler = new ChunkFileHandler(storePath, SINK_COUNTER_FILE, SINK_RESULT_FILENAME_PATTERN);
+        this.processorResultFileHandler = new ChunkFileHandler(ChunkResult.class, storePath, PROCESSOR_COUNTER_FILE, PROCESSOR_RESULT_FILENAME_PATTERN);
+        this.sinkResultFileHandler = new ChunkFileHandler(SinkChunkResult.class, storePath, SINK_COUNTER_FILE, SINK_RESULT_FILENAME_PATTERN);
 
         LOGGER.info("Placing job store in {}", this.storePath);
     }
@@ -311,12 +311,12 @@ public class FileSystemJobStore implements JobStore {
     }
 
     public void addChunk(Job job, Chunk chunk) throws JobStoreException {
-        final Path chunkPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.json", chunk.getId()));
+        final Path chunkPath = Paths.get(getJobPath(job.getId()).toString(), String.format("%d.json", chunk.getChunkId()));
         LOGGER.info("Creating chunk json-file: {}", chunkPath);
         try (BufferedWriter bw = Files.newBufferedWriter(chunkPath, LOCAL_CHARSET)) {
             bw.write(JsonUtil.toJson(chunk));
         } catch (IOException | JsonException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to write chunk: %d", chunk.getId()), e);
+            throw new JobStoreException(String.format("Exception caught when trying to write chunk: %d", chunk.getChunkId()), e);
         }
         incrementJobChunkCounter(job);
     }
@@ -343,7 +343,7 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
-        return processorResultFileHandler.getResult(jobId, chunkId, ChunkResult.class);
+        return processorResultFileHandler.getResult(jobId, chunkId);
     }
 
     @Override
@@ -360,7 +360,7 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException {
-        return sinkResultFileHandler.getResult(jobId, chunkId, SinkChunkResult.class);
+        return sinkResultFileHandler.getResult(jobId, chunkId);
     }
 
     private synchronized void updateJobState(long jobId) throws JobStoreException {
@@ -434,10 +434,11 @@ public class FileSystemJobStore implements JobStore {
     }
 
     private long applyDefaultXmlSplitter(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {
+        long jobId = job.getId();
         long chunkId = 1;
         long recordCount = 0;
         int counter = 0;
-        Chunk chunk = new Chunk(chunkId, job.getFlow());
+        Chunk chunk = new Chunk(jobId, chunkId, job.getFlow());
         for (String record : recordSplitter) {
             recordCount++;
             LOGGER.trace("======> Before [" + record + "]");
@@ -447,7 +448,7 @@ public class FileSystemJobStore implements JobStore {
                 chunk.addRecord(recordBase64);
             } else {
                 addChunk(job, chunk);
-                chunk = new Chunk(++chunkId, job.getFlow());
+                chunk = new Chunk(jobId, ++chunkId, job.getFlow());
                 chunk.addRecord(recordBase64);
                 counter = 1;
             }

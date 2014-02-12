@@ -21,7 +21,8 @@ public abstract class ChunkMixIn {
      * Makes jackson runtime aware of non-default Chunk constructor.
      */
     @JsonCreator
-    public ChunkMixIn(@JsonProperty("id") long Id,
+    public ChunkMixIn(@JsonProperty("jobId") long jobId,
+                      @JsonProperty("chunkId") long chunkId,
                       @JsonProperty("flow") Flow flow,
                       @JsonProperty("records") List<String> records) {
     }

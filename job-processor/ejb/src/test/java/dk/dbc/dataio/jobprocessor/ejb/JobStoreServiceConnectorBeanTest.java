@@ -89,13 +89,13 @@ public class JobStoreServiceConnectorBeanTest {
     public void getChunk_jobStoreReturnsChunkEntity_returnsChunkInstance() throws JobProcessorException {
         final long expectedChunkId = 42;
         final String expectedChunk = new ChunkJsonBuilder()
-                .setId(expectedChunkId)
+                .setChunkId(expectedChunkId)
                 .build();
         when(HttpClient.doGet(any(Client.class), eq(jobStoreUrl), any(String.class), any(String.class), any(String.class), any(String.class)))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedChunk));
         final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
         final Chunk chunk = jobStoreServiceConnectorBean.getChunk(jobId, chunkId);
-        assertThat(chunk.getId(), is(expectedChunkId));
+        assertThat(chunk.getChunkId(), is(expectedChunkId));
     }
 
     private JobStoreServiceConnectorBean getInitializedBean() {

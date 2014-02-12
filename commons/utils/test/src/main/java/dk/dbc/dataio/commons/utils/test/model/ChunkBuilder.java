@@ -8,12 +8,18 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ChunkBuilder {
-    private long id = 1;
+    private long jobId = 3;
+    private long chunkId = 1;
     private Flow flow = new FlowBuilder().build();
     private List<String> records = new ArrayList<>(Arrays.asList("record"));
 
-    public ChunkBuilder setId(long id) {
-        this.id = id;
+    public ChunkBuilder setJobId(long jobId) {
+        this.jobId = jobId;
+        return this;
+    }
+
+    public ChunkBuilder setChunkId(long chunkId) {
+        this.chunkId = chunkId;
         return this;
     }
 
@@ -28,6 +34,6 @@ public class ChunkBuilder {
     }
 
     public Chunk build() {
-        return new Chunk(id, flow, records);
+        return new Chunk(jobId, chunkId, flow, records);
     }
 }

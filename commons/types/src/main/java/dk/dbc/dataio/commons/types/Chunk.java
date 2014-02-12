@@ -9,13 +9,15 @@ import java.util.List;
 /**
  * Chunk DTO class.
  */
-public class Chunk implements Serializable {
+public class Chunk extends AbstractChunk implements Serializable {
     public static final int MAX_RECORDS_PER_CHUNK = 10;
+    static /* final */ long JOBID_LOWER_THRESHOLD = 0L;
     static /* final */ long CHUNKID_LOWER_THRESHOLD = 0L;
     private static final long serialVersionUID = -6317006704089913073L;
 
+    private /* final */ long jobId;
+    private /* final */ long chunkId;
     private /* final */ List<String> records;
-    private /* final */ long id;
     private /* final */ Flow flow;
 
     private Chunk() {
@@ -25,12 +27,13 @@ public class Chunk implements Serializable {
         records = new ArrayList<String>(0);
     }
 
-    public Chunk(long id, Flow flow) {
-        this(id, flow, new ArrayList<String>(MAX_RECORDS_PER_CHUNK));
+    public Chunk(long jobId, long chunkId, Flow flow) {
+        this(jobId, chunkId, flow, new ArrayList<String>(MAX_RECORDS_PER_CHUNK));
     }
 
-    public Chunk(long id, Flow flow, List<String> records) throws NullPointerException, IllegalArgumentException {
-        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", CHUNKID_LOWER_THRESHOLD);
+    public Chunk(long jobId, long chunkId, Flow flow, List<String> records) throws NullPointerException, IllegalArgumentException {
+        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOBID_LOWER_THRESHOLD);
+        this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", CHUNKID_LOWER_THRESHOLD);
         this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
         this.records = InvariantUtil.checkNotNullOrThrow(records, "records");
         if (this.records.size() > MAX_RECORDS_PER_CHUNK) {
@@ -46,8 +49,14 @@ public class Chunk implements Serializable {
         }
     }
 
-    public long getId() {
-        return id;
+    @Override
+    public long getJobId() {
+        return jobId;
+    }
+
+    @Override
+    public long getChunkId() {
+        return chunkId;
     }
 
     public Flow getFlow() {

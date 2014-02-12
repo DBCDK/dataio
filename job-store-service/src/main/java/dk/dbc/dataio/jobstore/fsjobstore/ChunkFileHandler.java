@@ -23,13 +23,16 @@ public class ChunkFileHandler<X extends AbstractChunk> {
     private final String counterFile;
     private final String resultFilenamePattern;
 
-    public ChunkFileHandler(Path storePath, String counterFile, String resultFilenamePattern) {
+    private final Class<X> clazz;
+
+    public ChunkFileHandler(Class<X> clazz, Path storePath, String counterFile, String resultFilenamePattern) {
+        this.clazz = clazz;
         this.storePath = storePath;
         this.counterFile = counterFile;
         this.resultFilenamePattern = resultFilenamePattern;
     }
 
-    public X getResult(long jobId, long chunkId, Class<X> clazz) throws JobStoreException {
+    public X getResult(long jobId, long chunkId) throws JobStoreException {
         final Path resultPath = Paths.get(getJobPath(jobId).toString(), String.format(resultFilenamePattern, chunkId));
         return readObjectFromFile(resultPath, clazz);
     }

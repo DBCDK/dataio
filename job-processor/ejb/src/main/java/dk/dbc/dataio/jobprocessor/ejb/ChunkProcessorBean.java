@@ -35,7 +35,7 @@ public class ChunkProcessorBean {
      * @return result of processing
      */
     public ChunkResult process(long jobId, Chunk chunk) {
-        LOGGER.info("Processing chunk {} in job {}", chunk.getId(), jobId);
+        LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), jobId);
         final Flow flow = chunk.getFlow();
         final List<String> results = new ArrayList<>();
         for (String record : chunk.getRecords()) {
@@ -44,7 +44,7 @@ public class ChunkProcessorBean {
             results.add(processedRecordBase64);
         }
         // todo: Change Chunk to get actual Charset
-        return new ChunkResult(jobId, chunk.getId(), Charset.defaultCharset(), results);
+        return new ChunkResult(jobId, chunk.getChunkId(), Charset.defaultCharset(), results);
     }
 
     private String invokeJavaScript(Flow flow, String record) {

@@ -21,15 +21,15 @@ public class ChunkFileHandler<X extends AbstractChunk> {
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
 
     private final Path storePath;
-    private final String counterFile;
+    private final String counterFilename;
     private final String resultFilenamePattern;
 
     private final Class<X> clazz;
 
-    public ChunkFileHandler(Class<X> clazz, Path storePath, String counterFile, String resultFilenamePattern) {
+    public ChunkFileHandler(Class<X> clazz, Path storePath, String counterFilename, String resultFilenamePattern) {
         this.clazz = clazz;
         this.storePath = storePath;
-        this.counterFile = counterFile;
+        this.counterFilename = counterFilename;
         this.resultFilenamePattern = resultFilenamePattern;
     }
 
@@ -38,7 +38,7 @@ public class ChunkFileHandler<X extends AbstractChunk> {
         if (!Files.exists(resultPath)) {
             return null;
         }
-        return readObjectFromFile(resultPath, clazz);
+        return JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).readObjectFromFile(resultPath, clazz);
     }
 
     public void addResult(X result) throws JobStoreException {
@@ -69,7 +69,7 @@ public class ChunkFileHandler<X extends AbstractChunk> {
     }
 
     private Path getCounterFile(long jobId) {
-        return Paths.get(getJobPath(jobId).toString(), counterFile);
+        return Paths.get(getJobPath(jobId).toString(), counterFilename);
     }
 
     private synchronized void incrementCounter(long jobId) throws JobStoreException {
@@ -97,23 +97,6 @@ public class ChunkFileHandler<X extends AbstractChunk> {
             throw new JobStoreException(String.format("Exception caught when trying to read from counter file %s", counterFile), e);
         }
         return counter;
-    }
-
-    private <T> T readObjectFromFile(Path objectPath, Class<T> tClass) throws JobStoreException {
-        T object;
-        try (BufferedReader br = Files.newBufferedReader(objectPath, LOCAL_CHARSET)) {
-            final StringBuilder sb = new StringBuilder();
-            String data;
-            while ((data = br.readLine()) != null) {
-                sb.append(data);
-            }
-            object = JsonUtil.fromJson(sb.toString(), tClass);
-        } catch (IOException | JsonException e) {
-            final String errorMsg = String.format("Exception caught while reading object from Path: %s", objectPath.toString());
-            LOGGER.error(errorMsg, e);
-            throw new JobStoreException(errorMsg, e);
-        }
-        return object;
     }
 
     private void writeLongValueToCounterFile(Path counterFile, Long counter) throws JobStoreException {

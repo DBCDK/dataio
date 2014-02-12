@@ -142,44 +142,16 @@ public class FileSystemJobStore implements JobStore {
 
     // Not thread-safe
     private void setJobState(long jobId, JobState jobState) throws JobStoreException {
-        writeObjectToFile(getJobStatePath(jobId), jobState);
+        JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).writeObjectToFile(getJobStatePath(jobId), jobState);
     }
 
     @Override
     public synchronized JobState getJobState(long jobId) throws JobStoreException {
         final Path jobStatePath = getJobStatePath(jobId);
         if (Files.exists(jobStatePath)) {
-            return readObjectFromFile(jobStatePath, JobState.class);
+            return JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).readObjectFromFile(jobStatePath, JobState.class);
         } else {
             return null;
-        }
-    }
-
-    private static <T> T readObjectFromFile(Path objectPath, Class<T> tClass) throws JobStoreException {
-        T object;
-        try (BufferedReader br = Files.newBufferedReader(objectPath, LOCAL_CHARSET)) {
-            final StringBuilder sb = new StringBuilder();
-            String data;
-            while ((data = br.readLine()) != null) {
-                sb.append(data);
-            }
-            object = JsonUtil.fromJson(sb.toString(), tClass);
-        } catch (IOException | JsonException e) {
-            final String errorMsg = String.format("Exception caught while reading object from Path: %s", objectPath.toString());
-            LOGGER.error(errorMsg, e);
-            throw new JobStoreException(errorMsg, e);
-        }
-        return object;
-    }
-
-    private static <T> void writeObjectToFile(Path objectPath, T object) throws JobStoreException {
-        LOGGER.info("Writing JSON file: {}", objectPath);
-        try (BufferedWriter bw = Files.newBufferedWriter(objectPath, LOCAL_CHARSET)) {
-            bw.write(JsonUtil.toJson(object));
-        } catch (IOException | JsonException e) {
-            final String errorMsg = String.format("Exception caught when trying to write object to Path: %s", objectPath.toString());
-            LOGGER.error(errorMsg, e);
-            throw new JobStoreException(errorMsg, e);
         }
     }
 
@@ -345,6 +317,11 @@ public class FileSystemJobStore implements JobStore {
         return sinkResultFileHandler.getResult(jobId, chunkId);
     }
 
+    @Override
+    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
+        return chunkFileHandler.getNumberOfChunksInJob(jobId);
+    }
+
     private synchronized void updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
         final long processorCount = processorResultFileHandler.getNumberOfChunksInJob(jobId);
@@ -361,12 +338,6 @@ public class FileSystemJobStore implements JobStore {
             setJobState(jobId, jobState);
         }
     }
-
-    @Override
-    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
-        return chunkFileHandler.getNumberOfChunksInJob(jobId);
-    }
-
 
     private long applyDefaultXmlSplitter(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {
         long jobId = job.getId();

@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChunkFileHandler<X extends AbstractChunk> {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkFileHandler.class);
 
     static final Charset LOCAL_CHARSET = Charset.forName("UTF-8");
@@ -34,6 +35,9 @@ public class ChunkFileHandler<X extends AbstractChunk> {
 
     public X getResult(long jobId, long chunkId) throws JobStoreException {
         final Path resultPath = Paths.get(getJobPath(jobId).toString(), String.format(resultFilenamePattern, chunkId));
+        if (!Files.exists(resultPath)) {
+            return null;
+        }
         return readObjectFromFile(resultPath, clazz);
     }
 

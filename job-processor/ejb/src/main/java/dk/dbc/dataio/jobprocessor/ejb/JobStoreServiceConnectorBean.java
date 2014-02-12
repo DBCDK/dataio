@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -21,6 +21,8 @@ import javax.ejb.Singleton;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) singleton is used as a connector
@@ -58,8 +60,11 @@ public class JobStoreServiceConnectorBean {
             // performance: consider JNDI lookup cache or service-locator pattern
             final String baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
 
-            final Response response = HttpClient.doGet(client, baseUrl,
-                    JobStoreServiceConstants.JOBS, Long.toString(jobId), JobStoreServiceConstants.CHUNKS, Long.toString(chunkId));
+            final Map<String, String> pathVariables = new HashMap<>();
+            pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+            pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
+            final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_CHUNK, pathVariables);
+            final Response response = HttpClient.doGet(client, baseUrl, path.split("/"));
             verifyStatusCode(response, Response.Status.OK);
 
             return JsonUtil.fromJson(response.readEntity(String.class), Chunk.class, MixIns.getMixIns());

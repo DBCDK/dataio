@@ -67,7 +67,7 @@ public class EmbeddedEngineServlet extends HttpServlet {
                 initials,
                 dataPath);
         final Response response = HttpClient.doPostWithJson(client, jobSpecification,
-                ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceConstants.JOBS);
+                ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceConstants.JOB_COLLECTION);
 
         try {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());

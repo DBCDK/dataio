@@ -148,14 +148,14 @@ public class HttpClient {
      * found by doing values.get(key), if any.
      *
      * @param path path containing path variables on the form {key}, can be null
-     * @param values key-to-value mappings, can be null
+     * @param variables key-to-value mappings, can be null
      *
      * @return path with values interpolated
      */
-    public static String interpolatePathValues(String path, Map<String, String> values) {
+    public static String interpolatePathVariables(String path, Map<String, String> variables) {
         String interpolatedPath = path;
-        if (interpolatedPath != null && values != null) {
-            for (Map.Entry<String, String> entry : values.entrySet()) {
+        if (interpolatedPath != null && variables != null) {
+            for (Map.Entry<String, String> entry : variables.entrySet()) {
                 interpolatedPath = interpolatedPath.replaceAll(String.format("\\{%s\\}", entry.getKey()), entry.getValue());
             }
         }

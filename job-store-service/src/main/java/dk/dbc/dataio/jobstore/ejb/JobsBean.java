@@ -7,13 +7,13 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -45,10 +45,10 @@ import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the '/JobStoreServiceConstants.JOBS' entry point
+ * exposed by the /{@value dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants#JOB_COLLECTION} entry point
  */
 @Stateless
-@Path(JobStoreServiceConstants.JOBS)
+@Path("/")
 public class JobsBean {
     public static final String REST_FLOWBINDER_QUERY_ENTRY_POINT = "/resolve"; // todo: move this to a better place - this entrypoint is also hardcodet in FlowBindersBean.
 
@@ -80,6 +80,7 @@ public class JobsBean {
      * @throws ReferencedEntityNotFoundException when unable to resolve attached flow
      */
     @POST
+    @Path(JobStoreServiceConstants.JOB_COLLECTION)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
@@ -118,9 +119,11 @@ public class JobsBean {
      * to marshall retrieved chunk to JSON.
      */
     @GET
-    @Path("{jobId}/chunks/{chunkId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getChunk(@PathParam("jobId") long jobId, @PathParam("chunkId") long chunkId) throws JobStoreException {
+    @Path(JobStoreServiceConstants.JOB_CHUNK)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getChunk(
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
         LOGGER.info("Getting chunk {} for job {}", chunkId, jobId);
         final Chunk chunk = jobStore.getChunk(jobId, chunkId);
         if (chunk == null) {
@@ -148,9 +151,9 @@ public class JobsBean {
      * to marshall retrieved JobState to JSON.
      */
     @GET
-    @Path("{jobId}/state")
+    @Path(JobStoreServiceConstants.JOB_STATE)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response getState(@PathParam("jobId") long jobId) throws JobStoreException {
+    public Response getState(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
         LOGGER.info("Getting state for job {}", jobId);
         final JobState jobState = jobStore.getJobState(jobId);
         if (jobState == null) {
@@ -179,9 +182,11 @@ public class JobsBean {
      * to marshall retrieved processor result to JSON.
      */
     @GET
-    @Path("{jobId}/processed/{chunkId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getProcessorResult(@PathParam("jobId") long jobId, @PathParam("chunkId") long chunkId) throws JobStoreException {
+    @Path(JobStoreServiceConstants.JOB_PROCESSED)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getProcessorResult(
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
         LOGGER.info("Getting processor result for chunk {} in job {}", chunkId, jobId);
         final ChunkResult processorResult = jobStore.getProcessorResult(jobId, chunkId);
         if (processorResult == null) {
@@ -210,9 +215,11 @@ public class JobsBean {
      * to marshall retrieved sink result to JSON.
      */
     @GET
-    @Path("{jobId}/delivered/{chunkId}")
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getSinkResult(@PathParam("jobId") long jobId, @PathParam("chunkId") long chunkId) throws JobStoreException {
+    @Path(JobStoreServiceConstants.JOB_DELIVERED)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getSinkResult(
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
         LOGGER.info("Getting sink result for chunk {} in job {}", chunkId, jobId);
         final SinkChunkResult sinkResult = jobStore.getSinkResult(jobId, chunkId);
         if (sinkResult == null) {
@@ -237,7 +244,8 @@ public class JobsBean {
      * to marshall retrieved data to JSON.
      */
     @GET
-    @Produces({MediaType.APPLICATION_JSON})
+    @Path(JobStoreServiceConstants.JOB_COLLECTION)
+    @Produces({ MediaType.APPLICATION_JSON })
     public Response getJobs() throws JobStoreException {
         LOGGER.info("Getting Jobs list");
         final List<JobInfo> jobInfo = jobStore.getAllJobInfos();

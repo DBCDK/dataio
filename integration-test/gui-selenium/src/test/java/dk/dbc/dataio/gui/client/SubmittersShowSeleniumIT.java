@@ -1,7 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -55,7 +55,7 @@ public class SubmittersShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToSubmittersShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SUBMITTERS);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SUBMITTERS);
     }
 
 }

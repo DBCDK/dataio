@@ -1,7 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.views.FlowComponentsShowViewImpl;
-import dk.dbc.dataio.gui.client.views.Menu;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -46,7 +46,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
     }
 
 }

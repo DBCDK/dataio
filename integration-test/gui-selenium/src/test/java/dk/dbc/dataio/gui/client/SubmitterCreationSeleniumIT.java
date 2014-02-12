@@ -3,8 +3,8 @@ package dk.dbc.dataio.gui.client;
 import static dk.dbc.dataio.gui.client.NavigationPanelSeleniumIT.navigateTo;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -132,7 +132,7 @@ public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
      * The following is private static helper methods.
      */
     private static void navigateToSubmitterCreationWidget(WebDriver webDriver) {
-        navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION);
+        navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION);
     }
 
     private static WebElement findSubmitterCreationWidget(WebDriver webDriver) {

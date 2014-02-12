@@ -10,7 +10,6 @@ import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
-import dk.dbc.dataio.gui.client.views.Menu.MenuItem;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 
@@ -27,7 +26,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 public class NavigationPanel extends FlowPanel {
     public static final String GUIID_NAVIGATION_MENU_PANEL = "navigationmenupanel";
     private final PlaceController placeController;
-    private final Menu menuStructure = new Menu();
+    private final MenuItem menuStructure;
 
 
     /**
@@ -37,6 +36,7 @@ public class NavigationPanel extends FlowPanel {
      */
     NavigationPanel(ClientFactory clientFactory, String guiId) {
         placeController = clientFactory.getPlaceController();
+        menuStructure = clientFactory.getMenuStructure();
         getElement().setId(guiId);
         add(new Image("images/dbclogo.gif"));
         add(new MenuPanel(GUIID_NAVIGATION_MENU_PANEL));
@@ -61,7 +61,7 @@ public class NavigationPanel extends FlowPanel {
         public MenuPanel(String guiId) {
             super();
             getElement().setId(guiId);
-            for (MenuItem mainMenuItem: menuStructure.menuData.subMenuItem) {
+            for (MenuItem mainMenuItem: menuStructure.subMenuItem) {
                 TreeItem root;
                 root = new TreeItem();
                 root.getElement().setId(mainMenuItem.guiId);

@@ -1,7 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.SinksShowViewImpl;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -36,7 +36,7 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToSinksShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_MAIN_MENU_ITEM_SINKS);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SINKS);
     }
 
 }

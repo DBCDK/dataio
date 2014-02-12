@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.Menu;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -156,7 +156,7 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_CREATION);
     }
 
     private static WebElement findFlowCreationWidget(WebDriver webDriver) {

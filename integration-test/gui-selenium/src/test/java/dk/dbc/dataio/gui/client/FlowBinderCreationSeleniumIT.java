@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.Menu;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.io.IOException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
@@ -357,7 +357,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION);
     }
 
     private static WebElement findFlowbinderCreationWidget(WebDriver webDriver) {

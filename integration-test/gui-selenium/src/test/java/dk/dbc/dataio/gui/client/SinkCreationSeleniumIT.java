@@ -2,8 +2,8 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.views.Menu;
 import dk.dbc.dataio.gui.client.views.SinkCreateViewImpl;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -113,11 +113,11 @@ public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
      * The following is private static helper methods.
      */
     private static void navigateToSinkCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SINK_CREATION);
     }
 
     private static WebElement findSinkCreationNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, Menu.GUIID_SUB_MENU_ITEM_SINK_CREATION);
+        return SeleniumUtil.findElementInCurrentView(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SINK_CREATION);
     }
 
     private static WebElement findSinkCreationWidget(WebDriver webDriver) {

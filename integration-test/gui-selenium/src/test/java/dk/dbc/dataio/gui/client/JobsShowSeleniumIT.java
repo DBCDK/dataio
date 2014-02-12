@@ -3,15 +3,7 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
-import dk.dbc.dataio.gui.client.views.Menu;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.FileVisitResult;
@@ -21,9 +13,15 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
-
 import static org.hamcrest.CoreMatchers.is;
+import org.junit.After;
 import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
 
 public class JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     private final static String DATAIO_JOB_STORE = "dataio-job-store";
@@ -76,7 +74,7 @@ public class JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToJobsShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_MAIN_MENU_ITEM_JOBS);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_JOBS);
     }
 
 

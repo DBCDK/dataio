@@ -4,6 +4,7 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -13,7 +14,7 @@ import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.views.FlowCreateView;
 import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.views.FlowsShowView;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
+import dk.dbc.dataio.gui.client.views.MenuItem;
 import dk.dbc.dataio.gui.client.views.SinkCreateView;
 import dk.dbc.dataio.gui.client.views.SinksShowView;
 import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
@@ -33,12 +34,14 @@ public interface ClientFactory {
     PlaceController getPlaceController();
     Activity getActivity(Place place);
 
-
     // Proxies
     FlowStoreProxyAsync getFlowStoreProxyAsync();
     JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
     SinkServiceProxyAsync getSinkServiceProxyAsync();
     JobStoreProxyAsync getJobStoreProxyAsync();
+
+    // Menu Structure
+    MenuItem getMenuStructure();
 
     // Views
     FlowCreateView getFlowCreateView();
@@ -51,4 +54,5 @@ public interface ClientFactory {
     SubmittersShowView getSubmittersShowView();
     JobsShowView getJobsShowView();
     SinksShowView getSinksShowView();
+
 }

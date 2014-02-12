@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.Menu;
+import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -194,11 +194,11 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowComponentCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION);
     }
 
     private static WebElement findFlowComponentCreateNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, Menu.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION);
+        return SeleniumUtil.findElementInCurrentView(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION);
     }
 
     private static WebElement findFlowComponentCreationWidget(WebDriver webDriver) {

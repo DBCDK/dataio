@@ -357,7 +357,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWBINDER_CREATE);
     }
 
     private static WebElement findFlowbinderCreationWidget(WebDriver webDriver) {

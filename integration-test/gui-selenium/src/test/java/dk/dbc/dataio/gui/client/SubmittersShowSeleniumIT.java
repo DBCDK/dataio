@@ -55,7 +55,7 @@ public class SubmittersShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToSubmittersShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SUBMITTERS);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SUBMITTERS_SHOW);
     }
 
 }

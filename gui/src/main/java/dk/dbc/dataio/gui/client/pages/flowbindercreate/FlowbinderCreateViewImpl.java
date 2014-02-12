@@ -38,7 +38,7 @@ public class FlowbinderCreateViewImpl extends ContentPanel<FlowbinderCreatePrese
     public static final String GUIID_FLOWBINDER_CREATION_SAVE_PANEL = "flowbindercreationsavepanel";
 
     // Local variables
-    private final FlowbinderCreateConstants constants = GWT.create(FlowbinderCreateConstants.class);
+    private final static FlowbinderCreateConstants constants = GWT.create(FlowbinderCreateConstants.class);
     private final TextEntry flowbinderNamePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_NAME_PANEL, constants.label_FlowBinderName(), FLOWBINDER_CREATION_NAME_MAX_LENGTH);
     private final TextAreaEntry flowbinderDescriptionPanel = new TextAreaEntry(GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL, constants.label_FlowBinderDescription(), FLOWBINDER_CREATION_DESCRIPTION_MAX_LENGTH);
     private final TextEntry flowbinderFramePanel = new TextEntry(GUIID_FLOWBINDER_CREATION_FRAME_PANEL, constants.label_FrameFormat());
@@ -56,7 +56,7 @@ public class FlowbinderCreateViewImpl extends ContentPanel<FlowbinderCreatePrese
      * Constructor
      */
     public FlowbinderCreateViewImpl() {
-        super(mainConstants.subMenu_FlowbinderCreation());
+        super(constants.menu_FlowbinderCreation());
     }
 
 

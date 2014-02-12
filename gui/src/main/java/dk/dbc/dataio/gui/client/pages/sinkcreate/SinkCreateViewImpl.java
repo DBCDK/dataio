@@ -23,7 +23,7 @@ public class SinkCreateViewImpl extends ContentPanel<SinkCreatePresenter> implem
     public static final String GUIID_SINK_CREATION_SAVE_BUTTON_PANEL = "sinkcreationsavebuttonpanel";
 
     // Local variables
-    private final SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
+    private final static SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
     private final TextEntry sinkNamePanel = new TextEntry(GUIID_SINK_CREATION_SINK_NAME_PANEL, constants.label_SinkName());
     private final TextEntry resourceNamePanel = new TextEntry(GUIID_SINK_CREATION_RESOURCE_NAME_PANEL, constants.label_ResourceName());
     private final SaveButton saveButton = new SaveButton(GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
@@ -33,7 +33,7 @@ public class SinkCreateViewImpl extends ContentPanel<SinkCreatePresenter> implem
      * Constructor
      */
     public SinkCreateViewImpl() {
-        super(mainConstants.subMenu_SinkCreation());
+        super(constants.menu_SinkCreation());
     }
 
 

@@ -194,11 +194,11 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowComponentCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE);
     }
 
     private static WebElement findFlowComponentCreateNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION);
+        return SeleniumUtil.findElementInCurrentView(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE);
     }
 
     private static WebElement findFlowComponentCreationWidget(WebDriver webDriver) {

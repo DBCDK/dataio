@@ -113,11 +113,11 @@ public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
      * The following is private static helper methods.
      */
     private static void navigateToSinkCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SINK_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SINK_CREATE);
     }
 
     private static WebElement findSinkCreationNavigationElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SINK_CREATION);
+        return SeleniumUtil.findElementInCurrentView(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SINK_CREATE);
     }
 
     private static WebElement findSinkCreationWidget(WebDriver webDriver) {

@@ -31,7 +31,7 @@ public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implem
     private static final int FLOW_CREATION_DESCRIPTION_MAX_LENGTH = 160;
 
     // Local variables
-    private final FlowCreateConstants constants = GWT.create(FlowCreateConstants.class);
+    private final static FlowCreateConstants constants = GWT.create(FlowCreateConstants.class);
     private final TextEntry flowNamePanel = new TextEntry(GUIID_FLOW_CREATION_FLOW_NAME_PANEL, constants.label_FlowName());
     private final TextAreaEntry flowDescriptionPanel = new TextAreaEntry(GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, constants.label_Description(), FLOW_CREATION_DESCRIPTION_MAX_LENGTH);
     private final DualListEntry flowComponentSelectionPanel = new DualListEntry(GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL, constants.label_FlowComponents());
@@ -42,7 +42,7 @@ public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implem
      * Constructor
      */
     public FlowCreateViewImpl() {
-        super(mainConstants.subMenu_FlowCreation());
+        super(constants.menu_FlowCreation());
     }
 
 

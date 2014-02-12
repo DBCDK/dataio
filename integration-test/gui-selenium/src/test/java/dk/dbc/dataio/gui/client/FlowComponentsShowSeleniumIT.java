@@ -46,7 +46,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW);
     }
 
 }

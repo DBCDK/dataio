@@ -5,7 +5,12 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
 public interface FlowCreateConstants extends Constants {
-    
+
+    // Menu text
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_FlowCreation();
+
+
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_FlowName();
@@ -16,7 +21,7 @@ public interface FlowCreateConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_FlowComponents();
 
-    
+
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
@@ -25,10 +30,10 @@ public interface FlowCreateConstants extends Constants {
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();
-    
-    
+
+
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_FlowSuccessfullySaved();
-    
+
 }

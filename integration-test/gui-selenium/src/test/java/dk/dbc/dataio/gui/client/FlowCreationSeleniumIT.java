@@ -156,7 +156,7 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowCreationWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_CREATION);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_CREATE);
     }
 
     private static WebElement findFlowCreationWidget(WebDriver webDriver) {

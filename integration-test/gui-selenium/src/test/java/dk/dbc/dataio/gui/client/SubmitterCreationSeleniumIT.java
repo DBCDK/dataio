@@ -132,7 +132,7 @@ public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
      * The following is private static helper methods.
      */
     private static void navigateToSubmitterCreationWidget(WebDriver webDriver) {
-        navigateTo(webDriver, ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION);
+        navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SUBMITTER_CREATE);
     }
 
     private static WebElement findSubmitterCreationWidget(WebDriver webDriver) {

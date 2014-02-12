@@ -18,7 +18,7 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
     public static final String GUIID_SINKS_SHOW_WIDGET = "sinksshowwidget";
 
     // Local variables
-    private final SinksShowConstants constants = GWT.create(SinksShowConstants.class);
+    private final static SinksShowConstants constants = GWT.create(SinksShowConstants.class);
     private final DioCellTable<Sink> table = new DioCellTable<Sink>();
 
 
@@ -26,7 +26,7 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
      * Constructor
      */
     public SinksShowViewImpl() {
-        super(mainConstants.mainMenu_Sinks());
+        super(constants.menu_Sinks());
     }
 
     /**

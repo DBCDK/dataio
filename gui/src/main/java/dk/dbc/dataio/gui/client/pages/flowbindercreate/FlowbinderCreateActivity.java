@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.ArrayList;
 import java.util.HashMap;

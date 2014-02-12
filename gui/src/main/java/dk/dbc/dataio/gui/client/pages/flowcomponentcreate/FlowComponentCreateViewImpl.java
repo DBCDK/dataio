@@ -36,7 +36,7 @@ public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreat
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
 
     // private objects
-    private final FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
+    private final static FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
     private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, constants.label_ComponentName());
     private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, constants.label_SvnProject());
     private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, constants.label_SvnRevision());
@@ -50,7 +50,7 @@ public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreat
      * Constructor
      */
     public FlowComponentCreateViewImpl() {
-        super(mainConstants.subMenu_FlowComponentCreation());
+        super(constants.menu_FlowComponentCreation());
     }
 
 

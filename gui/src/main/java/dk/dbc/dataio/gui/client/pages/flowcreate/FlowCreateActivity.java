@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.ArrayList;
 import java.util.Arrays;

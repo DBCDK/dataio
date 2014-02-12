@@ -36,7 +36,7 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToSinksShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SINKS);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SINKS_SHOW);
     }
 
 }

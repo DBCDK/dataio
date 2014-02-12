@@ -5,7 +5,12 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
 public interface SubmitterCreateConstants extends Constants {
-    
+
+    // Menu text
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_SubmitterCreation();
+
+
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SubmitterNumber();
@@ -25,19 +30,19 @@ public interface SubmitterCreateConstants extends Constants {
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NumberInputFieldValidationError();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ProxyKeyViolationError();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ProxyDataValidationError();
-    
-    
+
+
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_SubmitterSuccessfullySaved();
-    
+
 }

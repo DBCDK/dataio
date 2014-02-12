@@ -18,15 +18,15 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
     public static final String GUIID_FLOW_COMPONENTS_SHOW_WIDGET = "flowcomponentsshowwidget";
 
     // Local variables
-    private final FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
-    private DioCellTable<FlowComponent> table = new DioCellTable<FlowComponent>();
+    private final static FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
+    private final DioCellTable<FlowComponent> table = new DioCellTable<FlowComponent>();
 
 
     /**
      * Constructor
      */
     public FlowComponentsShowViewImpl() {
-        super(mainConstants.subMenu_FlowComponentsShow());
+        super(constants.menu_FlowComponentsShow());
     }
 
 

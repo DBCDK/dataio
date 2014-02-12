@@ -9,38 +9,4 @@ public interface MainConstants extends Constants {
     @DefaultStringValue(TRANSLATED_TEXT_IS_MISSING)
     String header_DataIO();
 
-
-    // Main menu items
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String mainMenu_Submitters();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String mainMenu_Flows();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String mainMenu_Sinks();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String mainMenu_Jobs();
-
-
-    // Sub menu items
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String subMenu_FlowCreation();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String subMenu_FlowComponentCreation();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String subMenu_SubmitterCreation();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String subMenu_FlowbinderCreation();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String subMenu_SinkCreation();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String subMenu_FlowComponentsShow();
-
 }

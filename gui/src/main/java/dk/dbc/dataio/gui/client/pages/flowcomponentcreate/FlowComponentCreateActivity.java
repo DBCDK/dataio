@@ -12,7 +12,6 @@ import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateView;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.Arrays;
 import java.util.List;

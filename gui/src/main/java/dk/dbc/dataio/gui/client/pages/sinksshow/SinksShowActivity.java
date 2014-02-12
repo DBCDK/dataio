@@ -6,7 +6,6 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.List;
 

@@ -5,7 +5,12 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
 public interface SinkCreateConstants extends Constants {
-    
+
+    // Menu text
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_SinkCreation();
+
+
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SinkName();
@@ -13,7 +18,7 @@ public interface SinkCreateConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_ResourceName();
 
-    
+
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
@@ -22,22 +27,22 @@ public interface SinkCreateConstants extends Constants {
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_InputFieldValidationError();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ProxyKeyViolationError();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ProxyDataValidationError();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_PingCommunicationError();
-    
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ResourceNameNotValid();
-    
-    
+
+
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String status_SinkSuccessfullySaved();
-    
+
 }

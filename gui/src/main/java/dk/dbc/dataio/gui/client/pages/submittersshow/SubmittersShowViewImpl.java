@@ -19,7 +19,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
     public static final String GUIID_SUBMITTERS_SHOW_WIDGET = "submittersshowwidget";
 
     // Local variables
-    private final SubmittersShowConstants constants = GWT.create(SubmittersShowConstants.class);
+    private final static SubmittersShowConstants constants = GWT.create(SubmittersShowConstants.class);
     private final DioCellTable<Submitter> table = new DioCellTable<Submitter>();
 
 
@@ -27,7 +27,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
      * Constructor
      */
     public SubmittersShowViewImpl() {
-        super(mainConstants.mainMenu_Submitters());
+        super(constants.menu_Submitters());
     }
 
     /**

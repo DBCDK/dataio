@@ -8,7 +8,6 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**

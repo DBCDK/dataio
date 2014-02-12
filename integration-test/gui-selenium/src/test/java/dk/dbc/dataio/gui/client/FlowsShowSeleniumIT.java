@@ -59,7 +59,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToFlowsShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_FLOWS);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW);
     }
 
 }

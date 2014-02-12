@@ -25,7 +25,7 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
     private static final int SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH = 160;
 
     // Local variables
-    private final SubmitterCreateConstants constants = GWT.create(SubmitterCreateConstants.class);
+    private final static SubmitterCreateConstants constants = GWT.create(SubmitterCreateConstants.class);
     private final TextEntry submitterNumberPanel = new TextEntry(GUIID_SUBMITTER_CREATION_NUMBER_PANEL, constants.label_SubmitterNumber());
     private final TextEntry submitterNamePanel = new TextEntry(GUIID_SUBMITTER_CREATION_NAME_PANEL, constants.label_SubmitterName());
     private final TextAreaEntry submitterDescriptionPanel = new TextAreaEntry(GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, constants.label_Description(), SUBMITTER_CREATION_DESCRIPTION_MAX_LENGTH);
@@ -36,7 +36,7 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
      * Constructor
      */
     public SubmitterCreateViewImpl() {
-        super(mainConstants.subMenu_SubmitterCreation());
+        super(constants.menu_SubmitterCreation());
     }
 
     /**

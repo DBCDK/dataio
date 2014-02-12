@@ -28,40 +28,40 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
         public MenuItems() {
             // First initialize the list of main menu items
             mainItems = new String[] {
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SUBMITTERS,
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_FLOWS,
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SINKS,
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_JOBS,
+                ClientFactoryImpl.GUIID_MENU_ITEM_SUBMITTERS_SHOW,
+                ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW,
+                ClientFactoryImpl.GUIID_MENU_ITEM_SINKS_SHOW,
+                ClientFactoryImpl.GUIID_MENU_ITEM_JOBS_SHOW,
             };
             // Then all of the sub menus
             subItems = new HashMap<>();
             // Submenus for Submitters Main Menu
             subItems.put(
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SUBMITTERS,
+                ClientFactoryImpl.GUIID_MENU_ITEM_SUBMITTERS_SHOW,
                 new String[] {
-                    ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SUBMITTER_CREATION,
+                    ClientFactoryImpl.GUIID_MENU_ITEM_SUBMITTER_CREATE,
                 }
             );
             // Submenus for Flows Main Menu
             subItems.put(
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_FLOWS,
+                ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW,
                 new String[] {
-                    ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_CREATION,
-                    ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENT_CREATION,
-                    ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOW_COMPONENTS_SHOW,
-                    ClientFactoryImpl.GUIID_SUB_MENU_ITEM_FLOWBINDER_CREATION,
+                    ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_CREATE,
+                    ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE,
+                    ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW,
+                    ClientFactoryImpl.GUIID_MENU_ITEM_FLOWBINDER_CREATE,
                 }
             );
             // Submenus for Sinks Main Menu
             subItems.put(
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_SINKS,
+                ClientFactoryImpl.GUIID_MENU_ITEM_SINKS_SHOW,
                 new String[] {
-                    ClientFactoryImpl.GUIID_SUB_MENU_ITEM_SINK_CREATION,
+                    ClientFactoryImpl.GUIID_MENU_ITEM_SINK_CREATE,
                 }
             );
             // Submenus for Jobs Main Menu
             subItems.put(
-                ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_JOBS,
+                ClientFactoryImpl.GUIID_MENU_ITEM_JOBS_SHOW,
                 new String[] {
                 }
             );

@@ -74,7 +74,7 @@ public class JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void navigateToJobsShowWidget(WebDriver webDriver) {
-        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MAIN_MENU_ITEM_JOBS);
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_JOBS_SHOW);
     }
 
 

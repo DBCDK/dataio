@@ -20,7 +20,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
     public static final String GUIID_FLOWS_SHOW_WIDGET = "flowsshowwidget";
 
     // Local variables
-    private final FlowsShowConstants constants = GWT.create(FlowsShowConstants.class);
+    private static final FlowsShowConstants constants = GWT.create(FlowsShowConstants.class);
     private final DioCellTable<Flow> table = new DioCellTable<Flow>();
 
 
@@ -28,7 +28,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      * Constructor
      */
     public FlowsShowViewImpl() {
-        super(mainConstants.mainMenu_Flows());
+        super(constants.menu_Flows());
     }
 
     /**

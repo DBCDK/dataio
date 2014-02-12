@@ -1,6 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -31,7 +31,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  * exposed by the '/{@code SUBMITTERS_ENTRY_POINT}' entry point
  */
 @Stateless
-@Path(FlowStoreServiceEntryPoint.SUBMITTERS)
+@Path(FlowStoreServiceConstants.SUBMITTERS)
 public class SubmittersBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
 

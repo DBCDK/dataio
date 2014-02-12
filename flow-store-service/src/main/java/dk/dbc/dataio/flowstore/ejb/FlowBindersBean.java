@@ -1,6 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -35,10 +35,10 @@ import java.util.Set;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource exposed
- * by the '/FlowStoreServiceEntryPoint.FLOW_BINDERS' entry point
+ * by the '/FlowStoreServiceConstants.FLOW_BINDERS' entry point
  */
 @Stateless
-@Path(FlowStoreServiceEntryPoint.FLOW_BINDERS)
+@Path(FlowStoreServiceConstants.FLOW_BINDERS)
 public class FlowBindersBean {
 
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);

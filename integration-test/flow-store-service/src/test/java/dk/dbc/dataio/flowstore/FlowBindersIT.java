@@ -1,7 +1,7 @@
 package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
@@ -79,7 +79,7 @@ public class FlowBindersIT {
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -102,7 +102,7 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_errorWhenJsonExceptionIsThrown() {
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
@@ -144,7 +144,7 @@ public class FlowBindersIT {
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
-        final Response response = HttpClient.doPostWithJson(restClient, secondFlowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        final Response response = HttpClient.doPostWithJson(restClient, secondFlowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -166,7 +166,7 @@ public class FlowBindersIT {
                 .setFlowId(flowId)
                 .setSubmitterIds(Arrays.asList(123456789L))
                 .build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
@@ -188,7 +188,7 @@ public class FlowBindersIT {
                 .setFlowId(987654321L)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
@@ -211,7 +211,7 @@ public class FlowBindersIT {
                 .setSinkId(12121212L)
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
@@ -248,7 +248,7 @@ public class FlowBindersIT {
                 .setSubmitterIds(Arrays.asList(submitterId))
                 .build();
 
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS);
+        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));

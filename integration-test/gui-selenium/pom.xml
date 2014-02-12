@@ -213,6 +213,8 @@
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <systemPropertyVariables>
+                <container.http.port>8080</container.http.port>
+                <container.hostname>localhost</container.hostname>
                 <glassfish.port>${glassfish.port}</glassfish.port>
                 <h2.port>${h2.port}</h2.port>
                 <svn.local.dir>${svn.local.dir}</svn.local.dir>

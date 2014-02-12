@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -36,7 +36,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, flowContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS);
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOWS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -52,7 +52,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, flowComponentContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_COMPONENTS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -68,7 +68,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, submitterContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SUBMITTERS);
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SUBMITTERS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -84,7 +84,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, flowBinderContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_BINDERS);
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_BINDERS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -100,7 +100,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, sinkContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS);
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SINKS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -116,7 +116,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         final List<FlowComponent> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOW_COMPONENTS);
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_COMPONENTS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -134,7 +134,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         final List<Submitter> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SUBMITTERS);
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SUBMITTERS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -152,7 +152,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         final List<Flow> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS);
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOWS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -170,7 +170,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         final List<Sink> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS);
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SINKS);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }

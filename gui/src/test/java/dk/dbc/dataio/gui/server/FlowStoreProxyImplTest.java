@@ -1,6 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -60,7 +60,7 @@ public class FlowStoreProxyImplTest {
 
     @Test(expected = ProxyException.class)
     public void findAllSinks_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceEntryPoint.SINKS)))
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SINKS)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
@@ -75,7 +75,7 @@ public class FlowStoreProxyImplTest {
     @Test
     public void findAllSinks_remoteServiceReturnsHttpStatusOk_returnsListOfSinkEntity() throws Exception {
         final Sink sink = new SinkBuilder().setId(666).build();
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceEntryPoint.SINKS)))
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SINKS)))
                 .thenReturn(new MockedHttpClientResponse<List<Sink>>(Response.Status.OK.getStatusCode(), Arrays.asList(sink)));
 
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();

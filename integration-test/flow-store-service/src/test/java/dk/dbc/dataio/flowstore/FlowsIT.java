@@ -2,7 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
@@ -62,7 +62,7 @@ public class FlowsIT {
     public void createFlow_Ok() throws SQLException {
         // When...
         final String flowContent = new FlowContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceEntryPoint.FLOWS);
+        final Response response = HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceConstants.FLOWS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -85,7 +85,7 @@ public class FlowsIT {
     @Test
     public void createFlow_ErrorWhenGivenInvalidJson() {
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.FLOWS);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceConstants.FLOWS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
@@ -104,7 +104,7 @@ public class FlowsIT {
         createFlow(restClient, baseUrl, flowContent);
 
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceEntryPoint.FLOWS);
+        final Response response = HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceConstants.FLOWS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
@@ -118,7 +118,7 @@ public class FlowsIT {
     @Test
     public void getFlow_flowNotFound() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS, Long.toString(420L));
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOWS, Long.toString(420L));
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
@@ -135,10 +135,10 @@ public class FlowsIT {
         // Given...
         final String flowContent = new FlowContentJsonBuilder().build();
         final long flowId = getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceEntryPoint.FLOWS));
+                HttpClient.doPostWithJson(restClient, flowContent, baseUrl, FlowStoreServiceConstants.FLOWS));
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOWS, Long.toString(flowId));
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
@@ -158,7 +158,7 @@ public class FlowsIT {
     @Test
     public void findAllFlows_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOWS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
@@ -195,7 +195,7 @@ public class FlowsIT {
         final long sortsSecond = createFlow(restClient, baseUrl, flowContent);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.FLOWS);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOWS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));

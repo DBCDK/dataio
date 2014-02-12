@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.NewJob;
@@ -268,7 +268,7 @@ public class JobsBean {
         final Client client = HttpClient.newClient();
         String flowData = null;
         try {
-            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.FLOWS, Long.toString(flowId));
+            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOWS, Long.toString(flowId));
             try {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {
@@ -296,7 +296,7 @@ public class JobsBean {
         final Client client = HttpClient.newClient();
         String sinkData = null;
         try {
-            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceEntryPoint.SINKS, Long.toString(sinkId));
+            final Response response = HttpClient.doGet(client, getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SINKS, Long.toString(sinkId));
             try {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {
@@ -331,7 +331,7 @@ public class JobsBean {
         String flowBinderData = null;
         try {
             final Response response = HttpClient.doGet(client, queryParameters, getFlowStoreServiceEndpoint(),
-                    FlowStoreServiceEntryPoint.FLOW_BINDERS, REST_FLOWBINDER_QUERY_ENTRY_POINT);
+                    FlowStoreServiceConstants.FLOW_BINDERS, REST_FLOWBINDER_QUERY_ENTRY_POINT);
             try {
                 final int status = response.getStatus();
                 switch (Response.Status.fromStatusCode(status)) {

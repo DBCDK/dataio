@@ -1,7 +1,7 @@
 package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
@@ -123,37 +123,36 @@ public class ITUtil {
     }
 
     public static long createFlowComponentWithName(String name) {
-        final String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         final Client restClient = ClientBuilder.newClient();
         final String flowComponentContent = new FlowComponentContentJsonBuilder()
                 .setName(name)
                 .build();
-        return createFlowComponent(restClient, baseUrl, flowComponentContent);
+        return createFlowComponent(restClient, FLOW_STORE_BASE_URL, flowComponentContent);
     }
 
     public static long createFlowComponent(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.FLOW_COMPONENTS));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS));
     }
 
     public static long createFlow(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.FLOWS));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.FLOWS));
     }
 
     public static long createSubmitter(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.SUBMITTERS));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SUBMITTERS));
     }
 
     public static long createFlowBinder(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.FLOW_BINDERS));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS));
     }
 
     public static long createSink(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceEntryPoint.SINKS));
+                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SINKS));
     }
 
     public static Response createJob(Client restClient, String content) {
@@ -165,7 +164,6 @@ public class ITUtil {
         pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
         final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_STATE, pathVariables);
         return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.split(URL_PATH_SEPARATOR));
-        //return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceConstants.JOBS, Long.toString(jobId), "state");
     }
 
     public static Response getJobProcessorResult(Client restClient, long jobId, long chunkId) {
@@ -174,7 +172,6 @@ public class ITUtil {
         pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
         final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_PROCESSED, pathVariables);
         return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.split(URL_PATH_SEPARATOR));
-        //return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceConstants.JOBS, Long.toString(jobId), "processed", Long.toString(chunkId));
     }
 
     public static Response getSinkResult(Client restClient, long jobId, long chunkId) {
@@ -183,7 +180,6 @@ public class ITUtil {
         pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
         final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_DELIVERED, pathVariables);
         return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.split(URL_PATH_SEPARATOR));
-        //return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, JobStoreServiceConstants.JOBS, Long.toString(jobId), "delivered", Long.toString(chunkId));
     }
 
     /**

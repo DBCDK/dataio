@@ -2,7 +2,7 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
@@ -60,7 +60,7 @@ public class SinksIT {
     public void createSink_ok() throws SQLException {
         // When...
         final String sinkContent = new SinkContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, sinkContent, baseUrl, FlowStoreServiceEntryPoint.SINKS);
+        final Response response = HttpClient.doPostWithJson(restClient, sinkContent, baseUrl, FlowStoreServiceConstants.SINKS);
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
         // And ...
@@ -79,7 +79,7 @@ public class SinksIT {
     @Test
     public void createSink_invalidJson_BadRequest() {
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceEntryPoint.SINKS);
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceConstants.SINKS);
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
@@ -96,7 +96,7 @@ public class SinksIT {
         createSink(restClient, baseUrl, sinkContent1);
         // When...
         final String sinkContent2 = new SinkContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, sinkContent2, baseUrl, FlowStoreServiceEntryPoint.SINKS);
+        final Response response = HttpClient.doPostWithJson(restClient, sinkContent2, baseUrl, FlowStoreServiceConstants.SINKS);
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
@@ -110,7 +110,7 @@ public class SinksIT {
     @Test
     public void findAllSinks_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.SINKS);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.SINKS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
@@ -147,7 +147,7 @@ public class SinksIT {
         final long sortsSecond = createSink(restClient, baseUrl, sinkContent);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceEntryPoint.SINKS);
+        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.SINKS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));

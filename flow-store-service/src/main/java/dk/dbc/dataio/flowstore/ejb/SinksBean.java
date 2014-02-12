@@ -1,6 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -27,7 +27,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersioned
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
 @Stateless
-@Path(FlowStoreServiceEntryPoint.SINKS)
+@Path(FlowStoreServiceConstants.SINKS)
 public class SinksBean {
     private static final String NOT_FOUND_MESSAGE = "resource not found";
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
@@ -115,7 +115,7 @@ public class JobsBeanTest {
     @Test(expected = ReferencedEntityNotFoundException.class)
     public void createJob_noFlowBinderCanBeFound_throws() throws Exception {
         final String jobSpecData = getValidJobSpecificationString();
-        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceConstants.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
                 .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), ""));
         final JobsBean jobsBean = new JobsBean();
         jobsBean.createJob(uriInfo, jobSpecData);
@@ -130,9 +130,9 @@ public class JobsBeanTest {
         final String flowBinderData = new FlowBinderJsonBuilder().setId(flowBinderId).build();
         final String jobSpecData = getValidJobSpecificationString();
 
-        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceConstants.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowBinderData));
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceConstants.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
 
         final JobsBean jobsBean = new JobsBean();
@@ -151,9 +151,9 @@ public class JobsBeanTest {
         final Job job = new Job(JsonUtil.fromJson(jobInfoData, JobInfo.class, MixIns.getMixIns()), new JobState(),
                 JsonUtil.fromJson(flowData, Flow.class, MixIns.getMixIns()));
 
-        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
+        when(HttpClient.doGet(any(Client.class), any(Map.class), eq(flowStoreUrl), eq(FlowStoreServiceConstants.FLOW_BINDERS), eq(JobsBean.REST_FLOWBINDER_QUERY_ENTRY_POINT)))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowBinderData));
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceEntryPoint.FLOWS), eq(Long.toString(flowId))))
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreUrl), eq(FlowStoreServiceConstants.FLOWS), eq(Long.toString(flowId))))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowData));
 
         final JobsBean jobsBean = new JobsBean();

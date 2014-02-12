@@ -1,6 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.commons.types.FlowStoreServiceEntryPoint;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -28,10 +28,10 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
- * exposed by the '/FlowStoreServiceEntryPoint.FLOW_COMPONENTS' entry point
+ * exposed by the '/FlowStoreServiceConstants.FLOW_COMPONENTS' entry point
  */
 @Stateless
-@Path(FlowStoreServiceEntryPoint.FLOW_COMPONENTS)
+@Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
 public class FlowComponentsBean {
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
 

@@ -6,29 +6,29 @@ import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import dk.dbc.dataio.gui.client.activities.CreateFlowActivity;
-import dk.dbc.dataio.gui.client.activities.CreateFlowComponentActivity;
-import dk.dbc.dataio.gui.client.activities.CreateFlowbinderActivity;
-import dk.dbc.dataio.gui.client.activities.CreateSinkActivity;
-import dk.dbc.dataio.gui.client.activities.CreateSubmitterActivity;
-import dk.dbc.dataio.gui.client.activities.ShowFlowComponentsActivity;
-import dk.dbc.dataio.gui.client.activities.ShowFlowsActivity;
-import dk.dbc.dataio.gui.client.activities.ShowSinksActivity;
-import dk.dbc.dataio.gui.client.activities.ShowSubmittersActivity;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateActivity;
+import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateActivity;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowActivity;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowActivity;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowActivity;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowActivity;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowActivity;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
-import dk.dbc.dataio.gui.client.places.FlowComponentCreatePlace;
-import dk.dbc.dataio.gui.client.places.FlowComponentsShowPlace;
-import dk.dbc.dataio.gui.client.places.FlowCreatePlace;
-import dk.dbc.dataio.gui.client.places.FlowbinderCreatePlace;
-import dk.dbc.dataio.gui.client.places.FlowsShowPlace;
-import dk.dbc.dataio.gui.client.places.SinkCreatePlace;
-import dk.dbc.dataio.gui.client.places.SinksShowPlace;
-import dk.dbc.dataio.gui.client.places.SubmitterCreatePlace;
-import dk.dbc.dataio.gui.client.places.SubmittersShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
+import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreatePlace;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreatePlace;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -37,25 +37,25 @@ import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
-import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
-import dk.dbc.dataio.gui.client.views.FlowComponentCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
-import dk.dbc.dataio.gui.client.views.FlowComponentsShowViewImpl;
-import dk.dbc.dataio.gui.client.views.FlowCreateView;
-import dk.dbc.dataio.gui.client.views.FlowCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
-import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.FlowsShowView;
-import dk.dbc.dataio.gui.client.views.FlowsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.client.views.MenuItem;
-import dk.dbc.dataio.gui.client.views.SinkCreateView;
-import dk.dbc.dataio.gui.client.views.SinkCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.SinksShowView;
-import dk.dbc.dataio.gui.client.views.SinksShowViewImpl;
-import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
-import dk.dbc.dataio.gui.client.views.SubmitterCreateViewImpl;
-import dk.dbc.dataio.gui.client.views.SubmittersShowView;
-import dk.dbc.dataio.gui.client.views.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateView;
+import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowViewImpl;
 
 
 public class ClientFactoryImpl implements ClientFactory {
@@ -155,34 +155,34 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public Activity getActivity(Place place) {
         if (place instanceof FlowCreatePlace) {
-            return new CreateFlowActivity(/*(FlowCreatePlace) place,*/ this);
+            return new FlowCreateActivity(/*(FlowCreatePlace) place,*/ this);
         }
         if (place instanceof FlowComponentCreatePlace) {
-            return new CreateFlowComponentActivity(/*(FlowComponentCreatePlace) place,*/ this);
+            return new FlowComponentCreateActivity(/*(FlowComponentCreatePlace) place,*/ this);
         }
         if (place instanceof SubmitterCreatePlace) {
-            return new CreateSubmitterActivity(/*(SubmitterCreatePlace) place,*/ this);
+            return new SubmitterCreateActivity(/*(SubmitterCreatePlace) place,*/ this);
         }
         if (place instanceof FlowbinderCreatePlace) {
-            return new CreateFlowbinderActivity(/*(FlowbinderCreatePlace) place,*/ this);
+            return new FlowbinderCreateActivity(/*(FlowbinderCreatePlace) place,*/ this);
         }
         if (place instanceof SinkCreatePlace) {
-            return new CreateSinkActivity(/*(SinkCreatePlace) place,*/ this);
+            return new SinkCreateActivity(/*(SinkCreatePlace) place,*/ this);
         }
         if (place instanceof FlowComponentsShowPlace) {
-            return new ShowFlowComponentsActivity(/*(FlowComponentsShowPlace) place,*/ this);
+            return new FlowComponentsShowActivity(/*(FlowComponentsShowPlace) place,*/ this);
         }
         if (place instanceof FlowsShowPlace) {
-            return new ShowFlowsActivity(/*(FlowsShowPlace) place,*/ this);
+            return new FlowsShowActivity(/*(FlowsShowPlace) place,*/ this);
         }
         if (place instanceof SubmittersShowPlace) {
-            return new ShowSubmittersActivity(/*(SubmittersShowPlace) place,*/ this);
+            return new SubmittersShowActivity(/*(SubmittersShowPlace) place,*/ this);
         }
         if (place instanceof JobsShowPlace) {
             return new JobsShowActivity(/*(JobsShowPlace) place,*/ this);
         }
         if (place instanceof SinksShowPlace) {
-            return new ShowSinksActivity(/*(SinksShowPlace) place,*/ this);
+            return new SinksShowActivity(/*(SinksShowPlace) place,*/ this);
         }
         return null;
     }

@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.views.FlowbinderCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.io.IOException;
 import static org.hamcrest.CoreMatchers.is;

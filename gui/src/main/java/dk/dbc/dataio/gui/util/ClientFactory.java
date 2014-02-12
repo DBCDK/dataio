@@ -9,16 +9,16 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
-import dk.dbc.dataio.gui.client.views.FlowComponentCreateView;
-import dk.dbc.dataio.gui.client.views.FlowComponentsShowView;
-import dk.dbc.dataio.gui.client.views.FlowCreateView;
-import dk.dbc.dataio.gui.client.views.FlowbinderCreateView;
-import dk.dbc.dataio.gui.client.views.FlowsShowView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
 import dk.dbc.dataio.gui.client.views.MenuItem;
-import dk.dbc.dataio.gui.client.views.SinkCreateView;
-import dk.dbc.dataio.gui.client.views.SinksShowView;
-import dk.dbc.dataio.gui.client.views.SubmitterCreateView;
-import dk.dbc.dataio.gui.client.views.SubmittersShowView;
+import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateView;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
 
 /**
  * Provides access to common objects across the application including:

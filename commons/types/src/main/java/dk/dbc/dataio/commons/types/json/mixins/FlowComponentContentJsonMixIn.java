@@ -24,6 +24,7 @@ public class FlowComponentContentJsonMixIn {
     public FlowComponentContentJsonMixIn(@JsonProperty("name") String name,
                                          @JsonProperty("svnProject") String svnProject,
                                          @JsonProperty("svnRevision") long svnRevision,
+                                         @JsonProperty("javaScriptName") String javaScriptName,
                                          @JsonProperty("javascripts") List<JavaScript> javascripts,
                                          @JsonProperty("invocationMethod") String invocationMethod) {
     }

@@ -19,59 +19,70 @@ public class FlowComponentContentTest {
     private static final String NAME = "name";
     private static final String SVN_PROJECT = "svnproject";
     private static final long SVN_REVISION = 1L;
+    private static final String JAVA_SCRIPT_NAME = "javascriptname";
     private static final String INVOCATION_METHOD = "method";
     private static final List<JavaScript> JAVASCRIPTS = Arrays.asList(JavaScriptTest.newJavaScriptInstance());
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
-        new FlowComponentContent(null, SVN_PROJECT, SVN_REVISION, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(null, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nameArgIsEmpty_throws() {
-        new FlowComponentContent("", SVN_PROJECT, SVN_REVISION, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent("", SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_svnProjectArgIsNull_throws() {
-        new FlowComponentContent(NAME, null, SVN_REVISION, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, null, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_svnProjectArgIsEmpty_throws() {
-        new FlowComponentContent(NAME, "", SVN_REVISION, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, "", SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_svnRevisionArgIsZero_throws() {
-        new FlowComponentContent(NAME, SVN_PROJECT, 0, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, SVN_PROJECT, 0, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_javaScriptNameArgIsNull_throws() {
+        new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, null, JAVASCRIPTS, INVOCATION_METHOD);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_javaScriptNameArgIsEmpty_throws() {
+        new FlowComponentContent("", SVN_PROJECT, SVN_REVISION, "", JAVASCRIPTS, INVOCATION_METHOD);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_javascriptsArgIsNull_throws() {
-        new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, null, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, null, INVOCATION_METHOD);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_invocationMethodArgIsNull_throws() {
-        new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVASCRIPTS, null);
+        new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, null);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVASCRIPTS, INVOCATION_METHOD);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_invocationMethodArgIsEmpty_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVASCRIPTS, "");
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, "");
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_javascriptsArgIsEmpty_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, new ArrayList<JavaScript>(0), INVOCATION_METHOD);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, new ArrayList<JavaScript>(0), INVOCATION_METHOD);
         assertThat(instance, is(notNullValue()));
     }
 
@@ -79,7 +90,7 @@ public class FlowComponentContentTest {
     public void verify_defensiveCopyingOfJavascriptsList() {
         final List<JavaScript> javaScripts = new ArrayList<>();
         javaScripts.add(JavaScriptTest.newJavaScriptInstance());
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, javaScripts, INVOCATION_METHOD);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, javaScripts, INVOCATION_METHOD);
         assertThat(instance.getJavascripts().size(), is(1));
         javaScripts.add(null);
         final List<JavaScript> returnedJavascripts = instance.getJavascripts();
@@ -89,6 +100,6 @@ public class FlowComponentContentTest {
     }
 
     public static FlowComponentContent newFlowComponentContentInstance() {
-        return new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVASCRIPTS, INVOCATION_METHOD);
+        return new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
     }
 }

@@ -123,7 +123,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
         fetchJavaScriptsAndSave(componentName, svnProject, svnRevision, javaScriptName, invocationMethod);  // Calls saveFlowComponentWithJavaScripts asynchronously after having fetched java scripts
     }
 
-    private void fetchJavaScriptsAndSave(final String componentName, final String svnProject, final long svnRevision, String javaScriptName, final String invocationMethod) {
+    private void fetchJavaScriptsAndSave(final String componentName, final String svnProject, final long svnRevision, final String javaScriptName, final String invocationMethod) {
         javaScriptProjectFetcher.fetchRequiredJavaScript(svnProject, svnRevision, javaScriptName, invocationMethod, new FilteredAsyncCallback<List<JavaScript>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
@@ -132,13 +132,13 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
 
             @Override
             public void onSuccess(List<JavaScript> javaScripts) {
-                saveFlowComponentWithJavaScripts(componentName, svnProject, svnRevision, javaScripts, invocationMethod);
+                saveFlowComponentWithJavaScripts(componentName, svnProject, svnRevision, javaScriptName, javaScripts, invocationMethod);
             }
         });
     }
 
-    private void saveFlowComponentWithJavaScripts(String componentName, String svnProject, long svnRevision, List<JavaScript> javaScripts, String invocationMethod) {
-        final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, svnProject, svnRevision, javaScripts, invocationMethod);
+    private void saveFlowComponentWithJavaScripts(String componentName, String svnProject, long svnRevision, String javaScriptName, List<JavaScript> javaScripts, String invocationMethod) {
+        final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, svnProject, svnRevision, javaScriptName, javaScripts, invocationMethod);
         flowStoreProxy.createFlowComponent(flowComponentContent, new FilteredAsyncCallback<Void>() {
             @Override
             public void onFilteredFailure(Throwable e) {

@@ -17,6 +17,7 @@ public class FlowComponentContent implements Serializable {
     private /* final */ String name;
     private /* final */ String svnProject;
     private /* final */ long svnRevision;
+    private /* final */ String javaScriptName;
     private /* final */ List<JavaScript> javascripts;
     private /* final */ String invocationMethod;
 
@@ -31,16 +32,18 @@ public class FlowComponentContent implements Serializable {
      * @param name name of flow component
      * @param svnProject name of the SVN Project
      * @param svnRevision the SVN Revision number
+     * @param javaScriptName name of the original javascript
      * @param javascripts list of attached JavaScripts (can be empty)
      * @param invocationMethod name of invocation method (can be empty)
      *
      * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
-    public FlowComponentContent(String name, String svnProject, long svnRevision, List<JavaScript> javascripts, String invocationMethod) {
+    public FlowComponentContent(String name, String svnProject, long svnRevision, String javaScriptName, List<JavaScript> javascripts, String invocationMethod) {
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.svnProject = InvariantUtil.checkNotNullNotEmptyOrThrow(svnProject, "svnProject");
         this.svnRevision = InvariantUtil.checkAboveThresholdOrThrow(svnRevision, "svnRevision", 0);
+        this.javaScriptName = InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptName, "javaScriptName");
         this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
         this.javascripts = new ArrayList<JavaScript>(InvariantUtil.checkNotNullOrThrow(javascripts, "javascripts"));
     }
@@ -55,6 +58,10 @@ public class FlowComponentContent implements Serializable {
 
     public long getSvnRevision() {
         return svnRevision;
+    }
+
+    public String getJavaScriptName() {
+        return javaScriptName;
     }
 
     public String getInvocationMethod() {

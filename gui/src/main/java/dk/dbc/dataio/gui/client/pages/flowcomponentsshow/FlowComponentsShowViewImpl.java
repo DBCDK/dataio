@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.flowcomponentsshow;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.List;
@@ -39,6 +40,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
         getElement().setId(GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
 
         if (table.getColumnCount() == 0) {
+            // Navn
             TextColumn<FlowComponent> nameColumn = new TextColumn<FlowComponent>() {
                 @Override
                 public String getValue(FlowComponent content) {
@@ -47,6 +49,16 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
             };
             table.addColumn(nameColumn, constants.columnHeader_Name());
 
+            // Script navn
+            TextColumn<FlowComponent> scriptNameColumn = new TextColumn<FlowComponent>() {
+                @Override
+                public String getValue(FlowComponent content) {
+                    return content.getContent().getJavaScriptName();
+                }
+            };
+            table.addColumn(scriptNameColumn, constants.columnHeader_ScriptName());
+
+            // Script start metode
             TextColumn<FlowComponent> invocationMethodColumn = new TextColumn<FlowComponent>() {
                 @Override
                 public String getValue(FlowComponent content) {
@@ -54,6 +66,41 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
                 }
             };
             table.addColumn(invocationMethodColumn, constants.columnHeader_InvocationMethod());
+
+            // SVN Projekt
+            TextColumn<FlowComponent> svnProjectColumn = new TextColumn<FlowComponent>() {
+                @Override
+                public String getValue(FlowComponent content) {
+                    return content.getContent().getSvnProject();
+                }
+            };
+            table.addColumn(svnProjectColumn, constants.columnHeader_Project());
+
+            // SVN Revision
+            TextColumn<FlowComponent> svnRevisionColumn = new TextColumn<FlowComponent>() {
+                @Override
+                public String getValue(FlowComponent content) {
+                    return Long.toString(content.getContent().getSvnRevision());
+                }
+            };
+            table.addColumn(svnRevisionColumn, constants.columnHeader_Revision());
+
+            // Javascriptmoduler
+            TextColumn<FlowComponent> javaScriptModulesColumn = new TextColumn<FlowComponent>() {
+                @Override
+                public String getValue(FlowComponent content) {
+                    String moduleNames = "";
+                    for (JavaScript script: content.getContent().getJavascripts()) {
+                        if (moduleNames.isEmpty()) {
+                            moduleNames = script.getModuleName();
+                        } else {
+                            moduleNames = moduleNames.concat(", ").concat(script.getModuleName());
+                        }
+                    }
+                    return moduleNames;
+                }
+            };
+            table.addColumn(javaScriptModulesColumn, constants.columnHeader_JavaScriptModules());
 
             add(table);
         }

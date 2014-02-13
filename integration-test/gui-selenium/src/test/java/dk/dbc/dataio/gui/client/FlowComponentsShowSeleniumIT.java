@@ -5,10 +5,12 @@ import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 
+@Ignore
 public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException, Exception {

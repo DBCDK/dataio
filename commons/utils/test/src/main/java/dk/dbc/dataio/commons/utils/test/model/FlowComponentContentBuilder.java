@@ -8,7 +8,7 @@ import java.util.List;
 
 public class FlowComponentContentBuilder {
     private String name = "name";
-    private String svnProject = "svnproject";
+    private String svnProjectForInvocationJavascript = "svnprojectforinvocationjavascript";
     private long svnRevision = 1L;
     private String javaScriptName = "javascriptname";
     private List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(
@@ -20,8 +20,8 @@ public class FlowComponentContentBuilder {
         return this;
     }
 
-    public FlowComponentContentBuilder setSvnProject(String project) {
-        this.svnProject = project;
+    public FlowComponentContentBuilder setSvnProjectForInvocationJavascript(String project) {
+        this.svnProjectForInvocationJavascript = project;
         return this;
     }
 
@@ -46,6 +46,6 @@ public class FlowComponentContentBuilder {
     }
 
     public FlowComponentContent build() {
-        return new FlowComponentContent(name, svnProject, svnRevision, javaScriptName, javascripts, invocationMethod);
+        return new FlowComponentContent(name, svnProjectForInvocationJavascript, svnRevision, javaScriptName, javascripts, invocationMethod);
     }
 }

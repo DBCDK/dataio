@@ -71,7 +71,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
             TextColumn<FlowComponent> svnProjectColumn = new TextColumn<FlowComponent>() {
                 @Override
                 public String getValue(FlowComponent content) {
-                    return content.getContent().getSvnProject();
+                    return content.getContent().getSvnProjectForInvocationJavascript();
                 }
             };
             table.addColumn(svnProjectColumn, constants.columnHeader_Project());

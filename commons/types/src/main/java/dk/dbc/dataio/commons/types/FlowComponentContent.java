@@ -15,7 +15,7 @@ public class FlowComponentContent implements Serializable {
     private static final long serialVersionUID = -290854497828809813L;
 
     private /* final */ String name;
-    private /* final */ String svnProject;
+    private /* final */ String svnProjectForInvocationJavascript;
     private /* final */ long svnRevision;
     private /* final */ String javaScriptName;
     private /* final */ List<JavaScript> javascripts;
@@ -30,7 +30,7 @@ public class FlowComponentContent implements Serializable {
      * remember to also change the signature in the corresponding *JsonMixIn class.
      *
      * @param name name of flow component
-     * @param svnProject name of the SVN Project
+     * @param svnProjectForInvocationJavascript name of the SVN Project
      * @param svnRevision the SVN Revision number
      * @param javaScriptName name of the original javascript
      * @param javascripts list of attached JavaScripts (can be empty)
@@ -39,9 +39,9 @@ public class FlowComponentContent implements Serializable {
      * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
-    public FlowComponentContent(String name, String svnProject, long svnRevision, String javaScriptName, List<JavaScript> javascripts, String invocationMethod) {
+    public FlowComponentContent(String name, String svnProjectForInvocationJavascript, long svnRevision, String javaScriptName, List<JavaScript> javascripts, String invocationMethod) {
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
-        this.svnProject = InvariantUtil.checkNotNullNotEmptyOrThrow(svnProject, "svnProject");
+        this.svnProjectForInvocationJavascript = InvariantUtil.checkNotNullNotEmptyOrThrow(svnProjectForInvocationJavascript, "svnProjectForInvocationJavascript");
         this.svnRevision = InvariantUtil.checkAboveThresholdOrThrow(svnRevision, "svnRevision", 0);
         this.javaScriptName = InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptName, "javaScriptName");
         this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
@@ -52,8 +52,8 @@ public class FlowComponentContent implements Serializable {
         return name;
     }
 
-    public String getSvnProject() {
-        return svnProject;
+    public String getSvnProjectForInvocationJavascript() {
+        return svnProjectForInvocationJavascript;
     }
 
     public long getSvnRevision() {

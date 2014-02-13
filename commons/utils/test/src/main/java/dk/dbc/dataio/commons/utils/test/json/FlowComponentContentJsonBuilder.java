@@ -6,7 +6,7 @@ import java.util.List;
 
 public class FlowComponentContentJsonBuilder extends JsonBuilder {
     private String name = "name";
-    private String svnProject = "svnproject";
+    private String svnProjectForInvocationJavascript = "svnprojectforinvocationjavascript";
     private long svnRevision = 1L;
     private String javaScriptName = "javascriptname";
     private List<String> javascripts = new ArrayList<>(Arrays.asList(
@@ -18,8 +18,8 @@ public class FlowComponentContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public FlowComponentContentJsonBuilder setSvnProject(String project) {
-        this.svnProject = project;
+    public FlowComponentContentJsonBuilder setSvnProjectForInvocationJavascript(String project) {
+        this.svnProjectForInvocationJavascript = project;
         return this;
     }
 
@@ -47,7 +47,7 @@ public class FlowComponentContentJsonBuilder extends JsonBuilder {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
         stringBuilder.append(asTextMember("name", name)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("svnProject", svnProject)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("svnProjectForInvocationJavascript", svnProjectForInvocationJavascript)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("svnRevision", svnRevision)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("javaScriptName", javaScriptName)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("invocationMethod", invocationMethod)); stringBuilder.append(MEMBER_DELIMITER);

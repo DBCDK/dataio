@@ -17,7 +17,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.JMSContext;
@@ -102,7 +101,6 @@ public class JobProcessorMessageConsumerBeanIT {
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.PROCESSING), is(JobState.LifeCycleState.DONE));
     }
 
-    @Ignore
     @Test
     public void onMessage_sinkResultReceived_sinkResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException {
         final JobInfo jobInfo = JobsBeanIT.createJob(restClient);

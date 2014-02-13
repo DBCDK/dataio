@@ -325,6 +325,7 @@ public class FileSystemJobStore implements JobStore {
     private synchronized void updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
         final long processorCount = processorResultFileHandler.getNumberOfChunksInJob(jobId);
+        final long sinkCount = sinkResultFileHandler.getNumberOfChunksInJob(jobId);
         JobState jobState = null;
         if (processorCount == chunkCount) {
             jobState = getJobState(jobId);
@@ -332,6 +333,13 @@ public class FileSystemJobStore implements JobStore {
         } else if (processorCount == 1) {
             jobState = getJobState(jobId);
             jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.ACTIVE);
+        }
+        if (sinkCount == chunkCount) {
+            jobState = jobState != null ? jobState : getJobState(jobId);
+            jobState.setLifeCycleStateFor(JobState.OperationalState.DELIVERING, JobState.LifeCycleState.DONE);
+        } else if (sinkCount == 1) {
+            jobState = jobState != null ? jobState : getJobState(jobId);
+            jobState.setLifeCycleStateFor(JobState.OperationalState.DELIVERING, JobState.LifeCycleState.ACTIVE);
         }
         if (jobState != null) {
             LOGGER.debug("Updating job state for job {}", jobId);

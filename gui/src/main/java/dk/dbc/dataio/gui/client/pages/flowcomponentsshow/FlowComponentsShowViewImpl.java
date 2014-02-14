@@ -53,7 +53,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
             TextColumn<FlowComponent> scriptNameColumn = new TextColumn<FlowComponent>() {
                 @Override
                 public String getValue(FlowComponent content) {
-                    return content.getContent().getJavaScriptName();
+                    return content.getContent().getInvocationJavascriptName();
                 }
             };
             table.addColumn(scriptNameColumn, constants.columnHeader_ScriptName());

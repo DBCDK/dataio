@@ -19,7 +19,7 @@ public class FlowComponentContentTest {
     private static final String NAME = "name";
     private static final String SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT = "svnProjectForInvocationJavascript";
     private static final long SVN_REVISION = 1L;
-    private static final String JAVA_SCRIPT_NAME = "javascriptname";
+    private static final String JAVA_SCRIPT_NAME = "invocationJavascriptName";
     private static final String INVOCATION_METHOD = "method";
     private static final List<JavaScript> JAVASCRIPTS = Arrays.asList(JavaScriptTest.newJavaScriptInstance());
 
@@ -49,12 +49,12 @@ public class FlowComponentContentTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructor_javaScriptNameArgIsNull_throws() {
+    public void constructor_invocationJavascriptNameArgIsNull_throws() {
         new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, null, JAVASCRIPTS, INVOCATION_METHOD);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_javaScriptNameArgIsEmpty_throws() {
+    public void constructor_invocationJavascriptNameArgIsEmpty_throws() {
         new FlowComponentContent("", SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, "", JAVASCRIPTS, INVOCATION_METHOD);
     }
 

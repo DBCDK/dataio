@@ -10,7 +10,7 @@ public class FlowComponentContentBuilder {
     private String name = "name";
     private String svnProjectForInvocationJavascript = "svnprojectforinvocationjavascript";
     private long svnRevision = 1L;
-    private String javaScriptName = "javascriptname";
+    private String invocationJavascriptName = "invocationJavascriptName";
     private List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(
             new JavaScriptBuilder().build()));
     private String invocationMethod = "invocationMethod";
@@ -30,8 +30,8 @@ public class FlowComponentContentBuilder {
         return this;
     }
 
-    public FlowComponentContentBuilder setJavaScriptName(String javaScriptName) {
-        this.javaScriptName = javaScriptName;
+    public FlowComponentContentBuilder setInvocationJavascriptName(String invocationJavascriptName) {
+        this.invocationJavascriptName = invocationJavascriptName;
         return this;
     }
 
@@ -46,6 +46,6 @@ public class FlowComponentContentBuilder {
     }
 
     public FlowComponentContent build() {
-        return new FlowComponentContent(name, svnProjectForInvocationJavascript, svnRevision, javaScriptName, javascripts, invocationMethod);
+        return new FlowComponentContent(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod);
     }
 }

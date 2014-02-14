@@ -119,12 +119,12 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
     }
 
     @Override
-    public void saveFlowComponent(String componentName, String svnProjectForInvocationJavascript, long svnRevision, String javaScriptName, String invocationMethod) {
-        fetchJavaScriptsAndSave(componentName, svnProjectForInvocationJavascript, svnRevision, javaScriptName, invocationMethod);  // Calls saveFlowComponentWithJavaScripts asynchronously after having fetched java scripts
+    public void saveFlowComponent(String componentName, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, String invocationMethod) {
+        fetchJavaScriptsAndSave(componentName, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, invocationMethod);  // Calls saveFlowComponentWithJavaScripts asynchronously after having fetched java scripts
     }
 
-    private void fetchJavaScriptsAndSave(final String componentName, final String svnProjectForInvocationJavascript, final long svnRevision, final String javaScriptName, final String invocationMethod) {
-        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProjectForInvocationJavascript, svnRevision, javaScriptName, invocationMethod, new FilteredAsyncCallback<List<JavaScript>>() {
+    private void fetchJavaScriptsAndSave(final String componentName, final String svnProjectForInvocationJavascript, final long svnRevision, final String invocationJavascriptName, final String invocationMethod) {
+        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, invocationMethod, new FilteredAsyncCallback<List<JavaScript>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowComponentCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
@@ -132,13 +132,13 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
 
             @Override
             public void onSuccess(List<JavaScript> javaScripts) {
-                saveFlowComponentWithJavaScripts(componentName, svnProjectForInvocationJavascript, svnRevision, javaScriptName, javaScripts, invocationMethod);
+                saveFlowComponentWithJavaScripts(componentName, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javaScripts, invocationMethod);
             }
         });
     }
 
-    private void saveFlowComponentWithJavaScripts(String componentName, String svnProjectForInvocationJavascript, long svnRevision, String javaScriptName, List<JavaScript> javaScripts, String invocationMethod) {
-        final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, svnProjectForInvocationJavascript, svnRevision, javaScriptName, javaScripts, invocationMethod);
+    private void saveFlowComponentWithJavaScripts(String componentName, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javaScripts, String invocationMethod) {
+        final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javaScripts, invocationMethod);
         flowStoreProxy.createFlowComponent(flowComponentContent, new FilteredAsyncCallback<Void>() {
             @Override
             public void onFilteredFailure(Throwable e) {

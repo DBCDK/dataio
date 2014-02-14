@@ -28,13 +28,13 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.waitAssertRows(2);
         List<List<String>> rowData = table.get();
         assertThat(rowData.get(0).get(0), is(COMPONENT_NAME_1));
-        assertThat(rowData.get(0).get(1), is("javascriptname"));
+        assertThat(rowData.get(0).get(1), is("invocationJavascriptName"));
         assertThat(rowData.get(0).get(2), is("invocationMethod"));
         assertThat(rowData.get(0).get(3), is("svnprojectforinvocationjavascript"));
         assertThat(rowData.get(0).get(4), is("1"));
         assertThat(rowData.get(0).get(5), is("moduleName"));
         assertThat(rowData.get(1).get(0), is(COMPONENT_NAME_2));
-        assertThat(rowData.get(1).get(1), is("javascriptname"));
+        assertThat(rowData.get(1).get(1), is("invocationJavascriptName"));
         assertThat(rowData.get(1).get(2), is("invocationMethod"));
         assertThat(rowData.get(1).get(3), is("svnprojectforinvocationjavascript"));
         assertThat(rowData.get(1).get(4), is("1"));

@@ -85,13 +85,15 @@ public class FlowBinder extends VersionedEntity {
             inverseJoinColumns = @JoinColumn(name = SUBMITTER_JOIN_COLUMN))
     private Set<Submitter> submitters;
 
+    // flow is accessed through java EE, so we will suppress pmd-warnings
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = FLOW_JOIN_COLUMN)
-    private Flow flow;
+    private Flow flow; // NOPMD
 
+    // sink is accessed through java EE, so we will suppress pmd-warnings
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = SINK_JOIN_COLUMN)
-    private Sink sink;
+    private Sink sink; // NOPMD
 
     @Transient
     private Long flowId;

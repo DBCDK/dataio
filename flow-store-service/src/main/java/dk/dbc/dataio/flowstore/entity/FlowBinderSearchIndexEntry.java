@@ -20,38 +20,45 @@ import javax.persistence.Table;
 @Table(name = FlowBinderSearchIndexEntry.TABLE_NAME)
 @IdClass(FlowBinderSearchKey.class)
 public class FlowBinderSearchIndexEntry {
+
     public static final String TABLE_NAME = "flow_binders_search_index";
 
     static final String SUBMITTER_NUMBER_COLUMN = "submitter_number";
     static final String FLOW_BINDER_ID_COLUMN = "flow_binder_id";
 
+    // packaging is accessed through java EE, so we will suppress pmd-warnings
     @Id
     @Lob
     @Column(nullable = false)
-    private String packaging;
+    private String packaging; // NOPMD
 
+    // format is accessed through java EE, so we will suppress pmd-warnings
     @Id
     @Lob
     @Column(nullable = false)
-    private String format;
+    private String format; // NOPMD
 
+    // charset is accessed through java EE, so we will suppress pmd-warnings
     @Id
     @Lob
     @Column(nullable = false)
-    private String charset;
+    private String charset; // NOPMD
 
+    // destination is accessed through java EE, so we will suppress pmd-warnings
     @Id
     @Lob
     @Column(nullable = false)
-    private String destination;
+    private String destination; // NOPMD
 
+    // submitter is accessed through java EE, so we will suppress pmd-warnings
     @Id
     @Column(name = SUBMITTER_NUMBER_COLUMN, nullable = false)
-    private Long submitter;
+    private Long submitter; // NOPMD
 
+    // flowbinder is accessed through java EE, so we will suppress pmd-warnings
     @JoinColumn(name = FLOW_BINDER_ID_COLUMN)
     @OneToOne(fetch = FetchType.LAZY)
-    private FlowBinder flowBinder;
+    private FlowBinder flowBinder; // NOPMD
 
     void setFlowBinder(FlowBinder flowBinder) {
         this.flowBinder = flowBinder;

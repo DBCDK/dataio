@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class JmsQueueConnector {
+
     public static final String JMS_QUEUE_SERVICE_BASEURL = String.format("http://%s:%s/jms-queue-service",
             System.getProperty("container.hostname"), System.getProperty("container.http.port"));
     public static final String QUEUE_RESOURCE_ENDPOINT = "queue";
@@ -24,7 +25,8 @@ public class JmsQueueConnector {
     private static final String ENCODING = StandardCharsets.UTF_8.name();
     private static final long SLEEP_INTERVAL_IN_MS = 250;
 
-    private JmsQueueConnector() { }
+    private JmsQueueConnector() {
+    }
 
     public static List<MockedJmsTextMessage> listQueue(String queueName) {
         final Response response;
@@ -35,7 +37,8 @@ public class JmsQueueConnector {
             throw new IllegalStateException(e);
         }
         assertOkStatusCode(response);
-        return response.readEntity(new GenericType<List<MockedJmsTextMessage>>() { });
+        return response.readEntity(new GenericType<List<MockedJmsTextMessage>>() {
+        });
     }
 
     public static void putOnQueue(String queueName, MockedJmsTextMessage message) {
@@ -76,7 +79,7 @@ public class JmsQueueConnector {
     public static void awaitQueueSize(String queueName, int expectedQueueSize, long maxWaitInMs) {
         long remainingWaitInMs = maxWaitInMs;
         int actualQueueSize = getQueueSize(queueName);
-        while ((actualQueueSize != expectedQueueSize) && (remainingWaitInMs > 0)) {
+        while (actualQueueSize != expectedQueueSize && remainingWaitInMs > 0) {
             try {
                 Thread.sleep(SLEEP_INTERVAL_IN_MS);
                 remainingWaitInMs -= SLEEP_INTERVAL_IN_MS;

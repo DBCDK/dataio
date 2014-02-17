@@ -25,7 +25,7 @@ public abstract class AbstractGuiSeleniumTest {
         flowStoreDbConnection = ITUtil.newDbConnection("flow_store");
         webDriver = new FirefoxDriver();
         webDriver.manage().timeouts().implicitlyWait(IMPLICIT_WEBDRIVER_WAIT_IN_SECONDS, TimeUnit.SECONDS);
-        webDriver.manage().window().setSize(new Dimension(1200, 768));
+        webDriver.manage().window().setSize(new Dimension(1024, 768));
     }
 
     @AfterClass

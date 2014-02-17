@@ -192,8 +192,7 @@ public class SeleniumGWTTable {
          WebElement trElement = waitAndFindNextTrTagContainingData();
          List<String> currentRow = new ArrayList<>();
          for(WebElement tdElement: trElement.findElements(By.tagName("td"))) {
-             String text = tdElement.findElement(By.tagName("div")).getText();
-             currentRow.add(text);
+            currentRow.add(SeleniumUtil.getCoveredText(tdElement.findElement(By.tagName("div"))));
          }
          tableData.add(currentRow);
     }

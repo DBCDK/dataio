@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
+import static dk.dbc.dataio.gui.client.AbstractGuiSeleniumTest.webDriver;
 import dk.dbc.dataio.gui.client.components.DualList;
 import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
@@ -7,6 +8,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -94,4 +96,12 @@ public class SeleniumUtil {
         alert.accept();
         return s;
     }
+
+    public static String getCoveredText(WebElement element) {
+        // This method does exactly the same as element.getText(), except for the fact, that in contrast to
+        // element.getText(), this method does fetch the text, even thought it is not visible
+        // An example of this is, that the element falls outside of the browser window.
+        return (String) ((JavascriptExecutor) webDriver).executeScript("return arguments[0].innerHTML;", element);
+    }
+
 }

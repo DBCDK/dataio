@@ -1,8 +1,8 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -12,13 +12,14 @@ import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.Sink;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -29,9 +30,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource exposed
@@ -220,6 +220,21 @@ public class FlowBindersBean {
             throw new ReferencedEntityNotFoundException(String.format("Sink(%d)", sinkId));
         }
         return sink;
+    }
+
+    /**
+     * Returns list of all versions of all stored flow binders sorted by name in ascending order
+     *
+     * @return a HTTP OK response with result list as JSON
+     *
+     * @throws JsonException on failure to create result list as JSON
+     */
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllFlowBinders() throws JsonException {
+        final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
+        final List<dk.dbc.dataio.commons.types.FlowBinder> results = query.getResultList();
+        return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 
 }

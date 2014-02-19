@@ -7,24 +7,23 @@ import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.Lob;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 
 /**
  * Persistence domain class for flow binder objects where id is auto
@@ -39,7 +38,8 @@ uniqueConstraints = {
     @UniqueConstraint(columnNames = { FlowBinder.NAME_INDEX_COLUMN }),
 })
 @NamedQueries({
-    @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING)
+    @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING),
+    @NamedQuery(name = FlowBinder.QUERY_FIND_ALL, query = "SELECT flowbinder FROM FlowBinder flowbinder ORDER BY flowbinder.nameIndexValue ASC")
 })
 public class FlowBinder extends VersionedEntity {
     public static final String TABLE_NAME = "flow_binders";
@@ -47,6 +47,7 @@ public class FlowBinder extends VersionedEntity {
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
 
     public static final String QUERY_FIND_FLOWBINDER = "FlowBinder.findFlowBinder";
+    public static final String QUERY_FIND_ALL = "FlowBinder.findAll";
     public static final String DB_QUERY_PARAMETER_SUBMITTER = "submitter";
     public static final String DB_QUERY_PARAMETER_FORMAT = "format";
     public static final String DB_QUERY_PARAMETER_DESTINATION = "destination";

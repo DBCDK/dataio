@@ -123,7 +123,7 @@ public class JobStoreBean implements JobStore {
     private Map<Long, Chunk> buildChunksForJob42() throws Exception {
         final Map<Long, Chunk> chunks  = new HashMap<>(2);
         final Flow toUpperFlow = buildToUpperFlow();
-        chunks.put(1L, buildChunk(1L, 1L, toUpperFlow, base64encode(RECORD_42_1)));
+        chunks.put(1L, buildChunk(42L, 1L, toUpperFlow, base64encode(RECORD_42_1)));
         chunks.put(2L, buildChunk(42L, 2L, toUpperFlow, base64encode(RECORD_42_2)));
         return chunks;
     }

@@ -27,18 +27,20 @@ import static org.junit.Assert.assertThat;
 
 public class ChunkProcessorBeanTest {
     private final long  jobId = 42;
-    private final String javaScriptInvocationMethod = "toUpper";
+    private final String javaScriptUppercaseInvocationMethod = "toUpper";
+    private final String javaScriptConcatenateInvocationMethod = "doConcatenation";
     private final String modulesInfoModuleResource = "/ModulesInfo.json";
     private final String useModuleResource = "/Use.json";
 
     @Test
     public void process_emptyChunk_returnsEmptyResult() {
         final Chunk emptyChunk = new ChunkBuilder()
+                .setJobId(jobId)
                 .setRecords(new ArrayList<String>(0))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(jobId, emptyChunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(emptyChunk);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(emptyChunk.getChunkId()));
         assertThat(chunkResult.getResults().size(), is(0));
@@ -49,12 +51,13 @@ public class ChunkProcessorBeanTest {
         final String record1 = "one";
         final String record2 = "two";
         final Chunk chunk = new ChunkBuilder()
-                .setFlow(getFlow())
+                .setJobId(jobId)
+                .setFlow(getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction())))
                 .setRecords(Arrays.asList(base64encode(record1), base64encode(record2)))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(jobId, chunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getResults().size(), is(2));
@@ -62,48 +65,77 @@ public class ChunkProcessorBeanTest {
         assertThat(base64decode(chunkResult.getResults().get(1)), is(record2.toUpperCase()));
     }
 
+    @Test
+    public void process_chunkWithDataAndProcessData_returnsResultOfJavaScriptProcessing() throws Exception {
+        final String record1 = "one";
+        final String record2 = "two";
+        final String submitter = "sub";
+        final String format = "form";
+        final Chunk chunk = new ChunkBuilder()
+                .setJobId(jobId)
+                .setFlow(getFlow(javaScriptConcatenateInvocationMethod, getJavaScript(getJavaScriptConcatenateProcessDataFunction())))
+                .setRecords(Arrays.asList(base64encode(record1), base64encode(record2)))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        assertThat(chunkResult.getJobId(), is(jobId));
+        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
+        assertThat(chunkResult.getResults().size(), is(2));
+        assertThat(base64decode(chunkResult.getResults().get(0)), is("suboneform"));
+        assertThat(base64decode(chunkResult.getResults().get(1)), is("subtwoform"));
+    }
+
     private ChunkProcessorBean getInitializedBean() {
         return new ChunkProcessorBean();
     }
 
-    private Flow getFlow() throws Exception {
+    private Flow getFlow(String invocationMethod, JavaScript javascript) throws Exception {
         return new FlowBuilder()
-                .setContent(getFlowContent())
+                .setContent(getFlowContent(invocationMethod, javascript))
                 .build();
     }
 
-    private FlowContent getFlowContent() throws Exception {
+    private FlowContent getFlowContent(String invocationMethod, JavaScript javascript) throws Exception {
         return new FlowContentBuilder()
-                .setComponents(Arrays.asList(getFlowComponent()))
+                .setComponents(Arrays.asList(getFlowComponent(invocationMethod, javascript)))
                 .build();
     }
 
-    private FlowComponent getFlowComponent() throws Exception {
+    private FlowComponent getFlowComponent(String invocationMethod, JavaScript javascript) throws Exception {
         return new FlowComponentBuilder()
-                .setContent(getFlowComponentContent())
+                .setContent(getFlowComponentContent(invocationMethod, javascript))
                 .build();
     }
 
-    private FlowComponentContent getFlowComponentContent() throws Exception {
+    private FlowComponentContent getFlowComponentContent(String invocationMethod, JavaScript javascript) throws Exception {
         return new FlowComponentContentBuilder()
-                .setInvocationMethod(javaScriptInvocationMethod)
+                .setInvocationMethod(invocationMethod)
                 .setJavascripts(Arrays.asList(
-                        getJavaScript(),
+                        javascript,
                         JsonUtil.fromJson(resourceToString(modulesInfoModuleResource), JavaScript.class, MixIns.getMixIns()),
                         JsonUtil.fromJson(resourceToString(useModuleResource), JavaScript.class, MixIns.getMixIns())))
                 .build();
     }
 
-    private JavaScript getJavaScript() {
+    private JavaScript getJavaScript(String javascript) {
         return new JavaScriptBuilder()
-                .setJavascript(base64encode(getJavaScriptToUpperFunction()))
+                .setJavascript(base64encode(javascript))
                 .build();
     }
 
     private String getJavaScriptToUpperFunction() {
         return ""
-            + "function " + javaScriptInvocationMethod + "(str) {\n"
+            + "function " + javaScriptUppercaseInvocationMethod + "(str) {\n"
             + "    return str.toUpperCase();\n"
+            + "}\n";
+    }
+
+    private String getJavaScriptConcatenateProcessDataFunction() {
+        return ""
+            + "function " + javaScriptConcatenateInvocationMethod + "(str, processData) {\n"
+//            + "    return processData.submitter + str + processData.format;\n"
+            + "    return \"sub\" + str + \"form\";\n"
             + "}\n";
     }
 

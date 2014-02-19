@@ -39,7 +39,7 @@ public class JobProcessorBean {
         for (long i = 1; i <= numberOfChunks; i++) {
             try {
                 final Chunk chunk = jobStoreServiceConnector.getChunk(newJob.getJobId(), i);
-                final ChunkResult processorResult = chunkProcessor.process(newJob.getJobId(), chunk);
+                final ChunkResult processorResult = chunkProcessor.process(chunk);
                 jobStoreMessageProducer.send(processorResult);
                 sinkMessageProducer.send(processorResult, newJob.getSink());
             } catch (Exception e) {

@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -69,11 +70,12 @@ public class ChunkProcessorBeanTest {
     public void process_chunkWithDataAndProcessData_returnsResultOfJavaScriptProcessing() throws Exception {
         final String record1 = "one";
         final String record2 = "two";
-        final String submitter = "sub";
-        final String format = "form";
+        final long submitter = 456456L;
+        final String format = "DasFormat";
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
                 .setFlow(getFlow(javaScriptConcatenateInvocationMethod, getJavaScript(getJavaScriptConcatenateProcessDataFunction())))
+                .setSupplementaryProcessData(new SupplementaryProcessData(submitter, format))
                 .setRecords(Arrays.asList(base64encode(record1), base64encode(record2)))
                 .build();
 
@@ -82,8 +84,8 @@ public class ChunkProcessorBeanTest {
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getResults().size(), is(2));
-        assertThat(base64decode(chunkResult.getResults().get(0)), is("suboneform"));
-        assertThat(base64decode(chunkResult.getResults().get(1)), is("subtwoform"));
+        assertThat(base64decode(chunkResult.getResults().get(0)), is("456456oneDasFormat"));
+        assertThat(base64decode(chunkResult.getResults().get(1)), is("456456twoDasFormat"));
     }
 
     private ChunkProcessorBean getInitializedBean() {
@@ -134,8 +136,7 @@ public class ChunkProcessorBeanTest {
     private String getJavaScriptConcatenateProcessDataFunction() {
         return ""
             + "function " + javaScriptConcatenateInvocationMethod + "(str, processData) {\n"
-//            + "    return processData.submitter + str + processData.format;\n"
-            + "    return \"sub\" + str + \"form\";\n"
+            + "    return processData.submitter + str + processData.format;\n"
             + "}\n";
     }
 

@@ -16,6 +16,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -100,5 +101,10 @@ public class JsonBuilderTest {
     @Test
     public void SubmitterJsonBuilderProducesValidJson() throws JsonException {
         JsonUtil.fromJson(new SubmitterJsonBuilder().build(), Submitter.class, MixIns.getMixIns());
+    }
+
+    @Test
+    public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JsonException {
+        JsonUtil.fromJson(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class, MixIns.getMixIns());
     }
 }

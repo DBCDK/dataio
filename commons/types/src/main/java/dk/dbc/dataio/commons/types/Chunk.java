@@ -19,6 +19,7 @@ public class Chunk extends AbstractChunk implements Serializable {
     private /* final */ long chunkId;
     private /* final */ List<String> records;
     private /* final */ Flow flow;
+    private /* final */ SupplementaryProcessData supplementaryProcessData;
 
     private Chunk() {
         // JSON Unmarshalling of '{}' will trigger default constructor
@@ -27,14 +28,15 @@ public class Chunk extends AbstractChunk implements Serializable {
         records = new ArrayList<String>(0);
     }
 
-    public Chunk(long jobId, long chunkId, Flow flow) {
-        this(jobId, chunkId, flow, new ArrayList<String>(MAX_RECORDS_PER_CHUNK));
+    public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData) {
+        this(jobId, chunkId, flow, supplementaryProcessData, new ArrayList<String>(MAX_RECORDS_PER_CHUNK));
     }
 
-    public Chunk(long jobId, long chunkId, Flow flow, List<String> records) throws NullPointerException, IllegalArgumentException {
+    public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData, List<String> records) throws NullPointerException, IllegalArgumentException {
         this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOBID_LOWER_THRESHOLD);
         this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", CHUNKID_LOWER_THRESHOLD);
         this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
+        this.supplementaryProcessData = InvariantUtil.checkNotNullOrThrow(supplementaryProcessData, "supplementaryProcessData");
         this.records = InvariantUtil.checkNotNullOrThrow(records, "records");
         if (this.records.size() > MAX_RECORDS_PER_CHUNK) {
             throw new IllegalArgumentException("Number of records exceeds MAX_RECORDS_PER_CHUNK");
@@ -61,6 +63,10 @@ public class Chunk extends AbstractChunk implements Serializable {
 
     public Flow getFlow() {
         return flow;
+    }
+
+    public SupplementaryProcessData getSupplementaryProcessData() {
+        return supplementaryProcessData;
     }
 
     public List<String> getRecords() {

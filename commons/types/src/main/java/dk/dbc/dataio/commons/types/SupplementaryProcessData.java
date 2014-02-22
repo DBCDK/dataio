@@ -3,15 +3,17 @@ package dk.dbc.dataio.commons.types;
 
 public class SupplementaryProcessData {
 
-    private /* final */ String submitter;
+    private /* final */ long submitter;
     private /* final */ String format;
 
-    public SupplementaryProcessData(String submitter, String format) {
+    private SupplementaryProcessData() {}
+
+    public SupplementaryProcessData(long submitter, String format) {
         this.submitter = submitter;
         this.format = format;
     }
 
-    public String getSubmitter() {
+    public long getSubmitter() {
         return submitter;
     }
 

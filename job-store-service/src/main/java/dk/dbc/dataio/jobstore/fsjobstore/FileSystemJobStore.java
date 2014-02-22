@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.JobStore;
@@ -352,7 +353,8 @@ public class FileSystemJobStore implements JobStore {
         long chunkId = 1;
         long recordCount = 0;
         int counter = 0;
-        Chunk chunk = new Chunk(jobId, chunkId, job.getFlow());
+        SupplementaryProcessData supplementaryProcessData = createSupplementaryProcessData(job);
+        Chunk chunk = new Chunk(jobId, chunkId, job.getFlow(), supplementaryProcessData);
         for (String record : recordSplitter) {
             recordCount++;
             LOGGER.trace("======> Before [" + record + "]");
@@ -362,7 +364,7 @@ public class FileSystemJobStore implements JobStore {
                 chunk.addRecord(recordBase64);
             } else {
                 addChunk(job, chunk);
-                chunk = new Chunk(jobId, ++chunkId, job.getFlow());
+                chunk = new Chunk(jobId, ++chunkId, job.getFlow(), supplementaryProcessData);
                 chunk.addRecord(recordBase64);
                 counter = 1;
             }
@@ -391,5 +393,9 @@ public class FileSystemJobStore implements JobStore {
 
     private static String normalizeEncoding(String encoding) {
         return encoding.replaceAll("-", "").toLowerCase();
+    }
+
+    private SupplementaryProcessData createSupplementaryProcessData(Job job) {
+        return new SupplementaryProcessData(job.getJobInfo().getJobSpecification().getSubmitterId(), job.getJobInfo().getJobSpecification().getFormat());
     }
 }

@@ -8,6 +8,7 @@ public class ChunkJsonBuilder extends JsonBuilder {
     private long jobId = 2;
     private long chunkId = 1;
     private String flow = new FlowJsonBuilder().build();
+    private String supplementaryProcessData = new SupplementaryProcessDataJsonBuilder().build();
     private List<String> records = new ArrayList<>(Arrays.asList("record"));
 
     public ChunkJsonBuilder setJobId(long jobId) {
@@ -25,6 +26,11 @@ public class ChunkJsonBuilder extends JsonBuilder {
         return this;
     }
 
+    public ChunkJsonBuilder setSupplementaryProcessData(String supplementaryProcessData) {
+        this.supplementaryProcessData = supplementaryProcessData;
+        return this;
+    }
+
     public ChunkJsonBuilder setRecords(List<String> records) {
         this.records = records;
         return this;
@@ -36,6 +42,7 @@ public class ChunkJsonBuilder extends JsonBuilder {
         stringBuilder.append(asLongMember("jobId", jobId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("chunkId", chunkId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("flow", flow)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asObjectMember("supplementaryProcessData", supplementaryProcessData)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextArray("records", records));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();

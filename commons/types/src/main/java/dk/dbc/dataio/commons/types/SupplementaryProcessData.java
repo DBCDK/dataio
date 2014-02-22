@@ -1,7 +1,9 @@
 package dk.dbc.dataio.commons.types;
 
+import java.io.Serializable;
 
-public class SupplementaryProcessData {
+
+public class SupplementaryProcessData  implements Serializable {
 
     private /* final */ long submitter;
     private /* final */ String format;

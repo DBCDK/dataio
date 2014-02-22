@@ -4,6 +4,9 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
@@ -19,11 +22,13 @@ import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64encode;
 
 /**
- * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in associated flow
+ * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in
+ * associated flow
  */
 @Stateless
 @LocalBean
 public class ChunkProcessorBean {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
 
     /**
@@ -38,23 +43,43 @@ public class ChunkProcessorBean {
         final Flow flow = chunk.getFlow();
         final List<String> results = new ArrayList<>();
         for (String record : chunk.getRecords()) {
-            final String processedRecord = invokeJavaScript(flow, base64decode(record));
-            final String processedRecordBase64 = base64encode(processedRecord);
+            String processedRecordBase64;
+            try {
+                final String processedRecord = invokeJavaScript(flow, base64decode(record), chunk.getSupplementaryProcessData());
+                processedRecordBase64 = base64encode(processedRecord);
+            } catch (JsonException ex) {
+                // Fixme: Ensure error from processing is written into the resulting chunk in a sensible manner.
+                // Notice: *** This is unwanted behaviour. ***
+                // We should report the errror in another way than just writing it into the resulting chunk.
+                // It has been discussed to add a status to a record in order to flag it: "success", "error" or "ignored".
+                // This is an obvious candidate for dealing with something like this.
+                processedRecordBase64 = "An error occured during processing!";
+            }
             results.add(processedRecordBase64);
         }
         // todo: Change Chunk to get actual Charset
         return new ChunkResult(chunk.getJobId(), chunk.getChunkId(), Charset.defaultCharset(), results);
     }
 
-    private String invokeJavaScript(Flow flow, String record) {
+    private String invokeJavaScript(Flow flow, String record, SupplementaryProcessData supplementaryProcessData) throws JsonException {
         final List<JavaScript> javaScriptsBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts();
         final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>();
         for (JavaScript javascriptBase64 : javaScriptsBase64) {
             javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), base64decode(javascriptBase64.getJavascript())));
         }
         final JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javaScripts);
+
+        Object supProcDataJson = convertSupplementaryProcessDataToJsJsonObject(scriptWrapper, supplementaryProcessData);
         LOGGER.trace("Starting javascript with invocation method: [{}]", flow.getContent().getComponents().get(0).getContent().getInvocationMethod());
-        final Object result = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record});
-        return (String)result;
+        final Object result = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record, supProcDataJson});
+        return (String) result;
+    }
+
+    private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws JsonException {
+        // Something about why you need parantheses in the string around the json
+        // when trying to evalute the json in javascript (rhino):
+        // http://rayfd.me/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
+        String jsonStr = "(" + JsonUtil.toJson(supplementaryProcessData) + ")"; // notice the parantheses!
+        return scriptWrapper.eval(jsonStr);
     }
 }

@@ -22,4 +22,8 @@ public class JSWrapperSingleScript {
     public Object callMethod(String methodName, final Object[] args) {
         return jsEnvironment.callMethod(methodName, args);
     }
+
+    public Object eval(String s) {
+        return jsEnvironment.eval(s);
+    }
 }

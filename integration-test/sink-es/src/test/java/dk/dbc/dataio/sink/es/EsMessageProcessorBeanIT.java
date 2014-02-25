@@ -2,6 +2,7 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
@@ -10,6 +11,7 @@ import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
@@ -105,8 +107,11 @@ public class EsMessageProcessorBeanIT {
     @Test
     public void esMessageProcessorBean_validProcessorResultOnSinksQueue_eventuallyProcessed()
             throws JsonException, JMSException, InterruptedException, SQLException, ClassNotFoundException {
+        final ChunkItem item = new ChunkItemBuilder()
+                .setData(Base64Util.base64encode(ADDI_OK))
+                .build();
         final ChunkResult processorResult = new ChunkResultBuilder()
-                .setResults(Arrays.asList(Base64Util.base64encode(ADDI_OK)))
+                .setItems(Arrays.asList(item))
                 .build();
         final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processorResult);
 

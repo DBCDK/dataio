@@ -15,50 +15,37 @@ public class Chunk extends AbstractChunk implements Serializable {
     static /* final */ long CHUNKID_LOWER_THRESHOLD = 0L;
     private static final long serialVersionUID = -6317006704089913073L;
 
-    private /* final */ long jobId;
-    private /* final */ long chunkId;
-    private /* final */ List<String> records;
     private /* final */ Flow flow;
     private /* final */ SupplementaryProcessData supplementaryProcessData;
 
     private Chunk() {
         // JSON Unmarshalling of '{}' will trigger default constructor
-        // causing getRecords() methods to throw NullPointerException
+        // causing getItems() methods to throw NullPointerException
         // unless we set reasonable defaults.
-        records = new ArrayList<String>(0);
+        items = new ArrayList<ChunkItem>(0);
     }
 
     public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData) {
-        this(jobId, chunkId, flow, supplementaryProcessData, new ArrayList<String>(MAX_RECORDS_PER_CHUNK));
+        this(jobId, chunkId, flow, supplementaryProcessData, new ArrayList<ChunkItem>(MAX_RECORDS_PER_CHUNK));
     }
 
-    public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData, List<String> records) throws NullPointerException, IllegalArgumentException {
+    public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData, List<ChunkItem> records) throws NullPointerException, IllegalArgumentException {
         this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOBID_LOWER_THRESHOLD);
         this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", CHUNKID_LOWER_THRESHOLD);
         this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
         this.supplementaryProcessData = InvariantUtil.checkNotNullOrThrow(supplementaryProcessData, "supplementaryProcessData");
-        this.records = InvariantUtil.checkNotNullOrThrow(records, "records");
-        if (this.records.size() > MAX_RECORDS_PER_CHUNK) {
+        this.items = InvariantUtil.checkNotNullOrThrow(records, "records");
+        if (this.items.size() > MAX_RECORDS_PER_CHUNK) {
             throw new IllegalArgumentException("Number of records exceeds MAX_RECORDS_PER_CHUNK");
         }
     }
 
-    public void addRecord(String record) {
-        if (records.size() < MAX_RECORDS_PER_CHUNK) {
-            records.add(record);
-        } else {
+    @Override
+    public void addItem(ChunkItem item) {
+        if (items.size() >= MAX_RECORDS_PER_CHUNK) {
             throw new IndexOutOfBoundsException();
         }
-    }
-
-    @Override
-    public long getJobId() {
-        return jobId;
-    }
-
-    @Override
-    public long getChunkId() {
-        return chunkId;
+        super.addItem(item);
     }
 
     public Flow getFlow() {
@@ -67,9 +54,5 @@ public class Chunk extends AbstractChunk implements Serializable {
 
     public SupplementaryProcessData getSupplementaryProcessData() {
         return supplementaryProcessData;
-    }
-
-    public List<String> getRecords() {
-        return new ArrayList<String>(records);
     }
 }

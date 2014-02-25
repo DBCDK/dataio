@@ -19,39 +19,24 @@ public class SinkChunkResult extends AbstractChunk implements Serializable {
 
     private static final long serialVersionUID = -8494583387561924223L;
 
-    private /* final */ long jobId;
-    private /* final */ long chunkId;
     private /* final */ String encoding;
-    private /* final */ List<String> results;
 
     private SinkChunkResult() {
         // JSON Unmarshalling of '{}' will trigger default constructor
-        // causing getEncoding() and getResults() methods to throw NullPointerException
+        // causing getEncoding() and getItems() methods to throw NullPointerException
         // unless we set reasonable defaults.
         encoding = "DEFAULT";
-        results = new ArrayList<String>(0);
+        items = new ArrayList<ChunkItem>(0);
     }
 
-    public SinkChunkResult(long jobId, long chunkId, Charset encoding, List<String> results) {
+    public SinkChunkResult(long jobId, long chunkId, Charset encoding, List<ChunkItem> items) {
         this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOBID_VERSION_LOWER_THRESHOLD);
         this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", CHUNKID_VERSION_LOWER_THRESHOLD);
         this.encoding = encoding.name();
-        this.results = new ArrayList<String>(results);
-    }
-
-    public long getJobId() {
-        return jobId;
-    }
-
-    public long getChunkId() {
-        return chunkId;
+        this.items = new ArrayList<ChunkItem>(items);
     }
 
     public Charset getEncoding() {
         return Charset.forName(encoding);
-    }
-
-    public List<String> getResults() {
-        return new ArrayList<String>(results);
     }
 }

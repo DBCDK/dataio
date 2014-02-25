@@ -4,6 +4,7 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.apache.commons.codec.binary.Base64;
@@ -96,9 +97,9 @@ public class ESTaskPackageUtil {
     /**
      * Extracts addi-records from given chunk result.
      *
-     * Records in chunk result are assumed to be base64 encoded.
+     * Records in chunk result items are assumed to be base64 encoded.
      *
-     * @param chunkResult Object containing base64 encoded addi-records
+     * @param chunkResult Object containing base64 encoded addi-record items
      *
      * @return list of AddiRecord objects.
      *
@@ -108,8 +109,8 @@ public class ESTaskPackageUtil {
      */
     public static List<AddiRecord> getAddiRecordsFromChunk(ChunkResult chunkResult) throws IllegalStateException, NumberFormatException, IOException {
         final List<AddiRecord> addiRecords = new ArrayList<>();
-        for (String result : chunkResult.getResults()) {
-            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(decodeBase64(result, chunkResult.getEncoding()).getBytes(chunkResult.getEncoding())));
+        for (ChunkItem item : chunkResult.getItems()) {
+            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(decodeBase64(item.getData(), chunkResult.getEncoding()).getBytes(chunkResult.getEncoding())));
             addiRecords.add(addiReader.getNextRecord());
             if (addiReader.getNextRecord() != null) {
                 throw new IllegalStateException(String.format("More than one Addi in record in: [jobId, chunkId] [%d, %d]", chunkResult.getJobId(), chunkResult.getChunkId()));

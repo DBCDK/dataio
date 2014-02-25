@@ -81,14 +81,14 @@ public class JobStoreMessageConsumerBeanIT {
         processorResult = assertProcessorMessageForSink(sinksQueue.get(0));
         assertThat(processorResult.getJobId(), is(jobId));
         assertThat(processorResult.getChunkId(), is(1L));
-        assertThat(processorResult.getResults().size(), is(1));
-        assertThat(base64decode(processorResult.getResults().get(0)), is("ONE"));
+        assertThat(processorResult.getItems().size(), is(1));
+        assertThat(base64decode(processorResult.getItems().get(0).getData()), is("ONE"));
 
         processorResult = assertProcessorMessageForSink(sinksQueue.get(1));
         assertThat(processorResult.getJobId(), is(jobId));
         assertThat(processorResult.getChunkId(), is(2L));
-        assertThat(processorResult.getResults().size(), is(1));
-        assertThat(base64decode(processorResult.getResults().get(0)), is("TWO"));
+        assertThat(processorResult.getItems().size(), is(1));
+        assertThat(base64decode(processorResult.getItems().get(0).getData()), is("TWO"));
 
         JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
     }

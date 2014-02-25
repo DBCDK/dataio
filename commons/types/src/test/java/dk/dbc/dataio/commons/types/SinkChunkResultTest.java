@@ -11,14 +11,14 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class SinkChunkResultTest {
-
     private static final long JOBID = 31L;
     private static final long CHUNKID = 17L;
     private static final Charset ENCODING = Charset.forName("UTF-8");
+    private static final List<ChunkItem> ITEMS = Collections.emptyList();
 
     @Test(expected = NullPointerException.class)
     public void constructor_encodingArgIsNull_throws() {
-        new SinkChunkResult(JOBID, CHUNKID, null, Collections.EMPTY_LIST);
+        new SinkChunkResult(JOBID, CHUNKID, null, ITEMS);
     }
 
     @Test(expected = NullPointerException.class)
@@ -28,47 +28,53 @@ public class SinkChunkResultTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_jobIdArgIsLessThanZero_throws() {
-        new SinkChunkResult(-1, CHUNKID, ENCODING, Collections.EMPTY_LIST);
+        new SinkChunkResult(-1, CHUNKID, ENCODING, ITEMS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_chunkIdArgIsLessThanZero_throws() {
-        new SinkChunkResult(JOBID, -1, ENCODING, Collections.EMPTY_LIST);
+        new SinkChunkResult(JOBID, -1, ENCODING, ITEMS);
     }
 
     @Test
     public void getEncoding_encodingCanBeRetrieved() {
-        SinkChunkResult res = new SinkChunkResult(JOBID, CHUNKID, ENCODING, Collections.EMPTY_LIST);
+        SinkChunkResult res = new SinkChunkResult(JOBID, CHUNKID, ENCODING, ITEMS);
         assertThat(res.getEncoding(), is(ENCODING));
     }
 
     @Test
     public void getResults_resultsCanBeRetrieved() {
-        SinkChunkResult res = new SinkChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList("data1", "data2", "data3"));
-        List<String> results = res.getResults();
-        assertThat(results.size(), is(3));
-        assertThat(results.get(0), is("data1"));
-        assertThat(results.get(1), is("data2"));
-        assertThat(results.get(2), is("data3"));
+        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
+        final SinkChunkResult instance = new SinkChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList(data1, data2, data3));
+        final List<ChunkItem> items = instance.getItems();
+        assertThat(items.size(), is(3));
+        assertThat(items.get(0), is(data1));
+        assertThat(items.get(1), is(data2));
+        assertThat(items.get(2), is(data3));
     }
 
     @Test
     public void getResults_internalResultListCanNotBeMutated() {
-        SinkChunkResult res = new SinkChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList("data1", "data2", "data3"));
-        List<String> results = res.getResults();
+        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
+        final SinkChunkResult instance = new SinkChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList(data1, data2, data3));
+        final List<ChunkItem> items = instance.getItems();
         // Try mutating returned result
-        results.remove(0);
-        results.set(0, "Jack");
-        results.set(1, "Sparrow");
+        items.remove(0);
+        items.set(0, ChunkItemTest.newChunkItemInstance());
+        items.set(1, null);
         // assert that internal data is still the original
-        List<String> results2 = res.getResults();
-        assertThat(results2.size(), is(3));
-        assertThat(results2.get(0), is("data1"));
-        assertThat(results2.get(1), is("data2"));
-        assertThat(results2.get(2), is("data3"));
+        List<ChunkItem> items2 = instance.getItems();
+        assertThat(items2.size(), is(3));
+        assertThat(items2.get(0), is(data1));
+        assertThat(items2.get(1), is(data2));
+        assertThat(items2.get(2), is(data3));
     }
 
     public static SinkChunkResult newSinkChunkResultInstance() {
-        return new SinkChunkResult(JOBID, CHUNKID, ENCODING, Collections.EMPTY_LIST);
+        return new SinkChunkResult(JOBID, CHUNKID, ENCODING, ITEMS);
     }
 }

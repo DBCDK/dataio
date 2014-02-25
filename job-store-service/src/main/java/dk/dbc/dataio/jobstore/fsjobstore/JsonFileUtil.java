@@ -1,16 +1,18 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JsonFileUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(JsonFileUtil.class);
@@ -33,7 +35,7 @@ public class JsonFileUtil {
             while ((data = br.readLine()) != null) {
                 sb.append(data);
             }
-            object = JsonUtil.fromJson(sb.toString(), tClass);
+            object = JsonUtil.fromJson(sb.toString(), tClass, MixIns.getMixIns());
         } catch (IOException | JsonException e) {
             final String errorMsg = String.format("Exception caught while reading object from Path: %s", objectPath.toString());
             LOGGER.error(errorMsg, e);

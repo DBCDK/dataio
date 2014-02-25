@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.types.json.mixins;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 
@@ -26,6 +27,6 @@ public abstract class ChunkMixIn {
                       @JsonProperty("chunkId") long chunkId,
                       @JsonProperty("flow") Flow flow,
                       @JsonProperty("supplementaryProcessData") SupplementaryProcessData supplementaryProcessData,
-                      @JsonProperty("records") List<String> records) {
+                      @JsonProperty("items") List<ChunkItem> items) {
     }
 }

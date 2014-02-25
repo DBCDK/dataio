@@ -11,64 +11,70 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class ChunkResultTest {
-
     private static final long JOBID = 31L;
     private static final long CHUNKID = 17L;
     private static final Charset ENCODING = Charset.forName("UTF-8");
+    private static final List<ChunkItem> ITEMS = Collections.emptyList();
 
     @Test(expected = NullPointerException.class)
     public void constructor_encodingArgIsNull_throws() {
-        ChunkResult res = new ChunkResult(JOBID, CHUNKID, null, Collections.EMPTY_LIST);
+        new ChunkResult(JOBID, CHUNKID, null, ITEMS);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_resultsArgIsNull_throws() {
-        ChunkResult res = new ChunkResult(JOBID, CHUNKID, ENCODING, null);
+        new ChunkResult(JOBID, CHUNKID, ENCODING, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_jobIdArgIsLessThanZero_throws() {
-        ChunkResult res = new ChunkResult(-1, CHUNKID, ENCODING, Collections.EMPTY_LIST);
+        new ChunkResult(-1, CHUNKID, ENCODING, ITEMS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_chunkIdArgIsLessThanZero_throws() {
-        ChunkResult res = new ChunkResult(JOBID, -1, ENCODING, Collections.EMPTY_LIST);
+        new ChunkResult(JOBID, -1, ENCODING, ITEMS);
     }
 
     @Test
     public void getEncoding_encodingCanBeRetrieved() {
-        ChunkResult res = new ChunkResult(JOBID, CHUNKID, ENCODING, Collections.EMPTY_LIST);
+        ChunkResult res = new ChunkResult(JOBID, CHUNKID, ENCODING, ITEMS);
         assertThat(res.getEncoding(), is(ENCODING));
     }
 
     @Test
     public void getResults_resultsCanBeRetrieved() {
-        ChunkResult res = new ChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList("data1", "data2", "data3"));
-        List<String> results = res.getResults();
-        assertThat(results.size(), is(3));
-        assertThat(results.get(0), is("data1"));
-        assertThat(results.get(1), is("data2"));
-        assertThat(results.get(2), is("data3"));
+        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
+        final ChunkResult instance = new ChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList(data1, data2, data3));
+        final List<ChunkItem> items = instance.getItems();
+        assertThat(items.size(), is(3));
+        assertThat(items.get(0), is(data1));
+        assertThat(items.get(1), is(data2));
+        assertThat(items.get(2), is(data3));
     }
 
     @Test
     public void getResults_internalResultListCanNotBeMutated() {
-        ChunkResult res = new ChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList("data1", "data2", "data3"));
-        List<String> results = res.getResults();
+        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
+        final ChunkResult instance = new ChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList(data1, data2, data3));
+        final List<ChunkItem> items = instance.getItems();
         // Try mutating returned result
-        results.remove(0);
-        results.set(0, "Jack");
-        results.set(1, "Sparrow");
+        items.remove(0);
+        items.set(0, ChunkItemTest.newChunkItemInstance());
+        items.set(1, null);
         // assert that internal data is still the original
-        List<String> results2 = res.getResults();
-        assertThat(results2.size(), is(3));
-        assertThat(results2.get(0), is("data1"));
-        assertThat(results2.get(1), is("data2"));
-        assertThat(results2.get(2), is("data3"));
+        List<ChunkItem> items2 = instance.getItems();
+        assertThat(items2.size(), is(3));
+        assertThat(items2.get(0), is(data1));
+        assertThat(items2.get(1), is(data2));
+        assertThat(items2.get(2), is(data3));
     }
 
     public static ChunkResult newChunkResultInstance() {
-        return new ChunkResult(JOBID, CHUNKID, ENCODING, Collections.EMPTY_LIST);
+        return new ChunkResult(JOBID, CHUNKID, ENCODING, ITEMS);
     }
 }

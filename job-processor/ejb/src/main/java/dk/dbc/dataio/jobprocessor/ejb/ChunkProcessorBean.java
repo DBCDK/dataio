@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
@@ -41,24 +42,21 @@ public class ChunkProcessorBean {
     public ChunkResult process(Chunk chunk) {
         LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
         final Flow flow = chunk.getFlow();
-        final List<String> results = new ArrayList<>();
-        for (String record : chunk.getRecords()) {
-            String processedRecordBase64;
+        final List<ChunkItem> processedItems = new ArrayList<>();
+        long itemCounter = 0;
+        for (ChunkItem item : chunk.getItems()) {
+            itemCounter++;
+            ChunkItem processedItem;
             try {
-                final String processedRecord = invokeJavaScript(flow, base64decode(record), chunk.getSupplementaryProcessData());
-                processedRecordBase64 = base64encode(processedRecord);
+                final String processedRecord = invokeJavaScript(flow, base64decode(item.getData()), chunk.getSupplementaryProcessData());
+                processedItem = new ChunkItem(itemCounter, base64encode(processedRecord), ChunkItem.Status.SUCCESS);
             } catch (JsonException ex) {
-                // Fixme: Ensure error from processing is written into the resulting chunk in a sensible manner.
-                // Notice: *** This is unwanted behaviour. ***
-                // We should report the errror in another way than just writing it into the resulting chunk.
-                // It has been discussed to add a status to a record in order to flag it: "success", "error" or "ignored".
-                // This is an obvious candidate for dealing with something like this.
-                processedRecordBase64 = "An error occured during processing!";
+                processedItem = new ChunkItem(itemCounter, base64encode(ex.getMessage()), ChunkItem.Status.FAILURE);
             }
-            results.add(processedRecordBase64);
+            processedItems.add(processedItem);
         }
         // todo: Change Chunk to get actual Charset
-        return new ChunkResult(chunk.getJobId(), chunk.getChunkId(), Charset.defaultCharset(), results);
+        return new ChunkResult(chunk.getJobId(), chunk.getChunkId(), Charset.defaultCharset(), processedItems);
     }
 
     private String invokeJavaScript(Flow flow, String record, SupplementaryProcessData supplementaryProcessData) throws JsonException {

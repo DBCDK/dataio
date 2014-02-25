@@ -63,8 +63,8 @@ public class JobStoreBeanTest {
         assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
         assertThat(jsb.getNumberOfChunksInJob(job.getId()), is(1L));
         final Chunk chunk = jsb.getChunk(job.getId(), 1);
-        assertThat(chunk.getRecords().size(), is(1));
-        assertThat(base64decode(chunk.getRecords().get(0)), is(xmlHeader + someXML));
+        assertThat(chunk.getItems().size(), is(1));
+        assertThat(base64decode(chunk.getItems().get(0).getData()), is(xmlHeader + someXML));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -13,6 +14,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -123,17 +125,19 @@ public class JobStoreBean implements JobStore {
     private Map<Long, Chunk> buildChunksForJob42() throws Exception {
         final Map<Long, Chunk> chunks  = new HashMap<>(2);
         final Flow toUpperFlow = buildToUpperFlow();
-        chunks.put(1L, buildChunk(42L, 1L, toUpperFlow, base64encode(RECORD_42_1)));
-        chunks.put(2L, buildChunk(42L, 2L, toUpperFlow, base64encode(RECORD_42_2)));
+        chunks.put(1L, buildChunk(42L, 1L, toUpperFlow,
+                new ChunkItemBuilder().setData(base64encode(RECORD_42_1)).build()));
+        chunks.put(2L, buildChunk(42L, 2L, toUpperFlow,
+                new ChunkItemBuilder().setData(base64encode(RECORD_42_2)).build()));
         return chunks;
     }
 
-    private Chunk buildChunk(long jobId, long chunkId, Flow flow, String... records) {
+    private Chunk buildChunk(long jobId, long chunkId, Flow flow, ChunkItem... items) {
         return new ChunkBuilder()
                 .setJobId(jobId)
                 .setChunkId(chunkId)
                 .setFlow(flow)
-                .setRecords(Arrays.asList(records))
+                .setItems(Arrays.asList(items))
                 .build();
     }
 

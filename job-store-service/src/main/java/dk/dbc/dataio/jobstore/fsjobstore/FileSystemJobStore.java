@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -352,7 +353,7 @@ public class FileSystemJobStore implements JobStore {
         long jobId = job.getId();
         long chunkId = 1;
         long recordCount = 0;
-        int counter = 0;
+        long counter = 0;
         SupplementaryProcessData supplementaryProcessData = createSupplementaryProcessData(job);
         Chunk chunk = new Chunk(jobId, chunkId, job.getFlow(), supplementaryProcessData);
         for (String record : recordSplitter) {
@@ -361,12 +362,12 @@ public class FileSystemJobStore implements JobStore {
             final String recordBase64 = base64encode(record);
             LOGGER.trace("======> After  [" + recordBase64 + "]");
             if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
-                chunk.addRecord(recordBase64);
+                chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             } else {
+                counter = 1;
                 addChunk(job, chunk);
                 chunk = new Chunk(jobId, ++chunkId, job.getFlow(), supplementaryProcessData);
-                chunk.addRecord(recordBase64);
-                counter = 1;
+                chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             }
         }
         if (counter != 0) {

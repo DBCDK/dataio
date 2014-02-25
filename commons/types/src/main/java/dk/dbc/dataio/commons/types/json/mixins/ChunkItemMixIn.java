@@ -19,7 +19,7 @@ public abstract class ChunkItemMixIn {
      * Makes jackson runtime aware of non-default ChunkItem constructor.
      */
     @JsonCreator
-    public ChunkItemMixIn(@JsonProperty("id") String id,
+    public ChunkItemMixIn(@JsonProperty("id") long id,
                           @JsonProperty("data") String data,
                           @JsonProperty("status") ChunkItem.Status status) {
     }

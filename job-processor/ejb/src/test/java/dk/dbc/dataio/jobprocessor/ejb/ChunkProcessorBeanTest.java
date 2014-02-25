@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -11,6 +12,7 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -37,55 +39,67 @@ public class ChunkProcessorBeanTest {
     public void process_emptyChunk_returnsEmptyResult() {
         final Chunk emptyChunk = new ChunkBuilder()
                 .setJobId(jobId)
-                .setRecords(new ArrayList<String>(0))
+                .setItems(new ArrayList<ChunkItem>(0))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         final ChunkResult chunkResult = chunkProcessorBean.process(emptyChunk);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(emptyChunk.getChunkId()));
-        assertThat(chunkResult.getResults().size(), is(0));
+        assertThat(chunkResult.getItems().size(), is(0));
     }
 
     @Test
     public void process_chunkWithData_returnsResultOfJavaScriptProcessing() throws Exception {
         final String record1 = "one";
+        final ChunkItem item1 = new ChunkItemBuilder()
+                .setData(base64encode(record1))
+                .build();
         final String record2 = "two";
+        final ChunkItem item2 = new ChunkItemBuilder()
+                .setData(base64encode(record2))
+                .build();
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
                 .setFlow(getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction())))
-                .setRecords(Arrays.asList(base64encode(record1), base64encode(record2)))
+                .setItems(Arrays.asList(item1, item2))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(chunkResult.getResults().size(), is(2));
-        assertThat(base64decode(chunkResult.getResults().get(0)), is(record1.toUpperCase()));
-        assertThat(base64decode(chunkResult.getResults().get(1)), is(record2.toUpperCase()));
+        assertThat(chunkResult.getItems().size(), is(2));
+        assertThat(base64decode(chunkResult.getItems().get(0).getData()), is(record1.toUpperCase()));
+        assertThat(base64decode(chunkResult.getItems().get(1).getData()), is(record2.toUpperCase()));
     }
 
     @Test
     public void process_chunkWithDataAndProcessData_returnsResultOfJavaScriptProcessing() throws Exception {
         final String record1 = "one";
+        final ChunkItem item1 = new ChunkItemBuilder()
+                .setData(base64encode(record1))
+                .build();
         final String record2 = "two";
+        final ChunkItem item2 = new ChunkItemBuilder()
+                .setData(base64encode(record2))
+                .build();
         final long submitter = 456456L;
         final String format = "DasFormat";
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
                 .setFlow(getFlow(javaScriptConcatenateInvocationMethod, getJavaScript(getJavaScriptConcatenateProcessDataFunction())))
                 .setSupplementaryProcessData(new SupplementaryProcessData(submitter, format))
-                .setRecords(Arrays.asList(base64encode(record1), base64encode(record2)))
+                .setItems(Arrays.asList(item1, item2))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
         final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(chunkResult.getResults().size(), is(2));
-        assertThat(base64decode(chunkResult.getResults().get(0)), is("456456oneDasFormat"));
-        assertThat(base64decode(chunkResult.getResults().get(1)), is("456456twoDasFormat"));
+        assertThat(chunkResult.getItems().size(), is(2));
+        assertThat(base64decode(chunkResult.getItems().get(0).getData()), is("456456oneDasFormat"));
+        assertThat(base64decode(chunkResult.getItems().get(1).getData()), is("456456twoDasFormat"));
     }
 
     private ChunkProcessorBean getInitializedBean() {

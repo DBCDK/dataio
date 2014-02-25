@@ -8,7 +8,7 @@ public class ChunkResultJsonBuilder extends JsonBuilder {
     private long jobId = 42;
     private long chunkId = 1;
     private String encoding = "UTF-8";
-    private List<String> results = new ArrayList<>(Arrays.asList("record"));
+    private List<String> items = new ArrayList<>(Arrays.asList(new ChunkItemJsonBuilder().build()));
 
     public ChunkResultJsonBuilder setChunkId(long chunkId) {
         this.chunkId = chunkId;
@@ -25,8 +25,8 @@ public class ChunkResultJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public ChunkResultJsonBuilder setResults(List<String> results) {
-        this.results = results;
+    public ChunkResultJsonBuilder setItems(List<String> items) {
+        this.items = items;
         return this;
     }
 
@@ -36,7 +36,7 @@ public class ChunkResultJsonBuilder extends JsonBuilder {
         stringBuilder.append(asLongMember("jobId", jobId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("chunkId", chunkId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("encoding", encoding)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextArray("results", results));
+        stringBuilder.append(asObjectArray("items", items));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

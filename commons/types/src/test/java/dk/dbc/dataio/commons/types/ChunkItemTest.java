@@ -7,14 +7,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class ChunkItemTest {
-    private static final String ID = "id";
+    private static final long ID = 1L;
     private static final String DATA = "data";
     private static final ChunkItem.Status STATUS = ChunkItem.Status.SUCCESS;
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_idArgIsNull_throws() {
-        new ChunkItem(null, DATA, STATUS);
-    }
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataArgIsNull_throws() {
@@ -26,9 +21,9 @@ public class ChunkItemTest {
         new ChunkItem(ID, DATA, null);
     }
 
-    @Test
-    public void constructor_idArgIsEmpty_returnsNewInstance() {
-        assertThat(new ChunkItem("", DATA, STATUS), is(notNullValue()));
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_idArgIsLessThanLowerThreshold_throws() {
+        new ChunkItem(Constants.CHUNK_ITEM_ID_LOWER_BOUND, DATA, null);
     }
 
     @Test

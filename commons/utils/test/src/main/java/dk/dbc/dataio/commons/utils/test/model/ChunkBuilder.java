@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.test.model;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 
@@ -13,7 +14,7 @@ public class ChunkBuilder {
     private long chunkId = 1;
     private Flow flow = new FlowBuilder().build();
     private SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(424242L, "latin-1");
-    private List<String> records = new ArrayList<>(Arrays.asList("record"));
+    private List<ChunkItem> items = new ArrayList<>(Arrays.asList(new ChunkItemBuilder().build()));
 
     public ChunkBuilder setJobId(long jobId) {
         this.jobId = jobId;
@@ -35,12 +36,12 @@ public class ChunkBuilder {
         return this;
     }
 
-    public ChunkBuilder setRecords(List<String> records) {
-        this.records = records;
+    public ChunkBuilder setItems(List<ChunkItem> items) {
+        this.items = items;
         return this;
     }
 
     public Chunk build() {
-        return new Chunk(jobId, chunkId, flow, supplementaryProcessData, records);
+        return new Chunk(jobId, chunkId, flow, supplementaryProcessData, items);
     }
 }

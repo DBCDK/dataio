@@ -1,9 +1,26 @@
 package dk.dbc.dataio.commons.types;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class AbstractChunk {
+    protected /* final */ long jobId;
+    protected /* final */ long chunkId;
+    protected /* final */ List<ChunkItem> items;
 
-    abstract public long getJobId();
+    public long getJobId() {
+        return jobId;
+    }
 
-    abstract public long getChunkId();
+    public long getChunkId() {
+        return chunkId;
+    }
 
+    public void addItem(ChunkItem item) {
+        items.add(item);
+    }
+
+    public List<ChunkItem> getItems() {
+        return new ArrayList<ChunkItem>(items);
+    }
 }

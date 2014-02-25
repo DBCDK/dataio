@@ -4,7 +4,15 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import org.apache.commons.codec.binary.Base64;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -15,18 +23,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.codec.binary.Base64;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -72,7 +76,10 @@ public class ESTaskPackageUtilTest {
     @Test(expected = NumberFormatException.class)
     public void getAddiRecordsFromChunk_recordInChunkNotBase64Encoded_throws() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
-        final ChunkResult chunkResult = new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(simpleAddiString));
+        final ChunkItem item = new ChunkItemBuilder()
+                .setData(simpleAddiString)
+                .build();
+        final ChunkResult chunkResult = new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(item));
         ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult);
     }
 
@@ -176,7 +183,10 @@ public class ESTaskPackageUtilTest {
     }
 
     private ChunkResult newChunkResult(String record) {
-        return new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(encodeBase64(record)));
+        final ChunkItem item = new ChunkItemBuilder()
+                .setData(encodeBase64(record))
+                .build();
+        return new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(item));
     }
 
     private AddiRecord newAddiRecordFromString(String record) throws IOException {

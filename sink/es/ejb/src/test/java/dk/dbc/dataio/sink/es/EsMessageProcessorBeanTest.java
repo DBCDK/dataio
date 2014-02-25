@@ -1,8 +1,10 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.sink.InvalidMessageSinkException;
 import dk.dbc.dataio.sink.SinkException;
@@ -220,8 +222,11 @@ public class EsMessageProcessorBeanTest {
 
     private String generateChunkResultJsonWithResource(String resourceName) {
         try {
+            final ChunkItem item = new ChunkItemBuilder()
+                    .setData(encodeBase64(getResourceAsString(resourceName)))
+                    .build();
             return JsonUtil.toJson(new ChunkResultBuilder()
-                    .setResults(Arrays.asList(encodeBase64(getResourceAsString(resourceName))))
+                    .setItems(Arrays.asList(item))
                     .build());
         } catch (JsonException e) {
             throw new IllegalStateException(e);

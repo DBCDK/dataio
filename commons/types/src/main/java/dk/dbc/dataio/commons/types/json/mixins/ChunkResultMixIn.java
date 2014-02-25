@@ -2,6 +2,8 @@ package dk.dbc.dataio.commons.types.json.mixins;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.types.ChunkItem;
+
 import java.util.List;
 
 /**
@@ -22,6 +24,6 @@ public abstract class ChunkResultMixIn {
     public ChunkResultMixIn(@JsonProperty("jobId") long jobId,
             @JsonProperty("chunkId") long chunkId,
             @JsonProperty("encoding") String encoding,
-            @JsonProperty("results") List<String> results) {
+            @JsonProperty("items") List<ChunkItem> items) {
     }
 }

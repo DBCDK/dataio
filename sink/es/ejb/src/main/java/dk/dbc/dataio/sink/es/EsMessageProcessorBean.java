@@ -125,7 +125,7 @@ public class EsMessageProcessorBean {
     }
 
     private EsWorkload validateChunkResult(String messageId, ChunkResult chunkResult) throws InvalidMessageSinkException {
-        if (chunkResult.getResults().isEmpty()) {
+        if (chunkResult.getItems().isEmpty()) {
             throw new InvalidMessageSinkException(String.format("Message<%s> ChunkResult payload contains no results", messageId));
         }
         try {

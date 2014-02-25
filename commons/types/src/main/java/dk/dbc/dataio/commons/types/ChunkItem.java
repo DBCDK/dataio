@@ -12,28 +12,27 @@ public class ChunkItem implements Serializable {
 
     public enum Status { SUCCESS, FAILURE, IGNORE }
 
-    private /* final */ String id;
-    private /* final */ String data;
-    private /* final */ Status status;
+    private final long id;
+    private final String data;
+    private final Status status;
 
     /**
      * Class constructor
      *
-     * @param id item identifier, can be empty
+     * @param id item identifier, must be larger than {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND}
      * @param data item data, can be empty
      * @param status item status
      *
      * @throws NullPointerException when given null valued argument
+     * @throws IllegalArgumentException when given id value of {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND} or less
      */
-    public ChunkItem(String id, String data, Status status) throws NullPointerException {
-        this.id = InvariantUtil.checkNotNullOrThrow(id, "id");
+    public ChunkItem(long id, String data, Status status) throws NullPointerException {
+        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
         this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
         this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
     }
 
-    private ChunkItem() { }
-
-    public String getId() {
+    public long getId() {
         return id;
     }
 

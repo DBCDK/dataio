@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.test.model;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 
 import java.nio.charset.Charset;
@@ -12,7 +13,7 @@ public class SinkChunkResultBuilder {
     private long jobId = 42;
     private long chunkId = 1;
     private Charset encoding = StandardCharsets.UTF_8;
-    private List<String> results = new ArrayList<>(Arrays.asList("diagnostic"));
+    private List<ChunkItem> items = new ArrayList<>(Arrays.asList(new ChunkItemBuilder().build()));
 
     public SinkChunkResultBuilder setChunkId(long chunkId) {
         this.chunkId = chunkId;
@@ -29,12 +30,12 @@ public class SinkChunkResultBuilder {
         return this;
     }
 
-    public SinkChunkResultBuilder setResults(List<String> results) {
-        this.results = results;
+    public SinkChunkResultBuilder setItems(List<ChunkItem> items) {
+        this.items = items;
         return this;
     }
 
     public SinkChunkResult build() {
-        return new SinkChunkResult(jobId, chunkId, encoding, results);
+        return new SinkChunkResult(jobId, chunkId, encoding, items);
     }
 }

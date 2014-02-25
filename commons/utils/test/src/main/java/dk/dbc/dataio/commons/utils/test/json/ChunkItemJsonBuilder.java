@@ -3,11 +3,11 @@ package dk.dbc.dataio.commons.utils.test.json;
 import dk.dbc.dataio.commons.types.ChunkItem;
 
 public class ChunkItemJsonBuilder extends JsonBuilder {
-    private String id = "id";
+    private long id = 1L;
     private String data = "data";
     private ChunkItem.Status status = ChunkItem.Status.SUCCESS;
 
-    public ChunkItemJsonBuilder setId(String id) {
+    public ChunkItemJsonBuilder setId(long id) {
         this.id = id;
         return this;
     }
@@ -25,7 +25,7 @@ public class ChunkItemJsonBuilder extends JsonBuilder {
     public String build() {
         return
                 START_OBJECT +
-                    asTextMember("id", id) + MEMBER_DELIMITER +
+                    asLongMember("id", id) + MEMBER_DELIMITER +
                     asTextMember("data", data) + MEMBER_DELIMITER +
                     asTextMember("status", status.name()) +
                 END_OBJECT;

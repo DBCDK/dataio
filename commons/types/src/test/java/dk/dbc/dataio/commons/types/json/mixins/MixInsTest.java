@@ -1,6 +1,8 @@
 package dk.dbc.dataio.commons.types.json.mixins;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ChunkItemTest;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ChunkResultTest;
 import dk.dbc.dataio.commons.types.ChunkTest;
@@ -126,6 +128,12 @@ public class MixInsTest {
     public void verify_jsonMixInForChunk() throws Exception {
         final String json = JsonUtil.toJson(ChunkTest.newChunkInstance());
         JsonUtil.fromJson(json, Chunk.class, MixIns.getMixIns());
+    }
+
+    @Test
+    public void verify_jsonMixInForChunkItem() throws Exception {
+        final String json = JsonUtil.toJson(ChunkItemTest.newChunkItemInstance());
+        JsonUtil.fromJson(json, ChunkItem.class, MixIns.getMixIns());
     }
 
     @Test

@@ -1,0 +1,33 @@
+package dk.dbc.dataio.commons.utils.test.json;
+
+import dk.dbc.dataio.commons.types.ChunkItem;
+
+public class ChunkItemJsonBuilder extends JsonBuilder {
+    private String id = "id";
+    private String data = "data";
+    private ChunkItem.Status status = ChunkItem.Status.SUCCESS;
+
+    public ChunkItemJsonBuilder setId(String id) {
+        this.id = id;
+        return this;
+    }
+
+    public ChunkItemJsonBuilder setData(String data) {
+        this.data = data;
+        return this;
+    }
+
+    public ChunkItemJsonBuilder setStatus(ChunkItem.Status status) {
+        this.status = status;
+        return this;
+    }
+
+    public String build() {
+        return
+                START_OBJECT +
+                    asTextMember("id", id) + MEMBER_DELIMITER +
+                    asTextMember("data", data) + MEMBER_DELIMITER +
+                    asTextMember("status", status.name()) +
+                END_OBJECT;
+    }
+}

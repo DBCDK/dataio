@@ -27,8 +27,21 @@ public class ChunkItemTest {
     }
 
     @Test
+    public void constructor_idArgIsEmpty_returnsNewInstance() {
+        assertThat(new ChunkItem("", DATA, STATUS), is(notNullValue()));
+    }
+
+    @Test
+    public void constructor_dataArgIsEmpty_returnsNewInstance() {
+        assertThat(new ChunkItem(ID, "", STATUS), is(notNullValue()));
+    }
+
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        assertThat(new ChunkItem(ID, DATA, STATUS), is(notNullValue()));
+        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS);
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getId(), is(ID));
+        assertThat(instance.getData(), is(DATA));
+        assertThat(instance.getStatus(), is(STATUS));
     }
 
     public static ChunkItem newChunkItemInstance() {

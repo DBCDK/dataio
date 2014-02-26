@@ -15,8 +15,8 @@ public class NewJob implements Serializable {
     private final Sink sink;
 
     public NewJob(long jobId, long chunkCount, Sink sink) throws NullPointerException, IllegalArgumentException {
-        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
-        this.chunkCount = InvariantUtil.checkAboveThresholdOrThrow(chunkCount, "chunkCount", Constants.CHUNK_COUNT_LOWER_BOUND);
+        this.jobId = InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
+        this.chunkCount = InvariantUtil.checkLowerBoundOrThrow(chunkCount, "chunkCount", Constants.CHUNK_COUNT_LOWER_BOUND);
         this.sink = InvariantUtil.checkNotNullOrThrow(sink, "sink");
     }
 

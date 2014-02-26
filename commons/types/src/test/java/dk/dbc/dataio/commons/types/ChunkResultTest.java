@@ -27,13 +27,13 @@ public class ChunkResultTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_jobIdArgIsLessThanThreshold_throws() {
-        new ChunkResult(Constants.JOB_ID_LOWER_BOUND, CHUNKID, ENCODING, ITEMS);
+    public void constructor_jobIdArgIsLessThanLowerBound_throws() {
+        new ChunkResult(Constants.JOB_ID_LOWER_BOUND - 1, CHUNKID, ENCODING, ITEMS);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_chunkIdArgIsLessThanThreshold_throws() {
-        new ChunkResult(JOBID, Constants.CHUNK_ID_LOWER_BOUND, ENCODING, ITEMS);
+    public void constructor_chunkIdArgIsLessThanLowerBound_throws() {
+        new ChunkResult(JOBID, Constants.CHUNK_ID_LOWER_BOUND - 1, ENCODING, ITEMS);
     }
 
     @Test

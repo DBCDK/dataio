@@ -24,13 +24,13 @@ public class FlowComponentTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_idArgIsBelowThreshold_throws() {
-        new FlowComponent(Constants.PERSISTENCE_ID_LOWER_BOUND, VERSION, CONTENT);
+    public void constructor_idArgIsBelowBound_throws() {
+        new FlowComponent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_versionArgIsBelowThreshold_throws() {
-        new FlowComponent(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND, CONTENT);
+    public void constructor_versionArgIsBelowBound_throws() {
+        new FlowComponent(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT);
     }
 
     @Test

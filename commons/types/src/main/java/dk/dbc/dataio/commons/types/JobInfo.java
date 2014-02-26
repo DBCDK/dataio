@@ -39,11 +39,11 @@ public class JobInfo implements Serializable {
      * @throws IllegalArgumentException if value of jobId argument is < {@value dk.dbc.dataio.commons.types.Constants#JOB_ID_LOWER_BOUND}
      */
     public JobInfo(long jobId, JobSpecification jobSpecification, Date jobCreationTime, JobErrorCode jobErrorCode, long jobRecordCount) {
-        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
+        this.jobId = InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
         this.jobSpecification = InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
         this.jobCreationTime = new Date(InvariantUtil.checkNotNullOrThrow(jobCreationTime, "jobCreationTime").getTime());
         this.jobErrorCode = InvariantUtil.checkNotNullOrThrow(jobErrorCode, "jobErrorCode");
-        this.jobRecordCount = InvariantUtil.checkAboveThresholdOrThrow(jobRecordCount, "jobRecordCount", -1);
+        this.jobRecordCount = InvariantUtil.checkLowerBoundOrThrow(jobRecordCount, "jobRecordCount", 0);
     }
 
     public Date getJobCreationTime() {

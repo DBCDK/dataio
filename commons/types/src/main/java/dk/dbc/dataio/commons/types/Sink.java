@@ -33,8 +33,8 @@ public class Sink implements Serializable {
      * @throws IllegalArgumentException if value of id or version is less than lower bound
      */
     public Sink(long id, long version, SinkContent content) {
-        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
-        this.version = InvariantUtil.checkAboveThresholdOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
+        this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
+        this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
     }
 

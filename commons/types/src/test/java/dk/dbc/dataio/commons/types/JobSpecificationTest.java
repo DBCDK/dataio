@@ -61,8 +61,8 @@ public class JobSpecificationTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_flowIdArgIsBelowThreshold_throws() {
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, Constants.PERSISTENCE_ID_LOWER_BOUND, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE);
+    public void constructor_flowIdArgIsLessThanLowerBound_throws() {
+        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE);
     }
 
     @Test(expected = NullPointerException.class)

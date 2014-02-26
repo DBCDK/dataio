@@ -42,7 +42,7 @@ public class FlowComponentContent implements Serializable {
     public FlowComponentContent(String name, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javascripts, String invocationMethod) {
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.svnProjectForInvocationJavascript = InvariantUtil.checkNotNullNotEmptyOrThrow(svnProjectForInvocationJavascript, "svnProjectForInvocationJavascript");
-        this.svnRevision = InvariantUtil.checkAboveThresholdOrThrow(svnRevision, "svnRevision", 0);
+        this.svnRevision = InvariantUtil.checkLowerBoundOrThrow(svnRevision, "svnRevision", 1);
         this.invocationJavascriptName = InvariantUtil.checkNotNullNotEmptyOrThrow(invocationJavascriptName, "invocationJavascriptName");
         this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
         this.javascripts = new ArrayList<JavaScript>(InvariantUtil.checkNotNullOrThrow(javascripts, "javascripts"));

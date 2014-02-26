@@ -23,8 +23,8 @@ public class JobInfoTest {
     private static final long JOB_RECORD_COUNT = 0;
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_jobIdArgIsBelowThreshold_throws() {
-        new JobInfo(Constants.JOB_ID_LOWER_BOUND, JOB_SPECIFICATION, JOB_CREATION_TIME, JOB_ERROR_CODE, JOB_RECORD_COUNT);
+    public void constructor_jobIdArgIsLessThanLowerBound_throws() {
+        new JobInfo(Constants.JOB_ID_LOWER_BOUND - 1, JOB_SPECIFICATION, JOB_CREATION_TIME, JOB_ERROR_CODE, JOB_RECORD_COUNT);
     }
 
     @Test(expected = NullPointerException.class)

@@ -24,13 +24,13 @@ public class SubmitterTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_idArgIsBelowThreshold_throws() {
-        new Submitter(Constants.PERSISTENCE_ID_LOWER_BOUND, VERSION, CONTENT);
+    public void constructor_idArgIsLessThanLowerBound_throws() {
+        new Submitter(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, VERSION, CONTENT);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_versionArgIsBelowThreshold_throws() {
-        new Submitter(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND, CONTENT);
+    public void constructor_versionArgIsLessThanLowerBound_throws() {
+        new Submitter(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND - 1, CONTENT);
     }
 
     @Test

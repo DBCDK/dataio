@@ -22,8 +22,8 @@ public class ChunkItemTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_idArgIsLessThanLowerThreshold_throws() {
-        new ChunkItem(Constants.CHUNK_ITEM_ID_LOWER_BOUND, DATA, null);
+    public void constructor_idArgIsLessThanLowerBound_throws() {
+        new ChunkItem(Constants.CHUNK_ITEM_ID_LOWER_BOUND - 1, DATA, null);
     }
 
     @Test

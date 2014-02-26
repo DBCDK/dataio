@@ -39,8 +39,8 @@ public class SubmitterContentTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_numberArgIsBelowThreshold_throws() {
-        new SubmitterContent(SubmitterContent.NUMBER_LOWER_THRESHOLD, NAME, DESCRIPTION);
+    public void constructor_numberArgIsLessThanLowerBound_throws() {
+        new SubmitterContent(SubmitterContent.NUMBER_LOWER_BOUND - 1, NAME, DESCRIPTION);
     }
 
     @Test

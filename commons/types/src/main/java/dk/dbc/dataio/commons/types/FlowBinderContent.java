@@ -55,9 +55,9 @@ public class FlowBinderContent implements Serializable {
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
         this.recordSplitter = InvariantUtil.checkNotNullNotEmptyOrThrow(recordSplitter, "recordSplitter");
-        this.flowId = InvariantUtil.checkAboveThresholdOrThrow(flowId, "flowId", Constants.PERSISTENCE_ID_LOWER_BOUND);
+        this.flowId = InvariantUtil.checkLowerBoundOrThrow(flowId, "flowId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.submitterIds = new ArrayList<Long>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
-        this.sinkId = InvariantUtil.checkAboveThresholdOrThrow(sinkId, "sinkId", Constants.PERSISTENCE_ID_LOWER_BOUND);
+        this.sinkId = InvariantUtil.checkLowerBoundOrThrow(sinkId, "sinkId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         if (this.submitterIds.size() == 0) {
             throw new IllegalArgumentException("submitterIds can not be empty");
         }

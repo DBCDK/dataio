@@ -54,7 +54,7 @@ public class JobSpecification implements Serializable {
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
-        this.submitterId = InvariantUtil.checkAboveThresholdOrThrow(submitterId, "submitterId", Constants.PERSISTENCE_ID_LOWER_BOUND);
+        this.submitterId = InvariantUtil.checkLowerBoundOrThrow(submitterId, "submitterId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.mailForNotificationAboutVerification = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutVerification, "mailForNotificationAboutVerification");
         this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");
         this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");

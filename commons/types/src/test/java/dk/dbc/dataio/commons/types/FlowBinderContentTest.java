@@ -100,8 +100,8 @@ public class FlowBinderContentTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_flowIdArgIsBelowThreshold_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, Constants.PERSISTENCE_ID_LOWER_BOUND, SUBMITTER_IDS, SINK_ID);
+    public void constructor_flowIdArgIsLessThanLowerBound_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, Constants.PERSISTENCE_ID_LOWER_BOUND - 1, SUBMITTER_IDS, SINK_ID);
     }
 
     @Test(expected = NullPointerException.class)
@@ -115,8 +115,8 @@ public class FlowBinderContentTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_sinkIdArgIsBelowThreshold_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS, Constants.PERSISTENCE_ID_LOWER_BOUND);
+    public void constructor_sinkIdArgIsLessThanLowerBound_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, FLOW_ID, SUBMITTER_IDS, Constants.PERSISTENCE_ID_LOWER_BOUND - 1);
     }
 
     @Test

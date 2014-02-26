@@ -51,20 +51,20 @@ public class InvariantUtil {
     }
 
     /**
-     * Simple convenience method to check that a given long is above a certain threshold.
-     * If the below the threshold then an IllegalArgumentException is thrown, otherwise
+     * Simple convenience method to check that a given long is larger than or equal to given bound.
+     * If the below the bound then an IllegalArgumentException is thrown, otherwise
      * the value is returned as is.
      *
-     * @param value value to test against threshold
+     * @param value value to test against lower bound
      * @param parameterName name of the tested parameter. This name is used in the exception message.
-     * @param threshold threshold that value must be above
+     * @param bound lower bound
      *
-     * @throws IllegalArgumentException if {@code value} is equal to or below {@code threshold}
+     * @throws IllegalArgumentException if {@code value} is less than {@code bound}
      */
-    public static long checkAboveThresholdOrThrow(long value, String parameterName, long threshold)
+    public static long checkLowerBoundOrThrow(long value, String parameterName, long bound)
             throws IllegalArgumentException {
-        if (value <= threshold) {
-            final String message = "Value of parameter '" + parameterName + "' must be above " + threshold;
+        if (value < bound) {
+            final String message = "Value of parameter '" + parameterName + "' must be larger than or equal to " + bound;
             throw new IllegalArgumentException(message);
         }
         return value;

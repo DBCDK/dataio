@@ -23,23 +23,23 @@ public class Chunk extends AbstractChunk implements Serializable {
     }
 
     public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData) {
-        this(jobId, chunkId, flow, supplementaryProcessData, new ArrayList<ChunkItem>(Constants.CHUNK_MAX_RECORD_COUNT));
+        this(jobId, chunkId, flow, supplementaryProcessData, new ArrayList<ChunkItem>(Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
     }
 
     public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData, List<ChunkItem> records) throws NullPointerException, IllegalArgumentException {
-        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
-        this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", Constants.CHUNK_ID_LOWER_BOUND);
+        this.jobId = InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
+        this.chunkId = InvariantUtil.checkLowerBoundOrThrow(chunkId, "chunkId", Constants.CHUNK_ID_LOWER_BOUND);
         this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
         this.supplementaryProcessData = InvariantUtil.checkNotNullOrThrow(supplementaryProcessData, "supplementaryProcessData");
         this.items = InvariantUtil.checkNotNullOrThrow(records, "records");
-        if (this.items.size() > Constants.CHUNK_MAX_RECORD_COUNT) {
-            throw new IllegalArgumentException("Number of records exceeds CHUNK_MAX_RECORD_COUNT");
+        if (this.items.size() > Constants.CHUNK_RECORD_COUNT_UPPER_BOUND) {
+            throw new IllegalArgumentException("Number of records exceeds CHUNK_RECORD_COUNT_UPPER_BOUND");
         }
     }
 
     @Override
     public void addItem(ChunkItem item) {
-        if (items.size() >= Constants.CHUNK_MAX_RECORD_COUNT) {
+        if (items.size() >= Constants.CHUNK_RECORD_COUNT_UPPER_BOUND) {
             throw new IndexOutOfBoundsException();
         }
         super.addItem(item);

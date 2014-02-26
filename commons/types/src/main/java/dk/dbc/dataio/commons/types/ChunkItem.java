@@ -27,7 +27,7 @@ public class ChunkItem implements Serializable {
      * @throws IllegalArgumentException when given id value of {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND} or less
      */
     public ChunkItem(long id, String data, Status status) throws NullPointerException {
-        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
+        this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
         this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
         this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
     }

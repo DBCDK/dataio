@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
  */
 public class InvariantUtilTest {
     private final String parameterName = "name";
-    private final long threshold = 0;
+    private final long lower_bound = 0;
 
     @Test(expected = NullPointerException.class)
     public void checkNotNullOrThrow_objectArgIsNull_throws() {
@@ -46,18 +46,18 @@ public class InvariantUtilTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void checkAboveThresholdOrThrow_valueArgIsBelowThreshold_throws() {
-        InvariantUtil.checkAboveThresholdOrThrow(-42, parameterName, threshold);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void checkAboveThresholdOrThrow_valueArgEqualsThreshold_throws() {
-        InvariantUtil.checkAboveThresholdOrThrow(threshold, parameterName, threshold);
+    public void checkLowerBoundOrThrow_valueArgIsLessThan_throws() {
+        InvariantUtil.checkLowerBoundOrThrow(-42, parameterName, lower_bound);
     }
 
     @Test
-    public void checkAboveThresholdOrThrow_valueArgIsAboveThreshold_returnsValue() {
+    public void checkLowerBoundOrThrow_valueArgEqualsBound_returnsValue() {
+        assertThat(InvariantUtil.checkLowerBoundOrThrow(lower_bound, parameterName, lower_bound), is(lower_bound));
+    }
+
+    @Test
+    public void checkLowerBoundOrThrow_valueArgIsAboveBound_returnsValue() {
         final long expectedValue = 42L;
-        assertThat(InvariantUtil.checkAboveThresholdOrThrow(expectedValue, parameterName, threshold), is(expectedValue));
+        assertThat(InvariantUtil.checkLowerBoundOrThrow(expectedValue, parameterName, lower_bound), is(expectedValue));
     }
 }

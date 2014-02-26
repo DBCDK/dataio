@@ -26,8 +26,8 @@ public class SinkChunkResult extends AbstractChunk implements Serializable {
     }
 
     public SinkChunkResult(long jobId, long chunkId, Charset encoding, List<ChunkItem> items) {
-        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
-        this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", Constants.CHUNK_ID_LOWER_BOUND);
+        this.jobId = InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
+        this.chunkId = InvariantUtil.checkLowerBoundOrThrow(chunkId, "chunkId", Constants.CHUNK_ID_LOWER_BOUND);
         this.encoding = encoding.name();
         this.items = new ArrayList<ChunkItem>(items);
     }

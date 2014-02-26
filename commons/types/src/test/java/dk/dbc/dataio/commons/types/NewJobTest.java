@@ -12,13 +12,13 @@ public class NewJobTest {
     private static final Sink SINK = SinkTest.newSinkInstance();
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_jobIdArgIsBelowThreshold_throws() {
-        new NewJob(Constants.JOB_ID_LOWER_BOUND, CHUNK_COUNT, SINK);
+    public void constructor_jobIdArgIsLessThanLowerBound_throws() {
+        new NewJob(Constants.JOB_ID_LOWER_BOUND - 1, CHUNK_COUNT, SINK);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_chunkCountArgIsBelowThreshold_throws() {
-        new NewJob(JOB_ID, Constants.CHUNK_COUNT_LOWER_BOUND, SINK);
+    public void constructor_chunkCountArgIsLessThanLowerBound_throws() {
+        new NewJob(JOB_ID, Constants.CHUNK_COUNT_LOWER_BOUND - 1, SINK);
     }
 
     @Test(expected = NullPointerException.class)

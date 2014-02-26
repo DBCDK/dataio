@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.types;
 
 import java.io.Serializable;
 
-public class ChunkCounter implements Serializable {
+public class ItemResultCounter implements Serializable {
     private static final long serialVersionUID = 4162100278280972759L;
 
     // counts

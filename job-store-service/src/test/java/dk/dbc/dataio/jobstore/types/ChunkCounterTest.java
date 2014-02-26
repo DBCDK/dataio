@@ -8,7 +8,7 @@ import static org.junit.Assert.assertThat;
 public class ChunkCounterTest {
     @Test
     public void constructor_returnsNewInstance() {
-        final ChunkCounter instance = new ChunkCounter();
+        final ItemResultCounter instance = new ItemResultCounter();
         assertThat(instance.getFailure(), is(0L));
         assertThat(instance.getIgnore(), is(0L));
         assertThat(instance.getSuccess(), is(0L));
@@ -17,7 +17,7 @@ public class ChunkCounterTest {
 
     @Test
     public void incrementFailure_incrementsCount() {
-        final ChunkCounter instance = new ChunkCounter();
+        final ItemResultCounter instance = new ItemResultCounter();
         instance.incrementFailure();
         assertThat(instance.getFailure(), is(1L));
         assertThat(instance.getIgnore(), is(0L));
@@ -27,7 +27,7 @@ public class ChunkCounterTest {
 
     @Test
     public void incrementIgnore_incrementsCount() {
-        final ChunkCounter instance = new ChunkCounter();
+        final ItemResultCounter instance = new ItemResultCounter();
         instance.incrementIgnore();
         assertThat(instance.getFailure(), is(0L));
         assertThat(instance.getIgnore(), is(1L));
@@ -37,7 +37,7 @@ public class ChunkCounterTest {
 
     @Test
     public void incrementSuccess_incrementsCount() {
-        final ChunkCounter instance = new ChunkCounter();
+        final ItemResultCounter instance = new ItemResultCounter();
         instance.incrementSuccess();
         assertThat(instance.getFailure(), is(0L));
         assertThat(instance.getIgnore(), is(0L));
@@ -47,7 +47,7 @@ public class ChunkCounterTest {
 
     @Test
     public void getTotal_returnsSumOfAllCounts() {
-        final ChunkCounter instance = new ChunkCounter();
+        final ItemResultCounter instance = new ItemResultCounter();
         instance.incrementFailure();
         instance.incrementIgnore();
         instance.incrementSuccess();

@@ -6,9 +6,15 @@ public class ItemResultCounter implements Serializable {
     private static final long serialVersionUID = 4162100278280972759L;
 
     // counts
-    private long success = 0;
-    private long failure = 0;
-    private long ignore = 0;
+    private long success;
+    private long failure;
+    private long ignore;
+
+    public ItemResultCounter() {
+        success = 0;
+        failure = 0;
+        ignore = 0;
+    }
 
     public long getTotal() {
         return success + failure + ignore;

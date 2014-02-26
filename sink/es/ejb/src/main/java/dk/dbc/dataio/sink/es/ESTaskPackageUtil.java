@@ -4,8 +4,8 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.ext.XLogger;
@@ -61,15 +61,15 @@ public class ESTaskPackageUtil {
     public static void deleteTaskpackages(Connection conn, List<Integer> targetReferences) throws SQLException {
         LOGGER.entry();
         try {
-            if(! targetReferences.isEmpty()) {
-                String deleteStatement = "delete from taskpackage where targetreference in (" +
-			commaSeparatedQuestionMarks(targetReferences.size()) + ")";
+            if (!targetReferences.isEmpty()) {
+                String deleteStatement = "delete from taskpackage where targetreference in ("
+                        + commaSeparatedQuestionMarks(targetReferences.size()) + ")";
                 LOGGER.info(deleteStatement);
-	        LOGGER.info("targetRefs to delete: {}", Arrays.toString(targetReferences.toArray()));
+                LOGGER.info("targetRefs to delete: {}", Arrays.toString(targetReferences.toArray()));
                 int deleted = JDBCUtil.update(conn, deleteStatement, targetReferences.toArray());
                 LOGGER.info("Deleted {} rows", deleted);
             }
-        } catch(SQLException ex) {
+        } catch (SQLException ex) {
             LOGGER.warn("SQLException caught while deleting taskpackages: ", ex);
             throw ex;
         } finally {
@@ -105,7 +105,8 @@ public class ESTaskPackageUtil {
      *
      * @throws IOException if an error occurs during reading of the addi-data.
      * @throws IllegalStateException if any contained addi-records are invalid.
-     * @throws NumberFormatException if any contained records are not addi-format or not base64 encoded.
+     * @throws NumberFormatException if any contained records are not
+     * addi-format or not base64 encoded.
      */
     public static List<AddiRecord> getAddiRecordsFromChunk(ChunkResult chunkResult) throws IllegalStateException, NumberFormatException, IOException {
         final List<AddiRecord> addiRecords = new ArrayList<>();
@@ -120,14 +121,18 @@ public class ESTaskPackageUtil {
     }
 
     /**
-     * Inserts the addi-records contained in given workload into the ES-base with the given dbname.
+     * Inserts the addi-records contained in given workload into the ES-base
+     * with the given dbname.
      *
      * @param esConn Database connection to the ES-base.
-     * @param dbname ES internal database name in which the task package shall be associated.
-     * @param esWorkload Object containing both the addi-records to insert into the ES-base and the originating chunk result.
+     * @param dbname ES internal database name in which the task package shall
+     * be associated.
+     * @param esWorkload Object containing both the addi-records to insert into
+     * the ES-base and the originating chunk result.
      *
      * @throws SQLException if a database error occurs.
-     * @throws IllegalStateException if the number of records in the chunk and the task package differ.
+     * @throws IllegalStateException if the number of records in the chunk and
+     * the task package differ.
      */
     public static int insertTaskPackage(Connection esConn, String dbname, EsWorkload esWorkload) throws IllegalStateException, SQLException {
         InvariantUtil.checkNotNullOrThrow(esConn, "esConn");
@@ -152,6 +157,87 @@ public class ESTaskPackageUtil {
         sb.append("[ jobid: ").append(jobId);
         sb.append(" , chunkId: ").append(chunkId).append(" ]");
         return sb.toString();
+    }
+
+    private static class TaskPackageRecordsStructureData {
+
+        public final int lbnr;
+        public final int recordstatus;
+        public final String record_id;
+        public final int recordOrSurDiag2;
+
+        public TaskPackageRecordsStructureData(int lbnr, int recordstatus, String record_id, int recordOrSurDiag2) {
+            this.lbnr = lbnr;
+            this.recordstatus = recordstatus;
+            this.record_id = record_id;
+            this.recordOrSurDiag2 = recordOrSurDiag2;
+        }
+    }
+
+    public static List<ChunkItem> getSinkResultItemsForTaskPackage(Connection conn, int targetReference) throws SQLException {
+        LOGGER.entry();
+        try {
+            List<ChunkItem> chunkItems = new ArrayList<>();
+            List<TaskPackageRecordsStructureData> taskPackageRecordsStructureDatas = getDataFromTaskPackageRecordStructure(conn, targetReference);
+            for(TaskPackageRecordsStructureData data : taskPackageRecordsStructureDatas) {
+                ChunkItem.Status status = ChunkItem.Status.FAILURE;
+                final String errMsg = "record status for taskpackage [%d/%d] is: %s - this is an error - accepting it as failed!";
+                String failureMsg = "";
+                switch(data.recordstatus) {
+                    // A taskpackage must only be completed if all its records have been completed.
+                    // Therefore: if the status of a record is anything but success or failure,
+                    // an error has occured. The record will be accepted as failed, with a message
+                    // both in the log, and in the ChunkItem telling that the record was not completed.
+                    case 1:
+                        // success
+                        status = ChunkItem.Status.SUCCESS;
+                        break;
+                    case 2:
+                        // queued
+                        failureMsg = String.format(errMsg, targetReference, data.lbnr, "queued");
+                        LOGGER.error(failureMsg);
+                        break;
+                    case 3:
+                        // inProcess
+                        failureMsg = String.format(errMsg, targetReference, data.lbnr, "inProcess");
+                        LOGGER.error(failureMsg);
+                        break;
+                    case 4:
+                        // failed
+                        break;
+                    default:
+                        failureMsg = String.format("An unknown completion.status [%d] for taskpackage [%d/%d] was found - accepting as failed.", data.recordstatus, targetReference, data.lbnr);
+                        LOGGER.error(failureMsg);
+                }
+                // todo : Next line is clumsy:
+                String itemData = status == ChunkItem.Status.SUCCESS ? (data.record_id == null ? "" : data.record_id ) : failureMsg;
+                chunkItems.add(new ChunkItem(data.lbnr, itemData, status));
+            }
+            return chunkItems;
+        } finally {
+            LOGGER.exit();
+        }
+    }
+
+    private static List<TaskPackageRecordsStructureData> getDataFromTaskPackageRecordStructure(Connection conn, int targetReference) throws SQLException {
+        final String stmt = "select lbnr, recordstatus, record_id, recordorsurdiag2 from taskpackagerecordstructure where targetreference = ?";
+        List<TaskPackageRecordsStructureData> taskPackageRecordsStructureDatas = new ArrayList<>();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = JDBCUtil.query(conn, stmt, targetReference);
+            rs = ps.getResultSet();
+            while (rs.next()) {
+                taskPackageRecordsStructureDatas.add(new ESTaskPackageUtil.TaskPackageRecordsStructureData(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getInt(4)));
+            }
+        } catch (SQLException ex) {
+            LOGGER.warn("SQLException caught while getting results from taskpackagerecordstructure with targetreference: " + targetReference, ex);
+            throw ex;
+        } finally {
+            JDBCUtil.closeResultSet(rs);
+            JDBCUtil.closeStatement(ps);
+        }
+        return taskPackageRecordsStructureDatas;
     }
 
     public static class TaskStatus {

@@ -21,6 +21,13 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-es-ejb</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-job-processor-ejb</artifactId>
       <version>${project.version}</version>
       <type>ejb</type>

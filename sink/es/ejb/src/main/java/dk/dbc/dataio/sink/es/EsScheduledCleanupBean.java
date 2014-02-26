@@ -113,8 +113,8 @@ public class EsScheduledCleanupBean {
             esConnector.deleteESTaskpackages(finishedTargetReferences);
             List<EsInFlight> finishedEsInFlight = getEsInFlightsFromTargetReferences(esInFlightMap, finishedTargetReferences);
             int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(finishedEsInFlight);
-            removeEsInFlights(finishedEsInFlight);
             List<SinkChunkResult> sinkChunkResults = createSinkChunkResults(finishedEsInFlight);
+            removeEsInFlights(finishedEsInFlight);
             sendSinkResultsToJobProcessor(sinkChunkResults);
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
@@ -158,6 +158,7 @@ public class EsScheduledCleanupBean {
     }
 
     private SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) {
+        // This is where the SinkChunkResult should fetch status and data from the taskpackage.
         return new SinkChunkResult(esInFlight.getJobId(), esInFlight.getChunkId(), Charset.defaultCharset(), Collections.EMPTY_LIST);
     }
 

@@ -25,12 +25,12 @@ public class FlowTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_idArgIsBelowThreshold_throws() {
-        new Flow(Flow.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+        new Flow(Constants.PERSISTENCE_ID_LOWER_BOUND, VERSION, CONTENT);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_versionArgIsBelowThreshold_throws() {
-        new Flow(ID, Flow.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+        new Flow(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND, CONTENT);
     }
 
     @Test

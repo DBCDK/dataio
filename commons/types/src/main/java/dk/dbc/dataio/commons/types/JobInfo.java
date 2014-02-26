@@ -12,8 +12,6 @@ import java.util.Date;
  * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class JobInfo implements Serializable {
-    static /* final */ long JOB_ID_LOWER_THRESHOLD = 0;
-
     private static final long serialVersionUID = -1574107691937748872L;
 
     private /* final */ long jobId;
@@ -32,16 +30,16 @@ public class JobInfo implements Serializable {
      * Attention: when changing the signature of this constructor
      * remember to also change the signature in the corresponding *JsonMixIn class.
      *
-     * @param jobId job id (> {@value #JOB_ID_LOWER_THRESHOLD})
+     * @param jobId job id (>= {@value dk.dbc.dataio.commons.types.Constants#JOB_ID_LOWER_BOUND})
      * @param jobSpecification job specification
      * @param jobCreationTime job creation time
      * @param jobErrorCode job error code
      *
      * @throws NullPointerException if given null-valued argument
-     * @throws IllegalArgumentException if value of jobId argument is <= {@value #JOB_ID_LOWER_THRESHOLD}
+     * @throws IllegalArgumentException if value of jobId argument is < {@value dk.dbc.dataio.commons.types.Constants#JOB_ID_LOWER_BOUND}
      */
     public JobInfo(long jobId, JobSpecification jobSpecification, Date jobCreationTime, JobErrorCode jobErrorCode, long jobRecordCount) {
-        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOB_ID_LOWER_THRESHOLD);
+        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
         this.jobSpecification = InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
         this.jobCreationTime = new Date(InvariantUtil.checkNotNullOrThrow(jobCreationTime, "jobCreationTime").getTime());
         this.jobErrorCode = InvariantUtil.checkNotNullOrThrow(jobErrorCode, "jobErrorCode");

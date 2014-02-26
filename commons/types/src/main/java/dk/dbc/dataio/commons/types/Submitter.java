@@ -11,8 +11,6 @@ import java.io.Serializable;
 * issues we cannot have final fields and need a default no-arg constructor.
 */
 public class Submitter implements Serializable {
-    static /* final */ long ID_VERSION_LOWER_THRESHOLD = 0;
-
     private static final long serialVersionUID = -2728868887371312413L;
 
     private /* final */ long id;
@@ -27,16 +25,16 @@ public class Submitter implements Serializable {
      * Attention: when changing the signature of this constructor
      * remember to also change the signature in the corresponding *JsonMixIn class.
      *
-     * @param id submitter id (> {@value #ID_VERSION_LOWER_THRESHOLD})
-     * @param version submitter version (> {@value #ID_VERSION_LOWER_THRESHOLD})
+     * @param id submitter id (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param version submitter version (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
      * @param content submitter content
      *
      * @throws NullPointerException if given null-valued content argument
-     * @throws IllegalArgumentException if value of id or version is not above {@value #ID_VERSION_LOWER_THRESHOLD}
+     * @throws IllegalArgumentException if value of id or version is less than lower bound
      */
     public Submitter(long id, long version, SubmitterContent content) {
-        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", ID_VERSION_LOWER_THRESHOLD);
-        this.version = InvariantUtil.checkAboveThresholdOrThrow(version, "version", ID_VERSION_LOWER_THRESHOLD);
+        this.id = InvariantUtil.checkAboveThresholdOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
+        this.version = InvariantUtil.checkAboveThresholdOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
     }
 

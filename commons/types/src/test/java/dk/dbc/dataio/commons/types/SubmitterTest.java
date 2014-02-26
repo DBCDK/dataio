@@ -25,12 +25,12 @@ public class SubmitterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_idArgIsBelowThreshold_throws() {
-        new Submitter(Submitter.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+        new Submitter(Constants.PERSISTENCE_ID_LOWER_BOUND, VERSION, CONTENT);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_versionArgIsBelowThreshold_throws() {
-        new Submitter(ID, Submitter.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+        new Submitter(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND, CONTENT);
     }
 
     @Test

@@ -25,12 +25,12 @@ public class FlowBinderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_idArgIsBelowThreshold_throws() {
-        new FlowBinder(FlowBinder.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+        new FlowBinder(Constants.PERSISTENCE_ID_LOWER_BOUND, VERSION, CONTENT);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_versionArgIsBelowThreshold_throws() {
-        new FlowBinder(ID, FlowBinder.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+        new FlowBinder(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND, CONTENT);
     }
 
     @Test

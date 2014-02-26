@@ -24,7 +24,7 @@ public class JobInfoTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_jobIdArgIsBelowThreshold_throws() {
-        new JobInfo(JobInfo.JOB_ID_LOWER_THRESHOLD, JOB_SPECIFICATION, JOB_CREATION_TIME, JOB_ERROR_CODE, JOB_RECORD_COUNT);
+        new JobInfo(Constants.JOB_ID_LOWER_BOUND, JOB_SPECIFICATION, JOB_CREATION_TIME, JOB_ERROR_CODE, JOB_RECORD_COUNT);
     }
 
     @Test(expected = NullPointerException.class)

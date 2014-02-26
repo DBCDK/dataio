@@ -25,12 +25,12 @@ public class SinkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_idArgIsBelowThreshold_throws() {
-        new Sink(Sink.ID_VERSION_LOWER_THRESHOLD, VERSION, CONTENT);
+        new Sink(Constants.PERSISTENCE_ID_LOWER_BOUND, VERSION, CONTENT);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_versionArgIsBelowThreshold_throws() {
-        new Sink(ID, Sink.ID_VERSION_LOWER_THRESHOLD, CONTENT);
+        new Sink(ID, Constants.PERSISTENCE_VERSION_LOWER_BOUND, CONTENT);
     }
 
     @Test

@@ -20,12 +20,12 @@ public class ChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor5arg_jobIdArgIsBelowThreshold_throws() {
-        new Chunk(Chunk.JOBID_LOWER_THRESHOLD, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
+        new Chunk(Constants.JOB_ID_LOWER_BOUND, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor5arg_chunkIdArgIsBelowThreshold_throws() {
-        new Chunk(JOB_ID, Chunk.CHUNKID_LOWER_THRESHOLD, FLOW, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
+        new Chunk(JOB_ID, Constants.CHUNK_ID_LOWER_BOUND, FLOW, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
     }
 
     @Test(expected = NullPointerException.class)
@@ -45,7 +45,11 @@ public class ChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor5arg_recordsArgSizeIsGreaterThanMaxChunkSize_throws() {
-        new Chunk(JOB_ID, Chunk.CHUNKID_LOWER_THRESHOLD, FLOW, SUPPLEMENTARY_PROCESS_DATA, new ArrayList<ChunkItem>(Chunk.MAX_RECORDS_PER_CHUNK + 1));
+        final ArrayList<ChunkItem> items = new ArrayList<>(Constants.CHUNK_MAX_RECORD_COUNT + 1);
+        for (int i = 0; i <= Constants.CHUNK_MAX_RECORD_COUNT; i++) {
+            items.add(null);
+        }
+        new Chunk(JOB_ID, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA, items);
     }
 
     @Test
@@ -55,12 +59,12 @@ public class ChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor4arg_jobIdArgIsBelowThreshold_throws() {
-        new Chunk(Chunk.JOBID_LOWER_THRESHOLD, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA);
+        new Chunk(Constants.JOB_ID_LOWER_BOUND, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor4arg_chunkIdArgIsBelowThreshold_throws() {
-        new Chunk(JOB_ID, Chunk.CHUNKID_LOWER_THRESHOLD, FLOW, SUPPLEMENTARY_PROCESS_DATA);
+        new Chunk(JOB_ID, Constants.CHUNK_ID_LOWER_BOUND, FLOW, SUPPLEMENTARY_PROCESS_DATA);
     }
 
     @Test(expected = NullPointerException.class)
@@ -81,7 +85,7 @@ public class ChunkTest {
     @Test(expected = IndexOutOfBoundsException.class)
     public void addRecord_whenMoreThanMaxChunkSizeRecordsAreAdded_throws() {
         final Chunk instance = new Chunk(JOB_ID, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA);
-        for (int i = 0; i <= Chunk.MAX_RECORDS_PER_CHUNK; i++) {
+        for (int i = 0; i <= Constants.CHUNK_MAX_RECORD_COUNT; i++) {
             instance.addItem(ChunkItemTest.newChunkItemInstance());
         }
     }

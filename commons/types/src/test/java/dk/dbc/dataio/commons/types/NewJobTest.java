@@ -13,12 +13,12 @@ public class NewJobTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_jobIdArgIsBelowThreshold_throws() {
-        new NewJob(NewJob.JOBID_LOWER_THRESHOLD, CHUNK_COUNT, SINK);
+        new NewJob(Constants.JOB_ID_LOWER_BOUND, CHUNK_COUNT, SINK);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_chunkCountArgIsBelowThreshold_throws() {
-        new NewJob(JOB_ID, NewJob.CHUNKCOUNT_LOWER_THRESHOLD, SINK);
+        new NewJob(JOB_ID, Constants.CHUNK_COUNT_LOWER_BOUND, SINK);
     }
 
     @Test(expected = NullPointerException.class)

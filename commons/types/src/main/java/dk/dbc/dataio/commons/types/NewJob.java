@@ -8,9 +8,6 @@ import java.io.Serializable;
  * NewJob DTO class. Used by the job-store to signal new job availability to the job-processor,
  */
 public class NewJob implements Serializable {
-    static final long JOBID_LOWER_THRESHOLD = 0L;
-    static final long CHUNKCOUNT_LOWER_THRESHOLD = 0L;
-
     private static final long serialVersionUID = 1497533904953891370L;
 
     private final long jobId;
@@ -18,8 +15,8 @@ public class NewJob implements Serializable {
     private final Sink sink;
 
     public NewJob(long jobId, long chunkCount, Sink sink) throws NullPointerException, IllegalArgumentException {
-        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOBID_LOWER_THRESHOLD);
-        this.chunkCount = InvariantUtil.checkAboveThresholdOrThrow(chunkCount, "chunkCount", CHUNKCOUNT_LOWER_THRESHOLD);
+        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
+        this.chunkCount = InvariantUtil.checkAboveThresholdOrThrow(chunkCount, "chunkCount", Constants.CHUNK_COUNT_LOWER_BOUND);
         this.sink = InvariantUtil.checkNotNullOrThrow(sink, "sink");
     }
 

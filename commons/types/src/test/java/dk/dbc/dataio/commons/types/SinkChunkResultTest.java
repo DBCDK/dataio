@@ -27,13 +27,13 @@ public class SinkChunkResultTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_jobIdArgIsLessThanZero_throws() {
-        new SinkChunkResult(-1, CHUNKID, ENCODING, ITEMS);
+    public void constructor_jobIdArgIsLessThanThreshold_throws() {
+        new SinkChunkResult(Constants.JOB_ID_LOWER_BOUND, CHUNKID, ENCODING, ITEMS);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_chunkIdArgIsLessThanZero_throws() {
-        new SinkChunkResult(JOBID, -1, ENCODING, ITEMS);
+    public void constructor_chunkIdArgIsLessThanThreshold_throws() {
+        new SinkChunkResult(JOBID, Constants.CHUNK_ID_LOWER_BOUND, ENCODING, ITEMS);
     }
 
     @Test

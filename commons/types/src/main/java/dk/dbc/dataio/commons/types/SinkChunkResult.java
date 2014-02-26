@@ -13,10 +13,6 @@ import java.util.List;
  * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class SinkChunkResult extends AbstractChunk implements Serializable {
-
-    static /* final */ long JOBID_VERSION_LOWER_THRESHOLD = 0L;
-    static /* final */ long CHUNKID_VERSION_LOWER_THRESHOLD = 0L;
-
     private static final long serialVersionUID = -8494583387561924223L;
 
     private /* final */ String encoding;
@@ -30,8 +26,8 @@ public class SinkChunkResult extends AbstractChunk implements Serializable {
     }
 
     public SinkChunkResult(long jobId, long chunkId, Charset encoding, List<ChunkItem> items) {
-        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", JOBID_VERSION_LOWER_THRESHOLD);
-        this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", CHUNKID_VERSION_LOWER_THRESHOLD);
+        this.jobId = InvariantUtil.checkAboveThresholdOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
+        this.chunkId = InvariantUtil.checkAboveThresholdOrThrow(chunkId, "chunkId", Constants.CHUNK_ID_LOWER_BOUND);
         this.encoding = encoding.name();
         this.items = new ArrayList<ChunkItem>(items);
     }

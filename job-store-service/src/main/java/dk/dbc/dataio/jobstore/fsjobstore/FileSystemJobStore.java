@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.fsjobstore;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobErrorCode;
@@ -361,7 +362,7 @@ public class FileSystemJobStore implements JobStore {
             LOGGER.trace("======> Before [" + record + "]");
             final String recordBase64 = base64encode(record);
             LOGGER.trace("======> After  [" + recordBase64 + "]");
-            if (counter++ < Chunk.MAX_RECORDS_PER_CHUNK) {
+            if (counter++ < Constants.CHUNK_MAX_RECORD_COUNT) {
                 chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             } else {
                 counter = 1;

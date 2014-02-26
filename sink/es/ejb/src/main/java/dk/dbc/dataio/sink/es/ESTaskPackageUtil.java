@@ -209,8 +209,8 @@ public class ESTaskPackageUtil {
                         failureMsg = String.format("An unknown completion.status [%d] for taskpackage [%d/%d] was found - accepting as failed.", data.recordstatus, targetReference, data.lbnr);
                         LOGGER.error(failureMsg);
                 }
-                // todo : Next line is clumsy:
-                String itemData = status == ChunkItem.Status.SUCCESS ? (data.record_id == null ? "" : data.record_id ) : failureMsg;
+                String recordIdData = data.record_id == null ? "" : data.record_id;
+                String itemData = status == ChunkItem.Status.SUCCESS ? recordIdData : failureMsg;
                 chunkItems.add(new ChunkItem(data.lbnr, itemData, status));
             }
             return chunkItems;

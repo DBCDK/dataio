@@ -5,7 +5,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class ChunkCounterTest {
+public class ItemResultCounterTest {
     @Test
     public void constructor_returnsNewInstance() {
         final ItemResultCounter instance = new ItemResultCounter();

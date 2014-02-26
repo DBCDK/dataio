@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.jobstore.types.ChunkCounter;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -126,7 +127,10 @@ public class FileSystemJobStoreTest {
         assertThat(job, is(notNullValue()));
         final Path chunkCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.CHUNK_COUNTER_FILE);
         assertThat(Files.exists(chunkCounterFile), is(true));
-        assertThat(readFileIntoString(chunkCounterFile), is("1"));
+        final ChunkCounter chunkCounter = JsonUtil.fromJson(readFileIntoString(chunkCounterFile), ChunkCounter.class);
+        assertThat(chunkCounter.getTotal(), is(1L));
+        assertThat(chunkCounter.getItemResultCounter().getTotal(), is(1L));
+        assertThat(chunkCounter.getItemResultCounter().getSuccess(), is(1L));
     }
 
     @Test
@@ -138,7 +142,9 @@ public class FileSystemJobStoreTest {
         assertThat(job, is(notNullValue()));
         final Path processorCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.PROCESSOR_COUNTER_FILE);
         assertThat(Files.exists(processorCounterFile), is(true));
-        assertThat(readFileIntoString(processorCounterFile), is("0"));
+        final ChunkCounter chunkCounter = JsonUtil.fromJson(readFileIntoString(processorCounterFile), ChunkCounter.class);
+        assertThat(chunkCounter.getTotal(), is(0L));
+        assertThat(chunkCounter.getItemResultCounter().getTotal(), is(0L));
     }
 
     @Test
@@ -262,7 +268,10 @@ public class FileSystemJobStoreTest {
         final Path processorCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
                 FileSystemJobStore.PROCESSOR_COUNTER_FILE);
         assertThat(Files.exists(processorCounterFile), is(true));
-        assertThat(readFileIntoString(processorCounterFile), is("1"));
+        final ChunkCounter chunkCounter = JsonUtil.fromJson(readFileIntoString(processorCounterFile), ChunkCounter.class);
+        assertThat(chunkCounter.getTotal(), is(1L));
+        assertThat(chunkCounter.getItemResultCounter().getTotal(), is(1L));
+        assertThat(chunkCounter.getItemResultCounter().getSuccess(), is(1L));
         final Path stateFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
                 FileSystemJobStore.JOBSTATE_FILE);
         final JobState jobState = JsonUtil.fromJson(readFileIntoString(stateFile), JobState.class, MixIns.getMixIns());

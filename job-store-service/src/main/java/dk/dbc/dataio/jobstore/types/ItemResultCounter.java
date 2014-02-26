@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobstore.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 
 public class ItemResultCounter implements Serializable {
@@ -16,6 +18,7 @@ public class ItemResultCounter implements Serializable {
         ignore = 0;
     }
 
+    @JsonIgnore
     public long getTotal() {
         return success + failure + ignore;
     }

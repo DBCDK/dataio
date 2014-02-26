@@ -1,18 +1,20 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.AbstractChunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jobstore.types.ChunkCounter;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import java.io.BufferedReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ChunkFileHandler<X extends AbstractChunk> {
 
@@ -52,7 +54,7 @@ public class ChunkFileHandler<X extends AbstractChunk> {
             LOGGER.error(errorMsg, e);
             throw new JobStoreException(errorMsg, e);
         }
-        incrementCounter(result.getJobId());
+        incrementCounter(result.getJobId(), result);
     }
 
     public void createCounterFile(long jobId) throws JobStoreException {
@@ -60,51 +62,46 @@ public class ChunkFileHandler<X extends AbstractChunk> {
         if (Files.exists(counterFile)) {
             throw new JobStoreException("Counter file already exists");
         }
-        writeLongValueToCounterFile(counterFile, 0L);
+        JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).writeObjectToFile(counterFile, new ChunkCounter());
         LOGGER.info("Created counter file: {}", counterFile);
     }
 
-    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
-        return readLongValueFromCounterFile(getCounterFile(jobId));
+    public synchronized long getNumberOfChunksInJob(long jobId) throws JobStoreException {
+        final Path counterFile = getCounterFile(jobId);
+        if (!Files.exists(counterFile)) {
+            throw new JobStoreException(String.format("Counter file %s not found", counterFile));
+        }
+        return JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET)
+                .readObjectFromFile(counterFile, ChunkCounter.class)
+                .getTotal();
     }
 
     private Path getCounterFile(long jobId) {
         return Paths.get(getJobPath(jobId).toString(), counterFilename);
     }
 
-    private synchronized void incrementCounter(long jobId) throws JobStoreException {
+    private synchronized void incrementCounter(long jobId, X result) throws JobStoreException {
         final Path counterFile = getCounterFile(jobId);
         if (!Files.exists(counterFile)) {
             throw new JobStoreException(String.format("Counter file %s not found", counterFile));
         }
-        Long counter = readLongValueFromCounterFile(counterFile);
-        writeLongValueToCounterFile(counterFile, ++counter);
-    }
-
-    // Following are currently duplicated in FSJobStore.java
-    // Moved to more generel location
-    private Long readLongValueFromCounterFile(Path counterFile) throws JobStoreException {
-        Long counter;
-        try (BufferedReader br = Files.newBufferedReader(counterFile, LOCAL_CHARSET)) {
-            String value = br.readLine();
-            if (value != null) {
-                value = value.trim();
-            } else {
-                throw new NullPointerException(String.format("Value from counter file %s is null", counterFile));
+        final ChunkCounter chunkCounter = JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET)
+                .readObjectFromFile(counterFile, ChunkCounter.class);
+        chunkCounter.incrementTotal();
+        for (ChunkItem item : result.getItems()) {
+            switch (item.getStatus()) {
+                case FAILURE: chunkCounter.getItemResultCounter().incrementFailure();
+                    break;
+                case IGNORE: chunkCounter.getItemResultCounter().incrementIgnore();
+                    break;
+                case SUCCESS: chunkCounter.getItemResultCounter().incrementSuccess();
+                    break;
+                default:
+                    throw new JobStoreException(String.format("Unhandled item status %s",
+                            item.getStatus().name()));
             }
-            counter = Long.valueOf(value);
-        } catch (IOException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to read from counter file %s", counterFile), e);
         }
-        return counter;
-    }
-
-    private void writeLongValueToCounterFile(Path counterFile, Long counter) throws JobStoreException {
-        try (BufferedWriter bw = Files.newBufferedWriter(counterFile, LOCAL_CHARSET)) {
-            bw.write(counter.toString());
-        } catch (IOException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to write to counter file %s", counterFile), e);
-        }
+        JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).writeObjectToFile(counterFile, chunkCounter);
     }
 
     private Path getJobPath(long jobId) {

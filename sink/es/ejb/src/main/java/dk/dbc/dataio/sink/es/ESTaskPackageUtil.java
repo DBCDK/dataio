@@ -179,11 +179,12 @@ public class ESTaskPackageUtil {
         try {
             List<ChunkItem> chunkItems = new ArrayList<>();
             List<TaskPackageRecordsStructureData> taskPackageRecordsStructureDatas = getDataFromTaskPackageRecordStructure(conn, targetReference);
-            for(TaskPackageRecordsStructureData data : taskPackageRecordsStructureDatas) {
+            for (TaskPackageRecordsStructureData data : taskPackageRecordsStructureDatas) {
+                LOGGER.info(String.format("targetRef: %d  status: %d recordDiag: %d", targetReference, data.recordstatus, data.recordOrSurDiag2));
                 ChunkItem.Status status = ChunkItem.Status.FAILURE;
                 final String errMsg = "record status for taskpackage [%d/%d] is: %s - this is an error - accepting it as failed!";
                 String failureMsg = "";
-                switch(data.recordstatus) {
+                switch (data.recordstatus) {
                     // A taskpackage must only be completed if all its records have been completed.
                     // Therefore: if the status of a record is anything but success or failure,
                     // an error has occured. The record will be accepted as failed, with a message
@@ -204,6 +205,7 @@ public class ESTaskPackageUtil {
                         break;
                     case 4:
                         // failed
+                        failureMsg = getFailureDiagnostic(conn, data.recordOrSurDiag2);
                         break;
                     default:
                         failureMsg = String.format("An unknown completion.status [%d] for taskpackage [%d/%d] was found - accepting as failed.", data.recordstatus, targetReference, data.lbnr);
@@ -217,6 +219,30 @@ public class ESTaskPackageUtil {
         } finally {
             LOGGER.exit();
         }
+    }
+
+    private static String getFailureDiagnostic(Connection conn, int diagnosticId) throws SQLException {
+        final String stmt = "SELECT addInfo FROM diagnostics WHERE id = ?";
+        String diagnostic = "";
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            ps = JDBCUtil.query(conn, stmt, diagnosticId);
+            rs = ps.getResultSet();
+            if(rs.next()) {
+                diagnostic = rs.getString(1);
+            }
+            while(rs.next()) {
+                LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", diagnosticId, rs.getString(1));
+            }
+        } catch (SQLException ex) {
+            LOGGER.warn("SQLException caught while getting results from diagnostics with diagnosticId: {}" + diagnosticId, ex);
+            throw ex;
+        } finally {
+            JDBCUtil.closeResultSet(rs);
+            JDBCUtil.closeStatement(ps);
+        }
+        return diagnostic;
     }
 
     private static List<TaskPackageRecordsStructureData> getDataFromTaskPackageRecordStructure(Connection conn, int targetReference) throws SQLException {

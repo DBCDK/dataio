@@ -26,7 +26,7 @@ public class TransFileField {
     }
     private final static Set<String> VALID_TRANSFILE_b_CONTENT_VALUES = new HashSet<>(Arrays.asList("databroendpr2"));
     private final static Set<String> VALID_TRANSFILE_t_CONTENT_VALUES = new HashSet<>(Arrays.asList("xml"));
-    private final static Set<String> VALID_TRANSFILE_o_CONTENT_VALUES = new HashSet<>(Arrays.asList("nmalbum", "nmtrack"));
+    private final static Set<String> VALID_TRANSFILE_o_CONTENT_VALUES = new HashSet<>(Arrays.asList("nmalbum", "nmtrack", "katalog"));
     private final static Set<String> VALID_TRANSFILE_c_CONTENT_VALUES = new HashSet<>(Arrays.asList("utf8"));
 
     // RFC822 compliant regex

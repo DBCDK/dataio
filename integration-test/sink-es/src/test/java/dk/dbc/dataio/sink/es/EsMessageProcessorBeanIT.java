@@ -131,6 +131,10 @@ public class EsMessageProcessorBeanIT {
         final SinkChunkResult sinkResult = assertSinkMessageForProcessor(sinksQueue.get(0));
         assertThat(sinkResult.getJobId(), is(processorResult.getJobId()));
         assertThat(sinkResult.getChunkId(), is(processorResult.getChunkId()));
+        assertThat(sinkResult.getItems().size(), is(1));
+        for (final ChunkItem chunkItem : sinkResult.getItems()) {
+            assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        }
     }
 
     private MockedJmsTextMessage newProcessorMessageForSink(ChunkResult processorResult) throws JMSException, JsonException {

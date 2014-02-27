@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -27,7 +28,6 @@ import javax.jms.TextMessage;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -159,7 +159,9 @@ public class EsScheduledCleanupBean {
 
     private SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) {
         // This is where the SinkChunkResult should fetch status and data from the taskpackage.
-        return new SinkChunkResult(esInFlight.getJobId(), esInFlight.getChunkId(), Charset.defaultCharset(), Collections.EMPTY_LIST);
+        final List<ChunkItem> items = new ArrayList<>();
+        items.add(new ChunkItem(0, "", ChunkItem.Status.SUCCESS));
+        return new SinkChunkResult(esInFlight.getJobId(), esInFlight.getChunkId(), Charset.defaultCharset(), items);
     }
 
     private Map<Integer, EsInFlight> createEsInFlightMap(List<EsInFlight> esInFlightList) {

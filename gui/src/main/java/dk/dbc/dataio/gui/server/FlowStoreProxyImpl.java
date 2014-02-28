@@ -1,27 +1,27 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
-
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-import java.util.List;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     Client client = null;
@@ -159,6 +159,24 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             assertStatusCode(response, Response.Status.OK);
             result = response.readEntity(new GenericType<List<Flow>>() { });
+        } finally {
+            response.close();
+        }
+        return result;
+    }
+
+    @Override
+    public List<FlowBinder> findAllFlowBinders() throws ProxyException {
+        final Response response;
+        final List<FlowBinder> result;
+        try {
+            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_BINDERS);
+        } catch (ServletException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+            result = response.readEntity(new GenericType<List<FlowBinder>>() { });
         } finally {
             response.close();
         }

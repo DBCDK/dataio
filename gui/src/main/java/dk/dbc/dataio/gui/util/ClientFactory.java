@@ -4,21 +4,22 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowView;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateView;
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
-import dk.dbc.dataio.gui.client.views.MenuItem;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
 import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateView;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
+import dk.dbc.dataio.gui.client.views.MenuItem;
 
 /**
  * Provides access to common objects across the application including:
@@ -54,5 +55,6 @@ public interface ClientFactory {
     SubmittersShowView getSubmittersShowView();
     JobsShowView getJobsShowView();
     SinksShowView getSinksShowView();
+    FlowBindersShowView getFlowBindersShowView();
 
 }

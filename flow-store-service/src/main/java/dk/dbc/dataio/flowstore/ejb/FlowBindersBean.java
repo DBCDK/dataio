@@ -223,7 +223,7 @@ public class FlowBindersBean {
     }
 
     /**
-     * Returns list of all versions of all stored flow binders sorted by name in ascending order
+     * Returns list of stored flow binders sorted by name in ascending order
      *
      * @return a HTTP OK response with result list as JSON
      *

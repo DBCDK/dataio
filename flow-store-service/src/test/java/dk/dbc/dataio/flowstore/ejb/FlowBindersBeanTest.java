@@ -109,8 +109,8 @@ public class FlowBindersBeanTest {
         TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = mock(TypedQuery.class);
         when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class)).thenReturn(query);
 
-        String flowStr = new FlowBinderJsonBuilder().build();
-        dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowStr, dk.dbc.dataio.commons.types.FlowBinder.class, MixIns.getMixIns());
+        String flowBinderStr = new FlowBinderJsonBuilder().build();
+        dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class, MixIns.getMixIns());
 
         when(query.getResultList()).thenReturn(Arrays.asList(flowBinder));
         Response response = fbb.findAllFlowBinders();

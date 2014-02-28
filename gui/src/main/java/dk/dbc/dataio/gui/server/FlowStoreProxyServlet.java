@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -12,9 +13,8 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-
-import javax.servlet.ServletException;
 import java.util.List;
+import javax.servlet.ServletException;
 
 public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowStoreProxy {
     private static final long serialVersionUID = 358109395377092219L;
@@ -70,6 +70,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public List<Sink> findAllSinks() throws ProxyException {
         return flowStoreProxy.findAllSinks();
+    }
+
+    @Override
+    public List<FlowBinder> findAllFlowBinders() throws ProxyException {
+        return flowStoreProxy.findAllFlowBinders();
     }
 
     @Override

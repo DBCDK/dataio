@@ -43,5 +43,6 @@
     <source path="util" />
     <source path="views" />
     <source path="places" />
+    <source path="types" />
     
 </module>

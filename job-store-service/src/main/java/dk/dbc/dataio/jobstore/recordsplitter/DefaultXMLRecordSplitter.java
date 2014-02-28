@@ -123,7 +123,11 @@ public class DefaultXMLRecordSplitter implements Iterable<String> {
             while (!isNextEventStartElement()) {
                 e = xmlReader.nextEvent();
                 if (e.getEventType() == XMLEvent.START_DOCUMENT) {
-                    encoding = ((StartDocument) e).getCharacterEncodingScheme();
+                    final StartDocument sd = ((StartDocument) e);
+                    if (sd.encodingSet()) {
+                        encoding = sd.getCharacterEncodingScheme();
+                        LOGGER.info("Using {} encoding set in document", encoding);
+                    }
                 }
                 preRecordEvents.add(e);
             }

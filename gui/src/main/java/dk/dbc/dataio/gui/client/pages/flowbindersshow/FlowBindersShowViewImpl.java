@@ -4,7 +4,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import static dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET;
-import dk.dbc.dataio.gui.client.util.format;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.types.FlowBinderContentViewData;
 import java.util.List;
@@ -14,8 +14,8 @@ import java.util.List;
  Shows a table, containing:
   o Navn
   o Beskrivelse
-  o Rammeformat
-  o Indholdsformat
+  o RammeFormat
+  o IndholdsFormat
   o Tegnsæt
   o Destination
   o Recordssplitter
@@ -116,7 +116,7 @@ public class FlowBindersShowViewImpl extends ContentPanel<FlowBindersShowPresent
             TextColumn<FlowBinderContentViewData> submittersColumn = new TextColumn<FlowBinderContentViewData>() {
                 @Override
                 public String getValue(FlowBinderContentViewData content) {
-                    return format.commaSeparate(content.getSubmitterNames());
+                    return Format.commaSeparate(content.getSubmitterNames());
                 }
             };
             table.addColumn(submittersColumn, constants.columnHeader_Submitters());

@@ -1,7 +1,7 @@
 
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.dataio.gui.client.util.format;
+import dk.dbc.dataio.gui.client.util.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,20 +20,20 @@ public class FormatTest {
 
     @Test(expected = NullPointerException.class)
     public void commaSeparate_nullInput_nullPointerException() {
-        format.commaSeparate(null);
+        Format.commaSeparate(null);
     }
 
     @Test
     public void commaSeparate_emptyList_emptyResultString() {
         List<String> empty = new ArrayList<String>();
-        String result = format.commaSeparate(empty);
+        String result = Format.commaSeparate(empty);
         assertThat(result, is(""));
     }
 
     @Test
     public void commaSeparate_validList_validResultString() {
         List<String> empty = Arrays.asList("Monkey", "Elephant", "Bird");
-        String result = format.commaSeparate(empty);
+        String result = Format.commaSeparate(empty);
         assertThat(result, is("Monkey, Elephant, Bird"));
     }
 

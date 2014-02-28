@@ -131,7 +131,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void sendDataToView() {
-        if ((flowBinders != null) && (flows != null) && (sinks != null) && (submitters != null)) {
+        if (flowBinders != null && flows != null && sinks != null && submitters != null) {
             List<FlowBinderContentViewData> result = new ArrayList<FlowBinderContentViewData>();
             for (FlowBinder flowBinder: flowBinders) {
                 FlowBinderContentViewData flowBinderContentViewData = new FlowBinderContentViewData(

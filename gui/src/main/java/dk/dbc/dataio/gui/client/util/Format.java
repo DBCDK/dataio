@@ -10,13 +10,13 @@ import java.util.List;
 
 /**
  *
- * format class
+ * Format class
  *
  */
-public final class format {
+public final class Format {
 
     // Private constructor to avoid instantiation
-    private format() {
+    private Format() {
     }
 
     /**

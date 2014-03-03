@@ -5,6 +5,7 @@ import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import java.io.IOException;
+import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -410,5 +411,49 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     private static WebElement findSaveResultLabelElement(WebDriver webDriver) {
         return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
+    }
+
+    /**
+     * The following is public static helper methods.
+     */
+    /**
+     * Creates a new Flow Binder with the given values
+     * NOTE: It is the callers responsibility to create a flow, a sink and a
+     * list of submitters beforehand with the given name.
+     */
+    public static void createTestFlowBinder(WebDriver webDriver, String name, String description, String frameFormat,
+                                                                 String contentFormat, String charSet, String destination,
+                                                                 List<String> submitters, String flow, String sink) {
+        navigateToFlowbinderCreationWidget(webDriver);
+
+        findNameTextElement(webDriver).clear();
+        findNameTextElement(webDriver).sendKeys(name);
+
+        findDescriptionTextElement(webDriver).clear();
+        findDescriptionTextElement(webDriver).sendKeys(description);
+
+        findFrameTextElement(webDriver).clear();
+        findFrameTextElement(webDriver).sendKeys(frameFormat);
+
+        findContentFormatTextElement(webDriver).clear();
+        findContentFormatTextElement(webDriver).sendKeys(contentFormat);
+
+        findCharacterSetTextElement(webDriver).clear();
+        findCharacterSetTextElement(webDriver).sendKeys(charSet);
+
+        findDestinationTextElement(webDriver).clear();
+        findDestinationTextElement(webDriver).sendKeys(destination);
+
+        for (String submitter: submitters) {
+            SeleniumUtil.selectItemInDualList(findSubmitterPanelElement(webDriver), submitter);
+        }
+
+        SeleniumUtil.selectItemInListBox(findFlowListElement(webDriver), flow);
+
+        SeleniumUtil.selectItemInListBox(findSinkListElement(webDriver), sink);
+
+        findSaveButtonElement(webDriver).click();
+
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SaveSuccess"));
     }
 }

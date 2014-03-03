@@ -50,6 +50,7 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
                     ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE,
                     ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW,
                     ClientFactoryImpl.GUIID_MENU_ITEM_FLOWBINDER_CREATE,
+                    ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_BINDERS_SHOW,
                 }
             );
             // Submenus for Sinks Main Menu
@@ -184,7 +185,7 @@ public class NavigationPanelSeleniumIT extends AbstractGuiSeleniumTest {
             }
             findMenuNavigationElement(webDriver, menuId).click();
         } else {  // The menu item is neither a Main Menu nor a Sub Menu
-            assertTrue("That menu element does not exist", false);
+            assertTrue("Menu element: '" + menuId + "' does not exist", false);
         }
     }
 

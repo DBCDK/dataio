@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.pages.flowbindersshow;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
-import static dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.types.FlowBinderContentViewData;
@@ -46,14 +45,14 @@ public class FlowBindersShowViewImpl extends ContentPanel<FlowBindersShowPresent
     public void init() {
         table.updateStarted();
 
-        getElement().setId(GUIID_FLOWS_SHOW_WIDGET);
+        getElement().setId(GUIID_FLOW_BINDERS_SHOW_WIDGET);
 
         if (table.getColumnCount() == 0) {
             // Name
             TextColumn<FlowBinderContentViewData> nameColumn = new TextColumn<FlowBinderContentViewData>() {
                 @Override
                 public String getValue(FlowBinderContentViewData content) {
-                    return content.getFlowName();
+                    return content.getName();
                 }
             };
             table.addColumn(nameColumn, constants.columnHeader_Name());

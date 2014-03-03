@@ -110,10 +110,10 @@ public class EsScheduledCleanupBean {
                 LOGGER.info("No finished taskpackages in ES.");
                 return;
             }
-            esConnector.deleteESTaskpackages(finishedTargetReferences);
             List<EsInFlight> finishedEsInFlight = getEsInFlightsFromTargetReferences(esInFlightMap, finishedTargetReferences);
             int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(finishedEsInFlight);
             List<SinkChunkResult> sinkChunkResults = createSinkChunkResults(finishedEsInFlight);
+            esConnector.deleteESTaskpackages(finishedTargetReferences);
             removeEsInFlights(finishedEsInFlight);
             sendSinkResultsToJobProcessor(sinkChunkResults);
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
@@ -149,7 +149,7 @@ public class EsScheduledCleanupBean {
         return filterTargetReferencesFromTaskStatusList(finishedTaskpackages);
     }
 
-    private List<SinkChunkResult> createSinkChunkResults(List<EsInFlight> finshedEsInFlight) {
+    private List<SinkChunkResult> createSinkChunkResults(List<EsInFlight> finshedEsInFlight) throws SinkException {
         List<SinkChunkResult> sinkChunkResults = new ArrayList<>(finshedEsInFlight.size());
         for (EsInFlight esInFlight : finshedEsInFlight) {
             sinkChunkResults.add(createSinkChunkResult(esInFlight));
@@ -157,10 +157,9 @@ public class EsScheduledCleanupBean {
         return sinkChunkResults;
     }
 
-    private SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) {
-        // This is where the SinkChunkResult should fetch status and data from the taskpackage.
-        final List<ChunkItem> items = new ArrayList<>();
-        items.add(new ChunkItem(0, "", ChunkItem.Status.SUCCESS));
+    private SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) throws SinkException {
+        LOGGER.info("creating ChunkItems for tp: {}", esInFlight.getTargetReference());
+        final List<ChunkItem> items = esConnector.getSinkResultItemsForTaskPackage(esInFlight.getTargetReference());
         return new SinkChunkResult(esInFlight.getJobId(), esInFlight.getChunkId(), Charset.defaultCharset(), items);
     }
 

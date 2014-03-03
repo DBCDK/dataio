@@ -118,6 +118,57 @@ public class ESTaskPackageUtilIT {
         assertThat(ci.getData(), is(failureMessage));
     }
 
+    @Test
+    public void testGetSinkResultItemsForTaskPackage_SeverealAddiWithFailureAndSuccess() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
+        String failureMessage0 = "Error 0";
+        String failureMessage1 = "Error 1";
+        String failureMessage2 = "Error 2";
+        String pid0 = "PID:0";
+        String pid1 = "PID:1";
+        String pid2 = "PID:2";
+        String pid3 = "PID:3";
+        int targetReference = new TPCreator(getEsConnection(), ES_DATABASE_NAME)
+                .addAddiRecordWithSuccess(ADDI_OK, pid0)
+                .addAddiRecordWithFailed(ADDI_OK, failureMessage0)
+                .addAddiRecordWithSuccess(ADDI_OK, pid1)
+                .addAddiRecordWithFailed(ADDI_OK, failureMessage1)
+                .addAddiRecordWithSuccess(ADDI_OK, pid2)
+                .addAddiRecordWithFailed(ADDI_OK, failureMessage2)
+                .addAddiRecordWithSuccess(ADDI_OK, pid3)
+                .createInsertAndSetStatus();
+
+        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(getEsConnection(), targetReference);
+        assertThat(items.size(), is(7));
+
+        ChunkItem ci0 = items.get(0);
+        assertThat(ci0.getId(), is(0L));
+        assertThat(ci0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(ci0.getData(), is(pid0));
+        ChunkItem ci1 = items.get(1);
+        assertThat(ci1.getId(), is(1L));
+        assertThat(ci1.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(ci1.getData(), is(failureMessage0));
+        ChunkItem ci2 = items.get(2);
+        assertThat(ci2.getId(), is(2L));
+        assertThat(ci2.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(ci2.getData(), is(pid1));
+        ChunkItem ci3 = items.get(3);
+        assertThat(ci3.getId(), is(3L));
+        assertThat(ci3.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(ci3.getData(), is(failureMessage1));
+        ChunkItem ci4 = items.get(4);
+        assertThat(ci4.getId(), is(4L));
+        assertThat(ci4.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(ci4.getData(), is(pid2));
+        ChunkItem ci5 = items.get(5);
+        assertThat(ci5.getId(), is(5L));
+        assertThat(ci5.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(ci5.getData(), is(failureMessage2));
+        ChunkItem ci6 = items.get(6);
+        assertThat(ci6.getId(), is(6L));
+        assertThat(ci6.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(ci6.getData(), is(pid3));
+    }
     private static class TPCreator {
 
         enum RecordStatus {

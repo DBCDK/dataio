@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.sink.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Stateless
 public class EsConnectorBean {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(EsConnectorBean.class);
 
     @EJB
@@ -63,6 +65,15 @@ public class EsConnectorBean {
         } catch (SQLException | NamingException e) {
             LOGGER.warn("Exception caught while deleting ES-taskpackages.", e);
             throw new SinkException("Failed to delete task packages", e);
+        }
+    }
+
+    public List<ChunkItem> getSinkResultItemsForTaskPackage(int targetReference) throws SinkException {
+        try (final Connection connection = getConnection()) {
+            return ESTaskPackageUtil.getSinkResultItemsForTaskPackage(connection, targetReference);
+        } catch (SQLException | NamingException e) {
+            LOGGER.warn("Exception caught while retrieving ChunkItems from ES-taskpackage.", e);
+            throw new SinkException("Failed to retrieve ChunkItems from taskpackage", e);
         }
     }
 

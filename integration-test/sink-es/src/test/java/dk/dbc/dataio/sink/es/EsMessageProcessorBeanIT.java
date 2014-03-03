@@ -67,7 +67,7 @@ public class EsMessageProcessorBeanIT {
 
     @Before
     public void createEsDatabase() throws SQLException, ClassNotFoundException {
-        try (final Connection connection = getEsConnection()) {
+        try (final Connection connection = ITUtil.getEsConnection()) {
             ESUtil.createDatabaseIfNotExisting(connection, ES_DATABASE_NAME);
         }
     }
@@ -86,7 +86,7 @@ public class EsMessageProcessorBeanIT {
 
     @After
     public void removeEsDatabase() throws SQLException, ClassNotFoundException {
-        try (final Connection connection = getEsConnection()) {
+        try (final Connection connection = ITUtil.getEsConnection()) {
             ESUtil.deleteTaskpackages(connection, ES_DATABASE_NAME);
             ESUtil.deleteDatabase(connection, ES_DATABASE_NAME);
         }
@@ -165,20 +165,14 @@ public class EsMessageProcessorBeanIT {
         return numberOfRecordsInFlight;
     }
 
-    private Connection getEsConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        return DriverManager.getConnection(
-                "jdbc:oracle:thin:@tora1.dbc.dk:1521/tora1.dbc.dk", "jbn", "jbn");
-    }
-
     private List<Integer> getEsTaskPackages() throws SQLException, ClassNotFoundException {
-        try (final Connection connection = getEsConnection()) {
+        try (final Connection connection = ITUtil.getEsConnection()) {
             return ESTaskPackageIntegrationTestUtil.findTaskpackagesForDBName(connection, ES_DATABASE_NAME);
         }
     }
 
     private void successfullyCompleteEsTaskPackages(int targetReference) throws SQLException, ClassNotFoundException {
-        try (final Connection connection = getEsConnection()) {
+        try (final Connection connection = ITUtil.getEsConnection()) {
             ESTaskPackageIntegrationTestUtil.successfullyCompleteTaskpackage(connection, targetReference);
         }
     }

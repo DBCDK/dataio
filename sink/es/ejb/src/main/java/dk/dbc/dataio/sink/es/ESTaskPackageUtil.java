@@ -180,7 +180,7 @@ public class ESTaskPackageUtil {
             List<ChunkItem> chunkItems = new ArrayList<>();
             List<TaskPackageRecordsStructureData> taskPackageRecordsStructureDatas = getDataFromTaskPackageRecordStructure(conn, targetReference);
             for (TaskPackageRecordsStructureData data : taskPackageRecordsStructureDatas) {
-                LOGGER.info(String.format("targetRef: %d  status: %d recordDiag: %d", targetReference, data.recordstatus, data.recordOrSurDiag2));
+                LOGGER.info("targetRef: {}  status: {} recordDiag: {}", new Object[]{targetReference, data.recordstatus, data.recordOrSurDiag2});
                 ChunkItem.Status status = ChunkItem.Status.FAILURE;
                 final String errMsg = "record status for taskpackage [%d/%d] is: %s - this is an error - accepting it as failed!";
                 String failureMsg = "";
@@ -236,7 +236,7 @@ public class ESTaskPackageUtil {
                 LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", diagnosticId, rs.getString(1));
             }
         } catch (SQLException ex) {
-            LOGGER.warn("SQLException caught while getting results from diagnostics with diagnosticId: {}" + diagnosticId, ex);
+            LOGGER.warn("SQLException caught while getting results from diagnostics with diagnosticId: {}", diagnosticId, ex);
             throw ex;
         } finally {
             JDBCUtil.closeResultSet(rs);

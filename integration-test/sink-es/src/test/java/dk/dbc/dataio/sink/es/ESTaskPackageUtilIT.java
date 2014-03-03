@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jobprocessor.util.Base64Util;
 import java.io.IOException;
 import java.sql.Connection;
@@ -38,14 +39,14 @@ public class ESTaskPackageUtilIT {
 
     @Before
     public void createEsDatabase() throws SQLException, ClassNotFoundException {
-        try (final Connection connection = getEsConnection()) {
+        try (final Connection connection = ITUtil.getEsConnection()) {
             ESUtil.createDatabaseIfNotExisting(connection, ES_DATABASE_NAME);
         }
     }
 
     @After
     public void removeEsDatabase() throws SQLException, ClassNotFoundException {
-        try (final Connection connection = getEsConnection()) {
+        try (final Connection connection = ITUtil.getEsConnection()) {
             ESUtil.deleteTaskpackages(connection, ES_DATABASE_NAME);
             ESUtil.deleteDatabase(connection, ES_DATABASE_NAME);
         }
@@ -59,11 +60,11 @@ public class ESTaskPackageUtilIT {
     @Test
     public void testGetSinkResultItemsForTaskPackage_SingleAddiWithSuccess_isSuccessAndHasPid() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
         String pid = "PID:1";
-        int targetReference = new TPCreator(getEsConnection(), ES_DATABASE_NAME)
+        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
                 .addAddiRecordWithSuccess(ADDI_OK, pid)
                 .createInsertAndSetStatus();
 
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(getEsConnection(), targetReference);
+        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
         assertThat(items.size(), is(1));
 
         ChunkItem ci = items.get(0);
@@ -74,11 +75,11 @@ public class ESTaskPackageUtilIT {
 
     @Test
     public void testGetSinkResultItemsForTaskPackage_SingleAddiWithQueued_isFailed() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
-        int targetReference = new TPCreator(getEsConnection(), ES_DATABASE_NAME)
+        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
                 .addAddiRecordWithQueued(ADDI_OK)
                 .createInsertAndSetStatus();
 
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(getEsConnection(), targetReference);
+        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
         assertThat(items.size(), is(1));
 
         ChunkItem ci = items.get(0);
@@ -89,11 +90,11 @@ public class ESTaskPackageUtilIT {
 
     @Test
     public void testGetSinkResultItemsForTaskPackage_SingleAddiWithInProcess_isFailed() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
-        int targetReference = new TPCreator(getEsConnection(), ES_DATABASE_NAME)
+        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
                 .addAddiRecordWithInprocess(ADDI_OK)
                 .createInsertAndSetStatus();
 
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(getEsConnection(), targetReference);
+        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
         assertThat(items.size(), is(1));
 
         ChunkItem ci = items.get(0);
@@ -105,11 +106,11 @@ public class ESTaskPackageUtilIT {
     @Test
     public void testGetSinkResultItemsForTaskPackage_SingleAddiWithFailure_isFailedAndHasFailureMessage() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
         String failureMessage = "Some Error Occured On The Other Side Of ES!";
-        int targetReference = new TPCreator(getEsConnection(), ES_DATABASE_NAME)
+        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
                 .addAddiRecordWithFailed(ADDI_OK, failureMessage)
                 .createInsertAndSetStatus();
 
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(getEsConnection(), targetReference);
+        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
         assertThat(items.size(), is(1));
 
         ChunkItem ci = items.get(0);
@@ -127,7 +128,7 @@ public class ESTaskPackageUtilIT {
         String pid1 = "PID:1";
         String pid2 = "PID:2";
         String pid3 = "PID:3";
-        int targetReference = new TPCreator(getEsConnection(), ES_DATABASE_NAME)
+        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
                 .addAddiRecordWithSuccess(ADDI_OK, pid0)
                 .addAddiRecordWithFailed(ADDI_OK, failureMessage0)
                 .addAddiRecordWithSuccess(ADDI_OK, pid1)
@@ -137,7 +138,7 @@ public class ESTaskPackageUtilIT {
                 .addAddiRecordWithSuccess(ADDI_OK, pid3)
                 .createInsertAndSetStatus();
 
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(getEsConnection(), targetReference);
+        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
         assertThat(items.size(), is(7));
 
         ChunkItem ci0 = items.get(0);
@@ -169,19 +170,19 @@ public class ESTaskPackageUtilIT {
         assertThat(ci6.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat(ci6.getData(), is(pid3));
     }
+
     private static class TPCreator {
 
-        enum RecordStatus {
-
+        private enum RecordStatus {
             SUCCESS, QUEUED, INPROCESS, FAILED
         };
 
-        final Connection conn;
-        final String dbname;
+        private final Connection conn;
+        private final String dbname;
 
-        List<String> addis = new ArrayList<>();
-        List<RecordStatus> recordStatuses = new ArrayList<>();
-        List<String> messages = new ArrayList<>();
+        private List<String> addis = new ArrayList<>();
+        private List<RecordStatus> recordStatuses = new ArrayList<>();
+        private List<String> messages = new ArrayList<>();
 
         public TPCreator(Connection conn, String dbname) {
             this.conn = conn;
@@ -328,11 +329,5 @@ public class ESTaskPackageUtilIT {
                 throw e;
             }
         }
-    }
-
-    private Connection getEsConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        return DriverManager.getConnection(
-                "jdbc:oracle:thin:@tora1.dbc.dk:1521/tora1.dbc.dk", "jbn", "jbn");
     }
 }

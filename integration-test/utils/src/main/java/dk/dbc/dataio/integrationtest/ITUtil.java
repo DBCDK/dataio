@@ -81,6 +81,12 @@ public class ITUtil {
        return "ro" + "ot";
     }
 
+    public static Connection getEsConnection() throws ClassNotFoundException, SQLException {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        return DriverManager.getConnection("jdbc:oracle:thin:@tora1.dbc.dk:1521/tora1.dbc.dk", "jbn", "jbn");
+    }
+
+
     /**
      * Deletes all rows from all named tables
      *

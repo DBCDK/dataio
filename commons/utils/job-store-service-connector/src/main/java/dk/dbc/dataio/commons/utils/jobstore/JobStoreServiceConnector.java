@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 
@@ -41,10 +42,11 @@ public class JobStoreServiceConnector {
      * @param jobSpecification job specification
      * @return job info
      * @throws NullPointerException if given null-valued argument
+     * @throws ProcessingException on general communication error
      * @throws JobStoreServiceConnectorJobCreationFailedException if job creation failed due to invalid input data
      * @throws JobStoreServiceConnectorException on general failure to create job
      */
-    public JobInfo createJob(JobSpecification jobSpecification) throws NullPointerException, JobStoreServiceConnectorException {
+    public JobInfo createJob(JobSpecification jobSpecification) throws NullPointerException, ProcessingException, JobStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
         final Response response = HttpClient.doPostWithJson(httpClient, jobSpecification, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
         try {

@@ -1,7 +1,7 @@
 
-package dk.dbc.dataio.gui.client;
+package dk.dbc.dataio.gui.client.util;
 
-import dk.dbc.dataio.gui.client.util.Format;
+import static dk.dbc.dataio.gui.client.util.Format.submitterPairString;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,9 +32,27 @@ public class FormatTest {
 
     @Test
     public void commaSeparate_validList_validResultString() {
-        List<String> empty = Arrays.asList("Monkey", "Elephant", "Bird");
-        String result = Format.commaSeparate(empty);
+        List<String> animals = Arrays.asList("Monkey", "Elephant", "Bird");
+        String result = Format.commaSeparate(animals);
         assertThat(result, is("Monkey, Elephant, Bird"));
+    }
+
+    @Test
+    public void submitterPairString_idNull_nullPointerException() {
+        String result = submitterPairString(null, "name");
+        assertThat(result, is("null (name)"));
+    }
+
+    @Test
+    public void submitterPairString_nameNull_nullPointerException() {
+        String result = submitterPairString(27L, null);
+        assertThat(result, is("27 (null)"));
+    }
+
+    @Test
+    public void submitterPairString_validInput_validPairString() {
+        String result = submitterPairString(27L, "name");
+        assertThat(result, is("27 (name)"));
     }
 
 }

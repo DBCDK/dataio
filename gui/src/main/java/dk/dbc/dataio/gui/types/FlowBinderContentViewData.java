@@ -2,7 +2,9 @@
 package dk.dbc.dataio.gui.types;
 
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,18 +17,18 @@ public class FlowBinderContentViewData extends FlowBinderContent {
 
     private String flowName;
     private String sinkName;
-    private List<String> submitterNames;
+    private List<SubmitterContent> submitterContents;
 
-    public FlowBinderContentViewData(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, Long flowId, String flowName, List<Long> submitterIds, List<String> submitterNames, Long sinkId, String sinkName) {
+    public FlowBinderContentViewData(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter,
+                                    Long flowId, String flowName,
+                                    List<Long> submitterIds, List<SubmitterContent> submitterContents,
+                                    Long sinkId, String sinkName) {
         super(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, sinkId);
         this.flowName = InvariantUtil.checkNotNullNotEmptyOrThrow(flowName, "flowName");
         this.sinkName = InvariantUtil.checkNotNullNotEmptyOrThrow(sinkName, "sinkName");
-        for (String sName: submitterNames) {
-            InvariantUtil.checkNotNullNotEmptyOrThrow(sName, "submitterNames");
-        }
-        this.submitterNames = submitterNames;
-        if (this.submitterNames.isEmpty()) {
-            throw new IllegalArgumentException("submitterNames can not be empty");
+        this.submitterContents = new ArrayList<SubmitterContent>(InvariantUtil.checkNotNullOrThrow(submitterContents, "submitterContents"));
+        if (submitterContents.isEmpty()) {
+            throw new IllegalArgumentException("submitterContents can not be empty");
         }
     }
 
@@ -38,8 +40,8 @@ public class FlowBinderContentViewData extends FlowBinderContent {
         return sinkName;
     }
 
-    public List<String> getSubmitterNames() {
-        return submitterNames;
+    public List<SubmitterContent> getSubmitters() {
+        return new ArrayList<SubmitterContent>(submitterContents);
     }
 
 }

@@ -27,15 +27,47 @@ public final class Format {
      *
      */
     public static String commaSeparate(List<String> parameters) {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (String parameter: parameters) {
-            if (result.isEmpty()) {
-                result = parameter;
+            if (result.length() == 0) {
+                result.append(parameter);
             } else {
-                result += ", " + parameter;
+                result.append(", ").append(parameter);
             }
         }
-        return result;
+        return result.toString();
     }
+
+    /**
+     * Creates a Submitter Pair String in the form: 'id (name)'
+     *
+     * @param submitterId
+     * @param submitterName
+     * @return A Submitter Pair String in the form: 'id (name)'
+     */
+    public static String submitterPairString(Long submitterId, String submitterName) {
+        return new StringBuilder().append(submitterId).append(" (").append(submitterName).append(")").toString();
+    }
+
+    /**
+     * Creates a list of Submitter Pair Strings in the form: 'id (name)'
+     *
+     * @param submitterIds A list of Submitter Id's
+     * @param submitterNames A list of Submitter Names
+     * @return A list of Submitter Pair Strings in the form: 'id (name)'
+     * @throws IllegalArgumentException if the two input lists have different lengths
+     */
+//    public static List<String> submitterPairStrings(List<Long> submitterIds, List<String> submitterNames) {
+//        if (submitterIds.size() != submitterNames.size()) {
+//            throw new IllegalArgumentException();
+//        }
+//        List<String> result = new ArrayList<String>();
+//        Iterator<Long> idIterator = submitterIds.iterator();
+//        Iterator<String> nameIterator = submitterNames.iterator();
+//        while (idIterator.hasNext()) {
+//            result.add(submitterPairString(idIterator.next(), nameIterator.next()));
+//        }
+//        return result;
+//    }
 
 }

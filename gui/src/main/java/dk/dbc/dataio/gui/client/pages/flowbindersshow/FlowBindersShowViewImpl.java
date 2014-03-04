@@ -2,10 +2,12 @@ package dk.dbc.dataio.gui.client.pages.flowbindersshow;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.TextColumn;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.types.FlowBinderContentViewData;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -115,7 +117,11 @@ public class FlowBindersShowViewImpl extends ContentPanel<FlowBindersShowPresent
             TextColumn<FlowBinderContentViewData> submittersColumn = new TextColumn<FlowBinderContentViewData>() {
                 @Override
                 public String getValue(FlowBinderContentViewData content) {
-                    return Format.commaSeparate(content.getSubmitterNames());
+                    List<String> result = new ArrayList<String>();
+                    for (SubmitterContent submitterContent: content.getSubmitters()) {
+                        result.add(Format.submitterPairString(submitterContent.getNumber(), submitterContent.getName()));
+                    }
+                    return Format.commaSeparate(result);
                 }
             };
             table.addColumn(submittersColumn, constants.columnHeader_Submitters());

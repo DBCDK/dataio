@@ -128,13 +128,11 @@ public class ClientFactoryImpl implements ClientFactory {
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
 
-
-
     public ClientFactoryImpl() {
         // Submitters Main Menu
         MenuItem createSubmitter = new MenuItem(GUIID_MENU_ITEM_SUBMITTER_CREATE, submitterCreateConstants.menu_SubmitterCreation(), new SubmitterCreatePlace());
         MenuItem submittersMenu = new MenuItem(GUIID_MENU_ITEM_SUBMITTERS_SHOW, submittersShowConstants.menu_Submitters(), new SubmittersShowPlace(),
-            createSubmitter);
+                                               createSubmitter);
 
         // Flows Main Menu
         MenuItem createFlow = new MenuItem(GUIID_MENU_ITEM_FLOW_CREATE, flowCreateConstants.menu_FlowCreation(), new FlowCreatePlace());
@@ -143,68 +141,203 @@ public class ClientFactoryImpl implements ClientFactory {
         MenuItem createFlowBinder = new MenuItem(GUIID_MENU_ITEM_FLOWBINDER_CREATE, flowbinderCreateConstants.menu_FlowbinderCreation(), new FlowbinderCreatePlace());
         MenuItem showFlowBinders = new MenuItem(GUIID_MENU_ITEM_FLOW_BINDERS_SHOW, flowBindersShowConstants.menu_FlowBindersShow(), new FlowBindersShowPlace());
         MenuItem flowsMenu = new MenuItem(GUIID_MENU_ITEM_FLOWS_SHOW, flowsShowConstants.menu_Flows(), new FlowsShowPlace(),
-            createFlow,
-            createFlowComponent,
-            showFlowComponents,
-            createFlowBinder,
-            showFlowBinders);
+                                          createFlow,
+                                          createFlowComponent,
+                                          showFlowComponents,
+                                          createFlowBinder,
+                                          showFlowBinders);
 
         // Sinks Main Menu
         MenuItem createSink = new MenuItem(GUIID_MENU_ITEM_SINK_CREATE, sinkCreateConstants.menu_SinkCreation(), new SinkCreatePlace());
         MenuItem sinksMenu = new MenuItem(GUIID_MENU_ITEM_SINKS_SHOW, sinksShowConstants.menu_Sinks(), new SinksShowPlace(),
-            createSink);
+                                          createSink);
 
         // Jobs Main Menu
         MenuItem jobsMenu = new MenuItem(GUIID_MENU_ITEM_JOBS_SHOW, jobsShowConstants.menu_Jobs(), new JobsShowPlace());
 
         // Toplevel Main Menu Container
         menuStructure = new MenuItem("toplevelmainmenu", "Toplevel Main Menu", NOWHERE,
-            submittersMenu,
-            flowsMenu,
-            sinksMenu,
-            jobsMenu);
+                                     submittersMenu,
+                                     flowsMenu,
+                                     sinksMenu,
+                                     jobsMenu);
     }
 
     // Event Bus
-    @Override public EventBus getEventBus() { return eventBus; }
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
+    }
 
     // Place Controller
-    @Override public PlaceController getPlaceController() { return placeController; }
-    @Override public Activity getActivity(Place place) {
-        if (place instanceof FlowCreatePlace) { return new FlowCreateActivity(/*(FlowCreatePlace) place,*/ this); }
-        if (place instanceof FlowComponentCreatePlace) { return new FlowComponentCreateActivity(/*(FlowComponentCreatePlace) place,*/ this); }
-        if (place instanceof SubmitterCreatePlace) { return new SubmitterCreateActivity(/*(SubmitterCreatePlace) place,*/ this); }
-        if (place instanceof FlowbinderCreatePlace) { return new FlowbinderCreateActivity(/*(FlowbinderCreatePlace) place,*/ this); }
-        if (place instanceof SinkCreatePlace) { return new SinkCreateActivity(/*(SinkCreatePlace) place,*/ this); }
-        if (place instanceof FlowComponentsShowPlace) { return new FlowComponentsShowActivity(/*(FlowComponentsShowPlace) place,*/ this); }
-        if (place instanceof FlowsShowPlace) { return new FlowsShowActivity(/*(FlowsShowPlace) place,*/ this); }
-        if (place instanceof SubmittersShowPlace) { return new SubmittersShowActivity(/*(SubmittersShowPlace) place,*/ this); }
-        if (place instanceof JobsShowPlace) { return new JobsShowActivity(/*(JobsShowPlace) place,*/ this); }
-        if (place instanceof SinksShowPlace) { return new SinksShowActivity(/*(SinksShowPlace) place,*/ this); }
-        if (place instanceof FlowBindersShowPlace) { return new FlowBindersShowActivity(/*(FlowBindersShowPlace) place,*/ this); }
+    @Override
+    public PlaceController getPlaceController() {
+        return placeController;
+    }
+
+    @Override
+    public Activity getActivity(Place place) {
+        if (place instanceof FlowCreatePlace) {
+            return new FlowCreateActivity(
+                /*
+                 * (FlowCreatePlace) place,
+                 */
+                this);
+        }
+        if (place instanceof FlowComponentCreatePlace) {
+            return new FlowComponentCreateActivity(
+                /*
+                 * (FlowComponentCreatePlace) place,
+                 */
+                this);
+        }
+        if (place instanceof SubmitterCreatePlace) {
+            return new SubmitterCreateActivity(
+                /*
+                 * (SubmitterCreatePlace) place,
+                 */
+                this);
+        }
+        if (place instanceof FlowbinderCreatePlace) {
+            return new FlowbinderCreateActivity(
+                /*
+                 * (FlowbinderCreatePlace) place,
+                 */
+                this);
+        }
+        if (place instanceof SinkCreatePlace) {
+            return new SinkCreateActivity(
+                /*
+                 * (SinkCreatePlace) place,
+                 */
+                this);
+        }
+        if (place instanceof FlowComponentsShowPlace) {
+            return new FlowComponentsShowActivity(
+                /*
+                 * (FlowComponentsShowPlace) place,
+                 */
+                this);
+        }
+        if (place instanceof FlowsShowPlace) {
+            return new FlowsShowActivity(
+                /*
+                 * (FlowsShowPlace) place,
+                 */
+                this);
+        }
+        if (place instanceof SubmittersShowPlace) {
+            return new SubmittersShowActivity(
+                /*
+                 * (SubmittersShowPlace) place,
+                 */
+                this);
+        }
+        if (place instanceof JobsShowPlace) {
+            return new JobsShowActivity(
+                /*
+                 * (JobsShowPlace) place,
+                 */
+                this);
+        }
+        if (place instanceof SinksShowPlace) {
+            return new SinksShowActivity(
+                /*
+                 * (SinksShowPlace) place,
+                 */
+                this);
+        }
+        if (place instanceof FlowBindersShowPlace) {
+            return new FlowBindersShowActivity(
+                /*
+                 * (FlowBindersShowPlace) place,
+                 */
+                this);
+        }
         return null;
     }
 
     // Proxies
-    @Override public FlowStoreProxyAsync getFlowStoreProxyAsync() { return flowStoreProxyAsync; }
-    @Override public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync() { return javaScriptProjectFetcher; }
-    @Override public SinkServiceProxyAsync getSinkServiceProxyAsync() { return sinkServiceProxyAsync; }
-    @Override public JobStoreProxyAsync getJobStoreProxyAsync() { return jobStoreProxyAsync; }
+    @Override
+    public FlowStoreProxyAsync getFlowStoreProxyAsync() {
+        return flowStoreProxyAsync;
+    }
+
+    @Override
+    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync() {
+        return javaScriptProjectFetcher;
+    }
+
+    @Override
+    public SinkServiceProxyAsync getSinkServiceProxyAsync() {
+        return sinkServiceProxyAsync;
+    }
+
+    @Override
+    public JobStoreProxyAsync getJobStoreProxyAsync() {
+        return jobStoreProxyAsync;
+    }
 
     // Menu Structure
-    @Override public MenuItem getMenuStructure() { return menuStructure; }
+    @Override
+    public MenuItem getMenuStructure() {
+        return menuStructure;
+    }
 
     // Views
-    @Override public FlowCreateView getFlowCreateView() { return flowCreateView; }
-    @Override public FlowComponentCreateView getFlowComponentCreateView() { return flowComponentCreateView; }
-    @Override public SubmitterCreateView getSubmitterCreateView() { return submitterCreateView; }
-    @Override public FlowbinderCreateView getFlowbinderCreateView() { return flowbinderCreateView; }
-    @Override public SinkCreateView getSinkCreateView() { return sinkCreateView; }
-    @Override public FlowComponentsShowView getFlowComponentsShowView() { return flowComponentsShowView; }
-    @Override public FlowsShowView getFlowsShowView() { return flowsShowView; }
-    @Override public SubmittersShowView getSubmittersShowView() { return submittersShowView; }
-    @Override public JobsShowView getJobsShowView() { return jobsShowView; }
-    @Override public SinksShowView getSinksShowView() { return sinksShowView; }
-    @Override public FlowBindersShowView getFlowBindersShowView() { return flowBindersShowView; }
+    @Override
+    public FlowCreateView getFlowCreateView() {
+        return flowCreateView;
+    }
+
+    @Override
+    public FlowComponentCreateView getFlowComponentCreateView() {
+        return flowComponentCreateView;
+    }
+
+    @Override
+    public SubmitterCreateView getSubmitterCreateView() {
+        return submitterCreateView;
+    }
+
+    @Override
+    public FlowbinderCreateView getFlowbinderCreateView() {
+        return flowbinderCreateView;
+    }
+
+    @Override
+    public SinkCreateView getSinkCreateView() {
+        return sinkCreateView;
+    }
+
+    @Override
+    public FlowComponentsShowView getFlowComponentsShowView() {
+        return flowComponentsShowView;
+    }
+
+    @Override
+    public FlowsShowView getFlowsShowView() {
+        return flowsShowView;
+    }
+
+    @Override
+    public SubmittersShowView getSubmittersShowView() {
+        return submittersShowView;
+    }
+
+    @Override
+    public JobsShowView getJobsShowView() {
+        return jobsShowView;
+    }
+
+    @Override
+    public SinksShowView getSinksShowView() {
+        return sinksShowView;
+    }
+
+    @Override
+    public FlowBindersShowView getFlowBindersShowView() {
+        return flowBindersShowView;
+    }
 
 }

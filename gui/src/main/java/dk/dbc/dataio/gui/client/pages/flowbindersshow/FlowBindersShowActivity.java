@@ -8,11 +8,14 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.types.FlowBinderContentViewData;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -24,9 +27,10 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     private final FlowStoreProxyAsync flowStoreProxy;
 
     private static List<FlowBinder> flowBinders = null;
-    private List<Flow> flows = null;
-    private List<Sink> sinks = null;
-    private List<Submitter> submitters = null;
+    private Map<Long, String> flows = new HashMap<Long, String>();
+    private Map<Long, String> sinks = new HashMap<Long, String>();
+    private Map<Long, SubmitterContent> submitters = new HashMap<Long, SubmitterContent>();
+
 
     public FlowBindersShowActivity(/*FlowBindersShowPlace place,*/ ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
@@ -116,17 +120,23 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void setFlows(List<Flow> flows) {
-        this.flows = flows;
+        for (Flow flow: flows) {
+            this.flows.put(flow.getId(), flow.getContent().getName());
+        }
         sendDataToView();
     }
 
     private void setSinks(List<Sink> sinks) {
-        this.sinks = sinks;
+        for (Sink sink: sinks) {
+            this.sinks.put(sink.getId(), sink.getContent().getName());
+        }
         sendDataToView();
     }
 
     private void setSubmitters(List<Submitter> submitters) {
-        this.submitters = submitters;
+        for (Submitter submitter: submitters) {
+            this.submitters.put(submitter.getId(), submitter.getContent());
+        }
         sendDataToView();
     }
 
@@ -145,7 +155,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
                     flowBinder.getContent().getFlowId(),
                     getFlowName(flowBinder.getContent().getFlowId()),
                     flowBinder.getContent().getSubmitterIds(),
-                    getSubmitterNames(flowBinder.getContent().getSubmitterIds()),
+                    getSubmitterContent(flowBinder.getContent().getSubmitterIds()),
                     flowBinder.getContent().getSinkId(),
                     getSinkName(flowBinder.getContent().getSinkId())
                 );
@@ -156,39 +166,31 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private String getFlowName(Long flowId) {
-        for (Flow flow: flows) {
-            if (flow.getId() == flowId) {
-                return flow.getContent().getName();
-            }
+        if (flows.containsKey(flowId)) {
+            return flows.get(flowId);
+        } else {
+            return "Flow ID: " + Long.toString(flowId);
         }
-        // At this point, the flow name was not found in the flow store.
-        // Instead note the flow id as a text string:
-        return "Flow ID: " + Long.toString(flowId);
     }
 
-    private List<String> getSubmitterNames(List<Long> submitterIds) {
-        List<String> result = new ArrayList<String>();
+    private List<SubmitterContent> getSubmitterContent(List<Long> submitterIds) {
+        List<SubmitterContent> result = new ArrayList<SubmitterContent>();
         for (Long id: submitterIds) {
-            String submitterName = "Submitter ID: " + Long.toString(id); // In case submitter name is not found in flowstore
-            for (Submitter submitter: submitters) {
-                if (submitter.getId() == id) {
-                    submitterName = submitter.getContent().getName();
-                }
+            if (submitters.containsKey(id)) {
+            result.add(submitters.get(id));
+            } else {
+                result.add(new SubmitterContent(id, "Submitter ID: " + Long.toString(id), "-"));
             }
-            result.add(submitterName);
         }
         return result;
     }
 
     private String getSinkName(Long sinkId) {
-        for (Sink sink: sinks) {
-            if (sink.getId() == sinkId) {
-                return sink.getContent().getName();
-            }
+        if (sinks.containsKey(sinkId)) {
+            return sinks.get(sinkId);
+        } else {
+            return "Sink ID: " + Long.toString(sinkId);
         }
-        // At this point, the sink name was not found in the flow store.
-        // Instead note the sink id as a text string:
-        return "Sink ID: " + Long.toString(sinkId);
     }
 
     private void displayErrorMessage(String message, Throwable e) {

@@ -38,43 +38,41 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowBindersInsertTwoRows_TwoElementsShown() {
         // Create necessary elements:
-        createTestSubmitter(webDriver, 1);  // Submitter #1
-        createTestSubmitter(webDriver, 2);  // Submitter #2
-        createTestFlowComponent(webDriver, 3);  // FlowComponent #3
-        createTestFlowComponent(webDriver, 10);  // FlowComponent #10
-        createTestFlow(webDriver, 4, 3);  // Flow #4, containing FlowComponent #3
-        createTestFlow(webDriver, 8, 10);  // Flow #8, containing FlowComponent #10
-        createTestSink(webDriver, 5);  // Sink #5
-        createTestSink(webDriver, 9);  // Sink #9
-        createTestFlowBinder(webDriver, 6, Arrays.asList(1), 4, 5);  // Flowbinder #6 containing Submitters (#1), Flow #4 and Sink #5
-        createTestFlowBinder(webDriver, 7, Arrays.asList(2), 8, 9);  // Flowbinder #7 containing Submitter(s) (#2, #1), Flow #8 and Sink #9
+        createTestSubmitter(webDriver, 11);  // Submitter #11
+        createTestSubmitter(webDriver, 12);  // Submitter #12
+        createTestFlowComponent(webDriver, 13);  // FlowComponent #13
+        createTestFlowComponent(webDriver, 110);  // FlowComponent #110
+        createTestFlow(webDriver, 14, 13);  // Flow #14, containing FlowComponent #13
+        createTestFlow(webDriver, 18, 110);  // Flow #18, containing FlowComponent #110
+        createTestSink(webDriver, 15);  // Sink #15
+        createTestSink(webDriver, 19);  // Sink #19
+        createTestFlowBinder(webDriver, 16, Arrays.asList(11), 14, 15);  // Flowbinder #6 containing Submitters (#1), Flow #4 and Sink #5
+        createTestFlowBinder(webDriver, 17, Arrays.asList(12), 18, 19);  // Flowbinder #7 containing Submitter(s) (#2, #1), Flow #8 and Sink #9
 
         navigateToFlowBindersShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowBindersShowViewImpl.GUIID_FLOW_BINDERS_SHOW_WIDGET);
         table.waitAssertRows(2);
         List<List<String>> rowData = table.get();
-        assertThat(rowData.get(0).get(0), is(subjectNameString(FLOW_BINDER_NAME, 6)));  // Navn
-        assertThat(rowData.get(0).get(1), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 6)));  // Beskrivelse
-        assertThat(rowData.get(0).get(2), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 6)));  // Rammeformat
-        assertThat(rowData.get(0).get(3), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 6)));  //Indholdsformat
-        assertThat(rowData.get(0).get(4), is(subjectNameString(FLOW_BINDER_CHAR_SET, 6)));  // Tegnsæt
-        assertThat(rowData.get(0).get(5), is(subjectNameString(FLOW_BINDER_DESTINATION, 6)));  // Destination
+        assertThat(rowData.get(0).get(0), is(subjectNameString(FLOW_BINDER_NAME, 16)));  // Navn
+        assertThat(rowData.get(0).get(1), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 16)));  // Beskrivelse
+        assertThat(rowData.get(0).get(2), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 16)));  // Rammeformat
+        assertThat(rowData.get(0).get(3), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 16)));  //Indholdsformat
+        assertThat(rowData.get(0).get(4), is(subjectNameString(FLOW_BINDER_CHAR_SET, 16)));  // Tegnsæt
+        assertThat(rowData.get(0).get(5), is(subjectNameString(FLOW_BINDER_DESTINATION, 16)));  // Destination
         assertThat(rowData.get(0).get(6), is(flowBinderCreationTexts.translate("label_DefaultRecordSplitter")));  // Recordsplitter
-//        assertThat(rowData.get(0).get(7), is(submitterPairString(1)));  // Submittere
-        assertThat(rowData.get(0).get(7), is(subjectNameString(SUBMITTER_NAME, 1)));  // Submittere
-        assertThat(rowData.get(0).get(8), is(subjectNameString(FLOW_NAME, 4)));  // Flow
-        assertThat(rowData.get(0).get(9), is(subjectNameString(SINK_NAME, 5)));  // Sink
-        assertThat(rowData.get(1).get(0), is(subjectNameString(FLOW_BINDER_NAME, 7)));  // Navn
-        assertThat(rowData.get(1).get(1), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 7)));  // Beskrivelse
-        assertThat(rowData.get(1).get(2), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 7)));  // Rammeformat
-        assertThat(rowData.get(1).get(3), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 7)));  //Indholdsformat
-        assertThat(rowData.get(1).get(4), is(subjectNameString(FLOW_BINDER_CHAR_SET, 7)));  // Tegnsæt
-        assertThat(rowData.get(1).get(5), is(subjectNameString(FLOW_BINDER_DESTINATION, 7)));  // Destination
+        assertThat(rowData.get(0).get(7), is(submitterPairString(11)));  // Submittere
+        assertThat(rowData.get(0).get(8), is(subjectNameString(FLOW_NAME, 14)));  // Flow
+        assertThat(rowData.get(0).get(9), is(subjectNameString(SINK_NAME, 15)));  // Sink
+        assertThat(rowData.get(1).get(0), is(subjectNameString(FLOW_BINDER_NAME, 17)));  // Navn
+        assertThat(rowData.get(1).get(1), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 17)));  // Beskrivelse
+        assertThat(rowData.get(1).get(2), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 17)));  // Rammeformat
+        assertThat(rowData.get(1).get(3), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 17)));  //Indholdsformat
+        assertThat(rowData.get(1).get(4), is(subjectNameString(FLOW_BINDER_CHAR_SET, 17)));  // Tegnsæt
+        assertThat(rowData.get(1).get(5), is(subjectNameString(FLOW_BINDER_DESTINATION, 17)));  // Destination
         assertThat(rowData.get(1).get(6), is(flowBinderCreationTexts.translate("label_DefaultRecordSplitter")));  // Recordsplitter
-//        assertThat(rowData.get(1).get(7), is(submitterPairString(1) + ", " + submitterPairString(2)));  // Submittere
-        assertThat(rowData.get(1).get(7), is(subjectNameString(SUBMITTER_NAME, 1) + ", " + subjectNameString(SUBMITTER_NAME, 2)));  // Submittere
-        assertThat(rowData.get(1).get(8), is(subjectNameString(FLOW_NAME, 8)));  // Flow
-        assertThat(rowData.get(1).get(9), is(subjectNameString(SINK_NAME, 9)));  // Sink
+        assertThat(rowData.get(1).get(7), is(submitterPairString(11) + ", " + submitterPairString(12)));  // Submittere
+        assertThat(rowData.get(1).get(8), is(subjectNameString(FLOW_NAME, 18)));  // Flow
+        assertThat(rowData.get(1).get(9), is(subjectNameString(SINK_NAME, 19)));  // Sink
 
     }
 

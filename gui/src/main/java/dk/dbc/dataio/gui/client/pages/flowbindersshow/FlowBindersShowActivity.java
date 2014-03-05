@@ -27,12 +27,12 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     private final FlowStoreProxyAsync flowStoreProxy;
 
     private static List<FlowBinder> flowBinders = null;
-    private Map<Long, String> flows = new HashMap<Long, String>();
-    private Map<Long, String> sinks = new HashMap<Long, String>();
-    private Map<Long, SubmitterContent> submitters = new HashMap<Long, SubmitterContent>();
+    private final Map<Long, String> flows = new HashMap<Long, String>();
+    private final Map<Long, String> sinks = new HashMap<Long, String>();
+    private final Map<Long, SubmitterContent> submitters = new HashMap<Long, SubmitterContent>();
+    private final Semaphore semaphore = new Semaphore();
 
-
-    public FlowBindersShowActivity(/*FlowBindersShowPlace place,*/ ClientFactory clientFactory) {
+    public FlowBindersShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
@@ -63,6 +63,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     // Local methods
 
     private void fetchFlowBinders() {
+        semaphore.increment();
         flowStoreProxy.findAllFlowBinders(new AsyncCallback<List<FlowBinder>>() {
             @Override
             public void onFailure(Throwable e) {
@@ -76,6 +77,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void fetchFlows() {
+        semaphore.increment();
         flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
             @Override
             public void onFailure(Throwable e) {
@@ -89,6 +91,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
         }
 
     private void fetchSinks() {
+        semaphore.increment();
         flowStoreProxy.findAllSinks(new AsyncCallback<List<Sink>>() {
             @Override
             public void onFailure(Throwable e) {
@@ -102,6 +105,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void fetchSubmitters() {
+        semaphore.increment();
         flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
             @Override
             public void onFailure(Throwable e) {
@@ -141,7 +145,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void sendDataToView() {
-        if (flowBinders != null && flows != null && sinks != null && submitters != null) {
+        if (semaphore.decrementAndCheck()) {
             List<FlowBinderContentViewData> result = new ArrayList<FlowBinderContentViewData>();
             for (FlowBinder flowBinder: flowBinders) {
                 FlowBinderContentViewData flowBinderContentViewData = new FlowBinderContentViewData(
@@ -197,4 +201,16 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
         flowBindersShowView.onFailure(message + ", " + e.getClass().getName() + " - " + e.getMessage());
     }
 
+    private class Semaphore {
+        private int count = 0;
+        void increment() {
+            count++;
+        }
+        boolean decrementAndCheck() {
+            if (count > 0) {
+                count--;
+            }
+            return count<=0;
+        }
+    }
 }

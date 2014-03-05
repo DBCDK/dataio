@@ -18,7 +18,7 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
     private SinksShowView sinksShowView;
     private final FlowStoreProxyAsync flowStoreProxy;
 
-    public SinksShowActivity(/*SinksShowPlace place,*/ ClientFactory clientFactory) {
+    public SinksShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

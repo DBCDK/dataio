@@ -25,7 +25,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreatePr
     private SinkServiceProxyAsync sinkServiceProxy;
     private FlowStoreProxyAsync flowStoreProxy;
 
-    public SinkCreateActivity(/*SinkCreatePlace place,*/ ClientFactory clientFactory) {
+    public SinkCreateActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         sinkServiceProxy = clientFactory.getSinkServiceProxyAsync();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();

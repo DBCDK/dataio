@@ -19,7 +19,7 @@ public class FlowComponentsShowActivity extends AbstractActivity implements Flow
     private FlowComponentsShowView flowComponentsShowView;
     private FlowStoreProxyAsync flowStoreProxy;
 
-    public FlowComponentsShowActivity(/*FlowComponentsShowPlace place,*/ ClientFactory clientFactory) {
+    public FlowComponentsShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

@@ -38,13 +38,13 @@ public class FormatTest {
     }
 
     @Test
-    public void submitterPairString_idNull_nullPointerException() {
+    public void submitterPairString_idNull_validPairString() {
         String result = submitterPairString(null, "name");
         assertThat(result, is("null (name)"));
     }
 
     @Test
-    public void submitterPairString_nameNull_nullPointerException() {
+    public void submitterPairString_nameNull_validPairString() {
         String result = submitterPairString(27L, null);
         assertThat(result, is("27 (null)"));
     }

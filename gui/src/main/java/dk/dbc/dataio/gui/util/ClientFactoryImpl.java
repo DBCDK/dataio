@@ -178,81 +178,37 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public Activity getActivity(Place place) {
         if (place instanceof FlowCreatePlace) {
-            return new FlowCreateActivity(
-                /*
-                 * (FlowCreatePlace) place,
-                 */
-                this);
+            return new FlowCreateActivity(this);
         }
         if (place instanceof FlowComponentCreatePlace) {
-            return new FlowComponentCreateActivity(
-                /*
-                 * (FlowComponentCreatePlace) place,
-                 */
-                this);
+            return new FlowComponentCreateActivity(this);
         }
         if (place instanceof SubmitterCreatePlace) {
-            return new SubmitterCreateActivity(
-                /*
-                 * (SubmitterCreatePlace) place,
-                 */
-                this);
+            return new SubmitterCreateActivity(this);
         }
         if (place instanceof FlowbinderCreatePlace) {
-            return new FlowbinderCreateActivity(
-                /*
-                 * (FlowbinderCreatePlace) place,
-                 */
-                this);
+            return new FlowbinderCreateActivity(this);
         }
         if (place instanceof SinkCreatePlace) {
-            return new SinkCreateActivity(
-                /*
-                 * (SinkCreatePlace) place,
-                 */
-                this);
+            return new SinkCreateActivity(this);
         }
         if (place instanceof FlowComponentsShowPlace) {
-            return new FlowComponentsShowActivity(
-                /*
-                 * (FlowComponentsShowPlace) place,
-                 */
-                this);
+            return new FlowComponentsShowActivity(this);
         }
         if (place instanceof FlowsShowPlace) {
-            return new FlowsShowActivity(
-                /*
-                 * (FlowsShowPlace) place,
-                 */
-                this);
+            return new FlowsShowActivity(this);
         }
         if (place instanceof SubmittersShowPlace) {
-            return new SubmittersShowActivity(
-                /*
-                 * (SubmittersShowPlace) place,
-                 */
-                this);
+            return new SubmittersShowActivity(this);
         }
         if (place instanceof JobsShowPlace) {
-            return new JobsShowActivity(
-                /*
-                 * (JobsShowPlace) place,
-                 */
-                this);
+            return new JobsShowActivity(this);
         }
         if (place instanceof SinksShowPlace) {
-            return new SinksShowActivity(
-                /*
-                 * (SinksShowPlace) place,
-                 */
-                this);
+            return new SinksShowActivity(this);
         }
         if (place instanceof FlowBindersShowPlace) {
-            return new FlowBindersShowActivity(
-                /*
-                 * (FlowBindersShowPlace) place,
-                 */
-                this);
+            return new FlowBindersShowActivity(this);
         }
         return null;
     }

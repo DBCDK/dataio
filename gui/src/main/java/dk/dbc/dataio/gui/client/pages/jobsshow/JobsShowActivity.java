@@ -18,7 +18,7 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
     private JobsShowView jobsShowView;
     private JobStoreProxyAsync jobStoreProxy;
 
-    public JobsShowActivity(/*JobsShowPlace place,*/ ClientFactory clientFactory) {
+    public JobsShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
     }

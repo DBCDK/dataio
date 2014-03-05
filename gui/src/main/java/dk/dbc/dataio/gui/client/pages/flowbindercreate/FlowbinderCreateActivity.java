@@ -31,7 +31,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
     private Map<String, Submitter> availableSubmitters = new HashMap<String, Submitter>();
     private Map<String, Flow> availableFlows = new HashMap<String, Flow>();
 
-    public FlowbinderCreateActivity(/*FlowbinderCreatePlace place,*/ ClientFactory clientFactory) {
+    public FlowbinderCreateActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

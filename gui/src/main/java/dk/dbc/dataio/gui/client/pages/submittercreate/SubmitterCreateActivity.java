@@ -19,7 +19,7 @@ public class SubmitterCreateActivity extends AbstractActivity implements Submitt
     private SubmitterCreateView submitterCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
 
-    public SubmitterCreateActivity(/*SubmitterCreatePlace place,*/ ClientFactory clientFactory) {
+    public SubmitterCreateActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

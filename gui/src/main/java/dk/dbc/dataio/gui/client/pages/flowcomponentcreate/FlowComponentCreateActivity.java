@@ -27,7 +27,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     private FlowStoreProxyAsync flowStoreProxy;
 
-    public FlowComponentCreateActivity(/*FlowComponentCreatePlace place,*/ ClientFactory clientFactory) {
+    public FlowComponentCreateActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         javaScriptProjectFetcher = clientFactory.getJavaScriptProjectFetcherAsync();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();

@@ -18,7 +18,7 @@ public class SubmittersShowActivity extends AbstractActivity implements Submitte
     private SubmittersShowView submittersShowView;
     private FlowStoreProxyAsync flowStoreProxy;
 
-    public SubmittersShowActivity(/*SubmittersShowPlace place,*/ ClientFactory clientFactory) {
+    public SubmittersShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

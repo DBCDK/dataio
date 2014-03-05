@@ -27,7 +27,7 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
     private FlowStoreProxyAsync flowStoreProxy;
     private Map<String, FlowComponent> availableFlowComponents = new HashMap<String, FlowComponent>();
 
-    public FlowCreateActivity(/* FlowCreatePlace place,*/ ClientFactory clientFactory) {
+    public FlowCreateActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

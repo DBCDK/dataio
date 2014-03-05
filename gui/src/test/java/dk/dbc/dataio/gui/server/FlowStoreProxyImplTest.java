@@ -15,6 +15,7 @@ import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import static org.hamcrest.CoreMatchers.is;
+import org.junit.Assert;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,6 +91,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
         try {
             flowStoreProxy.findAllSubmitters();
+            Assert.fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
             throw e;

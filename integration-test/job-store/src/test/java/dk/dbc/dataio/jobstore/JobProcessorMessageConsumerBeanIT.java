@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -13,6 +14,8 @@ import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.JobStoreMessageProducerBean;
 import dk.dbc.dataio.jobstore.types.JobState;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -41,7 +44,8 @@ public class JobProcessorMessageConsumerBeanIT {
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException {
-        restClient = HttpClient.newClient();
+        restClient = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
     }
 
     @AfterClass
@@ -68,7 +72,7 @@ public class JobProcessorMessageConsumerBeanIT {
     }
 
     @Test
-    public void onMessage_processorResultReceived_processorResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException {
+    public void onMessage_processorResultReceived_processorResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException, JobStoreServiceConnectorException {
         final JobInfo jobInfo = JobsBeanIT.createJob(restClient);
 
         // Swallow NewJob message
@@ -102,7 +106,7 @@ public class JobProcessorMessageConsumerBeanIT {
     }
 
     @Test
-    public void onMessage_sinkResultReceived_sinkResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException {
+    public void onMessage_sinkResultReceived_sinkResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException, JobStoreServiceConnectorException {
         final JobInfo jobInfo = JobsBeanIT.createJob(restClient);
 
         // Swallow NewJob message

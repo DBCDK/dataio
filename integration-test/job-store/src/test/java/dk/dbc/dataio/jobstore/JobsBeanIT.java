@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -17,6 +18,8 @@ import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobstore.types.JobState;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -44,7 +47,8 @@ public class JobsBeanIT {
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException {
-        restClient = HttpClient.newClient();
+        restClient = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
     }
 
     @AfterClass
@@ -65,7 +69,8 @@ public class JobsBeanIT {
     }
 
     @Test
-    public void createJob_newJobIsCreated_newJobMessagePutOnProcessorQueue() throws InterruptedException, JsonException, URISyntaxException, JMSException {
+    public void createJob_newJobIsCreated_newJobMessagePutOnProcessorQueue()
+            throws InterruptedException, JsonException, URISyntaxException, JMSException, JobStoreServiceConnectorException {
         final JobInfo jobInfo = createJob(restClient);
 
         final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
@@ -80,11 +85,14 @@ public class JobsBeanIT {
         return JsonUtil.fromJson(message.getText(), NewJob.class, MixIns.getMixIns());
     }
 
-    static JobInfo createJob(Client restClient) throws URISyntaxException, JsonException {
+    static JobInfo createJob(Client restClient) throws URISyntaxException, JobStoreServiceConnectorException {
         final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
+        return ITUtil.createJob(restClient, jobSpecification);
+        /*
         final Response response = ITUtil.createJob(restClient, JsonUtil.toJson(jobSpecification));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
         return JsonUtil.fromJson(response.readEntity(String.class), JobInfo.class, MixIns.getMixIns());
+        */
     }
 
     static JobState getState(Client restClient, long jobId) throws JsonException {

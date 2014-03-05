@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -87,7 +88,8 @@ public class JobsBeanIT {
 
     static JobInfo createJob(Client restClient) throws URISyntaxException, JobStoreServiceConnectorException {
         final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
-        return ITUtil.createJob(restClient, jobSpecification);
+        final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
+        return jobStoreServiceConnector.createJob(jobSpecification);
     }
 
     static JobState getState(Client restClient, long jobId) throws JsonException {

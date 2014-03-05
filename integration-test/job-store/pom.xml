@@ -72,6 +72,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
       <version>${jersey.version}</version>

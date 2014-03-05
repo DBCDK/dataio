@@ -1,13 +1,9 @@
 package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
@@ -166,11 +162,6 @@ public class ITUtil {
     public static long createSink(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SINKS));
-    }
-
-    public static JobInfo createJob(Client restClient, JobSpecification jobSpecification) throws JobStoreServiceConnectorException {
-        final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, JOB_STORE_BASE_URL);
-        return jobStoreServiceConnector.createJob(jobSpecification);
     }
 
     public static Response getJobState(Client restClient, long jobId) {

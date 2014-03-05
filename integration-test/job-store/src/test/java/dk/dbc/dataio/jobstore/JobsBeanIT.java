@@ -88,11 +88,6 @@ public class JobsBeanIT {
     static JobInfo createJob(Client restClient) throws URISyntaxException, JobStoreServiceConnectorException {
         final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
         return ITUtil.createJob(restClient, jobSpecification);
-        /*
-        final Response response = ITUtil.createJob(restClient, JsonUtil.toJson(jobSpecification));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
-        return JsonUtil.fromJson(response.readEntity(String.class), JobInfo.class, MixIns.getMixIns());
-        */
     }
 
     static JobState getState(Client restClient, long jobId) throws JsonException {

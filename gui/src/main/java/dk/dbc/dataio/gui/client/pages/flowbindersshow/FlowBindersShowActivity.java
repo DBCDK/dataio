@@ -201,7 +201,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
         flowBindersShowView.onFailure(message + ", " + e.getClass().getName() + " - " + e.getMessage());
     }
 
-    private class Semaphore {
+    private static class Semaphore {
         private int count = 0;
         void increment() {
             count++;

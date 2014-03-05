@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Lock;
@@ -51,5 +52,10 @@ public class JobStoreServiceConnectorBean {
         } catch (NamingException e) {
             throw new EJBException(e);
         }
+    }
+
+    @PreDestroy
+    public void tearDownConnector() {
+        HttpClient.closeClient(client);
     }
 }

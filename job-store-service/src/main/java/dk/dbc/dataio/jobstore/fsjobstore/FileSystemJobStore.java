@@ -233,7 +233,7 @@ public class FileSystemJobStore implements JobStore {
         try (BufferedWriter bw = Files.newBufferedWriter(path, LOCAL_CHARSET)) {
             bw.write(JsonUtil.toJson(jsonObject));
         } catch (IOException | JsonException e) {
-            throw new JobStoreException(String.format("Exception caught when trying to write %d with id: %d", filename, objectId), e);
+            throw new JobStoreException(String.format("Exception caught when trying to write %s with id: %d", filename, objectId), e);
         }
     }
 
@@ -299,7 +299,9 @@ public class FileSystemJobStore implements JobStore {
         return new FileSystemJobStore(storePath);
     }
 
+    // todo: Job can be removed for this method.
     private void addChunk(Job job, Chunk chunk) throws JobStoreException {
+        LOGGER.info("Adding chunk.id {} for job.id {}", chunk.getChunkId(), job.getId());
         chunkFileHandler.addResult(chunk);
     }
 

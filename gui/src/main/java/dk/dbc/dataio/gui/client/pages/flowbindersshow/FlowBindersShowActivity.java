@@ -30,7 +30,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     private final Map<Long, String> flows = new HashMap<Long, String>();
     private final Map<Long, String> sinks = new HashMap<Long, String>();
     private final Map<Long, SubmitterContent> submitters = new HashMap<Long, SubmitterContent>();
-    private final Semaphore semaphore = new Semaphore();
+    private final SimpleCounter counter = new SimpleCounter();
 
     public FlowBindersShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
@@ -63,12 +63,13 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     // Local methods
 
     private void fetchFlowBinders() {
-        semaphore.increment();
+        counter.increment();
         flowStoreProxy.findAllFlowBinders(new AsyncCallback<List<FlowBinder>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Flowbinder", e);
             }
+
             @Override
             public void onSuccess(List<FlowBinder> flowBinders) {
                 setFlowBinders(flowBinders);
@@ -77,12 +78,13 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void fetchFlows() {
-        semaphore.increment();
+        counter.increment();
         flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Flow", e);
             }
+
             @Override
             public void onSuccess(List<Flow> flows) {
                 setFlows(flows);
@@ -91,12 +93,13 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
         }
 
     private void fetchSinks() {
-        semaphore.increment();
+        counter.increment();
         flowStoreProxy.findAllSinks(new AsyncCallback<List<Sink>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Sink", e);
             }
+
             @Override
             public void onSuccess(List<Sink> sinks) {
                 setSinks(sinks);
@@ -105,12 +108,13 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void fetchSubmitters() {
-        semaphore.increment();
+        counter.increment();
         flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Submitter", e);
             }
+
             @Override
             public void onSuccess(List<Submitter> submitters) {
                 setSubmitters(submitters);
@@ -145,7 +149,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void sendDataToView() {
-        if (semaphore.decrementAndCheck()) {
+        if (counter.decrementAndCheck()) {
             List<FlowBinderContentViewData> result = new ArrayList<FlowBinderContentViewData>();
             for (FlowBinder flowBinder: flowBinders) {
                 FlowBinderContentViewData flowBinderContentViewData = new FlowBinderContentViewData(
@@ -201,7 +205,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
         flowBindersShowView.onFailure(message + ", " + e.getClass().getName() + " - " + e.getMessage());
     }
 
-    private static class Semaphore {
+    private static class SimpleCounter {
         private int count = 0;
         void increment() {
             count++;

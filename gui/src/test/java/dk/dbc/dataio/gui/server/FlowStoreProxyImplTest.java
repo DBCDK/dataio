@@ -1,10 +1,12 @@
 package dk.dbc.dataio.gui.server;
 
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -15,8 +17,8 @@ import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import static org.hamcrest.CoreMatchers.is;
-import org.junit.Assert;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,20 +47,24 @@ public class FlowStoreProxyImplTest {
         when(HttpClient.newClient()).thenReturn(client);
     }
 
-    @Test(expected = ProxyException.class)
+
+    /*
+     * Test findAllSinks
+     */
+    @Test
     public void findAllSinks_flowStoreServiceEndpointCanNotBeLookedUp_throws() throws Exception {
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
 
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
         try {
             flowStoreProxy.findAllSinks();
+            fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
-            throw e;
         }
     }
 
-    @Test(expected = ProxyException.class)
+    @Test
     public void findAllSinks_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SINKS)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
@@ -66,9 +72,9 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
         try {
             flowStoreProxy.findAllSinks();
+            fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
-            throw e;
         }
     }
 
@@ -84,21 +90,24 @@ public class FlowStoreProxyImplTest {
         assertThat(allSinks.get(0).getId(), is(sink.getId()));
     }
 
-    @Test(expected = ProxyException.class)
+
+    /*
+     * Test findAllSubmitters
+     */
+    @Test
     public void findAllSubmitters_flowStoreServiceEndpointCanNotBeLookedUp_throws() throws Exception {
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
 
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
         try {
             flowStoreProxy.findAllSubmitters();
-            Assert.fail();
+            fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
-            throw e;
         }
     }
 
-    @Test(expected = ProxyException.class)
+    @Test
     public void findAllSubmitters_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SUBMITTERS)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
@@ -106,9 +115,9 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
         try {
             flowStoreProxy.findAllSubmitters();
+            fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
-            throw e;
         }
     }
 
@@ -122,5 +131,48 @@ public class FlowStoreProxyImplTest {
         final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmitters();
         assertThat(allSubmitters.size(), is(1));
         assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
+    }
+
+
+    /*
+     * Test findAllFlowBinders
+     */
+    @Test
+    public void findAllFlowBinders_flowStoreServiceEndpointCanNotBeLookedUp_throws() throws Exception {
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
+
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
+        try {
+            flowStoreProxy.findAllFlowBinders();
+            fail();
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
+        }
+    }
+
+    @Test
+    public void findAllFlowBinders_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.FLOW_BINDERS)))
+                .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
+        try {
+            flowStoreProxy.findAllFlowBinders();
+            fail();
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllFlowBinders_remoteServiceReturnsHttpStatusOk_returnsListOfSubmitterEntity() throws Exception {
+        final FlowBinder flowBinder = new FlowBinderBuilder().setId(666).build();
+        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.FLOW_BINDERS)))
+                .thenReturn(new MockedHttpClientResponse<List<FlowBinder>>(Response.Status.OK.getStatusCode(), Arrays.asList(flowBinder)));
+
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
+        final List<FlowBinder> allFlowBinders = flowStoreProxy.findAllFlowBinders();
+        assertThat(allFlowBinders.size(), is(1));
+        assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
     }
 }

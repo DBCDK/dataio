@@ -27,10 +27,16 @@ import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64encode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChunkProcessorBeanTest {
-    private final long  jobId = 42;
+
+    Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBeanTest.class);
+
+    private final long jobId = 42;
     private final String javaScriptUppercaseInvocationMethod = "toUpper";
+    private final String javaScriptThrowExceptionInvocationMethod = "throwException";
     private final String javaScriptConcatenateInvocationMethod = "doConcatenation";
     private final String modulesInfoModuleResource = "/ModulesInfo.json";
     private final String useModuleResource = "/Use.json";
@@ -102,6 +108,77 @@ public class ChunkProcessorBeanTest {
         assertThat(base64decode(chunkResult.getItems().get(1).getData()), is("456456twoDasFormat"));
     }
 
+    @Test
+    public void process_exceptionThrownFromJavascript_chunkItemFailure() throws Exception {
+        final ChunkItem item1 = new ChunkItemBuilder()
+                .setData(base64encode("throw"))
+                .build();
+        final Chunk chunk = new ChunkBuilder()
+                .setJobId(jobId)
+                .setFlow(getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException())))
+                .setItems(Arrays.asList(item1))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        assertThat(chunkResult.getJobId(), is(jobId));
+        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
+        assertThat(chunkResult.getItems().size(), is(1));
+        assertThat(chunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
+    }
+
+    @Test
+    public void process_exceptionThrownFromOneOutOfThreeJavascripts_chunkItemFailureForThrowSuccessForRest() throws Exception {
+        final ChunkItem item0 = new ChunkItemBuilder()
+                .setData(base64encode("zero"))
+                .build();
+        final ChunkItem item1 = new ChunkItemBuilder()
+                .setData(base64encode("throw"))
+                .build();
+        final ChunkItem item2 = new ChunkItemBuilder()
+                .setData(base64encode("two"))
+                .build();
+        final Chunk chunk = new ChunkBuilder()
+                .setJobId(jobId)
+                .setFlow(getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException())))
+                .setItems(Arrays.asList(item0, item1, item2))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        assertThat(chunkResult.getJobId(), is(jobId));
+        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
+        assertThat(chunkResult.getItems().size(), is(3));
+        assertThat(chunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(chunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(chunkResult.getItems().get(2).getStatus(), is(ChunkItem.Status.SUCCESS));
+    }
+
+    @Test
+    public void process_IllegalJavascriptInEnvironment_chunkItemFailure() throws Exception {
+        final ChunkItem item0 = new ChunkItemBuilder()
+                .setData(base64encode("zero"))
+                .build();
+        final ChunkItem item1 = new ChunkItemBuilder()
+                .setData(base64encode("two"))
+                .build();
+        final Chunk chunk = new ChunkBuilder()
+                .setJobId(jobId)
+                .setFlow(getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript("This is not a legal javascript!")))
+                .setItems(Arrays.asList(item0, item1))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        assertThat(chunkResult.getJobId(), is(jobId));
+        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
+        assertThat(chunkResult.getItems().size(), is(2));
+        assertThat(chunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
+        // todo: remove next line
+        LOGGER.info("FailureMessage: {}", base64decode(chunkResult.getItems().get(0).getData()));
+        assertThat(chunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+    }
+
     private ChunkProcessorBean getInitializedBean() {
         return new ChunkProcessorBean();
     }
@@ -128,9 +205,9 @@ public class ChunkProcessorBeanTest {
         return new FlowComponentContentBuilder()
                 .setInvocationMethod(invocationMethod)
                 .setJavascripts(Arrays.asList(
-                        javascript,
-                        JsonUtil.fromJson(resourceToString(modulesInfoModuleResource), JavaScript.class, MixIns.getMixIns()),
-                        JsonUtil.fromJson(resourceToString(useModuleResource), JavaScript.class, MixIns.getMixIns())))
+                                javascript,
+                                JsonUtil.fromJson(resourceToString(modulesInfoModuleResource), JavaScript.class, MixIns.getMixIns()),
+                                JsonUtil.fromJson(resourceToString(useModuleResource), JavaScript.class, MixIns.getMixIns())))
                 .build();
     }
 
@@ -142,16 +219,27 @@ public class ChunkProcessorBeanTest {
 
     private String getJavaScriptToUpperFunction() {
         return ""
-            + "function " + javaScriptUppercaseInvocationMethod + "(str) {\n"
-            + "    return str.toUpperCase();\n"
-            + "}\n";
+                + "function " + javaScriptUppercaseInvocationMethod + "(str) {\n"
+                + "    return str.toUpperCase();\n"
+                + "}\n";
+    }
+
+    private String getJavaScriptWhichThrowsException() {
+        return ""
+                + "function " + javaScriptThrowExceptionInvocationMethod + "(str) {\n"
+                + "    if(str === \"throw\") {\n"
+                + "      throw \"this is an exception from JavaScript\";\n"
+                + "    } else {\n"
+                + "      return str;\n"
+                + "    }\n"
+                + "}\n";
     }
 
     private String getJavaScriptConcatenateProcessDataFunction() {
         return ""
-            + "function " + javaScriptConcatenateInvocationMethod + "(str, processData) {\n"
-            + "    return processData.submitter + str + processData.format;\n"
-            + "}\n";
+                + "function " + javaScriptConcatenateInvocationMethod + "(str, processData) {\n"
+                + "    return processData.submitter + str + processData.format;\n"
+                + "}\n";
     }
 
     private String resourceToString(String resourceName) throws Exception {

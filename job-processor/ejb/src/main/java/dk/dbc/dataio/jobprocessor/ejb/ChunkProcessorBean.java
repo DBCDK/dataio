@@ -21,6 +21,9 @@ import java.util.List;
 
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64encode;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in
@@ -43,15 +46,21 @@ public class ChunkProcessorBean {
         LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
         final Flow flow = chunk.getFlow();
         final List<ChunkItem> processedItems = new ArrayList<>();
-        long itemCounter = 0;
         for (ChunkItem item : chunk.getItems()) {
-            itemCounter++;
             ChunkItem processedItem;
             try {
                 final String processedRecord = invokeJavaScript(flow, base64decode(item.getData()), chunk.getSupplementaryProcessData());
-                processedItem = new ChunkItem(itemCounter, base64encode(processedRecord), ChunkItem.Status.SUCCESS);
-            } catch (JsonException ex) {
-                processedItem = new ChunkItem(itemCounter, base64encode(ex.getMessage()), ChunkItem.Status.FAILURE);
+                processedItem = new ChunkItem(item.getId(), base64encode(processedRecord), ChunkItem.Status.SUCCESS);
+            } catch (Throwable ex) {
+                String failureMsg = "Could not fill in the exception!";
+                try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
+                    ex.printStackTrace(ps);
+                    failureMsg = baos.toString("UTF-8");
+                } catch (IOException e) {
+                    failureMsg = e.getMessage();
+                }
+                processedItem = new ChunkItem(item.getId(), base64encode(failureMsg), ChunkItem.Status.FAILURE);
             }
             processedItems.add(processedItem);
         }

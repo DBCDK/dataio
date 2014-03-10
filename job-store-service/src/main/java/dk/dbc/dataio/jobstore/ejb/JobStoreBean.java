@@ -11,7 +11,7 @@ import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.jobstore.types.JobState;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

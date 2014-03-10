@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;

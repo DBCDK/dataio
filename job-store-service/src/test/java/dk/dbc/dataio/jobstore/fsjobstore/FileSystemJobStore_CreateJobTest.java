@@ -10,7 +10,7 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.jobstore.types.ChunkCounter;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.jobstore.types.JobState;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import java.io.File;
 import java.io.IOException;

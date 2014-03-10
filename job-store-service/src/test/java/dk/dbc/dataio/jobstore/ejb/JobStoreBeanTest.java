@@ -17,7 +17,7 @@ import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.jobstore.types.JobState;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Rule;

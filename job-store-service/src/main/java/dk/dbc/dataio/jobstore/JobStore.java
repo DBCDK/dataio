@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.jobstore.types.JobState;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 
 import java.util.List;

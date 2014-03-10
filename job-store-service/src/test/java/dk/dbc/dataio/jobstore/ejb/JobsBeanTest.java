@@ -23,7 +23,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.jobstore.types.JobState;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Ignore;

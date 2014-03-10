@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.types;
+package dk.dbc.dataio.commons.types;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 

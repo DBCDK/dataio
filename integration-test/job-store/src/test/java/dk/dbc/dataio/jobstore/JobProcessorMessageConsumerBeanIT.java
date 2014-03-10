@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore;
 
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -13,7 +14,6 @@ import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.JobStoreMessageProducerBean;
-import dk.dbc.dataio.jobstore.types.JobState;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.After;

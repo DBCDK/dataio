@@ -47,6 +47,7 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowCreateView.asWidget());
+        flowCreateView.clearFields();
         flowStoreProxy.findAllComponents(new FilteredAsyncCallback<List<FlowComponent>>() {
             @Override
             public void onFilteredFailure(Throwable e) {

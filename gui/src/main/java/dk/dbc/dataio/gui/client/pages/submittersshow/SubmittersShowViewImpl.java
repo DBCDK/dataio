@@ -80,6 +80,13 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
     }
 
     /**
+     * Clear all fields in this view
+     */
+    @Override
+    public void clearFields() {
+    }
+
+    /**
      * OnSuccess
      * @param message The message to display to the user
      */

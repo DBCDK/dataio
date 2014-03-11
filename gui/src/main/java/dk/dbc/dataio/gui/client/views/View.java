@@ -10,6 +10,7 @@ import dk.dbc.dataio.gui.client.presenters.Presenter;
  */
 public interface View<T extends Presenter> {
     void refresh();
+    void clearFields();
     void setPresenter(T presenter);
     void onSuccess(String message);
     void onFailure(String message);

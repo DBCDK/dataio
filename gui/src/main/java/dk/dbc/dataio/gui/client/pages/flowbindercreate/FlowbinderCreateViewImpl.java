@@ -119,6 +119,23 @@ public class FlowbinderCreateViewImpl extends ContentPanel<FlowbinderCreatePrese
     }
 
     /**
+     * Clear all fields in this view
+     */
+    @Override
+    public void clearFields() {
+        flowbinderNamePanel.clearText();
+        flowbinderDescriptionPanel.clearText();
+        flowbinderFramePanel.clearText();
+        flowbinderContentFormatPanel.clearText();
+        flowbinderCharacterSetPanel.clearText();
+        flowbinderDestinationPanel.clearText();
+//        flowbinderRecordSplitterPanel.clearText();
+        flowbinderSubmittersPanel.clear();
+        flowbinderFlowPanel.clear();
+        flowbinderSinkPanel.clear();
+    }
+
+    /**
      * OnSuccess
      * @param message The message to display to the user
      */

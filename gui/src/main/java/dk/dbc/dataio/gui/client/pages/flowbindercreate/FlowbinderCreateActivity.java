@@ -51,6 +51,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowbinderCreateView.asWidget());
+        flowbinderCreateView.clearFields();
         fetchSinks();
         fetchAvailableSubmitters();
         fetchFlows();

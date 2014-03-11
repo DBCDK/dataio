@@ -70,6 +70,16 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
     }
 
     /**
+     * Clear all fields in this view
+     */
+    @Override
+    public void clearFields() {
+        submitterNumberPanel.clearText();
+        submitterNamePanel.clearText();
+        submitterDescriptionPanel.clearText();
+    }
+
+    /**
      * OnSuccess
      * @param message The message to display to the user
      */

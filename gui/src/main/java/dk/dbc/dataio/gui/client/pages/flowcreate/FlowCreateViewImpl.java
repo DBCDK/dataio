@@ -81,6 +81,16 @@ public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implem
     }
 
     /**
+     * Clear all fields in this view
+     */
+    @Override
+    public void clearFields() {
+        flowNamePanel.clearText();
+        flowDescriptionPanel.clearText();
+        flowComponentSelectionPanel.clear();
+    }
+
+    /**
      * OnSuccess
      * @param message The message to display to the user
      */

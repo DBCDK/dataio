@@ -13,6 +13,7 @@ import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+
 import java.util.List;
 
 
@@ -113,6 +114,18 @@ public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreat
      */
     @Override
     public void refresh() {
+    }
+
+    /**
+     * Clear all fields in this view
+     */
+    @Override
+    public void clearFields() {
+        namePanel.clearText();
+        projectPanel.clearText();
+        revisionPanel.clear();
+        scriptNamePanel.clear();
+        invocationMethodPanel.clear();
     }
 
     /**

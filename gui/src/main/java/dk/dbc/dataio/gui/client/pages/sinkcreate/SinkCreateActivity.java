@@ -46,6 +46,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreatePr
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(sinkCreateView.asWidget());
+        sinkCreateView.clearFields();
     }
 
     @Override

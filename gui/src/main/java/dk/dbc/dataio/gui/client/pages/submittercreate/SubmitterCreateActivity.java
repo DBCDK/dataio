@@ -32,7 +32,7 @@ public class SubmitterCreateActivity extends AbstractActivity implements Submitt
 
     @Override
     public void reload() {
-		submitterCreateView.refresh();
+        submitterCreateView.refresh();
     }
 
     @Override
@@ -56,6 +56,7 @@ public class SubmitterCreateActivity extends AbstractActivity implements Submitt
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(submitterCreateView.asWidget());
+        submitterCreateView.clearFields();
     }
 
     private ProxyError getErrorCode(Throwable e) {

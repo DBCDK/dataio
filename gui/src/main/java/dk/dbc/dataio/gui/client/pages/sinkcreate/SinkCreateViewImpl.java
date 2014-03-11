@@ -64,6 +64,15 @@ public class SinkCreateViewImpl extends ContentPanel<SinkCreatePresenter> implem
     }
 
     /**
+     * Clear all fields in this view
+     */
+    @Override
+    public void clearFields() {
+        sinkNamePanel.clearText();
+        resourceNamePanel.clearText();
+    }
+
+    /**
      * OnSuccess
      * @param message The message to display to the user
      */

@@ -82,6 +82,13 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
     }
 
     /**
+     * Clear all fields in this view
+     */
+    @Override
+    public void clearFields() {
+    }
+
+    /**
      * OnSuccess
      * @param message The message to display to the user
      */

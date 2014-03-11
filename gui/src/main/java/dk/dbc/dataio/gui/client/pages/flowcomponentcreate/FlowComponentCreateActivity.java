@@ -48,6 +48,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowComponentCreateView.asWidget());
+        flowComponentCreateView.clearFields();
     }
 
     private void fetchRevisions(String projectUrl) throws JavaScriptProjectFetcherException {

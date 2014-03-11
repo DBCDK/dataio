@@ -20,6 +20,7 @@ public abstract class ContentPanel<T extends Presenter> extends FlowPanel {
     private static final String GUIID_CONTENT_PANEL = "content-panel";
 
     protected T presenter;
+    private boolean initialized = false;
     private final HeaderPanel headerPanel = new HeaderPanel(mainConstants.header_DataIO(), GUIID_HEADER_PANEL);
     private final ContentContainerPanel contentPanel = new ContentContainerPanel(GUIID_CONTENT_PANEL);
 
@@ -42,7 +43,10 @@ public abstract class ContentPanel<T extends Presenter> extends FlowPanel {
      * @param presenter
      */
     public void setPresenter(T presenter) {
-        init();
+        if (!initialized) {
+            initialized = true;
+            init();
+        }
         this.presenter = presenter;
     }
 

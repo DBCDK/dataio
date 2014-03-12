@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.views;
 
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.SimpleLayoutPanel;
+import com.google.gwt.user.client.ui.ScrollPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -37,7 +37,7 @@ public class MainPanel extends DockLayoutPanel {
     /**
      * Content Panel Class
      */
-    public static class ApplicationPanel extends SimpleLayoutPanel {
+    public static class ApplicationPanel extends ScrollPanel {
         /**
          * Constructor for ContentPanel
          * @param guiId The GUI Id for Content Panel

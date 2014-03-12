@@ -3,24 +3,30 @@ package dk.dbc.dataio.commons.utils.jobstore;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -32,6 +38,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class JobStoreServiceConnectorTest {
     private static final Client CLIENT = mock(Client.class);
     private static final String JOB_STORE_URL = "http://dataio/job-store";
+    private static final long JOB_ID = 42;
+    private static final long CHUNK_ID = 1;
 
     @Before
     public void setup() throws Exception {
@@ -113,6 +121,42 @@ public class JobStoreServiceConnectorTest {
         final JobInfo jobInfo = instance.createJob(jobSpecification);
         assertThat(jobInfo, is(notNullValue()));
         assertThat(jobInfo.getJobId(), is(expectedJobInfo.getJobId()));
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getSinkChunkResult_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_DELIVERED), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getSinkChunkResult(JOB_ID, CHUNK_ID);
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getSinkChunkResult_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_DELIVERED), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getSinkChunkResult(JOB_ID, CHUNK_ID);
+    }
+
+    @Test
+    public void getSinkChunkResult_sinkChunkResultRetrieved_returnsSinkChunkResult() throws JobStoreServiceConnectorException {
+        final SinkChunkResult expectedSinkChunkResult = new SinkChunkResultBuilder().build();
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_DELIVERED), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSinkChunkResult));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        final SinkChunkResult sinkChunkResult = instance.getSinkChunkResult(JOB_ID, CHUNK_ID);
+        assertThat(sinkChunkResult, is(notNullValue()));
+        assertThat(sinkChunkResult.getJobId(), is(expectedSinkChunkResult.getJobId()));
     }
 
     private static JobStoreServiceConnector newJobStoreServiceConnector() {

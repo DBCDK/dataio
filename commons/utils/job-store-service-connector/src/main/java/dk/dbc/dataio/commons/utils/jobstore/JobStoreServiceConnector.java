@@ -3,6 +3,7 @@ package dk.dbc.dataio.commons.utils.jobstore;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -10,6 +11,8 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JobStoreServiceConnector - dataIO job-store REST service client.
@@ -22,6 +25,8 @@ import javax.ws.rs.core.Response;
  * </p>
  */
 public class JobStoreServiceConnector {
+    private static final String URL_PATH_SEPARATOR = "/";
+
     private final Client httpClient;
     private final String baseUrl;
 
@@ -58,6 +63,28 @@ public class JobStoreServiceConnector {
                         jobInfo.getJobErrorCode());
             }
             return jobInfo;
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves sink chunk result from job-store
+     * @param jobId Id of job containing chunk
+     * @param chunkId Id of chunk for which to retrieve sink result
+     * @return sink chunk result
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on failure to retrieve sink chunk result
+     */
+    public SinkChunkResult getSinkChunkResult(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
+        final Map<String, String> pathVariables = new HashMap<>(2);
+        pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+        pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
+        final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_DELIVERED, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.split(URL_PATH_SEPARATOR));
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, SinkChunkResult.class);
         } finally {
             response.close();
         }

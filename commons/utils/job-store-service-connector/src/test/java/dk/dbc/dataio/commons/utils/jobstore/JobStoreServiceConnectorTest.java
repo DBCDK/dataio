@@ -1,12 +1,15 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
@@ -121,6 +124,79 @@ public class JobStoreServiceConnectorTest {
         final JobInfo jobInfo = instance.createJob(jobSpecification);
         assertThat(jobInfo, is(notNullValue()));
         assertThat(jobInfo.getJobId(), is(expectedJobInfo.getJobId()));
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getState_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_STATE), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getState(JOB_ID);
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getState_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_STATE), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getState(JOB_ID);
+    }
+
+    @Test
+    public void getState_chunkRetrieved_returnsChunk() throws JobStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_STATE), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        final JobState expectedJobState = new JobState();
+        expectedJobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedJobState));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        final JobState jobState = instance.getState(JOB_ID);
+        assertThat(jobState, is(notNullValue()));
+        assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getChunk_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_CHUNK), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getChunk(JOB_ID, CHUNK_ID);
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getChunk_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_CHUNK), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getChunk(JOB_ID, CHUNK_ID);
+    }
+
+    @Test
+    public void getChunk_chunkRetrieved_returnsChunk() throws JobStoreServiceConnectorException {
+        final Chunk expectedChunk = new ChunkBuilder().build();
+        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_CHUNK), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedChunk));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        final Chunk chunk = instance.getChunk(JOB_ID, CHUNK_ID);
+        assertThat(chunk, is(notNullValue()));
+        assertThat(chunk.getJobId(), is(expectedChunk.getJobId()));
     }
 
     @Test(expected = JobStoreServiceConnectorException.class)

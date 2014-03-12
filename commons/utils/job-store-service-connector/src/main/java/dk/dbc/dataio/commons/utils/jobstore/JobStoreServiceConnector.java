@@ -1,8 +1,10 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -63,6 +65,48 @@ public class JobStoreServiceConnector {
                         jobInfo.getJobErrorCode());
             }
             return jobInfo;
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves job state from job-store
+     * @param jobId Id of job
+     * @return job state
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on failure to retrieve state
+     */
+    public JobState getState(long jobId) throws ProcessingException, JobStoreServiceConnectorException {
+        final Map<String, String> pathVariables = new HashMap<>(1);
+        pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+        final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_STATE, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.split(URL_PATH_SEPARATOR));
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, JobState.class);
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves chunk from job-store
+     * @param jobId Id of job containing chunk
+     * @param chunkId Id of chunk
+     * @return chunk
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on failure to retrieve chunk
+     */
+    public Chunk getChunk(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
+        final Map<String, String> pathVariables = new HashMap<>(2);
+        pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+        pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
+        final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_CHUNK, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.split(URL_PATH_SEPARATOR));
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, Chunk.class);
         } finally {
             response.close();
         }

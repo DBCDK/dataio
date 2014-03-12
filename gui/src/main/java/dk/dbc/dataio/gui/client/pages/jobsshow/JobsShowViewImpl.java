@@ -110,6 +110,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
      */
     @Override
     public void setJobs(List<JobInfo> jobs) {
+        table.setPageSize(jobs.size());
         table.setRowData(0, jobs);
         table.setRowCount(jobs.size());
         table.updateDone();

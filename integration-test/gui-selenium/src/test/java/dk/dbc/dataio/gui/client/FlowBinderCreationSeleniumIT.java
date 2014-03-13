@@ -4,15 +4,17 @@ import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
-import java.io.IOException;
-import java.util.List;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/flowbindercreate/FlowbinderCreateConstants_dk.properties");
@@ -163,7 +165,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testSaveButton_emptySubmitterInputField_displayErrorPopup() {
-        String sink = createDefaultSink();
+        String sink = createDefaultSink("sinkName45");
         String flow = createDefaultFlow();
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
@@ -175,7 +177,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testSaveButton_emptyFlowInputField_displayErrorPopup() {
-        String sink = createDefaultSink();
+        String sink = createDefaultSink("sinkName45");
         String submitter = createDefaultSubmitter();
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
@@ -270,6 +272,16 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
+    @Test
+    public void testFlowBinderCreationLeaveAndGetBack_clearsAllFields() {
+        String sink = createDefaultSink("anExtraSinkName");  // To assure, that two sinks will be created
+        populateAllInputFields();
+        assertAllInputFields("Name", "Description", "Frame", "ContentFormat", "CharacterSet", "Destination", "Default Record Splitter", Arrays.asList("123456 (defaultSubmitter)"), "flowName12", "sinkName45");
+        navigateAwayFromFlowbinderCreationWidget(webDriver);
+        navigateToFlowbinderCreationWidget(webDriver);
+        assertAllInputFields("", "", "", "", "", "", "Default Record Splitter", new ArrayList(), "flowName12", "anExtraSinkName");
+    }
+
 
 
     /**
@@ -277,7 +289,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
      */
     private void populateAllInputFields() {
         String submitter = createDefaultSubmitter();
-        String sink = createDefaultSink();
+        String sink = createDefaultSink("sinkName45");
         String flow = createDefaultFlow();
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
@@ -307,6 +319,19 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
     */
 
+    private void assertAllInputFields(String name, String description, String frame, String contentFormat, String charSet, String destination, String recordSplitter, List<String> submitter, String flow, String sink) {
+        assertThat(findNameTextElement(webDriver).getAttribute("value"), is(name));
+        assertThat(findDescriptionTextElement(webDriver).getAttribute("value"), is(description));
+        assertThat(findFrameTextElement(webDriver).getAttribute("value"), is(frame));
+        assertThat(findContentFormatTextElement(webDriver).getAttribute("value"), is(contentFormat));
+        assertThat(findCharacterSetTextElement(webDriver).getAttribute("value"), is(charSet));
+        assertThat(findDestinationTextElement(webDriver).getAttribute("value"), is(destination));
+        assertThat(findRecordSplitterTextElement(webDriver).getAttribute("value"), is(recordSplitter));
+        assertThat(SeleniumUtil.getSelectedItemsInDualList(findSubmitterPanelElement(webDriver)), is(submitter));
+        assertThat(SeleniumUtil.getSelectedItemInListBox(findFlowListElement(webDriver)), is(flow));
+        assertThat(SeleniumUtil.getSelectedItemInListBox(findSinkListElement(webDriver)), is(sink));
+    }
+
     private String createDefaultFlow() {
         final String flowComponentName = "flowComponent12";
         final String flowName = "flowName12";
@@ -319,8 +344,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         SeleniumUtil.selectItemInListBox(findFlowListElement(webDriver), flow);
     }
 
-    private String createDefaultSink() {
-        final String sinkName = "sinkName45";
+    private String createDefaultSink(String sinkName) {
         final String resourceName = SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME;
         SinkCreationSeleniumIT.createTestSink(webDriver, sinkName, resourceName);
         return sinkName;
@@ -359,6 +383,10 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWBINDER_CREATE);
+    }
+
+    private static void navigateAwayFromFlowbinderCreationWidget(WebDriver webDriver) {
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_BINDERS_SHOW);
     }
 
     private static WebElement findFlowbinderCreationWidget(WebDriver webDriver) {

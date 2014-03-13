@@ -1,19 +1,18 @@
 package dk.dbc.dataio.gui.client;
 
-import static dk.dbc.dataio.gui.client.AbstractGuiSeleniumTest.webDriver;
 import dk.dbc.dataio.gui.client.components.DualList;
-import java.util.List;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import org.openqa.selenium.Alert;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static dk.dbc.dataio.gui.client.AbstractGuiSeleniumTest.webDriver;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class SeleniumUtil {
 
@@ -88,6 +87,21 @@ public class SeleniumUtil {
         Select list = new Select(dualListElement.findElement(By.tagName("select")));
         list.selectByVisibleText(listItem);
         dualListElement.findElement(By.cssSelector("." + DualList.DUAL_LIST_ADDITEM_CLASS + "")).click();
+    }
+
+    public static String getSelectedItemInListBox(WebElement listBoxElement) {
+        final Select list = new Select(listBoxElement);
+        return list.getFirstSelectedOption().getText();
+    }
+
+    public static List<String> getSelectedItemsInDualList(WebElement dualListElement) {
+        Select list = new Select(dualListElement.findElement(By.className(DualList.DUAL_LIST_RIGHT_SELECTION_PANE_CLASS)));
+        List<WebElement> elements = list.getOptions();
+        List<String> result = new ArrayList<String>();
+        for (WebElement element: elements) {
+            result.add(element.getText());
+        }
+        return result;
     }
 
     public static String getAlertStringAndAccept(WebDriver webDriver) {

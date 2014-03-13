@@ -28,7 +28,6 @@ import javax.ws.rs.client.Client;
  * This Enterprise Java Bean (EJB) singleton is used as a connector
  * to the job-store REST interface.
  */
-// ToDo: merge with functionality in dk.dbc.dataio.jobprocessor.ejb.JobStoreServiceConnectorBean class
 @Singleton
 @LocalBean
 public class JobStoreServiceConnectorBean {

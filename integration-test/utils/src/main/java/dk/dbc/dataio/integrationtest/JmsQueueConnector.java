@@ -1,9 +1,9 @@
 package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
@@ -21,7 +21,7 @@ public class JmsQueueConnector {
     public static final String SINKS_QUEUE_NAME = "jms/dataio/sinks";
     public static final String PROCESSOR_QUEUE_NAME = "jms/dataio/processor";
 
-    private static final Client REST_CLIENT = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
+    private static final Client REST_CLIENT = HttpClient.newClient(new ClientConfig().register(new Jackson2xFeature()));
     private static final String ENCODING = StandardCharsets.UTF_8.name();
     private static final long SLEEP_INTERVAL_IN_MS = 250;
 

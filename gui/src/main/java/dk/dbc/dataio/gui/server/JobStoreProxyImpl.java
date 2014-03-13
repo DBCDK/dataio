@@ -3,11 +3,11 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
@@ -19,7 +19,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     Client client = null;
 
     public JobStoreProxyImpl() {
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
     }
 

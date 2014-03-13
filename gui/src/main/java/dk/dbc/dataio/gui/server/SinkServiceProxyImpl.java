@@ -5,20 +5,21 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
+import org.glassfish.jersey.client.ClientConfig;
+
 import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 
 public class SinkServiceProxyImpl implements SinkServiceProxy {
     private Client client = null;
 
     public SinkServiceProxyImpl() {
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
     }
 

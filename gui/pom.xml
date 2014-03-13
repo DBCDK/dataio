@@ -84,12 +84,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.glassfish.jersey.media</groupId>
-      <artifactId>jersey-media-json-jackson</artifactId>
-      <version>${jersey.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
       <version>${project.version}</version>
@@ -102,6 +96,11 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-javascript</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-jersey-media-json-jackson2x</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

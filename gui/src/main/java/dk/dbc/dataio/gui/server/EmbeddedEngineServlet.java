@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.transfile.TransFile;
 import dk.dbc.dataio.commons.utils.transfile.TransFileData;
 import dk.dbc.dataio.gui.client.tmpengine.EngineGUI;
@@ -13,7 +14,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FilenameUtils;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public class EmbeddedEngineServlet extends HttpServlet {
     }
 
     private Client setupHttpClient() {
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         return HttpClient.newClient(clientConfig);
     }
 

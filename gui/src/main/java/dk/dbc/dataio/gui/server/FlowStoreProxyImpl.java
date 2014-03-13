@@ -12,22 +12,23 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-import java.util.List;
+import org.glassfish.jersey.client.ClientConfig;
+
 import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
+import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     Client client = null;
 
     public FlowStoreProxyImpl() {
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
     }
 

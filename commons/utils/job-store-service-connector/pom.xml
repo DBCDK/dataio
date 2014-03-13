@@ -32,6 +32,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-jersey-media-json-jackson2x</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-service</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -45,13 +50,9 @@
 	    <groupId>org.glassfish.jersey.core</groupId>
 	    <artifactId>jersey-client</artifactId>
 	    <version>${jersey.version}</version>
+      <!--
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.glassfish.jersey.media</groupId>
-      <artifactId>jersey-media-json-jackson</artifactId>
-      <version>${jersey.version}</version>
-      <scope>provided</scope>
+      -->
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

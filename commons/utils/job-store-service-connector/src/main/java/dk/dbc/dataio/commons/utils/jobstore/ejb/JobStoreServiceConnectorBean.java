@@ -6,11 +6,11 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,9 +39,8 @@ public class JobStoreServiceConnectorBean {
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
-        // performance: we should consider adding single jackson ObjectMapper to be used by all threads
         client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
+                .register(new Jackson2xFeature()));
     }
 
     @Lock(LockType.READ)

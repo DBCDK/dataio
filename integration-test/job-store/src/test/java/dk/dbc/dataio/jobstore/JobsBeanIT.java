@@ -92,10 +92,9 @@ public class JobsBeanIT {
         return jobStoreServiceConnector.createJob(jobSpecification);
     }
 
-    static JobState getState(Client restClient, long jobId) throws JsonException {
-        final Response response = ITUtil.getJobState(restClient, jobId);
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-        return JsonUtil.fromJson(response.readEntity(String.class), JobState.class, MixIns.getMixIns());
+    static JobState getState(Client restClient, long jobId) throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
+        return jobStoreServiceConnector.getState(jobId);
     }
 
     static ChunkResult getProcessorResult(Client restClient, long jobId, long chunkId) throws JsonException {
@@ -104,10 +103,9 @@ public class JobsBeanIT {
         return JsonUtil.fromJson(response.readEntity(String.class), ChunkResult.class, MixIns.getMixIns());
     }
 
-    static SinkChunkResult getSinkResult(Client restClient, long jobId, long chunkId) throws JsonException {
-        final Response response = ITUtil.getSinkResult(restClient, jobId, chunkId);
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-        return JsonUtil.fromJson(response.readEntity(String.class), SinkChunkResult.class, MixIns.getMixIns());
+    static SinkChunkResult getSinkResult(Client restClient, long jobId, long chunkId) throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
+        return jobStoreServiceConnector.getSinkChunkResult(jobId, chunkId);
     }
 
     private static JobSpecification setupJobPrerequisites(Client restClient) throws URISyntaxException {

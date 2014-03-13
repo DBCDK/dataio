@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -15,7 +16,6 @@ import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.JobStoreMessageProducerBean;
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,7 +45,7 @@ public class JobProcessorMessageConsumerBeanIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException {
         restClient = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
+                .register(new Jackson2xFeature()));
     }
 
     @AfterClass

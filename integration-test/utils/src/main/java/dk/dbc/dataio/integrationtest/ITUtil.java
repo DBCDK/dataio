@@ -164,26 +164,11 @@ public class ITUtil {
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SINKS));
     }
 
-    public static Response getJobState(Client restClient, long jobId) {
-        final Map<String, String> pathVariables = new HashMap<>(1);
-        pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
-        final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_STATE, pathVariables);
-        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.split(URL_PATH_SEPARATOR));
-    }
-
     public static Response getJobProcessorResult(Client restClient, long jobId, long chunkId) {
         final Map<String, String> pathVariables = new HashMap<>(2);
         pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
         pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
         final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_PROCESSED, pathVariables);
-        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.split(URL_PATH_SEPARATOR));
-    }
-
-    public static Response getSinkResult(Client restClient, long jobId, long chunkId) {
-        final Map<String, String> pathVariables = new HashMap<>(2);
-        pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
-        pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
-        final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_DELIVERED, pathVariables);
         return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.split(URL_PATH_SEPARATOR));
     }
 

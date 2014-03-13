@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -26,7 +28,11 @@ public class ChunkItem implements Serializable {
      * @throws NullPointerException when given null valued argument
      * @throws IllegalArgumentException when given id value of {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND} or less
      */
-    public ChunkItem(long id, String data, Status status) throws NullPointerException {
+    @JsonCreator
+    public ChunkItem(
+            @JsonProperty("id") long id,
+            @JsonProperty("data") String data,
+            @JsonProperty("status") Status status) {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
         this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
         this.status = InvariantUtil.checkNotNullOrThrow(status, "status");

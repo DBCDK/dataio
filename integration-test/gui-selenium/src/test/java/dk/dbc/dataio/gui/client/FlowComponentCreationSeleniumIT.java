@@ -5,17 +5,6 @@ import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -29,6 +18,17 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/flowcomponentcreate/FlowComponentCreateConstants_dk.properties");
@@ -53,7 +53,6 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
         //populateSvnRepository();
     }
 
-    @Ignore
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
         testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();
@@ -100,6 +99,16 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
         WebElement element = findComponentSaveResultLabelElement(webDriver);
         assertFalse(element.isDisplayed());
         assertThat(element.getText(), is(""));
+    }
+
+    @Test
+    public void testFlowBinderCreationLeaveAndGetBack_clearsAllFields() {
+        navigateToFlowComponentCreationWidget(webDriver);
+        populateAllInputFields();
+        assertAllInputFields("Name", "SvnProject");
+        navigateAwayFromFlowComponentCreationWidget(webDriver);
+        navigateToFlowComponentCreationWidget(webDriver);
+        assertAllInputFields("", "");
     }
 
     @Ignore // merge with testFlowComponentCreationSuccessfulSave_* test
@@ -193,6 +202,9 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(findComponentSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
+
+    // Private methods
+
     private static void navigateToFlowComponentCreationWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE);
     }
@@ -231,6 +243,22 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     private WebElement findComponentSaveResultLabelElement(WebDriver webDriver) {
         return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateViewImpl.GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
+    }
+
+    private void navigateAwayFromFlowComponentCreationWidget(WebDriver webDriver) {
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW);
+    }
+
+    private void populateAllInputFields() {
+        findComponentNameElement(webDriver).sendKeys("Name");
+        findComponentSvnProjectElement(webDriver).sendKeys("SvnProject");
+        // Todo: Add population of Subversion related fields
+    }
+
+    private void assertAllInputFields(String name, String svnProject) {
+        assertThat(findComponentNameElement(webDriver).getAttribute("value"), is(name));
+        assertThat(findComponentSvnProjectElement(webDriver).getAttribute("value"), is(svnProject));
+        // Todo: Add assertion of Subversion related fields
     }
 
     private void insertSvnProjectNameThatExistsInSvnRepository() {

@@ -274,7 +274,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testFlowBinderCreationLeaveAndGetBack_clearsAllFields() {
-        String sink = createDefaultSink("anExtraSinkName");  // To assure, that two sinks will be created
+        createDefaultSink("anExtraSinkName");  // To assure, that two sinks will be created
         populateAllInputFields();
         assertAllInputFields("Name", "Description", "Frame", "ContentFormat", "CharacterSet", "Destination", "Default Record Splitter", Arrays.asList("123456 (defaultSubmitter)"), "flowName12", "sinkName45");
         navigateAwayFromFlowbinderCreationWidget(webDriver);

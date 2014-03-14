@@ -150,7 +150,7 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowCreationLeaveAndGetBack_clearsAllFields() {
         populateAllInputFields();
-        assertAllInputFields("Name", "Description", Arrays.asList("123456 (defaultSubmitter)"));
+        assertAllInputFields("FlowName", "FlowDescription", Arrays.asList("FlowComponentName"));
         navigateAwayFromFlowCreationWidget(webDriver);
         navigateToFlowCreationWidget(webDriver);
         assertAllInputFields("", "", new ArrayList());
@@ -201,10 +201,11 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private void populateAllInputFields() {
-        SubmitterCreationSeleniumIT.createTestSubmitter(webDriver, "SubmitterName", "234", "SubmitterDescription");
+        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, "FlowComponentName");
+        navigateToFlowCreationWidget(webDriver);
         findNameElement(webDriver).sendKeys("FlowName");
         findDescriptionElement(webDriver).sendKeys("FlowDescription");
-        SeleniumUtil.selectItemInDualList(findSubmitterPanelElement(webDriver), "SubmitterName");
+        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), "FlowComponentName");
     }
 
     private void assertAllInputFields(String name, String description, List<String> flowComponents) {

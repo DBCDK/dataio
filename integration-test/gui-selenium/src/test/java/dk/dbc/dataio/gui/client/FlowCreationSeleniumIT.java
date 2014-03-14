@@ -4,13 +4,16 @@ import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/flowcreate/FlowCreateConstants_dk.properties");
@@ -144,6 +147,16 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
+    @Test
+    public void testFlowCreationLeaveAndGetBack_clearsAllFields() {
+        populateAllInputFields();
+        assertAllInputFields("Name", "Description", Arrays.asList("123456 (defaultSubmitter)"));
+        navigateAwayFromFlowCreationWidget(webDriver);
+        navigateToFlowCreationWidget(webDriver);
+        assertAllInputFields("", "", new ArrayList());
+    }
+
+
     /**
      * The following is private helper methods
      */
@@ -183,9 +196,23 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
         return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
-    /**
-     * The following is public static helper methods.
-     */
+    private void navigateAwayFromFlowCreationWidget(WebDriver webDriver) {
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW);
+    }
+
+    private void populateAllInputFields() {
+        SubmitterCreationSeleniumIT.createTestSubmitter(webDriver, "SubmitterName", "234", "SubmitterDescription");
+        findNameElement(webDriver).sendKeys("FlowName");
+        findDescriptionElement(webDriver).sendKeys("FlowDescription");
+        SeleniumUtil.selectItemInDualList(findSubmitterPanelElement(webDriver), "SubmitterName");
+    }
+
+    private void assertAllInputFields(String name, String description, List<String> flowComponents) {
+        assertThat(findNameElement(webDriver).getAttribute("value"), is(name));
+        assertThat(findDescriptionElement(webDriver).getAttribute("value"), is(description));
+        assertThat(SeleniumUtil.getSelectedItemsInDualList(findComponentSelectionElement(webDriver)), is(flowComponents));
+    }
+
     /**
      * Creates a new Flow with the given values - NOTE: It is the callers
      * responsibility to create a flow-component beforehand with the given name.

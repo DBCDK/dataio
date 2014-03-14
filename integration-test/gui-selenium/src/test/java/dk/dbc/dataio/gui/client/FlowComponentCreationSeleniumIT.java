@@ -53,6 +53,7 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
         //populateSvnRepository();
     }
 
+    @Ignore
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
         testFlowComponentCreationNameInputFieldIsVisibleAndDataCanBeInsertedAndRead();

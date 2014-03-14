@@ -4,13 +4,12 @@ import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/sinkcreate/SinkCreateConstants_dk.properties");
@@ -108,6 +107,31 @@ public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
         String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is("Error: " + texts.translate("error_ProxyKeyViolationError")));  // Todo: Generalisering af fejlhåndtering
     }
+
+    @Test
+    public void testSinkCreationLeaveAndGetBack_clearsAllFields() {
+        populateAllInputFields();
+        assertAllInputFields("SinkName", SINK_CREATION_KNOWN_RESOURCE_NAME);
+        navigateAwayFromSinkCreationWidget(webDriver);
+        navigateToSinkCreationWidget(webDriver);
+        assertAllInputFields("", "");
+    }
+
+    private void populateAllInputFields() {
+        navigateToSinkCreationWidget(webDriver);
+        findSinkNameElement(webDriver).sendKeys("SinkName");
+        findResourceNameElement(webDriver).sendKeys(SINK_CREATION_KNOWN_RESOURCE_NAME);
+    }
+
+    private void navigateAwayFromSinkCreationWidget(WebDriver webDriver) {
+        NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SINKS_SHOW);
+    }
+
+    private void assertAllInputFields(String sinkName, String resourceName) {
+        assertThat(findSinkNameElement(webDriver).getAttribute("value"), is(sinkName));
+        assertThat(findResourceNameElement(webDriver).getAttribute("value"), is(resourceName));
+    }
+
 
     /**
      * The following is private static helper methods.

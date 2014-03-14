@@ -1,17 +1,16 @@
 package dk.dbc.dataio.gui.client;
 
-import static dk.dbc.dataio.gui.client.NavigationPanelSeleniumIT.navigateTo;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import static dk.dbc.dataio.gui.client.NavigationPanelSeleniumIT.navigateTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/submittercreate/SubmitterCreateConstants_dk.properties");
@@ -128,9 +127,36 @@ public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(s, is(texts.translate("error_NumberInputFieldValidationError")));
     }
 
+    @Test
+    public void testSubmitterCreationLeaveAndGetBack_clearsAllFields() {
+        populateAllInputFields();
+        assertAllInputFields("765", "SubmitterName", "SubmitterDescription");
+        navigateAwayFromSubmitterCreationWidget(webDriver);
+        navigateToSubmitterCreationWidget(webDriver);
+        assertAllInputFields("", "", "");
+    }
+
+
     /**
      * The following is private static helper methods.
      */
+    private void populateAllInputFields() {
+        navigateToSubmitterCreationWidget(webDriver);
+        findNumberElement(webDriver).sendKeys("765");
+        findNameElement(webDriver).sendKeys("SubmitterName");
+        findDescriptionElement(webDriver).sendKeys("SubmitterDescription");
+    }
+
+    private void navigateAwayFromSubmitterCreationWidget(WebDriver webDriver) {
+        navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SUBMITTERS_SHOW);
+    }
+
+    private void assertAllInputFields(String submitterNumber, String submitterName, String description) {
+        assertThat(findNumberElement(webDriver).getAttribute("value"), is(submitterNumber));
+        assertThat(findNameElement(webDriver).getAttribute("value"), is(submitterName));
+        assertThat(findDescriptionElement(webDriver).getAttribute("value"), is(description));
+    }
+
     private static void navigateToSubmitterCreationWidget(WebDriver webDriver) {
         navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SUBMITTER_CREATE);
     }

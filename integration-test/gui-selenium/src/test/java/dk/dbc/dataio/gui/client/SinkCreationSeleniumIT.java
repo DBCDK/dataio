@@ -117,6 +117,10 @@ public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertAllInputFields("", "");
     }
 
+    /**
+     * The following is private static helper methods.
+     */
+
     private void populateAllInputFields() {
         navigateToSinkCreationWidget(webDriver);
         findSinkNameElement(webDriver).sendKeys("SinkName");
@@ -132,10 +136,6 @@ public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(findResourceNameElement(webDriver).getAttribute("value"), is(resourceName));
     }
 
-
-    /**
-     * The following is private static helper methods.
-     */
     private static void navigateToSinkCreationWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SINK_CREATE);
     }

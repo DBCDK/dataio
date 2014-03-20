@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
@@ -19,7 +20,9 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
     @Override
     public Response toResponse(PersistenceException e) {
         log.error("Mapping persistence exception", e);
-        if (e.getMessage() != null) {
+        if (e instanceof OptimisticLockException) {
+            return ServiceUtil.buildResponse(Response.Status.CONFLICT, ServiceUtil.asJsonError(e));
+        } else if (e.getMessage() != null) {
             final String message = e.getMessage().toLowerCase();
             if (message.contains("duplicate key value violates unique constraint")      // postgresql
                     || message.contains("unique index or primary key violation")) {     // h2

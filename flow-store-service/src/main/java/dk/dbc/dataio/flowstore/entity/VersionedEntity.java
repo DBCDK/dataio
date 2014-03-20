@@ -39,6 +39,10 @@ public class VersionedEntity {
         return version;
     }
 
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
     @JsonRawValue
     public String getContent() {
         return content;

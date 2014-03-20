@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -42,6 +43,8 @@ public class SinksBean {
      * @return a HTTP 200 response with sink content as JSON,
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json sink
      */
     @GET
     @Path("/{id}")
@@ -54,6 +57,19 @@ public class SinksBean {
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(sink));
     }
 
+
+    /**
+     * Creates a new sink
+     *
+     * @param uriInfo URI information
+     * @param sinkContent The content of the Sink
+     *
+     * @return a HTTP 200 response with sink content as JSON,
+     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json sink
+     */
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     public Response createSink(@Context UriInfo uriInfo, String sinkContent) throws JsonException {
@@ -64,6 +80,42 @@ public class SinksBean {
 
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sink)).build();
     }
+
+
+    /**
+     * Updates an existing sink
+     *
+     * @param uriInfo URI information
+     * @param sinkContent The content of the sink
+     * @param id The Sink ID
+     * @param version The version of the sink
+     *
+     * @return a HTTP 200 response with sink content as JSON,
+     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     *         a HTTP 409 response in case of Concurrent Update error
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json sink
+     * @throws ReferencedEntityNotFoundException on failure to look up sink entity
+     */
+    @POST
+    @Path("/{id}/{version}/content")
+    @Consumes({MediaType.APPLICATION_JSON})
+    public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam("id") Long id, @PathParam("version") Long version) throws JsonException, ReferencedEntityNotFoundException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, "sinkContent");
+
+        final Sink sinkEntity = entityManager.find(Sink.class, id);
+        if (sinkEntity == null) {
+            throw new ReferencedEntityNotFoundException(String.format("Sink(%d)", id));
+        }
+        entityManager.detach(sinkEntity);
+        sinkEntity.setContent(sinkContent);
+        sinkEntity.setVersion(version);
+        entityManager.merge(sinkEntity);
+
+        return Response.ok().build();
+    }
+
 
     /**
      * Returns list of all stored sinks sorted by name in ascending order

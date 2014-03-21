@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
@@ -20,6 +21,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -112,6 +114,45 @@ public class SinksBeanTest {
         assertThat(response.hasEntity(), is(true));
         JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
         assertThat(entityNode.get("content").get("name").textValue(), is("testSink"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void updateSink_nullSinkContent_throws() throws JsonException, ReferencedEntityNotFoundException {
+        newSinksBeanWithMockedEntityManager().updateSink(null, null, 0L, 0L);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void updateSink_emptySinkContent_throws() throws JsonException, ReferencedEntityNotFoundException {
+        newSinksBeanWithMockedEntityManager().updateSink(null, "", 0L, 0L);
+    }
+
+    @Test(expected = JsonException.class)
+    public void updateSink_invalidJSON_throwsJsonException() throws JsonException, ReferencedEntityNotFoundException {
+        newSinksBeanWithMockedEntityManager().updateSink(null, "invalid Json", 0L, 0L);
+    }
+
+    @Test(expected = ReferencedEntityNotFoundException.class)
+    public void updateSink_sinkNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(null);
+
+        final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
+        final Response response = sinksBean.updateSink(null, sinkContent, 123L, 4321L);
+    }
+
+    @Test
+    public void updateSink_sinkFound_returnsResponseWithHttpStatusOk() throws JsonException, ReferencedEntityNotFoundException {
+        final Sink sink = mock(Sink.class);
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(sink);
+
+        final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
+        final Response response = sinksBean.updateSink(null, sinkContent, 123L, 4321L);
+
+        verify(sink).setContent(sinkContent);
+        verify(sink).setVersion(4321L);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(false));
     }
 
     public static SinksBean newSinksBeanWithMockedEntityManager() {

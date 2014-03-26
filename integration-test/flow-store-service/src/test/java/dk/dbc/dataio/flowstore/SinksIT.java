@@ -7,10 +7,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
@@ -51,7 +48,7 @@ public class SinksIT {
 
     /**
      * Given: a deployed flow-store service
-     * When : valid JSON is POSTed to the sinks path
+     * When : valid JSON is POSTed to the sinks path without an identifier
      * Then : request returns with a CREATED http status code
      * And  : request returns with a Location header pointing to the newly created resource
      * And  : posted data can be found in the underlying database
@@ -100,6 +97,45 @@ public class SinksIT {
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
     }
+
+    /**
+     * Given: a deployed flow-store service
+     * And  : a valid sink with given id is already stored
+     * When : valid JSON is POSTed to the sinks path with an identifier (update)
+     * Then : request returns with a UPDATED http status code
+     * And  : request returns with a Location header pointing to the updated resource
+     * And  : updated data can be found in the underlying database
+     */
+    @Ignore
+    @Test
+    public void updateSink_ok() throws SQLException {
+        // Given ...
+        final String sinkContent = new SinkContentJsonBuilder().build();
+        final Response response = HttpClient.doPostWithJson(restClient, sinkContent, baseUrl, FlowStoreServiceConstants.SINKS);
+        final long createdId = getResourceIdFromLocationHeaderAndAssertHasValue(response);
+        // When...
+        final String newSinkContent = new SinkContentJsonBuilder().setName("UpdatedSinkName").setResource("NewResourceName").build();
+        final String updateUrl = String.format(baseUrl + "/%d/%d/content", createdId, 1L);  // Assume, that the very first created sink has version number 1
+        // Do update
+        final Response updateResponse = HttpClient.doPostWithJson(restClient, newSinkContent, updateUrl, FlowStoreServiceConstants.SINKS);
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
+        // And ...
+        final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
+        assertThat(id, is(createdId));
+        // And ...
+        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.SINKS_TABLE_SELECT_CONTENT_STMT, id);
+        assertThat(rs.size(), is(1));
+        assertThat((String) rs.get(0).get(0), is(newSinkContent));
+    }
+
+
+
+
+
+
+
+
 
     /**
      * Given: a deployed flow-store service containing no sinks

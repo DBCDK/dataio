@@ -31,7 +31,7 @@ public class DummyMessageProcessorBean {
     MessageDrivenContext messageDrivenContext;
 
     @EJB
-    TextMessageSender textMessageSender;
+    TextMessageSenderBean textMessageSender;
 
     public void onMessage(Message message) {
         try {
@@ -54,9 +54,9 @@ public class DummyMessageProcessorBean {
                 }
                 SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(), chunkResult.getChunkId(), chunkResult.getEncoding(), sinkItems);
 
-                List<TextMessageSender.StringProperty> properties = new ArrayList<>();
-                properties.add(new TextMessageSender.StringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
-                properties.add(new TextMessageSender.StringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE));
+                List<TextMessageSenderBean.StringProperty> properties = new ArrayList<>();
+                properties.add(new TextMessageSenderBean.StringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
+                properties.add(new TextMessageSenderBean.StringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE));
                 textMessageSender.send(JsonUtil.toJson(sinkChunkResult), properties);
             } else {
                 LOGGER.error("Invalid message type: {}", message);

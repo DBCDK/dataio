@@ -11,7 +11,7 @@ import javax.jms.Queue;
 import javax.jms.TextMessage;
 
 @Stateless
-public class TextMessageSender {
+public class TextMessageSenderBean {
 
     @Resource
     ConnectionFactory connectionFactory;

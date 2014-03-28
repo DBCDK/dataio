@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>dataio-sink-dummy</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dataio-sink-dummy-ear</artifactId>
+  <name>dataio-sink-dummy-ear</name>
+  <packaging>ear</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-ear-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+          <version>6</version>
+          <defaultLibBundleDir>lib</defaultLibBundleDir>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <!-- Move to dev-profile -->
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven2-plugin</artifactId>
+        <version>${cargo.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.glassfish.main.deployment</groupId>
+            <artifactId>deployment-client</artifactId>
+            <version>${glassfish.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-dummy-ejb</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+  </dependencies>
+
+</project>

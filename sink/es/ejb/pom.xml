@@ -64,6 +64,12 @@
       <artifactId>commons-codec</artifactId>
       <version>1.8</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-testutil</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

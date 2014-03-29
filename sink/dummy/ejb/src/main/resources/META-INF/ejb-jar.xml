@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ejb-jar xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/ejb-jar_3_2.xsd"
+         version="3.2">
+
+  <display-name>ES SINK EJB</display-name>
+  <enterprise-beans>
+    <message-driven>
+      <ejb-name>DummyMessageProcessorBean</ejb-name>
+      <activation-config>
+        <activation-config-property>
+          <activation-config-property-name>destinationType</activation-config-property-name>
+          <activation-config-property-value>javax.jms.Queue</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>destinationLookup</activation-config-property-name>
+          <activation-config-property-value>jms/dataio/sinks</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>sendUndeliverableMsgsToDMQ</activation-config-property-name>
+          <activation-config-property-value>false</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>messageSelector</activation-config-property-name>
+          <activation-config-property-value>resource = 'jdbc/dataio/dummy'</activation-config-property-value>
+        </activation-config-property>
+      </activation-config>
+    </message-driven>
+    <session>
+        <ejb-name>TextMessageSenderBean</ejb-name>
+        <message-destination-ref>
+            <message-destination-ref-name>jobProcessorJmsQueue</message-destination-ref-name>
+            <message-destination-type>javax.jms.Queue</message-destination-type>
+        </message-destination-ref>
+    </session>
+  </enterprise-beans>
+  <assembly-descriptor>
+  </assembly-descriptor>
+</ejb-jar>

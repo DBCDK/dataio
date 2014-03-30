@@ -51,13 +51,16 @@ public class DummyMessageProcessorBean {
                     // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
                     ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
                     sinkItems.add(new ChunkItem(item.getId(), "Set by DummySink", status));
+
                 }
                 SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(), chunkResult.getChunkId(), chunkResult.getEncoding(), sinkItems);
 
                 List<TextMessageSenderBean.StringProperty> properties = new ArrayList<>();
                 properties.add(new TextMessageSenderBean.StringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
                 properties.add(new TextMessageSenderBean.StringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE));
-                textMessageSender.send(JsonUtil.toJson(sinkChunkResult), properties);
+                String jsonMessage = JsonUtil.toJson(sinkChunkResult);
+                LOGGER.info("Adding dummy message to queue: {}", jsonMessage);
+                textMessageSender.send(jsonMessage, properties);
             } else {
                 LOGGER.error("Invalid message type: {}", message);
             }

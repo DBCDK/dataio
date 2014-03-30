@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>dataio</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dataio-performance-test</artifactId>
+  <name>dataio-performance-test</name>
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-types</artifactId>
+      <version>${project.version}</version>
+      <type>jar</type>
+    </dependency>
+
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-flow-store-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-job-store-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-service</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+        <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dataio-sink-dummy-ear</artifactId>
+          <version>${project.version}</version>
+          <type>ear</type>
+        </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-httpclient</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>test</scope>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>${javaee.api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>perftest</id>
+      <properties>
+        <glassfish.port>8080</glassfish.port>
+        <h2.port>8181</h2.port>
+      </properties>
+      <build>
+        <plugins>
+
+          <plugin>
+            <!-- Integrationtest plugin - just like the surefire plugin,
+            but this plugin handles other test files (typically
+            testfiles containing IT) -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>2.14.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+                <id>integration-test</id>
+              </execution>
+            </executions>
+            <configuration>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
+              <systemPropertyVariables>
+                <container.http.port>8080</container.http.port>
+                <container.hostname>localhost</container.hostname>
+                <glassfish.port>${glassfish.port}</glassfish.port>
+                <h2.port>${h2.port}</h2.port>
+                <svn.local.dir>${svn.local.dir}</svn.local.dir>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven2-plugin</artifactId>
+            <version>${cargo.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.glassfish.main.deployment</groupId>
+                <artifactId>deployment-client</artifactId>
+                <version>${glassfish.version}</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <container>
+                <containerId>${container.id}x</containerId>
+                <type>remote</type>
+              </container>
+              <configuration>
+                <type>runtime</type>
+                <properties>
+                  <cargo.hostname>${container.hostname}</cargo.hostname>
+                  <cargo.remote.username>${container.username}</cargo.remote.username>
+                  <cargo.remote.password>${container.password}</cargo.remote.password>
+                  <cargo.glassfish.admin.port>${container.admin.port}</cargo.glassfish.admin.port>
+                </properties>
+              </configuration>
+              <deployables>
+                <deployable>
+                  <groupId>dk.dbc</groupId>
+                  <artifactId>dataio-flow-store-service</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>flow-store</context>
+                  </properties>
+                </deployable>
+                <deployable>
+                  <groupId>dk.dbc</groupId>
+                  <artifactId>dataio-job-store-service</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>job-store</context>
+                  </properties>
+                </deployable>
+                <deployable>
+                  <groupId>dk.dbc</groupId>
+                  <artifactId>dataio-sink-service</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>sink-service</context>
+                  </properties>
+                </deployable>
+                <deployable>
+                  <groupId>dk.dbc</groupId>
+                  <artifactId>dataio-sink-dummy-ear</artifactId>
+                  <type>ear</type>
+                </deployable>
+              </deployables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>deploy</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>deployer-deploy</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>undeploy</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>deployer-undeploy</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>
+
+
+<!--
+
+Setting up performance-test:
+
+* Create a perftest-profile
+* in the perf-test-profile set integration-test to deploy
+  job-store/flow-store/sink-service/dummy-sink through cargo into external glassfish
+
+* Write code to create submitter/flow/flowbinder/etc with simple javascript
+
+* Write code to create new job with enough records to be interesting
+
+* Write code to wait for test to finish (look at job each second to detect if it is finished)
+
+* Somehow let the performance-test info be delivered to jenkins (perhaps to be done at some other time)
+
+-->
+
+

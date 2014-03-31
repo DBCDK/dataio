@@ -15,6 +15,13 @@
   <packaging>jar</packaging>
 
   <dependencies>
+      <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dataio-job-processor-ear</artifactId>
+          <type>ear</type>
+          <scope>test</scope>
+          <version>${project.version}</version>
+      </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
@@ -22,6 +29,13 @@
       <type>jar</type>
     </dependency>
 
+    <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+        <type>ejb</type>
+        <scope>test</scope>
+        <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-flow-store-service</artifactId>
@@ -49,9 +63,15 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-httpclient</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <version>${project.version}</version>
       <scope>test</scope>
       <type>jar</type>
+    </dependency>
+    <dependency>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dataio-integration-test-utils</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <!--dependency>
       <groupId>javax</groupId>
@@ -170,6 +190,11 @@
                 <deployable>
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-sink-dummy-ear</artifactId>
+                  <type>ear</type>
+                </deployable>
+                <deployable>
+                  <groupId>dk.dbc</groupId>
+                  <artifactId>dataio-job-processor-ear</artifactId>
                   <type>ear</type>
                 </deployable>
               </deployables>

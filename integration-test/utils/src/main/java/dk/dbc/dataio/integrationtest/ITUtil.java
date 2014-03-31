@@ -164,6 +164,10 @@ public class ITUtil {
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SINKS));
     }
 
+    public static void updateSink(Client restClient, String baseUrl, String content, long sinkId, long  version) {
+        HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SINKS, Long.toString(sinkId), Long.toString(version), "content");
+    }
+
     public static Response getJobProcessorResult(Client restClient, long jobId, long chunkId) {
         final Map<String, String> pathVariables = new HashMap<>(2);
         pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));

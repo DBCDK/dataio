@@ -1,6 +1,5 @@
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -12,12 +11,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -96,23 +90,20 @@ public class SinksBean {
      *         a HTTP 500 response in case of general error.
      *
      * @throws JsonException on failure to create json sink
-     * @throws ReferencedEntityNotFoundException on failure to look up sink entity
      */
     @POST
     @Path("/{id}/{version}/content")
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam("id") Long id, @PathParam("version") Long version) throws JsonException, ReferencedEntityNotFoundException {
+    public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam("id") Long id, @PathParam("version") Long version) throws JsonException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, "sinkContent");
-
         final Sink sinkEntity = entityManager.find(Sink.class, id);
         if (sinkEntity == null) {
-            throw new ReferencedEntityNotFoundException(String.format("Sink(%d)", id));
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
         }
         entityManager.detach(sinkEntity);
         sinkEntity.setContent(sinkContent);
         sinkEntity.setVersion(version);
         entityManager.merge(sinkEntity);
-
         return Response.ok().build();
     }
 

@@ -1,20 +1,12 @@
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.*;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-import java.util.List;
+
 import javax.servlet.ServletException;
+import java.util.List;
 
 public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowStoreProxy {
     private static final long serialVersionUID = 358109395377092219L;
@@ -50,6 +42,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public void createSink(SinkContent sinkContent) throws NullPointerException, ProxyException {
         flowStoreProxy.createSink(sinkContent);
+    }
+
+    @Override
+    public void updateSink(Sink sink, Long id, Long version) throws NullPointerException, ProxyException {
+        flowStoreProxy.updateSink(sink, id, version);
     }
 
     @Override

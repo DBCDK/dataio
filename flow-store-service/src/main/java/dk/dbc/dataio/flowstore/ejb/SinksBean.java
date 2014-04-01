@@ -92,7 +92,7 @@ public class SinksBean {
      * @throws JsonException on failure to create json sink
      */
     @POST
-    @Path("/{id}/{version}/content")
+    @Path("/{id}/{version}/" + FlowStoreServiceConstants.SINKS_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam("id") Long id, @PathParam("version") Long version) throws JsonException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, "sinkContent");

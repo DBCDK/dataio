@@ -113,6 +113,22 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public void updateSink(Sink sink, Long id, Long version) throws NullPointerException, ProxyException {
+        final Response response;
+        try {
+            response = HttpClient.doPostWithJson(client, sink,
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SINKS, Long.toString(id), Long.toString(version), FlowStoreServiceConstants.SINKS_CONTENT);
+        } catch (ServletException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+        } finally {
+            response.close();
+        }
+    }
+
+        @Override
     public List<FlowComponent> findAllComponents() throws ProxyException {
         final Response response;
         final List<FlowComponent> result;

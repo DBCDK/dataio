@@ -1,16 +1,11 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Version;
+import javax.persistence.*;
 
 /**
  * Base class for flow store entities where id is auto
@@ -40,6 +35,7 @@ public class VersionedEntity {
     }
 
     public void setVersion(Long version) {
+        InvariantUtil.checkLowerBoundOrThrow(version, "version", this.version);
         this.version = version;
     }
 

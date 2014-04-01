@@ -104,6 +104,7 @@ public class SinksBean {
         sinkEntity.setContent(sinkContent);
         sinkEntity.setVersion(version);
         entityManager.merge(sinkEntity);
+        entityManager.flush();
         return Response.ok().build();
     }
 

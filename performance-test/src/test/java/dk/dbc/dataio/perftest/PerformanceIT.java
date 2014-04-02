@@ -13,33 +13,34 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.junit.Test;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
-
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.category.DefaultCategoryDataset;
 
 public class PerformanceIT {
+    private static final String DATASET_FILE = "dataset.json";
 
     @Test
-    public void performanceTest() throws JsonException {
+    public void performanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
         String flowStorebaseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         String jobStorebaseUrl = String.format("http://localhost:%s/job-store", System.getProperty("glassfish.port"));
         Client restClient = HttpClient.newClient();
@@ -81,45 +82,47 @@ public class PerformanceIT {
         // Create Job
         JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, jobStorebaseUrl);
         JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", "/home/damkjaer/svn.dbc.dk/repos/dataio/trunk/performance-test/data.xml");
-        try {
-            // Start timer
-            long timer = System.currentTimeMillis();
-            // Insert Job
-            JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+        //JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", "/home/jbn/dev/repos/dataio/performance-test/data.xml");
 
-            boolean done = false;
-            // Wait for Job-completion
-            while(!done) {
-                JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
-                if(jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
-                    done = true;
-                } else {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+        // Start timer
+        long timer = System.currentTimeMillis();
+        // Insert Job
+        JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+
+        boolean done = false;
+        // Wait for Job-completion
+        while(!done) {
+            JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
+            if(jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
+                done = true;
+            } else {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            timer = System.currentTimeMillis() - timer;
-            // End Timer
-
-            // Somehow write result of timer in useful format
-            System.out.println("Time to handler job (ms): " + timer);
-
-        } catch (NullPointerException ex) {
-            Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ProcessingException ex) {
-            Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (JobStoreServiceConnectorException ex) {
-            Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
         }
+        timer = System.currentTimeMillis() - timer;
+        // End Timer
+
+        updateDataset(timer);
 
         // read json with previous data-points
         // Add new data point to json
         // Render graph
         // Write graph to main.png file
         createChart();
+    }
+
+    private void updateDataset(long measurement) throws IOException {
+        final Dataset dataset = Dataset.fromJsonFile(DATASET_FILE);
+        Dataset.DatasetValue datasetValue = new Dataset.DatasetValue();
+        datasetValue.value = measurement;
+        datasetValue.rowKey = "keyX";
+        datasetValue.columnKey = "keyY";
+        dataset.addValue(datasetValue);
+        Dataset.toJsonFile(DATASET_FILE, dataset);
     }
 
     private <T> long insertObjectInFlowStore(Client restClient, String baseUrl, T type, String restEndPoint) throws JsonException {
@@ -140,5 +143,11 @@ public class PerformanceIT {
         } catch (IOException ex) {
             Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public static class DatasetValue {
+        public Number value;
+        public String rowKey;
+        public String columnKey;
     }
 }

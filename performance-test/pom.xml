@@ -97,6 +97,12 @@
       <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>org.jfree</groupId>
+        <artifactId>jfreechart</artifactId>
+        <version>1.0.17</version>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

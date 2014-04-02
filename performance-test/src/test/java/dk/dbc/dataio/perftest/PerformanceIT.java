@@ -18,6 +18,8 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,6 +30,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 public class PerformanceIT {
 
@@ -99,7 +106,7 @@ public class PerformanceIT {
 
             // Somehow write result of timer in useful format
             System.out.println("Time to handler job (ms): " + timer);
-   
+
         } catch (NullPointerException ex) {
             Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ProcessingException ex) {
@@ -107,6 +114,12 @@ public class PerformanceIT {
         } catch (JobStoreServiceConnectorException ex) {
             Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        // read json with previous data-points
+        // Add new data point to json
+        // Render graph
+        // Write graph to main.png file
+        createChart();
     }
 
     private <T> long insertObjectInFlowStore(Client restClient, String baseUrl, T type, String restEndPoint) throws JsonException {
@@ -115,5 +128,17 @@ public class PerformanceIT {
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
         long id = ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue(response);
         return id;
+    }
+
+
+    private void createChart() {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        dataset.addValue(5.0, "alfa", "beta");
+        JFreeChart lineChart = ChartFactory.createLineChart("This is a title", "SomeAxis", "SomeOtherAxis", dataset);
+        try {
+            ChartUtilities.saveChartAsPNG(new File("main.png"), lineChart, 320, 200);
+        } catch (IOException ex) {
+            Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

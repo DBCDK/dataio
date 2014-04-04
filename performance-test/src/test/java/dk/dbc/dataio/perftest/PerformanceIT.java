@@ -28,16 +28,49 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import org.junit.After;
 import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 public class PerformanceIT {
+
     private static final String DATASET_FILE = "dataset.json";
+    private File testdata;
+
+    @Rule
+    public TemporaryFolder tmpFolder = new TemporaryFolder();
+
+    String temporaryXml
+            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+            + "<container>"
+            + "  <record>some data</record>"
+            + "  <record>some more data</record>"
+            + "</container>";
+
+    @Before
+    public void setup() throws UnsupportedEncodingException, IOException {
+        testdata = tmpFolder.newFile();
+        Files.write(testdata.toPath(), temporaryXml.getBytes("utf-8"));
+    }
+
+    @After
+    public void tearDown() throws SQLException, ClassNotFoundException {
+        try (final Connection connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)) {
+            ITUtil.clearAllDbTables(connection);
+        }
+    }
 
     @Test
     public void performanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
@@ -81,7 +114,7 @@ public class PerformanceIT {
 
         // Create Job
         JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, jobStorebaseUrl);
-        JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", "/home/damkjaer/svn.dbc.dk/repos/dataio/trunk/performance-test/data.xml");
+        JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", testdata.getAbsolutePath());
         //JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", "/home/jbn/dev/repos/dataio/performance-test/data.xml");
 
         // Start timer
@@ -91,9 +124,9 @@ public class PerformanceIT {
 
         boolean done = false;
         // Wait for Job-completion
-        while(!done) {
+        while (!done) {
             JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
-            if(jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
+            if (jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
                 done = true;
             } else {
                 try {
@@ -106,16 +139,16 @@ public class PerformanceIT {
         timer = System.currentTimeMillis() - timer;
         // End Timer
 
-        updateDataset(timer);
+        Dataset dataset = updateDataset(timer);
 
         // read json with previous data-points
         // Add new data point to json
         // Render graph
         // Write graph to main.png file
-        createChart();
+        createChart(dataset);
     }
 
-    private void updateDataset(long measurement) throws IOException {
+    private Dataset updateDataset(long measurement) throws IOException {
         final Dataset dataset = Dataset.fromJsonFile(DATASET_FILE);
         Dataset.DatasetValue datasetValue = new Dataset.DatasetValue();
         datasetValue.value = measurement;
@@ -123,6 +156,7 @@ public class PerformanceIT {
         datasetValue.columnKey = "keyY";
         dataset.addValue(datasetValue);
         Dataset.toJsonFile(DATASET_FILE, dataset);
+        return dataset;
     }
 
     private <T> long insertObjectInFlowStore(Client restClient, String baseUrl, T type, String restEndPoint) throws JsonException {
@@ -133,11 +167,12 @@ public class PerformanceIT {
         return id;
     }
 
-
-    private void createChart() {
+    private void createChart(Dataset ioDataset) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        dataset.addValue(5.0, "alfa", "beta");
-        JFreeChart lineChart = ChartFactory.createLineChart("This is a title", "SomeAxis", "SomeOtherAxis", dataset);
+        for (Dataset.DatasetValue datasetValue : ioDataset.getValues()) {
+            dataset.addValue(datasetValue.value, datasetValue.rowKey, datasetValue.columnKey);
+        }
+        JFreeChart lineChart = ChartFactory.createLineChart("DataIO performance test - A job with X records", "Total time in milliseconds", "Timestamp", dataset);
         try {
             ChartUtilities.saveChartAsPNG(new File("main.png"), lineChart, 320, 200);
         } catch (IOException ex) {
@@ -145,9 +180,9 @@ public class PerformanceIT {
         }
     }
 
-    public static class DatasetValue {
-        public Number value;
-        public String rowKey;
-        public String columnKey;
-    }
+//    public static class DatasetValue {
+//        public Number value;
+//        public String rowKey;
+//        public String columnKey;
+//    }
 }

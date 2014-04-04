@@ -28,8 +28,13 @@
       <version>${project.version}</version>
       <type>jar</type>
     </dependency>
-
     <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${h2.version}</version>
+        <scope>test</scope>
+                </dependency>
+                <dependency>
         <groupId>dk.dbc</groupId>
         <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
         <type>ejb</type>
@@ -109,8 +114,8 @@
     <profile>
       <id>perftest</id>
       <properties>
-        <glassfish.port>8080</glassfish.port>
-        <h2.port>8181</h2.port>
+        <!--glassfish.port>${glassfish.port}</glassfish.port>
+        <h2.port>${h2.port}</h2.port-->
       </properties>
       <build>
         <plugins>

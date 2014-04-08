@@ -23,9 +23,14 @@ import javax.jms.JMSException;
 import java.util.List;
 
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
 import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -78,13 +83,19 @@ public class JobStoreMessageConsumerBeanIT {
 
         ChunkResult processorResult;
 
-        processorResult = assertProcessorMessageForSink(sinksQueue.get(0));
+        Map<Long, ChunkResult> processorResults = new HashMap<>();
+        ChunkResult processorResult0 = assertProcessorMessageForSink(sinksQueue.get(0));
+        processorResults.put(processorResult0.getChunkId(), processorResult0);
+        ChunkResult processorResult1 = assertProcessorMessageForSink(sinksQueue.get(1));
+        processorResults.put(processorResult1.getChunkId(), processorResult1);
+
+        processorResult = processorResults.get(1L);
         assertThat(processorResult.getJobId(), is(jobId));
         assertThat(processorResult.getChunkId(), is(1L));
         assertThat(processorResult.getItems().size(), is(1));
         assertThat(base64decode(processorResult.getItems().get(0).getData()), is("ONE"));
 
-        processorResult = assertProcessorMessageForSink(sinksQueue.get(1));
+        processorResult = processorResults.get(2L);
         assertThat(processorResult.getJobId(), is(jobId));
         assertThat(processorResult.getChunkId(), is(2L));
         assertThat(processorResult.getItems().size(), is(1));

@@ -24,6 +24,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.junit.Test;
 
+import org.apache.commons.codec.binary.Base64;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -33,14 +35,18 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
 import org.junit.After;
+import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -48,6 +54,10 @@ public class PerformanceIT {
 
     private static final String DATASET_FILE = "dataset.json";
     private File testdata;
+
+    private static final long RECORDS_PER_TEST = 2000;
+    private static long lowContentTimingResult = 0; // to be set from low-content test
+    private static long highContentTimingResult = 0; // to be set from high-content test
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -59,12 +69,6 @@ public class PerformanceIT {
             + "  <record>some more data</record>"
             + "</container>";
 
-    @Before
-    public void setup() throws UnsupportedEncodingException, IOException {
-        testdata = tmpFolder.newFile();
-        Files.write(testdata.toPath(), temporaryXml.getBytes("utf-8"));
-    }
-
     @After
     public void tearDown() throws SQLException, ClassNotFoundException {
         try (final Connection connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)) {
@@ -72,8 +76,62 @@ public class PerformanceIT {
         }
     }
 
+    @AfterClass
+    public static void updateDataPointsAndCreateGraphImage() throws IOException {
+        Dataset dataset = updateDataset(lowContentTimingResult);
+        createChart(dataset);
+    }
+
     @Test
-    public void performanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
+    public void lowContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
+        // Create test data
+        createTemporaryFile(RECORDS_PER_TEST);
+        testdata = tmpFolder.newFile();
+        Files.write(testdata.toPath(), temporaryXml.getBytes("utf-8"));
+
+        // Initialize flow-store
+        JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForSmallPerformanceTest());
+
+        // Create JobSpec
+        JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", testdata.getAbsolutePath());
+
+        // Start timer
+        long timer = System.currentTimeMillis();
+
+        // Insert Job
+        JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+
+        boolean done = false;
+        // Wait for Job-completion
+        while (!done) {
+            JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
+            if (jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
+                done = true;
+            } else {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        // End Timer
+        lowContentTimingResult = System.currentTimeMillis() - timer;
+    }
+
+    private void createTemporaryFile(long numberOfElements) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        sb.append("<container>");
+        for (long i = 0; i < numberOfElements; i++) {
+            sb.append("  <record>some data</record>");
+        }
+        sb.append("</container>");
+        temporaryXml = sb.toString();
+    }
+
+    private JobStoreServiceConnector initializeFlowStore(List<JavaScript> javaScripts) throws JsonException, UnsupportedEncodingException {
+
         String flowStorebaseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         String jobStorebaseUrl = String.format("http://localhost:%s/job-store", System.getProperty("glassfish.port"));
         Client restClient = HttpClient.newClient();
@@ -82,9 +140,8 @@ public class PerformanceIT {
         SubmitterContent submitterContent = new SubmitterContent(424242L, "perftestbib", "Library for performancetest");
         long submitterId = insertObjectInFlowStore(restClient, flowStorebaseUrl, submitterContent, FlowStoreServiceConstants.SUBMITTERS);
 
-        // insert flowcomponent with javascript with no functionality:
-        JavaScript js = new JavaScript("function invocationFunction(record, supplementaryData) { return \"Hello from javascript!\" }", "NoModule");
-        FlowComponentContent flowComponentContent = new FlowComponentContent("perftest-flow-component", "No_SVN_project", 1L, "invocationJavaScript", Arrays.asList(js), "invocationFunction");
+        // insert flowcomponent with javascripts:
+        FlowComponentContent flowComponentContent = new FlowComponentContent("perftest-flow-component", "No_SVN_project", 1L, "invocationJavaScript", javaScripts, "invocationFunction");
         long flowComponentId = insertObjectInFlowStore(restClient, flowStorebaseUrl, flowComponentContent, FlowStoreServiceConstants.FLOW_COMPONENTS);
 
         // get flowcomponent:
@@ -112,51 +169,26 @@ public class PerformanceIT {
         FlowBinderContent flowBinderContent = new FlowBinderContent("perftest-flowbinder", "flowbinder for perftest", "xml", "testdata", "utf8", "dummysink", "Default Record Splitter", flowId, Arrays.asList(new Long(submitterId)), sinkId);
         insertObjectInFlowStore(restClient, flowStorebaseUrl, flowBinderContent, FlowStoreServiceConstants.FLOW_BINDERS);
 
-        // Create Job
-        JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, jobStorebaseUrl);
-        JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", testdata.getAbsolutePath());
-        //JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", "/home/jbn/dev/repos/dataio/performance-test/data.xml");
-
-        // Start timer
-        long timer = System.currentTimeMillis();
-        // Insert Job
-        JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
-
-        boolean done = false;
-        // Wait for Job-completion
-        while (!done) {
-            JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
-            if (jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
-                done = true;
-            } else {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-        timer = System.currentTimeMillis() - timer;
-        // End Timer
-
-        Dataset dataset = updateDataset(timer);
-
-        // read json with previous data-points
-        // Add new data point to json
-        // Render graph
-        // Write graph to main.png file
-        createChart(dataset);
+        return new JobStoreServiceConnector(restClient, jobStorebaseUrl);
     }
 
-    private Dataset updateDataset(long measurement) throws IOException {
-        final Dataset dataset = Dataset.fromJsonFile(DATASET_FILE);
-        Dataset.DatasetValue datasetValue = new Dataset.DatasetValue();
-        datasetValue.value = measurement;
-        datasetValue.rowKey = "keyX";
-        datasetValue.columnKey = "keyY";
-        dataset.addValue(datasetValue);
-        Dataset.toJsonFile(DATASET_FILE, dataset);
-        return dataset;
+    /*
+     * Creates a the smallest possible javascripts for use in the performance-test.
+     * In order to keep it small, "use" and "modules-info" are mocked.
+     */
+    private List<JavaScript> getJavaScriptsForSmallPerformanceTest() throws UnsupportedEncodingException {
+        // This method must return a list of javascripts where the first javascript has an a function called
+        // invocationfunction for us as entrance to the javascript.
+
+        JavaScript js = new JavaScript(Base64.encodeBase64String(("function invocationFunction(record, supplementaryData) {\n"
+                //                        + "var md5 = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
+                //                        + "md5.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
+                //                        + "return new String(md5.digest());\n"
+                + "return \"Hello from javascript!\\n\";"
+                + "}").getBytes("UTF-8")), "NoModule");
+        JavaScript jsUse = new JavaScript(Base64.encodeBase64String("function use(module) {};".getBytes("UTF-8")), "Use");
+        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String("var __ModulesInfo = function() { var that = {}; that.checkDepAlreadyLoaded = function( moduleName ) { return true; }; return that;}();".getBytes("UTF-8")), "ModulesInfo");
+        return Arrays.asList(js, jsUse, jsModulesInfo);
     }
 
     private <T> long insertObjectInFlowStore(Client restClient, String baseUrl, T type, String restEndPoint) throws JsonException {
@@ -167,22 +199,29 @@ public class PerformanceIT {
         return id;
     }
 
-    private void createChart(Dataset ioDataset) {
+    private static Dataset updateDataset(long measurement) throws IOException {
+        final Dataset dataset = Dataset.fromJsonFile(DATASET_FILE);
+        Dataset.DatasetValue datasetValue = new Dataset.DatasetValue();
+        datasetValue.value = measurement;
+        datasetValue.rowKey = "timing";
+        datasetValue.columnKey = Long.toString(System.currentTimeMillis());
+        dataset.addValue(datasetValue);
+        Dataset.toJsonFile(DATASET_FILE, dataset);
+        return dataset;
+    }
+
+    private static void createChart(Dataset ioDataset) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         for (Dataset.DatasetValue datasetValue : ioDataset.getValues()) {
             dataset.addValue(datasetValue.value, datasetValue.rowKey, datasetValue.columnKey);
         }
-        JFreeChart lineChart = ChartFactory.createLineChart("DataIO performance test - A job with X records", "Total time in milliseconds", "Timestamp", dataset);
+        JFreeChart lineChart = ChartFactory.createLineChart("DataIO performance test - A job with X records", "Timestamp", "Total time in milliseconds", dataset, PlotOrientation.VERTICAL, false, false, false);
+        CategoryPlot categoryPlot = lineChart.getCategoryPlot();
+        categoryPlot.getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_90);
         try {
-            ChartUtilities.saveChartAsPNG(new File("main.png"), lineChart, 320, 200);
+            ChartUtilities.saveChartAsPNG(new File("main.png"), lineChart, 1920, 960);
         } catch (IOException ex) {
             Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-//    public static class DatasetValue {
-//        public Number value;
-//        public String rowKey;
-//        public String columnKey;
-//    }
 }

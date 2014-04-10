@@ -142,6 +142,7 @@ public class JobStoreServiceConnector {
     }
 
     private <T> T readResponseEntity(Response response, Class<T> tClass) throws JobStoreServiceConnectorException {
+        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
         final T entity = response.readEntity(tClass);
         if (entity == null) {
             throw new JobStoreServiceConnectorException(

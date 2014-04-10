@@ -47,30 +47,23 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 public class PerformanceIT {
 
     private static final String DATASET_FILE = "dataset.json";
-    private File testdata;
 
-    private static final long RECORDS_PER_TEST = 2000;
+    private static final long RECORDS_PER_TEST = 100;
     private static long lowContentTimingResult = 0; // to be set from low-content test
     private static long highContentTimingResult = 0; // to be set from high-content test
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
-    String temporaryXml
-            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-            + "<container>"
-            + "  <record>some data</record>"
-            + "  <record>some more data</record>"
-            + "</container>";
-
     @After
-    public void tearDown() throws SQLException, ClassNotFoundException {
+    public void clearDb() throws SQLException, ClassNotFoundException {
         try (final Connection connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)) {
             ITUtil.clearAllDbTables(connection);
         }
@@ -82,12 +75,12 @@ public class PerformanceIT {
         createChart(dataset);
     }
 
+
     @Test
     public void lowContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
         // Create test data
-        createTemporaryFile(RECORDS_PER_TEST);
-        testdata = tmpFolder.newFile();
-        Files.write(testdata.toPath(), temporaryXml.getBytes("utf-8"));
+        File testdata = tmpFolder.newFile();
+        Files.write(testdata.toPath(), createTemporaryFile(RECORDS_PER_TEST, "low").getBytes("utf-8"));
 
         // Initialize flow-store
         JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForSmallPerformanceTest());
@@ -119,15 +112,55 @@ public class PerformanceIT {
         lowContentTimingResult = System.currentTimeMillis() - timer;
     }
 
-    private void createTemporaryFile(long numberOfElements) {
+    @Test
+    public void highContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
+        // Create test data
         StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        sb.append("<container>");
-        for (long i = 0; i < numberOfElements; i++) {
-            sb.append("  <record>some data</record>");
+        for(int i=0;i<1000;i++) {
+            sb.append("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
         }
-        sb.append("</container>");
-        temporaryXml = sb.toString();
+        File testdata = tmpFolder.newFile();
+        Files.write(testdata.toPath(), createTemporaryFile(RECORDS_PER_TEST, sb.toString()).getBytes("utf-8"));
+
+        // Initialize flow-store
+        JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForLargePerformanceTest());
+
+        // Create JobSpec
+        JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", testdata.getAbsolutePath());
+
+        // Start timer
+        long timer = System.currentTimeMillis();
+
+        // Insert Job
+        JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+
+        boolean done = false;
+        // Wait for Job-completion
+        while (!done) {
+            JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
+            if (jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
+                done = true;
+            } else {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        // End Timer
+        highContentTimingResult = System.currentTimeMillis() - timer;
+    }
+
+    private String createTemporaryFile(long numberOfElements, String data) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<container>\n");
+        for (long i = 0; i < numberOfElements; i++) {
+            sb.append("  <record>").append(data).append(i).append("</record>\n");
+        }
+        sb.append("</container>\n");
+        return sb.toString();
     }
 
     private JobStoreServiceConnector initializeFlowStore(List<JavaScript> javaScripts) throws JsonException, UnsupportedEncodingException {
@@ -177,6 +210,24 @@ public class PerformanceIT {
      * In order to keep it small, "use" and "modules-info" are mocked.
      */
     private List<JavaScript> getJavaScriptsForSmallPerformanceTest() throws UnsupportedEncodingException {
+        // This method must return a list of javascripts where the first javascript has an a function called
+        // invocationfunction for us as entrance to the javascript.
+
+        JavaScript js = new JavaScript(Base64.encodeBase64String(("function invocationFunction(record, supplementaryData) {\n"
+                //                        + "var md5 = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
+                //                        + "md5.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
+                //                        + "return new String(md5.digest());\n"
+                + "return \"Hello from javascript!\\n\";"
+                + "}").getBytes("UTF-8")), "NoModule");
+        JavaScript jsUse = new JavaScript(Base64.encodeBase64String("function use(module) {};".getBytes("UTF-8")), "Use");
+        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String("var __ModulesInfo = function() { var that = {}; that.checkDepAlreadyLoaded = function( moduleName ) { return true; }; return that;}();".getBytes("UTF-8")), "ModulesInfo");
+        return Arrays.asList(js, jsUse, jsModulesInfo);
+    }
+
+    /*
+     * Creates realistic sized javascripts for use in the performance-test.
+     */
+    private List<JavaScript> getJavaScriptsForLargePerformanceTest() throws UnsupportedEncodingException {
         // This method must return a list of javascripts where the first javascript has an a function called
         // invocationfunction for us as entrance to the javascript.
 

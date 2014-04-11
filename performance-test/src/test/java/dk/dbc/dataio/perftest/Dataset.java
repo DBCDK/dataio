@@ -39,8 +39,8 @@ public class Dataset {
     }
 
     public static class DatasetValue {
-        public Number value;
-        public String rowKey;
-        public String columnKey;
+        public Long timestamp;
+        public Number highContentTiming;
+        public Number lowContentTiming;
     }
 }

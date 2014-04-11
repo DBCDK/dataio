@@ -44,10 +44,14 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
@@ -55,12 +59,18 @@ public class PerformanceIT {
 
     private static final String DATASET_FILE = "dataset.json";
 
-    private static final long RECORDS_PER_TEST = 100;
+    private static final long RECORDS_PER_TEST = 10000;
     private static long lowContentTimingResult = 0; // to be set from low-content test
     private static long highContentTimingResult = 0; // to be set from high-content test
+    private static long timestampForTestStart = 0;
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
+
+    @BeforeClass
+    public static void setStartTime() {
+        timestampForTestStart = System.currentTimeMillis();
+    }
 
     @After
     public void clearDb() throws SQLException, ClassNotFoundException {
@@ -71,7 +81,7 @@ public class PerformanceIT {
 
     @AfterClass
     public static void updateDataPointsAndCreateGraphImage() throws IOException {
-        Dataset dataset = updateDataset(lowContentTimingResult);
+        Dataset dataset = updateDataset(timestampForTestStart, lowContentTimingResult, highContentTimingResult);
         createChart(dataset);
     }
 
@@ -250,24 +260,53 @@ public class PerformanceIT {
         return id;
     }
 
-    private static Dataset updateDataset(long measurement) throws IOException {
+    private static Dataset updateDataset(long timestamp, long measurementLow, long measurementHigh) throws IOException {
         final Dataset dataset = Dataset.fromJsonFile(DATASET_FILE);
         Dataset.DatasetValue datasetValue = new Dataset.DatasetValue();
-        datasetValue.value = measurement;
-        datasetValue.rowKey = "timing";
-        datasetValue.columnKey = Long.toString(System.currentTimeMillis());
+        datasetValue.lowContentTiming = measurementLow;
+        datasetValue.highContentTiming = measurementHigh;
+        datasetValue.timestamp = timestamp;
         dataset.addValue(datasetValue);
         Dataset.toJsonFile(DATASET_FILE, dataset);
         return dataset;
     }
 
-    private static void createChart(Dataset ioDataset) {
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for (Dataset.DatasetValue datasetValue : ioDataset.getValues()) {
-            dataset.addValue(datasetValue.value, datasetValue.rowKey, datasetValue.columnKey);
+    private static void createChart2(Dataset ioDataset) {
+        XYSeries lowContentDataset = new XYSeries("Low Content");
+        XYSeries highContentDataset = new XYSeries("High Content");
+        for(Dataset.DatasetValue value : ioDataset.getValues()) {
+            lowContentDataset.add(value.lowContentTiming, value.timestamp);
+            highContentDataset.add(value.highContentTiming, value.timestamp);
         }
-        JFreeChart lineChart = ChartFactory.createLineChart("DataIO performance test - A job with X records", "Timestamp", "Total time in milliseconds", dataset, PlotOrientation.VERTICAL, false, false, false);
+
+        XYSeriesCollection graphDataset = new XYSeriesCollection();
+        graphDataset.addSeries(lowContentDataset);
+        graphDataset.addSeries(highContentDataset);
+
+        final JFreeChart chart = ChartFactory.createXYLineChart("DataIO performance test - A job with X records", "Timestamp", "Total time in milliseconds", graphDataset, PlotOrientation.VERTICAL, false, false, false);
+        XYPlot plot = chart.getXYPlot();
+        plot.getDomainAxis().setVerticalTickLabels(true);
+
+        try {
+            ChartUtilities.saveChartAsPNG(new File("main.png"), chart, 1920, 960);
+        } catch (IOException ex) {
+            Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
+        }
+}
+
+
+    private static void createChart(Dataset ioDataset) {
+        DefaultCategoryDataset lowContentDataset = new DefaultCategoryDataset();
+        DefaultCategoryDataset highContentDataset = new DefaultCategoryDataset();
+        for(Dataset.DatasetValue value : ioDataset.getValues()) {
+            lowContentDataset.addValue(value.lowContentTiming, "Low Content Test", value.timestamp);
+            highContentDataset.addValue(value.highContentTiming, "High Content Test", value.timestamp);
+        }
+        JFreeChart lineChart = ChartFactory.createLineChart("DataIO performance test - A job with "+RECORDS_PER_TEST+" records", "Timestamp", "Total time in milliseconds", lowContentDataset, PlotOrientation.VERTICAL, true, false, false);
         CategoryPlot categoryPlot = lineChart.getCategoryPlot();
+        categoryPlot.setDataset(1, highContentDataset);
+        LineAndShapeRenderer highContentRenderer = new LineAndShapeRenderer(true, false);
+        categoryPlot.setRenderer(1, highContentRenderer);
         categoryPlot.getDomainAxis().setCategoryLabelPositions(CategoryLabelPositions.UP_90);
         try {
             ChartUtilities.saveChartAsPNG(new File("main.png"), lineChart, 1920, 960);

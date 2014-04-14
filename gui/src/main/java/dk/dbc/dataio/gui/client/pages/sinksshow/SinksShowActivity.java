@@ -4,6 +4,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -41,6 +42,16 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
         fetchSinks();
     }
 
+    /**
+     * Creates a new place
+     * @param sink The sink to edit
+     */
+    @Override
+    public void editSink(Sink sink) {
+        //TODO
+
+    }
+
 
     // Local methods
 
@@ -56,6 +67,4 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
             }
         });
     }
-
-
 }

@@ -1,6 +1,9 @@
 package dk.dbc.dataio.gui.client.pages.sinksshow;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
@@ -12,6 +15,7 @@ import java.util.List;
  * Shows a table, containing:
  *  o Sink Name
  *  o Sink Resource Name
+ *  o Edit button
  */
 public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implements SinksShowView {
     // Constants (These are not all private since we use them in the selenium tests)
@@ -20,7 +24,6 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
     // Local variables
     private final static SinksShowConstants constants = GWT.create(SinksShowConstants.class);
     private final DioCellTable<Sink> table = new DioCellTable<Sink>();
-
 
     /**
      * Constructor
@@ -32,6 +35,9 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
     /**
      * Initializations of the view
      * Sets up the three columns in the CellTable
+     * First column contains the name of the sink
+     * Second column contains the name of the sink resource
+     * Third column contains the ButtonCell used to edit the individual sinks
      */
     public void init() {
         table.updateStarted();
@@ -47,6 +53,7 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
             };
             table.addColumn(sinkNameColumn, constants.columnHeader_Name());
 
+
             TextColumn<Sink> resourceName = new TextColumn<Sink>() {
                 @Override
                 public String getValue(Sink sink) {
@@ -54,6 +61,26 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
                 }
             };
             table.addColumn(resourceName, constants.columnHeader_ResourceName());
+
+
+            Column editButtonColumn = new Column<Sink, String>(new ButtonCell()) {
+                @Override
+                public String getValue(Sink object) {
+                    // The value to display in the button.
+                    return constants.button_Edit();
+                }
+            };
+
+            // Handler: Registering key clicks (on the buttonCell available for each sink).
+            // Clicks on ButtonCells are handled by setting the FieldUpdater for the Column
+            editButtonColumn.setFieldUpdater(new FieldUpdater<Sink, String>() {
+                @Override
+                public void update(int index, Sink sink, String buttonText) {
+                    editClick(sink);
+                }
+            });
+
+            table.addColumn(editButtonColumn, constants.columnHeader_Action());
 
             add(table);
         }
@@ -102,12 +129,23 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
      */
     @Override
     public void setSinks(List<Sink> sinks) {
+        table.setPageSize(sinks.size());
         table.setRowData(0, sinks);
         table.setRowCount(sinks.size());
         table.updateDone();
     }
 
-
     // Private methods
 
+    /**
+     * When a key click has been registered, the editSink method in SinkShowPresenter is called in order to handle the edit sink action itself.
+     * @param sink The sink to edit
+     */
+    private void editClick(Sink sink){
+        presenter.editSink(sink);
+    }
+
+    /*
+    * Private classes
+    */
 }

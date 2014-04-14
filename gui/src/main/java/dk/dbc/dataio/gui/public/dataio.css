@@ -50,7 +50,7 @@
     border: solid #4f6853 2px;
 }
 
-.gwt-Button {
+.gwt-Button, table button {
     background-color: #f47321;
     background-image: none;
     color: white;

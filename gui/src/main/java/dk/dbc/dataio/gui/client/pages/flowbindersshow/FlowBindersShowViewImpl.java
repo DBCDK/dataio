@@ -191,6 +191,7 @@ public class FlowBindersShowViewImpl extends ContentPanel<FlowBindersShowPresent
      */
     @Override
     public void setFlowBinders(List<FlowBinderContentViewData> flowBinders) {
+        table.setPageSize(flowBinders.size());
         table.setRowData(0, flowBinders);
         table.setRowCount(flowBinders.size());
         table.updateDone();

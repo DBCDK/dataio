@@ -148,6 +148,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
      */
     @Override
     public void setFlowComponents(List<FlowComponent> flowComponents) {
+        table.setPageSize(flowComponents.size());
         table.setRowData(0, flowComponents);
         table.setRowCount(flowComponents.size());
         table.updateDone();

@@ -110,6 +110,7 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
      */
     @Override
     public void setSubmitters(List<Submitter> submitters) {
+        table.setPageSize(submitters.size());
         table.setRowData(0, submitters);
         table.setRowCount(submitters.size());
         table.updateDone();

@@ -153,8 +153,30 @@ public class SeleniumGWTTable {
      * @return The complete table data as fetched with the corresponding waitXXX methods
      */
     public List<List<String>> get() {
+
+        for (List<String> row : tableData){
+            if(row != null && !row.isEmpty()){
+                for(int i = 0; i < row.size(); i++) {
+                    if(row.get(i) != null) {
+                        row.set(i, stripHtml(row.get(i)));
+                    }
+                }
+            }
+        }
         return tableData;
     }
+
+    /**
+     *
+     * Strips any Html tags from the String given as input.
+     *
+     * @param htmlString
+     * @return The String object without html tags.
+     */
+    private String stripHtml(String htmlString){
+        return htmlString.replaceAll("\\<.*?>","");
+    }
+
 
     /**
      * Fetches one row of table data pointed out by a row index

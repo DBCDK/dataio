@@ -65,7 +65,7 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
 
             Column editButtonColumn = new Column<Sink, String>(new ButtonCell()) {
                 @Override
-                public String getValue(Sink object) {
+                public String getValue(Sink sink) {
                     // The value to display in the button.
                     return constants.button_Edit();
                 }

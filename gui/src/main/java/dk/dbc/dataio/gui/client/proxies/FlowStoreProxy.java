@@ -33,6 +33,8 @@ public interface FlowStoreProxy extends RemoteService {
     List<Submitter> findAllSubmitters() throws ProxyException;
     List<Sink> findAllSinks() throws ProxyException;
 
+    Sink getSink(Long id) throws ProxyException;
+
     void close();
 
     class Factory {

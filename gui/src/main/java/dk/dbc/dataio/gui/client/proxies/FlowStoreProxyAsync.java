@@ -20,5 +20,7 @@ public interface FlowStoreProxyAsync {
     void findAllSubmitters(AsyncCallback<List<Submitter>> async);
     void findAllSinks(AsyncCallback<List<Sink>> async);
 
+    void getSink(Long id, AsyncCallback<Sink> async);
+
     void close(AsyncCallback<Void> async);
 }

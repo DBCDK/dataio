@@ -75,6 +75,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public Sink getSink(Long id) throws ProxyException {
+        return flowStoreProxy.getSink(id);
+    }
+
+    @Override
     public void close() {
         if (flowStoreProxy != null) {
             flowStoreProxy.close();

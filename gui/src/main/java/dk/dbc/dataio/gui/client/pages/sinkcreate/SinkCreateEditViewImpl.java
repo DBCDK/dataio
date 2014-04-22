@@ -4,6 +4,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -12,27 +13,27 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 /**
  *
- * This is the implementation of the Sink Creation View
+ * This is the implementation of the Sink Creation / Edit View
  *
  */
-public class SinkCreateViewImpl extends ContentPanel<SinkCreatePresenter> implements SinkCreateView {
+public class SinkCreateEditViewImpl extends ContentPanel<SinkCreateEditPresenter> implements SinkCreateEditView {
     // Constants (These are not all private since we use them in the selenium tests)
-    public static final String GUIID_SINK_CREATION_WIDGET = "sinkcreationwidget";
-    public static final String GUIID_SINK_CREATION_SINK_NAME_PANEL = "sinkcreationsinknamepanel";
-    public static final String GUIID_SINK_CREATION_RESOURCE_NAME_PANEL = "sinkcreationresourcenamepanel";
-    public static final String GUIID_SINK_CREATION_SAVE_BUTTON_PANEL = "sinkcreationsavebuttonpanel";
+    public static final String GUIID_SINK_CREATION_EDIT_WIDGET = "sinkcreationeditwidget";
+    public static final String GUIID_SINK_CREATION_EDIT_SINK_NAME_PANEL = "sinkcreationeditsinknamepanel";
+    public static final String GUIID_SINK_CREATION_EDIT_RESOURCE_NAME_PANEL = "sinkcreationeditresourcenamepanel";
+    public static final String GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL = "sinkcreationeditsavebuttonpanel";
 
     // Local variables
-    private final static SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
-    private final TextEntry sinkNamePanel = new TextEntry(GUIID_SINK_CREATION_SINK_NAME_PANEL, constants.label_SinkName());
-    private final TextEntry resourceNamePanel = new TextEntry(GUIID_SINK_CREATION_RESOURCE_NAME_PANEL, constants.label_ResourceName());
-    private final SaveButton saveButton = new SaveButton(GUIID_SINK_CREATION_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
+    private final static SinkCreateEditConstants constants = GWT.create(SinkCreateEditConstants.class);
+    private final TextEntry sinkNamePanel = new TextEntry(GUIID_SINK_CREATION_EDIT_SINK_NAME_PANEL, constants.label_SinkName());
+    private final TextEntry resourceNamePanel = new TextEntry(GUIID_SINK_CREATION_EDIT_RESOURCE_NAME_PANEL, constants.label_ResourceName());
+    private final SaveButton saveButton = new SaveButton(GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
 
 
     /**
      * Constructor
      */
-    public SinkCreateViewImpl() {
+    public SinkCreateEditViewImpl() {
         super(constants.menu_SinkCreation());
     }
 
@@ -41,7 +42,7 @@ public class SinkCreateViewImpl extends ContentPanel<SinkCreatePresenter> implem
      * Initializations of the view
      */
     public void init() {
-        getElement().setId(GUIID_SINK_CREATION_WIDGET);
+        getElement().setId(GUIID_SINK_CREATION_EDIT_WIDGET);
 
         sinkNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(sinkNamePanel);
@@ -70,6 +71,16 @@ public class SinkCreateViewImpl extends ContentPanel<SinkCreatePresenter> implem
     public void clearFields() {
         sinkNamePanel.clearText();
         resourceNamePanel.clearText();
+    }
+
+    /**
+     * Initialize all fields in this view
+     */
+    @Override
+    public void initializeFields(String header, Sink sink) {
+        setHeader(header);
+        sinkNamePanel.setText(sink.getContent().getName());
+        resourceNamePanel.setText(sink.getContent().getResource());
     }
 
     /**

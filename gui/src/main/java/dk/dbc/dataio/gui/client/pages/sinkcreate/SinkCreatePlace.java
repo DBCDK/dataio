@@ -29,15 +29,15 @@ public class SinkCreatePlace extends Place {
     }
 
     @Prefix("CreateSink")
-    public static class Tokenizer implements PlaceTokenizer<dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreatePlace> {
+    public static class Tokenizer implements PlaceTokenizer<SinkCreatePlace> {
         @Override
-        public String getToken(dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreatePlace place) {
+        public String getToken(SinkCreatePlace place) {
             return place.getSinkCreateName();
         }
 
         @Override
-        public dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreatePlace getPlace(String token) {
-            return new dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreatePlace(token);
+        public SinkCreatePlace getPlace(String token) {
+            return new SinkCreatePlace(token);
         }
     }
     

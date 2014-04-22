@@ -17,11 +17,11 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * This class represents the create sink activity encompassing saving
  * of sink data in the flow store via RPC proxy
  */
-public class SinkCreateActivity extends AbstractActivity implements SinkCreatePresenter {
-    private final SinkCreateConstants constants = GWT.create(SinkCreateConstants.class);
+public class SinkCreateActivity extends AbstractActivity implements SinkCreateEditPresenter {
+    private final SinkCreateEditConstants constants = GWT.create(SinkCreateEditConstants.class);
 
     private ClientFactory clientFactory;
-    private SinkCreateView sinkCreateView;
+    private SinkCreateEditView sinkCreateEditView;
     private SinkServiceProxyAsync sinkServiceProxy;
     private FlowStoreProxyAsync flowStoreProxy;
 
@@ -33,20 +33,20 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreatePr
 
     @Override
     public void bind() {
-        sinkCreateView = clientFactory.getSinkCreateView();
-        sinkCreateView.setPresenter(this);
+        sinkCreateEditView = clientFactory.getSinkCreateEditView();
+        sinkCreateEditView.setPresenter(this);
     }
 
     @Override
     public void reload() {
-		sinkCreateView.refresh();
+		sinkCreateEditView.refresh();
     }
 
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
-        containerWidget.setWidget(sinkCreateView.asWidget());
-        sinkCreateView.clearFields();
+        containerWidget.setWidget(sinkCreateEditView.asWidget());
+        sinkCreateEditView.clearFields();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreatePr
         sinkServiceProxy.ping(sinkContent, new FilteredAsyncCallback<PingResponse>() {
             @Override
             public void onFilteredFailure(Throwable caught) {
-                sinkCreateView.onFailure(constants.error_PingCommunicationError());
+                sinkCreateEditView.onFailure(constants.error_PingCommunicationError());
             }
             @Override
             public void onSuccess(PingResponse result) {
@@ -67,7 +67,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreatePr
                 if (status == PingResponse.Status.OK) {
                     doSaveSink(sinkContent);
                 } else {
-                    sinkCreateView.onFailure(constants.error_ResourceNameNotValid());
+                    sinkCreateEditView.onFailure(constants.error_ResourceNameNotValid());
                 }
             }
         });
@@ -77,11 +77,11 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreatePr
         flowStoreProxy.createSink(sinkContent, new FilteredAsyncCallback<Void>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                sinkCreateView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
+                sinkCreateEditView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
             }
             @Override
             public void onSuccess(Void aVoid) {
-                sinkCreateView.onSaveSinkSuccess();
+                sinkCreateEditView.onSaveSinkSuccess();
             }
         });
     }

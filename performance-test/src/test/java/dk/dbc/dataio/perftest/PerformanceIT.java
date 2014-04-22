@@ -18,6 +18,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import java.io.BufferedWriter;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -31,6 +32,7 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -90,7 +92,8 @@ public class PerformanceIT {
     public void lowContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
         // Create test data
         File testdata = tmpFolder.newFile();
-        Files.write(testdata.toPath(), createTemporaryFile(RECORDS_PER_TEST, "low").getBytes("utf-8"));
+        createTemporaryFile(testdata, RECORDS_PER_TEST, "low".toString());
+        // System.err.println("Low File: " + testdata.getAbsolutePath());
 
         // Initialize flow-store
         JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForSmallPerformanceTest());
@@ -130,7 +133,8 @@ public class PerformanceIT {
             sb.append("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
         }
         File testdata = tmpFolder.newFile();
-        Files.write(testdata.toPath(), createTemporaryFile(RECORDS_PER_TEST, sb.toString()).getBytes("utf-8"));
+        createTemporaryFile(testdata, RECORDS_PER_TEST, sb.toString());
+        //Files.write(testdata.toPath(), createTemporaryFile(RECORDS_PER_TEST, sb.toString()).getBytes("utf-8"));
 
         // Initialize flow-store
         JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForLargePerformanceTest());
@@ -162,15 +166,19 @@ public class PerformanceIT {
         highContentTimingResult = System.currentTimeMillis() - timer;
     }
 
-    private String createTemporaryFile(long numberOfElements, String data) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        sb.append("<container>\n");
-        for (long i = 0; i < numberOfElements; i++) {
-            sb.append("  <record>").append(data).append(i).append("</record>\n");
+    private String createTemporaryFile(File f, long numberOfElements, String data) throws UnsupportedEncodingException, IOException {
+        final String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<container>\n";
+        final String tail = "</container>\n";
+        try(BufferedWriter bw = Files.newBufferedWriter(f.toPath(), Charset.forName("utf-8"))) {
+            bw.write(head);
+            for (long i = 0; i < numberOfElements; i++) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("  <record>").append(data).append(i).append("</record>\n");
+                bw.write(sb.toString());
+            }
+            bw.write(tail);
         }
-        sb.append("</container>\n");
-        return sb.toString();
+        return "";
     }
 
     private JobStoreServiceConnector initializeFlowStore(List<JavaScript> javaScripts) throws JsonException, UnsupportedEncodingException {

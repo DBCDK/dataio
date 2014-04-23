@@ -31,15 +31,16 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -56,8 +57,12 @@ import static org.junit.Assert.assertThat;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PerformanceIT {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(PerformanceIT.class);
 
     private static final String DATASET_FILE = "dataset.json";
 
@@ -87,13 +92,11 @@ public class PerformanceIT {
         createChart(dataset);
     }
 
-
     @Test
     public void lowContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
         // Create test data
         File testdata = tmpFolder.newFile();
-        createTemporaryFile(testdata, RECORDS_PER_TEST, "low".toString());
-        // System.err.println("Low File: " + testdata.getAbsolutePath());
+        createTemporaryFile(testdata, RECORDS_PER_TEST, "low");
 
         // Initialize flow-store
         JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForSmallPerformanceTest());
@@ -117,7 +120,6 @@ public class PerformanceIT {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -129,12 +131,11 @@ public class PerformanceIT {
     public void highContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
         // Create test data
         StringBuilder sb = new StringBuilder();
-        for(int i=0;i<1000;i++) {
+        for (int i = 0; i < 1000; i++) {
             sb.append("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
         }
         File testdata = tmpFolder.newFile();
         createTemporaryFile(testdata, RECORDS_PER_TEST, sb.toString());
-        //Files.write(testdata.toPath(), createTemporaryFile(RECORDS_PER_TEST, sb.toString()).getBytes("utf-8"));
 
         // Initialize flow-store
         JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForLargePerformanceTest());
@@ -158,7 +159,6 @@ public class PerformanceIT {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -166,10 +166,10 @@ public class PerformanceIT {
         highContentTimingResult = System.currentTimeMillis() - timer;
     }
 
-    private String createTemporaryFile(File f, long numberOfElements, String data) throws UnsupportedEncodingException, IOException {
+    private void createTemporaryFile(File f, long numberOfElements, String data) throws UnsupportedEncodingException, IOException {
         final String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<container>\n";
         final String tail = "</container>\n";
-        try(BufferedWriter bw = Files.newBufferedWriter(f.toPath(), Charset.forName("utf-8"))) {
+        try (BufferedWriter bw = Files.newBufferedWriter(f.toPath(), Charset.forName("utf-8"))) {
             bw.write(head);
             for (long i = 0; i < numberOfElements; i++) {
                 StringBuilder sb = new StringBuilder();
@@ -178,7 +178,6 @@ public class PerformanceIT {
             }
             bw.write(tail);
         }
-        return "";
     }
 
     private JobStoreServiceConnector initializeFlowStore(List<JavaScript> javaScripts) throws JsonException, UnsupportedEncodingException {
@@ -228,13 +227,10 @@ public class PerformanceIT {
      * In order to keep it small, "use" and "modules-info" are mocked.
      */
     private List<JavaScript> getJavaScriptsForSmallPerformanceTest() throws UnsupportedEncodingException {
-        // This method must return a list of javascripts where the first javascript has an a function called
-        // invocationfunction for us as entrance to the javascript.
+        // This method must return a list of javascripts where the first javascript has a function called
+        // invocationfunction for use as entrance to the javascripts.
 
         JavaScript js = new JavaScript(Base64.encodeBase64String(("function invocationFunction(record, supplementaryData) {\n"
-                //                        + "var md5 = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
-                //                        + "md5.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
-                //                        + "return new String(md5.digest());\n"
                 + "return \"Hello from javascript!\\n\";"
                 + "}").getBytes("UTF-8")), "NoModule");
         JavaScript jsUse = new JavaScript(Base64.encodeBase64String("function use(module) {};".getBytes("UTF-8")), "Use");
@@ -245,19 +241,53 @@ public class PerformanceIT {
     /*
      * Creates realistic sized javascripts for use in the performance-test.
      */
-    private List<JavaScript> getJavaScriptsForLargePerformanceTest() throws UnsupportedEncodingException {
-        // This method must return a list of javascripts where the first javascript has an a function called
-        // invocationfunction for us as entrance to the javascript.
+    private List<JavaScript> getJavaScriptsForLargePerformanceTest() throws UnsupportedEncodingException, IOException {
+        // This method must return a list of javascripts where the first javascript has a function called
+        // invocationfunction for use as entrance to the javascripts.
 
-        JavaScript js = new JavaScript(Base64.encodeBase64String(("function invocationFunction(record, supplementaryData) {\n"
-                //                        + "var md5 = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
-                //                        + "md5.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
-                //                        + "return new String(md5.digest());\n"
-                + "return \"Hello from javascript!\\n\";"
+        JavaScript js = new JavaScript(Base64.encodeBase64String(("use(\"MarcXchange\")\n\n"
+                + "function invocationFunction(record, supplementaryData) {\n"
+                + "  var instance = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
+                + "  instance.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
+                + "  var md5 = instance.digest();\n"
+                + "  var res = String();\n"
+                + "  for(var i=0; i<md5.length; i++) {\n"
+                + "    res += (md5[i] & 0xFF).toString(16);\n"
+                + "  }\n"
+                + "  return res;\n"
                 + "}").getBytes("UTF-8")), "NoModule");
-        JavaScript jsUse = new JavaScript(Base64.encodeBase64String("function use(module) {};".getBytes("UTF-8")), "Use");
-        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String("var __ModulesInfo = function() { var that = {}; that.checkDepAlreadyLoaded = function( moduleName ) { return true; }; return that;}();".getBytes("UTF-8")), "ModulesInfo");
-        return Arrays.asList(js, jsUse, jsModulesInfo);
+        JavaScript jsUse = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/Use.use.js").getBytes()), "Use");
+        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/ModulesInfo.use.js").getBytes()), "ModulesInfo");
+        // The following resources are located in the test/resources folder in the project.
+        // All files are copied from jscommon and the filename is prefixed with "TestResource_".
+        // This is in order to ensure that they are not confused with the actual javascripts.
+        // The purpose of these scripts are just to add bulk/volume to the chunk, and to ensure that a belivable
+        // amount of javascript is read into the javascripts-environment during the test.
+        List<String> testJSDependecies
+                = Arrays.asList("Log",
+                        "LogCore",
+                        "Global",
+                        "Marc",
+                        "MarcClasses",
+                        "MarcClassesCore",
+                        "MarcMatchers",
+                        "MarcXchange",
+                        "Print",
+                        "PrintCore",
+                        "StringUtil",
+                        "System",
+                        "Underscore",
+                        "UnitTest",
+                        "Util",
+                        "ValueCheck",
+                        "XmlNamespaces",
+                        "XmlUtil");
+
+        List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(js, jsUse, jsModulesInfo));
+        for (String jsDependency : testJSDependecies) {
+            javascripts.add(new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("TestResource_" + jsDependency + ".use.js").getBytes()), jsDependency));
+        }
+        return javascripts;
     }
 
     private <T> long insertObjectInFlowStore(Client restClient, String baseUrl, T type, String restEndPoint) throws JsonException {
@@ -282,7 +312,7 @@ public class PerformanceIT {
     private static void createChart2(Dataset ioDataset) {
         XYSeries lowContentDataset = new XYSeries("Low Content");
         XYSeries highContentDataset = new XYSeries("High Content");
-        for(Dataset.DatasetValue value : ioDataset.getValues()) {
+        for (Dataset.DatasetValue value : ioDataset.getValues()) {
             lowContentDataset.add(value.lowContentTiming, value.timestamp);
             highContentDataset.add(value.highContentTiming, value.timestamp);
         }
@@ -298,19 +328,17 @@ public class PerformanceIT {
         try {
             ChartUtilities.saveChartAsPNG(new File("main.png"), chart, 1920, 960);
         } catch (IOException ex) {
-            Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
         }
-}
-
+    }
 
     private static void createChart(Dataset ioDataset) {
         DefaultCategoryDataset lowContentDataset = new DefaultCategoryDataset();
         DefaultCategoryDataset highContentDataset = new DefaultCategoryDataset();
-        for(Dataset.DatasetValue value : ioDataset.getValues()) {
+        for (Dataset.DatasetValue value : ioDataset.getValues()) {
             lowContentDataset.addValue(value.lowContentTiming, "Low Content Test", value.timestamp);
             highContentDataset.addValue(value.highContentTiming, "High Content Test", value.timestamp);
         }
-        JFreeChart lineChart = ChartFactory.createLineChart("DataIO performance test - A job with "+RECORDS_PER_TEST+" records", "Timestamp", "Total time in milliseconds", lowContentDataset, PlotOrientation.VERTICAL, true, false, false);
+        JFreeChart lineChart = ChartFactory.createLineChart("DataIO performance test - A job with " + RECORDS_PER_TEST + " records", "Timestamp", "Total time in milliseconds", lowContentDataset, PlotOrientation.VERTICAL, true, false, false);
         CategoryPlot categoryPlot = lineChart.getCategoryPlot();
         categoryPlot.setDataset(1, highContentDataset);
         LineAndShapeRenderer highContentRenderer = new LineAndShapeRenderer(true, false);
@@ -319,7 +347,30 @@ public class PerformanceIT {
         try {
             ChartUtilities.saveChartAsPNG(new File("main.png"), lineChart, 1920, 960);
         } catch (IOException ex) {
-            Logger.getLogger(PerformanceIT.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error("Could not create chart.", ex);
         }
     }
+
+    private String readResourceFromClassPath(String resource) throws IOException {
+
+        URL url = this.getClass().getClassLoader().getResource(resource);
+        LOGGER.info("Reading resource '{}' from '{}'", resource, url.toString());
+        final int byteArrayLength = 1024;
+        byte[] buffer = new byte[byteArrayLength];
+        StringBuilder sb = new StringBuilder();
+        try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(resource)) {
+            if (in == null) {
+                throw new AssertionError("The ressource '" + resource + "' could not be found on the classpath");
+            }
+            int sz = -1;
+            do {
+                sz = in.read(buffer, 0, buffer.length);
+                if (sz > 0) {
+                    sb.append(new String(buffer, 0, sz, "utf-8"));
+                }
+            } while (sz >= 0);
+        }
+        return sb.toString();
+    }
+
 }

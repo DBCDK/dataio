@@ -12,7 +12,7 @@ public interface FlowStoreProxyAsync {
     void createSubmitter(SubmitterContent submitterContent, AsyncCallback<Void> async);
     void createSink(SinkContent sinkContent, AsyncCallback<Void> async);
 
-    void updateSink(Sink sink, Long id, Long version, AsyncCallback<Void> async);
+    void updateSink(SinkContent sinkContent, Long id, Long version, AsyncCallback<Void> async);
 
     void findAllFlows(AsyncCallback<List<Flow>> async);
     void findAllFlowBinders(AsyncCallback<List<FlowBinder>> async);

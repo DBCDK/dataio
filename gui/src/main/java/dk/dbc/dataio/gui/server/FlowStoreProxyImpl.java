@@ -104,10 +104,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void updateSink(Sink sink, Long id, Long version) throws NullPointerException, ProxyException {
+    public void updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException {
         final Response response;
         try {
-            response = HttpClient.doPostWithJson(client, sink,
+            response = HttpClient.doPostWithJson(client, sinkContent,
                     ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SINKS, Long.toString(id), Long.toString(version), FlowStoreServiceConstants.SINKS_CONTENT);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
@@ -241,6 +241,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                 case NOT_ACCEPTABLE: errorCode = ProxyError.NOT_ACCEPTABLE;
                     break;
                 case PRECONDITION_FAILED: errorCode = ProxyError.ENTITY_NOT_FOUND;
+                    break;
+                case CONFLICT: errorCode = ProxyError.CONFLICT_ERROR;
                     break;
                 default:
                     errorCode = ProxyError.INTERNAL_SERVER_ERROR;

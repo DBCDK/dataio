@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateEditViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -12,7 +12,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("pages/sinkcreate/SinkCreateEditConstants_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("pages/sinkcreateedit/SinkCreateEditConstants_dk.properties");
 
     public static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
     private static final String SINK_NAME = "name";

@@ -45,8 +45,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public void updateSink(Sink sink, Long id, Long version) throws NullPointerException, ProxyException {
-        flowStoreProxy.updateSink(sink, id, version);
+    public void updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException {
+        flowStoreProxy.updateSink(sinkContent, id, version);
     }
 
     @Override

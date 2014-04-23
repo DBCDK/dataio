@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.sinkcreate;
+package dk.dbc.dataio.gui.client.pages.sinkcreateedit;
 
 import dk.dbc.dataio.gui.client.presenters.Presenter;
 

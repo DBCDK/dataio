@@ -11,7 +11,7 @@ import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
-import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreateEditView;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditView;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;

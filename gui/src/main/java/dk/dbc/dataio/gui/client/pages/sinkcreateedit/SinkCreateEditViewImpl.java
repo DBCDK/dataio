@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.sinkcreate;
+package dk.dbc.dataio.gui.client.pages.sinkcreateedit;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.KeyDownEvent;
@@ -34,7 +34,7 @@ public class SinkCreateEditViewImpl extends ContentPanel<SinkCreateEditPresenter
      * Constructor
      */
     public SinkCreateEditViewImpl() {
-        super(constants.menu_SinkCreation());
+        super("");  // An empty string is supplied, since we don't know yet, if this is a Create or an Edit view, please refer to initializeFields() below
     }
 
 
@@ -79,8 +79,12 @@ public class SinkCreateEditViewImpl extends ContentPanel<SinkCreateEditPresenter
     @Override
     public void initializeFields(String header, Sink sink) {
         setHeader(header);
-        sinkNamePanel.setText(sink.getContent().getName());
-        resourceNamePanel.setText(sink.getContent().getResource());
+        if (sink == null) {
+            clearFields();
+        } else {
+            sinkNamePanel.setText(sink.getContent().getName());
+            resourceNamePanel.setText(sink.getContent().getResource());
+        }
     }
 
     /**

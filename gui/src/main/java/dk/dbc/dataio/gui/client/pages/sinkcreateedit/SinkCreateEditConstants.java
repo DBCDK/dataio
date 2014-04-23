@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.sinkcreate;
+package dk.dbc.dataio.gui.client.pages.sinkcreateedit;
 
 import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
@@ -43,6 +43,8 @@ public interface SinkCreateEditConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_ResourceNameNotValid();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CannotFetchSink();
 
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

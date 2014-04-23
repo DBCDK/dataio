@@ -13,7 +13,7 @@ import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.*;
 import dk.dbc.dataio.gui.client.pages.flowcreate.*;
 import dk.dbc.dataio.gui.client.pages.flowsshow.*;
 import dk.dbc.dataio.gui.client.pages.jobsshow.*;
-import dk.dbc.dataio.gui.client.pages.sinkcreate.*;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.*;
 import dk.dbc.dataio.gui.client.pages.sinksshow.*;
 import dk.dbc.dataio.gui.client.pages.submittercreate.*;
 import dk.dbc.dataio.gui.client.pages.submittersshow.*;
@@ -140,6 +140,9 @@ public class ClientFactoryImpl implements ClientFactory {
         }
         if (place instanceof SinkCreatePlace) {
             return new SinkCreateActivity(this);
+        }
+        if (place instanceof SinkEditPlace) {
+            return new SinkEditActivity(place, this);
         }
         if (place instanceof FlowComponentsShowPlace) {
             return new FlowComponentsShowActivity(this);

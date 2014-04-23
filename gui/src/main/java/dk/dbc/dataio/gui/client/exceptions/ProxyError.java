@@ -5,5 +5,6 @@ public enum ProxyError {
     BAD_REQUEST,                // invalid data content
     NOT_ACCEPTABLE,             // violation of unique key contraints
     ENTITY_NOT_FOUND,
+    CONFLICT_ERROR,             // Concurrent Update Error
     INTERNAL_SERVER_ERROR,
 }

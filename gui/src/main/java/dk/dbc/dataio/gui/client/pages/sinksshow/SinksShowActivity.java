@@ -2,9 +2,11 @@ package dk.dbc.dataio.gui.client.pages.sinksshow;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.List;
@@ -17,10 +19,12 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
     private final ClientFactory clientFactory;
     private SinksShowView sinksShowView;
     private final FlowStoreProxyAsync flowStoreProxy;
+    private final PlaceController placeController;
 
     public SinksShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+        placeController = clientFactory.getPlaceController();
     }
 
     @Override
@@ -47,8 +51,7 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
      */
     @Override
     public void editSink(Sink sink) {
-        //TODO
-
+        placeController.goTo(new SinkEditPlace(sink));
     }
 
 

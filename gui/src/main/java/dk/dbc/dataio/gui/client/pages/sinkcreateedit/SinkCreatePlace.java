@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package dk.dbc.dataio.gui.client.pages.sinkcreate;
+package dk.dbc.dataio.gui.client.pages.sinkcreateedit;
 
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;

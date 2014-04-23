@@ -9,7 +9,8 @@ import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowPlace
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
-import dk.dbc.dataio.gui.client.pages.sinkcreate.SinkCreatePlace;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreatePlace;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
 import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreatePlace;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
@@ -20,6 +21,7 @@ import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
     SubmitterCreatePlace.Tokenizer.class,
     FlowbinderCreatePlace.Tokenizer.class,
     SinkCreatePlace.Tokenizer.class,
+    SinkEditPlace.Tokenizer.class,
     FlowComponentsShowPlace.Tokenizer.class,
     FlowsShowPlace.Tokenizer.class,
     SubmittersShowPlace.Tokenizer.class,

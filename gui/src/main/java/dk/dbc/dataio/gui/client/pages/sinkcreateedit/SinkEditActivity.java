@@ -55,6 +55,7 @@ public class SinkEditActivity extends AbstractActivity implements SinkCreateEdit
         bind();
         containerWidget.setWidget(sinkEditView.asWidget());
         getSink(sinkId);
+        sinkEditView.onSuccess("");  // Clear status message
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.openqa.selenium.WebDriver;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -53,8 +52,13 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(1).get(2), is(BUTTON_NAME));
     }
 
-    private static void navigateToSinksShowWidget(WebDriver webDriver) {
+    /**
+     * The following is public static helper methods.
+     */
+    public static void navigateToSinksShowWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_SINKS_SHOW);
     }
+
+
 
 }

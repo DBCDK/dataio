@@ -24,6 +24,15 @@ public class SeleniumUtil {
         return webDriver.findElement(By.id(elementId)).findElement(By.className(className));
     }
 
+    public static WebElement findElementInCurrentView(WebDriver webDriver, final String elementId, final String className, int number) {
+        List<WebElement> elements = webDriver.findElement(By.id(elementId)).findElements(By.className(className));
+        return elements.get(number);
+    }
+
+    public static List<WebElement> findElementsInCurrentView(WebDriver webDriver, final String elementId, final String className) {
+        return webDriver.findElement(By.id(elementId)).findElements(By.className(className));
+    }
+
     public static void assertFieldIsVisbleAndDataCanBeInsertedAndRead(WebElement element) {
         final String fieldValue = "test of unicode content æøåÆØÅ";
         assertFieldIsVisbleAndDataCanBeInsertedAndReadWithValue(element, fieldValue);

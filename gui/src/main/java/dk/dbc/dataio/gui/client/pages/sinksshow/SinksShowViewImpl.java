@@ -5,6 +5,7 @@ import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.ui.Button;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -20,6 +21,8 @@ import java.util.List;
 public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implements SinksShowView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_SINKS_SHOW_WIDGET = "sinksshowwidget";
+    public static final String GUUID_SHOW_SINK_TABLE_EDIT = "showsinktable_edit_id";
+    public static final String CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON = "sinksshowwidget_editbutton";
 
     // Local variables
     private final static SinksShowConstants constants = GWT.create(SinksShowConstants.class);
@@ -41,6 +44,7 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
      */
     public void init() {
         table.updateStarted();
+        table.getElement().setId(GUUID_SHOW_SINK_TABLE_EDIT);
 
         getElement().setId(GUIID_SINKS_SHOW_WIDGET);
 
@@ -70,6 +74,9 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
                     return constants.button_Edit();
                 }
             };
+
+            //Define class name for the button element
+            editButtonColumn.setCellStyleNames(CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON);
 
             // Handler: Registering key clicks (on the buttonCell available for each sink).
             // Clicks on ButtonCells are handled by setting the FieldUpdater for the Column

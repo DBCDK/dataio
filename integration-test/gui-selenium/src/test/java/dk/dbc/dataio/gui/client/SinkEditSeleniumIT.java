@@ -8,9 +8,7 @@ import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WebDriver;
 
@@ -20,15 +18,17 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static dk.dbc.dataio.gui.client.SinksShowSeleniumIT.navigateToSinksShowWidget;
+import static dk.dbc.dataio.gui.client.SinksShowSeleniumIT.locateAndClickEditButtonForElement;
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
  * Created by sma on 16/04/14.
  */
-@Ignore
+
 public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/sinkcreateedit/SinkCreateEditConstants_dk.properties");
 
@@ -44,51 +44,18 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
 
     private static final int SAVE_SINK_TIMOUT = 4;
 
-//    TODO - denne er i fejl fordi label ikke er tom. (bug)
-//    @Test
-//    public void testInitialVisibilityAndAccessibilityOfElements() {
-//
-//        //Assert that the sink name and sink resource name is shown in the input fields.
-//        testSinkEditSinkNameAndResourceFieldsAreVisibleAndDataIsInserted();
-//
-//        //Assert that the save button is visible.
-//        testSinkEditSaveButtonIsVisible();
-//
-//        //Assert that the save result label is not visible and empty.
-//        testSinkEditSaveResultLabelIsNotVisibleAndEmptyAsDefault();
-//    }
-//
-//    public void testSinkEditSinkNameAndResourceFieldsAreVisibleAndDataIsInserted(){
-//
-//        //Create new sink.
-//        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
-//
-//        //Navigate to the sink show window.
-//        navigateToSinksShowWidget(webDriver);
-//
-//        //Navigate to the first row, locate the edit button and click.
-//        locateAndClickEditButtonForElement(0);
-//
-//        //Assert that the sink name and sink resource name are visible and show the correct values.
-//        assertTrue(findSinkNameElement(webDriver).isDisplayed());
-//        assertTrue(findResourceNameElement(webDriver).isDisplayed());
-//        assertEquals(findSinkNameElement(webDriver).getAttribute("value"), SINK_NAME_1);
-//        assertEquals(findResourceNameElement(webDriver).getAttribute("value"), RESOURCE_NAME_FLOWSTORE);
-//    }
-//
-//
-//    public void testSinkEditSaveButtonIsVisible() {
-//        assertTrue(findSaveButton(webDriver).isDisplayed());
-//    }
-//
-//    public void testSinkEditSaveResultLabelIsNotVisibleAndEmptyAsDefault() {
-//
-//        WebElement element = findSaveResultLabel(webDriver);
-//        assertNotNull(element);
-//        assertFalse(element.isDisplayed());
-//        assertThat(element.getText(), is(""));
-//
-//    }
+    @Test
+    public void testInitialVisibilityAndAccessibilityOfElements() {
+
+        //Assert that the sink name and sink resource name is shown in the input fields.
+        assertSinkEditSinkNameAndResourceFieldsAreVisibleAndDataIsInserted();
+
+        //Assert that the save button is visible.
+        assertSinkEditSaveButtonIsVisible();
+
+        //Assert that the save result label is not visible and empty.
+        assertSinkEditSaveResultLabelIsNotVisibleAndEmptyAsDefault();
+    }
 
     @Test
     public void testSinkEdit_WhenMultipleSinksTheCorrectSinkIsLocatedForEdit(){
@@ -327,12 +294,14 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         RetrieveTextFromInputFieldsAndClickSaveButtonAndWaitForSuccessfulSave_updateResultLabelContainsSuccessMessage(null, null);
     }
 
-    @Ignore
     @Test
-    public void testSinkEdit_testSaveVersionOlderThanCurrent() throws Exception{
+    public void testSinkEdit_testSaveVersionFromBeforeCurrent() throws Exception{
 
-        //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        //Setup connection to flow store service
+        setUpFlowStoreConnection();
+
+        //Create new sink through flow store
+        long sinkId = ITUtil.createSink(restClient, baseUrl, new SinkContentJsonBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build());
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -343,31 +312,60 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         //Navigate to the first row, locate the edit button and click.
         locateAndClickEditButtonForElement(0);
 
-        //Setup connection to flowstore service
-        setUpFlowstoreConnection();
+        //Edit the sink through flow store and save
+        ITUtil.updateSink(restClient, baseUrl, new SinkContentJsonBuilder().setName(SINK_NAME_3).setResource(RESOURCE_NAME_FLOWSTORE).build(), sinkId, 1L);
 
-        //Second user opens the same sink for edit, edits and saves the sink
-        ITUtil.updateSink(restClient, baseUrl, new SinkContentJsonBuilder().setName(SINK_NAME_3).setResource(RESOURCE_NAME_FLOWSTORE).build(), 1L, 1L);
-
-        //First user edits and attempts to save the sink
+        //Edit the sink opened for edit through Selenium
         findSinkNameElement(webDriver).clear();
         findSinkNameElement(webDriver).sendKeys(SINK_NAME_2);
 
         //Attempt saving the sink with the new name.
         findSaveButton(webDriver).click();
 
+        //Assert that an error is thrown. The sink opened for edit cannot be saved since the version is outdated.
         String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
+        assertThat(s, containsString("Error: "));  // Todo: Generalisering af fejlhåndtering
+        assertThat(s, containsString("version"));
+        assertThat(s, containsString("must be larger than or equal to 2"));
 
-        //Assert that an error is thrown as the a version with a later version number has been saved.
-        assertThat(s, is("Error: " + texts.translate("error_ProxyKeyViolationError")));  // Todo: Generalisering af fejlhåndtering
-
-        //Close flowstore connection
-        TeardownFlowstoreConnection();
+        //Close flow store connection
+        TearDownFlowStoreConnection();
     }
 
     /**
      * The following is private static helper methods.
      */
+    private void assertSinkEditSinkNameAndResourceFieldsAreVisibleAndDataIsInserted(){
+
+        //Create new sink.
+        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+
+        //Navigate to the sink show window.
+        navigateToSinksShowWidget(webDriver);
+
+        //Navigate to the first row, locate the edit button and click.
+        locateAndClickEditButtonForElement(0);
+
+        //Assert that the sink name and sink resource name are visible and show the correct values.
+        assertTrue(findSinkNameElement(webDriver).isDisplayed());
+        assertTrue(findResourceNameElement(webDriver).isDisplayed());
+        assertEquals(findSinkNameElement(webDriver).getAttribute("value"), SINK_NAME_1);
+        assertEquals(findResourceNameElement(webDriver).getAttribute("value"), RESOURCE_NAME_FLOWSTORE);
+    }
+
+
+    private void assertSinkEditSaveButtonIsVisible() {
+        assertTrue(findSaveButton(webDriver).isDisplayed());
+    }
+
+    private void assertSinkEditSaveResultLabelIsNotVisibleAndEmptyAsDefault() {
+
+        WebElement element = findSaveResultLabel(webDriver);
+        assertNotNull(element);
+        assertFalse(element.isDisplayed());
+        assertThat(element.getText(), is(""));
+    }
+
     private static WebElement findSinkNameElement(WebDriver webDriver) {
         return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_SINK_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
@@ -387,11 +385,6 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     private void assertAllInputFields(String sinkName, String resourceName) {
         assertThat(findSinkNameElement(webDriver).getAttribute("value"), is(sinkName));
         assertThat(findResourceNameElement(webDriver).getAttribute("value"), is(resourceName));
-    }
-
-    private void locateAndClickEditButtonForElement(int index){
-        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, SinksShowViewImpl.GUUID_SHOW_SINK_TABLE_EDIT, SinksShowViewImpl.CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON, index);
-        element.findElement(By.tagName("button")).click();
     }
 
     private void updateSinkNameAndSinkResourceInView(String sinkName, String sinkResource){
@@ -418,17 +411,14 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         return elements.size();
     }
 
-
-    private void setUpFlowstoreConnection() throws ClassNotFoundException, SQLException {
+    private void setUpFlowStoreConnection() throws ClassNotFoundException, SQLException {
         baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         restClient = HttpClient.newClient();
         dbConnection = newDbConnection("flow_store");
     }
 
-    private void TeardownFlowstoreConnection() throws SQLException {
+    private void TearDownFlowStoreConnection() throws SQLException {
         clearAllDbTables(dbConnection);
         JDBCUtil.closeConnection(dbConnection);
     }
-
-
 }

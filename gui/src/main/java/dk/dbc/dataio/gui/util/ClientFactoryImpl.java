@@ -34,6 +34,7 @@ public class ClientFactoryImpl implements ClientFactory {
     public final static String GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE = "menuitemflowcomponentcreate";
     public final static String GUIID_MENU_ITEM_FLOWBINDER_CREATE = "menuitemflowbindercreate";
     public final static String GUIID_MENU_ITEM_SINK_CREATE = "menuitemsinkcreate";
+    //public final static String GUIID_MENU_ITEM_HARVESTERS_SHOW = "menuitemharvestersshow";
 
     // Menu texts constants declarations
     private final static SubmittersShowConstants submittersShowConstants = GWT.create(SubmittersShowConstants.class);
@@ -47,6 +48,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowComponentCreateConstants flowComponentCreateConstants = GWT.create(FlowComponentCreateConstants.class);
     private final static FlowbinderCreateConstants flowbinderCreateConstants = GWT.create(FlowbinderCreateConstants.class);
     private final static SinkCreateEditConstants SinkCreateEditConstants = GWT.create(SinkCreateEditConstants.class);
+    //private final static HarvestersShowConstants harvestersShowConstants = GWT.create(HarvestersShowConstants.class);
 
     // Event Bus
     private final EventBus eventBus = new SimpleEventBus();
@@ -76,6 +78,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final JobsShowView jobsShowView = new JobsShowViewImpl();
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
+    //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {
         // Submitters Main Menu
@@ -104,12 +107,16 @@ public class ClientFactoryImpl implements ClientFactory {
         // Jobs Main Menu
         MenuItem jobsMenu = new MenuItem(GUIID_MENU_ITEM_JOBS_SHOW, jobsShowConstants.menu_Jobs(), new JobsShowPlace());
 
+        // Harvesters Main Menu
+        //MenuItem harvestersMenu = new MenuItem(GUIID_MENU_ITEM_HARVESTERS_SHOW, harvestersShowConstants.menu_Harvesters(), new HarvestersShowPlace());
+
         // Toplevel Main Menu Container
         menuStructure = new MenuItem("toplevelmainmenu", "Toplevel Main Menu", NOWHERE,
                                      submittersMenu,
                                      flowsMenu,
                                      sinksMenu,
-                                     jobsMenu);
+                                     jobsMenu/*,
+                                     harvestersMenu*/);
     }
 
     // Event Bus
@@ -162,6 +169,9 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof FlowBindersShowPlace) {
             return new FlowBindersShowActivity(this);
         }
+//        if (place instanceof HarvestersShowPlace) {
+//            return new HarvestersShowActivity(this);
+//        }
         return null;
     }
 
@@ -247,5 +257,10 @@ public class ClientFactoryImpl implements ClientFactory {
     public FlowBindersShowView getFlowBindersShowView() {
         return flowBindersShowView;
     }
+
+//    @Override
+//    public HarvestersShowView getHarvestersShowView() {
+//        return harvestersShowView;
+//    }
 
 }

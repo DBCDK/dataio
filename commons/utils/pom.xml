@@ -21,7 +21,6 @@
     <module>javascript</module>
     <module>jersey-media-json-jackson2x</module>
     <module>job-store-service-connector</module>
-    <module>flow-store-service-connector</module>
     <module>json</module>
     <module>svn</module>
     <module>service</module>

@@ -15,6 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>binary-file-store</module>
     <module>httpclient</module>
     <module>invariant</module>
     <module>javascript</module>

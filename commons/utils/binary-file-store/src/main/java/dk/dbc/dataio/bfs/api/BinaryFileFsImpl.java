@@ -1,0 +1,115 @@
+package dk.dbc.dataio.bfs.api;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+/**
+ * File system implementation of BinaryFile
+ */
+public class BinaryFileFsImpl implements BinaryFile {
+    public static final int BUFFER_SIZE = 8192;
+    private final Path path;
+
+    /**
+     * Class constructor
+     * @param path path to binary file
+     * @throws IllegalArgumentException if given null-valued path
+     */
+    public BinaryFileFsImpl(Path path) throws IllegalArgumentException {
+        if (path == null) {
+            throw new IllegalArgumentException("value of path parameter can not be null");
+        }
+        this.path = Paths.get(path.toString());
+    }
+
+    /**
+     * Writes content of given input stream to this file creating parent directories as needed
+     * @param is input stream of bytes to be written
+     * @throws IllegalArgumentException if given null valued is argument
+     * @throws IllegalStateException if trying to write to a file that already exists, or
+     * on general failure to write file
+     */
+    @Override
+    public void write(final InputStream is) throws IllegalArgumentException, IllegalStateException {
+        if (is == null) {
+            throw new IllegalArgumentException("Value of parameter is can not be null");
+        }
+        if (Files.exists(path)) {
+            throw new IllegalStateException("File already exists " + path);
+        }
+        createPathIfNotExists(path.getParent());
+        try (final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(path.toFile()))) {
+            final byte[] buf = new byte[BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = is.read(buf)) > 0) {
+                bos.write(buf, 0, bytesRead);
+            }
+            bos.flush();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to write file " + path, e);
+        }
+    }
+
+    /**
+     * Deletes this file (if it exists)
+     * @throws IllegalStateException on general failure to delete existing file
+     */
+    @Override
+    public void delete() throws IllegalStateException {
+        if (Files.exists(path)) {
+            try {
+                Files.delete(path);
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to delete file " + path, e);
+            }
+        }
+    }
+
+    /**
+     * Reads content of this file into given output stream
+     * @param os output stream to which bytes are written
+     * @throws IllegalArgumentException if given null-valued os argument
+     * @throws IllegalStateException if trying to read a file which does not exists, or on
+     * general failure to read file
+     */
+    @Override
+    public void read(final OutputStream os) throws IllegalArgumentException, IllegalStateException {
+        if (os == null) {
+            throw new IllegalArgumentException("Value of parameter os can not be null");
+        }
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("File does not exist " + path);
+        }
+        try (final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile()))) {
+            final byte[] buf = new byte[BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = bis.read(buf)) > 0) {
+                os.write(buf, 0, bytesRead);
+            }
+            os.flush();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to read file " + path, e);
+        }
+    }
+
+    @Override
+    public Path getPath() {
+        return Paths.get(path.toString());
+    }
+
+    void createPathIfNotExists(Path path) {
+        try {
+            Files.createDirectories(path);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+}

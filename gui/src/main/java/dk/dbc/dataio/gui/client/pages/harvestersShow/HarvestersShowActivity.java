@@ -2,10 +2,7 @@ package dk.dbc.dataio.gui.client.pages.harvestersShow;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,16 +13,16 @@ import java.util.List;
 public class HarvestersShowActivity extends AbstractActivity implements HarvestersShowPresenter {
 
     //TODO indkommenter når tilføjet til ClientFactory
-    //private final ClientFactory clientFactory;
-    private HarvestersShowView harvestersShowView;
-    //private final FlowStoreProxyAsync flowStoreProxy;
-    //private final PlaceController placeController;
-
-    public HarvestersShowActivity(ClientFactory clientFactory) {
-        //this.clientFactory = clientFactory;
-        //flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        //placeController = clientFactory.getPlaceController();
-    }
+//    private final ClientFactory clientFactory;
+//    private HarvestersShowView harvestersShowView;
+//    private final FlowStoreProxyAsync flowStoreProxy;
+//    private final PlaceController placeController;
+//
+//    public HarvestersShowActivity(ClientFactory clientFactory) {
+//        this.clientFactory = clientFactory;
+//        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+//        placeController = clientFactory.getPlaceController();
+//    }
 
     @Override
     public void bind() {
@@ -35,13 +32,13 @@ public class HarvestersShowActivity extends AbstractActivity implements Harveste
 
     @Override
     public void reload() {
-        harvestersShowView.refresh();
+//        harvestersShowView.refresh();
     }
 
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
-        containerWidget.setWidget(harvestersShowView.asWidget());
+//        containerWidget.setWidget(harvestersShowView.asWidget());
         fetchHarvesters();
     }
 
@@ -52,6 +49,6 @@ public class HarvestersShowActivity extends AbstractActivity implements Harveste
 
         List<String> dummyListForHarvesters = new ArrayList<String>();
         dummyListForHarvesters.add("DummyHarvester");
-        harvestersShowView.setHarvesters(dummyListForHarvesters);
+//        harvestersShowView.setHarvesters(dummyListForHarvesters);
     }
 }

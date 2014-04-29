@@ -15,18 +15,18 @@ import java.util.List;
  */
 public class HarvestersShowActivity extends AbstractActivity implements HarvestersShowPresenter {
 
-    private final ClientFactory clientFactory;
+    //TODO indkommenter når tilføjet til ClientFactory
+    //private final ClientFactory clientFactory;
     private HarvestersShowView harvestersShowView;
-    private final FlowStoreProxyAsync flowStoreProxy;
-    private final PlaceController placeController;
+    //private final FlowStoreProxyAsync flowStoreProxy;
+    //private final PlaceController placeController;
 
     public HarvestersShowActivity(ClientFactory clientFactory) {
-        this.clientFactory = clientFactory;
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        placeController = clientFactory.getPlaceController();
+        //this.clientFactory = clientFactory;
+        //flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+        //placeController = clientFactory.getPlaceController();
     }
 
-    //TODO Denne skal ikke være udkommenteret når tilføjet til ClientFactory
     @Override
     public void bind() {
 //        harvestersShowView = clientFactory.getHarvestersShowView();

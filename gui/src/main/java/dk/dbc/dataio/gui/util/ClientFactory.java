@@ -10,7 +10,6 @@ import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateVie
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
-import dk.dbc.dataio.gui.client.pages.harvestersShow.HarvestersShowView;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditView;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;

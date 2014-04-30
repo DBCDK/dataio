@@ -5,26 +5,28 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-commons-utils</artifactId>
+    <artifactId>dataio-file-store-service</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils-binary-file-store</artifactId>
-  <name>dataio-commons-utils-binary-file-store</name>
-  <packaging>ejb</packaging>
+  <artifactId>dataio-file-store-service-war</artifactId>
+  <name>dataio-file-store-service-war</name>
+  <packaging>war</packaging>
 
   <dependencies>
     <dependency>
       <groupId>javax</groupId>
       <artifactId>javaee-api</artifactId>
       <version>${javaee.api.version}</version>
+      <type>jar</type>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>junit-addons</groupId>
-      <artifactId>junit-addons</artifactId>
-      <version>1.4</version>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-file-store-service-ejb</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
     </dependency>
   </dependencies>
 
@@ -32,11 +34,10 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-ejb-plugin</artifactId>
-        <version>${maven.ejb.plugin.version}</version>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>${maven.war.plugin.version}</version>
         <configuration>
-          <ejbVersion>${ejb.version}</ejbVersion>
-          <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
         </configuration>
       </plugin>
     </plugins>

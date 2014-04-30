@@ -19,7 +19,7 @@ import java.nio.file.Paths;
 public class BinaryFileStoreConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BinaryFileStoreConfigurationBean.class);
 
-    @Resource(name = "basePath")
+    @Resource(lookup = "java:app/env/dataio/bfs/basePath")
     String basePath;
 
     @PostConstruct

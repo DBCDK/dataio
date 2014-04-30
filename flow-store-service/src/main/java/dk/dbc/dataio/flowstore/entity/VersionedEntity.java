@@ -1,7 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 
@@ -35,7 +34,6 @@ public class VersionedEntity {
     }
 
     public void setVersion(Long version) {
-        InvariantUtil.checkLowerBoundOrThrow(version, "version", this.version);
         this.version = version;
     }
 
@@ -69,3 +67,4 @@ public class VersionedEntity {
         JsonUtil.getJsonRoot(data);
     }
 }
+

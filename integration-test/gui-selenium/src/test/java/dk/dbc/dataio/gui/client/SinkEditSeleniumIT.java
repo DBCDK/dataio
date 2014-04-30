@@ -9,16 +9,16 @@ import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.Test;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import javax.ws.rs.client.Client;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import static dk.dbc.dataio.gui.client.SinksShowSeleniumIT.navigateToSinksShowWidget;
 import static dk.dbc.dataio.gui.client.SinksShowSeleniumIT.locateAndClickEditButtonForElement;
+import static dk.dbc.dataio.gui.client.SinksShowSeleniumIT.navigateToSinksShowWidget;
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -325,8 +325,7 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         //Assert that an error is thrown. The sink opened for edit cannot be saved since the version is outdated.
         String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, containsString("Error: "));  // Todo: Generalisering af fejlhåndtering
-        assertThat(s, containsString("version"));
-        assertThat(s, containsString("must be larger than or equal to 2"));
+        assertThat(s, containsString("OptimisticLockException"));
 
         //Close flow store connection
         TearDownFlowStoreConnection();

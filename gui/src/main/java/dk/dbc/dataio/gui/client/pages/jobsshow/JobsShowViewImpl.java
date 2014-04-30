@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.jobsshow;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.ui.Button;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -21,6 +22,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     // Local variables
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
     private final DioCellTable<JobInfo> table = new DioCellTable<JobInfo>();
+    private final Button showMoreButton = new Button(constants.button_ShowMore());
 
 
     /**
@@ -63,8 +65,9 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                 }
             };
             table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
-
             add(table);
+
+            add(showMoreButton);
         }
     }
 

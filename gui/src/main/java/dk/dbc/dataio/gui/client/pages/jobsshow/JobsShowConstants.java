@@ -26,4 +26,9 @@ public interface JobsShowConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_SubmitterNumber();
 
+
+    // Buttons
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_ShowMore();
+
 }

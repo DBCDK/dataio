@@ -1,7 +1,8 @@
 package dk.dbc.dataio.bfs.api;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Access to binary files stored in file system
@@ -12,32 +13,27 @@ public class BinaryFileStoreFsImpl implements BinaryFileStore {
     /**
      * Class constructor
      * @param base base path of file system store
-     * @throws IllegalArgumentException if given null-valued base argument, or if
-     * given base path is non-absolute
+     * @throws NullPointerException if given null-valued base argument
+     * @throws IllegalArgumentException if given base path is non-absolute
      */
-    public BinaryFileStoreFsImpl(Path base) throws IllegalArgumentException {
-        if (base == null) {
-            throw new IllegalArgumentException("Value of base parameter can not be null");
-        }
-        if (!base.isAbsolute()) {
+    public BinaryFileStoreFsImpl(Path base) throws NullPointerException, IllegalArgumentException {
+        this.base = InvariantUtil.checkNotNullOrThrow(base, "base");
+        if (!this.base.isAbsolute()) {
             throw new IllegalArgumentException(String.format(
                     "Unable to initialize binary file store - base path is not absolute: %s", base));
         }
-        this.base = Paths.get(base.toString());
     }
 
     /**
      * Returns file system binary file representation associated with given path
      * @param path binary file path relative to base path specified in constructor
      * @return binary file representation
-     * @throws IllegalArgumentException if given null-valued path argument, or if
-     * given absolute path
+     * @throws NullPointerException if given null-valued path argument
+     * @throws IllegalArgumentException if given absolute path
      */
     @Override
-    public BinaryFile getBinaryFile(Path path) throws IllegalArgumentException {
-        if (path == null) {
-            throw new IllegalArgumentException("Value of path parameter can not be null");
-        }
+    public BinaryFile getBinaryFile(Path path) throws NullPointerException, IllegalArgumentException {
+        InvariantUtil.checkNotNullOrThrow(path, "path");
         if (path.isAbsolute()) {
             throw new IllegalArgumentException("Value of path parameter can not be absolute path " + path);
         }

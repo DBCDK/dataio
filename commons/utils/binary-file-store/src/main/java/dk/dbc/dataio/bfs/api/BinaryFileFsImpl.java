@@ -1,5 +1,7 @@
 package dk.dbc.dataio.bfs.api;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
@@ -9,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * File system implementation of BinaryFile
@@ -21,27 +22,22 @@ public class BinaryFileFsImpl implements BinaryFile {
     /**
      * Class constructor
      * @param path path to binary file
-     * @throws IllegalArgumentException if given null-valued path
+     * @throws NullPointerException if given null-valued path
      */
-    public BinaryFileFsImpl(Path path) throws IllegalArgumentException {
-        if (path == null) {
-            throw new IllegalArgumentException("value of path parameter can not be null");
-        }
-        this.path = Paths.get(path.toString());
+    public BinaryFileFsImpl(Path path) throws NullPointerException {
+        this.path = InvariantUtil.checkNotNullOrThrow(path, "path");
     }
 
     /**
      * Writes content of given input stream to this file creating parent directories as needed
      * @param is input stream of bytes to be written
-     * @throws IllegalArgumentException if given null valued is argument
+     * @throws NullPointerException if given null valued is argument
      * @throws IllegalStateException if trying to write to a file that already exists, or
      * on general failure to write file
      */
     @Override
     public void write(final InputStream is) throws IllegalArgumentException, IllegalStateException {
-        if (is == null) {
-            throw new IllegalArgumentException("Value of parameter is can not be null");
-        }
+        InvariantUtil.checkNotNullOrThrow(is, "is");
         if (Files.exists(path)) {
             throw new IllegalStateException("File already exists " + path);
         }
@@ -76,15 +72,13 @@ public class BinaryFileFsImpl implements BinaryFile {
     /**
      * Reads content of this file into given output stream
      * @param os output stream to which bytes are written
-     * @throws IllegalArgumentException if given null-valued os argument
+     * @throws NullPointerException if given null-valued os argument
      * @throws IllegalStateException if trying to read a file which does not exists, or on
      * general failure to read file
      */
     @Override
     public void read(final OutputStream os) throws IllegalArgumentException, IllegalStateException {
-        if (os == null) {
-            throw new IllegalArgumentException("Value of parameter os can not be null");
-        }
+        InvariantUtil.checkNotNullOrThrow(os, "os");
         if (!Files.exists(path)) {
             throw new IllegalStateException("File does not exist " + path);
         }
@@ -102,7 +96,7 @@ public class BinaryFileFsImpl implements BinaryFile {
 
     @Override
     public Path getPath() {
-        return Paths.get(path.toString());
+        return path;
     }
 
     void createPathIfNotExists(Path path) {

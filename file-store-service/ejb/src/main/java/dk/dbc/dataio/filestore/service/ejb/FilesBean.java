@@ -61,6 +61,7 @@ public class FilesBean {
      * Retrieves content of file contained in file-store as binary data stream
      * @param id ID of file
      * @return a HTTP 200 OK response with file data as binary stream
+     *         a HTTP 404 NOT_FOUND response in case the id could not be found
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      */
     @GET
@@ -68,6 +69,10 @@ public class FilesBean {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFile(@PathParam("id") final String id) {
         LOGGER.trace("getFile() method called with file ID {}", id);
+
+        if (!fileStore.fileExists(id)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
 
         final StreamingOutput stream = new StreamingOutput() {
             @Override

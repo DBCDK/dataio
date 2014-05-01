@@ -27,7 +27,7 @@ public class BinaryFileFsImplTest {
     @Rule
     public TemporaryFolder mountPoint = new TemporaryFolder();
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void constructor_pathArgIsNull_throws() {
         new BinaryFileFsImpl(null);
     }
@@ -47,7 +47,7 @@ public class BinaryFileFsImplTest {
         try {
             binaryFileFs.write(null);
             fail("No Exception thrown");
-        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException e) {
         }
     }
 
@@ -96,7 +96,7 @@ public class BinaryFileFsImplTest {
         try {
             binaryFileFs.read(null);
             fail("No exception thrown");
-        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException e) {
         }
     }
 

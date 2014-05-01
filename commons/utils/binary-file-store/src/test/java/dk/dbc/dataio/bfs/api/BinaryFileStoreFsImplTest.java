@@ -13,7 +13,7 @@ import static org.junit.Assert.fail;
 public class BinaryFileStoreFsImplTest {
     private static final Path BASE_PATH = Paths.get("/absolute");
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void constructor_baseArgIsNull_throws() {
         new BinaryFileStoreFsImpl(null);
     }
@@ -35,7 +35,7 @@ public class BinaryFileStoreFsImplTest {
         try {
             binaryFileStoreFs.getBinaryFile(null);
             fail("No exception thrown");
-        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException e) {
         }
     }
 

@@ -67,7 +67,7 @@ public class FileStoreBean {
             throws NullPointerException, IllegalArgumentException, IllegalStateException, EJBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         InvariantUtil.checkNotNullOrThrow(dataDestination, "dataDestination");
-        final FileAttributes fileAttributes = lookupFileAttributes(Long.valueOf(fileId));
+        final FileAttributes fileAttributes = lookupFileAttributes(Long.parseLong(fileId));
         if (fileAttributes == null) {
             throw new EJBException(String.format("Trying to get non-existing file with ID '%s'", fileId));
         }
@@ -87,7 +87,7 @@ public class FileStoreBean {
     public boolean fileExists(String fileId) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         try {
-            final Long id = Long.valueOf(fileId);
+            final long id = Long.parseLong(fileId);
             return lookupFileAttributes(id) != null;
         } catch (NumberFormatException e) {
             LOGGER.warn("Given id '{}' is invalid", fileId);

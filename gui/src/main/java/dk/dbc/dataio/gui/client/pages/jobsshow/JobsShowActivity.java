@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+
 import java.util.List;
 
 
@@ -31,6 +32,7 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
 
     @Override
     public void reload() {
+        fetchJobs();
 		jobsShowView.refresh();
     }
 
@@ -38,6 +40,7 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(jobsShowView.asWidget());
+        jobsShowView.clearFields();
         fetchJobs();
     }
 

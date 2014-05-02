@@ -1,11 +1,14 @@
 package dk.dbc.dataio.gui.client.pages.jobsshow;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Button;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+
 import java.util.List;
 
 /**
@@ -19,10 +22,15 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_JOBS_SHOW_WIDGET = "jobsshowwidget";
 
+    // Configuration constants
+    private static final int PAGE_SIZE = 20;
+
     // Local variables
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
     private final DioCellTable<JobInfo> table = new DioCellTable<JobInfo>();
     private final Button showMoreButton = new Button(constants.button_ShowMore());
+
+    private int currentPageSize = PAGE_SIZE;
 
 
     /**
@@ -67,6 +75,12 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
             add(table);
 
+            showMoreButton.addClickHandler(new ClickHandler() {
+                @Override
+                public void onClick(ClickEvent clickEvent) {
+                    increasePageSize();
+                }
+            });
             add(showMoreButton);
         }
     }
@@ -87,6 +101,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
      */
     @Override
     public void clearFields() {
+        currentPageSize = PAGE_SIZE;
     }
 
     /**
@@ -113,10 +128,24 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
      */
     @Override
     public void setJobs(List<JobInfo> jobs) {
-        table.setPageSize(jobs.size());
-        table.setRowData(0, jobs);
+        table.setPageSize(currentPageSize);
         table.setRowCount(jobs.size());
+        table.setRowData(0, jobs);
         table.updateDone();
+    }
+
+    /**
+     * Increases currentPageSize to show one more page
+     */
+    public void increasePageSize() {
+        int newPageSize = currentPageSize + PAGE_SIZE;
+        if (newPageSize > table.getRowCount()) {
+            currentPageSize = table.getRowCount();
+        } else {
+            currentPageSize = newPageSize;
+        }
+        table.setPageSize(currentPageSize);
+        presenter.reload();
     }
 
 

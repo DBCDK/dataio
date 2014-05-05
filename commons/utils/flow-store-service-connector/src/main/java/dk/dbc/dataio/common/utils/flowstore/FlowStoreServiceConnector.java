@@ -35,7 +35,7 @@ public class FlowStoreServiceConnector {
      * Class constructor
      *
      * @param httpClient web resources client
-     * @param baseUrl    base URL for job-store service endpoint
+     * @param baseUrl    base URL for flow-store service endpoint
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */

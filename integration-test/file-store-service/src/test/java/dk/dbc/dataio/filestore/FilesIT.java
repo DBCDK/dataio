@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -87,6 +88,7 @@ public class FilesIT {
         // When...
         final Path sourceFile = rootFolder.newFile().toPath();
         writeFile(sourceFile);
+        assertThat(Files.size(sourceFile)>0, is(true));
 
         final FileStoreServiceConnector fileStoreServiceConnector =
                 new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);

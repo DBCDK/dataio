@@ -1,0 +1,61 @@
+package dk.dbc.dataio.common.utils.flowstore.ejb;
+
+/**
+ * Created by sma on 02/05/14.
+ */
+
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ejb.EJBException;
+import javax.naming.NamingException;
+import javax.ws.rs.client.Client;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.powermock.api.mockito.PowerMockito.*;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({
+        HttpClient.class,
+        ServiceUtil.class
+})
+public class FlowStoreServiceConnectorBeanTest {
+
+    private final String flowStoreUrl = "http://dataio/flow-store";
+    private final Client client = mock(Client.class);
+    private final long sinkId = 1;
+
+    @Before
+    public void setup() throws Exception {
+        mockStatic(ServiceUtil.class);
+        mockStatic(HttpClient.class);
+        when(ServiceUtil.getFlowStoreServiceEndpoint())
+                .thenReturn(flowStoreUrl);
+        when(HttpClient.newClient()).thenReturn(client);
+    }
+
+    @Test
+    public void getSink_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.getSink(sinkId);
+            fail("No exception thrown by getSink()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    private FlowStoreServiceConnectorBean getInitializedBean() {
+        return new FlowStoreServiceConnectorBean();
+    }
+}

@@ -108,7 +108,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final Response response;
         try {
             response = HttpClient.doPostWithJson(client, sinkContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SINKS, Long.toString(id), Long.toString(version), FlowStoreServiceConstants.SINKS_CONTENT);
+                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SINKS, Long.toString(id), Long.toString(version), FlowStoreServiceConstants.SINKS_CONTENT_VARIABLE);
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }

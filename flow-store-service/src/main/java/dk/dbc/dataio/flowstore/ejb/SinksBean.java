@@ -25,6 +25,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Path(FlowStoreServiceConstants.SINKS)
 public class SinksBean {
     private static final String NOT_FOUND_MESSAGE = "resource not found";
+    private static final String SINK_CONTENT_DISPLAY_TEXT = "sinkContent";
 
     @PersistenceContext
     EntityManager entityManager;
@@ -41,9 +42,9 @@ public class SinksBean {
      * @throws JsonException on failure to create json sink
      */
     @GET
-    @Path("/{id}")
+    @Path(FlowStoreServiceConstants.SINK_ID)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSink(@PathParam("id") Long id) throws JsonException {
+    public Response getSink(@PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id) throws JsonException {
         final Sink sink = entityManager.find(Sink.class, id);
         if (sink == null) {
             return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
@@ -67,7 +68,7 @@ public class SinksBean {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     public Response createSink(@Context UriInfo uriInfo, String sinkContent) throws JsonException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, "sinkContent");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
 
         final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContent);
         entityManager.flush();
@@ -92,10 +93,11 @@ public class SinksBean {
      * @throws JsonException on failure to create json sink
      */
     @POST
-    @Path("/{id}/{version}/" + FlowStoreServiceConstants.SINKS_CONTENT)
+    @Path(FlowStoreServiceConstants.SINKS_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam("id") Long id, @PathParam("version") Long version) throws JsonException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, "sinkContent");
+    public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id,
+                               @PathParam(FlowStoreServiceConstants.SINK_VERSION_VARIABLE) Long version) throws JsonException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
         final Sink sinkEntity = entityManager.find(Sink.class, id);
         if (sinkEntity == null) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
@@ -124,3 +126,4 @@ public class SinksBean {
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 }
+

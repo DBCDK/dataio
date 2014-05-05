@@ -18,7 +18,7 @@ import java.io.StringWriter;
 public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
 
-    public static final String FILE_STORE_SERVICE_ENDPOINT_RESOURCE = "java:app/env/dataio/endpoint/filestore";
+    public static final String FILE_STORE_SERVICE_ENDPOINT_RESOURCE = "env/dataio/endpoint/filestore";
     private static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
     private static final String JOB_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioJobStoreServiceEndpoint";
     private static final String SINK_SERVICE_ENDPOINT_RESOURCE = "dataioSinkServiceEndpoint";

@@ -14,6 +14,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>file-store-service</module>
     <module>flow-store-service</module>
     <module>gui-selenium</module>
     <module>sink-es</module>

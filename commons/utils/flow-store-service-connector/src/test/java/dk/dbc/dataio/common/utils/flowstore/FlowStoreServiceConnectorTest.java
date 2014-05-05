@@ -1,9 +1,12 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +67,56 @@ public class FlowStoreServiceConnectorTest {
         assertThat(instance.getBaseUrl(), is(FLOW_STORE_URL));
     }
 
+    @Test(expected = NullPointerException.class)
+    public void createSInk_sinkContentArgIsNull_throws() throws FlowStoreServiceConnectorException {
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.createSink(null);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void createSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.createSink(sinkContent);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void createSink_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.createSink(sinkContent);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void createSink_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException{
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_ACCEPTABLE.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.createSink(sinkContent);
+    }
+
+    @Test
+    public void createSink_sinkIsCreated_returnsSink() throws FlowStoreServiceConnectorException, JsonException {
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        final Sink expectedSink = new SinkBuilder().build();
+
+        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSink));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        final Sink sink = instance.createSink(sinkContent);
+        assertThat(sink, is(notNullValue()));
+        assertThat(sink.getId(), is(expectedSink.getId()));
+    }
+
     @Test
     public void getSink_sinkRetrieved_returnsSink() throws FlowStoreServiceConnectorException {
 
@@ -96,6 +149,17 @@ public class FlowStoreServiceConnectorTest {
                 .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.getSink(SINK_ID);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void getSink_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK_ID), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.getSink(SINK_ID);

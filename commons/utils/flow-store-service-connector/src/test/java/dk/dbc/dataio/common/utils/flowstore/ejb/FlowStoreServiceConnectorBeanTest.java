@@ -7,6 +7,7 @@ package dk.dbc.dataio.common.utils.flowstore.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +41,19 @@ public class FlowStoreServiceConnectorBeanTest {
         when(ServiceUtil.getFlowStoreServiceEndpoint())
                 .thenReturn(flowStoreUrl);
         when(HttpClient.newClient()).thenReturn(client);
+    }
+
+    @Test
+    public void createSink_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.createSink(new SinkContentBuilder().build());
+            fail("No exception thrown by createSink()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
     }
 
     @Test

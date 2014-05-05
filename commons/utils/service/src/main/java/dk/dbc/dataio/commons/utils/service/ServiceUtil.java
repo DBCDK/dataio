@@ -18,12 +18,31 @@ import java.io.StringWriter;
 public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
 
+    public static final String FILE_STORE_SERVICE_ENDPOINT_RESOURCE = "java:app/env/dataio/endpoint/filestore";
     private static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
     private static final String JOB_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioJobStoreServiceEndpoint";
     private static final String SINK_SERVICE_ENDPOINT_RESOURCE = "dataioSinkServiceEndpoint";
     private static final String SUBVERSION_SCM_ENDPOINT_RESOURCE = "dataioGuiSubversionScmEndpoint";
 
     private ServiceUtil() { }
+
+    /**
+     * Looks up file-store service endpoint through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value #FILE_STORE_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
+     * the JNDI lookup can be bypassed by defining a '{@value #FILE_STORE_SERVICE_ENDPOINT_RESOURCE}'
+     * system property.
+     *
+     * @return file-store service URL as String
+     *
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getFileStoreServiceEndpoint() throws NamingException {
+        String fileStoreServiceEndpoint = System.getProperty(FILE_STORE_SERVICE_ENDPOINT_RESOURCE);
+        if (fileStoreServiceEndpoint == null || fileStoreServiceEndpoint.isEmpty()) {
+            fileStoreServiceEndpoint = getStringValueFromResource(FILE_STORE_SERVICE_ENDPOINT_RESOURCE);
+        }
+        return fileStoreServiceEndpoint;
+    }
 
     /**
      * Looks up flow-store service endpoint through Java Naming and Directory Interface (JNDI)

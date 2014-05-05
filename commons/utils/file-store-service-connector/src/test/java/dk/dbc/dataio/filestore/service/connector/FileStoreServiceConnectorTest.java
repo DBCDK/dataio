@@ -1,0 +1,186 @@
+package dk.dbc.dataio.filestore.service.connector;
+
+import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyVararg;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({
+        HttpClient.class,
+})
+public class FileStoreServiceConnectorTest {
+    private static final Client CLIENT = mock(Client.class);
+    private static final String FILE_STORE_URL = "http://dataio/file-store";
+    private static final InputStream INPUT_STREAM = mock(InputStream.class);
+    private static final String FILE_ID = "42";
+    private static final String LOCATION_HEADER = String.format("%s/%s/%s",
+            FILE_STORE_URL, FileStoreServiceConstants.FILES_COLLECTION, FILE_ID);
+
+    @Before
+    public void setup() throws Exception {
+        mockStatic(HttpClient.class);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_httpClientArgIsNull_throws() {
+        new FileStoreServiceConnector(null, FILE_STORE_URL);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_baseUrlArgIsNull_throws() {
+        new FileStoreServiceConnector(CLIENT, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_baseUrlArgIsEmpty_throws() {
+        new FileStoreServiceConnector(CLIENT, "");
+    }
+
+    @Test
+    public void constructor_allArgsAreValid_returnsNewInstance() {
+        final FileStoreServiceConnector instance = newFileStoreServiceConnector();
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getHttpClient(), is(CLIENT));
+        assertThat(instance.getBaseUrl(), is(FILE_STORE_URL));
+    }
+
+    @Test
+    public void addFile_isArgIsNull_throws() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getFile(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void addFile_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
+        when(HttpClient.doPost(eq(CLIENT), any(Entity.class), eq(FILE_STORE_URL), eq(FileStoreServiceConstants.FILES_COLLECTION)))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.addFile(INPUT_STREAM);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        }
+    }
+
+    @Test
+    public void addFile_responseWithoutLocationHeader_throws() throws FileStoreServiceConnectorException {
+        when(HttpClient.getHeader(any(Response.class), eq("Location"))).thenReturn(Arrays.asList());
+        when(HttpClient.doPost(eq(CLIENT), any(Entity.class), eq(FILE_STORE_URL), eq(FileStoreServiceConstants.FILES_COLLECTION)))
+                .thenReturn(new MockedResponse<>(Response.Status.CREATED.getStatusCode(), ""));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.addFile(INPUT_STREAM);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorException e) {
+            assertThat(e instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(false));
+        }
+    }
+
+    @Test
+    public void addFile_fileIsCreated_returnsFileId() throws FileStoreServiceConnectorException {
+        when(HttpClient.getHeader(any(Response.class), eq("Location"))).thenReturn(Arrays.<Object>asList(LOCATION_HEADER));
+        when(HttpClient.doPost(eq(CLIENT), any(Entity.class), eq(FILE_STORE_URL), eq(FileStoreServiceConstants.FILES_COLLECTION)))
+                .thenReturn(new MockedResponse<>(Response.Status.CREATED.getStatusCode(), ""));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        assertThat(fileStoreServiceConnector.addFile(INPUT_STREAM), is(FILE_ID));
+    }
+
+    @Test
+    public void getFile_fileIdArgIsNull_throws() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getFile(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void getFile_fileIdArgIsEmpty_throws() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getFile("");
+            fail("No exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void getFile_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(FileStoreServiceConstants.FILE), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FILE_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getFile(FILE_ID);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        }
+    }
+
+    @Test
+    public void getFile_responseWithNullEntity_throws() throws FileStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(FileStoreServiceConstants.FILE), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FILE_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getFile(FILE_ID);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorException e) {
+            assertThat(e instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(false));
+        }
+    }
+
+    @Test
+    public void getFile_fileExists_returnsInputStream() throws FileStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(FileStoreServiceConstants.FILE), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FILE_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), INPUT_STREAM));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        assertThat(fileStoreServiceConnector.getFile(FILE_ID), is(INPUT_STREAM));
+    }
+
+    private static FileStoreServiceConnector newFileStoreServiceConnector() {
+        return new FileStoreServiceConnector(CLIENT, FILE_STORE_URL);
+    }
+}

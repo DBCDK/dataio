@@ -4,29 +4,33 @@ import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
-import static org.hamcrest.CoreMatchers.is;
 import org.junit.After;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
-public class JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     private final static String DATAIO_JOB_STORE = "dataio-job-store";
     private final static String JOBINFO_FILE_NAME = "jobinfo.json";
     private TemporaryDataioJobstoreFolder jobstoreFolder;
+
+    private final static Integer JOB_ID_OFFSET = 1000;
+    private final static String FILE_NAME_PREFIX = "File_Name_";
+    private final static Integer SUBMITTER_NUMBER_OFFSET = 2000;
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -73,11 +77,60 @@ public class JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(1).get(2), is(SUBMITTER_NUMBER_2));
     }
 
+    @Test
+    public void testJobs_MoreButtonVisible() throws IOException {
+        navigateToJobsShowWidget(webDriver);
+        assertTrue(findMoreButton(webDriver).isDisplayed());
+    }
+
+    @Test
+    public void testJobsInsert21Rows_20ElementsShown() throws IOException {
+        insertRows(webDriver, 21);
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(20);
+        List<List<String>> rowData = table.get();
+        assertJobsTableData(rowData, 20);
+    }
+
+    @Test
+    public void testJobsInsert21RowsAndClickMore_21ElementsShown() throws IOException {
+        insertRows(webDriver, 21);
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(20);
+        findMoreButton(webDriver).click();
+        table.waitAssertRows(1);
+        List<List<String>> rowData = table.get();
+        assertJobsTableData(rowData, 21);
+    }
+
+
+    /**
+     * Private utility methods
+     */
     private static void navigateToJobsShowWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_JOBS_SHOW);
     }
 
+    private static WebElement findMoreButton(WebDriver webDriver) {
+        return SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_MORE_BUTTON);
+    }
 
+    private void insertRows(WebDriver webDriver, int count) throws IOException {
+        for (int i=0; i<count; i++) {
+            jobstoreFolder.createTestJob(Integer.toString(JOB_ID_OFFSET+i), FILE_NAME_PREFIX + Integer.toString(i), Integer.toString(SUBMITTER_NUMBER_OFFSET-i));
+        }
+    }
+
+    private void assertJobsTableData(List<List<String>> tableData, int count) {
+        assertThat(tableData.size(), is(count));
+        for (int i=0; i<count; i++) {
+            assertThat(tableData.get(i).get(0), is(Integer.toString(JOB_ID_OFFSET+i)));
+            assertThat(tableData.get(i).get(1), is(FILE_NAME_PREFIX + Integer.toString(i)));
+            assertThat(tableData.get(i).get(2), is(Integer.toString(SUBMITTER_NUMBER_OFFSET-i)));
+        }
+    }
 
 
     /**

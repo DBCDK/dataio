@@ -21,6 +21,7 @@ import java.util.List;
 public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements JobsShowView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_JOBS_SHOW_WIDGET = "jobsshowwidget";
+    public static final String GUIID_JOBS_MORE_BUTTON = "jobsshowmorebutton";
 
     // Configuration constants
     private static final int PAGE_SIZE = 20;
@@ -75,6 +76,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
             add(table);
 
+            showMoreButton.getElement().setId(GUIID_JOBS_MORE_BUTTON);
             showMoreButton.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent clickEvent) {

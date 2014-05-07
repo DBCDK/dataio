@@ -41,16 +41,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javax.ws.rs.ProcessingException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
@@ -110,19 +108,9 @@ public class PerformanceIT {
         // Insert Job
         JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
 
-        boolean done = false;
-        // Wait for Job-completion
-        while (!done) {
-            JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
-            if (jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
-                done = true;
-            } else {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                }
-            }
-        }
+        // Wait for job-completion
+        waitForCompletion(jobStoreServiceConnector, jobInfo.getJobId());
+
         // End Timer
         lowContentTimingResult = System.currentTimeMillis() - timer;
     }
@@ -149,10 +137,18 @@ public class PerformanceIT {
         // Insert Job
         JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
 
+        // Wait for job-completion
+        waitForCompletion(jobStoreServiceConnector, jobInfo.getJobId());
+
+        // End Timer
+        highContentTimingResult = System.currentTimeMillis() - timer;
+    }
+
+    private void waitForCompletion(JobStoreServiceConnector jobStoreServiceConnector, long jobId) throws ProcessingException, JobStoreServiceConnectorException {
         boolean done = false;
         // Wait for Job-completion
         while (!done) {
-            JobState jobState = jobStoreServiceConnector.getState(jobInfo.getJobId());
+            JobState jobState = jobStoreServiceConnector.getState(jobId);
             if (jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
                 done = true;
             } else {
@@ -162,8 +158,6 @@ public class PerformanceIT {
                 }
             }
         }
-        // End Timer
-        highContentTimingResult = System.currentTimeMillis() - timer;
     }
 
     private void createTemporaryFile(File f, long numberOfElements, String data) throws UnsupportedEncodingException, IOException {
@@ -216,7 +210,7 @@ public class PerformanceIT {
         long sinkId = insertObjectInFlowStore(restClient, flowStorebaseUrl, sinkContent, FlowStoreServiceConstants.SINKS);
 
         // insert flowbinder
-        FlowBinderContent flowBinderContent = new FlowBinderContent("perftest-flowbinder", "flowbinder for perftest", "xml", "testdata", "utf8", "dummysink", "Default Record Splitter", flowId, Arrays.asList(new Long(submitterId)), sinkId);
+        FlowBinderContent flowBinderContent = new FlowBinderContent("perftest-flowbinder", "flowbinder for perftest", "xml", "testdata", "utf8", "dummysink", "Default Record Splitter", flowId, Arrays.asList(Long.valueOf(submitterId)), sinkId);
         insertObjectInFlowStore(restClient, flowStorebaseUrl, flowBinderContent, FlowStoreServiceConstants.FLOW_BINDERS);
 
         return new JobStoreServiceConnector(restClient, jobStorebaseUrl);
@@ -256,8 +250,8 @@ public class PerformanceIT {
                 + "  }\n"
                 + "  return res;\n"
                 + "}").getBytes("UTF-8")), "NoModule");
-        JavaScript jsUse = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/Use.use.js").getBytes()), "Use");
-        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/ModulesInfo.use.js").getBytes()), "ModulesInfo");
+        JavaScript jsUse = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/Use.use.js").getBytes("UTF-8")), "Use");
+        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/ModulesInfo.use.js").getBytes("UTF-8")), "ModulesInfo");
         // The following resources are located in the test/resources folder in the project.
         // All files are copied from jscommon and the filename is prefixed with "TestResource_".
         // This is in order to ensure that they are not confused with the actual javascripts.
@@ -285,7 +279,7 @@ public class PerformanceIT {
 
         List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(js, jsUse, jsModulesInfo));
         for (String jsDependency : testJSDependecies) {
-            javascripts.add(new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("TestResource_" + jsDependency + ".use.js").getBytes()), jsDependency));
+            javascripts.add(new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("TestResource_" + jsDependency + ".use.js").getBytes("UTF-8")), jsDependency));
         }
         return javascripts;
     }
@@ -307,28 +301,6 @@ public class PerformanceIT {
         dataset.addValue(datasetValue);
         Dataset.toJsonFile(DATASET_FILE, dataset);
         return dataset;
-    }
-
-    private static void createChart2(Dataset ioDataset) {
-        XYSeries lowContentDataset = new XYSeries("Low Content");
-        XYSeries highContentDataset = new XYSeries("High Content");
-        for (Dataset.DatasetValue value : ioDataset.getValues()) {
-            lowContentDataset.add(value.lowContentTiming, value.timestamp);
-            highContentDataset.add(value.highContentTiming, value.timestamp);
-        }
-
-        XYSeriesCollection graphDataset = new XYSeriesCollection();
-        graphDataset.addSeries(lowContentDataset);
-        graphDataset.addSeries(highContentDataset);
-
-        final JFreeChart chart = ChartFactory.createXYLineChart("DataIO performance test - A job with X records", "Timestamp", "Total time in milliseconds", graphDataset, PlotOrientation.VERTICAL, false, false, false);
-        XYPlot plot = chart.getXYPlot();
-        plot.getDomainAxis().setVerticalTickLabels(true);
-
-        try {
-            ChartUtilities.saveChartAsPNG(new File("main.png"), chart, 1920, 960);
-        } catch (IOException ex) {
-        }
     }
 
     private static void createChart(Dataset ioDataset) {

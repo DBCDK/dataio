@@ -4,10 +4,7 @@ import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -23,6 +20,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+@Ignore
 public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     private final static String DATAIO_JOB_STORE = "dataio-job-store";
     private final static String JOBINFO_FILE_NAME = "jobinfo.json";

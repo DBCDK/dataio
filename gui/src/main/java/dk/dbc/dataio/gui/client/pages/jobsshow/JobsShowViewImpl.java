@@ -3,12 +3,16 @@ package dk.dbc.dataio.gui.client.pages.jobsshow;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.cellview.client.ColumnSortEvent;
+import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -30,6 +34,10 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
     private final DioCellTable<JobInfo> table = new DioCellTable<JobInfo>();
     private final Button showMoreButton = new Button(constants.button_ShowMore());
+    ListDataProvider<JobInfo> dataProvider = new ListDataProvider<JobInfo>();
+    TextColumn<JobInfo> jobIdColumn;
+    TextColumn<JobInfo> fileNameColumn;
+    TextColumn<JobInfo> submitterNumberColumn;
 
     private int currentPageSize = PAGE_SIZE;
 
@@ -50,41 +58,51 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
         getElement().setId(GUIID_JOBS_SHOW_WIDGET);
 
-        if (table.getColumnCount() == 0) {
-            TextColumn<JobInfo> jobIdColumn = new TextColumn<JobInfo>() {
-                @Override
-                public String getValue(JobInfo content) {
-                    return getJobIdColumn(content);
-                }
-            };
-            table.addColumn(jobIdColumn, constants.columnHeader_JobId());
+        // Job ID Column
+        jobIdColumn = new TextColumn<JobInfo>() {
+            @Override
+            public String getValue(JobInfo content) {
+                return getJobIdColumn(content);
+            }
+        };
+        jobIdColumn.setSortable(true);
+        table.addColumn(jobIdColumn, constants.columnHeader_JobId());
 
-            TextColumn<JobInfo> fileNameColumn = new TextColumn<JobInfo>() {
-                @Override
-                public String getValue(JobInfo content) {
-                    return getFileNameColumn(content);
-                }
-            };
-            table.addColumn(fileNameColumn, constants.columnHeader_FileName());
+        // File Name Column
+        fileNameColumn = new TextColumn<JobInfo>() {
+            @Override
+            public String getValue(JobInfo content) {
+                return getFileNameColumn(content);
+            }
+        };
+        fileNameColumn.setSortable(true);
+        table.addColumn(fileNameColumn, constants.columnHeader_FileName());
 
-            TextColumn<JobInfo> submitterNumberColumn = new TextColumn<JobInfo>() {
-                @Override
-                public String getValue(JobInfo content) {
-                    return getSubmitterNumberColumn(content);
-                }
-            };
-            table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
-            add(table);
+        // Submitter Number Column
+        submitterNumberColumn = new TextColumn<JobInfo>() {
+            @Override
+            public String getValue(JobInfo content) {
+                return getSubmitterNumberColumn(content);
+            }
+        };
+        submitterNumberColumn.setSortable(true);
+        table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
 
-            showMoreButton.getElement().setId(GUIID_JOBS_MORE_BUTTON);
-            showMoreButton.addClickHandler(new ClickHandler() {
-                @Override
-                public void onClick(ClickEvent clickEvent) {
-                    increasePageSize();
-                }
-            });
-            add(showMoreButton);
-        }
+        // Add table to view
+        add(table);
+
+        // Connect the table to the data provider.
+        dataProvider.addDataDisplay(table);
+
+        showMoreButton.getElement().setId(GUIID_JOBS_MORE_BUTTON);
+        showMoreButton.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                increasePageSize();
+            }
+        });
+        add(showMoreButton);
+
     }
 
     /*
@@ -103,7 +121,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
      */
     @Override
     public void clearFields() {
-        currentPageSize = PAGE_SIZE;
     }
 
     /**
@@ -130,9 +147,43 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
      */
     @Override
     public void setJobs(List<JobInfo> jobs) {
+
+        // Link the Data Provider object to this list of jobs
+        dataProvider.setList(jobs);
+
+        // Add a ColumnSortEvent.ListHandler to connect sorting to the java.util.List
+        ColumnSortEvent.ListHandler<JobInfo> columnSortHandler = new ColumnSortEvent.ListHandler<JobInfo>(dataProvider.getList());
+        columnSortHandler.setComparator(jobIdColumn,
+                new Comparator<JobInfo>() {
+                    public int compare(JobInfo o1, JobInfo o2) {
+                        return validateObjects(o1, o2) ? compareLongs(o1.getJobId(), o2.getJobId()) : 1;
+                    }
+                });
+        columnSortHandler.setComparator(fileNameColumn,
+                new Comparator<JobInfo>() {
+                    public int compare(JobInfo o1, JobInfo o2) {
+                        return validateObjects(o1, o2) ? compareStrings(o1.getJobSpecification().getDataFile(), o2.getJobSpecification().getDataFile()) : 1;
+                    }
+                });
+        columnSortHandler.setComparator(submitterNumberColumn,
+                new Comparator<JobInfo>() {
+                    public int compare(JobInfo o1, JobInfo o2) {
+                        return validateObjects(o1, o2) ? compareLongs(o1.getJobSpecification().getSubmitterId(), o2.getJobSpecification().getSubmitterId()) : 1;
+                    }
+                });
+        table.addColumnSortHandler(columnSortHandler);
+
+        // Set default sort behavior
+        ColumnSortList columnSortList = table.getColumnSortList();
+        jobIdColumn.setDefaultSortAscending(false);  // Set default sort order for jobIdColumn to Descending (youngest first)
+        columnSortList.clear();  // Clear the old behavior
+        columnSortList.push(jobIdColumn);  // Default sorting is by job id
+        ColumnSortEvent.fire(table, columnSortList);  // Do sort right now
+
+        // Set page size parameters
+        currentPageSize = PAGE_SIZE;
         table.setPageSize(currentPageSize);
         table.setRowCount(jobs.size());
-        table.setRowData(0, jobs);
         table.updateDone();
     }
 
@@ -147,7 +198,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             currentPageSize = newPageSize;
         }
         table.setPageSize(currentPageSize);
-        presenter.reload();
     }
 
 
@@ -165,4 +215,15 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         return Long.toString(content.getJobSpecification().getSubmitterId());
     }
 
+    private boolean validateObjects(Object o1, Object o2) {
+        return ((o1 != null) && (o2 != null));
+    }
+
+    private int compareStrings(String s1, String s2) {
+        return s1.compareTo(s2);
+    }
+
+    private int compareLongs(long l1, long l2) {
+        return (l1 == l2) ? 0 : (l1 < l2) ? -1 : 1;
+    }
 }

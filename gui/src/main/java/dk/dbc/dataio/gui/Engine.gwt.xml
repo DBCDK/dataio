@@ -13,7 +13,9 @@
     <!-- <inherits name="com.google.gwt.user.theme.dark.Dark"/> -->
 
     <inherits name="dk.dbc.dataio.commons.types.Types" />
-    
+    <inherits name="com.google.gwt.activity.Activity"/>
+    <inherits name="dk.dbc.dataio.gui.Main"/>
+
     <entry-point class="dk.dbc.dataio.gui.client.tmpengine.EngineEntryPoint"/>
 
     <set-property name="user.agent" value="gecko1_8"/>

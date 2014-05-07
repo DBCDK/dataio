@@ -216,7 +216,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     }
 
     private boolean validateObjects(Object o1, Object o2) {
-        return ((o1 != null) && (o2 != null));
+        return o1 != null && o2 != null;
     }
 
     private int compareStrings(String s1, String s2) {

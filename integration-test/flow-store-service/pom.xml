@@ -17,6 +17,7 @@
           <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
           <version>${project.version}</version>
           <scope>test</scope>
+          <type>ejb</type>
       </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

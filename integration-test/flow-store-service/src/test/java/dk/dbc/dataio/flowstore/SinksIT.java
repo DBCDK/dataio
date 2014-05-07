@@ -2,10 +2,16 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -21,7 +27,7 @@ import java.util.List;
 import static dk.dbc.dataio.integrationtest.ITUtil.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class SinksIT {
 
@@ -34,6 +40,7 @@ public class SinksIT {
         baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         dbConnection = newDbConnection("flow_store");
         restClient = HttpClient.newClient();
+        //logger = LoggerFactory.getLogger(SinksIT.class);
     }
 
     @AfterClass
@@ -49,36 +56,51 @@ public class SinksIT {
     /**
      * Given: a deployed flow-store service
      * When : valid JSON is POSTed to the sinks path without an identifier
-     * Then : request returns with a CREATED http status code
-     * And  : request returns with a Location header pointing to the newly created resource
+     * Then : a sink it created and returned
+     * And  : the sink created has an id, a version and contains the same information as the sinkContent given as input
      * And  : posted data can be found in the underlying database
      */
     @Test
-    public void createSink_ok() throws SQLException {
-        // When...
-        final String sinkContent = new SinkContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, sinkContent, baseUrl, FlowStoreServiceConstants.SINKS);
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
-        // And ...
-        final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
-        // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.SINKS_TABLE_SELECT_CONTENT_STMT, id);
-        assertThat(rs.size(), is(1));
-        assertThat((String) rs.get(0).get(0), is(sinkContent));
+    public void createSink_ok(){
+        try{
+            // When...
+            final SinkContent sinkContent = new SinkContentBuilder().build();
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+            Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+            // Then...
+            assertNotNull(sink);
+            assertNotNull(sink.getContent());
+            assertNotNull(sink.getId());
+            assertNotNull(sink.getVersion());
+            assertThat(sink.getContent().getName(), is(sinkContent.getName()));
+            assertThat(sink.getContent().getResource(), is(sinkContent.getResource()));
+            // And ...
+            final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.SINKS_TABLE_SELECT_CONTENT_STMT, sink.getId());
+            assertThat(rs.size(), is(1));
+        }catch(Exception e){
+            fail("Unexpected error when creating new sink.");
+        }
     }
 
     /**
      * Given: a deployed flow-store service
-     * When : JSON posted to the sinks path causes JsonException
-     * Then : request returns with a BAD REQUEST http status code
+     * When : given sinkContent that contains an empty parameter for name
+     * Then : IllegalArgumentException is thrown
      */
     @Test
-    public void createSink_invalidJson_BadRequest() {
-        // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceConstants.SINKS);
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    public void createSink_InvalidRequest(){
+        try{
+            // When...
+            final SinkContent sinkContent = new SinkContent("", "resource");
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+            flowStoreServiceConnector.createSink(sinkContent);
+            fail("Invalid input to createSink() was not detected.");
+        }catch(Exception e){
+            // Then...
+            assertTrue(e instanceof IllegalArgumentException);
+            assertTrue(e.getMessage().toString().contains("Value of parameter"));
+            assertTrue(e.getMessage().toString().contains("cannot be empty"));
+        }
     }
 
     /**
@@ -87,15 +109,21 @@ public class SinksIT {
      * Then : request returns with a NOT ACCEPTABLE http status code
      */
     @Test
-    public void createSink_duplicateName_NotAcceptable() throws Exception {
+    public void createSink_duplicateName_NotAcceptable(){
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         // Given...
-        final String sinkContent1 = new SinkContentJsonBuilder().build();
-        createSink(restClient, baseUrl, sinkContent1);
+        final SinkContent sinkContent1 = new SinkContentBuilder().build();
+        final SinkContent sinkContent2 = new SinkContentBuilder().build();
         // When...
-        final String sinkContent2 = new SinkContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, sinkContent2, baseUrl, FlowStoreServiceConstants.SINKS);
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+        try {
+            flowStoreServiceConnector.createSink(sinkContent1);
+            flowStoreServiceConnector.createSink(sinkContent2);
+            fail("No primary key violation was detected.");
+        }catch(Exception e){
+            assertTrue(e instanceof FlowStoreServiceConnectorException);
+            assertTrue(e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException);
+            assertTrue(e.getMessage().toString().equals("flow-store service returned with unexpected status code: Not Acceptable"));
+        }
     }
 
     /**

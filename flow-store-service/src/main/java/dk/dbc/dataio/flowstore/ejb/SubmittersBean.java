@@ -31,7 +31,8 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  * exposed by the '/{@code SUBMITTERS_ENTRY_POINT}' entry point
  */
 @Stateless
-@Path(FlowStoreServiceConstants.SUBMITTERS)
+//@Path(FlowStoreServiceConstants.SUBMITTERS)
+@Path("/")
 public class SubmittersBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
 
@@ -55,6 +56,7 @@ public class SubmittersBean {
      *                       members
      */
     @POST
+    @Path(FlowStoreServiceConstants.SUBMITTERS)
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JsonException {
         log.trace("Called with: '{}'", submitterContent);
@@ -74,6 +76,7 @@ public class SubmittersBean {
      * @throws JsonException on failure to create result list as JSON
      */
     @GET
+    @Path(FlowStoreServiceConstants.SUBMITTERS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllSubmitters() throws JsonException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_ALL, Submitter.class);

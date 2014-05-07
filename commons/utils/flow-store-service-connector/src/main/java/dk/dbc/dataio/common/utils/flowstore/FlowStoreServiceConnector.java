@@ -26,8 +26,6 @@ import java.util.Map;
  */
 public class FlowStoreServiceConnector {
 
-    private static final String URL_PATH_SEPARATOR = "/";
-
     private final Client httpClient;
     private final String baseUrl;
 
@@ -56,9 +54,9 @@ public class FlowStoreServiceConnector {
      */
     public Sink createSink(SinkContent sinkContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
-        final Response response = HttpClient.doPostWithJson(httpClient, sinkContent, baseUrl);
+        final Response response = HttpClient.doPostWithJson(httpClient, sinkContent, baseUrl, FlowStoreServiceConstants.SINKS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
             return readResponseEntity(response, Sink.class);
         }finally {
             response.close();
@@ -76,8 +74,9 @@ public class FlowStoreServiceConnector {
     public Sink getSink(long sinkId) throws ProcessingException, FlowStoreServiceConnectorException {
         final Map<String, String> pathVariables = new HashMap<>(1);
         pathVariables.put(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(sinkId));
-        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.SINK_ID, pathVariables);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.split(URL_PATH_SEPARATOR));
+        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.SINK, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path);
+
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Sink.class);

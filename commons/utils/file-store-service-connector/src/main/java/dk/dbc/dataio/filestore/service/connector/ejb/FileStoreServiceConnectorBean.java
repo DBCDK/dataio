@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.glassfish.jersey.apache.connector.ApacheConnector;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
@@ -46,7 +46,9 @@ public class FileStoreServiceConnectorBean {
            HttpClient connector instead to avoid OutOfMemory errors.
          */
         final ClientConfig config = new ClientConfig();
-        config.connectorProvider(new ApacheConnectorProvider());
+        //config.connectorProvider(new ApacheConnectorProvider());     //jersey v2.7 only
+        final ApacheConnector connector = new ApacheConnector(config);
+        config.connector(connector);
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
         client = HttpClient.newClient(config);
     }

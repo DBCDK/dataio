@@ -1,0 +1,8 @@
+#!/bin/sh
+
+user=$USER
+glassfish_home=$GLASSFISH_HOME
+
+filestore_resource=jdbc/dataio/fileStore
+filestore_pool_resource=$filestore_resource/pool
+logback_resource=env/dataio/fileStore/logback

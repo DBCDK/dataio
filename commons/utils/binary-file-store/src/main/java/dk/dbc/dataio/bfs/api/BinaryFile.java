@@ -15,6 +15,11 @@ public interface BinaryFile {
     void write(final InputStream is);
 
     /**
+     * @return an OutputStream for writing to this file
+     */
+    OutputStream openOutputStream();
+
+    /**
      * Deletes this binary file representation
      */
     void delete();
@@ -24,6 +29,11 @@ public interface BinaryFile {
      * @param os output stream to which bytes are written
      */
     void read(final OutputStream os);
+
+    /**
+     * @return an InputStream for reading from this file
+     */
+    InputStream openInputStream();
 
     /**
      * Returns path of this binary file representation

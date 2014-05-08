@@ -41,7 +41,7 @@ public class ScheduledHarvestBean {
     @PostConstruct
     public void bootstrap() {
         final ScheduleExpression scheduleExpression = new ScheduleExpression();
-        scheduleExpression.second("*/30");
+        scheduleExpression.second("*/5");
         scheduleExpression.minute("*");
         scheduleExpression.hour("*");
         start(scheduleExpression);

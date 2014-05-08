@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +56,23 @@ public class BinaryFileFsImpl implements BinaryFile {
     }
 
     /**
+     * @return an OutputStream for writing to this file
+     * @throws IllegalStateException if file already has content written or on general failure
+     * to create OutputStream
+     */
+    @Override
+    public OutputStream openOutputStream() throws IllegalStateException {
+        if (Files.exists(path)) {
+            throw new IllegalStateException("File already exists " + path);
+        }
+        try {
+            return new FileOutputStream(path.toFile());
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable open OutputStream for file " + path, e);
+        }
+    }
+
+    /**
      * Deletes this file (if it exists)
      * @throws IllegalStateException on general failure to delete existing file
      */
@@ -91,6 +109,23 @@ public class BinaryFileFsImpl implements BinaryFile {
             os.flush();
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read file " + path, e);
+        }
+    }
+
+    /**
+     * @return an InputStream for reading from this file
+     * @throws IllegalStateException if file has no content, or on general failure to
+     * create InputStream
+     */
+    @Override
+    public InputStream openInputStream() throws IllegalStateException {
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("File does not exist " + path);
+        }
+        try {
+            return new FileInputStream(path.toFile());
+        } catch (FileNotFoundException e) {
+            throw new IllegalStateException("Unable to open InputStream for file " + path, e);
         }
     }
 

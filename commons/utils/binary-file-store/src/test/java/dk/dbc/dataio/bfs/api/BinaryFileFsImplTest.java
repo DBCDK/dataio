@@ -1,5 +1,7 @@
 package dk.dbc.dataio.bfs.api;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -75,6 +77,31 @@ public class BinaryFileFsImplTest {
     }
 
     @Test
+    public void openOutputStream_pathAlreadyExists_throws() throws IOException {
+        final Path existingFile = mountPoint.newFile().toPath();
+        writeFile(existingFile);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(existingFile);
+        try {
+            binaryFileFs.openOutputStream();
+            fail("No Exception thrown");
+        } catch (IllegalStateException e) {
+        }
+    }
+
+    @Test
+    public void openOutputStream_returnsStreamForWriting() throws IOException {
+        final Path sourceFile = mountPoint.newFile().toPath();
+        writeFile(sourceFile);
+        final Path destinationFile = mountPoint.newFile().toPath();
+        Files.delete(destinationFile);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(destinationFile);
+        try (final OutputStream os = binaryFileFs.openOutputStream()) {
+            FileUtils.copyFile(sourceFile.toFile(), os);
+        }
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
+    }
+
+    @Test
     public void delete_pathDoesNotExist_returns() {
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(Paths.get("/no/such/file"));
         binaryFileFs.delete();
@@ -116,9 +143,34 @@ public class BinaryFileFsImplTest {
     @Test
     public void read_readsData() throws IOException {
         final Path sourceFile = mountPoint.newFile().toPath();
+        writeFile(sourceFile);
         final Path destinationFile = mountPoint.newFile().toPath();
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
         binaryFileFs.read(getOutputStreamForFile(destinationFile));
+        assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
+    }
+
+    @Test
+    public void openInputStream_pathDoesNotExist_throws() throws IOException {
+        final Path sourceFile = mountPoint.newFile().toPath();
+        Files.delete(sourceFile);
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
+        try {
+            binaryFileFs.openInputStream();
+            fail("No Exception thrown");
+        } catch (IllegalStateException e) {
+        }
+    }
+
+    @Test
+    public void openInputStream_opensStreamForReading() throws IOException {
+        final Path sourceFile = mountPoint.newFile().toPath();
+        writeFile(sourceFile);
+        final Path destinationFile = mountPoint.newFile().toPath();
+        final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);
+        try (InputStream is = binaryFileFs.openInputStream()) {
+            IOUtils.copy(is, getOutputStreamForFile(destinationFile));
+        }
         assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
     }
 
@@ -131,13 +183,13 @@ public class BinaryFileFsImplTest {
     }
 
     private void writeFile(Path path) throws IOException {
-        try (final BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(path.toFile()))) {
+        try (final FileOutputStream fos = new FileOutputStream(path.toFile())) {
             int iterations = (2 * BinaryFileFsImpl.BUFFER_SIZE) / DATA.length;
             while (iterations > 0) {
-                bos.write(DATA, 0, DATA.length);
+                fos.write(DATA, 0, DATA.length);
                 iterations--;
             }
-            bos.flush();
+            fos.flush();
         }
     }
 

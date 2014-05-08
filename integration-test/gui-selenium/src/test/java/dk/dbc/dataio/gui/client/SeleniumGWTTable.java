@@ -1,16 +1,18 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DioCellTable;
-import java.util.ArrayList;
-import java.util.List;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  *
@@ -188,6 +190,16 @@ public class SeleniumGWTTable {
          return tableData.get(row);
      }
 
+    /**
+     * Fetches a Column Header as a WebElement (pointed out by the index passes as a parameter in the call)
+     *
+     * @param index Which column header to fetch (zero based index)
+     * @return The column header
+     */
+    public WebElement findColumnHeader(int index) {
+        final String xpathSelector = ".//*[@id='" + guiId + "']/*/table/thead/tr/th";
+        return webDriver.findElements(By.xpath(xpathSelector)).get(index);
+    }
 
     // Private methods
 

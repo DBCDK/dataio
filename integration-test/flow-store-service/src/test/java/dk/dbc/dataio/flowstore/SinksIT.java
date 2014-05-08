@@ -1,6 +1,5 @@
 package dk.dbc.dataio.flowstore;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -9,7 +8,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -40,7 +38,6 @@ public class SinksIT {
         baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
         dbConnection = newDbConnection("flow_store");
         restClient = HttpClient.newClient();
-        //logger = LoggerFactory.getLogger(SinksIT.class);
     }
 
     @AfterClass
@@ -216,61 +213,48 @@ public class SinksIT {
     /**
      * Given: a deployed flow-store service containing no sinks
      * When: GETing sinks collection
-     * Then: request returns with a OK http status code
-     * And: request returns with empty list as JSON
+     * Then: request returns with empty list
      */
     @Test
     public void findAllSinks_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.SINKS);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-
-        // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(0));
+        assertThat(sinks, is(notNullValue()));
+        assertThat(sinks.size(), is(0));
     }
 
     /**
      * Given: a deployed flow-store service containing three sinks
      * When: GETing sinks collection
-     * Then: request returns with a OK http status code
-     * And: request returns with list as JSON of sinks sorted alphabetically by name
+     * Then: request returns with 3 sinks
+     * And: the sinks are sorted alphabetically by name
      */
     @Test
     public void findAllSinks_Ok() throws Exception {
         // Given...
-        String sinkContent = new SinkContentJsonBuilder()
-                .setName("c")
-                .build();
-        final long sortsThird = createSink(restClient, baseUrl, sinkContent);
+        final SinkContent sinkContentA = new SinkContentBuilder().setResource("resource").setName("a").build();
+        final SinkContent sinkContentB = new SinkContentBuilder().setResource("resource").setName("b").build();
+        final SinkContent sinkContentC = new SinkContentBuilder().setResource("resource").setName("c").build();
 
-        sinkContent = new SinkContentJsonBuilder()
-                .setName("a")
-                .build();
-        final long sortsFirst = createSink(restClient, baseUrl, sinkContent);
-
-        sinkContent = new SinkContentJsonBuilder()
-                .setName("b")
-                .build();
-        final long sortsSecond = createSink(restClient, baseUrl, sinkContent);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        Sink sinkSortsFirst = flowStoreServiceConnector.createSink(sinkContentA);
+        Sink sinkSortsSecond = flowStoreServiceConnector.createSink(sinkContentB);
+        Sink sinkSortsThird = flowStoreServiceConnector.createSink(sinkContentC);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.SINKS);
+        List<Sink> listOfSinks = flowStoreServiceConnector.findAllSinks();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+        assertNotNull(listOfSinks);
+        assertFalse(listOfSinks.isEmpty());
+        assertThat(listOfSinks.size(), is (3));
 
         // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(3));
-        assertThat(responseContentNode.get(0).get("id").longValue(), is(sortsFirst));
-        assertThat(responseContentNode.get(1).get("id").longValue(), is(sortsSecond));
-        assertThat(responseContentNode.get(2).get("id").longValue(), is(sortsThird));
+        assertThat(listOfSinks.get(0).getContent().getName(), is (sinkSortsFirst.getContent().getName()));
+        assertThat(listOfSinks.get(1).getContent().getName(), is (sinkSortsSecond.getContent().getName()));
+        assertThat(listOfSinks.get(2).getContent().getName(), is (sinkSortsThird.getContent().getName()));
     }
 }

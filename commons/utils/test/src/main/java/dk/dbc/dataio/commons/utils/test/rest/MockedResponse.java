@@ -17,10 +17,12 @@ import java.util.Set;
 public class MockedResponse<T> extends Response {
     private final int mockedStatus;
     private final T mockedEntity;
+    private final T mockedGenericType;
 
     public MockedResponse(int status, T entity) {
         mockedStatus = status;
         mockedEntity = entity;
+        mockedGenericType = entity;
     }
 
     @Override
@@ -45,7 +47,7 @@ public class MockedResponse<T> extends Response {
 
     @Override
     public <T> T readEntity(GenericType<T> tGenericType) {
-        return null;
+        return (T) mockedGenericType;
     }
 
     @Override

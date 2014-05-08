@@ -17,10 +17,14 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
@@ -163,6 +167,71 @@ public class FlowStoreServiceConnectorTest {
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.getSink(SINK_ID);
+    }
+
+    @Test
+    public void findAllSinks_sinksRetrieved_returnsSinks() throws FlowStoreServiceConnectorException {
+
+        final SinkContent sinkContentA = new SinkContentBuilder().setName("a").setResource("resource").build();
+        final SinkContent sinkContentB = new SinkContentBuilder().setName("b").setResource("resource").build();
+        final Sink expectedSinkResultA = new SinkBuilder().setContent(sinkContentA).build();
+        final Sink expectedSinkResultB = new SinkBuilder().setContent(sinkContentB).build();
+
+        List<Sink> expectedSinkResultList = new ArrayList<>();
+        expectedSinkResultList.add(expectedSinkResultA);
+        expectedSinkResultList.add(expectedSinkResultB);
+
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSinkResultList));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        final List<Sink> sinkResultList = instance.findAllSinks();
+
+        assertNotNull(sinkResultList);
+        assertFalse(sinkResultList.isEmpty());
+        assertThat(sinkResultList.size(), is(2));
+
+        for (Sink sink : sinkResultList){
+            assertThat(sink, is(notNullValue()));
+        }
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void findAllSinks_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.findAllSinks();
+    }
+
+    @Test
+    public void findAllSinks_noResults() throws FlowStoreServiceConnectorException {
+        List<Sink> sinkResultList = new ArrayList<>();
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), sinkResultList));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        sinkResultList = instance.findAllSinks();
+        assertThat(sinkResultList, is(notNullValue()));
+        assertThat(sinkResultList.size(), is(0));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void findAllSinks_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.findAllSinks();
     }
 
     private static FlowStoreServiceConnector newFlowStoreServiceConnector() {

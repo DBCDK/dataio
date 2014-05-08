@@ -69,6 +69,19 @@ public class FlowStoreServiceConnectorBeanTest {
         }
     }
 
+    @Test
+    public void findAllSinks_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.findAllSinks();
+            fail("No exception thrown by findAllSinks()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
     private FlowStoreServiceConnectorBean getInitializedBean() {
         return new FlowStoreServiceConnectorBean();
     }

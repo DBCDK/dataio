@@ -8,8 +8,10 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -80,6 +82,23 @@ public class FlowStoreServiceConnector {
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Sink.class);
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves all sinks from the flow-store
+     *
+     * @return a list containing the sinks found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the sinks
+     */
+    public List<Sink> findAllSinks()throws ProcessingException, FlowStoreServiceConnectorException{
+        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SINKS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return response.readEntity(new GenericType<List<Sink>>() { });
         } finally {
             response.close();
         }

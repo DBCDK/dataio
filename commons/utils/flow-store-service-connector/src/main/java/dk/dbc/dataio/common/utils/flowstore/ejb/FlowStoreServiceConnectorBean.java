@@ -16,6 +16,7 @@ import javax.annotation.PreDestroy;
 import javax.ejb.*;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
+import java.util.List;
 
 /**
  * Created by sma on 29/04/14.
@@ -54,6 +55,18 @@ public class FlowStoreServiceConnectorBean {
             final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
             return flowStoreServiceConnector.getSink(sinkId);
         } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public List<Sink> findAllSinks() throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving all sinks");
+        try{
+            final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
+            return flowStoreServiceConnector.findAllSinks();
+        }catch (NamingException e) {
             throw new EJBException(e);
         }
     }

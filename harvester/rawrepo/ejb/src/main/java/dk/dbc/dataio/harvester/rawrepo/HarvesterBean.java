@@ -71,6 +71,7 @@ public class HarvesterBean {
             }
         } finally {
             //tmpFile.delete();
+            LOGGER.debug("Avoiding empty finally");
         }
         return fileId;
     }

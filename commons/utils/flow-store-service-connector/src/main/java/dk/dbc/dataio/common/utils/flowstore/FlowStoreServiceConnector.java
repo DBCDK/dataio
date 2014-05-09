@@ -98,7 +98,7 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SINKS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return response.readEntity(new GenericType<List<Sink>>() { });
+            return readResponseGenericTypeEntity(response, new GenericType<List<Sink>>() { });
         } finally {
             response.close();
         }
@@ -117,6 +117,16 @@ public class FlowStoreServiceConnector {
         if (entity == null) {
             throw new FlowStoreServiceConnectorException(
                     String.format("flow-store service returned with null-valued %s entity", tClass.getName()));
+        }
+        return entity;
+    }
+
+        private <T> T readResponseGenericTypeEntity(Response response, GenericType<T> tGenericType) throws FlowStoreServiceConnectorException {
+        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
+        final T entity =response.readEntity(tGenericType);
+        if (entity == null) {
+            throw new FlowStoreServiceConnectorException(
+                    String.format("flow-store service returned with null-valued %s entity", tGenericType));
         }
         return entity;
     }

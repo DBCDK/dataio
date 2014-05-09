@@ -6,6 +6,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+/**
+ * This class represents a harvester data file in XML format.
+ * <p>
+ * The generated file will be enclosed in
+ * {@code <dataio-havester-datafile>...</dataio-havester-datafile>} tags.
+ * </p>
+ */
 public class HarvesterDataFile implements AutoCloseable {
     private final byte[] header;
     private final byte[] footer;
@@ -13,7 +20,14 @@ public class HarvesterDataFile implements AutoCloseable {
     final Charset charset;
     final OutputStream outputStream;
 
-    public HarvesterDataFile(Charset charset, OutputStream outputStream) throws HarvesterException {
+    /**
+     * Class constructor
+     * @param charset character set of data file
+     * @param outputStream output stream to which the data file will be written
+     * @throws NullPointerException if given null-valued charset or outputStream arguments
+     * @throws HarvesterException if unable to write data file header to output stream
+     */
+    public HarvesterDataFile(Charset charset, OutputStream outputStream) throws NullPointerException, HarvesterException {
         this.charset = InvariantUtil.checkNotNullOrThrow(charset, "charset");
         this.outputStream = InvariantUtil.checkNotNullOrThrow(outputStream, "outputStream");
         header = "<dataio-havester-datafile>".getBytes(this.charset);
@@ -25,15 +39,30 @@ public class HarvesterDataFile implements AutoCloseable {
         }
     }
 
-    public void addRecord() throws HarvesterException {
-        final byte[] record = "<record>data</record>".getBytes(charset);
+    /**
+     * Adds given record to this data file
+     * @param record record representation whose data content will be written to the output stream
+     * @throws NullPointerException if given null-valued record argument
+     * @throws HarvesterInvalidRecordException if charset of given record does not match charset of data file
+     * @throws HarvesterException if unable to write record data to the output stream
+     */
+    public void addRecord(HarvesterRecord record) throws NullPointerException, HarvesterException {
+        InvariantUtil.checkNotNullOrThrow(record, "record");
+        if (charset.compareTo(record.getCharset()) != 0) {
+            throw new HarvesterInvalidRecordException(String.format("Invalid record - charset mismatch %s != %s",
+                    record.getCharset().displayName(), charset.displayName()));
+        }
         try {
-            outputStream.write(record, 0, record.length);
+            outputStream.write(record.getData(), 0, record.getData().length);
         } catch (IOException e) {
             throw new HarvesterException("Unable to add record to OutputStream", e);
         }
     }
 
+    /**
+     * Closes this data file by writing footer to output stream
+     * @throws HarvesterException if unable to write footer to output stream
+     */
     @Override
     public void close() throws HarvesterException {
         try {

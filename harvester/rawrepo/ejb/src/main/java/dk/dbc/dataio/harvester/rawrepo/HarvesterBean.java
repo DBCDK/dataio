@@ -86,7 +86,7 @@ public class HarvesterBean {
                 while (nextQueuedItem != null) {
                     LOGGER.debug("{} ready for harvesting", nextQueuedItem);
                     rawRepoConnector.queueSuccess(nextQueuedItem);
-                    harvesterDataFile.addRecord();
+                    harvesterDataFile.addRecord(new HarvesterRecordMARCXchangeCollection());
                     recordsAdded++;
 
                     nextQueuedItem = rawRepoConnector.dequeue(rawRepoConsumerId);

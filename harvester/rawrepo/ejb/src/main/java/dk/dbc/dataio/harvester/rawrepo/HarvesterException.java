@@ -10,6 +10,10 @@ public class HarvesterException extends Exception {
         super(cause);
     }
 
+    public HarvesterException(String message) {
+        super(message);
+    }
+
     public HarvesterException(String message, Exception cause) {
         super(message, cause);
     }

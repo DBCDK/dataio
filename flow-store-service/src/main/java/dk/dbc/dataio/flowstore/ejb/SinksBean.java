@@ -78,7 +78,6 @@ public class SinksBean {
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sink)).entity(sinkJson).build();
     }
 
-
     /**
      * Updates an existing sink
      *
@@ -97,8 +96,10 @@ public class SinksBean {
     @POST
     @Path(FlowStoreServiceConstants.SINK_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id,
                                @PathParam(FlowStoreServiceConstants.SINK_VERSION_VARIABLE) Long version) throws JsonException {
+
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
         final Sink sinkEntity = entityManager.find(Sink.class, id);
         if (sinkEntity == null) {
@@ -109,7 +110,8 @@ public class SinksBean {
         sinkEntity.setVersion(version);
         entityManager.merge(sinkEntity);
         entityManager.flush();
-        return Response.ok().build();
+        final String sinkJson = JsonUtil.toJson(sinkEntity);
+        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sinkEntity)).entity(sinkJson).build();
     }
 
 

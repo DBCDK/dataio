@@ -31,7 +31,6 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  * exposed by the '/{@code SUBMITTERS_ENTRY_POINT}' entry point
  */
 @Stateless
-//@Path(FlowStoreServiceConstants.SUBMITTERS)
 @Path("/")
 public class SubmittersBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);

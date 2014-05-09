@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -19,7 +18,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -123,8 +121,6 @@ public class FlowStoreServiceConnectorTest {
     public void getSink_sinkRetrieved_returnsSink() throws FlowStoreServiceConnectorException {
 
         final Sink expectedSinkResult = new SinkBuilder().build();
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSinkResult));
 
@@ -136,8 +132,6 @@ public class FlowStoreServiceConnectorTest {
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void getSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
@@ -147,8 +141,6 @@ public class FlowStoreServiceConnectorTest {
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void getSink_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
@@ -158,8 +150,6 @@ public class FlowStoreServiceConnectorTest {
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void getSink_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
 
@@ -179,8 +169,6 @@ public class FlowStoreServiceConnectorTest {
         expectedSinkResultList.add(expectedSinkResultA);
         expectedSinkResultList.add(expectedSinkResultB);
 
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINKS), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSinkResultList));
 
@@ -198,8 +186,6 @@ public class FlowStoreServiceConnectorTest {
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void findAllSinks_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINKS), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
@@ -210,8 +196,6 @@ public class FlowStoreServiceConnectorTest {
     @Test
     public void findAllSinks_noResults() throws FlowStoreServiceConnectorException {
         List<Sink> sinkResultList = new ArrayList<>();
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINKS), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), sinkResultList));
 
@@ -223,9 +207,6 @@ public class FlowStoreServiceConnectorTest {
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void findAllSinks_noListReturned() throws FlowStoreServiceConnectorException {
-
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINKS), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
@@ -235,8 +216,6 @@ public class FlowStoreServiceConnectorTest {
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void findAllSinks_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINKS), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
                 .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
 

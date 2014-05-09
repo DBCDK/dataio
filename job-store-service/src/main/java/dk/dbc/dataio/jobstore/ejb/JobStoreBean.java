@@ -12,7 +12,10 @@ import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import java.io.IOException;
+import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +24,9 @@ import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @LocalBean
@@ -36,6 +41,7 @@ public class JobStoreBean implements JobStore {
     Path jobStorePath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), JOB_STORE_NAME);
     JobStore jobStore;
 
+
     @PostConstruct
     public void setupJobStore() {
         try {
@@ -48,8 +54,8 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
-        return jobStore.createJob(jobSpec, flowBinder, flow, sink);
+    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
+        return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream);
     }
 
     @Override

@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
+import java.io.InputStream;
 
 public class FileSystemJobStore implements JobStore {
 
@@ -97,11 +98,10 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
+    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         final long jobId = System.currentTimeMillis();
         final Date jobCreationTime = new Date();
         final Path jobPath = getJobPath(jobId);
-        final Path dataObjectPath = Paths.get(jobSpec.getDataFile());
         long recordCount;
 
         LOGGER.info("Creating job in {}", jobPath);
@@ -126,7 +126,7 @@ public class FileSystemJobStore implements JobStore {
 
             final DefaultXMLRecordSplitter recordSplitter;
             try {
-                recordSplitter = newRecordSplitter(jobSpec, dataObjectPath);
+                recordSplitter = newRecordSplitter(jobSpec, jobInputStream);
                 recordCount = applyDefaultXmlSplitter(job, recordSplitter);
             } catch (IOException e) {
                 jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_NOT_FOUND, 0);
@@ -391,8 +391,8 @@ public class FileSystemJobStore implements JobStore {
         return recordCount;
     }
 
-    private static DefaultXMLRecordSplitter newRecordSplitter(JobSpecification jobSpec, Path dataPath) throws IllegalStateException, IOException, XMLStreamException {
-        final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(Files.newInputStream(dataPath));
+    private static DefaultXMLRecordSplitter newRecordSplitter(JobSpecification jobSpec, InputStream jobInputStream) throws IllegalStateException, IOException, XMLStreamException {
+        final DefaultXMLRecordSplitter recordSplitter = new DefaultXMLRecordSplitter(jobInputStream);
         validateEncodings(jobSpec, recordSplitter);
         return recordSplitter;
     }

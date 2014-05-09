@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,7 +54,10 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
-        final Job job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK);
+        final Job job;
+        try(InputStream is = Files.newInputStream(getDataFile())) {
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+        }
         assertThat(job, is(notNullValue()));
         final ChunkResult processorResult = new ChunkResultBuilder()
                 .setJobId(job.getId())

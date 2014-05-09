@@ -20,7 +20,13 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +66,9 @@ public class JobsBean {
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducer;
 
+    @EJB
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+
     /**
      * Creates new job based on POSTed job specification, persists it in
      * the underlying data store and notifies job processor of its existence
@@ -85,6 +94,9 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
             throws NullPointerException, IllegalArgumentException, EJBException, JsonException, ReferencedEntityNotFoundException {
+        // Todo: This code should be refactored into JobStoreBean.createJob.
+        // Notice that JobStoreBean then probably will get another interface than the JobStore interface.
+        // The argument for moving this code into the JobStoreBean is to keep the actual code of the webservice as simple as possible.
         LOGGER.trace("JobSpec: {}", jobSpecData);
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
         final FlowBinder flowBinder = lookupFlowBinderInFlowStore(jobSpec);
@@ -94,7 +106,7 @@ public class JobsBean {
         final Job job;
         final String jobInfoJson;
         try {
-            job = jobStore.createJob(jobSpec, flowBinder, flow, sink);
+            job = createJobInJobStore(jobSpec, flowBinder, flow, sink);
             jobInfoJson = JsonUtil.toJson(job.getJobInfo());
             final NewJob newJob = new NewJob(job.getId(), jobStore.getNumberOfChunksInJob(job.getId()), sink);
             jobProcessorMessageProducer.send(newJob);
@@ -103,6 +115,21 @@ public class JobsBean {
         }
 
         return Response.created(uriInfo.getAbsolutePath()).entity(jobInfoJson).build();
+    }
+
+
+
+    private Job createJobInJobStore(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
+        String jobDataFile = jobSpec.getDataFile();
+        boolean localFile = Files.exists(Paths.get(jobDataFile));
+        // A little bit unconventionel: Deciding which InputStream to use based on whether the file is local.
+        // This is to ensure that there is no duplicated code, i.e. two try-with-resources each with a call to createJob,
+        // and to ensure that try-with-resources is used.
+        try (InputStream jobInputStream = localFile ? Files.newInputStream(Paths.get(jobDataFile)) : fileStoreServiceConnectorBean.getFile(jobDataFile)) {
+            return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream);
+        } catch (IOException | FileStoreServiceConnectorException ex) {
+            throw new JobStoreException("An error occured while trying to retrieve jobdatafile from inputstream. Value for jobdatafile: '" + jobDataFile + "'", ex);
+        }
     }
 
     /**

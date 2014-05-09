@@ -72,6 +72,12 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-file-store-service-war</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-sink-service</artifactId>
       <version>${project.version}</version>
       <type>war</type>
@@ -142,6 +148,14 @@
                 </properties>
               </configuration>
               <deployables>
+                <deployable>
+                  <groupId>dk.dbc</groupId>
+                  <artifactId>dataio-file-store-service-war</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>file-store</context>
+                  </properties>
+                </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-flow-store-service</artifactId>
@@ -261,6 +275,14 @@
                 </properties>
               </configuration>
               <deployables>
+                <deployable>
+                  <groupId>dk.dbc</groupId>
+                  <artifactId>dataio-file-store-service-war</artifactId>
+                  <type>war</type>
+                  <properties>
+                    <context>file-store</context>
+                  </properties>
+                </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-flow-store-service</artifactId>

@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
+import java.io.InputStream;
 
 @LocalBean
 @Singleton
@@ -67,7 +68,7 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
-    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
+    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         return null;
     }
 

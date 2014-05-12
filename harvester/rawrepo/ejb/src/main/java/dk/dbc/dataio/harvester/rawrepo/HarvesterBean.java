@@ -29,6 +29,7 @@ public class HarvesterBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
     private static final String rawRepoConsumerId = "fbs-sync";
+    private static final long submitterNumber = 42;
 
     @EJB
     RawRepoConnectorBean rawRepoConnector;

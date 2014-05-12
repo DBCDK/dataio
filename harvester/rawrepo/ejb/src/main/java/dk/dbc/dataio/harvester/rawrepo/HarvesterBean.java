@@ -29,7 +29,7 @@ public class HarvesterBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
     private static final String rawRepoConsumerId = "fbs-sync";
-    private static final long submitterNumber = 42;
+    //private static final long submitterNumber = 42;
 
     @EJB
     RawRepoConnectorBean rawRepoConnector;
@@ -45,14 +45,6 @@ public class HarvesterBean {
         final String fileId = createHarvesterDataFile();
         if (fileId != null) {
             createJob(fileId);
-        }
-    }
-
-    QueueJob getNextQueuedItem() throws HarvesterException {
-        try {
-            return rawRepoConnector.dequeue(rawRepoConsumerId);
-        } catch (SQLException e) {
-            throw new HarvesterException(e);
         }
     }
 
@@ -103,6 +95,14 @@ public class HarvesterBean {
             }
         }
         return recordsAdded;
+    }
+
+    QueueJob getNextQueuedItem() throws HarvesterException {
+        try {
+            return rawRepoConnector.dequeue(rawRepoConsumerId);
+        } catch (SQLException e) {
+            throw new HarvesterException(e);
+        }
     }
 
     HarvesterXmlRecord getHarvesterRecordForQueuedItem(QueueJob queueJob) throws SQLException, HarvesterException {

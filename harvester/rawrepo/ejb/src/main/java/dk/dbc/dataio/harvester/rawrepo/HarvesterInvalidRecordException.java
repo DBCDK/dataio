@@ -9,4 +9,8 @@ public class HarvesterInvalidRecordException extends HarvesterException {
     public HarvesterInvalidRecordException(String message) {
         super(message);
     }
+
+    public HarvesterInvalidRecordException(String message, Exception cause) {
+        super(message, cause);
+    }
 }

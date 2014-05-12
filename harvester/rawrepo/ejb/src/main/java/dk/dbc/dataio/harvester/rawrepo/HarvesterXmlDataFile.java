@@ -13,7 +13,7 @@ import java.nio.charset.Charset;
  * {@code <dataio-havester-datafile>...</dataio-havester-datafile>} tags.
  * </p>
  */
-public class HarvesterDataFile implements AutoCloseable {
+public class HarvesterXmlDataFile implements AutoCloseable {
     private final byte[] header;
     private final byte[] footer;
 
@@ -27,11 +27,11 @@ public class HarvesterDataFile implements AutoCloseable {
      * @throws NullPointerException if given null-valued charset or outputStream arguments
      * @throws HarvesterException if unable to write data file header to output stream
      */
-    public HarvesterDataFile(Charset charset, OutputStream outputStream) throws NullPointerException, HarvesterException {
+    public HarvesterXmlDataFile(Charset charset, OutputStream outputStream) throws NullPointerException, HarvesterException {
         this.charset = InvariantUtil.checkNotNullOrThrow(charset, "charset");
         this.outputStream = InvariantUtil.checkNotNullOrThrow(outputStream, "outputStream");
-        header = "<dataio-havester-datafile>".getBytes(this.charset);
-        footer = "</dataio-havester-datafile>".getBytes(this.charset);
+        header = "<dataio-harvester-datafile>".getBytes(this.charset);
+        footer = "</dataio-harvester-datafile>".getBytes(this.charset);
         try {
             outputStream.write(header, 0, header.length);
         } catch (IOException e) {
@@ -46,7 +46,7 @@ public class HarvesterDataFile implements AutoCloseable {
      * @throws HarvesterInvalidRecordException if charset of given record does not match charset of data file
      * @throws HarvesterException if unable to write record data to the output stream
      */
-    public void addRecord(HarvesterRecord record) throws NullPointerException, HarvesterException {
+    public void addRecord(HarvesterXmlRecord record) throws NullPointerException, HarvesterException {
         InvariantUtil.checkNotNullOrThrow(record, "record");
         if (charset.compareTo(record.getCharset()) != 0) {
             throw new HarvesterInvalidRecordException(String.format("Invalid record - charset mismatch %s != %s",

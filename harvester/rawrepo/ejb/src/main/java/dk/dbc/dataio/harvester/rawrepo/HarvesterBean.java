@@ -5,6 +5,7 @@ import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +71,11 @@ public class HarvesterBean {
                 }
             }
         } finally {
-            //tmpFile.delete();
-            LOGGER.debug("Avoiding empty finally");
+            try {
+                tmpFile.delete();
+            } catch (IllegalStateException e) {
+                LOGGER.warn("Unable to delete temporary file {}", tmpFile.getPath(), e);
+            }
         }
         return fileId;
     }
@@ -82,11 +86,11 @@ public class HarvesterBean {
         if (nextQueuedItem != null) {
             try (
                     final OutputStream os = tmpFile.openOutputStream();
-                    final HarvesterDataFile harvesterDataFile = new HarvesterDataFile(StandardCharsets.UTF_8, os)) {
+                    final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(StandardCharsets.UTF_8, os)) {
                 while (nextQueuedItem != null) {
                     LOGGER.debug("{} ready for harvesting", nextQueuedItem);
                     rawRepoConnector.queueSuccess(nextQueuedItem);
-                    harvesterDataFile.addRecord(new HarvesterRecordMARCXchangeCollection());
+                    harvesterDataFile.addRecord(getHarvesterRecordForQueuedItem(nextQueuedItem));
                     recordsAdded++;
 
                     nextQueuedItem = rawRepoConnector.dequeue(rawRepoConsumerId);
@@ -98,6 +102,17 @@ public class HarvesterBean {
             }
         }
         return recordsAdded;
+    }
+
+    HarvesterXmlRecord getHarvesterRecordForQueuedItem(QueueJob queueJob) throws SQLException, HarvesterException {
+        final Record record = rawRepoConnector.fetchRecord(queueJob.getJob());
+        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        try {
+            harvesterRecord.addMember(record.getContent());
+        } catch (HarvesterInvalidRecordException e) {
+            LOGGER.error("Invalid record {}", record, e);
+        }
+        return harvesterRecord;
     }
 
     String createJob(String fileId) {

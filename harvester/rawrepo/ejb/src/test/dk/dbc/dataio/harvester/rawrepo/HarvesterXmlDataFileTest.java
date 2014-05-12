@@ -24,7 +24,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
-public class HarvesterDataFileTest {
+public class HarvesterXmlDataFileTest {
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
@@ -33,29 +33,29 @@ public class HarvesterDataFileTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_charsetArgIsNull_throws() throws HarvesterException {
-        new HarvesterDataFile(null, outputStream);
+        new HarvesterXmlDataFile(null, outputStream);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_outputStreamArgIsNull_throws() throws HarvesterException {
-        new HarvesterDataFile(charset, null);
+        new HarvesterXmlDataFile(charset, null);
     }
 
     @Test(expected = HarvesterException.class)
     public void constructor_writingOfHeaderThrowsIOException_throws() throws HarvesterException, IOException {
         doThrow(new IOException()).when(outputStream).write(any(byte[].class), anyInt(), anyInt());
-        new HarvesterDataFile(charset, outputStream);
+        new HarvesterXmlDataFile(charset, outputStream);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() throws HarvesterException {
-        final HarvesterDataFile harvesterDataFile = new HarvesterDataFile(charset, outputStream);
+        final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream);
         assertThat(harvesterDataFile, is(notNullValue()));
     }
 
     @Test
     public void addRecord_recordArgIsNull_throws() throws HarvesterException {
-        final HarvesterDataFile harvesterDataFile = new HarvesterDataFile(charset, outputStream);
+        final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream);
         try {
             harvesterDataFile.addRecord(null);
             fail("No exception thrown");
@@ -65,9 +65,9 @@ public class HarvesterDataFileTest {
 
     @Test
     public void addRecord_charsetMismatch_throws() throws HarvesterException {
-        final MockedHarvesterRecord harvesterRecord = new MockedHarvesterRecord();
+        final MockedHarvesterXmlRecord harvesterRecord = new MockedHarvesterXmlRecord();
         harvesterRecord.setCharset(StandardCharsets.ISO_8859_1);
-        final HarvesterDataFile harvesterDataFile = new HarvesterDataFile(charset, outputStream);
+        final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream);
         try {
             harvesterDataFile.addRecord(harvesterRecord);
             fail("No exception thrown");
@@ -77,10 +77,10 @@ public class HarvesterDataFileTest {
 
     @Test
     public void addRecord_writingOfRecordDataThrowsIOException_throws() throws HarvesterException, IOException {
-        final MockedHarvesterRecord harvesterRecord = new MockedHarvesterRecord();
+        final MockedHarvesterXmlRecord harvesterRecord = new MockedHarvesterXmlRecord();
         harvesterRecord.setCharset(StandardCharsets.UTF_8);
         harvesterRecord.setData("data".getBytes(StandardCharsets.UTF_8));
-        final HarvesterDataFile harvesterDataFile = new HarvesterDataFile(charset, outputStream);
+        final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream);
         try {
             doThrow(new IOException()).when(outputStream).write(any(byte[].class), anyInt(), anyInt());
             harvesterDataFile.close();
@@ -91,7 +91,7 @@ public class HarvesterDataFileTest {
 
     @Test
     public void close_writingOfFooterThrowsIOException_throws() throws HarvesterException, IOException {
-        final HarvesterDataFile harvesterDataFile = new HarvesterDataFile(charset, outputStream);
+        final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream);
         try {
             doThrow(new IOException()).when(outputStream).write(any(byte[].class), anyInt(), anyInt());
             harvesterDataFile.close();
@@ -102,7 +102,7 @@ public class HarvesterDataFileTest {
 
     @Test
     public void isAutoClosable() throws HarvesterException {
-        try (final HarvesterDataFile harvesterDataFile = new HarvesterDataFile(charset, outputStream)) {
+        try (final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream)) {
             assertThat(harvesterDataFile, is(notNullValue()));
         }
     }
@@ -110,8 +110,8 @@ public class HarvesterDataFileTest {
     @Test
     public void writesXml() throws HarvesterException, IOException, ParserConfigurationException, SAXException {
         final File outputFile = testFolder.newFile();
-        final HarvesterDataFile harvesterDataFile =
-                new HarvesterDataFile(charset, getOutputStreamForFile(outputFile));
+        final HarvesterXmlDataFile harvesterDataFile =
+                new HarvesterXmlDataFile(charset, getOutputStreamForFile(outputFile));
         harvesterDataFile.close();
         parseXmlFile(outputFile);
     }
@@ -126,7 +126,7 @@ public class HarvesterDataFileTest {
 	    documentBuilder.parse(xmlFile);
     }
 
-    private static class MockedHarvesterRecord implements HarvesterRecord {
+    private static class MockedHarvesterXmlRecord implements HarvesterXmlRecord {
         byte[] data;
         Charset charset;
 

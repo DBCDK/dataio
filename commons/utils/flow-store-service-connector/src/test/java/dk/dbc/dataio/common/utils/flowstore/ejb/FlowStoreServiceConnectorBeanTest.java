@@ -1,9 +1,5 @@
 package dk.dbc.dataio.common.utils.flowstore.ejb;
 
-/**
- * Created by sma on 02/05/14.
- */
-
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -30,14 +26,13 @@ import static org.powermock.api.mockito.PowerMockito.*;
 })
 public class FlowStoreServiceConnectorBeanTest {
 
-    private final String flowStoreUrl = "http://dataio/flow-store";
     private final Client client = mock(Client.class);
-    private final long sinkId = 1;
 
     @Before
     public void setup() throws Exception {
         mockStatic(ServiceUtil.class);
         mockStatic(HttpClient.class);
+        String flowStoreUrl = "http://dataio/flow-store";
         when(ServiceUtil.getFlowStoreServiceEndpoint())
                 .thenReturn(flowStoreUrl);
         when(HttpClient.newClient()).thenReturn(client);
@@ -62,6 +57,7 @@ public class FlowStoreServiceConnectorBeanTest {
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
         final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
         try {
+            long sinkId = 1;
             flowStoreServiceConnectorBean.getSink(sinkId);
             fail("No exception thrown by getSink()");
         } catch (EJBException e) {
@@ -77,6 +73,19 @@ public class FlowStoreServiceConnectorBeanTest {
         try {
             flowStoreServiceConnectorBean.findAllSinks();
             fail("No exception thrown by findAllSinks()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
+    public void updateSink_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.updateSink(new SinkContentBuilder().build(),1, 1);
+            fail("No exception thrown by updateSink()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));
         }

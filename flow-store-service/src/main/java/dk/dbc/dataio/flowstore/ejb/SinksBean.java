@@ -110,8 +110,9 @@ public class SinksBean {
         sinkEntity.setVersion(version);
         entityManager.merge(sinkEntity);
         entityManager.flush();
-        final String sinkJson = JsonUtil.toJson(sinkEntity);
-        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sinkEntity)).entity(sinkJson).build();
+        final Sink updatedSink = entityManager.find(Sink.class, id);
+        final String sinkJson = JsonUtil.toJson(updatedSink);
+        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedSink)).entity(sinkJson).build();
     }
 
 

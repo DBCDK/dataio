@@ -20,6 +20,9 @@ import java.util.List;
 
 /**
  * Created by sma on 29/04/14.
+ *
+ * This Enterprise Java Bean (EJB) singleton is used as a connector
+ * to the flow-store REST interface.
  */
 @Singleton
 @LocalBean
@@ -66,6 +69,18 @@ public class FlowStoreServiceConnectorBean {
             final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
             final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
             return flowStoreServiceConnector.findAllSinks();
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public Sink updateSink(SinkContent sinkContent, long id, long version) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving all sinks");
+        try{
+            final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
+            return flowStoreServiceConnector.updateSink(sinkContent, id, version);
         }catch (NamingException e) {
             throw new EJBException(e);
         }

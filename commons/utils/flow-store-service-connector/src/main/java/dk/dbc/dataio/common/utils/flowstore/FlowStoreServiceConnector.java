@@ -27,6 +27,7 @@ import java.util.Map;
  * </p>
  */
 public class FlowStoreServiceConnector {
+    private static final String URL_PATH_SEPARATOR = "/";
 
     private final Client httpClient;
     private final String baseUrl;
@@ -100,6 +101,32 @@ public class FlowStoreServiceConnector {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<Sink>>() { });
         } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Updates an existing sink from the flow-store
+     *
+     * @param sinkContent the new sink content
+     * @param sinkId the id of the sink to update
+     * @return the updated sink
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to update the sink
+     */
+    public Sink updateSink(SinkContent sinkContent, long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
+        InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
+
+        final Map<String, String> pathVariables = new HashMap<>(2);
+        pathVariables.put(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(sinkId));
+        pathVariables.put(FlowStoreServiceConstants.SINK_VERSION_VARIABLE, Long.toString(version));
+
+        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.SINK_CONTENT, pathVariables);
+        final Response response = HttpClient.doPostWithJson(httpClient, sinkContent, baseUrl, path.split(URL_PATH_SEPARATOR));
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, Sink.class);
+        }finally {
             response.close();
         }
     }

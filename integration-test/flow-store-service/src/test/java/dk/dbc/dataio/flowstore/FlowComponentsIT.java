@@ -2,8 +2,11 @@ package dk.dbc.dataio.flowstore;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -25,6 +28,7 @@ import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Integration tests for the flow components collection part of the flow store service
@@ -56,13 +60,15 @@ public class FlowComponentsIT {
      * When: valid JSON is POSTed to the components path
      * Then: request returns with a CREATED http status code
      * And: request returns with a Location header pointing to the newly created resource
+     * And: the entity contains the newly created FlowComponent
      * And: posted data can be found in the underlying database
      */
     @Test
-    public void createComponent_Ok() throws SQLException {
+    public void createComponent_Ok() throws SQLException, JsonException {
         // When...
-        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowComponentContent, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        final String flowComponentContentJson = new FlowComponentContentJsonBuilder().build();
+        final Response response = HttpClient.doPostWithJson(restClient, flowComponentContentJson, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        assertNotNull(response);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
@@ -71,10 +77,22 @@ public class FlowComponentsIT {
         final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
 
         // And ...
+        assertThat(response.hasEntity(), is(true));
+        String flowComponentJson = response.readEntity(String.class);
+        FlowComponentContent flowComponentContent = JsonUtil.fromJson(flowComponentContentJson, FlowComponentContent.class);
+        FlowComponent flowComponent = JsonUtil.fromJson(flowComponentJson, FlowComponent.class);
+        assertThat(flowComponent.getContent().getName(), is(flowComponentContent.getName()));
+        assertThat(flowComponent.getContent().getInvocationJavascriptName(), is(flowComponentContent.getInvocationJavascriptName()));
+        assertThat(flowComponent.getContent().getInvocationMethod(), is(flowComponentContent.getInvocationMethod()));
+        assertThat(flowComponent.getContent().getSvnProjectForInvocationJavascript(), is(flowComponentContent.getSvnProjectForInvocationJavascript()));
+        assertThat(flowComponent.getContent().getSvnRevision(), is(flowComponentContent.getSvnRevision()));
+        assertThat(flowComponent.getContent().getJavascripts().size(), is(flowComponentContent.getJavascripts().size()));
+
+        // And ...
         final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT, id);
 
         assertThat(rs.size(), is(1));
-        assertThat((String) rs.get(0).get(0), is(flowComponentContent));
+        assertThat((String) rs.get(0).get(0), is(flowComponentContentJson));
     }
 
     /**

@@ -51,13 +51,14 @@ public class FlowComponentsBean {
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JsonException {
         log.trace("Called with: '{}'", componentContent);
 
         final FlowComponent component = saveAsVersionedEntity(entityManager, FlowComponent.class, componentContent);
         entityManager.flush();
-
-        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), component)).build();
+        final String componentJson = JsonUtil.toJson(component);
+        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), component)).entity(componentJson).build();
     }
 
     /**

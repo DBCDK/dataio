@@ -9,6 +9,9 @@
     <ejb>dataio-commons-utils-file-store-service-connector-${project.version}.jar</ejb>
   </module>
   <module>
+    <ejb>dataio-commons-utils-job-store-service-connector-${project.version}.jar</ejb>
+  </module>
+  <module>
     <ejb>dataio-harvester-rawrepo-ejb-${project.version}.jar</ejb>
   </module>
   <library-directory>lib</library-directory>

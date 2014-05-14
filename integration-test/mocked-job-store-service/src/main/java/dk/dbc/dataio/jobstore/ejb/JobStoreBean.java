@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
@@ -32,14 +33,17 @@ import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
-import java.io.InputStream;
 
 @LocalBean
 @Singleton
@@ -54,8 +58,13 @@ public class JobStoreBean implements JobStore {
     private static final String USE_MODULE_RESOURCE = "/Use.js";
     private static final String JAVA_SCRIPT_INVOCATION_METHOD = "toUpper";
 
+    private final AtomicLong jobIdSequence = new AtomicLong(42);
+
     // <jobId, <chunkId, Chunk>>
     private final Map<Long, Map<Long, Chunk>> inMemoryJobStoreChunks = new HashMap<>();
+
+    // <jobId, JobInfo>
+    private final Map<Long, JobInfo> inMemoryJobsCreated = new HashMap<>();
 
     @PostConstruct
     public void setupJobStore() {
@@ -69,7 +78,10 @@ public class JobStoreBean implements JobStore {
 
     @Override
     public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
-        return null;
+        final long jobId = jobIdSequence.incrementAndGet();
+        final JobInfo jobInfo = new JobInfo(jobId, jobSpec, new Date(), JobErrorCode.NO_ERROR, 42);
+        inMemoryJobsCreated.put(jobId, jobInfo);
+        return new Job(jobInfo, new JobState(), flow);
     }
 
     @Override
@@ -79,7 +91,7 @@ public class JobStoreBean implements JobStore {
 
     @Override
     public List<JobInfo> getAllJobInfos() throws JobStoreException {
-        return null;
+        return new ArrayList<>(inMemoryJobsCreated.values());
     }
 
     @Override

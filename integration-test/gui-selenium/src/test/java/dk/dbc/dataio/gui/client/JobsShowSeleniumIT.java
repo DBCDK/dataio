@@ -92,7 +92,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testJobsInsert21Rows_20ElementsShown() throws IOException {
+    public void testJobsInsertTwoPageData_OnePageElementsShown() throws IOException {
         insertRows(webDriver, JOBS_SHOW_PAGE_SIZE + 1);
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -102,7 +102,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testJobsInsert21RowsAndClickMore_21ElementsShown() throws IOException {
+    public void testJobsInsert2PagesDataAndClickMore_CorrectNumberOfElementsShown() throws IOException {
         insertRows(webDriver, JOBS_SHOW_PAGE_SIZE + 1);
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -188,6 +188,108 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertJobIdsAscending(secondRowData, JOBS_SHOW_PAGE_SIZE);
     }
 
+    @Test
+    public void testEqualFilenames_ClickOnceOnFileNameColum_SortAccordingly() throws IOException {
+        jobstoreFolder.createTestJob("1", "b", "2");
+        jobstoreFolder.createTestJob("2", "a", "1");
+        jobstoreFolder.createTestJob("3", "a", "2");
+        jobstoreFolder.createTestJob("4", "b", "1");
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(4);
+
+        // Click on the Filename Column
+        table.findColumnHeader(1).click();  // Second column is Filename column => Ascending
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        sortedTable.waitAssertRows(4);
+        List<List<String>> tableData = sortedTable.get();
+
+        // Assert that data is as expected
+        int i = 0;
+        assertTableRow(tableData.get(i++), "3", "a", "2");
+        assertTableRow(tableData.get(i++), "2", "a", "1");
+        assertTableRow(tableData.get(i++), "4", "b", "1");
+        assertTableRow(tableData.get(i++), "1", "b", "2");
+
+    }
+
+    @Test
+    public void testEqualFilenames_ClickTwiceOnFileNameColum_SortAccordingly() throws IOException {
+        jobstoreFolder.createTestJob("1", "b", "2");
+        jobstoreFolder.createTestJob("2", "a", "1");
+        jobstoreFolder.createTestJob("3", "a", "2");
+        jobstoreFolder.createTestJob("4", "b", "1");
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(4);
+
+        // Click on the Filename Column
+        table.findColumnHeader(1).click();  // Second column is Filename column => Ascending
+        table.findColumnHeader(1).click();  // Second column is Filename column => Descending
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        sortedTable.waitAssertRows(4);
+        List<List<String>> tableData = sortedTable.get();
+
+        // Assert that data is as expected
+        int i = 0;
+        assertTableRow(tableData.get(i++), "4", "b", "1");
+        assertTableRow(tableData.get(i++), "1", "b", "2");
+        assertTableRow(tableData.get(i++), "3", "a", "2");
+        assertTableRow(tableData.get(i++), "2", "a", "1");
+
+    }
+
+    @Test
+    public void testEqualSubmitterNumbers_ClickOnceOnSubmitterNumberColum_SortAccordingly() throws IOException {
+        jobstoreFolder.createTestJob("1", "b", "2");
+        jobstoreFolder.createTestJob("2", "a", "1");
+        jobstoreFolder.createTestJob("3", "a", "2");
+        jobstoreFolder.createTestJob("4", "b", "1");
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(4);
+
+        // Click on the Filename Column
+        table.findColumnHeader(2).click();  // Third column is Submitternumber column => Ascending
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        sortedTable.waitAssertRows(4);
+        List<List<String>> tableData = sortedTable.get();
+
+        // Assert that data is as expected
+        int i = 0;
+        assertTableRow(tableData.get(i++), "4", "b", "1");
+        assertTableRow(tableData.get(i++), "2", "a", "1");
+        assertTableRow(tableData.get(i++), "3", "a", "2");
+        assertTableRow(tableData.get(i++), "1", "b", "2");
+
+    }
+
+    @Test
+    public void testEqualSubmitterNumbers_ClickTwiceOnSubmitterNumberColum_SortAccordingly() throws IOException {
+        jobstoreFolder.createTestJob("1", "b", "2");
+        jobstoreFolder.createTestJob("2", "a", "1");
+        jobstoreFolder.createTestJob("3", "a", "2");
+        jobstoreFolder.createTestJob("4", "b", "1");
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(4);
+
+        // Click on the Filename Column
+        table.findColumnHeader(2).click();  // Third column is Submitternumber column => Ascending
+        table.findColumnHeader(2).click();  // Third column is Submitternumber column => Descending
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        sortedTable.waitAssertRows(4);
+        List<List<String>> tableData = sortedTable.get();
+
+        // Assert that data is as expected
+        int i = 0;
+        assertTableRow(tableData.get(i++), "3", "a", "2");
+        assertTableRow(tableData.get(i++), "1", "b", "2");
+        assertTableRow(tableData.get(i++), "4", "b", "1");
+        assertTableRow(tableData.get(i++), "2", "a", "1");
+
+    }
+
     /**
          * Private utility methods
          */
@@ -224,6 +326,11 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         }
     }
 
+    private void assertTableRow(List<String> row, String jobId, String fileName, String submitterId) {
+        assertThat(row.get(0), is(jobId));
+        assertThat(row.get(1), is(fileName));
+        assertThat(row.get(2), is(submitterId));
+    }
 
     /**
      * Class for maintaining temporary job storage in file system

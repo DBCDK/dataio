@@ -4,7 +4,10 @@ import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -12,7 +15,11 @@ import org.openqa.selenium.WebElement;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 
@@ -179,22 +186,6 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> secondRowData = secondSortTable.get();
         assertJobIdsAscending(secondRowData, JOBS_SHOW_PAGE_SIZE);
-    }
-
-    @Test
-    public void testEtEllerAndet() throws IOException {
-
-        jobstoreFolder.createTestJob("1", "a", "1");
-        jobstoreFolder.createTestJob("6", "a", "1");
-        jobstoreFolder.createTestJob("4", "a", "2");
-        jobstoreFolder.createTestJob("5", "a", "2");
-        jobstoreFolder.createTestJob("3", "a", "3");
-        jobstoreFolder.createTestJob("2", "a", "1");
-        jobstoreFolder.createTestJob("7", "a", "1");
-
-        navigateToJobsShowWidget(webDriver);
-
-        try {Thread.sleep(120000);} catch (InterruptedException e) {}
     }
 
     /**

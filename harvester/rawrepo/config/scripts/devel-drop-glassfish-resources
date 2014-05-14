@@ -8,4 +8,5 @@ basedir=$(dirname $0)
 $glassfish_home/bin/asadmin delete-jdbc-resource $rawrepo_resource
 $glassfish_home/bin/asadmin delete-jdbc-connection-pool $rawrepo_pool_resource
 $glassfish_home/bin/asadmin delete-custom-resource $filestore_endpoint_resource
+$glassfish_home/bin/asadmin delete-custom-resource $jobstore_endpoint_resource
 $glassfish_home/bin/asadmin delete-custom-resource $logback_resource

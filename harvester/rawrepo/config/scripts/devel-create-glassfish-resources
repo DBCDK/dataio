@@ -13,6 +13,7 @@ $glassfish_home/bin/asadmin create-jdbc-connection-pool --datasourceclassname or
 $glassfish_home/bin/asadmin ping-connection-pool $rawrepo_pool_resource
 $glassfish_home/bin/asadmin create-jdbc-resource --connectionpoolid $rawrepo_pool_resource $rawrepo_resource
 $glassfish_home/bin/asadmin create-custom-resource --restype=java.lang.String --factoryclass=org.glassfish.resources.custom.factory.PrimitivesAndStringFactory --property value=$filestore_endpoint $filestore_endpoint_resource
+$glassfish_home/bin/asadmin create-custom-resource --restype=java.lang.String --factoryclass=org.glassfish.resources.custom.factory.PrimitivesAndStringFactory --property value=$jobstore_endpoint $jobstore_endpoint_resource
 
 logback_template=$basedir/logback-include.template
 logback_include=$basedir/logback-include.xml

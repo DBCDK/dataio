@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -152,7 +153,13 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         dataProvider.setList(jobs);
 
         // Add a ColumnSortEvent.ListHandler to connect sorting to the java.util.List
-        ColumnSortEvent.ListHandler<JobInfo> columnSortHandler = new ColumnSortEvent.ListHandler<JobInfo>(dataProvider.getList());
+        ColumnSortEvent.ListHandler<JobInfo> columnSortHandler = new ColumnSortEvent.ListHandler<JobInfo>(dataProvider.getList()) {
+            @Override
+            public void onColumnSort(ColumnSortEvent event) {
+                Collections.sort(dataProvider.getList(), Collections.reverseOrder(getComparator(jobIdColumn)));  // Do sort jobIdColumn first, to assure, that the secondary search will be by jobId
+                super.onColumnSort(event);
+            }
+        };
         columnSortHandler.setComparator(jobIdColumn,
                 new Comparator<JobInfo>() {
                     public int compare(JobInfo o1, JobInfo o2) {
@@ -174,9 +181,10 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         table.addColumnSortHandler(columnSortHandler);
 
         // Set default sort behavior
-        ColumnSortList columnSortList = table.getColumnSortList();
         jobIdColumn.setDefaultSortAscending(false);  // Set default sort order for jobIdColumn to Descending (youngest first)
-        columnSortList.clear();  // Clear the old behavior
+
+        ColumnSortList columnSortList = table.getColumnSortList();
+        columnSortList.clear();  // Clear the Sort List
         columnSortList.push(jobIdColumn);  // Default sorting is by job id
         ColumnSortEvent.fire(table, columnSortList);  // Do sort right now
 

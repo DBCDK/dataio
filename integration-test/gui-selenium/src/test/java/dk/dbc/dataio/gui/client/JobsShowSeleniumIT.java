@@ -121,7 +121,6 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        WebElement jobIdHeader = table.findColumnHeader(0);  // First column is Job Id column
 
         // First click on Job Id Header Column makes column ascending
         table.findColumnHeader(0).click();  // First column is JobId column
@@ -180,6 +179,22 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> secondRowData = secondSortTable.get();
         assertJobIdsAscending(secondRowData, JOBS_SHOW_PAGE_SIZE);
+    }
+
+    @Test
+    public void testEtEllerAndet() throws IOException {
+
+        jobstoreFolder.createTestJob("1", "a", "1");
+        jobstoreFolder.createTestJob("6", "a", "1");
+        jobstoreFolder.createTestJob("4", "a", "2");
+        jobstoreFolder.createTestJob("5", "a", "2");
+        jobstoreFolder.createTestJob("3", "a", "3");
+        jobstoreFolder.createTestJob("2", "a", "1");
+        jobstoreFolder.createTestJob("7", "a", "1");
+
+        navigateToJobsShowWidget(webDriver);
+
+        try {Thread.sleep(120000);} catch (InterruptedException e) {}
     }
 
     /**

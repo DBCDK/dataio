@@ -110,6 +110,7 @@ public class FlowStoreServiceConnector {
      *
      * @param sinkContent the new sink content
      * @param sinkId the id of the sink to update
+     * @param version the current version of the sink
      * @return the updated sink
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the sink

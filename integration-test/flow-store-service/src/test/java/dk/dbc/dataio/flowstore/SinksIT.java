@@ -64,28 +64,25 @@ public class SinksIT {
      * And  : assert that only one sink can be found in the underlying database
      */
     @Test
-    public void createSink_ok(){
-        try{
-            // When...
-            final SinkContent sinkContent = new SinkContentBuilder().build();
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    public void createSink_ok() throws Exception{
 
-            // Then...
-            Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+        // When...
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
-            // And...
-            assertNotNull(sink);
-            assertNotNull(sink.getContent());
-            assertNotNull(sink.getId());
-            assertNotNull(sink.getVersion());
-            assertThat(sink.getContent().getName(), is(sinkContent.getName()));
-            assertThat(sink.getContent().getResource(), is(sinkContent.getResource()));
-            // And ...
-            final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
-            assertThat(sinks.size(), is(1));
-        }catch(Exception e){
-            fail("Unexpected error when creating new sink.");
-        }
+        // Then...
+        Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+
+        // And...
+        assertNotNull(sink);
+        assertNotNull(sink.getContent());
+        assertNotNull(sink.getId());
+        assertNotNull(sink.getVersion());
+        assertThat(sink.getContent().getName(), is(sinkContent.getName()));
+        assertThat(sink.getContent().getResource(), is(sinkContent.getResource()));
+        // And ...
+        final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
+        assertThat(sinks.size(), is(1));
     }
 
     /**
@@ -138,25 +135,21 @@ public class SinksIT {
      * And  : assert that the sink found has an id, a version and contains the same information as the sink created
      */
     @Test
-    public void getSink_ok(){
-        try{
-            // When...
-            final SinkContent sinkContent = new SinkContentBuilder().build();
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    public void getSink_ok() throws Exception{
 
-            // Then...
-            Sink sink = flowStoreServiceConnector.createSink(sinkContent);
-            Sink sinkToGet = flowStoreServiceConnector.getSink(sink.getId());
+        // When...
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
-            // And...
-            assertNotNull(sinkToGet);
-            assertNotNull(sinkToGet.getContent());
-            assertThat(sinkToGet.getContent().getName(), is(sink.getContent().getName()));
-            assertThat(sinkToGet.getContent().getResource(), is(sink.getContent().getResource()));
+        // Then...
+        Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+        Sink sinkToGet = flowStoreServiceConnector.getSink(sink.getId());
 
-        }catch(Exception e){
-            fail("Unexpected error when getting a sink.");
-        }
+        // And...
+        assertNotNull(sinkToGet);
+        assertNotNull(sinkToGet.getContent());
+        assertThat(sinkToGet.getContent().getName(), is(sink.getContent().getName()));
+        assertThat(sinkToGet.getContent().getResource(), is(sink.getContent().getResource()));
     }
 
     /**
@@ -190,41 +183,37 @@ public class SinksIT {
      * And  : assert that updated data can be found in the underlying database and only one sink exists
      */
     @Test
-    public void updateSink_ok(){
-        try {
-            // Given...
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    public void updateSink_ok() throws Exception{
 
-            // And...
-            final SinkContent sinkContent = new SinkContentBuilder().build();
-            Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
-            // When...
-            final SinkContent newSinkContent = new SinkContentBuilder().setName("UpdatedSinkName").setResource("NewResourceName").build();
-            Sink updatedSink = flowStoreServiceConnector.updateSink(newSinkContent, sink.getId(), sink.getVersion());
+        // And...
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        Sink sink = flowStoreServiceConnector.createSink(sinkContent);
 
-            // Then...
-            assertNotNull(updatedSink);
-            assertNotNull(updatedSink.getContent());
-            assertNotNull(updatedSink.getId());
-            assertNotNull(updatedSink.getVersion());
-            assertThat(updatedSink.getContent().getName(), is(newSinkContent.getName()));
-            assertThat(updatedSink.getContent().getResource(), is(newSinkContent.getResource()));
+        // When...
+        final SinkContent newSinkContent = new SinkContentBuilder().setName("UpdatedSinkName").setResource("NewResourceName").build();
+        Sink updatedSink = flowStoreServiceConnector.updateSink(newSinkContent, sink.getId(), sink.getVersion());
 
-            // And...
-            assertThat(updatedSink.getId(), is(sink.getId()));
+        // Then...
+        assertNotNull(updatedSink);
+        assertNotNull(updatedSink.getContent());
+        assertNotNull(updatedSink.getId());
+        assertNotNull(updatedSink.getVersion());
+        assertThat(updatedSink.getContent().getName(), is(newSinkContent.getName()));
+        assertThat(updatedSink.getContent().getResource(), is(newSinkContent.getResource()));
 
-            // And...
-            assertThat(updatedSink.getVersion(), not(sink.getVersion()));
-            assertThat(updatedSink.getVersion(), is(sink.getVersion() + 1));
+        // And...
+        assertThat(updatedSink.getId(), is(sink.getId()));
 
-            // And...
-            final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
-            assertThat(sinks.size(), is(1));
+        // And...
+        assertThat(updatedSink.getVersion(), not(sink.getVersion()));
+        assertThat(updatedSink.getVersion(), is(sink.getVersion() + 1));
 
-        }catch(Exception e){
-            fail("Unexpected error when updating existing sink.");
-       }
+        // And...
+        final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
+        assertThat(sinks.size(), is(1));
     }
 
     /**
@@ -342,6 +331,7 @@ public class SinksIT {
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final String SINK_NAME_FROM_FIRST_USER = "UpdatedSinkNameFromFirstUser";
         final String SINK_NAME_FROM_SECOND_USER = "UpdatedSinkNameFromSecondUser";
+        long version = -1;
 
         try {
             // And...
@@ -349,9 +339,11 @@ public class SinksIT {
             Sink sink = flowStoreServiceConnector.createSink(sinkContent);
 
             // And... First user updates the sink
-            flowStoreServiceConnector.updateSink(new SinkContentBuilder().setName(SINK_NAME_FROM_FIRST_USER).build(),
+            Sink updatedSink = flowStoreServiceConnector.updateSink(new SinkContentBuilder().setName(SINK_NAME_FROM_FIRST_USER).build(),
                     sink.getId(),
                     sink.getVersion());
+
+            version = updatedSink.getVersion();
 
             // When... Second user attempts to update the same sink
             flowStoreServiceConnector.updateSink(new SinkContentBuilder().setName(SINK_NAME_FROM_SECOND_USER).build(),
@@ -359,7 +351,6 @@ public class SinksIT {
                     sink.getVersion());
 
             fail("Edit conflict, in the case of multiple updates, was not detected as input to updateSink().");
-
 
             // Then...
         }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
@@ -373,8 +364,9 @@ public class SinksIT {
             assertThat(sinks.size(), is(1));
             assertThat(sinks.get(0).getContent().getName(), is(SINK_NAME_FROM_FIRST_USER));
 
-            // And... Assume that the initial version number, when the sink was first created, is 1
-            assertThat(sinks.get(0).getVersion(), is(2L));
+            Sink sink = flowStoreServiceConnector.getSink(sinks.get(0).getId());
+            // And... Assert the version number is correct
+            assertThat(sinks.get(0).getVersion(), is(version));
         }
     }
 

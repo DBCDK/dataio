@@ -41,10 +41,7 @@ public class FlowStoreServiceConnectorBean {
     public Sink createSink(SinkContent sinkContent) throws FlowStoreServiceConnectorException {
         LOGGER.debug("Creating new sink");
         try {
-            // performance: consider JNDI lookup cache or service-locator pattern
-            final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
-            return flowStoreServiceConnector.createSink(sinkContent);
+            return getFlowStoreServiceConnector().createSink(sinkContent);
         } catch (NamingException e) {
             throw new EJBException(e);
         }
@@ -54,9 +51,7 @@ public class FlowStoreServiceConnectorBean {
     public Sink getSink(long sinkId) throws FlowStoreServiceConnectorException {
         LOGGER.debug("Retrieving sink with id: " + sinkId);
         try {
-            final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
-            return flowStoreServiceConnector.getSink(sinkId);
+            return getFlowStoreServiceConnector().getSink(sinkId);
         } catch (NamingException e) {
             throw new EJBException(e);
         }
@@ -66,9 +61,7 @@ public class FlowStoreServiceConnectorBean {
     public List<Sink> findAllSinks() throws FlowStoreServiceConnectorException {
         LOGGER.debug("Retrieving all sinks");
         try{
-            final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
-            return flowStoreServiceConnector.findAllSinks();
+            return getFlowStoreServiceConnector().findAllSinks();
         }catch (NamingException e) {
             throw new EJBException(e);
         }
@@ -76,14 +69,17 @@ public class FlowStoreServiceConnectorBean {
 
     @Lock(LockType.READ)
     public Sink updateSink(SinkContent sinkContent, long id, long version) throws FlowStoreServiceConnectorException {
-        LOGGER.debug("Retrieving all sinks");
+        LOGGER.debug("Updating existing sink");
         try{
-            final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
-            return flowStoreServiceConnector.updateSink(sinkContent, id, version);
+            return getFlowStoreServiceConnector().updateSink(sinkContent, id, version);
         }catch (NamingException e) {
             throw new EJBException(e);
         }
+    }
+
+    private FlowStoreServiceConnector getFlowStoreServiceConnector() throws NamingException{
+        final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        return new FlowStoreServiceConnector(client, baseUrl);
     }
 
     @PreDestroy

@@ -1,13 +1,18 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -42,14 +47,34 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     final String RESOURCE_NAME_FLOWSTORE = "jdbc/flowStoreDb";
     final String RESOURCE_NAME_INFLIGHT = "jdbc/dataio/sinks/esInFlight";
 
+    private static final int SAVE_SINK_TIMOUT = 4;
+
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
 
-    private static final int SAVE_SINK_TIMOUT = 4;
+    @BeforeClass
+    public static void setUpClass() throws ClassNotFoundException, SQLException {
+        baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        dbConnection = newDbConnection("flow_store");
+        restClient = HttpClient.newClient();
+
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws SQLException {
+        JDBCUtil.closeConnection(dbConnection);
+    }
+
+    @After
+    public void tearDown() throws SQLException {
+        clearAllDbTables(dbConnection);
+    }
 
     @Test
-    public void testInitialVisibilityAndAccessibilityOfElements() {
+    public void testInitialVisibilityAndAccessibilityOfElements() throws Exception{
 
         //Assert that the sink name and sink resource name is shown in the input fields.
         assertSinkEditSinkNameAndResourceFieldsAreVisibleAndDataIsInserted();
@@ -62,12 +87,15 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSinkEdit_WhenMultipleSinksTheCorrectSinkIsLocatedForEdit(){
+    public void testSinkEdit_WhenMultipleSinksTheCorrectSinkIsLocatedForEdit() throws Exception{
 
         //Create 3 new sinks.
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_2, RESOURCE_NAME_INFLIGHT);
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_3, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent1 = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        Sink sink1 = flowStoreServiceConnector.createSink(sinkContent1);
+        SinkContent sinkContent2 = new SinkContentBuilder().setName(SINK_NAME_2).setResource(RESOURCE_NAME_INFLIGHT).build();
+        Sink sink2 = flowStoreServiceConnector.createSink(sinkContent2);
+        SinkContent sinkContent3 = new SinkContentBuilder().setName(SINK_NAME_3).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        Sink sink3 = flowStoreServiceConnector.createSink(sinkContent3);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -80,7 +108,7 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
 
         //Assert that the sinks are sorted in alphabetically order after name.
         //Therefore: Assert that the first sink found is the second created.
-        assertAllInputFields(SINK_NAME_2, RESOURCE_NAME_INFLIGHT);
+        assertAllInputFields(sink2.getContent().getName(), sink2.getContent().getResource());
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -89,7 +117,7 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         locateAndClickEditButtonForElement(1);
 
         //Assert that the sink found matches the values from the third sink created.
-        assertAllInputFields(SINK_NAME_3, RESOURCE_NAME_FLOWSTORE);
+        assertAllInputFields(sink3.getContent().getName(), sink3.getContent().getResource());
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -98,14 +126,15 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         locateAndClickEditButtonForElement(2);
 
         //Assert that the sink found matches the values from the first sink created.
-        assertAllInputFields(SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        assertAllInputFields(sink1.getContent().getName(), sink1.getContent().getResource());
     }
 
     @Test
-    public void testSaveButton_EmptySinkNameInputField_DisplayErrorPopup() {
+    public void testSaveButton_EmptySinkNameInputField_DisplayErrorPopup() throws Exception{
 
         //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -131,10 +160,11 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSaveButton_EmptyResourceNameInputField_DisplayErrorPopup() {
+    public void testSaveButton_EmptyResourceNameInputField_DisplayErrorPopup() throws Exception{
 
         //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -163,7 +193,8 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     public void testSinkEditUnknownResourceName_DisplayErrorPopup() throws Exception {
 
         //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -194,9 +225,11 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testSinkEditSinkNameAlreadyExistForAnotherSink_DisplayErrorPopup() throws Exception {
 
-        //Create 2 new sinks.
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_2, RESOURCE_NAME_INFLIGHT);
+        //Create 2 new sinks
+        SinkContent sinkContent1 = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        SinkContent sinkContent2 = new SinkContentBuilder().setName(SINK_NAME_2).setResource(RESOURCE_NAME_INFLIGHT).build();
+        flowStoreServiceConnector.createSink(sinkContent1);
+        flowStoreServiceConnector.createSink(sinkContent2);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -223,7 +256,8 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     public void testSinkEdit_EditSinkResourceWithoutChangingSinkName() throws Exception{
 
         //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -242,7 +276,8 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     public void testSinkEdit_EditSinkNameWithoutChangingSinkResource() throws Exception{
 
         //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -261,7 +296,8 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     public void testSinkEdit_SinkNameAndResourceHasNotChanged() throws Exception {
 
         //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -280,7 +316,8 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     public void testSinkEdit_TestDoubleEdit() throws Exception{
 
         //Create new sink
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -301,11 +338,9 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testSinkEdit_testSaveVersionFromBeforeCurrent() throws Exception{
 
-        //Setup connection to flow store service
-        setUpFlowStoreConnection();
-
-        //Create new sink through flow store
-        long sinkId = ITUtil.createSink(restClient, baseUrl, new SinkContentJsonBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build());
+        //Create new sink
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        Sink sink = flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -316,32 +351,31 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         //Navigate to the first row, locate the edit button and click.
         locateAndClickEditButtonForElement(0);
 
-        //Edit the sink through flow store and save
-        ITUtil.updateSink(restClient, baseUrl, new SinkContentJsonBuilder().setName(SINK_NAME_3).setResource(RESOURCE_NAME_FLOWSTORE).build(), sinkId, 1L);
+        //Update the sink through flow store.
+        SinkContent updatedSinkContent = new SinkContentBuilder().setName(SINK_NAME_3).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        flowStoreServiceConnector.updateSink(updatedSinkContent, sink.getId(), sink.getVersion());
 
-        //Edit the sink opened for edit through Selenium
+        //Edit the same sink through Selenium
         findSinkNameElement(webDriver).clear();
         findSinkNameElement(webDriver).sendKeys(SINK_NAME_2);
 
-        //Attempt saving the sink with the new name.
+        //Attempt to save the sink.
         findSaveButton(webDriver).click();
 
         //Assert that an error is thrown. The sink opened for edit cannot be saved since the version is outdated.
         String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, containsString("Error: "));  // Todo: Generalisering af fejlhåndtering
         assertThat(s, containsString("Conflict"));
-
-        //Close flow store connection
-        TearDownFlowStoreConnection();
     }
 
     /**
      * The following is private static helper methods.
      */
-    private void assertSinkEditSinkNameAndResourceFieldsAreVisibleAndDataIsInserted(){
+    private void assertSinkEditSinkNameAndResourceFieldsAreVisibleAndDataIsInserted()throws Exception{
 
-        //Create new sink.
-        SinkCreationSeleniumIT.createTestSink(webDriver, SINK_NAME_1, RESOURCE_NAME_FLOWSTORE);
+        //Create new sink
+        SinkContent sinkContent = new SinkContentBuilder().setName(SINK_NAME_1).setResource(RESOURCE_NAME_FLOWSTORE).build();
+        Sink sink = flowStoreServiceConnector.createSink(sinkContent);
 
         //Navigate to the sink show window.
         navigateToSinksShowWidget(webDriver);
@@ -352,8 +386,8 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         //Assert that the sink name and sink resource name are visible and show the correct values.
         assertTrue(findSinkNameElement(webDriver).isDisplayed());
         assertTrue(findResourceNameElement(webDriver).isDisplayed());
-        assertEquals(findSinkNameElement(webDriver).getAttribute("value"), SINK_NAME_1);
-        assertEquals(findResourceNameElement(webDriver).getAttribute("value"), RESOURCE_NAME_FLOWSTORE);
+        assertEquals(findSinkNameElement(webDriver).getAttribute("value"), sink.getContent().getName());
+        assertEquals(findResourceNameElement(webDriver).getAttribute("value"), sink.getContent().getResource());
     }
 
 
@@ -412,16 +446,5 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     private int getTableSize(){
         List<WebElement> elements = SeleniumUtil.findElementsInCurrentView(webDriver, SinksShowViewImpl.GUUID_SHOW_SINK_TABLE_EDIT, SinksShowViewImpl.CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON);
         return elements.size();
-    }
-
-    private void setUpFlowStoreConnection() throws ClassNotFoundException, SQLException {
-        baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
-        restClient = HttpClient.newClient();
-        dbConnection = newDbConnection("flow_store");
-    }
-
-    private void TearDownFlowStoreConnection() throws SQLException {
-        clearAllDbTables(dbConnection);
-        JDBCUtil.closeConnection(dbConnection);
     }
 }

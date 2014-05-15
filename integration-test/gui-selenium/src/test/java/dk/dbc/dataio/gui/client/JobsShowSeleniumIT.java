@@ -340,7 +340,9 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         public TemporaryDataioJobstoreFolder(Path rootPath) throws IOException {
             jobFolderRoot = rootPath;
+            System.out.println("Create TemporaryDataioJobstoreFolder: " + rootPath);
             if (!Files.exists(rootPath)) {
+                System.out.println("Path: " + rootPath + " does not exist, creating it right now...");
                 jobFolderRoot = Files.createDirectory(jobFolderRoot);
             }
         }
@@ -369,14 +371,17 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             Path fileFolder = Paths.get(jobFolderRoot.toString(), folderName);
             Path filePath = Paths.get(fileFolder.toString(), fileName);
             if (Files.notExists(fileFolder)) {
+                System.out.println("File Folder: " + fileFolder + " does not exist, trying to create it now...");
                 Files.createDirectory(fileFolder);
             }
             try (PrintWriter printWriter = new PrintWriter(filePath.toFile())) {
                 printWriter.print(fileContent);
+            } catch (IOException e) {
+                System.out.println("Printwriter exception thrown...");
             }
         }
 
-        private void createTestJob(String jobId, String fileName, String submitterNumber) throws IOException {
+        private void createTestJob(String jobId, final String fileName, String submitterNumber) throws IOException {
             // Build JobSpecification JSON
             JobSpecificationJsonBuilder jobSpecificationBuider = new JobSpecificationJsonBuilder();
             jobSpecificationBuider.setDataFile(fileName);
@@ -386,7 +391,19 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             jobInfoBuilder.setJobId(Long.parseLong(jobId));
             jobInfoBuilder.setJobSpecification(jobSpecificationBuider.build());
             // Store JobInfo in file system based job-store
-            createFile(jobId, JOBINFO_FILE_NAME, jobInfoBuilder.build());
+            String res = jobInfoBuilder.build();
+            createFile(jobId, JOBINFO_FILE_NAME, res);
+            System.out.println("createTestJob: " + res);
+            System.out.println("tmp dir now contains: ");
+
+            Files.walkFileTree(jobFolderRoot, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    System.out.println("  -> " + file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+
         }
 
     }

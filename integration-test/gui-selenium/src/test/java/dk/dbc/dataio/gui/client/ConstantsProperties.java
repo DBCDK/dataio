@@ -9,7 +9,6 @@ class ConstantsProperties {
 
     public ConstantsProperties(String propertiesFile) {
         try {
-            System.out.println("ConstantProperties: dk/dbc/dataio/gui/client/ + " + propertiesFile);
             prop.load(ConstantsProperties.class.getClassLoader().getResourceAsStream("dk/dbc/dataio/gui/client/" + propertiesFile));
         } catch (Exception ex) {
             Assert.assertTrue("Translation Properties file could not be found", false);

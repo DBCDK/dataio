@@ -6,7 +6,9 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
@@ -15,11 +17,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.createSink;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -27,7 +31,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class SinksIT {
@@ -87,29 +90,22 @@ public class SinksIT {
 
     /**
      * Given: a deployed flow-store service
-     * When : given sinkContent that contains an empty parameter for name
-     * Then : IllegalArgumentException is thrown
+     * When : JSON posted to the sinks path causes JsonException
+     * Then : request returns with a BAD REQUEST http status code
      */
     @Test
-    public void createSink_InvalidRequest(){
-        try{
-            // When...
-            final SinkContent sinkContent = new SinkContentBuilder().setName("").setResource("Resource").build();
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-            flowStoreServiceConnector.createSink(sinkContent);
-            fail("Invalid request to createSink() was not detected.");
-        }catch(Exception e){
-            // Then...
-            assertTrue(e instanceof IllegalArgumentException);
-            assertTrue(e.getMessage().contains("Value of parameter"));
-            assertTrue(e.getMessage().contains("cannot be empty"));
-        }
+    public void createSink_invalidJson_BadRequest() {
+        // When...
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceConstants.SINKS);
+
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     /**
      * Given: a deployed flow-store service containing sink resource
      * When : adding sink with the same name
-     * Then : assert that the exception thrown is of the type: FlowStoreServiceConnectorException
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT ACCEPTABLE http status code
      * And  : assert that one sinks exist in the underlying database
      */
@@ -117,27 +113,70 @@ public class SinksIT {
     public void createSink_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
         // Given...
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
         final SinkContent sinkContent = new SinkContentBuilder().setName("UniqueName").build();
 
         try {
             flowStoreServiceConnector.createSink(sinkContent);
-
             // When...
             flowStoreServiceConnector.createSink(sinkContent);
             fail("Primary key violation was not detected as input to createSink().");
-        }catch(Exception e){
-
             // Then...
-            assertTrue(e instanceof FlowStoreServiceConnectorException);
-            assertTrue(e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException);
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
 
             // And...
-            assertTrue(e.getMessage().equals("flow-store service returned with unexpected status code: Not Acceptable"));
-
+            assertThat(e.getStatusCode(), is(406));
             // And...
             List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
             assertThat(sinks.size(), is(1));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the sinks path with a valid identifier
+     * Then : a sink is found and returned
+     * And  : assert that the sink found has an id, a version and contains the same information as the sink created
+     */
+    @Test
+    public void getSink_ok(){
+        try{
+            // When...
+            final SinkContent sinkContent = new SinkContentBuilder().build();
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+            // Then...
+            Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+            Sink sinkToGet = flowStoreServiceConnector.getSink(sink.getId());
+
+            // And...
+            assertNotNull(sinkToGet);
+            assertNotNull(sinkToGet.getContent());
+            assertThat(sinkToGet.getContent().getName(), is(sink.getContent().getName()));
+            assertThat(sinkToGet.getContent().getResource(), is(sink.getContent().getResource()));
+
+        }catch(Exception e){
+            fail("Unexpected error when getting a sink.");
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a sink with an unknown sink id
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getSink_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
+        try{
+            // Given...
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+            flowStoreServiceConnector.getSink(432);
+
+            fail("Invalid request to getSink() was not detected.");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(404));
         }
     }
 
@@ -184,48 +223,35 @@ public class SinksIT {
             assertThat(sinks.size(), is(1));
 
         }catch(Exception e){
-            e.printStackTrace();
             fail("Unexpected error when updating existing sink.");
        }
     }
 
     /**
      * Given: a deployed flow-store service
-     * And  : a valid sink with given id is already stored
      * When : JSON posted to the sinks path with update causes JsonException
-     * Then : IllegalArgumentException is thrown
+     * Then : request returns with a BAD REQUEST http status code
      */
     @Test
-    public void updateSink_invalidRequest(){
-        try{
-            // Given...
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    public void updateSink_invalidJson_BadRequest() {
+        // Given ...
+        final long id = createSink(restClient, baseUrl, new SinkContentJsonBuilder().build());
 
-            // And...
-            final SinkContent sinkContent = new SinkContentBuilder().build();
-            Sink sink = flowStoreServiceConnector.createSink(sinkContent);
-
-            // When...
-            final SinkContent newSinkContent = new SinkContentBuilder().setName("").setResource("Resource").build();
-            flowStoreServiceConnector.updateSink(newSinkContent, sink.getId(), sink.getVersion());
-
-            fail("Invalid request to updateSink() was not detected.");
-        }catch(Exception e) {
-            // Then...
-            assertTrue(e instanceof IllegalArgumentException);
-            assertTrue(e.getMessage().contains("Value of parameter"));
-            assertTrue(e.getMessage().contains("cannot be empty"));
-        }
+        // Assume, that the very first created sink has version number 1:
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl,
+                FlowStoreServiceConstants.SINKS, Long.toString(id), Long.toString(1L), "content");
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
     /**
-     * Given: a deployed flow-store service
-     * When : valid JSON is POSTed to the sinks path with an identifier (update) and wrong id number
-     * Then : assert that the exception thrown is of the type: FlowStoreServiceConnectorException
-     * And  : request returns with a NOT_FOUND http status code
-     * And  : assert that only no sinks exist in the underlying database
-     * And  : assert that updated data from the first user can be found in the underlying database
-     */
+    * Given: a deployed flow-store service
+    * When : valid JSON is POSTed to the sinks path with an identifier (update) and wrong id number
+    * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+    * And  : request returns with a NOT_FOUND http status code
+    * And  : assert that only no sinks exist in the underlying database
+    * And  : assert that updated data from the first user can be found in the underlying database
+    */
     @Test
     public void updateSink_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
@@ -237,11 +263,12 @@ public class SinksIT {
             flowStoreServiceConnector.updateSink(newSinkContent, 1234, 1L);
 
             fail("None existing id was input to updateSink() was not detected.");
-        }catch(Exception e) {
+
             // Then...
-            assertTrue(e instanceof FlowStoreServiceConnectorException);
-            assertTrue(e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException);
-            assertTrue(e.getMessage().equals("flow-store service returned with unexpected status code: Not Found"));
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+
+            // And...
+            assertThat(e.getStatusCode(), is(404));
 
             // And...
             final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
@@ -254,7 +281,7 @@ public class SinksIT {
      * Given: a deployed flow-store service
      * And  : Two valid sinks are already stored
      * When : valid JSON is POSTed to the sinks path with an identifier (update) but with a sink name that is already in use by another existing sink
-     * Then : assert that the exception thrown is of the type: FlowStoreServiceConnectorException
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a NOT_ACCEPTABLE http status code
      * And  : assert that two sinks exists in the underlying database
      * And  : updated data cannot be found in the underlying database
@@ -278,14 +305,11 @@ public class SinksIT {
             flowStoreServiceConnector.updateSink(sinkContent1, sink.getId(), sink.getVersion());
 
             fail("Primary key violation was not detected as input to updateSink().");
-        }catch(Exception e) {
-
-            // Then...
-            assertTrue(e instanceof FlowStoreServiceConnectorException);
-            assertTrue(e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException);
+        // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
 
             // And...
-            assertTrue(e.getMessage().equals("flow-store service returned with unexpected status code: Not Acceptable"));
+            assertThat(e.getStatusCode(), is(406));
 
             // And...
             final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
@@ -306,7 +330,7 @@ public class SinksIT {
      * When : the second user attempts to update the original version of the sink, valid JSON is POSTed to the sinks
      *        path with an identifier (update) and wrong version number
 
-     * Then : assert that the exception thrown is of the type: FlowStoreServiceConnectorException
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
      * And  : assert that only one sink exists in the underlying database
      * And  : assert that updated data from the first user can be found in the underlying database
@@ -337,13 +361,11 @@ public class SinksIT {
             fail("Edit conflict, in the case of multiple updates, was not detected as input to updateSink().");
 
 
-        } catch (Exception e) {
             // Then...
-            assertTrue(e instanceof FlowStoreServiceConnectorException);
-            assertTrue(e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException);
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
 
             // And...
-            assertTrue(e.getMessage().equals("flow-store service returned with unexpected status code: Conflict"));
+            assertThat(e.getStatusCode(), is(409));
 
             // And...
             final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();

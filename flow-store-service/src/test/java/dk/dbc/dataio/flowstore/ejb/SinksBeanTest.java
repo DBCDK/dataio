@@ -136,11 +136,6 @@ public class SinksBeanTest {
         newSinksBeanWithMockedEntityManager().updateSink(null, "", 0L, 0L);
     }
 
-    @Test(expected = JsonException.class)
-    public void updateSink_invalidJSON_throwsJsonException() throws JsonException, ReferencedEntityNotFoundException {
-        newSinksBeanWithMockedEntityManager().updateSink(null, "invalid Json", 0L, 0L);
-    }
-
     @Test
     public void updateSink_sinkNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();

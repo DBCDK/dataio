@@ -23,7 +23,11 @@ import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by sma on 16/04/14.
@@ -325,7 +329,7 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         //Assert that an error is thrown. The sink opened for edit cannot be saved since the version is outdated.
         String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, containsString("Error: "));  // Todo: Generalisering af fejlhåndtering
-        assertThat(s, containsString("OptimisticLockException"));
+        assertThat(s, containsString("Conflict"));
 
         //Close flow store connection
         TearDownFlowStoreConnection();

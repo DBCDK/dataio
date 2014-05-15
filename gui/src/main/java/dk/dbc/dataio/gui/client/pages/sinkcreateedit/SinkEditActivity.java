@@ -98,15 +98,16 @@ public class SinkEditActivity extends AbstractActivity implements SinkCreateEdit
     }
 
     public void doUpdateSink(SinkContent sinkContent) {
-        flowStoreProxy.updateSink(sinkContent, sink.getId(), sink.getVersion(), new FilteredAsyncCallback<Void>() {
+        flowStoreProxy.updateSink(sinkContent, sink.getId(), sink.getVersion(), new FilteredAsyncCallback<Sink>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 sinkEditView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
             }
             @Override
-            public void onSuccess(Void aVoid) {
+            public void onSuccess(Sink sink) {
                 sinkEditView.onSaveSinkSuccess();
-                getSink(sinkId);
+                setSink(sink);
+                sinkEditView.initializeFields(constants.menu_SinkEdit(), sink);
             }
         });
     }

@@ -5,6 +5,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.PingResponse;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -75,13 +76,13 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreateEd
     }
 
     public void doSaveSink(SinkContent sinkContent) {
-        flowStoreProxy.createSink(sinkContent, new FilteredAsyncCallback<Void>() {
+        flowStoreProxy.createSink(sinkContent, new FilteredAsyncCallback<Sink>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 sinkCreateView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
             }
             @Override
-            public void onSuccess(Void aVoid) {
+            public void onSuccess(Sink sink) {
                 sinkCreateView.onSaveSinkSuccess();
             }
         });

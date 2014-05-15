@@ -1,10 +1,20 @@
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import dk.dbc.dataio.commons.types.*;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import java.util.List;
 
@@ -16,7 +26,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public void init() throws ServletException {
         super.init();
-        flowStoreProxy = new FlowStoreProxyImpl();
+        try{
+            flowStoreProxy = new FlowStoreProxyImpl();
+        }catch (NamingException e){
+            throw new ServletException(e);
+        }
     }
 
     @Override
@@ -40,13 +54,13 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public void createSink(SinkContent sinkContent) throws NullPointerException, ProxyException {
-        flowStoreProxy.createSink(sinkContent);
+    public Sink createSink(SinkContent sinkContent) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createSink(sinkContent);
     }
 
     @Override
-    public void updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException {
-        flowStoreProxy.updateSink(sinkContent, id, version);
+    public Sink updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateSink(sinkContent, id, version);
     }
 
     @Override

@@ -138,6 +138,7 @@
           <groupId>dk.dbc</groupId>
           <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
           <version>${project.version}</version>
+          <type>ejb</type>
       </dependency>
   </dependencies>
 

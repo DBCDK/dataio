@@ -73,7 +73,7 @@ public class FileStoreServiceConnector {
     }
 
     /**
-     * Retrieves file content as stream from store into given output stream.
+     * Retrieves file content as stream from store
      * <p>
      * Note that it is the responsibility of the caller to close the returned
      * stream to free web client resources.

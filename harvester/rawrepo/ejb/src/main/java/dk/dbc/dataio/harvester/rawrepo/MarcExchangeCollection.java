@@ -107,6 +107,7 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         try {
             final Transformer transformer;
             transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transformer.setOutputProperty(OutputKeys.INDENT, "no");
             return transformer;
         } catch (TransformerConfigurationException e) {

@@ -113,4 +113,9 @@ public class JsonBuilderTest {
     public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JsonException {
         JsonUtil.fromJson(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class, MixIns.getMixIns());
     }
+
+    @Test
+    public void test() {
+        System.out.println(new JobSpecificationJsonBuilder().build());
+    }
 }

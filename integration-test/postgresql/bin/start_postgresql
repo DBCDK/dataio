@@ -1,0 +1,7 @@
+#!/bin/sh
+
+BASEDIR=$(cd "$(dirname "$0")"; pwd)/..
+rm -rf $BASEDIR/target
+mkdir $BASEDIR/target
+mvn -f $BASEDIR/pom.xml org.codehaus.mojo:exec-maven-plugin::exec
+mvn -f $BASEDIR/pom.xml dk.dbc:postgresql-maven-plugin::start

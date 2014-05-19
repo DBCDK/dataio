@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+  Start postgresql server from the command line with:
+
+    %> mvn dk.dbc:postgresql-maven-plugin::start
+
+  Stop postgresql server from the command line with:
+
+    %> mvn dk.dbc:postgresql-maven-plugin::shutdown
+  -->
+
+  <parent>
+    <artifactId>dataio-integration-test</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dataio-integration-test-postgresql</artifactId>
+  <name>dataio-integration-test-postgresql</name>
+  <packaging>pom</packaging>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <id>get-rawrepo-schema</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <executable>wget</executable>
+          <arguments>
+            <argument>${rawrepo.schema.remote}</argument>
+            <argument>--output-document=${rawrepo.schema.local}</argument>
+          </arguments>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>dk.dbc</groupId>
+        <artifactId>postgresql-maven-plugin</artifactId>
+        <version>${postgresql-maven-plugin.version}</version>
+        <configuration>
+          <pgPort>${postgresql.port}</pgPort>
+          <pgDbName>${rawrepo.db.name}</pgDbName>
+          <pgDbScript>${rawrepo.schema.local}</pgDbScript>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>

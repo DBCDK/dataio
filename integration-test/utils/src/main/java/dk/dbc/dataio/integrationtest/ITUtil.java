@@ -22,6 +22,7 @@ import org.tmatesoft.svn.core.wc2.SvnTarget;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -129,6 +130,15 @@ public class ITUtil {
         try {
             Files.createDirectory(jobStorePath);
         } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static void clearFileStore() {
+        FileUtils.deleteQuietly(new File(System.getProperty("file.store.basepath")));
+        try (final Connection connection = newDbConnection("file_store")) {
+            clearDbTables(connection, "file_attributes");
+        } catch (ClassNotFoundException | SQLException e) {
             throw new IllegalStateException(e);
         }
     }

@@ -1,13 +1,10 @@
 package dk.dbc.dataio.filestore;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.filestore.service.entity.FileAttributes;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.apache.commons.io.FileUtils;
 import org.glassfish.jersey.apache.connector.ApacheConnector;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -28,11 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.util.Calendar;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static junitx.framework.FileAssert.assertBinaryEquals;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -55,7 +48,7 @@ public class FilesIT {
     @AfterClass
     public static void tearDownClass() {
         tearDownRestClient();
-        tearDownFileStore();
+        ITUtil.clearFileStore();
     }
 
     /**
@@ -149,16 +142,6 @@ public class FilesIT {
             if (restClient != null) {
                 restClient.close();
             }
-        } catch (Exception e) {
-        }
-    }
-
-    private static void tearDownFileStore() {
-        final Calendar now = Calendar.getInstance();
-        final Path fileStoreDir = Paths.get(System.getProperty("file.store.basepath"), String.valueOf(now.get(Calendar.YEAR)));
-        FileUtils.deleteQuietly(fileStoreDir.toFile());
-        try (final Connection connection = newDbConnection("file_store")) {
-            JDBCUtil.update(connection, String.format("DELETE FROM %s", FileAttributes.TABLE_NAME));
         } catch (Exception e) {
         }
     }

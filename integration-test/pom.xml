@@ -17,6 +17,7 @@
     <module>file-store-service</module>
     <module>flow-store-service</module>
     <module>gui-selenium</module>
+    <module>harvesters</module>
     <module>sink-es</module>
     <module>job-processor</module>
     <module>job-store</module>
@@ -25,5 +26,6 @@
     <module>utils</module>
     <module>glassfish</module>
     <module>h2</module>
+    <module>postgresql</module>
   </modules>
 </project>

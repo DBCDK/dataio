@@ -98,6 +98,11 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> rowData = table.get();
+        System.out.println("Table size = " + rowData.size());
+        for (int i=0; i<rowData.size(); i++) {
+            List<String> li = rowData.get(i);
+            System.out.println(" -> data(" + li.size() + "): " + li.get(0) + ", " + li.get(1) + ", " + li.get(2));
+        }
         assertJobIdsDescending(rowData, JOBS_SHOW_PAGE_SIZE, JOBS_SHOW_PAGE_SIZE + 1);
     }
 
@@ -318,8 +323,12 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     private void assertJobIdsDescending(List<List<String>> tableData, int count, int totalCount) {
         assertThat(tableData.size(), is(count));
+        System.out.println("assertJobIdsDescending:");
         for (int i=0; i<count; i++) {
             int j = totalCount - 1 - i;
+            System.out.println(" => JobId=" + Integer.toString(JOB_ID_OFFSET+j) +
+                    ", FileName=" + FILE_NAME_PREFIX + Integer.toString(FILE_NAME_OFFSET+j) +
+                    ", SubmitterNumber=" + Integer.toString(SUBMITTER_NUMBER_OFFSET-j));
             assertThat(tableData.get(i).get(0), is(Integer.toString(JOB_ID_OFFSET+j)));
             assertThat(tableData.get(i).get(1), is(FILE_NAME_PREFIX + Integer.toString(FILE_NAME_OFFSET+j)));
             assertThat(tableData.get(i).get(2), is(Integer.toString(SUBMITTER_NUMBER_OFFSET-j)));
@@ -395,15 +404,6 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             createFile(jobId, JOBINFO_FILE_NAME, res);
             System.out.println("createTestJob: " + res);
             System.out.println("tmp dir now contains: ");
-
-            Files.walkFileTree(jobFolderRoot, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    System.out.println("  -> " + file);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-
         }
 
     }

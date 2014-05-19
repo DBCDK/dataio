@@ -36,7 +36,7 @@ public class RawRepoConnectorBean {
             throws NullPointerException, IllegalArgumentException, SQLException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(consumerId, "consumerId");
         try (final Connection connection = dataSource.getConnection()) {
-            return RawRepoDAO.newInstance(connection).dequeueWithSavepoint(consumerId);
+            return RawRepoDAO.newInstance(connection).dequeue(consumerId);
         } catch (ClassNotFoundException e) {
             throw new SQLException(e);
         }

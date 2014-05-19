@@ -41,6 +41,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
     }
 
+    //This constructor is intended for test purpose only with reference to dependency injection.
     FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) throws NamingException{
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;

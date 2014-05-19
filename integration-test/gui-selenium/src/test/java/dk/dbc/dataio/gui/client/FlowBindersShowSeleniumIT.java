@@ -1,14 +1,29 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.openqa.selenium.WebDriver;
+
+import javax.ws.rs.client.Client;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
-import org.openqa.selenium.WebDriver;
 
 public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties flowBinderCreationTexts = new ConstantsProperties("pages/flowbindercreate/FlowbinderCreateConstants_dk.properties");
@@ -16,7 +31,6 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     private final static String SUBMITTER_NAME = "SubmitterName";
     private final static String SUBMITTER_DESCRIPTION = "SubmitterDescription";
     private final static String SINK_NAME = "SinkName";
-    private final static String RESOURCE_NAME = "ResourceName";
     private final static String FLOW_NAME = "FlowName";
     private final static String FLOW_DESCRIPTION = "FlowDescription";
     private final static String FLOW_COMPONENT_NAME = "FlowComponentName";
@@ -27,6 +41,27 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     private final static String FLOW_BINDER_CHAR_SET = "FloBinderCharSet";
     private final static String FLOW_BINDER_DESTINATION = "FloBinderDestination";
 
+    private static Connection dbConnection;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
+
+    @BeforeClass
+    public static void setUpClass() throws ClassNotFoundException, SQLException {
+        String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        Client restClient = HttpClient.newClient();
+        dbConnection = newDbConnection("flow_store");
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws SQLException {
+        JDBCUtil.closeConnection(dbConnection);
+    }
+
+    @After
+    public void tearDown() throws SQLException {
+        clearAllDbTables(dbConnection);
+    }
+
 
     @Test
     public void testFlowBindersShowEmptyList_NoContentIsShown() {
@@ -36,7 +71,7 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowBindersInsertTwoRows_TwoElementsShown() {
+    public void testFlowBindersInsertTwoRows_TwoElementsShown() throws Exception{
         // Create necessary elements:
         createTestSubmitter(webDriver, 11);  // Submitter #11
         createTestSubmitter(webDriver, 12);  // Submitter #12
@@ -44,8 +79,8 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
         createTestFlowComponent(webDriver, 110);  // FlowComponent #110
         createTestFlow(webDriver, 14, 13);  // Flow #14, containing FlowComponent #13
         createTestFlow(webDriver, 18, 110);  // Flow #18, containing FlowComponent #110
-        createTestSink(webDriver, 15);  // Sink #15
-        createTestSink(webDriver, 19);  // Sink #19
+        createTestSink(15);  // Sink #15
+        createTestSink(19);  // Sink #19
         createTestFlowBinder(webDriver, 16, Arrays.asList(11), 14, 15);  // Flowbinder #6 containing Submitters (#1), Flow #4 and Sink #5
         createTestFlowBinder(webDriver, 17, Arrays.asList(12), 18, 19);  // Flowbinder #7 containing Submitter(s) (#2, #1), Flow #8 and Sink #9
 
@@ -96,10 +131,13 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
                                                         subjectNameString(SUBMITTER_DESCRIPTION, number));
     }
 
-    private static void createTestSink(WebDriver webDriver, int number) {
-        SinkCreationSeleniumIT.createTestSink(webDriver,
-                                              subjectNameString(SINK_NAME, number),
-                                              SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+    private static void createTestSink(int number) throws Exception{
+        SinkContent sinkContent = new SinkContentBuilder()
+                .setName(subjectNameString(SINK_NAME, number))
+                .setResource(SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME)
+                .build();
+
+        flowStoreServiceConnector.createSink(sinkContent);
     }
 
     private void createTestFlow(WebDriver webDriver, int flowNumber, int flowComponentNumber) {

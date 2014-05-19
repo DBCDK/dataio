@@ -1,25 +1,62 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import javax.ws.rs.client.Client;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/flowbindercreate/FlowbinderCreateConstants_dk.properties");
 
     private static final long SAVE_TIMEOUT = 4;
+
+    private static Connection dbConnection;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
+
+    @BeforeClass
+    public static void setUpClass() throws ClassNotFoundException, SQLException {
+        String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        Client restClient = HttpClient.newClient();
+        dbConnection = newDbConnection("flow_store");
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws SQLException {
+        JDBCUtil.closeConnection(dbConnection);
+    }
+
+    @After
+    public void tearDown() throws SQLException {
+        clearAllDbTables(dbConnection);
+    }
 
     @Test
     public void testInitialVisibilityAndAccessabilityOfElements() throws IOException {
@@ -90,12 +127,10 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     // This can, for some reason, not be included with the other visibility tests
     @Test
-    public void testFlowbinderCreationSinkListIsVisibleAndAnElementCanBeSelected() {
-        String sinkName = "oneSinkName";
-        final String resourceName = SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME;
-        SinkCreationSeleniumIT.createTestSink(webDriver, sinkName, resourceName);
+    public void testFlowbinderCreationSinkListIsVisibleAndAnElementCanBeSelected() throws Exception{
+        Sink sink = createTestSink("oneSinkName", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
         navigateToFlowbinderCreationWidget(webDriver);
-        SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(webDriver, findSinkListElement(webDriver), sinkName);
+        SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(webDriver, findSinkListElement(webDriver), sink.getContent().getName());
     }
 
     public void testFlowbinderCreationSaveButtonIsVisible() {
@@ -111,12 +146,12 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowbinderCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() {
+    public void testFlowbinderCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception{
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
     }
 
     @Test
-    public void testSaveButton_emptyNameInputField_displayErrorPopup() {
+    public void testSaveButton_emptyNameInputField_displayErrorPopup() throws Exception{
         populateAllInputFields();
         findNameTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
@@ -124,7 +159,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSaveButton_emptyDescriptionInputField_displayErrorPopup() {
+    public void testSaveButton_emptyDescriptionInputField_displayErrorPopup() throws Exception{
         populateAllInputFields();
         findDescriptionTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
@@ -132,7 +167,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSaveButton_emptyFrameInputField_displayErrorPopup() {
+    public void testSaveButton_emptyFrameInputField_displayErrorPopup() throws Exception{
         populateAllInputFields();
         findFrameTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
@@ -140,7 +175,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSaveButton_emptyContentFormatInputField_displayErrorPopup() {
+    public void testSaveButton_emptyContentFormatInputField_displayErrorPopup() throws Exception{
         populateAllInputFields();
         findContentFormatTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
@@ -148,7 +183,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSaveButton_emptyCharacterSetInputField_displayErrorPopup() {
+    public void testSaveButton_emptyCharacterSetInputField_displayErrorPopup() throws Exception{
         populateAllInputFields();
         findCharacterSetTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
@@ -156,7 +191,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSaveButton_emptyDestinationInputField_displayErrorPopup() {
+    public void testSaveButton_emptyDestinationInputField_displayErrorPopup() throws Exception{
         populateAllInputFields();
         findDestinationTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
@@ -164,24 +199,24 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testSaveButton_emptySubmitterInputField_displayErrorPopup() {
-        String sink = createDefaultSink("sinkName45");
+    public void testSaveButton_emptySubmitterInputField_displayErrorPopup() throws Exception{
+        Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
         String flow = createDefaultFlow();
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
-        selectSinkWhenInFlowbinderCreationWidget(sink);
+        selectSinkWhenInFlowbinderCreationWidget(sink.getContent().getName());
         selectFlowWhenInFlowbinderCreationWidget(flow);
         findSaveButtonElement(webDriver).click();
         assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
-    public void testSaveButton_emptyFlowInputField_displayErrorPopup() {
-        String sink = createDefaultSink("sinkName45");
+    public void testSaveButton_emptyFlowInputField_displayErrorPopup() throws Exception{
+        Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
         String submitter = createDefaultSubmitter();
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
-        selectSinkWhenInFlowbinderCreationWidget(sink);
+        selectSinkWhenInFlowbinderCreationWidget(sink.getContent().getName());
         selectSubmitterWhenInFlowbinderCreationWidget(submitter);
         findSaveButtonElement(webDriver).click();
         assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
@@ -200,49 +235,49 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowBinderCreationNameInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationNameInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
         findNameTextElement(webDriver).sendKeys("other stuff");
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowBinderCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
         findDescriptionTextElement(webDriver).sendKeys("other stuff");
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowBinderCreationFrameInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationFrameInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
         findFrameTextElement(webDriver).sendKeys("other stuff");
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowBinderCreationContentFormatInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationContentFormatInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
         findContentFormatTextElement(webDriver).sendKeys("other stuff");
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowBinderCreationCharacterSetInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationCharacterSetInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
         findCharacterSetTextElement(webDriver).sendKeys("other stuff");
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowBinderCreationDestinationInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationDestinationInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
         findDestinationTextElement(webDriver).sendKeys("other stuff");
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowBinderCreationSubmitterInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationSubmitterInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         final String submitterName = "anotherSubmitter";
         final String submitterNumber = "42";
         final String displayName = submitterNumber + " (" + submitterName + ")";
@@ -253,7 +288,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowBinderCreationFlowInputFieldUpdate_clearsSaveResultLabel() {
+    public void testFlowBinderCreationFlowInputFieldUpdate_clearsSaveResultLabel() throws Exception{
         final String flowComponentName = "anotherFlowComponent";
         final String flowName = "anotherFlow";
         FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
@@ -264,17 +299,17 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowBinderCreationSinkInputFieldUpdate_clearsSaveResultLabel() {
-        final String sinkName = "anotherSink";
-        SinkCreationSeleniumIT.createTestSink(webDriver, sinkName, SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+    public void testFlowBinderCreationSinkInputFieldUpdate_clearsSaveResultLabel() throws Exception{
+        Sink sink = createTestSink("anotherSink", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
-        SeleniumUtil.selectItemInListBox(findSinkListElement(webDriver), sinkName);
+        SeleniumUtil.selectItemInListBox(findSinkListElement(webDriver), sink.getContent().getName());
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowBinderCreationLeaveAndGetBack_clearsAllFields() {
-        createDefaultSink("anExtraSinkName");  // To assure, that two sinks will be created
+    public void testFlowBinderCreationLeaveAndGetBack_clearsAllFields() throws Exception{
+        // To assure, that two sinks will be created
+        createTestSink("anExtraSinkName", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
         populateAllInputFields();
         assertAllInputFields("Name", "Description", "Frame", "ContentFormat", "CharacterSet", "Destination", "Default Record Splitter", Arrays.asList("123456 (defaultSubmitter)"), "flowName12", "sinkName45");
         navigateAwayFromFlowbinderCreationWidget(webDriver);
@@ -282,18 +317,16 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertAllInputFields("", "", "", "", "", "", "Default Record Splitter", new ArrayList(), "flowName12", "anExtraSinkName");
     }
 
-
-
     /**
      * The following is private helper methods
      */
-    private void populateAllInputFields() {
+    private void populateAllInputFields() throws Exception{
         String submitter = createDefaultSubmitter();
-        String sink = createDefaultSink("sinkName45");
+        Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
         String flow = createDefaultFlow();
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
-        selectSinkWhenInFlowbinderCreationWidget(sink);
+        selectSinkWhenInFlowbinderCreationWidget(sink.getContent().getName());
         selectSubmitterWhenInFlowbinderCreationWidget(submitter);
         selectFlowWhenInFlowbinderCreationWidget(flow);
     }
@@ -344,10 +377,13 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         SeleniumUtil.selectItemInListBox(findFlowListElement(webDriver), flow);
     }
 
-    private String createDefaultSink(String sinkName) {
-        final String resourceName = SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME;
-        SinkCreationSeleniumIT.createTestSink(webDriver, sinkName, resourceName);
-        return sinkName;
+    private static Sink createTestSink(String sinkName, String resource) throws Exception{
+        SinkContent sinkContent = new SinkContentBuilder()
+                .setName(sinkName)
+                .setResource(resource)
+                .build();
+
+        return flowStoreServiceConnector.createSink(sinkContent);
     }
 
     private void selectSinkWhenInFlowbinderCreationWidget(String sink) {
@@ -375,7 +411,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         SeleniumUtil.selectItemInDualList(findSubmitterPanelElement(webDriver), submitter);
     }
 
-    private void populateAllInputFieldsAndClickSaveAndWaitForSuccess() {
+    private void populateAllInputFieldsAndClickSaveAndWaitForSuccess() throws Exception{
         populateAllInputFields();
         findSaveButtonElement(webDriver).click();
         SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SaveSuccess"));

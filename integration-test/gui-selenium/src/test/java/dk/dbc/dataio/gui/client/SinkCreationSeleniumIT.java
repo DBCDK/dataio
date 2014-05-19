@@ -170,18 +170,4 @@ public class SinkCreationSeleniumIT extends AbstractGuiSeleniumTest {
         findSaveButton(webDriver).click();
         SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SinkSuccessfullySaved"));
     }
-
-    /**
-     * The following is public static helper methods.
-     */
-    public static void createTestSink(WebDriver webDriver, String sinkName, String resourceName) {
-        navigateToSinkCreationWidget(webDriver);
-        findSinkNameElement(webDriver).clear();
-        findSinkNameElement(webDriver).sendKeys(sinkName);
-        findResourceNameElement(webDriver).clear();
-        findResourceNameElement(webDriver).sendKeys(resourceName);
-        findSaveButton(webDriver).click();
-
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SinkSuccessfullySaved"));
-    }
 }

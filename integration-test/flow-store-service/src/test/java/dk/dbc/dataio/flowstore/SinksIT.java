@@ -337,13 +337,12 @@ public class SinksIT {
             // And...
             final SinkContent sinkContent = new SinkContentBuilder().build();
             Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+            version = sink.getVersion();
 
             // And... First user updates the sink
-            Sink updatedSink = flowStoreServiceConnector.updateSink(new SinkContentBuilder().setName(SINK_NAME_FROM_FIRST_USER).build(),
+            flowStoreServiceConnector.updateSink(new SinkContentBuilder().setName(SINK_NAME_FROM_FIRST_USER).build(),
                     sink.getId(),
                     sink.getVersion());
-
-            version = updatedSink.getVersion();
 
             // When... Second user attempts to update the same sink
             flowStoreServiceConnector.updateSink(new SinkContentBuilder().setName(SINK_NAME_FROM_SECOND_USER).build(),
@@ -364,9 +363,10 @@ public class SinksIT {
             assertThat(sinks.size(), is(1));
             assertThat(sinks.get(0).getContent().getName(), is(SINK_NAME_FROM_FIRST_USER));
 
-            Sink sink = flowStoreServiceConnector.getSink(sinks.get(0).getId());
-            // And... Assert the version number is correct
-            assertThat(sinks.get(0).getVersion(), is(version));
+            // And... Assert the version number has been updated after creation, but only by the first user.
+            assertThat(version, not(-1L));
+            assertThat(sinks.get(0).getVersion(), not(version));
+            assertThat(sinks.get(0).getVersion(), is(version +1));
         }
     }
 

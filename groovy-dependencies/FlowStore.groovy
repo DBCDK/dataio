@@ -3,14 +3,21 @@ import groovyx.net.http.HTTPBuilder
 import static groovyx.net.http.ContentType.JSON
 import static groovyx.net.http.Method.GET
 import static groovyx.net.http.Method.POST
+import groovy.json.JsonBuilder
 
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder
+import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder
 
 import dk.dbc.dataio.gui.server.JavaScriptProjectFetcherImpl
 import dk.dbc.dataio.commons.types.FlowComponentContent
+import dk.dbc.dataio.commons.types.FlowComponent
+import dk.dbc.dataio.commons.types.FlowContent
+import dk.dbc.dataio.commons.types.FlowBinderContent
 
 import dk.dbc.dataio.commons.utils.json.JsonUtil
+
+// import dk.dbc.dataio.integrationtest.ITUtil
 
 class FlowStore {
 
@@ -20,6 +27,16 @@ class FlowStore {
   def getHost() {
     host
   }
+
+  /*
+  def clearDB() {
+    println "Trying to clear all data in: " + ITUtil.FLOW_STORE_DATABASE_NAME
+
+    def connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)
+    ITUtil.clearAllDbTables(connection)
+    connection.close()
+  }
+  */
 
   def postJsonData(endpoint, data) {
     def uriPath = flowStoreUri + "/" + endpoint
@@ -32,8 +49,11 @@ class FlowStore {
 
       response.success = { resp, json ->
 	println "Status: " + resp.getStatus()
-	println "Result: " + json
-	["location":resp.getHeaders("Location").value, "json":json]
+	json = json == null ? "" : hashMapToJson(json)
+	def location = resp.getHeaders("Location").value.first()
+	println "Result  : " + json.substring(0, json.size() > 50 ? 50 : json.size() )
+	println "Location: " + location
+	["location":location, "json":json]
       }
 
       response.failure = { resp ->
@@ -42,6 +62,7 @@ class FlowStore {
     }
   }
 
+  /*
   def getJsonData(url) {
     println "Getting json from: " + url
 
@@ -59,6 +80,7 @@ class FlowStore {
       }
     }
   }
+  */
 
   def createSink(name, resource) {
     def sinkContentJson = new SinkContentJsonBuilder().setName(name).setResource(resource).build();
@@ -72,9 +94,9 @@ class FlowStore {
     def javascripts = javascriptProjectFetcher.fetchRequiredJavaScript(svnProject, svnRevision, invocationJavascript, invocationFunction)
     def fc = new FlowComponentContent(name, svnProject, svnRevision, invocationJavascript, javascripts, invocationFunction)
     def json = JsonUtil.toJson(fc)
+
     println "Trying to create flowComponent: " + fc.name
-    def res = postJsonData("components", json)
-    res
+    postJsonData("components", json)
   }
 
   def createSubmitter(name, number, description) {
@@ -84,11 +106,27 @@ class FlowStore {
     postJsonData("submitters", json)
   }
 
-  def createFlow() {
+  def createFlow(name, description, jsonFlowComponent) {
+    def flowComponent = JsonUtil.fromJson(jsonFlowComponent, FlowComponent.class)
+    def flowContent = new FlowContent(name, description, [flowComponent])
+    def json = JsonUtil.toJson(flowContent)
+
+    println "Trying to create flow with name : " + name
+    postJsonData("flows", json)
   }
 
-  def createFlowBinder() {
+  def createFlowBinder(name, description, packaging, format, charset, destination, recordsplitter, flowId, submitterIds, sinkId) {
+    def flowBinderContent = new FlowBinderContent(name, description, packaging, format, charset, destination, recordsplitter, flowId, submitterIds, sinkId)
+    def json = JsonUtil.toJson(flowBinderContent)
+
+    println "Trying to create flowbinder: " +  json
+    postJsonData("binders", json)
   }
   
+  def hashMapToJson(map) {
+    def builder = new JsonBuilder()
+    builder(map)
+    builder.toString()
+  }
 }
 

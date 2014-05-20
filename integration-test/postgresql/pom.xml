@@ -34,7 +34,6 @@
           <arguments>
             <argument>${rawrepo.schema.remote}</argument>
             <argument>--output-document=${rawrepo.schema.local}</argument>
-            <argument>--no-check-certificate</argument>
           </arguments>
         </configuration>
       </plugin>

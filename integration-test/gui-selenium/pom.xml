@@ -66,15 +66,15 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-store-service</artifactId>
+      <artifactId>dataio-job-store-service-war</artifactId>
       <version>${project.version}</version>
       <type>war</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-file-store-service-war</artifactId>
+      <artifactId>dataio-file-store-service-ear</artifactId>
       <version>${project.version}</version>
-      <type>war</type>
+      <type>ear</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -156,11 +156,11 @@
               <deployables>
                 <deployable>
                   <groupId>dk.dbc</groupId>
-                  <artifactId>dataio-file-store-service-war</artifactId>
-                  <type>war</type>
-                  <properties>
+                  <artifactId>dataio-file-store-service-ear</artifactId>
+                  <type>ear</type>
+                  <!--properties>
                     <context>file-store</context>
-                  </properties>
+                  </properties-->
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
@@ -172,7 +172,7 @@
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
-                  <artifactId>dataio-job-store-service</artifactId>
+                  <artifactId>dataio-job-store-service-war</artifactId>
                   <type>war</type>
                   <properties>
                     <context>job-store</context>
@@ -299,7 +299,7 @@
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
-                  <artifactId>dataio-job-store-service</artifactId>
+                  <artifactId>dataio-job-store-service-war</artifactId>
                   <type>war</type>
                   <properties>
                     <context>job-store</context>
@@ -344,7 +344,7 @@
         </dependency>
         <dependency>
           <groupId>dk.dbc</groupId>
-          <artifactId>dataio-job-store-service</artifactId>
+          <artifactId>dataio-job-store-service-war</artifactId>
           <version>${project.version}</version>
           <type>war</type>
         </dependency>

@@ -20,7 +20,7 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-store-service</artifactId>
+      <artifactId>dataio-job-store-service-war</artifactId>
       <version>${project.version}</version>
       <type>war</type>
       <scope>test</scope>
@@ -34,7 +34,7 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-store-service</artifactId>
+      <artifactId>dataio-job-store-service-war</artifactId>
       <version>${project.version}</version>
       <classifier>classes</classifier>
       <scope>test</scope>
@@ -143,7 +143,7 @@
             </deployable>
             <deployable>
               <groupId>dk.dbc</groupId>
-              <artifactId>dataio-job-store-service</artifactId>
+              <artifactId>dataio-job-store-service-war</artifactId>
               <type>war</type>
               <properties>
                 <context>job-store</context>

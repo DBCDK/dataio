@@ -50,6 +50,7 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
       <version>${project.version}</version>
+      <type>ejb</type>
       <exclusions>
          <exclusion>
              <groupId>org.glassfish.hk2.external</groupId>

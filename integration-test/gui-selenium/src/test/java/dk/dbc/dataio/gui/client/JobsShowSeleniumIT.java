@@ -93,24 +93,115 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testJobsInsertTwoPageData_OnePageElementsShown() throws IOException {
-        insertRows(webDriver, JOBS_SHOW_PAGE_SIZE + 1);
+        // Insert 21 rows of job data
+        jobstoreFolder.createTestJob("100", "Fil00", "220");
+        jobstoreFolder.createTestJob("101", "Fil01", "219");
+        jobstoreFolder.createTestJob("102", "Fil02", "218");
+        jobstoreFolder.createTestJob("103", "Fil03", "217");
+        jobstoreFolder.createTestJob("104", "Fil04", "216");
+        jobstoreFolder.createTestJob("105", "Fil05", "215");
+        jobstoreFolder.createTestJob("106", "Fil06", "214");
+        jobstoreFolder.createTestJob("107", "Fil07", "213");
+        jobstoreFolder.createTestJob("108", "Fil08", "212");
+        jobstoreFolder.createTestJob("109", "Fil09", "211");
+        jobstoreFolder.createTestJob("110", "Fil10", "210");
+        jobstoreFolder.createTestJob("111", "Fil11", "209");
+        jobstoreFolder.createTestJob("112", "Fil12", "208");
+        jobstoreFolder.createTestJob("113", "Fil13", "207");
+        jobstoreFolder.createTestJob("114", "Fil14", "206");
+        jobstoreFolder.createTestJob("115", "Fil15", "205");
+        jobstoreFolder.createTestJob("116", "Fil16", "204");
+        jobstoreFolder.createTestJob("117", "Fil17", "203");
+        jobstoreFolder.createTestJob("118", "Fil18", "202");
+        jobstoreFolder.createTestJob("119", "Fil19", "201");
+        jobstoreFolder.createTestJob("120", "Fil20", "200");
+
+        // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> rowData = table.get();
-        assertJobIdsDescending(rowData, JOBS_SHOW_PAGE_SIZE, JOBS_SHOW_PAGE_SIZE + 1);
+
+        // Assert 20 rows
+        int i = 0;
+        assertTableRow(rowData.get(i++), "120", "Fil20", "200");
+        assertTableRow(rowData.get(i++), "119", "Fil19", "201");
+        assertTableRow(rowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(rowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(rowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(rowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(rowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(rowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(rowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(rowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(rowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(rowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(rowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(rowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(rowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(rowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(rowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(rowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(rowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(rowData.get(i++), "101", "Fil01", "219");
     }
 
     @Test
     public void testJobsInsert2PagesDataAndClickMore_CorrectNumberOfElementsShown() throws IOException {
-        insertRows(webDriver, JOBS_SHOW_PAGE_SIZE + 1);
+        // Insert 21 rows of job data
+        jobstoreFolder.createTestJob("100", "Fil00", "220");
+        jobstoreFolder.createTestJob("101", "Fil01", "219");
+        jobstoreFolder.createTestJob("102", "Fil02", "218");
+        jobstoreFolder.createTestJob("103", "Fil03", "217");
+        jobstoreFolder.createTestJob("104", "Fil04", "216");
+        jobstoreFolder.createTestJob("105", "Fil05", "215");
+        jobstoreFolder.createTestJob("106", "Fil06", "214");
+        jobstoreFolder.createTestJob("107", "Fil07", "213");
+        jobstoreFolder.createTestJob("108", "Fil08", "212");
+        jobstoreFolder.createTestJob("109", "Fil09", "211");
+        jobstoreFolder.createTestJob("110", "Fil10", "210");
+        jobstoreFolder.createTestJob("111", "Fil11", "209");
+        jobstoreFolder.createTestJob("112", "Fil12", "208");
+        jobstoreFolder.createTestJob("113", "Fil13", "207");
+        jobstoreFolder.createTestJob("114", "Fil14", "206");
+        jobstoreFolder.createTestJob("115", "Fil15", "205");
+        jobstoreFolder.createTestJob("116", "Fil16", "204");
+        jobstoreFolder.createTestJob("117", "Fil17", "203");
+        jobstoreFolder.createTestJob("118", "Fil18", "202");
+        jobstoreFolder.createTestJob("119", "Fil19", "201");
+        jobstoreFolder.createTestJob("120", "Fil20", "200");
+
+        // Navigate to Jobs Show List and click More
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         findMoreButton(webDriver).click();
         table.waitAssertRows(1);
         List<List<String>> rowData = table.get();
-        assertJobIdsDescending(rowData, JOBS_SHOW_PAGE_SIZE + 1, JOBS_SHOW_PAGE_SIZE + 1);
+
+        // Assert 21 rows
+        int i = 0;
+        assertTableRow(rowData.get(i++), "120", "Fil20", "200");
+        assertTableRow(rowData.get(i++), "119", "Fil19", "201");
+        assertTableRow(rowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(rowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(rowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(rowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(rowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(rowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(rowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(rowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(rowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(rowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(rowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(rowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(rowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(rowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(rowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(rowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(rowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(rowData.get(i++), "101", "Fil01", "219");
+        assertTableRow(rowData.get(i++), "100", "Fil00", "220");
     }
 
     @Test
@@ -124,29 +215,118 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testClickJobIdColumnHeader_OrderAccordingly() throws IOException {
-        insertRows(webDriver, JOBS_SHOW_PAGE_SIZE + 1);
+        // Insert 21 rows of job data
+        jobstoreFolder.createTestJob("100", "Fil00", "220");
+        jobstoreFolder.createTestJob("101", "Fil01", "219");
+        jobstoreFolder.createTestJob("102", "Fil02", "218");
+        jobstoreFolder.createTestJob("103", "Fil03", "217");
+        jobstoreFolder.createTestJob("104", "Fil04", "216");
+        jobstoreFolder.createTestJob("105", "Fil05", "215");
+        jobstoreFolder.createTestJob("106", "Fil06", "214");
+        jobstoreFolder.createTestJob("107", "Fil07", "213");
+        jobstoreFolder.createTestJob("108", "Fil08", "212");
+        jobstoreFolder.createTestJob("109", "Fil09", "211");
+        jobstoreFolder.createTestJob("110", "Fil10", "210");
+        jobstoreFolder.createTestJob("111", "Fil11", "209");
+        jobstoreFolder.createTestJob("112", "Fil12", "208");
+        jobstoreFolder.createTestJob("113", "Fil13", "207");
+        jobstoreFolder.createTestJob("114", "Fil14", "206");
+        jobstoreFolder.createTestJob("115", "Fil15", "205");
+        jobstoreFolder.createTestJob("116", "Fil16", "204");
+        jobstoreFolder.createTestJob("117", "Fil17", "203");
+        jobstoreFolder.createTestJob("118", "Fil18", "202");
+        jobstoreFolder.createTestJob("119", "Fil19", "201");
+        jobstoreFolder.createTestJob("120", "Fil20", "200");
+
+        // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
 
-        // First click on Job Id Header Column makes column ascending
-        table.findColumnHeader(0).click();  // First column is JobId column
+        // No need to click on Job Id Header Column - it is selectd by default, and column is descending
         SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> firstRowData = firstSortTable.get();
-        assertJobIdsAscending(firstRowData, JOBS_SHOW_PAGE_SIZE);
 
-        // Second click on Job Id Header Column makes column descending
+        // Assert correct order of 20 rows - descending job id's
+        int i = 0;
+        assertTableRow(firstRowData.get(i++), "120", "Fil20", "200");
+        assertTableRow(firstRowData.get(i++), "119", "Fil19", "201");
+        assertTableRow(firstRowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(firstRowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(firstRowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(firstRowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(firstRowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(firstRowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(firstRowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(firstRowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(firstRowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(firstRowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(firstRowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(firstRowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(firstRowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(firstRowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(firstRowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(firstRowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(firstRowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(firstRowData.get(i++), "101", "Fil01", "219");
+
+        // Second click on Job Id Header Column makes column ascending
         table.findColumnHeader(0).click();  // First column is JobId column
         SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> secondRowData = secondSortTable.get();
-        assertJobIdsDescending(secondRowData, JOBS_SHOW_PAGE_SIZE, JOBS_SHOW_PAGE_SIZE + 1);
+
+        // Assert correct order of 20 rows - ascending job id's
+        i = 0;
+        assertTableRow(secondRowData.get(i++), "100", "Fil00", "220");
+        assertTableRow(secondRowData.get(i++), "101", "Fil01", "219");
+        assertTableRow(secondRowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(secondRowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(secondRowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(secondRowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(secondRowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(secondRowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(secondRowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(secondRowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(secondRowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(secondRowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(secondRowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(secondRowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(secondRowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(secondRowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(secondRowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(secondRowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(secondRowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(secondRowData.get(i++), "119", "Fil19", "201");
     }
 
     @Test
     public void testClickFileNameColumnHeader_OrderAccordingly() throws IOException {
-        insertRows(webDriver, JOBS_SHOW_PAGE_SIZE + 1);
+        // Insert 21 rows of job data
+        jobstoreFolder.createTestJob("100", "Fil00", "220");
+        jobstoreFolder.createTestJob("101", "Fil01", "219");
+        jobstoreFolder.createTestJob("102", "Fil02", "218");
+        jobstoreFolder.createTestJob("103", "Fil03", "217");
+        jobstoreFolder.createTestJob("104", "Fil04", "216");
+        jobstoreFolder.createTestJob("105", "Fil05", "215");
+        jobstoreFolder.createTestJob("106", "Fil06", "214");
+        jobstoreFolder.createTestJob("107", "Fil07", "213");
+        jobstoreFolder.createTestJob("108", "Fil08", "212");
+        jobstoreFolder.createTestJob("109", "Fil09", "211");
+        jobstoreFolder.createTestJob("110", "Fil10", "210");
+        jobstoreFolder.createTestJob("111", "Fil11", "209");
+        jobstoreFolder.createTestJob("112", "Fil12", "208");
+        jobstoreFolder.createTestJob("113", "Fil13", "207");
+        jobstoreFolder.createTestJob("114", "Fil14", "206");
+        jobstoreFolder.createTestJob("115", "Fil15", "205");
+        jobstoreFolder.createTestJob("116", "Fil16", "204");
+        jobstoreFolder.createTestJob("117", "Fil17", "203");
+        jobstoreFolder.createTestJob("118", "Fil18", "202");
+        jobstoreFolder.createTestJob("119", "Fil19", "201");
+        jobstoreFolder.createTestJob("120", "Fil20", "200");
+
+        // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
@@ -156,40 +336,151 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> firstRowData = firstSortTable.get();
-        assertJobIdsAscending(firstRowData, JOBS_SHOW_PAGE_SIZE);
+
+        // Assert correct order of 20 rows - ascending file names
+        int i = 0;
+        assertTableRow(firstRowData.get(i++), "100", "Fil00", "220");
+        assertTableRow(firstRowData.get(i++), "101", "Fil01", "219");
+        assertTableRow(firstRowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(firstRowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(firstRowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(firstRowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(firstRowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(firstRowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(firstRowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(firstRowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(firstRowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(firstRowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(firstRowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(firstRowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(firstRowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(firstRowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(firstRowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(firstRowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(firstRowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(firstRowData.get(i++), "119", "Fil19", "201");
 
         // Second click on Filename Header Column makes Filename column descending ( => Job Id column is also descending)
         table.findColumnHeader(1).click();  // Second column is Filename column
         SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> secondRowData = secondSortTable.get();
-        assertJobIdsDescending(secondRowData, JOBS_SHOW_PAGE_SIZE, JOBS_SHOW_PAGE_SIZE + 1);
+
+        // Assert correct order of 20 rows - descending file names
+        i = 0;
+        assertTableRow(secondRowData.get(i++), "120", "Fil20", "200");
+        assertTableRow(secondRowData.get(i++), "119", "Fil19", "201");
+        assertTableRow(secondRowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(secondRowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(secondRowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(secondRowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(secondRowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(secondRowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(secondRowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(secondRowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(secondRowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(secondRowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(secondRowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(secondRowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(secondRowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(secondRowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(secondRowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(secondRowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(secondRowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(secondRowData.get(i++), "101", "Fil01", "219");
     }
 
     @Test
     public void testClickSubmitterNumberColumnHeader_OrderAccordingly() throws IOException {
-        insertRows(webDriver, JOBS_SHOW_PAGE_SIZE + 1);
+        // Insert 21 rows of job data
+        jobstoreFolder.createTestJob("100", "Fil00", "220");
+        jobstoreFolder.createTestJob("101", "Fil01", "219");
+        jobstoreFolder.createTestJob("102", "Fil02", "218");
+        jobstoreFolder.createTestJob("103", "Fil03", "217");
+        jobstoreFolder.createTestJob("104", "Fil04", "216");
+        jobstoreFolder.createTestJob("105", "Fil05", "215");
+        jobstoreFolder.createTestJob("106", "Fil06", "214");
+        jobstoreFolder.createTestJob("107", "Fil07", "213");
+        jobstoreFolder.createTestJob("108", "Fil08", "212");
+        jobstoreFolder.createTestJob("109", "Fil09", "211");
+        jobstoreFolder.createTestJob("110", "Fil10", "210");
+        jobstoreFolder.createTestJob("111", "Fil11", "209");
+        jobstoreFolder.createTestJob("112", "Fil12", "208");
+        jobstoreFolder.createTestJob("113", "Fil13", "207");
+        jobstoreFolder.createTestJob("114", "Fil14", "206");
+        jobstoreFolder.createTestJob("115", "Fil15", "205");
+        jobstoreFolder.createTestJob("116", "Fil16", "204");
+        jobstoreFolder.createTestJob("117", "Fil17", "203");
+        jobstoreFolder.createTestJob("118", "Fil18", "202");
+        jobstoreFolder.createTestJob("119", "Fil19", "201");
+        jobstoreFolder.createTestJob("120", "Fil20", "200");
+
+        // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
 
-        // First click on Submitternumber Header Column makes Submitternumber column ascending ( => Job Id column is descending)
+        // First click on Submitternumber Header Column makes Submitternumber column ascending
         table.findColumnHeader(2).click();  // Third column is Submitternumber column
         SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> firstRowData = firstSortTable.get();
-        assertJobIdsDescending(firstRowData, JOBS_SHOW_PAGE_SIZE, JOBS_SHOW_PAGE_SIZE + 1);
 
-        // Second click on Submitternumber Header Column makes Submitternumber column descending ( => Job Id column is ascending)
+        // Assert correct order of 20 rows - ascending submitter numbers
+        int i = 0;
+        assertTableRow(firstRowData.get(i++), "120", "Fil20", "200");
+        assertTableRow(firstRowData.get(i++), "119", "Fil19", "201");
+        assertTableRow(firstRowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(firstRowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(firstRowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(firstRowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(firstRowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(firstRowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(firstRowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(firstRowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(firstRowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(firstRowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(firstRowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(firstRowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(firstRowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(firstRowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(firstRowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(firstRowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(firstRowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(firstRowData.get(i++), "101", "Fil01", "219");
+
+        // Second click on Submitternumber Header Column makes Submitternumber column descending
         table.findColumnHeader(2).click();  // Third column is Submitternumber column
         SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<String>> secondRowData = secondSortTable.get();
-        assertJobIdsAscending(secondRowData, JOBS_SHOW_PAGE_SIZE);
+
+        // Assert correct order of 20 rows - descending submitter numbers
+        i = 0;
+        assertTableRow(secondRowData.get(i++), "100", "Fil00", "220");
+        assertTableRow(secondRowData.get(i++), "101", "Fil01", "219");
+        assertTableRow(secondRowData.get(i++), "102", "Fil02", "218");
+        assertTableRow(secondRowData.get(i++), "103", "Fil03", "217");
+        assertTableRow(secondRowData.get(i++), "104", "Fil04", "216");
+        assertTableRow(secondRowData.get(i++), "105", "Fil05", "215");
+        assertTableRow(secondRowData.get(i++), "106", "Fil06", "214");
+        assertTableRow(secondRowData.get(i++), "107", "Fil07", "213");
+        assertTableRow(secondRowData.get(i++), "108", "Fil08", "212");
+        assertTableRow(secondRowData.get(i++), "109", "Fil09", "211");
+        assertTableRow(secondRowData.get(i++), "110", "Fil10", "210");
+        assertTableRow(secondRowData.get(i++), "111", "Fil11", "209");
+        assertTableRow(secondRowData.get(i++), "112", "Fil12", "208");
+        assertTableRow(secondRowData.get(i++), "113", "Fil13", "207");
+        assertTableRow(secondRowData.get(i++), "114", "Fil14", "206");
+        assertTableRow(secondRowData.get(i++), "115", "Fil15", "205");
+        assertTableRow(secondRowData.get(i++), "116", "Fil16", "204");
+        assertTableRow(secondRowData.get(i++), "117", "Fil17", "203");
+        assertTableRow(secondRowData.get(i++), "118", "Fil18", "202");
+        assertTableRow(secondRowData.get(i++), "119", "Fil19", "201");
     }
 
     @Test
-    public void testEqualFilenames_ClickOnceOnFileNameColum_SortAccordingly() throws IOException {
+    public void testEqualFilenames_ClickOnceOnFileNameColumn_SortAccordingly() throws IOException {
         jobstoreFolder.createTestJob("1", "b", "2");
         jobstoreFolder.createTestJob("2", "a", "1");
         jobstoreFolder.createTestJob("3", "a", "2");
@@ -214,7 +505,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testEqualFilenames_ClickTwiceOnFileNameColum_SortAccordingly() throws IOException {
+    public void testEqualFilenames_ClickTwiceOnFileNameColumn_SortAccordingly() throws IOException {
         jobstoreFolder.createTestJob("1", "b", "2");
         jobstoreFolder.createTestJob("2", "a", "1");
         jobstoreFolder.createTestJob("3", "a", "2");
@@ -240,7 +531,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testEqualSubmitterNumbers_ClickOnceOnSubmitterNumberColum_SortAccordingly() throws IOException {
+    public void testEqualSubmitterNumbers_ClickOnceOnSubmitterNumberColumn_SortAccordingly() throws IOException {
         jobstoreFolder.createTestJob("1", "b", "2");
         jobstoreFolder.createTestJob("2", "a", "1");
         jobstoreFolder.createTestJob("3", "a", "2");
@@ -265,7 +556,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testEqualSubmitterNumbers_ClickTwiceOnSubmitterNumberColum_SortAccordingly() throws IOException {
+    public void testEqualSubmitterNumbers_ClickTwiceOnSubmitterNumberColumn_SortAccordingly() throws IOException {
         jobstoreFolder.createTestJob("1", "b", "2");
         jobstoreFolder.createTestJob("2", "a", "1");
         jobstoreFolder.createTestJob("3", "a", "2");
@@ -299,31 +590,6 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     private static WebElement findMoreButton(WebDriver webDriver) {
         return SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_MORE_BUTTON);
-    }
-
-    private void insertRows(WebDriver webDriver, int count) throws IOException {
-        for (int i=0; i<count; i++) {
-            jobstoreFolder.createTestJob(Integer.toString(JOB_ID_OFFSET+i), FILE_NAME_PREFIX + Integer.toString(FILE_NAME_OFFSET+i), Integer.toString(SUBMITTER_NUMBER_OFFSET-i));
-        }
-    }
-
-    private void assertJobIdsAscending(List<List<String>> tableData, int count) {
-        assertThat(tableData.size(), is(count));
-        for (int i=0; i<count; i++) {
-            assertThat(tableData.get(i).get(0), is(Integer.toString(JOB_ID_OFFSET+i)));
-            assertThat(tableData.get(i).get(1), is(FILE_NAME_PREFIX + Integer.toString(FILE_NAME_OFFSET+i)));
-            assertThat(tableData.get(i).get(2), is(Integer.toString(SUBMITTER_NUMBER_OFFSET-i)));
-        }
-    }
-
-    private void assertJobIdsDescending(List<List<String>> tableData, int count, int totalCount) {
-        assertThat(tableData.size(), is(count));
-        for (int i=0; i<count; i++) {
-            int j = totalCount - 1 - i;
-            assertThat(tableData.get(i).get(0), is(Integer.toString(JOB_ID_OFFSET+j)));
-            assertThat(tableData.get(i).get(1), is(FILE_NAME_PREFIX + Integer.toString(FILE_NAME_OFFSET+j)));
-            assertThat(tableData.get(i).get(2), is(Integer.toString(SUBMITTER_NUMBER_OFFSET-j)));
-        }
     }
 
     private void assertTableRow(List<String> row, String jobId, String fileName, String submitterId) {

@@ -364,8 +364,6 @@ public class SinksIT {
             assertThat(sinks.get(0).getContent().getName(), is(SINK_NAME_FROM_FIRST_USER));
 
             // And... Assert the version number has been updated after creation, but only by the first user.
-            assertThat(version, not(-1L));
-            assertThat(sinks.get(0).getVersion(), not(version));
             assertThat(sinks.get(0).getVersion(), is(version +1));
         }
     }

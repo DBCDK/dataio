@@ -3,7 +3,6 @@ package dk.dbc.dataio.commons.types;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * JobInfo DTO class.
@@ -16,7 +15,7 @@ public class JobInfo implements Serializable {
 
     private /* final */ long jobId;
     private /* final */ JobSpecification jobSpecification;
-    private /* final */ Date jobCreationTime;
+    private /* final */ long jobCreationTime;
 
     private /* final */ JobErrorCode jobErrorCode;
 
@@ -38,16 +37,16 @@ public class JobInfo implements Serializable {
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if value of jobId argument is < {@value dk.dbc.dataio.commons.types.Constants#JOB_ID_LOWER_BOUND}
      */
-    public JobInfo(long jobId, JobSpecification jobSpecification, Date jobCreationTime, JobErrorCode jobErrorCode, long jobRecordCount) {
+    public JobInfo(long jobId, JobSpecification jobSpecification, long jobCreationTime, JobErrorCode jobErrorCode, long jobRecordCount) {
         this.jobId = InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
         this.jobSpecification = InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
-        this.jobCreationTime = new Date(InvariantUtil.checkNotNullOrThrow(jobCreationTime, "jobCreationTime").getTime());
+        this.jobCreationTime = InvariantUtil.checkLowerBoundOrThrow(jobCreationTime, "jobCreationTime", 0);
         this.jobErrorCode = InvariantUtil.checkNotNullOrThrow(jobErrorCode, "jobErrorCode");
         this.jobRecordCount = InvariantUtil.checkLowerBoundOrThrow(jobRecordCount, "jobRecordCount", 0);
     }
 
-    public Date getJobCreationTime() {
-        return new Date(jobCreationTime.getTime());
+    public long getJobCreationTime() {
+        return jobCreationTime;
     }
 
     public long getJobId() {

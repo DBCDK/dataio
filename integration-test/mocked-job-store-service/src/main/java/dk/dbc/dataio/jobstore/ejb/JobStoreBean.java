@@ -79,7 +79,7 @@ public class JobStoreBean implements JobStore {
     @Override
     public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         final long jobId = jobIdSequence.incrementAndGet();
-        final JobInfo jobInfo = new JobInfo(jobId, jobSpec, new Date(), JobErrorCode.NO_ERROR, 42);
+        final JobInfo jobInfo = new JobInfo(jobId, jobSpec, 0L, JobErrorCode.NO_ERROR, 42);
         inMemoryJobsCreated.put(jobId, jobInfo);
         return new Job(jobInfo, new JobState(), flow);
     }

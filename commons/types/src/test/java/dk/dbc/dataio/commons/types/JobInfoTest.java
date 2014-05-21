@@ -2,8 +2,6 @@ package dk.dbc.dataio.commons.types;
 
 import org.junit.Test;
 
-import java.util.Date;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -18,7 +16,7 @@ import static org.junit.Assert.assertThat;
 public class JobInfoTest {
     private static final long JOB_ID = 42L;
     private static final JobSpecification JOB_SPECIFICATION = JobSpecificationTest.newJobSpecificationInstance();
-    private static final Date JOB_CREATION_TIME = new Date();
+    private static final long JOB_CREATION_TIME = System.currentTimeMillis();
     private static final JobErrorCode JOB_ERROR_CODE = JobErrorCode.NO_ERROR;
     private static final long JOB_RECORD_COUNT = 0;
 
@@ -32,9 +30,9 @@ public class JobInfoTest {
         new JobInfo(JOB_ID, null, JOB_CREATION_TIME, JOB_ERROR_CODE, JOB_RECORD_COUNT);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_jobCreationTimeArgIsNull_throws() {
-        new JobInfo(JOB_ID, JOB_SPECIFICATION, null, JOB_ERROR_CODE, JOB_RECORD_COUNT);
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_jobCreationTimeArgIsNegative_throws() {
+        new JobInfo(JOB_ID, JOB_SPECIFICATION, -1L, JOB_ERROR_CODE, JOB_RECORD_COUNT);
     }
 
     @Test(expected = NullPointerException.class)

@@ -100,7 +100,7 @@ public class FileSystemJobStore implements JobStore {
     @Override
     public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         final long jobId = System.currentTimeMillis();
-        final Date jobCreationTime = new Date();
+        final long jobCreationTime = 0L;
         final Path jobPath = getJobPath(jobId);
         long recordCount;
 

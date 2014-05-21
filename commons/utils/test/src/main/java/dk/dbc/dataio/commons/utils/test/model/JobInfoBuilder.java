@@ -3,20 +3,23 @@ package dk.dbc.dataio.commons.utils.test.model;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class JobInfoBuilder {
     private long jobId = 1L;
     private JobSpecification jobSpecification = new JobSpecificationBuilder().build();
-    private Date jobCreationTime;
+    private long jobCreationTime;
     private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
     private long jobRecordCount = 1L;
 
     public JobInfoBuilder() {
         Calendar cal = Calendar.getInstance();
         cal.set(2014, Calendar.JANUARY, 27);
-        this.jobCreationTime = cal.getTime();
+        this.jobCreationTime = new GregorianCalendar(2014, 1, 27).getTimeInMillis();
+
     }
 
     public JobInfoBuilder setJobId(long jobId) {
@@ -30,7 +33,7 @@ public class JobInfoBuilder {
     }
 
     public JobInfoBuilder setJobCreationTime(Date jobCreationTime) {
-        this.jobCreationTime = new Date(jobCreationTime.getTime());
+        this.jobCreationTime = jobCreationTime.getTime();
         return this;
     }
 

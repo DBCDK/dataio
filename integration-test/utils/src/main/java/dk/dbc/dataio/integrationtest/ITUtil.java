@@ -42,7 +42,7 @@ public class ITUtil {
             System.getProperty("container.hostname"), System.getProperty("container.http.port"));
     public static final String FLOW_STORE_BASE_URL = String.format("http://%s:%s/flow-store",
                 System.getProperty("container.hostname"), System.getProperty("container.http.port"));
-    public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s/job-store",
+    public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s/job-store-service",
                 System.getProperty("container.hostname"), System.getProperty("container.http.port"));
     public static final String URL_PATH_SEPARATOR = "/";
 

@@ -299,7 +299,7 @@
                   <artifactId>dataio-job-store-service-war</artifactId>
                   <type>war</type>
                   <properties>
-                    <context>job-store</context>
+                    <context>job-store-service</context>
                   </properties>
                 </deployable>
                 <deployable>

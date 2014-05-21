@@ -121,7 +121,7 @@
               <artifactId>dataio-integration-test-mocked-job-store-service</artifactId>
               <type>war</type>
               <properties>
-                <context>job-store</context>
+                <context>job-store-service</context>
               </properties>
             </deployable>
           </deployables>

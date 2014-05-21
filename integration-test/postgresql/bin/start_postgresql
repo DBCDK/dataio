@@ -1,7 +1,11 @@
 #!/bin/sh
 
 BASEDIR=$(cd "$(dirname "$0")"; pwd)/..
+if [ -d "$BASEDIR/target/postgresql-cluster" ]; then
+    sh -c "$BASEDIR/bin/stop_postgresql"
+fi
 rm -rf $BASEDIR/target
 mkdir $BASEDIR/target
+
 mvn -f $BASEDIR/pom.xml org.codehaus.mojo:exec-maven-plugin::exec
 mvn -f $BASEDIR/pom.xml dk.dbc:postgresql-maven-plugin::start

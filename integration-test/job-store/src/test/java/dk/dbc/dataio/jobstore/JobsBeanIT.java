@@ -1,18 +1,10 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.NewJob;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
@@ -20,59 +12,27 @@ import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
-import org.glassfish.jersey.client.ClientConfig;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.jms.JMSException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class JobsBeanIT {
+public class JobsBeanIT extends AbstractJobStoreTest {
     private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
     private static final String DATA_FILE_RESOURCE = "/data.xml";
-
-    private static Client restClient;
-
-    @BeforeClass
-    public static void setUpClass() throws ClassNotFoundException {
-        restClient = HttpClient.newClient(new ClientConfig()
-                .register(new Jackson2xFeature()));
-    }
-
-    @AfterClass
-    public static void clearJobStore() {
-        ITUtil.clearJobStore();
-    }
-
-    @After
-    public void emptyQueues() {
-        JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
-    }
-
-    @After
-    public void emptyFlowStoreDatabase() throws SQLException, ClassNotFoundException {
-        try (final Connection connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)) {
-            ITUtil.clearAllDbTables(connection);
-        }
-    }
 
     @Test
     public void createJob_newJobIsCreated_newJobMessagePutOnProcessorQueue()
             throws InterruptedException, JsonException, URISyntaxException, JMSException, JobStoreServiceConnectorException {
-        final JobInfo jobInfo = createJob(restClient);
+        final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
+        final JobInfo jobInfo = createJob(restClient, jobSpecification);
 
         final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
         assertThat(processorQueue.size(), is(1));
@@ -81,34 +41,7 @@ public class JobsBeanIT {
         assertThat(newJob.getChunkCount(), is(2L));
     }
 
-    private NewJob assertNewJobMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {
-        assertThat(message, is(notNullValue()));
-        return JsonUtil.fromJson(message.getText(), NewJob.class, MixIns.getMixIns());
-    }
-
-    static JobInfo createJob(Client restClient) throws URISyntaxException, JobStoreServiceConnectorException {
-        final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
-        final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
-        return jobStoreServiceConnector.createJob(jobSpecification);
-    }
-
-    static JobState getState(Client restClient, long jobId) throws JobStoreServiceConnectorException {
-        final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
-        return jobStoreServiceConnector.getState(jobId);
-    }
-
-    static ChunkResult getProcessorResult(Client restClient, long jobId, long chunkId) throws JsonException {
-        final Response response = ITUtil.getJobProcessorResult(restClient, jobId, chunkId);
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-        return JsonUtil.fromJson(response.readEntity(String.class), ChunkResult.class, MixIns.getMixIns());
-    }
-
-    static SinkChunkResult getSinkResult(Client restClient, long jobId, long chunkId) throws JobStoreServiceConnectorException {
-        final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
-        return jobStoreServiceConnector.getSinkChunkResult(jobId, chunkId);
-    }
-
-    private static JobSpecification setupJobPrerequisites(Client restClient) throws URISyntaxException {
+    public static JobSpecification setupJobPrerequisites(Client restClient) throws URISyntaxException {
         final String packaging = "xml";
         final String format = "nmxml";
         final String charset = "utf8";

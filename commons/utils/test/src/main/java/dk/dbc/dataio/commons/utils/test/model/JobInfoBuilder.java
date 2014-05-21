@@ -4,9 +4,6 @@ import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class JobInfoBuilder {
     private long jobId = 1L;
@@ -16,10 +13,7 @@ public class JobInfoBuilder {
     private long jobRecordCount = 1L;
 
     public JobInfoBuilder() {
-        Calendar cal = Calendar.getInstance();
-        cal.set(2014, Calendar.JANUARY, 27);
-        this.jobCreationTime = new GregorianCalendar(2014, 1, 27).getTimeInMillis();
-
+        this.jobCreationTime = System.currentTimeMillis();
     }
 
     public JobInfoBuilder setJobId(long jobId) {
@@ -32,8 +26,8 @@ public class JobInfoBuilder {
         return this;
     }
 
-    public JobInfoBuilder setJobCreationTime(Date jobCreationTime) {
-        this.jobCreationTime = jobCreationTime.getTime();
+    public JobInfoBuilder setJobCreationTime(long jobCreationTime) {
+        this.jobCreationTime = jobCreationTime;
         return this;
     }
 

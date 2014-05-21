@@ -141,6 +141,7 @@
         <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
         <version>${project.version}</version>
         <type>ejb</type>
+        <scope>provided</scope>
     </dependency>
   </dependencies>
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_7.xsd" version="7">
+  <description>DataIO job store service</description>
+  <display-name>dataio-job-store-service-ear</display-name>
+  <module>
+    <ejb>dataio-commons-utils-file-store-service-connector-${project.version}.jar</ejb>
+  </module>
+   <module>
+    <web>
+      <web-uri>dataio-job-store-service-war-${project.version}.war</web-uri>
+      <context-root>/job-store-service</context-root>
+    </web>
+  </module>
+  <library-directory>lib</library-directory>
+</application>

@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.jobsshow;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.i18n.shared.DateTimeFormat;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -14,11 +15,13 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 /**
  * Show Jobs view implementation
  * Shows a table, containing:
+ *  o Job creation Time
  *  o Job ID
  *  o Filename
  *  o Submitternumber
@@ -30,6 +33,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     // Configuration constants
     private static final int PAGE_SIZE = 20;
+    private int currentPageSize = PAGE_SIZE;
 
     // Local variables
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
@@ -39,9 +43,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     TextColumn<JobInfo> jobIdColumn;
     TextColumn<JobInfo> fileNameColumn;
     TextColumn<JobInfo> submitterNumberColumn;
-
-    private int currentPageSize = PAGE_SIZE;
-
+    TextColumn<JobInfo> jobCreationTimeColumn;
 
     /**
      * Constructor
@@ -58,6 +60,16 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         table.updateStarted();
 
         getElement().setId(GUIID_JOBS_SHOW_WIDGET);
+
+        // Job Creation Time Column
+        jobCreationTimeColumn = new TextColumn<JobInfo>() {
+            @Override
+            public String getValue(JobInfo content) {
+                return getJobCreationTimeColumn(content);
+            }
+        };
+        jobCreationTimeColumn.setSortable(true);
+        table.addColumn(jobCreationTimeColumn, constants.columnHeader_JobCreationTime());
 
         // Job ID Column
         jobIdColumn = new TextColumn<JobInfo>() {
@@ -103,7 +115,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             }
         });
         add(showMoreButton);
-
     }
 
     /*
@@ -160,6 +171,14 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                 super.onColumnSort(event);
             }
         };
+
+        columnSortHandler.setComparator(jobCreationTimeColumn,
+                new Comparator<JobInfo>() {
+                    public int compare(JobInfo o1, JobInfo o2) {
+                        return validateObjects(o1, o2) ? compareLongs(o1.getJobCreationTime(), o2.getJobCreationTime()) : 1;
+                    }
+                });
+
         columnSortHandler.setComparator(jobIdColumn,
                 new Comparator<JobInfo>() {
                     public int compare(JobInfo o1, JobInfo o2) {
@@ -181,11 +200,11 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         table.addColumnSortHandler(columnSortHandler);
 
         // Set default sort behavior
-        jobIdColumn.setDefaultSortAscending(false);  // Set default sort order for jobIdColumn to Descending (youngest first)
+        jobCreationTimeColumn.setDefaultSortAscending(false);  // Set default sort order for jobCreationTime Column to Descending (youngest first)
 
         ColumnSortList columnSortList = table.getColumnSortList();
         columnSortList.clear();  // Clear the Sort List
-        columnSortList.push(jobIdColumn);  // Default sorting is by job id
+        columnSortList.push(jobCreationTimeColumn);  // Default sorting is by job creation time
         ColumnSortEvent.fire(table, columnSortList);  // Do sort right now
 
         // Set page size parameters
@@ -210,6 +229,11 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
 
     // Private methods
+
+    private String getJobCreationTimeColumn(JobInfo content){
+        DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss");
+        return dateTimeFormat.format(new Date(content.getJobCreationTime()));
+    }
 
     private String getJobIdColumn(JobInfo content) {
         return Long.toString(content.getJobId());

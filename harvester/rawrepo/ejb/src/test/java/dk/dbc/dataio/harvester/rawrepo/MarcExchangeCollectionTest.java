@@ -53,6 +53,13 @@ public class MarcExchangeCollectionTest {
               "</marcx:record>" +
             "</not-marcx:collection>";
 
+    private final String marcxCollectionInvalidMemberNamespace =
+            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/not-marcxchange-v1\">" +
+              "<invalid:record xmlns:invalid=\"info:lc/xmlns/marcxchange-v2\" format=\"danMARC2\">" +
+                "<invalid:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><invalid:subfield code=\"a\">title1</invalid:subfield></invalid:datafield>" +
+              "</invalid:record>" +
+            "</marcx:collection>";
+
     @Test
     public void addMember_memberDataArgIsNull_throws() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
@@ -88,6 +95,16 @@ public class MarcExchangeCollectionTest {
         final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
         try {
             harvesterRecord.addMember(marcxCollectionInvalidNamespace.getBytes());
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void addMember_memberDataArgIncorrectChildNamespace_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        try {
+            harvesterRecord.addMember(marcxCollectionInvalidMemberNamespace.getBytes());
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
         }

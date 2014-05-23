@@ -181,7 +181,7 @@ public class PerformanceIT {
     private JobStoreServiceConnector initializeFlowStore(List<JavaScript> javaScripts) throws JsonException, UnsupportedEncodingException {
 
         String flowStorebaseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
-        String jobStorebaseUrl = String.format("http://localhost:%s/job-store", System.getProperty("glassfish.port"));
+        String jobStorebaseUrl = String.format("http://localhost:%s/job-store-service", System.getProperty("glassfish.port"));
         Client restClient = HttpClient.newClient();
 
         // insert submitter:

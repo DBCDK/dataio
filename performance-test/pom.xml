@@ -55,9 +55,9 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-store-service-war</artifactId>
+      <artifactId>dataio-job-store-service-ear</artifactId>
       <version>${project.version}</version>
-      <type>war</type>
+      <type>ear</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -209,11 +209,8 @@
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
-                  <artifactId>dataio-job-store-service</artifactId>
-                  <type>war</type>
-                  <properties>
-                    <context>job-store</context>
-                  </properties>
+                  <artifactId>dataio-job-store-service-ear</artifactId>
+                  <type>ear</type>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>

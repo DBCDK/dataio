@@ -60,7 +60,7 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dbc-rawrepo-commons-access</artifactId>
+      <artifactId>rawrepo-access</artifactId>
       <version>${rawrepo.version}</version>
       <scope>test</scope>
     </dependency>

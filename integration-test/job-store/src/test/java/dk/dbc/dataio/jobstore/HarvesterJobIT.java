@@ -17,7 +17,6 @@ import dk.dbc.dataio.harvester.rawrepo.HarvesterException;
 import dk.dbc.dataio.harvester.rawrepo.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.rawrepo.MarcExchangeCollection;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -40,7 +39,6 @@ public class HarvesterJobIT extends AbstractJobStoreTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
-    @Ignore
     /**
      * Given: an empty job-store <br/>
      * When: a job specification is posted, which references a harvester data file
@@ -67,7 +65,7 @@ public class HarvesterJobIT extends AbstractJobStoreTest {
 
         final Chunk chunk1 = getChunk(restClient, jobInfo.getJobId(), 1L);
         assertThat(chunk1.getItems().size(), is(Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
-        final Chunk chunk2 = getChunk(restClient, jobInfo.getJobId(), 1L);
+        final Chunk chunk2 = getChunk(restClient, jobInfo.getJobId(), 2L);
         assertThat(chunk2.getItems().size(), is(recordCount - Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
     }
 

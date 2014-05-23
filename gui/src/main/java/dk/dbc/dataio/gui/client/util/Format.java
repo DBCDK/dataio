@@ -6,6 +6,9 @@
 
 package dk.dbc.dataio.gui.client.util;
 
+import com.google.gwt.i18n.shared.DateTimeFormat;
+
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,6 +50,16 @@ public final class Format {
      */
     public static String submitterPairString(Long submitterId, String submitterName) {
         return new StringBuilder().append(submitterId).append(" (").append(submitterName).append(")").toString();
+    }
+
+    /**
+     *
+     * @param time long value, the date that should be converted into longDateString format
+     * @return A string representation of date
+     */
+    public static String getLongDateTimeFormat(long time){
+        DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss");
+        return dateTimeFormat.format(new Date(time));
     }
 
     /**

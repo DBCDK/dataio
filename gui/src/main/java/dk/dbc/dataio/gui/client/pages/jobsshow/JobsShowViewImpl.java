@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.pages.jobsshow;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.i18n.shared.DateTimeFormat;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -11,11 +10,11 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,7 +32,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     // Configuration constants
     private static final int PAGE_SIZE = 20;
-    private int currentPageSize = PAGE_SIZE;
 
     // Local variables
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
@@ -44,6 +42,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     TextColumn<JobInfo> fileNameColumn;
     TextColumn<JobInfo> submitterNumberColumn;
     TextColumn<JobInfo> jobCreationTimeColumn;
+    private int currentPageSize = PAGE_SIZE;
 
     /**
      * Constructor
@@ -65,7 +64,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         jobCreationTimeColumn = new TextColumn<JobInfo>() {
             @Override
             public String getValue(JobInfo content) {
-                return getJobCreationTimeColumn(content);
+                return Format.getLongDateTimeFormat(content.getJobCreationTime());
             }
         };
         jobCreationTimeColumn.setSortable(true);
@@ -167,7 +166,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         ColumnSortEvent.ListHandler<JobInfo> columnSortHandler = new ColumnSortEvent.ListHandler<JobInfo>(dataProvider.getList()) {
             @Override
             public void onColumnSort(ColumnSortEvent event) {
-                Collections.sort(dataProvider.getList(), Collections.reverseOrder(getComparator(jobIdColumn)));  // Do sort jobIdColumn first, to assure, that the secondary search will be by jobId
+                Collections.sort(dataProvider.getList(), Collections.reverseOrder(getComparator(jobCreationTimeColumn)));  // Do sort jobCreationTimeColumn first, to assure, that the secondary search will be by jobCreationTimeColumn
                 super.onColumnSort(event);
             }
         };
@@ -229,11 +228,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
 
     // Private methods
-
-    private String getJobCreationTimeColumn(JobInfo content){
-        DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss");
-        return dateTimeFormat.format(new Date(content.getJobCreationTime()));
-    }
 
     private String getJobIdColumn(JobInfo content) {
         return Long.toString(content.getJobId());

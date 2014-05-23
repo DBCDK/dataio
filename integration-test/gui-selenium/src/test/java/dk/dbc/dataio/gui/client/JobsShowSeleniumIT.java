@@ -593,13 +593,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long jobCreationTime1 = new Date().getTime();
         jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
 
-        final long JobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(JobCreationTime2, "2", "a", "1");
+        final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
+        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
 
         final long jobCreationTime3 = jobCreationTime1;
         jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
 
-        final long jobCreationTime4 = JobCreationTime2;
+        final long jobCreationTime4 = jobCreationTime2;
         jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
 
         navigateToJobsShowWidget(webDriver);
@@ -614,8 +614,8 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Assert that data is as expected
         int i = 0;
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime2), "2", "a", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
-        assertTableRow(tableData.get(i++), formatDate(JobCreationTime2), "2", "a", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime4), "4", "b", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime1), "1", "b", "2");
     }
@@ -625,13 +625,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long jobCreationTime1 = new Date().getTime();
         jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
 
-        final long JobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(JobCreationTime2, "2", "a", "1");
+        final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
+        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
 
         final long jobCreationTime3 = jobCreationTime1;
         jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
 
-        final long jobCreationTime4 = JobCreationTime2;
+        final long jobCreationTime4 = jobCreationTime2;
         jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
 
         navigateToJobsShowWidget(webDriver);
@@ -649,8 +649,8 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         int i = 0;
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime4), "4", "b", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime1), "1", "b", "2");
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime2), "2", "a", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
-        assertTableRow(tableData.get(i++), formatDate(JobCreationTime2), "2", "a", "1");
     }
 
 
@@ -659,13 +659,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long jobCreationTime1 = new Date().getTime();
         jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
 
-        final long JobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(JobCreationTime2, "2", "a", "1");
+        final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
+        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
 
         final long jobCreationTime3 = jobCreationTime1;
         jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
 
-        final long jobCreationTime4 = JobCreationTime2;
+        final long jobCreationTime4 = jobCreationTime2;
         jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
 
         navigateToJobsShowWidget(webDriver);
@@ -680,10 +680,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Assert that data is as expected
         int i = 0;
-        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime1), "1", "b", "2");
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime2), "2", "a", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime4), "4", "b", "1");
-        assertTableRow(tableData.get(i++), formatDate(JobCreationTime2), "2", "a", "1");
     }
 
     @Test
@@ -691,13 +691,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long jobCreationTime1 = new Date().getTime();
         jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
 
-        final long JobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(JobCreationTime2, "2", "a", "1");
+        final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
+        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
 
         final long jobCreationTime3 = jobCreationTime1;
         jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
 
-        final long jobCreationTime4 = JobCreationTime2;
+        final long jobCreationTime4 = jobCreationTime2;
         jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
 
         navigateToJobsShowWidget(webDriver);
@@ -713,10 +713,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Assert that data is as expected
         int i = 0;
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime2), "2", "a", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime4), "4", "b", "1");
-        assertTableRow(tableData.get(i++), formatDate(JobCreationTime2), "2", "a", "1");
-        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime1), "1", "b", "2");
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
     }
 
     @Test
@@ -724,13 +724,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long jobCreationTime1 = new Date().getTime();
         jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
 
-        final long JobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(JobCreationTime2, "2", "a", "1");
+        final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
+        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
 
         final long jobCreationTime3 = jobCreationTime1;
         jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
 
-        final long jobCreationTime4 = JobCreationTime2;
+        final long jobCreationTime4 = jobCreationTime2;
         jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
 
         navigateToJobsShowWidget(webDriver);
@@ -745,10 +745,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Assert that data is as expected
         int i = 0;
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime2), "2", "a", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime4), "4", "b", "1");
-        assertTableRow(tableData.get(i++), formatDate(JobCreationTime2), "2", "a", "1");
-        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime1), "1", "b", "2");
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
     }
 
     @Test
@@ -756,13 +756,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long jobCreationTime1 = new Date().getTime();
         jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
 
-        final long JobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(JobCreationTime2, "2", "a", "1");
+        final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
+        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
 
         final long jobCreationTime3 = jobCreationTime1;
         jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
 
-        final long jobCreationTime4 = JobCreationTime2;
+        final long jobCreationTime4 = jobCreationTime2;
         jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
 
         navigateToJobsShowWidget(webDriver);
@@ -778,10 +778,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Assert that data is as expected
         int i = 0;
-        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime1), "1", "b", "2");
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime3), "3", "a", "2");
+        assertTableRow(tableData.get(i++), formatDate(jobCreationTime2), "2", "a", "1");
         assertTableRow(tableData.get(i++), formatDate(jobCreationTime4), "4", "b", "1");
-        assertTableRow(tableData.get(i++), formatDate(JobCreationTime2), "2", "a", "1");
     }
 
     /**

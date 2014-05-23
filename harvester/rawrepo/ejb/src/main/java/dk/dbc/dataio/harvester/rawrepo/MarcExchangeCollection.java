@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
  * </p>
  */
 public class MarcExchangeCollection implements HarvesterXmlRecord {
-    static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v2";
+    static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v1";
     static final String COLLECTION_ELEMENT_NAME = "collection";
     static final String RECORD_ELEMENT_NAME = "record";
 

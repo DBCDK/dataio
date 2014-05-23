@@ -19,14 +19,14 @@ import static org.junit.Assert.fail;
 
 public class MarcExchangeCollectionTest {
     private final String marcxCollectionSingleRecord =
-            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v2\">" +
+            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
               "<marcx:record format=\"danMARC2\"><marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                 "<marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
               "</marcx:record>" +
             "</marcx:collection>";
 
     private final String marcxCollectionMultipleRecords =
-            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v2\">" +
+            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
               "<marcx:record format=\"danMARC2\"><marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                 "<marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
               "</marcx:record>" +
@@ -36,19 +36,19 @@ public class MarcExchangeCollectionTest {
             "</marcx:collection>";
 
     private final String marcxRecord =
-            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v2\" format=\"danMARC2\">" +
+            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
               "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
             "</marcx:record>";
 
     private final String marcxRecordNonUtf8Encoding =
             "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" +
-            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v2\" format=\"danMARC2\">" +
+            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
               "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
             "</marcx:record>";
 
     private final String marcxCollectionInvalidNamespace =
-            "<not-marcx:collection xmlns:not-marcx=\"info:lc/xmlns/not-marcxchange-v2\">" +
-              "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v2\" format=\"danMARC2\">" +
+            "<not-marcx:collection xmlns:not-marcx=\"info:lc/xmlns/not-marcxchange-v1\">" +
+              "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
               "</marcx:record>" +
             "</not-marcx:collection>";

@@ -76,7 +76,7 @@ public class HarvesterJobIT extends AbstractJobStoreTest {
                 while (numberOfRecords-- > 0) {
                     final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
                     marcExchangeCollection.addMember(
-                            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v2\"/>".getBytes(StandardCharsets.UTF_8)
+                            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\"/>".getBytes(StandardCharsets.UTF_8)
                     );
                     harvesterXmlDataFile.addRecord(marcExchangeCollection);
                 }

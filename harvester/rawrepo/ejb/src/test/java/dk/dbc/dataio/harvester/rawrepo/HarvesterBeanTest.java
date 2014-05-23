@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 
 public class HarvesterBeanTest {
     private final String marcxCollectionSingleRecord =
-            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v2\">" +
+            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
               "<marcx:record format=\"danMARC2\"><marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                 "<marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
               "</marcx:record>" +

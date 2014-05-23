@@ -47,7 +47,7 @@ public class RawRepo2FbsIT {
     private static final String RAWREPO_PROVIDER = "opencataloging-update";
     private static final String JOB_DESTINATION = "fbs";
     private static final String QUEUE_NAME = "fbs-sync";
-    private static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v2";
+    private static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v1";
     private final String COLLECTION_ELEMENT_NAME = "collection";
     private final String RECORD_ELEMENT_NAME = "record";
     private static Client client;

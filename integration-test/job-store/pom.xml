@@ -177,7 +177,7 @@
               <artifactId>dataio-flow-store-service</artifactId>
               <type>war</type>
               <properties>
-                <context>flow-store</context>
+                <context>flow-store-service</context>
               </properties>
             </deployable>
           </deployables>

@@ -10,6 +10,7 @@ import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -51,7 +52,7 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         Client restClient = HttpClient.newClient();
-        String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        String baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         dbConnection = newDbConnection("flow_store");
         flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
     }

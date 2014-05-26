@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
+import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -46,7 +47,7 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
-        String baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        String baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         Client restClient = HttpClient.newClient();
         dbConnection = newDbConnection("flow_store");
         flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);

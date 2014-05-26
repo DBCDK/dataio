@@ -15,19 +15,19 @@
   <packaging>jar</packaging>
 
   <dependencies>
-      <dependency>
-          <groupId>dk.dbc</groupId>
-          <artifactId>dbc-jslib</artifactId>
-          <version>1.0-SNAPSHOT</version>
-          <scope>test</scope>
-      </dependency>
     <dependency>
-          <groupId>dk.dbc</groupId>
-          <artifactId>dataio-job-processor-ear</artifactId>
-          <type>ear</type>
-          <scope>test</scope>
-          <version>${project.version}</version>
-      </dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-jslib</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-job-processor-ear</artifactId>
+      <type>ear</type>
+      <scope>test</scope>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
@@ -35,17 +35,17 @@
       <type>jar</type>
     </dependency>
     <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <version>${h2.version}</version>
-        <scope>test</scope>
-                </dependency>
-                <dependency>
-        <groupId>dk.dbc</groupId>
-        <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-        <type>ejb</type>
-        <scope>test</scope>
-        <version>${project.version}</version>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+      <type>ejb</type>
+      <scope>test</scope>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -65,12 +65,12 @@
       <version>${project.version}</version>
       <type>war</type>
     </dependency>
-        <dependency>
-          <groupId>dk.dbc</groupId>
-          <artifactId>dataio-sink-dummy-ear</artifactId>
-          <version>${project.version}</version>
-          <type>ear</type>
-        </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-dummy-ear</artifactId>
+      <version>${project.version}</version>
+      <type>ear</type>
+    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-httpclient</artifactId>
@@ -79,8 +79,8 @@
       <type>jar</type>
     </dependency>
     <dependency>
-        <groupId>dk.dbc</groupId>
-        <artifactId>dataio-integration-test-utils</artifactId>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-integration-test-utils</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -109,10 +109,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.jfree</groupId>
-        <artifactId>jfreechart</artifactId>
-        <version>1.0.17</version>
-        <scope>test</scope>
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreechart</artifactId>
+      <version>1.0.17</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -128,10 +128,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>dk.dbc</groupId>
-        <artifactId>jscommon</artifactId>
-        <version>2012.1-SNAPSHOT</version>
-        <scope>test</scope>
+      <groupId>dk.dbc</groupId>
+      <artifactId>jscommon</artifactId>
+      <version>2012.1-SNAPSHOT</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -204,7 +204,7 @@
                   <artifactId>dataio-flow-store-service</artifactId>
                   <type>war</type>
                   <properties>
-                    <context>flow-store</context>
+                    <context>flow-store-service</context>
                   </properties>
                 </deployable>
                 <deployable>
@@ -257,22 +257,22 @@
 </project>
 
 
-<!--
+    <!--
 
-Setting up performance-test:
+    Setting up performance-test:
 
-* Create a perftest-profile
-* in the perf-test-profile set integration-test to deploy
-  job-store/flow-store/sink-service/dummy-sink through cargo into external glassfish
+    * Create a perftest-profile
+    * in the perf-test-profile set integration-test to deploy
+      job-store/flow-store/sink-service/dummy-sink through cargo into external glassfish
 
-* Write code to create submitter/flow/flowbinder/etc with simple javascript
+    * Write code to create submitter/flow/flowbinder/etc with simple javascript
 
-* Write code to create new job with enough records to be interesting
+    * Write code to create new job with enough records to be interesting
 
-* Write code to wait for test to finish (look at job each second to detect if it is finished)
+    * Write code to wait for test to finish (look at job each second to detect if it is finished)
 
-* Somehow let the performance-test info be delivered to jenkins (perhaps to be done at some other time)
+    * Somehow let the performance-test info be delivered to jenkins (perhaps to be done at some other time)
 
--->
+    -->
 
 

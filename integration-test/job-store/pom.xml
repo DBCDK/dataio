@@ -220,6 +220,7 @@
             <container.http.port>${container.http.port}</container.http.port>
             <h2.port>${h2.port}</h2.port>
             <file.store.basepath>${file.store.basepath}</file.store.basepath>
+            <job.store.basepath>${job.store.basepath}</job.store.basepath>
             <file-store-service.context>${file-store-service.context}</file-store-service.context>
             <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
             <job-store-service.context>${job-store-service.context}</job-store-service.context>

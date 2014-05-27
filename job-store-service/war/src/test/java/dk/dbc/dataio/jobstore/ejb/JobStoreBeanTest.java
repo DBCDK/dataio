@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
@@ -8,23 +9,29 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.naming.NamingException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,22 +39,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
-import java.io.InputStream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({
+        ServiceUtil.class
+})
 public class JobStoreBeanTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
     private JobStoreBean jsb = null;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, NamingException {
+        mockStatic(ServiceUtil.class);
+        when(ServiceUtil.getStringValueFromResource(eq(JobStoreBean.JOB_STORE_SERVICE_JNDI_ENDPOINT))).thenReturn(tmpFolder.newFolder().toString());
         jsb = new JobStoreBean();
-        // to avoid folder leak in java.io.tmpdir
-        jsb.jobStorePath = tmpFolder.newFolder().toPath();
         jsb.setupJobStore();
     }
 

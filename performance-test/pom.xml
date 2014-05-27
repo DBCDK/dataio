@@ -164,6 +164,7 @@
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <systemPropertyVariables>
+                <job.store.basepath>${job.store.basepath}</job.store.basepath>
                 <container.http.port>8080</container.http.port>
                 <container.hostname>localhost</container.hostname>
                 <glassfish.port>${glassfish.port}</glassfish.port>

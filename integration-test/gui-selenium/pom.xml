@@ -228,6 +228,7 @@
                 <svn.local.dir>${svn.local.dir}</svn.local.dir>
                 <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
                 <job-store-service.context>${job-store-service.context}</job-store-service.context>
+                <job.store.basepath>${job.store.basepath}</job.store.basepath>
               </systemPropertyVariables>
             </configuration>
           </plugin>

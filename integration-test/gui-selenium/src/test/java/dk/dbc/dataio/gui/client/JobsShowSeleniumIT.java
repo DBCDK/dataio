@@ -35,10 +35,6 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     private final static String JOBINFO_FILE_NAME = "jobinfo.json";
     private TemporaryDataioJobstoreFolder jobstoreFolder;
 
-    private final static Integer JOB_ID_OFFSET = 1000;
-    private final static String FILE_NAME_PREFIX = "File_Name_";
-    private final static Integer FILE_NAME_OFFSET = 3000;
-    private final static Integer SUBMITTER_NUMBER_OFFSET = 2000;
     private final static Integer JOBS_SHOW_PAGE_SIZE = 20;
 
 
@@ -47,7 +43,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Before
     public void createTempFolders() throws IOException {
-        Path dataioPath = Paths.get(tmpFolder.getRoot().toPath().getParent().toString(), DATAIO_JOB_STORE);
+        final Path dataioPath = Paths.get(System.getProperty("job.store.basepath"));
         jobstoreFolder = new TemporaryDataioJobstoreFolder(dataioPath);
     }
 

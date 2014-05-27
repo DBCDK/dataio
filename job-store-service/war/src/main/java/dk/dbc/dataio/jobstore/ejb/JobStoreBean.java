@@ -1,19 +1,19 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +21,10 @@ import javax.annotation.PostConstruct;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import java.nio.file.FileSystems;
+import javax.naming.NamingException;
+import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @LocalBean
@@ -31,19 +33,26 @@ import java.util.List;
 public class JobStoreBean implements JobStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
-    private static final String JOB_STORE_NAME = "dataio-job-store";
+    public static final String JOB_STORE_SERVICE_JNDI_ENDPOINT = "path/dataio/jobstore/home";
 
     // class scoped for easy test injection
-    Path jobStorePath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), JOB_STORE_NAME);
+    Path jobStorePath;
     JobStore jobStore;
 
 
     @PostConstruct
     public void setupJobStore() {
         try {
+            jobStorePath = Paths.get(ServiceUtil.getStringValueFromResource(JOB_STORE_SERVICE_JNDI_ENDPOINT));
+        } catch (NamingException e) {
+            final String errMsg = "An Error occurred while retrieving JNDI path.";
+            LOGGER.error(errMsg, e);
+            throw new RuntimeException(errMsg, e);
+        }
+        try {
             jobStore = FileSystemJobStore.newFileSystemJobStore(jobStorePath);
         } catch (JobStoreException ex) {
-            final String errMsg = "An Error occured while setting up the job-store.";
+            final String errMsg = "An Error occurred while setting up the job-store.";
             LOGGER.error(errMsg, ex);
             throw new RuntimeException(errMsg, ex);
         }

@@ -171,7 +171,7 @@ public class ServiceUtil {
         return sw.toString();
     }
 
-    private static String getStringValueFromResource(String resourceName) throws NamingException {
+    public static String getStringValueFromResource(String resourceName) throws NamingException {
         String resourceValue;
         InitialContext initialContext = null;
         try {

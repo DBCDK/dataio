@@ -24,9 +24,9 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -125,7 +125,7 @@ public class ITUtil {
      * Deletes all job-store filesystem content
      */
     public static void clearJobStore() {
-        final Path jobStorePath = FileSystems.getDefault().getPath(System.getProperty("java.io.tmpdir"), "dataio-job-store");
+        final Path jobStorePath = Paths.get(System.getProperty("job.store.basepath"));
         FileUtils.deleteQuietly(jobStorePath.toFile());
         try {
             Files.createDirectory(jobStorePath);

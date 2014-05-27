@@ -20,17 +20,14 @@ import org.junit.Test;
 
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;

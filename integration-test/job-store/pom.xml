@@ -176,9 +176,6 @@
               <groupId>dk.dbc</groupId>
               <artifactId>dataio-flow-store-service</artifactId>
               <type>war</type>
-              <properties>
-                <context>flow-store-service</context>
-              </properties>
             </deployable>
           </deployables>
         </configuration>
@@ -223,6 +220,9 @@
             <container.http.port>${container.http.port}</container.http.port>
             <h2.port>${h2.port}</h2.port>
             <file.store.basepath>${file.store.basepath}</file.store.basepath>
+            <file-store-service.context>${file-store-service.context}</file-store-service.context>
+            <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
+            <job-store-service.context>${job-store-service.context}</job-store-service.context>
           </systemPropertyVariables>
         </configuration>
       </plugin>

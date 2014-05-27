@@ -10,6 +10,18 @@ import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
 import static dk.dbc.dataio.integrationtest.ITUtil.createFlowBinder;
@@ -17,19 +29,9 @@ import static dk.dbc.dataio.integrationtest.ITUtil.createSink;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import org.junit.After;
-import org.junit.AfterClass;
 import static org.junit.Assert.assertThat;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 /**
  * Integration tests for the flow binders collection part of the flow store service
@@ -41,7 +43,7 @@ public class FlowBindersIT {
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
-        baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
         dbConnection = newDbConnection("flow_store");
     }

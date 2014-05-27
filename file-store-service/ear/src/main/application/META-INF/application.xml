@@ -8,7 +8,7 @@
    <module>
     <web>
       <web-uri>dataio-file-store-service-war-${project.version}.war</web-uri>
-      <context-root>/file-store-service</context-root>
+      <context-root>${file-store-service.context}</context-root>
     </web>
   </module>
   <library-directory>lib</library-directory>

@@ -102,83 +102,6 @@
         </executions>
       </plugin>
 
-      <!--plugin>
-        <groupId>com.edugility</groupId>
-        <artifactId>h2-maven-plugin</artifactId>
-        <version>1.0</version>
-        <configuration>
-          <port>${h2.port}</port>
-        </configuration>
-        <executions>
-          <execution>
-            <id>h2-start</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>spawn</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>h2-stop</id>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.glassfish.embedded</groupId>
-        <artifactId>maven-embedded-glassfish-plugin</artifactId>
-        <version>${glassfish.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.1-901.jdbc4</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <app>${project.build.directory}/${project.build.finalName}</app>
-          <autoDelete>true</autoDelete>
-          <contextRoot>${project.name}</contextRoot>
-          <configFile>${project.build.directory}/integrationtest-resources/domain-${glassfish.version}.xml</configFile>
-        </configuration>
-
-        <executions>
-          <execution>
-            <id>start-glassfish</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>flowstore-deploy</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>deploy</goal>
-            </goals>
-            <configuration>
-              <app>${basedir}/../../flow-store-service/target/dataio-flow-store-service-${project.version}.war</app>
-              <contextRoot>flow-store</contextRoot>
-              <name>flowstore</name>
-            </configuration>
-          </execution>
-          <execution>
-            <id>stop-glassfish</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin-->
-
       <plugin>
         <groupId>org.codehaus.cargo</groupId>
         <artifactId>cargo-maven2-plugin</artifactId>
@@ -209,9 +132,6 @@
               <groupId>dk.dbc</groupId>
               <artifactId>dataio-flow-store-service</artifactId>
               <type>war</type>
-              <properties>
-                <context>flow-store</context>
-              </properties>
             </deployable>
           </deployables>
         </configuration>
@@ -252,8 +172,12 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
+            <container.http.port>${container.http.port}</container.http.port>
+            <container.hostname>${container.hostname}</container.hostname>
             <glassfish.port>${container.http.port}</glassfish.port>
             <h2.port>${h2.port}</h2.port>
+            <file-store-service.context>${file-store-service.context}</file-store-service.context>
+            <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
           </systemPropertyVariables>
         </configuration>
       </plugin>

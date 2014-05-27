@@ -152,6 +152,7 @@
             <container.hostname>${container.hostname}</container.hostname>
             <h2.port>${h2.port}</h2.port>
             <file.store.basepath>${file.store.basepath}</file.store.basepath>
+            <file-store-service.context>${file-store-service.context}</file-store-service.context>
           </systemPropertyVariables>
         </configuration>
       </plugin>

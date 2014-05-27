@@ -8,7 +8,7 @@
    <module>
     <web>
       <web-uri>dataio-job-store-service-war-${project.version}.war</web-uri>
-      <context-root>/job-store-service</context-root>
+      <context-root>${job-store-service.context}</context-root>
     </web>
   </module>
   <library-directory>lib</library-directory>

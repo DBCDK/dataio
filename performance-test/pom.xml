@@ -203,9 +203,6 @@
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-flow-store-service</artifactId>
                   <type>war</type>
-                  <properties>
-                    <context>flow-store-service</context>
-                  </properties>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
@@ -216,9 +213,6 @@
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-sink-service</artifactId>
                   <type>war</type>
-                  <properties>
-                    <context>sink-service</context>
-                  </properties>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>

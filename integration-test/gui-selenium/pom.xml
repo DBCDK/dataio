@@ -158,17 +158,11 @@
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-file-store-service-ear</artifactId>
                   <type>ear</type>
-                  <!--properties>
-                    <context>file-store</context>
-                  </properties-->
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-flow-store-service</artifactId>
                   <type>war</type>
-                  <properties>
-                    <context>flow-store-service</context>
-                  </properties>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
@@ -179,9 +173,6 @@
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-sink-service</artifactId>
                   <type>war</type>
-                  <properties>
-                    <context>sink-service</context>
-                  </properties>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
@@ -235,6 +226,8 @@
                 <glassfish.port>${glassfish.port}</glassfish.port>
                 <h2.port>${h2.port}</h2.port>
                 <svn.local.dir>${svn.local.dir}</svn.local.dir>
+                <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
+                <job-store-service.context>${job-store-service.context}</job-store-service.context>
               </systemPropertyVariables>
             </configuration>
           </plugin>
@@ -280,35 +273,18 @@
               <deployables>
                 <deployable>
                   <groupId>dk.dbc</groupId>
-                  <artifactId>dataio-file-store-service-war</artifactId>
-                  <type>war</type>
-                  <properties>
-                    <context>file-store</context>
-                  </properties>
-                </deployable>
-                <deployable>
-                  <groupId>dk.dbc</groupId>
                   <artifactId>dataio-flow-store-service</artifactId>
                   <type>war</type>
-                  <properties>
-                    <context>flow-store-service</context>
-                  </properties>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-job-store-service-war</artifactId>
                   <type>war</type>
-                  <properties>
-                    <context>job-store-service</context>
-                  </properties>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
                   <artifactId>dataio-sink-service</artifactId>
                   <type>war</type>
-                  <properties>
-                    <context>sink-service</context>
-                  </properties>
                 </deployable>
               </deployables>
             </configuration>

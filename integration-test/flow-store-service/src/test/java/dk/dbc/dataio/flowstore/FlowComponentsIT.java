@@ -40,7 +40,7 @@ public class FlowComponentsIT {
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
-        baseUrl = String.format("http://localhost:%s/flow-store", System.getProperty("glassfish.port"));
+        baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
         dbConnection = newDbConnection("flow_store");
     }

@@ -117,9 +117,6 @@
               <groupId>dk.dbc</groupId>
               <artifactId>dataio-integration-test-mocked-job-store-service</artifactId>
               <type>war</type>
-              <properties>
-                <context>job-store-service</context>
-              </properties>
             </deployable>
             <deployable>
               <groupId>dk.dbc</groupId>
@@ -177,6 +174,9 @@
             <h2.port>${h2.port}</h2.port>
             <rawrepo.db.name>${rawrepo.db.name}</rawrepo.db.name>
             <user.name>${user.name}</user.name>
+            <file-store-service.context>${file-store-service.context}</file-store-service.context>
+            <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
+            <job-store-service.context>${job-store-service.context}</job-store-service.context>
           </systemPropertyVariables>
         </configuration>
       </plugin>

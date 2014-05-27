@@ -38,12 +38,12 @@ import java.util.Map;
  * Integration test utility
  */
 public class ITUtil {
-    public static final String FILE_STORE_BASE_URL = String.format("http://%s:%s/file-store-service",
-            System.getProperty("container.hostname"), System.getProperty("container.http.port"));
-    public static final String FLOW_STORE_BASE_URL = String.format("http://%s:%s/flow-store-service",
-                System.getProperty("container.hostname"), System.getProperty("container.http.port"));
-    public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s/job-store-service",
-                System.getProperty("container.hostname"), System.getProperty("container.http.port"));
+    public static final String FILE_STORE_BASE_URL = String.format("http://%s:%s%s",
+            System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("file-store-service.context"));
+    public static final String FLOW_STORE_BASE_URL = String.format("http://%s:%s%s",
+                System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("flow-store-service.context"));
+    public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
+                System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("job-store-service.context"));
     public static final String URL_PATH_SEPARATOR = "/";
 
     public static final String FLOW_STORE_DATABASE_NAME = "flow_store";

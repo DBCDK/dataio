@@ -45,7 +45,7 @@ public class JobStoreBean implements JobStore {
         try {
             jobStorePath = Paths.get(ServiceUtil.getStringValueFromResource(JOB_STORE_SERVICE_JNDI_ENDPOINT));
         } catch (NamingException e) {
-            final String errMsg = "An Error occurred while retrieving JNDI path.";
+            final String errMsg = "An Error occurred while retrieving JNDI path: " + JOB_STORE_SERVICE_JNDI_ENDPOINT;
             LOGGER.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }

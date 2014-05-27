@@ -6,9 +6,7 @@ import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -31,15 +29,11 @@ import static org.junit.Assert.assertTrue;
 public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/jobsshow/JobsShowConstants_dk.properties");
 
-    private final static String DATAIO_JOB_STORE = "dataio-job-store";
     private final static String JOBINFO_FILE_NAME = "jobinfo.json";
     private TemporaryDataioJobstoreFolder jobstoreFolder;
 
     private final static Integer JOBS_SHOW_PAGE_SIZE = 20;
 
-
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
 
     @Before
     public void createTempFolders() throws IOException {

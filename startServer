@@ -3,6 +3,7 @@
 BASEDIR=$(cd "$(dirname "$0")"; pwd)
 
 function startup {
+    clear_mountpoint
     # Starts postgresql. h2 and glassfish
     ${BASEDIR}/integration-test/postgresql/bin/start_postgresql
     ${BASEDIR}/integration-test/h2/bin/start_h2
@@ -14,7 +15,7 @@ function shutdown {
     ${BASEDIR}/integration-test/glassfish/bin/stop_glassfish4
     ${BASEDIR}/integration-test/h2/bin/stop_h2
     ${BASEDIR}/integration-test/postgresql/bin/stop_postgresql
-    rm -r ${BASEDIR}/integration-test/mountpoint/*
+    clear_mountpoint
 }
 
 function deploy {
@@ -23,6 +24,10 @@ function deploy {
 
 function undeploy {
     mvn -f ${BASEDIR}/pom.xml -P dev -pl integration-test/gui-selenium -DskipTests -am package org.codehaus.cargo:cargo-maven2-plugin:undeploy
+}
+
+function clear_mountpoint {
+    rm -rf ${BASEDIR}/integration-test/mountpoint/*
 }
 
 trap shutdown SIGHUP SIGINT SIGTERM

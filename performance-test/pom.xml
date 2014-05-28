@@ -151,7 +151,7 @@
             testfiles containing IT) -->
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
-            <version>2.14.1</version>
+            <version>${maven-failsafe-plugin.version}</version>
             <executions>
               <execution>
                 <goals>
@@ -164,12 +164,14 @@
             <configuration>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
               <systemPropertyVariables>
-                <job.store.basepath>${job.store.basepath}</job.store.basepath>
-                <container.http.port>8080</container.http.port>
-                <container.hostname>localhost</container.hostname>
-                <glassfish.port>${glassfish.port}</glassfish.port>
+                <container.hostname>${container.hostname}</container.hostname>
+                <container.http.port>${container.http.port}</container.http.port>
+                <file.store.basepath>${file.store.basepath}</file.store.basepath>
+                <file-store-service.context>${file-store-service.context}</file-store-service.context>
+                <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
                 <h2.port>${h2.port}</h2.port>
-                <svn.local.dir>${svn.local.dir}</svn.local.dir>
+                <job.store.basepath>${job.store.basepath}</job.store.basepath>
+                <job-store-service.context>${job-store-service.context}</job-store-service.context>
               </systemPropertyVariables>
             </configuration>
           </plugin>

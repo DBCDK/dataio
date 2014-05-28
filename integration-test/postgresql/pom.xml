@@ -46,7 +46,9 @@
         <configuration>
           <pgPort>${postgresql.port}</pgPort>
           <pgDbName>${rawrepo.db.name}</pgDbName>
-          <pgDbScript>${rawrepo.schema.local}</pgDbScript>
+          <pgDbScripts>
+            <param>${rawrepo.schema.local}</param>
+          </pgDbScripts>
         </configuration>
       </plugin>
 

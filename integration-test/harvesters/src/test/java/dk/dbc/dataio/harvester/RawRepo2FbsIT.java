@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -80,6 +81,7 @@ public class RawRepo2FbsIT {
      * And: the data file referenced by this job contains two marc
      * exchange collections each with one record <br/>
      */
+    @Ignore
     @Test
     public void harvest_ok() throws Exception {
         // Given...

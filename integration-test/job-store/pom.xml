@@ -203,7 +203,7 @@
         testfiles containing IT) -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.14.1</version>
+        <version>${maven-failsafe-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -213,19 +213,6 @@
             <id>integration-test</id>
           </execution>
         </executions>
-        <configuration>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <container.hostname>${container.hostname}</container.hostname>
-            <container.http.port>${container.http.port}</container.http.port>
-            <h2.port>${h2.port}</h2.port>
-            <file.store.basepath>${file.store.basepath}</file.store.basepath>
-            <job.store.basepath>${job.store.basepath}</job.store.basepath>
-            <file-store-service.context>${file-store-service.context}</file-store-service.context>
-            <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
-            <job-store-service.context>${job-store-service.context}</job-store-service.context>
-          </systemPropertyVariables>
-        </configuration>
       </plugin>
 
     </plugins>

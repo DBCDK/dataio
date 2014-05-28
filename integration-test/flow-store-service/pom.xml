@@ -159,7 +159,7 @@
         testfiles containing IT) -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.14.1</version>
+        <version>${maven-failsafe-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -169,17 +169,6 @@
             <id>integration-test</id>
           </execution>
         </executions>
-        <configuration>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <container.http.port>${container.http.port}</container.http.port>
-            <container.hostname>${container.hostname}</container.hostname>
-            <glassfish.port>${container.http.port}</glassfish.port>
-            <h2.port>${h2.port}</h2.port>
-            <file-store-service.context>${file-store-service.context}</file-store-service.context>
-            <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
-          </systemPropertyVariables>
-        </configuration>
       </plugin>
 
     </plugins>

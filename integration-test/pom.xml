@@ -28,4 +28,34 @@
     <module>h2</module>
     <module>postgresql</module>
   </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven-failsafe-plugin.version}</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <systemPropertyVariables>
+            <container.hostname>${container.hostname}</container.hostname>
+            <container.http.port>${container.http.port}</container.http.port>
+            <es.dbname>${es.dbname}</es.dbname>
+            <file.store.basepath>${file.store.basepath}</file.store.basepath>
+            <file-store-service.context>${file-store-service.context}</file-store-service.context>
+            <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
+            <glassfish.port>${container.http.port}</glassfish.port>
+            <h2.port>${h2.port}</h2.port>
+            <job.store.basepath>${job.store.basepath}</job.store.basepath>
+            <job-store-service.context>${job-store-service.context}</job-store-service.context>
+            <postgresql.port>${postgresql.port}</postgresql.port>
+            <rawrepo.db.name>${rawrepo.db.name}</rawrepo.db.name>
+            <svn.local.dir>${svn.local.dir}</svn.local.dir>
+            <user.name>${user.name}</user.name>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

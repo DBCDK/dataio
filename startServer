@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 BASEDIR=$(cd "$(dirname "$0")"; pwd)
 
@@ -32,9 +32,9 @@ function clear_mountpoint {
 
 trap shutdown SIGHUP SIGINT SIGTERM
 
-legal_parameters="start stop startup shutdown"
+legal_parameters="start stop startup shutdown help"
 
-[[ $legal_parameters =~ $1 ]] && echo "" || echo "$1 is an illegal parameter. Legal parameters are 'start' and 'stop'"
+[[ $legal_parameters =~ $1 ]] && echo "" || echo "$1 is an illegal parameter. Legal parameters are : $legal_parameters"
 
 case $1 in
     start) 
@@ -50,5 +50,16 @@ case $1 in
 	;;
     shutdown)
 	shutdown
+	;;
+	help)
+	echo "usage $0 [command]"
+	echo "  command must be on of the following"
+	echo "   - start    : startup + deploy dataio components"
+	echo "   - startup  : start databases and glassfish"
+	echo "   - stop     : shutdown + undeploy dataio components"
+	echo "   - shutdown : stop databases and glassfish"
+	;;
+    *)
+	echo Missing/Unknown argument Must be one of : $legal_parameters
 	;;
 esac

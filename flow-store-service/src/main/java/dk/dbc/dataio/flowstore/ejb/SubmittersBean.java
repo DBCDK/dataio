@@ -61,6 +61,7 @@ public class SubmittersBean {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({MediaType.APPLICATION_JSON})
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JsonException {
+        log.trace("Called with: '{}'", submitterContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
 
         final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);

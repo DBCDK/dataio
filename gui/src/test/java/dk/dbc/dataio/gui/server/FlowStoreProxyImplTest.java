@@ -325,32 +325,6 @@ public class FlowStoreProxyImplTest {
     /*
      * Test findAllSubmitters
      */
-//    @Test
-//    public void findAllSubmitters_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-//        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SUBMITTERS)))
-//                .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-//
-//        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
-//        try {
-//            flowStoreProxy.findAllSubmitters();
-//            fail();
-//        } catch (ProxyException e) {
-//            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
-//        }
-//    }
-//
-//    @Test
-//    public void findAllSubmitters_remoteServiceReturnsHttpStatusOk_returnsListOfSubmitterEntity() throws Exception {
-//        final Submitter submitter = new SubmitterBuilder().setId(666).build();
-//        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SUBMITTERS)))
-//                .thenReturn(new MockedHttpClientResponse<List<Submitter>>(Response.Status.OK.getStatusCode(), Arrays.asList(submitter)));
-//
-//        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
-//        final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmitters();
-//        assertThat(allSubmitters.size(), is(1));
-//        assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
-//    }
-
     @Test
     public void findAllSubmitters_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);

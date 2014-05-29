@@ -251,7 +251,7 @@ public class SinksIT {
             final SinkContent newSinkContent = new SinkContentBuilder().build();
             flowStoreServiceConnector.updateSink(newSinkContent, 1234, 1L);
 
-            fail("None existing id was input to updateSink() was not detected.");
+            fail("Wrong sink Id was not detected as input to updateSink().");
 
             // Then...
         }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){

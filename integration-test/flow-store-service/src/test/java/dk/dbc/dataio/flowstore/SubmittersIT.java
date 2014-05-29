@@ -207,5 +207,4 @@ public class SubmittersIT {
         assertThat(listOfSubmitters.get(1).getContent().getNumber(), is (submitterSortsSecond.getContent().getNumber()));
         assertThat(listOfSubmitters.get(2).getContent().getNumber(), is (submitterSortsThird.getContent().getNumber()));
     }
-
 }

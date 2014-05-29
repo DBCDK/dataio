@@ -2,6 +2,8 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -44,6 +46,8 @@ public class FlowStoreServiceConnector {
         this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
     }
+
+    // ************************************************** Sink **************************************************
 
     /**
      * Creates new sink defined by the sink content
@@ -131,6 +135,48 @@ public class FlowStoreServiceConnector {
             response.close();
         }
     }
+
+    // ************************************************* Submitter *************************************************
+
+    /**
+     * Creates new submitter defined by the submitter content
+     *
+     * @param submitterContent submitter content
+     * @return Sink
+     * @throws NullPointerException                                   if given null-valued argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if sink creation failed due to invalid input data
+     * @throws FlowStoreServiceConnectorException                     on general failure to create sink
+     */
+    public Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
+        InvariantUtil.checkNotNullOrThrow(submitterContent, "submitterContent");
+        final Response response = HttpClient.doPostWithJson(httpClient, submitterContent, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            return readResponseEntity(response, Submitter.class);
+        }finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves all submitters from the flow-store
+     *
+     * @return a list containing the submitters found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
+     */
+    public List<Submitter> findAllSubmitters()throws ProcessingException, FlowStoreServiceConnectorException{
+        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() { });
+        } finally {
+            response.close();
+        }
+    }
+
+    // ******************************************** Private helper methods ********************************************
 
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {
         if (actualStatus != expectedStatus) {

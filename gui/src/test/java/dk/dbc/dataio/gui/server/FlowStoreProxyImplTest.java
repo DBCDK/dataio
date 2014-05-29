@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -13,6 +14,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import org.glassfish.jersey.client.ClientConfig;
@@ -270,17 +272,93 @@ public class FlowStoreProxyImplTest {
     }
 
     /*
+   * Test createSubmitter
+   */
+    @Test
+    public void createSubmitter_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        SubmitterContent submitterContent = new SubmitterContentBuilder().build();
+        when(flowStoreServiceConnector.createSubmitter(eq(submitterContent))).
+                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+
+        try {
+            flowStoreProxy.createSubmitter(submitterContent);
+            fail("No INTERNAL_SERVER_ERROR error was thrown by createSubmitter()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void createSubmitter_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        SubmitterContent submitterContent = new SubmitterContentBuilder().build();
+        when(flowStoreServiceConnector.createSubmitter(eq(submitterContent))).
+                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 406));
+
+        try {
+            flowStoreProxy.createSubmitter(submitterContent);
+            fail("No NOT_ACCEPTABLE error was thrown by createSubmitter()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.NOT_ACCEPTABLE));
+        }
+    }
+
+    @Test
+    public void createSubmitter_remoteServiceReturnsHttpStatusCreated_returnsSubmitterEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        SubmitterContent submitterContent = new SubmitterContentBuilder().build();
+        final Submitter submitter = new SubmitterBuilder().build();
+        when(flowStoreServiceConnector.createSubmitter(submitterContent)).thenReturn(submitter);
+
+        try {
+            final Submitter createdSubmitter  = flowStoreProxy.createSubmitter(submitterContent);
+            assertNotNull(createdSubmitter);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createSubmitter()");
+        }
+    }
+
+    /*
      * Test findAllSubmitters
      */
+//    @Test
+//    public void findAllSubmitters_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+//        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SUBMITTERS)))
+//                .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+//
+//        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
+//        try {
+//            flowStoreProxy.findAllSubmitters();
+//            fail();
+//        } catch (ProxyException e) {
+//            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+//        }
+//    }
+//
+//    @Test
+//    public void findAllSubmitters_remoteServiceReturnsHttpStatusOk_returnsListOfSubmitterEntity() throws Exception {
+//        final Submitter submitter = new SubmitterBuilder().setId(666).build();
+//        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SUBMITTERS)))
+//                .thenReturn(new MockedHttpClientResponse<List<Submitter>>(Response.Status.OK.getStatusCode(), Arrays.asList(submitter)));
+//
+//        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
+//        final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmitters();
+//        assertThat(allSubmitters.size(), is(1));
+//        assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
+//    }
+
     @Test
     public void findAllSubmitters_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SUBMITTERS)))
-                .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findAllSubmitters()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
             flowStoreProxy.findAllSubmitters();
-            fail();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllSubmitters()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
         }
@@ -288,14 +366,20 @@ public class FlowStoreProxyImplTest {
 
     @Test
     public void findAllSubmitters_remoteServiceReturnsHttpStatusOk_returnsListOfSubmitterEntity() throws Exception {
-        final Submitter submitter = new SubmitterBuilder().setId(666).build();
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.SUBMITTERS)))
-                .thenReturn(new MockedHttpClientResponse<List<Submitter>>(Response.Status.OK.getStatusCode(), Arrays.asList(submitter)));
 
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
-        final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmitters();
-        assertThat(allSubmitters.size(), is(1));
-        assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final Submitter submitter = new SubmitterBuilder().setId(1L).build();
+
+        when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Arrays.asList(submitter));
+        try {
+            final List<Submitter> allSubmitters  = flowStoreProxy.findAllSubmitters();
+            assertNotNull(allSubmitters);
+            assertThat(allSubmitters.size(), is(1));
+            assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: findAllSubmitters()");
+        }
     }
 
     /*

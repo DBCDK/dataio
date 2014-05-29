@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -34,6 +35,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Path("/")
 public class SubmittersBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
+    private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -45,7 +47,7 @@ public class SubmittersBean {
      * @param uriInfo application and request URI information
      * @param submitterContent submitter data as JSON string
      *
-     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource.
+     * @return a HTTP 201 CREATED response response with submitter content as JSON,
      *         a HTTP 400 BAD_REQUEST response on invalid json content.
      *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
@@ -57,13 +59,14 @@ public class SubmittersBean {
     @POST
     @Path(FlowStoreServiceConstants.SUBMITTERS)
     @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JsonException {
-        log.trace("Called with: '{}'", submitterContent);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
 
         final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
         entityManager.flush();
-
-        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter)).build();
+        final String submitterJson = JsonUtil.toJson(submitter);
+        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter)).entity(submitterJson).build();
     }
 
     /**

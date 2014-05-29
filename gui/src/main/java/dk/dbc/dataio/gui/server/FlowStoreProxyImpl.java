@@ -82,19 +82,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, IllegalStateException, ProxyException {
-        final Response response;
+    public Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException {
+        Submitter submitter;
         try {
-            response = HttpClient.doPostWithJson(client, submitterContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SUBMITTERS);
-        } catch (ServletException e) {
+            submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        try {
-            assertStatusCode(response, Response.Status.CREATED);
-        } finally {
-            response.close();
-        }
+        return submitter;
     }
 
     @Override
@@ -159,18 +156,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     @Override
     public List<Submitter> findAllSubmitters() throws ProxyException {
-        final Response response;
         final List<Submitter> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.SUBMITTERS);
-        } catch (ServletException e) {
+            result = flowStoreServiceConnector.findAllSubmitters();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        try {
-            assertStatusCode(response, Response.Status.OK);
-            result = response.readEntity(new GenericType<List<Submitter>>() { });
-        } finally {
-            response.close();
         }
         return result;
     }

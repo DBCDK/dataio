@@ -1,11 +1,14 @@
 package dk.dbc.dataio.flowstore;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -19,12 +22,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
-import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Integration tests for the submitters collection part of the flow store service
@@ -37,7 +41,6 @@ public class SubmittersIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
-        System.out.println("baseUrl=" + baseUrl);
         restClient = HttpClient.newClient();
         dbConnection = newDbConnection("flow_store");
     }
@@ -54,28 +57,32 @@ public class SubmittersIT {
 
     /**
      * Given: a deployed flow-store service
-     * When: valid JSON is POSTed to the submitters path
-     * Then: request returns with a CREATED http status code
-     * And: request returns with a Location header pointing to the newly created resource
-     * And: posted data can be found in the underlying database
+     * When : valid JSON is POSTed to the submitters path without an identifier
+     * Then : a submitter it created and returned
+     * And  : assert that the submitter created has an id, a version and contains the same information as the submitterContent given as input
+     * And  : assert that only one submitter can be found in the underlying database
      */
     @Test
-    public void createSubmitter_Ok() throws SQLException {
+    public void createSubmitter_Ok() throws Exception{
+
         // When...
-        final String submitterContent = new SubmitterContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, submitterContent, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
+        Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
 
+        // And...
+        assertNotNull(submitter);
+        assertNotNull(submitter.getContent());
+        assertNotNull(submitter.getId());
+        assertNotNull(submitter.getVersion());
+        assertThat(submitter.getContent().getName(), is(submitterContent.getName()));
+        assertThat(submitter.getContent().getDescription(), is(submitterContent.getDescription()));
+        assertThat(submitter.getContent().getNumber(), is(submitterContent.getNumber()));
         // And ...
-        final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
-
-        // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.SUBMITTERS_TABLE_SELECT_CONTENT_STMT, id);
-
-        assertThat(rs.size(), is(1));
-        assertThat((String) rs.get(0).get(0), is(submitterContent));
+        final List<Submitter> submitters = flowStoreServiceConnector.findAllSubmitters();
+        assertThat(submitters.size(), is(1));
     }
 
 
@@ -95,112 +102,110 @@ public class SubmittersIT {
 
     /**
      * Given: a deployed flow-store service containing submitter resource
-     * When: adding submitter with the same name
-     * Then: request returns with a NOT ACCEPTABLE http status code
+     * When : adding submitter with the same name
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT ACCEPTABLE http status code
+     * And  : assert that one submitter exist in the underlying database
      */
     @Test
-    public void createSubmitter_duplicateName() throws Exception {
+    public void createSubmitter_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        final String submitterContent1 = new SubmitterContentJsonBuilder()
-                .setNumber(1L)
-                .build();
-        createSubmitter(restClient, baseUrl, submitterContent1);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final SubmitterContent submitterContent1 = new SubmitterContentBuilder().setName("UniqueName").setNumber(1L).build();
+        final SubmitterContent submitterContent2 = new SubmitterContentBuilder().setName("UniqueName").setNumber(2L).build();
 
-        // When...
-        final String submitterContent2 = new SubmitterContentJsonBuilder()
-                .setNumber(2L)
-                .build();
-        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        try {
+            flowStoreServiceConnector.createSubmitter(submitterContent1);
+            // When...
+            flowStoreServiceConnector.createSubmitter(submitterContent2);
+            fail("Primary key violation was not detected as input to createSubmitter().");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
 
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+            // And...
+            assertThat(e.getStatusCode(), is(406));
+            // And...
+            List<Submitter> submitters = flowStoreServiceConnector.findAllSubmitters();
+            assertThat(submitters.size(), is(1));
+        }
     }
 
     /**
-     * Given: a deployed flow-store service containing submitter resource
-     * When: adding submitter with the same number
-     * Then: request returns with a NOT ACCEPTABLE http status code
-     */
+    * Given: a deployed flow-store service containing submitter resource
+    * When : adding submitter with the same number
+    * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+    * And  : request returns with a NOT ACCEPTABLE http status code
+    * And  : assert that one submitter exist in the underlying database
+    */
     @Test
-    public void createSubmitter_duplicateNumber() throws Exception {
+    public void createSubmitter_duplicateNumber_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        final String submitterContent1 = new SubmitterContentJsonBuilder()
-                .setName("test1")
-                .build();
-        createSubmitter(restClient, baseUrl, submitterContent1);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final SubmitterContent submitterContent1 = new SubmitterContentBuilder().setName("NameA").setNumber(1L).build();
+        final SubmitterContent submitterContent2 = new SubmitterContentBuilder().setName("NameB").setNumber(1L).build();
 
-        // When...
-        final String submitterContent2 = new SubmitterContentJsonBuilder()
-                .setName("test2")
-                .build();
-        final Response response = HttpClient.doPostWithJson(restClient, submitterContent2, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        try {
+            flowStoreServiceConnector.createSubmitter(submitterContent1);
+            // When...
+            flowStoreServiceConnector.createSubmitter(submitterContent2);
+            fail("Primary key violation was not detected as input to createSubmitter().");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
 
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+            // And...
+            assertThat(e.getStatusCode(), is(406));
+            // And...
+            List<Submitter> submitters = flowStoreServiceConnector.findAllSubmitters();
+            assertThat(submitters.size(), is(1));
+        }
     }
 
     /**
      * Given: a deployed flow-store service containing no submitters
      * When: GETing submitters collection
-     * Then: request returns with a OK http status code
-     * And: request returns with empty list as JSON
+     * Then: request returns with empty list
      */
     @Test
     public void findAllSubmitters_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final List<Submitter> submitters = flowStoreServiceConnector.findAllSubmitters();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-
-        // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(0));
+        assertThat(submitters, is(notNullValue()));
+        assertThat(submitters.size(), is(0));
     }
 
     /**
      * Given: a deployed flow-store service containing three submitters
      * When: GETing submitters collection
-     * Then: request returns with a OK http status code
-     * And: request returns with list as JSON of submitters sorted numerically by number
+     * Then: request returns with 3 submitters
+     * And: the submitters are sorted alphabetically by number
      */
     @Test
     public void findAllSubmitters_Ok() throws Exception {
         // Given...
-        String submitterContent = new SubmitterContentJsonBuilder()
-                .setName("a")
-                .setNumber(3L)
-                .build();
-        final long sortsThird = createSubmitter(restClient, baseUrl, submitterContent);
+        final SubmitterContent submitterContentA = new SubmitterContentBuilder().setName("a").setNumber(1L).setDescription("submitterA").build();
+        final SubmitterContent submitterContentB = new SubmitterContentBuilder().setName("b").setNumber(2L).setDescription("submitterB").build();
+        final SubmitterContent submitterContentC = new SubmitterContentBuilder().setName("c").setNumber(3L).setDescription("submitterC").build();
 
-        submitterContent = new SubmitterContentJsonBuilder()
-                .setName("b")
-                .setNumber(1L)
-                .build();
-        final long sortsFirst = createSubmitter(restClient, baseUrl, submitterContent);
-
-        submitterContent = new SubmitterContentJsonBuilder()
-                .setName("c")
-                .setNumber(2L)
-                .build();
-        final long sortsSecond = createSubmitter(restClient, baseUrl, submitterContent);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        Submitter submitterSortsFirst = flowStoreServiceConnector.createSubmitter(submitterContentA);
+        Submitter submitterSortsSecond = flowStoreServiceConnector.createSubmitter(submitterContentB);
+        Submitter submitterSortsThird = flowStoreServiceConnector.createSubmitter(submitterContentC);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        List<Submitter> listOfSubmitters = flowStoreServiceConnector.findAllSubmitters();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+        assertNotNull(listOfSubmitters);
+        assertFalse(listOfSubmitters.isEmpty());
+        assertThat(listOfSubmitters.size(), is (3));
 
         // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(3));
-        assertThat(responseContentNode.get(0).get("id").longValue(), is(sortsFirst));
-        assertThat(responseContentNode.get(1).get("id").longValue(), is(sortsSecond));
-        assertThat(responseContentNode.get(2).get("id").longValue(), is(sortsThird));
+        assertThat(listOfSubmitters.get(0).getContent().getNumber(), is (submitterSortsFirst.getContent().getNumber()));
+        assertThat(listOfSubmitters.get(1).getContent().getNumber(), is (submitterSortsSecond.getContent().getNumber()));
+        assertThat(listOfSubmitters.get(2).getContent().getNumber(), is (submitterSortsThird.getContent().getNumber()));
     }
 
 }

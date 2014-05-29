@@ -192,19 +192,4 @@ public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
         findSaveButton(webDriver).click();
         SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
     }
-
-    /**
-     * The following is public static helper methods.
-     */
-    public static void createTestSubmitter(WebDriver webDriver, String name, String number, String description) {
-        navigateToSubmitterCreationWidget(webDriver);
-        findNameElement(webDriver).clear();
-        findNameElement(webDriver).sendKeys(name);
-        findNumberElement(webDriver).clear();
-        findNumberElement(webDriver).sendKeys(number);
-        findDescriptionElement(webDriver).clear();
-        findDescriptionElement(webDriver).sendKeys(description);
-        findSaveButton(webDriver).click();
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
-    }
 }

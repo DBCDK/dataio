@@ -4,6 +4,8 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -13,7 +15,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.*;
+import javax.ejb.EJBException;
+import javax.ejb.LocalBean;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
+import javax.ejb.Singleton;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.List;
@@ -72,6 +78,26 @@ public class FlowStoreServiceConnectorBean {
         LOGGER.debug("Updating existing sink");
         try{
             return getFlowStoreServiceConnector().updateSink(sinkContent, id, version);
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public Submitter createSubmitter(SubmitterContent submitterContent) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Creating new submitter");
+        try {
+            return getFlowStoreServiceConnector().createSubmitter(submitterContent);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public List<Submitter> findAllSubmitters() throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving all submitters");
+        try{
+            return getFlowStoreServiceConnector().findAllSubmitters();
         }catch (NamingException e) {
             throw new EJBException(e);
         }

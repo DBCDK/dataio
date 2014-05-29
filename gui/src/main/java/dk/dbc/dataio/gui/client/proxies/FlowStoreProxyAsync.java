@@ -18,7 +18,7 @@ public interface FlowStoreProxyAsync {
     void createFlow(FlowContent flowContent, AsyncCallback<Void> callback);
     void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<Void> async);
     void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<Void> async);
-    void createSubmitter(SubmitterContent submitterContent, AsyncCallback<Void> async);
+    void createSubmitter(SubmitterContent submitterContent, AsyncCallback<Submitter> async);
     void createSink(SinkContent sinkContent, AsyncCallback<Sink> async);
 
     void updateSink(SinkContent sinkContent, Long id, Long version, AsyncCallback<Sink> async);

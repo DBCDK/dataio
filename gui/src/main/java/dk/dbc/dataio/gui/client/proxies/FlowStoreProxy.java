@@ -14,6 +14,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+
 import java.util.List;
 
 @RemoteServiceRelativePath("FlowStoreProxy")
@@ -22,7 +23,7 @@ public interface FlowStoreProxy extends RemoteService {
     void createFlow(FlowContent flowContent) throws NullPointerException, ProxyException;
     void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException;
     void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
-    void createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException;
+    Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException;
     Sink createSink(SinkContent sinkContent) throws NullPointerException, ProxyException;
 
     Sink updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException;

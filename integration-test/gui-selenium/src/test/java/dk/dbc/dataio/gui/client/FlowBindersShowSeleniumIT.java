@@ -3,8 +3,10 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -74,8 +76,8 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowBindersInsertTwoRows_TwoElementsShown() throws Exception{
         // Create necessary elements:
-        createTestSubmitter(webDriver, 11);  // Submitter #11
-        createTestSubmitter(webDriver, 12);  // Submitter #12
+        createTestSubmitter(11);  // Submitter #11
+        createTestSubmitter(12);  // Submitter #12
         createTestFlowComponent(webDriver, 13);  // FlowComponent #13
         createTestFlowComponent(webDriver, 110);  // FlowComponent #110
         createTestFlow(webDriver, 14, 13);  // Flow #14, containing FlowComponent #13
@@ -125,11 +127,14 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
         return Long.toString(number) + " (" + subjectNameString(SUBMITTER_NAME, number) + ")";
     }
 
-    private static void createTestSubmitter(WebDriver webDriver, int number) {
-        SubmitterCreationSeleniumIT.createTestSubmitter(webDriver,
-                                                        subjectNameString(SUBMITTER_NAME, number),
-                                                        Long.toString(number),
-                                                        subjectNameString(SUBMITTER_DESCRIPTION, number));
+    private static void createTestSubmitter(int number) throws Exception{
+        SubmitterContent submitterContent = new SubmitterContentBuilder()
+                .setName(subjectNameString(SUBMITTER_NAME, number))
+                .setNumber(new Long(number))
+                .setDescription(subjectNameString(SUBMITTER_DESCRIPTION, number))
+                .build();
+
+        flowStoreServiceConnector.createSubmitter(submitterContent);
     }
 
     private static void createTestSink(int number) throws Exception{

@@ -65,6 +65,7 @@ public class BinaryFileFsImpl implements BinaryFile {
         if (Files.exists(path)) {
             throw new IllegalStateException("File already exists " + path);
         }
+        createPathIfNotExists(path.getParent());
         try {
             return new FileOutputStream(path.toFile());
         } catch (IOException e) {

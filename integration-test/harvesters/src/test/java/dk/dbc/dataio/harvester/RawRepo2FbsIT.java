@@ -81,7 +81,6 @@ public class RawRepo2FbsIT {
      * And: the data file referenced by this job contains two marc
      * exchange collections each with one record <br/>
      */
-    @Ignore
     @Test
     public void harvest_ok() throws Exception {
         // Given...

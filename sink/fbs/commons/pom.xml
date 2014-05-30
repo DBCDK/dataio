@@ -5,19 +5,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-sink</artifactId>
+    <artifactId>dataio-sink-fbs</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-sink-fbs</artifactId>
-  <name>dataio-sink-fbs</name>
+  <artifactId>dataio-sink-fbs-commons</artifactId>
+  <name>commons</name>
   <packaging>pom</packaging>
 
   <modules>
-    <module>commons</module>
-    <module>ear</module>
-    <module>ejb</module>
+    <module>types</module>
   </modules>
 
 </project>

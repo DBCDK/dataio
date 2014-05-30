@@ -28,7 +28,7 @@
               <wsdlUrls>
                 <wsdlUrl>${opencataloging.updatemarcxchange.ws.wsdl}</wsdlUrl>
               </wsdlUrls>
-              <destDir>${wsimport.generated.sources}</destDir>
+              <destDir>${wsimport.generated.sources.pmdignore}</destDir>
               <target>${jaxws.version}</target>
             </configuration>
           </execution>

@@ -118,7 +118,7 @@ public abstract class AbstractMessageConsumerBean {
     public void backoffBeforeRetry(int deliveryCount) {
         // Calculate the next wait interval, in milliseconds, using an exponential
         // backoff algorithm.
-        final long waitTime = ((long) Math.pow(2, deliveryCount) * 100L);
+        final long waitTime = (long) Math.pow(2, deliveryCount) * 100L;
         try {
             Thread.sleep(waitTime);
         } catch (InterruptedException e) {

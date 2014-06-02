@@ -10,12 +10,11 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-sink-fbs-commons</artifactId>
-  <name>commons</name>
+  <artifactId>dataio-sink-fbs-types</artifactId>
+  <name>dataio-sink-fbs-types</name>
   <packaging>pom</packaging>
 
   <modules>
-    <module>types</module>
+    <module>updateMarcXchange</module>
   </modules>
-
 </project>

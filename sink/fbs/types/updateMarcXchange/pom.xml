@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-sink-fbs-commons-types</artifactId>
+    <artifactId>dataio-sink-fbs-types</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-sink-fbs-commons-types-updateMarcXchange</artifactId>
-  <name>commons-types-updateMarcXchange</name>
+  <artifactId>dataio-sink-fbs-types-updateMarcXchange</artifactId>
+  <name>dataio-sink-fbs-types-updateMarcXchange</name>
 
   <properties>
       <path.to.wsdl>/dk/dbc/dataio/sink/fbs</path.to.wsdl>

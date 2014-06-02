@@ -27,7 +27,7 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-sink-fbs-commons-types-updateMarcXchange</artifactId>
+      <artifactId>dataio-sink-fbs-types-updateMarcXchange</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

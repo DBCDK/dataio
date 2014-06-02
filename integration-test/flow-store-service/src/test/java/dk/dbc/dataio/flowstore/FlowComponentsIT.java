@@ -1,14 +1,14 @@
 package dk.dbc.dataio.flowstore;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -22,13 +22,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createFlowComponent;
-import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Integration tests for the flow components collection part of the flow store service
@@ -57,43 +57,32 @@ public class FlowComponentsIT {
 
     /**
      * Given: a deployed flow-store service
-     * When: valid JSON is POSTed to the components path
-     * Then: request returns with a CREATED http status code
-     * And: request returns with a Location header pointing to the newly created resource
-     * And: the entity contains the newly created FlowComponent
-     * And: posted data can be found in the underlying database
+     * When : valid JSON is POSTed to the flow component path without an identifier
+     * Then : a flow component is created and returned
+     * And  : assert that the flow component created has an id, a version and contains the same information as the flowComponentContent given as input
+     * And  : assert that only one flowComponent can be found in the underlying database
      */
     @Test
-    public void createComponent_Ok() throws SQLException, JsonException {
+    public void createFlowComponent_ok() throws Exception{
+
         // When...
-        final String flowComponentContentJson = new FlowComponentContentJsonBuilder().build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowComponentContentJson, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
-        assertNotNull(response);
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
 
-        // And ...
-        final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
-
-        // And ...
-        assertThat(response.hasEntity(), is(true));
-        String flowComponentJson = response.readEntity(String.class);
-        FlowComponentContent flowComponentContent = JsonUtil.fromJson(flowComponentContentJson, FlowComponentContent.class);
-        FlowComponent flowComponent = JsonUtil.fromJson(flowComponentJson, FlowComponent.class);
+        // And...
+        assertNotNull(flowComponent);
+        assertNotNull(flowComponent.getContent());
+        assertNotNull(flowComponent.getId());
+        assertNotNull(flowComponent.getVersion());
         assertThat(flowComponent.getContent().getName(), is(flowComponentContent.getName()));
-        assertThat(flowComponent.getContent().getInvocationJavascriptName(), is(flowComponentContent.getInvocationJavascriptName()));
-        assertThat(flowComponent.getContent().getInvocationMethod(), is(flowComponentContent.getInvocationMethod()));
-        assertThat(flowComponent.getContent().getSvnProjectForInvocationJavascript(), is(flowComponentContent.getSvnProjectForInvocationJavascript()));
-        assertThat(flowComponent.getContent().getSvnRevision(), is(flowComponentContent.getSvnRevision()));
-        assertThat(flowComponent.getContent().getJavascripts().size(), is(flowComponentContent.getJavascripts().size()));
-
         // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT, id);
-
-        assertThat(rs.size(), is(1));
-        assertThat((String) rs.get(0).get(0), is(flowComponentContentJson));
+        final List<FlowComponent> flowComponents = flowStoreServiceConnector.findAllFlowComponents();
+        assertThat(flowComponents.size(), is(1));
     }
+
 
     /**
      * Given: a deployed flow-store service
@@ -110,83 +99,79 @@ public class FlowComponentsIT {
     }
 
     /**
-     * Given: a deployed flow-store service containing flow component resource
-     * When: adding flow component with the same name
-     * Then: request returns with a NOT ACCEPTABLE http status code
+     * Given: a deployed flow-store service containing flow resource
+     * When : adding flow component with the same name
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT ACCEPTABLE http status code
+     * And  : assert that one flow component exist in the underlying database
      */
     @Test
-    public void createFlowComponent_duplicateName() throws Exception {
-        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
-
+    public void createFlowComponent_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        createFlowComponent(restClient, baseUrl, flowComponentContent);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().setName("UniqueName").build();
 
-        // When...
-        final Response response = HttpClient.doPostWithJson(restClient, flowComponentContent, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        try {
+            flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+            // When...
+            flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+            fail("Primary key violation was not detected as input to createFlowComponent().");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
 
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+            // And...
+            assertThat(e.getStatusCode(), is(406));
+            // And...
+            List<FlowComponent> flowComponents = flowStoreServiceConnector.findAllFlowComponents();
+            assertThat(flowComponents.size(), is(1));
+        }
     }
 
     /**
      * Given: a deployed flow-store service containing no flow components
      * When: GETing flow components collection
-     * Then: request returns with a OK http status code
-     * And: request returns with empty list as JSON
+     * Then: request returns with empty list
      */
     @Test
-    public void findAllComponents_emptyResult() throws Exception {
+    public void findAllFlowComponents_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final List<FlowComponent> flowComponents = flowStoreServiceConnector.findAllFlowComponents();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-
-        // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(0));
+        assertThat(flowComponents, is(notNullValue()));
+        assertThat(flowComponents.size(), is(0));
     }
 
     /**
-     * Given: a deployed flow-store service containing three flow components
-     * When: GETing flow components collection
-     * Then: request returns with a OK http status code
-     * And: request returns with list as JSON of components sorted alphabetically by name
+     * Given: a deployed flow-store service containing three flows
+     * When: GETing flows collection
+     * Then: request returns with 3 flows
+     * And: the flows are sorted alphabetically by name
      */
     @Test
-    public void findAllComponents_Ok() throws Exception {
+    public void findAllFlowComponents_Ok() throws Exception {
         // Given...
-        // Given...
-        String flowComponentContent = new FlowComponentContentJsonBuilder()
-                .setName("c")
-                .build();
-        final long sortsThird = createFlowComponent(restClient, baseUrl, flowComponentContent);
+        final FlowComponentContent flowComponentContentA = new FlowComponentContentBuilder().setName("a").build();
+        final FlowComponentContent flowComponentContentB = new FlowComponentContentBuilder().setName("b").build();
+        final FlowComponentContent flowComponentContentC = new FlowComponentContentBuilder().setName("c").build();
 
-        flowComponentContent = new FlowComponentContentJsonBuilder()
-                .setName("a")
-                .build();
-        final long sortsFirst = createFlowComponent(restClient, baseUrl, flowComponentContent);
-
-        flowComponentContent = new FlowComponentContentJsonBuilder()
-                .setName("b")
-                .build();
-        final long sortsSecond = createFlowComponent(restClient, baseUrl, flowComponentContent);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        FlowComponent flowComponentSortsFirst = flowStoreServiceConnector.createFlowComponent(flowComponentContentA);
+        FlowComponent flowComponentSortsSecond = flowStoreServiceConnector.createFlowComponent(flowComponentContentB);
+        FlowComponent flowComponentSortsThird = flowStoreServiceConnector.createFlowComponent(flowComponentContentC);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        List<FlowComponent> listOfFlowComponents = flowStoreServiceConnector.findAllFlowComponents();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+        assertNotNull(listOfFlowComponents);
+        assertFalse(listOfFlowComponents.isEmpty());
+        assertThat(listOfFlowComponents.size(), is (3));
 
         // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(3));
-        assertThat(responseContentNode.get(0).get("id").longValue(), is(sortsFirst));
-        assertThat(responseContentNode.get(1).get("id").longValue(), is(sortsSecond));
-        assertThat(responseContentNode.get(2).get("id").longValue(), is(sortsThird));
+        assertThat(listOfFlowComponents.get(0).getContent().getName(), is(flowComponentSortsFirst.getContent().getName()));
+        assertThat(listOfFlowComponents.get(1).getContent().getName(), is(flowComponentSortsSecond.getContent().getName()));
+        assertThat(listOfFlowComponents.get(2).getContent().getName(), is(flowComponentSortsThird.getContent().getName()));
     }
 }

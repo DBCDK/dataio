@@ -31,7 +31,8 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  * exposed by the '/FlowStoreServiceConstants.FLOW_COMPONENTS' entry point
  */
 @Stateless
-@Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
+@Path("/")
+//@Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
 public class FlowComponentsBean {
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
 
@@ -50,6 +51,7 @@ public class FlowComponentsBean {
      *         a HTTP 500 response in case of general error.
      */
     @POST
+    @Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({MediaType.APPLICATION_JSON})
     public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JsonException {
@@ -69,6 +71,7 @@ public class FlowComponentsBean {
      * @throws JsonException on failure to create result list as JSON
      */
     @GET
+    @Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllComponents() throws JsonException {
         final TypedQuery<FlowComponent> query = entityManager.createNamedQuery(FlowComponent.QUERY_FIND_ALL, FlowComponent.class);

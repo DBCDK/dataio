@@ -2,6 +2,8 @@ package dk.dbc.dataio.common.utils.flowstore.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -98,6 +100,26 @@ public class FlowStoreServiceConnectorBean {
         LOGGER.debug("Retrieving all submitters");
         try{
             return getFlowStoreServiceConnector().findAllSubmitters();
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Creating new flowComponent");
+        try {
+            return getFlowStoreServiceConnector().createFlowComponent(flowComponentContent);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public List<FlowComponent> findAllFlowComponents() throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving all flow components");
+        try{
+            return getFlowStoreServiceConnector().findAllFlowComponents();
         }catch (NamingException e) {
             throw new EJBException(e);
         }

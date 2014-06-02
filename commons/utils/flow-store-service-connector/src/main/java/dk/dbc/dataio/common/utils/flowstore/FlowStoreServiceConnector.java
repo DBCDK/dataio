@@ -1,5 +1,7 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -142,11 +144,11 @@ public class FlowStoreServiceConnector {
      * Creates new submitter defined by the submitter content
      *
      * @param submitterContent submitter content
-     * @return Sink
+     * @return Submitter
      * @throws NullPointerException                                   if given null-valued argument
      * @throws ProcessingException                                    on general communication error
-     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if sink creation failed due to invalid input data
-     * @throws FlowStoreServiceConnectorException                     on general failure to create sink
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if submitter creation failed due to invalid input data
+     * @throws FlowStoreServiceConnectorException                     on general failure to create submitter
      */
     public Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(submitterContent, "submitterContent");
@@ -171,6 +173,46 @@ public class FlowStoreServiceConnector {
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() { });
+        } finally {
+            response.close();
+        }
+    }
+
+    // ********************************************* Flow component *********************************************
+
+    /**
+     * Creates new flow component defined by the flow component content
+     *
+     * @param flowComponentContent flow component content
+     * @return FlowComponent
+     * @throws NullPointerException                                   if given null-valued argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if flow component creation failed due to invalid input data
+     * @throws FlowStoreServiceConnectorException                     on general failure to create flow component
+     */
+    public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
+        InvariantUtil.checkNotNullOrThrow(flowComponentContent, "flowComponentContent");
+        final Response response = HttpClient.doPostWithJson(httpClient, flowComponentContent, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            return readResponseEntity(response, FlowComponent.class);
+        }finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves all flow components from the flow-store
+     *
+     * @return a list containing the flow components found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flow components
+     */
+    public List<FlowComponent> findAllFlowComponents()throws ProcessingException, FlowStoreServiceConnectorException{
+        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponent>>() { });
         } finally {
             response.close();
         }

@@ -3,6 +3,7 @@ package dk.dbc.dataio.common.utils.flowstore.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import org.junit.Before;
@@ -115,6 +116,32 @@ public class FlowStoreServiceConnectorBeanTest {
         try {
             flowStoreServiceConnectorBean.findAllSubmitters();
             fail("No exception thrown by findAllSubmitters()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
+    public void createFlowComponent_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.createFlowComponent(new FlowComponentContentBuilder().build());
+            fail("No exception thrown by createFlowComponent()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
+    public void findAllFlowComponents_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.findAllFlowComponents();
+            fail("No exception thrown by findAllFlowComponents()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));
         }

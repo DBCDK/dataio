@@ -77,15 +77,18 @@ public abstract class AbstractMessageConsumerBean {
      * Subsequently the message is handled by calling the handleConsumedMessage()
      * method. Any exception (checked or unchecked) thrown after the validation step
      * that is not an InvalidMessageJobProcessorException causes the message to be put
-     * back on the queue.
+     * back on the queue after a suitable wait period handled by the backoffBeforeRetry
+     * method.
      *
      * @param message message received
      */
     public void onMessage(Message message) {
         String messageId = null;
+        int messageDeliveryCount = 0;
         try {
             final ConsumedMessage consumedMessage = validateMessage(message);
             messageId = consumedMessage.getMessageId();
+            messageDeliveryCount = message.getIntProperty(DELIVERY_COUNT_PROPERTY);
             handleConsumedMessage(consumedMessage);
         } catch (InvalidMessageException e) {
             LOGGER.error("Message rejected", e);
@@ -94,6 +97,7 @@ public abstract class AbstractMessageConsumerBean {
             // and therefore that this message subsequently will be re-delivered.
             messageDrivenContext.setRollbackOnly();
             LOGGER.error("Exception caught while processing message<{}>: {}", messageId, t);
+            backoffBeforeRetry(messageDeliveryCount);
         }
     }
 
@@ -106,4 +110,19 @@ public abstract class AbstractMessageConsumerBean {
      * @throws ServiceException
      */
     public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException;
+
+    /**
+     * Performs default exponential backoff wait
+     * @param deliveryCount number of times message has been re-delivered
+     */
+    public void backoffBeforeRetry(int deliveryCount) {
+        // Calculate the next wait interval, in milliseconds, using an exponential
+        // backoff algorithm.
+        final long waitTime = ((long) Math.pow(2, deliveryCount) * 100L);
+        try {
+            Thread.sleep(waitTime);
+        } catch (InterruptedException e) {
+            LOGGER.info("Interrupted while backing off for failure retry");
+        }
+    }
 }

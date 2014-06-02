@@ -32,7 +32,6 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  */
 @Stateless
 @Path("/")
-//@Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
 public class FlowComponentsBean {
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
 

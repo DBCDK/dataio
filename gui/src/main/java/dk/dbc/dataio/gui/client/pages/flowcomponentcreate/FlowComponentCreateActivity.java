@@ -4,6 +4,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.RevisionInfo;
@@ -140,14 +141,14 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
 
     private void saveFlowComponentWithJavaScripts(String componentName, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javaScripts, String invocationMethod) {
         final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javaScripts, invocationMethod);
-        flowStoreProxy.createFlowComponent(flowComponentContent, new FilteredAsyncCallback<Void>() {
+        flowStoreProxy.createFlowComponent(flowComponentContent, new FilteredAsyncCallback<FlowComponent>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowComponentCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override
-            public void onSuccess(Void aVoid) {
+            public void onSuccess(FlowComponent flowComponent) {
                 flowComponentCreateView.onSuccess(constants.status_FlowComponentSuccessfullySaved());
             }
         });

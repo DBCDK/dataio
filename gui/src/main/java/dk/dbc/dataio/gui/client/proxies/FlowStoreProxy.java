@@ -22,7 +22,7 @@ public interface FlowStoreProxy extends RemoteService {
 
     void createFlow(FlowContent flowContent) throws NullPointerException, ProxyException;
     void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException;
-    void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
+    FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
     Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException;
     Sink createSink(SinkContent sinkContent) throws NullPointerException, ProxyException;
 
@@ -30,7 +30,7 @@ public interface FlowStoreProxy extends RemoteService {
 
     List<Flow> findAllFlows() throws ProxyException;
     List<FlowBinder> findAllFlowBinders() throws ProxyException;
-    List<FlowComponent> findAllComponents() throws ProxyException;
+    List<FlowComponent> findAllFlowComponents() throws ProxyException;
     List<Submitter> findAllSubmitters() throws ProxyException;
     List<Sink> findAllSinks() throws ProxyException;
 

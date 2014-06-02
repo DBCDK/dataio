@@ -17,7 +17,7 @@ import java.util.List;
 public interface FlowStoreProxyAsync {
     void createFlow(FlowContent flowContent, AsyncCallback<Void> callback);
     void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<Void> async);
-    void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<Void> async);
+    void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<FlowComponent> async);
     void createSubmitter(SubmitterContent submitterContent, AsyncCallback<Submitter> async);
     void createSink(SinkContent sinkContent, AsyncCallback<Sink> async);
 
@@ -25,7 +25,7 @@ public interface FlowStoreProxyAsync {
 
     void findAllFlows(AsyncCallback<List<Flow>> async);
     void findAllFlowBinders(AsyncCallback<List<FlowBinder>> async);
-    void findAllComponents(AsyncCallback<List<FlowComponent>> async);
+    void findAllFlowComponents(AsyncCallback<List<FlowComponent>> async);
     void findAllSubmitters(AsyncCallback<List<Submitter>> async);
     void findAllSinks(AsyncCallback<List<Sink>> async);
 

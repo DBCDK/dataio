@@ -3,6 +3,8 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -11,6 +13,8 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
@@ -215,7 +219,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Sink sink = new SinkBuilder().setId(SINK_ID).setVersion(1).build();
-        when(flowStoreServiceConnector.updateSink(eq(sink.getContent()),(eq(sink.getId())),(eq(sink.getVersion()))))
+        when(flowStoreServiceConnector.updateSink(eq(sink.getContent()), (eq(sink.getId())), (eq(sink.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
             flowStoreProxy.updateSink(sink.getContent(), sink.getId(), sink.getVersion());
@@ -245,7 +249,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Sink sink = new SinkBuilder().setId(SINK_ID).setVersion(1).build();
-        when(flowStoreServiceConnector.updateSink(eq(sink.getContent()),(eq(sink.getId())),(eq(sink.getVersion()))))
+        when(flowStoreServiceConnector.updateSink(eq(sink.getContent()), (eq(sink.getId())), (eq(sink.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 406));
         try {
             flowStoreProxy.updateSink(sink.getContent(), sink.getId(), sink.getVersion());
@@ -260,7 +264,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Sink sink = new SinkBuilder().setId(SINK_ID).setVersion(1).build();
-        when(flowStoreServiceConnector.updateSink(eq(sink.getContent()),(eq(sink.getId())),(eq(sink.getVersion()))))
+        when(flowStoreServiceConnector.updateSink(eq(sink.getContent()), (eq(sink.getId())), (eq(sink.getVersion()))))
                 .thenReturn(sink);
 
         try {
@@ -383,5 +387,88 @@ public class FlowStoreProxyImplTest {
         final List<FlowBinder> allFlowBinders = flowStoreProxy.findAllFlowBinders();
         assertThat(allFlowBinders.size(), is(1));
         assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
+    }
+
+    /*
+     * Test createFlowComponent
+     */
+    @Test
+    public void createFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        when(flowStoreServiceConnector.createFlowComponent(eq(flowComponentContent))).
+                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.createFlowComponent(flowComponentContent);
+            fail("No INTERNAL_SERVER_ERROR error was thrown by createFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void createFlowComponent_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        when(flowStoreServiceConnector.createFlowComponent(eq(flowComponentContent))).
+                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 406));
+        try {
+            flowStoreProxy.createFlowComponent(flowComponentContent);
+            fail("No NOT_ACCEPTABLE error was thrown by createFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.NOT_ACCEPTABLE));
+        }
+    }
+
+    @Test
+    public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowComponentEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final FlowComponent flowComponent = new FlowComponentBuilder().build();
+        when(flowStoreServiceConnector.createFlowComponent(flowComponentContent)).thenReturn(flowComponent);
+
+        try {
+            final FlowComponent createdFlowComponent  = flowStoreProxy.createFlowComponent(flowComponentContent);
+            assertNotNull(createdFlowComponent);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createFlowComponent()");
+        }
+    }
+
+    /*
+     * Test findAllFlowComponents
+     */
+    @Test
+    public void findAllFlowComponents_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findAllFlowComponents()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.findAllFlowComponents();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlowComponenst()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllFlowComponents_remoteServiceReturnsHttpStatusOk_returnsListOfFlowComponentEntity() throws Exception {
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowComponent flowComponent = new FlowComponentBuilder().setId(1L).build();
+
+        when(flowStoreServiceConnector.findAllFlowComponents()).thenReturn(Arrays.asList(flowComponent));
+        try {
+            final List<FlowComponent> allFlowComponents  = flowStoreProxy.findAllFlowComponents();
+            assertNotNull(allFlowComponents);
+            assertThat(allFlowComponents.size(), is(1));
+            assertThat(allFlowComponents.get(0).getId(), is(flowComponent.getId()));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: findAllFlowComponents()");
+        }
     }
 }

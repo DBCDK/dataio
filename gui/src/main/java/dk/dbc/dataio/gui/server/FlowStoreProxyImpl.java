@@ -66,19 +66,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException {
-        final Response response;
+    public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException {
+        FlowComponent flowComponent;
         try {
-            response = HttpClient.doPostWithJson(client, flowComponentContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_COMPONENTS);
-        } catch (ServletException e) {
+            flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        try {
-            assertStatusCode(response, Response.Status.CREATED);
-        } finally {
-            response.close();
-        }
+        return flowComponent;
     }
 
     @Override
@@ -137,19 +134,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<FlowComponent> findAllComponents() throws ProxyException {
-        final Response response;
+    public List<FlowComponent> findAllFlowComponents() throws ProxyException {
         final List<FlowComponent> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_COMPONENTS);
-        } catch (ServletException e) {
+            result = flowStoreServiceConnector.findAllFlowComponents();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        try {
-            assertStatusCode(response, Response.Status.OK);
-            result = response.readEntity(new GenericType<List<FlowComponent>>() { });
-        } finally {
-            response.close();
         }
         return result;
     }

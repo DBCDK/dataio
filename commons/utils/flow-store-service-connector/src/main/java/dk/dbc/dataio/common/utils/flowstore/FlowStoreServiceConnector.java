@@ -1,7 +1,9 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -218,6 +220,68 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    // ************************************************** Flow **************************************************
+
+    /**
+     * Creates new flow defined by the flow content
+     *
+     * @param flowContent flow content
+     * @return Flow
+     * @throws NullPointerException                                   if given null-valued argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if flow creation failed due to invalid input data
+     * @throws FlowStoreServiceConnectorException                     on general failure to create flow
+     */
+    public Flow createFlow(FlowContent flowContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
+        InvariantUtil.checkNotNullOrThrow(flowContent, "flowContent");
+        final Response response = HttpClient.doPostWithJson(httpClient, flowContent, baseUrl, FlowStoreServiceConstants.FLOWS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            return readResponseEntity(response, Flow.class);
+        }finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves the specified flow from the flow-store
+     *
+     * @param flowId Id of the flow
+     * @return the flow found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flow
+     */
+    public Flow getFlow(long flowId) throws ProcessingException, FlowStoreServiceConnectorException {
+        final Map<String, String> pathVariables = new HashMap<>(1);
+        pathVariables.put(FlowStoreServiceConstants.FLOW_ID_VARIABLE, Long.toString(flowId));
+        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.FLOW, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path);
+
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, Flow.class);
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves all flows from the flow-store
+     *
+     * @return a list containing the flows found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
+     */
+    public List<Flow> findAllFlows()throws ProcessingException, FlowStoreServiceConnectorException{
+        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOWS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() { });
+        } finally {
+            response.close();
+        }
+    }
+
     // ******************************************** Private helper methods ********************************************
 
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {
@@ -237,7 +301,7 @@ public class FlowStoreServiceConnector {
         return entity;
     }
 
-        private <T> T readResponseGenericTypeEntity(Response response, GenericType<T> tGenericType) throws FlowStoreServiceConnectorException {
+    private <T> T readResponseGenericTypeEntity(Response response, GenericType<T> tGenericType) throws FlowStoreServiceConnectorException {
         response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
         final T entity =response.readEntity(tGenericType);
         if (entity == null) {

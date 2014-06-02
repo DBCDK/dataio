@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -32,11 +33,12 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  * exposed by the '/{@code FLOWS_ENTRY_POINT}' entry point
  */
 @Stateless
-@Path(FlowStoreServiceConstants.FLOWS)
+@Path("/")
 public class FlowsBean {
     private static final Logger log = LoggerFactory.getLogger(FlowsBean.class);
 
     private static final String NOT_FOUND_MESSAGE = "resource not found";
+    private static final String FLOW_CONTENT_DISPLAY_TEXT = "flowContent";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -51,9 +53,9 @@ public class FlowsBean {
      *         a HTTP 500 response in case of general error.
      */
     @GET
-    @Path("/{id}")
+    @Path(FlowStoreServiceConstants.FLOW)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlow(@PathParam("id") Long id) throws JsonException {
+    public Response getFlow(@PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id) throws JsonException {
         final Flow flow = entityManager.find(Flow.class, id);
         if (flow == null) {
             return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
@@ -68,7 +70,7 @@ public class FlowsBean {
      * @param uriInfo application and request URI information
      * @param flowContent flow data as JSON string
      *
-     * @return a HTTP 201 response with a Location header containing the URL value of the newly created resource
+     * @return a HTTP 201 response with flow content as JSON
      *         a HTTP 400 BAD_REQUEST response on invalid json content.
      *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
      *         a HTTP 500 response in case of general error.
@@ -78,14 +80,18 @@ public class FlowsBean {
      *                       members
      */
     @POST
+    @Path(FlowStoreServiceConstants.FLOWS)
     @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response createFlow(@Context UriInfo uriInfo, String flowContent) throws JsonException {
         log.trace("Called with: '{}'", flowContent);
 
+        InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
+
         final Flow flow = saveAsVersionedEntity(entityManager, Flow.class, flowContent);
         entityManager.flush();
-
-        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).build();
+        final String flowJson = JsonUtil.toJson(flow);
+        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flowJson).build();
     }
 
     /**
@@ -96,6 +102,7 @@ public class FlowsBean {
      * @throws JsonException on failure to create result list as JSON
      */
     @GET
+    @Path(FlowStoreServiceConstants.FLOWS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllFlows() throws JsonException {
         final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);

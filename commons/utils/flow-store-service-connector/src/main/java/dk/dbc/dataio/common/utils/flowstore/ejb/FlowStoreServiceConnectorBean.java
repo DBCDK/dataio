@@ -2,8 +2,10 @@ package dk.dbc.dataio.common.utils.flowstore.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -100,6 +102,36 @@ public class FlowStoreServiceConnectorBean {
         LOGGER.debug("Retrieving all submitters");
         try{
             return getFlowStoreServiceConnector().findAllSubmitters();
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public Flow createFlow(FlowContent flowContent) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Creating new flow");
+        try {
+            return getFlowStoreServiceConnector().createFlow(flowContent);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public Flow getFlow(long flowId) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving flow with id: " + flowId);
+        try {
+            return getFlowStoreServiceConnector().getFlow(flowId);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public List<Flow> findAllFlows() throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving all flows");
+        try{
+            return getFlowStoreServiceConnector().findAllFlows();
         }catch (NamingException e) {
             throw new EJBException(e);
         }

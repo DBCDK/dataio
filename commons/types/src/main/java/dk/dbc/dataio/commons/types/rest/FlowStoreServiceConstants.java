@@ -7,12 +7,12 @@ public class FlowStoreServiceConstants {
     public static final String SUBMITTERS = "submitters";
     public static final String SINKS = "sinks";
 
-    public static final String SINKS_CONTENT_VARIABLE = "content";
     public static final String SINK_ID_VARIABLE = "id";
     public static final String SINK_VERSION_VARIABLE = "version";
+    public static final String FLOW_ID_VARIABLE = "id";
 
-    //---------
     public static final String SINK = "sinks/{id}";
+    public static final String FLOW = "flows/{id}";
     public static final String SINK_CONTENT = "sinks/{id}/{version}/content";
 
 

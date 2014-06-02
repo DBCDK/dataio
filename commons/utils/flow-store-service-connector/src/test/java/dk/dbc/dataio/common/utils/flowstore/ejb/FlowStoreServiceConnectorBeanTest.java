@@ -4,6 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import org.junit.Before;
@@ -116,6 +117,46 @@ public class FlowStoreServiceConnectorBeanTest {
         try {
             flowStoreServiceConnectorBean.findAllSubmitters();
             fail("No exception thrown by findAllSubmitters()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
+    public void createFlow_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.createFlow(new FlowContentBuilder().build());
+            fail("No exception thrown by createFlow()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
+    public void getFlow_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            long flowId = 1;
+            flowStoreServiceConnectorBean.getFlow(flowId);
+            fail("No exception thrown by getFlow()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
+    public void findAllFlows_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.findAllFlows();
+            fail("No exception thrown by findAllFlows()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));
         }

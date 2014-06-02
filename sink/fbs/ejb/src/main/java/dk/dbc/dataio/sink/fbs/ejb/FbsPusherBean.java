@@ -3,6 +3,7 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.sink.fbs.types.FbsSinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ public class FbsPusherBean {
     UpdateMarcExchangeConnectorBean updateMarcExchangeConnector;
     */
 
-    public SinkChunkResult push(ChunkResult chunkResult) {
+    public SinkChunkResult push(ChunkResult chunkResult) throws FbsSinkException {
         final SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(),
                 chunkResult.getChunkId(), chunkResult.getEncoding(), new ArrayList<ChunkItem>());
         for (ChunkItem chunkItem : chunkResult.getItems()) {

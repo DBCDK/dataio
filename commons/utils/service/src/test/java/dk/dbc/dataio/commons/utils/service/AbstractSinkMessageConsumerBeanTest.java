@@ -16,9 +16,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class AbstractSinkMessageConsumerBeanTest {
-    private static String messageId = "id";
-    private static String payloadType = "ChunkResult";
-    private static String payload = new ChunkResultJsonBuilder().build();
+    private static final String MESSAGE_ID = "id";
+    private static final String PAYLOAD_TYPE = "ChunkResult";
+    private static final String PAYLOAD = new ChunkResultJsonBuilder().build();
 
     @Test(expected = NullPointerException.class)
     public void unmarshallPayload_consumedMessageArgIsNull_throws() throws InvalidMessageException {
@@ -27,26 +27,26 @@ public class AbstractSinkMessageConsumerBeanTest {
 
     @Test(expected = InvalidMessageException.class)
     public void unmarshallPayload_consumedMessageArgContainsUnexpectedPayloadType_throws() throws InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, "notExpectedPayloadType", payload);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, "notExpectedPayloadType", PAYLOAD);
         getInitializedBean().unmarshallPayload(consumedMessage);
     }
 
     @Test(expected = InvalidMessageException.class)
     public void unmarshallPayload_consumedMessageArgPayloadCanNotBeUnmarshalled_throws() throws InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, "payload");
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, "payload");
         getInitializedBean().unmarshallPayload(consumedMessage);
     }
 
     @Test(expected = InvalidMessageException.class)
     public void unmarshallPayload_consumedMessageArgPayloadIsEmptyChunkResult_throws() throws InvalidMessageException {
         final String emptyChunkResult = new ChunkResultJsonBuilder().setItems(Collections.<String>emptyList()).build();
-        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, emptyChunkResult);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, emptyChunkResult);
         getInitializedBean().unmarshallPayload(consumedMessage);
     }
 
     @Test
     public void unmarshallPayload_consumedMessageArgIsValid_returnsChunkResultInstance() throws InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, payload);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
         final ChunkResult chunkResult = getInitializedBean().unmarshallPayload(consumedMessage);
         assertThat(chunkResult, is(notNullValue()));
     }

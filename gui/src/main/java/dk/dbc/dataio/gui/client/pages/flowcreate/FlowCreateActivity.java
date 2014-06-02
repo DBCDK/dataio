@@ -4,6 +4,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -48,11 +49,12 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
         bind();
         containerWidget.setWidget(flowCreateView.asWidget());
         flowCreateView.clearFields();
-        flowStoreProxy.findAllComponents(new FilteredAsyncCallback<List<FlowComponent>>() {
+        flowStoreProxy.findAllFlowComponents(new FilteredAsyncCallback<List<FlowComponent>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 onFailureSendExceptionToView(e);
             }
+
             @Override
             public void onSuccess(List<FlowComponent> result) {
                 Map<String, String> flowComponentsToView = new HashMap<String, String>();
@@ -78,13 +80,13 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
             flowComponents.add(availableFlowComponents.get(flowComponentId));
         }
         final FlowContent flowContent = new FlowContent(name, description, flowComponents);
-        flowStoreProxy.createFlow(flowContent, new FilteredAsyncCallback<Void>() {
+        flowStoreProxy.createFlow(flowContent, new FilteredAsyncCallback<Flow>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 onFailureSendExceptionToView(e);
             }
             @Override
-            public void onSuccess(Void aVoid) {
+            public void onSuccess(Flow flow) {
                 flowCreateView.onSuccess(constants.status_FlowSuccessfullySaved());
             }
         });

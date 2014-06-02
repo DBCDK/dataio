@@ -2,9 +2,11 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -13,8 +15,10 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
@@ -52,7 +56,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class FlowStoreProxyImplTest {
     private final String flowStoreServiceUrl = "http://dataio/flow-service";
     private final Client client = mock(Client.class);
-    private final static long SINK_ID = 1L;
+    private final static long ID = 1L;
 
     @Before
     public void setup() throws Exception {
@@ -139,9 +143,9 @@ public class FlowStoreProxyImplTest {
     public void getSink_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.getSink(eq(SINK_ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        when(flowStoreServiceConnector.getSink(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.getSink(SINK_ID);
+            flowStoreProxy.getSink(ID);
             fail("No INTERNAL_SERVER_ERROR was thrown by getSink()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -152,8 +156,8 @@ public class FlowStoreProxyImplTest {
     public void getSink_remoteServiceReturnsHttpStatusOk_returnsSinkEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Sink sink = new SinkBuilder().setId(SINK_ID).build();
-        when(flowStoreServiceConnector.getSink(eq(SINK_ID))).thenReturn(sink);
+        final Sink sink = new SinkBuilder().setId(ID).build();
+        when(flowStoreServiceConnector.getSink(eq(ID))).thenReturn(sink);
 
         try {
             final Sink retrievedSink  = flowStoreProxy.getSink(sink.getId());
@@ -167,10 +171,10 @@ public class FlowStoreProxyImplTest {
     public void getSink_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.getSink(eq(SINK_ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 404));
+        when(flowStoreServiceConnector.getSink(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 404));
 
         try {
-            flowStoreProxy.getSink(SINK_ID);
+            flowStoreProxy.getSink(ID);
             fail("No ENTITY_NOT_FOUND error was thrown by getSink()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.ENTITY_NOT_FOUND));
@@ -198,7 +202,7 @@ public class FlowStoreProxyImplTest {
 
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Sink sink = new SinkBuilder().setId(SINK_ID).build();
+        final Sink sink = new SinkBuilder().setId(ID).build();
 
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Arrays.asList(sink));
         try {
@@ -218,7 +222,7 @@ public class FlowStoreProxyImplTest {
     public void updateSink_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Sink sink = new SinkBuilder().setId(SINK_ID).setVersion(1).build();
+        final Sink sink = new SinkBuilder().setId(ID).setVersion(1).build();
         when(flowStoreServiceConnector.updateSink(eq(sink.getContent()), (eq(sink.getId())), (eq(sink.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
@@ -233,7 +237,7 @@ public class FlowStoreProxyImplTest {
     public void updateSink_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Sink sink = new SinkBuilder().setId(SINK_ID).setVersion(1).build();
+        final Sink sink = new SinkBuilder().setId(ID).setVersion(1).build();
         when(flowStoreServiceConnector.updateSink(eq(sink.getContent()),(eq(sink.getId())),(eq(sink.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 409));
         try {
@@ -248,7 +252,7 @@ public class FlowStoreProxyImplTest {
     public void updateSink_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Sink sink = new SinkBuilder().setId(SINK_ID).setVersion(1).build();
+        final Sink sink = new SinkBuilder().setId(ID).setVersion(1).build();
         when(flowStoreServiceConnector.updateSink(eq(sink.getContent()), (eq(sink.getId())), (eq(sink.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 406));
         try {
@@ -263,7 +267,7 @@ public class FlowStoreProxyImplTest {
     public void updateSink_remoteServiceReturnsHttpStatusOk_returnsSinkEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final Sink sink = new SinkBuilder().setId(SINK_ID).setVersion(1).build();
+        final Sink sink = new SinkBuilder().setId(ID).setVersion(1).build();
         when(flowStoreServiceConnector.updateSink(eq(sink.getContent()), (eq(sink.getId())), (eq(sink.getVersion()))))
                 .thenReturn(sink);
 
@@ -359,6 +363,90 @@ public class FlowStoreProxyImplTest {
             fail("Unexpected error when calling: findAllSubmitters()");
         }
     }
+
+    /*
+    * Test createFlow
+    */
+    @Test
+    public void createFlow_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        FlowContent flowContent = new FlowContentBuilder().build();
+        when(flowStoreServiceConnector.createFlow(eq(flowContent))).
+                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.createFlow(flowContent);
+            fail("No INTERNAL_SERVER_ERROR error was thrown by createFlow()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void createFlow_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        FlowContent flowContent = new FlowContentBuilder().build();
+        when(flowStoreServiceConnector.createFlow(eq(flowContent))).
+                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 406));
+        try {
+            flowStoreProxy.createFlow(flowContent);
+            fail("No NOT_ACCEPTABLE error was thrown by createFlow()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.NOT_ACCEPTABLE));
+        }
+    }
+
+    @Test
+    public void createFlow_remoteServiceReturnsHttpStatusCreated_returnsFlowEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowContent flowContent = new FlowContentBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        when(flowStoreServiceConnector.createFlow(flowContent)).thenReturn(flow);
+
+        try {
+            final Flow createdFlow  = flowStoreProxy.createFlow(flowContent);
+            assertNotNull(createdFlow);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createFlow()");
+        }
+    }
+
+    /*
+    * Test findAllFlows
+    */
+    @Test
+    public void findAllFlows_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findAllFlows()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.findAllFlows();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlows()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllFlows_remoteServiceReturnsHttpStatusOk_returnsListOfFlowEntity() throws Exception {
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final Flow flow = new FlowBuilder().setId(ID).build();
+
+        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Arrays.asList(flow));
+        try {
+            final List<Flow> allFlows  = flowStoreProxy.findAllFlows();
+            assertNotNull(allFlows);
+            assertThat(allFlows.size(), is(1));
+            assertThat(allFlows.get(0).getId(), is(flow.getId()));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: findAllFlows()");
+        }
+    }
+
 
     /*
      * Test findAllFlowBinders

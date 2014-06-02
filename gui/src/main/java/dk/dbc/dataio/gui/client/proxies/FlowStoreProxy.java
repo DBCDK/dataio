@@ -20,7 +20,7 @@ import java.util.List;
 @RemoteServiceRelativePath("FlowStoreProxy")
 public interface FlowStoreProxy extends RemoteService {
 
-    void createFlow(FlowContent flowContent) throws NullPointerException, ProxyException;
+    Flow createFlow(FlowContent flowContent) throws NullPointerException, ProxyException;
     void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException;
     FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
     Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException;

@@ -50,19 +50,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createFlow(FlowContent flowContent) throws NullPointerException, ProxyException {
-        final Response response;
+    public Flow createFlow(FlowContent flowContent) throws NullPointerException, ProxyException {
+        Flow flow;
         try {
-            response = HttpClient.doPostWithJson(client, flowContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOWS);
-        } catch (ServletException e) {
+            flow = flowStoreServiceConnector.createFlow(flowContent);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        try {
-            assertStatusCode(response, Response.Status.CREATED);
-        } finally {
-            response.close();
-        }
+        return flow;
     }
 
     @Override
@@ -161,18 +158,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     @Override
     public List<Flow> findAllFlows() throws ProxyException {
-        final Response response;
         final List<Flow> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOWS);
-        } catch (ServletException e) {
+            result = flowStoreServiceConnector.findAllFlows();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        try {
-            assertStatusCode(response, Response.Status.OK);
-            result = response.readEntity(new GenericType<List<Flow>>() { });
-        } finally {
-            response.close();
         }
         return result;
     }

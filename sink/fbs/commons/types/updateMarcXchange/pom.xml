@@ -13,28 +13,86 @@
   <artifactId>dataio-sink-fbs-commons-types-updateMarcXchange</artifactId>
   <name>commons-types-updateMarcXchange</name>
 
+  <properties>
+      <path.to.wsdl>/dk/dbc/dataio/sink/fbs</path.to.wsdl>
+      <download.dir>${project.build.directory}/download${path.to.wsdl}</download.dir>
+      <wsdl.url>http://oss-services.dbc.dk/opencat/WSContracts/updateMarcXchange/trunk</wsdl.url>
+  </properties>
+
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.jvnet.jax-ws-commons</groupId>
-        <artifactId>jaxws-maven-plugin</artifactId>
-        <version>${maven.jaxws.plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>wsimport</goal>
-            </goals>
-            <configuration>
-              <wsdlUrls>
-                <wsdlUrl>${opencataloging.updatemarcxchange.ws.wsdl}</wsdlUrl>
-              </wsdlUrls>
-              <destDir>${wsimport.generated.sources.pmdignore}</destDir>
-              <target>${jaxws.version}</target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
+
+        <resources>
+            <resource>
+                <directory>${project.build.directory}/download</directory>
+            </resource>
+        </resources>
+
+      <plugins>
+          <plugin>
+              <groupId>com.googlecode.maven-download-plugin</groupId>
+              <artifactId>maven-download-plugin</artifactId>
+              <version>1.1.0</version>
+              <executions>
+                  <execution>
+                      <id>get wsdl</id>
+                      <phase>generate-resources</phase>
+                      <goals>
+                          <goal>wget</goal>
+                      </goals>
+                      <configuration>
+                          <url>${wsdl.url}/updateMarcXchange.wsdl</url>
+                          <outputDirectory>${download.dir}</outputDirectory>
+                      </configuration>
+                  </execution>
+                  <execution>
+                      <id>get first xsd</id>
+                      <phase>generate-resources</phase>
+                      <goals>
+                          <goal>wget</goal>
+                      </goals>
+                      <configuration>
+                          <url>${wsdl.url}/updateMarcXchange.xsd</url>
+                          <outputDirectory>${download.dir}</outputDirectory>
+                      </configuration>
+                  </execution>
+                  <execution>
+                      <id>get second xsd</id>
+                      <phase>generate-resources</phase>
+                      <goals>
+                          <goal>wget</goal>
+                      </goals>
+                      <configuration>
+                          <url>${wsdl.url}/marcxchange-1-1.xsd</url>
+                          <outputDirectory>${download.dir}</outputDirectory>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+
+          <plugin>
+              <groupId>org.jvnet.jax-ws-commons</groupId>
+              <artifactId>jaxws-maven-plugin</artifactId>
+              <version>${maven.jaxws.plugin.version}</version>
+              <executions>
+                  <execution>
+                      <phase>generate-resources</phase>
+                      <goals>
+                          <goal>wsimport</goal>
+                      </goals>
+                      <configuration>
+                          <destDir>${wsimport.generated.sources.pmdignore}</destDir>
+                          <target>${jaxws.version}</target>
+                          <wsdlLocation>${path.to.wsdl}/updateMarcXchange.wsdl</wsdlLocation>
+                          <wsdlDirectory>${download.dir}</wsdlDirectory>
+                          <wsdlFiles>
+                              <wsdlFile>updateMarcXchange.wsdl</wsdlFile>
+                          </wsdlFiles>
+
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+      </plugins>
   </build>
 
 </project>

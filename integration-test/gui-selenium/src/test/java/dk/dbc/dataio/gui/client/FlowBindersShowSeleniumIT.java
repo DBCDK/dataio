@@ -2,9 +2,15 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
@@ -78,10 +84,10 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
         // Create necessary elements:
         createTestSubmitter(11);  // Submitter #11
         createTestSubmitter(12);  // Submitter #12
-        createTestFlowComponent(webDriver, 13);  // FlowComponent #13
-        createTestFlowComponent(webDriver, 110);  // FlowComponent #110
-        createTestFlow(webDriver, 14, 13);  // Flow #14, containing FlowComponent #13
-        createTestFlow(webDriver, 18, 110);  // Flow #18, containing FlowComponent #110
+        FlowComponent flowComponent13 = createTestFlowComponent(13);    // FlowComponent #13
+        FlowComponent flowComponent110 = createTestFlowComponent(110);  // FlowComponent #110
+        createTestFlow(14, java.util.Arrays.asList(flowComponent13));   // Flow #14, containing FlowComponent #13
+        createTestFlow(18, java.util.Arrays.asList(flowComponent110));  // Flow #18, containing FlowComponent #110
         createTestSink(15);  // Sink #15
         createTestSink(19);  // Sink #19
         createTestFlowBinder(webDriver, 16, Arrays.asList(11), 14, 15);  // Flowbinder #6 containing Submitters (#1), Flow #4 and Sink #5
@@ -146,16 +152,22 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
         flowStoreServiceConnector.createSink(sinkContent);
     }
 
-    private void createTestFlow(WebDriver webDriver, int flowNumber, int flowComponentNumber) {
-        FlowCreationSeleniumIT.createTestFlow(webDriver,
-                                              subjectNameString(FLOW_NAME, flowNumber),
-                                              subjectNameString(FLOW_DESCRIPTION, flowNumber),
-                                              subjectNameString(FLOW_COMPONENT_NAME, flowComponentNumber));
+    private static Flow createTestFlow(int flowNumber, List<FlowComponent> flowComponents) throws Exception{
+        FlowContent flowContent = new FlowContentBuilder()
+                .setName(subjectNameString(FLOW_NAME, flowNumber))
+                .setDescription(subjectNameString(FLOW_DESCRIPTION, flowNumber))
+                .setComponents(flowComponents)
+                .build();
+
+        return flowStoreServiceConnector.createFlow(flowContent);
     }
 
-    private void createTestFlowComponent(WebDriver webDriver, int number) {
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver,
-                                                                subjectNameString(FLOW_COMPONENT_NAME, number));
+    private static FlowComponent createTestFlowComponent(int number) throws Exception{
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName(subjectNameString(FLOW_COMPONENT_NAME, number))
+                .build();
+
+        return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
     }
 
     private void createTestFlowBinder(WebDriver webDriver, int flowBinder, List<Integer> submitters, int flow, int sink) {

@@ -3,11 +3,17 @@ package dk.dbc.dataio.gui.client;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
@@ -115,13 +121,11 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     // This can, for some reason, not be included with the other visibility tests
     @Test
-    public void testFlowbinderCreationFlowListIsVisibleAndAnElementCanBeSelected() {
-        String flowComponentName = "flowComponent";
-        String flowName = "flowName";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
-        FlowCreationSeleniumIT.createTestFlow(webDriver, flowName, "description", flowComponentName);
+    public void testFlowbinderCreationFlowListIsVisibleAndAnElementCanBeSelected() throws Exception {
+        FlowComponent flowComponent = createTestFlowComponent("flowComponent");
+        Flow flow = createTestFlow("flowName", "flowDescription", java.util.Arrays.asList(flowComponent));
         navigateToFlowbinderCreationWidget(webDriver);
-        SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(webDriver, findFlowListElement(webDriver), flowName);
+        SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(webDriver, findFlowListElement(webDriver), flow.getContent().getName());
     }
 
     // This can, for some reason, not be included with the other visibility tests
@@ -200,11 +204,12 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testSaveButton_emptySubmitterInputField_displayErrorPopup() throws Exception{
         Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
-        String flow = createDefaultFlow();
+        FlowComponent flowComponent = createTestFlowComponent("flowComponent12");
+        Flow flow = createTestFlow("flowName12", "description", java.util.Arrays.asList(flowComponent));
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
         selectSinkWhenInFlowbinderCreationWidget(sink.getContent().getName());
-        selectFlowWhenInFlowbinderCreationWidget(flow);
+        selectFlowWhenInFlowbinderCreationWidget(flow.getContent().getName());
         findSaveButtonElement(webDriver).click();
         assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
     }
@@ -224,11 +229,12 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testSaveButton_emptySinkInputField_displayErrorPopup() throws Exception{
         Submitter submitter = createTestSubmitter("defaultSubmitter", 123456L);
-        String flow = createDefaultFlow();
+        FlowComponent flowComponent = createTestFlowComponent("flowComponent12");
+        Flow flow = createTestFlow("flowName12", "description", java.util.Arrays.asList(flowComponent));
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
         selectSubmitterWhenInFlowbinderCreationWidget(createSubmitterDisplayName(submitter));
-        selectFlowWhenInFlowbinderCreationWidget(flow);
+        selectFlowWhenInFlowbinderCreationWidget(flow.getContent().getName());
         findSaveButtonElement(webDriver).click();
         assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
     }
@@ -285,13 +291,10 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testFlowBinderCreationFlowInputFieldUpdate_clearsSaveResultLabel() throws Exception{
-        final String flowComponentName = "anotherFlowComponent";
-        final String flowName = "anotherFlow";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
-        FlowCreationSeleniumIT.createTestFlow(webDriver, flowName, "description", flowComponentName);
-        navigateToFlowbinderCreationWidget(webDriver);
+        FlowComponent flowComponent = createTestFlowComponent("anotherFlowComponent");
+        Flow flow = createTestFlow("anotherFlow", "flowDescription", java.util.Arrays.asList(flowComponent));
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
-        SeleniumUtil.selectItemInListBox(findFlowListElement(webDriver), flowName);
+        SeleniumUtil.selectItemInListBox(findFlowListElement(webDriver), flow.getContent().getName());
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 
@@ -320,12 +323,13 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private void populateAllInputFields() throws Exception{
         Submitter submitter = createTestSubmitter("defaultSubmitter", 123456L);
         Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
-        String flow = createDefaultFlow();
+        FlowComponent flowComponent = createTestFlowComponent("flowComponent12");
+        Flow flow = createTestFlow("flowName12", "description", java.util.Arrays.asList(flowComponent));
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
         selectSinkWhenInFlowbinderCreationWidget(sink.getContent().getName());
         selectSubmitterWhenInFlowbinderCreationWidget(createSubmitterDisplayName(submitter));
-        selectFlowWhenInFlowbinderCreationWidget(flow);
+        selectFlowWhenInFlowbinderCreationWidget(flow.getContent().getName());
     }
 
     private void populateAllTextInputFieldsWhenInFlowbinderCreationWidget() {
@@ -348,14 +352,6 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(SeleniumUtil.getSelectedItemsInDualList(findSubmitterPanelElement(webDriver)), is(submitter));
         assertThat(SeleniumUtil.getSelectedItemInListBox(findFlowListElement(webDriver)), is(flow));
         assertThat(SeleniumUtil.getSelectedItemInListBox(findSinkListElement(webDriver)), is(sink));
-    }
-
-    private String createDefaultFlow() {
-        final String flowComponentName = "flowComponent12";
-        final String flowName = "flowName12";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
-        FlowCreationSeleniumIT.createTestFlow(webDriver, flowName, "description", flowComponentName);
-        return flowName;
     }
 
     private void selectFlowWhenInFlowbinderCreationWidget(String flow) {
@@ -383,6 +379,23 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
                 .build();
 
         return flowStoreServiceConnector.createSubmitter(submitterContent);
+    }
+    private static Flow createTestFlow(String flowName, String flowDescription, List<FlowComponent> flowComponents) throws Exception{
+        FlowContent flowContent = new FlowContentBuilder()
+                .setName(flowName)
+                .setDescription(flowDescription)
+                .setComponents(flowComponents)
+                .build();
+
+        return flowStoreServiceConnector.createFlow(flowContent);
+    }
+
+    private static FlowComponent createTestFlowComponent(String flowComponentName) throws Exception{
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName(flowComponentName)
+                .build();
+
+        return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
     }
 
     private static String createSubmitterDisplayName(Submitter submitter){

@@ -1,24 +1,61 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
+import dk.dbc.dataio.integrationtest.ITUtil;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import javax.ws.rs.client.Client;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/flowcreate/FlowCreateConstants_dk.properties");
 
     private static final long SAVE_TIMEOUT = 4;
+    private static Connection dbConnection;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
+
+    @BeforeClass
+    public static void setUpClass() throws ClassNotFoundException, SQLException {
+        String baseUrl = ITUtil.FLOW_STORE_BASE_URL;
+        Client restClient = HttpClient.newClient();
+        dbConnection = newDbConnection("flow_store");
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws SQLException {
+        JDBCUtil.closeConnection(dbConnection);
+    }
+
+    @After
+    public void tearDown() throws SQLException {
+        clearAllDbTables(dbConnection);
+    }
 
     @Test
     public void testInitialVisibililtyAndAccessabilityOfElements() {
@@ -49,11 +86,10 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowCreationFlowComponentSelectionFieldIsVisibleAndAnElementCanBeChosen() {
-        String flowComponentName = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
+    public void testFlowCreationFlowComponentSelectionFieldIsVisibleAndAnElementCanBeChosen() throws Exception {
+        FlowComponent flowComponent = createTestFlowComponent("testComponent");
         navigateToFlowCreationWidget(webDriver);
-        SeleniumUtil.assertDualListIsVisibleAndElementCanBeChosen(webDriver, findComponentSelectionElement(webDriver), flowComponentName);
+        SeleniumUtil.assertDualListIsVisibleAndElementCanBeChosen(webDriver, findComponentSelectionElement(webDriver), flowComponent.getContent().getName());
    }
 
 //    @Test
@@ -71,74 +107,66 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() {
-        String flowComponentName = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
+    public void testFlowCreationSuccessfulSave_saveResultLabelContainsSuccessMessage() throws Exception {
+        FlowComponent flowComponent = createTestFlowComponent("testComponent");
         navigateToFlowCreationWidget(webDriver);
-        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponentName);
+        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponent.getContent().getName());
     }
 
     @Test
-    public void testFlowCreationNameInputFieldUpdate_clearsSaveResultLabel() {
-        String flowComponentName = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
+    public void testFlowCreationNameInputFieldUpdate_clearsSaveResultLabel() throws Exception {
+        FlowComponent flowComponent = createTestFlowComponent("testComponent");
         navigateToFlowCreationWidget(webDriver);
-        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponentName);
+        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponent.getContent().getName());
         findNameElement(webDriver).sendKeys("a");
         assertThat(findSaveResultElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() {
-        String flowComponentName = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
+    public void testFlowCreationDescriptionInputFieldUpdate_clearsSaveResultLabel() throws Exception {
+        FlowComponent flowComponent = createTestFlowComponent("testComponent");
         navigateToFlowCreationWidget(webDriver);
-        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponentName);
+        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponent.getContent().getName());
         findDescriptionElement(webDriver).sendKeys("b");
         assertThat(findSaveResultElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testFlowCreationFlowComponentSelectionUpdate_clearsSaveResultLabel() {
-        String flowComponentName1 = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName1);
-        String flowComponentName2 = "anotherTestComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName2);
+    public void testFlowCreationFlowComponentSelectionUpdate_clearsSaveResultLabel() throws Exception {
+        FlowComponent flowComponentA = createTestFlowComponent("testComponent");
+        FlowComponent flowComponentB = createTestFlowComponent("anotherTestComponent");
 
         navigateToFlowCreationWidget(webDriver);
-        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponentName1);
-        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponentName2);
+        insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccess(flowComponentA.getContent().getName());
+        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponentB.getContent().getName());
         assertThat(findSaveResultElement(webDriver).getText(), is(""));
     }
 
     @Test
-    public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() {
-        String flowComponentName = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
+    public void testSaveButton_EmptyNameInputField_DisplayErrorPopup() throws Exception {
+        FlowComponent flowComponent = createTestFlowComponent("testComponent");
         navigateToFlowCreationWidget(webDriver);
         findNameElement(webDriver).sendKeys("a");
-        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponentName);
+        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponent.getContent().getName());
         findSaveButtonElement(webDriver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
-    public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() {
-        String flowComponentName = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
+    public void testSaveButton_EmptyDescriptionInputField_DisplayErrorPopup() throws Exception {
+        FlowComponent flowComponent = createTestFlowComponent("testComponent");
         navigateToFlowCreationWidget(webDriver);
         findDescriptionElement(webDriver).sendKeys("b");
-        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponentName);
+        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponent.getContent().getName());
         findSaveButtonElement(webDriver).click();
         String s = SeleniumUtil.getAlertStringAndAccept(webDriver);
         assertThat(s, is(texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
-    public void testSaveButton_NoSelectedFlowComponent_DisplayErrorPopup() {
-        String flowComponentName = "testComponent";
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, flowComponentName);
+    public void testSaveButton_NoSelectedFlowComponent_DisplayErrorPopup() throws Exception {
+        createTestFlowComponent("testComponent");
         navigateToFlowCreationWidget(webDriver);
         findNameElement(webDriver).sendKeys("a");
         findDescriptionElement(webDriver).sendKeys("b");
@@ -148,7 +176,7 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testFlowCreationLeaveAndGetBack_clearsAllFields() {
+    public void testFlowCreationLeaveAndGetBack_clearsAllFields() throws Exception {
         populateAllInputFields();
         assertAllInputFields("FlowName", "FlowDescription", Arrays.asList("FlowComponentName"));
         navigateAwayFromFlowCreationWidget(webDriver);
@@ -200,8 +228,8 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW);
     }
 
-    private void populateAllInputFields() {
-        FlowComponentCreationSeleniumIT.createTestFlowComponent(webDriver, "FlowComponentName");
+    private void populateAllInputFields() throws Exception {
+        createTestFlowComponent("FlowComponentName");
         navigateToFlowCreationWidget(webDriver);
         findNameElement(webDriver).sendKeys("FlowName");
         findDescriptionElement(webDriver).sendKeys("FlowDescription");
@@ -214,23 +242,11 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(SeleniumUtil.getSelectedItemsInDualList(findComponentSelectionElement(webDriver)), is(flowComponents));
     }
 
-    /**
-     * Creates a new Flow with the given values - NOTE: It is the callers
-     * responsibility to create a flow-component beforehand with the given name.
-     */
-    public static void createTestFlow(WebDriver webDriver, String name, String description, String flowComponentName) {
-        navigateToFlowCreationWidget(webDriver);
+    private static FlowComponent createTestFlowComponent(String flowComponentName) throws Exception{
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName(flowComponentName)
+                .build();
 
-        findNameElement(webDriver).clear();
-        findNameElement(webDriver).sendKeys(name);
-
-        SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponentName);
-
-        findDescriptionElement(webDriver).clear();
-        findDescriptionElement(webDriver).sendKeys(description);
-
-        findSaveButtonElement(webDriver).click();
-
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_FlowSuccessfullySaved"));
+        return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
     }
 }

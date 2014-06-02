@@ -28,7 +28,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static ConstantsProperties texts = new ConstantsProperties("pages/flowcomponentcreate/FlowComponentCreateConstants_dk.properties");
@@ -311,14 +313,5 @@ public class FlowComponentCreationSeleniumIT extends AbstractGuiSeleniumTest {
         public Boolean apply(WebDriver webDriver) {
             return new Select(SeleniumUtil.findElementInCurrentView(webDriver, elementId, elementClass)).getOptions().size() > 0;
         }
-    }
-
-    /**
-     * The following are public static helper methods.
-     */
-    // notice: WebDriver is currently unused but is there for future reference.
-    public static boolean createTestFlowComponent(WebDriver webDriver, String name) {
-        final long resourceIdentifier = ITUtil.createFlowComponentWithName(name);
-        return resourceIdentifier > 0L;
     }
 }

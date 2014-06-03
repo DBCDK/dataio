@@ -104,10 +104,11 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     // This can, for some reason, not be included with the other visibility tests
     @Test
     public void testFlowbinderCreationFlowListIsVisibleAndAnElementCanBeSelected() throws Exception {
+        String flowName = "flowName";
         FlowComponent flowComponent = createTestFlowComponent("flowComponent");
-        Flow flow = createTestFlow("flowName", "flowDescription", java.util.Arrays.asList(flowComponent));
+        createTestFlow(flowName, "flowDescription", java.util.Arrays.asList(flowComponent));
         navigateToFlowbinderCreationWidget(webDriver);
-        SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(webDriver, findFlowListElement(webDriver), flow.getContent().getName());
+        SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(webDriver, findFlowListElement(webDriver), flowName);
     }
 
     // This can, for some reason, not be included with the other visibility tests
@@ -273,10 +274,11 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testFlowBinderCreationFlowInputFieldUpdate_clearsSaveResultLabel() throws Exception{
+        final String flowName = "anotherFlow";
         FlowComponent flowComponent = createTestFlowComponent("anotherFlowComponent");
-        Flow flow = createTestFlow("anotherFlow", "flowDescription", java.util.Arrays.asList(flowComponent));
+        createTestFlow(flowName, "flowDescription", java.util.Arrays.asList(flowComponent));
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
-        SeleniumUtil.selectItemInListBox(findFlowListElement(webDriver), flow.getContent().getName());
+        SeleniumUtil.selectItemInListBox(findFlowListElement(webDriver), flowName);
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
     }
 

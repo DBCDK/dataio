@@ -43,35 +43,46 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testFlowsInsertOneRow_OneElementShown() throws Exception{
-        FlowComponent flowComponent = createTestFlowComponent("Flow-component-name");
-        Flow flow = createTestFlow("Flow-name", "Flow-description", java.util.Arrays.asList(flowComponent));
+        final String FLOW_NAME = "Flow-name";
+        final String FLOW_DESCRIPTION = "Flow-description";
+        final String FLOW_COMPONENT_NAME = "Flow-component-name";
+
+        FlowComponent flowComponent = createTestFlowComponent(FLOW_COMPONENT_NAME);
+        createTestFlow(FLOW_NAME, FLOW_DESCRIPTION, java.util.Arrays.asList(flowComponent));
         navigateToFlowsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
         table.waitAssertRows(1);
 
         List<String> rowData = table.getRow(0);
-        assertThat(rowData.get(0), is(flow.getContent().getName()));
-        assertThat(rowData.get(1), is(flow.getContent().getDescription()));
-        assertThat(rowData.get(2), is(flow.getContent().getComponents().get(0).getContent().getName()));
+        assertThat(rowData.get(0), is(FLOW_NAME));
+        assertThat(rowData.get(1), is(FLOW_DESCRIPTION));
+        assertThat(rowData.get(2), is(FLOW_COMPONENT_NAME));
     }
 
     @Test
     public void testFlowsInsertTwoRows_TwoElementsShown() throws Exception{
-        FlowComponent flowComponentA = createTestFlowComponent("FCompo 1");
-        FlowComponent flowComponentB = createTestFlowComponent("FCompo 2");
-        Flow flowA = createTestFlow("NamoUno", "Description 11", java.util.Arrays.asList(flowComponentA));
-        Flow flowB = createTestFlow("NamoDuo", "Description 22", java.util.Arrays.asList(flowComponentB));
+        final String FLOW_NAME_1 = "NamoUno";
+        final String FLOW_DESCRIPTION_1 = "Description 11";
+        final String FLOW_COMPONENT_NAME_1 = "FCompo 1";
+        final String FLOW_NAME_2 = "NamoDuo";
+        final String FLOW_DESCRIPTION_2 = "Description 22";
+        final String FLOW_COMPONENT_NAME_2 = "FCompo 2";
+
+        FlowComponent flowComponentA = createTestFlowComponent(FLOW_COMPONENT_NAME_1);
+        FlowComponent flowComponentB = createTestFlowComponent(FLOW_COMPONENT_NAME_2);
+        createTestFlow(FLOW_NAME_1, FLOW_DESCRIPTION_1, java.util.Arrays.asList(flowComponentA));
+        createTestFlow(FLOW_NAME_2, FLOW_DESCRIPTION_2, java.util.Arrays.asList(flowComponentB));
         navigateToFlowsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
         table.waitAssertRows(2);
         List<List<String>> rowData = table.get();
 
-        assertThat(rowData.get(0).get(0), is(flowB.getContent().getName()));
-        assertThat(rowData.get(0).get(1), is(flowB.getContent().getDescription()));
-        assertThat(rowData.get(0).get(2), is(flowB.getContent().getComponents().get(0).getContent().getName()));
-        assertThat(rowData.get(1).get(0), is(flowA.getContent().getName()));
-        assertThat(rowData.get(1).get(1), is(flowA.getContent().getDescription()));
-        assertThat(rowData.get(1).get(2), is(flowA.getContent().getComponents().get(0).getContent().getName()));
+        assertThat(rowData.get(0).get(0), is(FLOW_NAME_2));
+        assertThat(rowData.get(0).get(1), is(FLOW_DESCRIPTION_2));
+        assertThat(rowData.get(0).get(2), is(FLOW_COMPONENT_NAME_2));
+        assertThat(rowData.get(1).get(0), is(FLOW_NAME_1));
+        assertThat(rowData.get(1).get(1), is(FLOW_DESCRIPTION_1));
+        assertThat(rowData.get(1).get(2), is(FLOW_COMPONENT_NAME_1));
     }
 
     private static void navigateToFlowsShowWidget(WebDriver webDriver) {

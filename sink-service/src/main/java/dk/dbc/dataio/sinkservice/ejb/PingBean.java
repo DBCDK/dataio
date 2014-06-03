@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.sinkservice.ping.EsPing;
+import dk.dbc.dataio.sinkservice.ping.ResourcePing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +14,7 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.sql.DataSource;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -39,9 +40,8 @@ public class PingBean {
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
-     * @throws EJBException when unable to obtain initial context
-     * @throws NullPointerException when given null-valued jobSpecData argument
-     * @throws IllegalArgumentException when given empty-valued jobSpecData argument
+     * @throws EJBException when unable to obtain initial context, or if pinging
+     * unknown resource type != {^jdbc/.*$, ^url/.*$}
      * @throws JsonException when given non-json sinkContent argument,
      * or if JSON object does not comply with model schema
      */
@@ -54,7 +54,13 @@ public class PingBean {
         final InitialContext initialContext = getInitialContext();
         final PingResponse pingResponse;
         try {
-            pingResponse = EsPing.execute(initialContext, sinkContent);
+            if (sinkContent.getResource().startsWith("jdbc/")) {
+                pingResponse = ResourcePing.execute(initialContext, sinkContent.getResource(), DataSource.class);
+            } else if (sinkContent.getResource().startsWith("url/")) {
+                pingResponse = ResourcePing.execute(initialContext, sinkContent.getResource(), String.class);
+            } else {
+                throw new EJBException(String.format("Unknown resource type '%s'", sinkContent.getResource()));
+            }
         } finally {
             closeInitialContext(initialContext);
         }

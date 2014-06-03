@@ -29,6 +29,9 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
     PingBean.class,
 })
 public class PingBeanTest {
+    private static final String JDBC_RESOURCE_NAME = "jdbc/db";
+    private static final String URL_RESOURCE_NAME = "url/path";
+
     @Test(expected = NullPointerException.class)
     public void ping_sinkContentDataIsNull_throws() throws Exception {
         final PingBean pingBean = new PingBean();
@@ -57,18 +60,31 @@ public class PingBeanTest {
     public void ping_initialContextCreationThrows_throws() throws Exception {
         whenNew(InitialContext.class).withNoArguments().thenThrow(new NamingException());
         final PingBean pingBean = new PingBean();
-        pingBean.ping(getValidSinkContent());
+        pingBean.ping(getValidSinkContent(URL_RESOURCE_NAME));
     }
 
     @Test
-    public void ping_pingIsExecuted_returnsOkResponse() throws Exception {
+    public void ping_pingingUrlResource_returnsOkResponse() throws Exception {
         final PingBean pingBean = new PingBean();
-        final Response response = pingBean.ping(getValidSinkContent());
+        final Response response = pingBean.ping(getValidSinkContent(URL_RESOURCE_NAME));
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
     }
 
-    private String getValidSinkContent() throws JsonException {
-        final SinkContent sinkContent = new SinkContent("name", "dataio/resource");
+    @Test
+    public void ping_pingingJdbcResource_returnsOkResponse() throws Exception {
+        final PingBean pingBean = new PingBean();
+        final Response response = pingBean.ping(getValidSinkContent(JDBC_RESOURCE_NAME));
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+    }
+
+    @Test(expected = EJBException.class)
+    public void ping_pingingUnknownResourceType_throws() throws Exception {
+        final PingBean pingBean = new PingBean();
+        pingBean.ping(getValidSinkContent("unknown/resource"));
+    }
+
+    private String getValidSinkContent(String resourceName) throws JsonException {
+        final SinkContent sinkContent = new SinkContent("name", resourceName);
         return JsonUtil.toJson(sinkContent);
     }
 }

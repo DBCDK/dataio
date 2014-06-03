@@ -1,8 +1,6 @@
 package dk.dbc.dataio.sinkservice.ping;
 
 import dk.dbc.dataio.commons.types.PingResponse;
-import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,14 +15,16 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
-  * EsPing unit tests
+  * DataSourcePing unit tests
   * <p>
   * The test methods of this class uses the following naming convention:
   *
   *  unitOfWork_stateUnderTest_expectedBehavior
   */
-public class EsPingTest {
+public class ResourcePingTest {
     private InitialContext context;
+    private static final String JDBC_RESOURCE_NAME = "jdbc/db";
+    private static final String URL_RESOURCE_NAME = "url/path";
 
     @Before
     public void setup() throws Exception {
@@ -33,29 +33,48 @@ public class EsPingTest {
 
     @Test(expected = NullPointerException.class)
     public void execute_contextArgIsNull_throws() throws Exception {
-        EsPing.execute(null, getSinkContent());
+        ResourcePing.execute(null, URL_RESOURCE_NAME, String.class);
     }
 
     @Test(expected = NullPointerException.class)
-    public void execute_sinkContentArgIsNull_throws() throws Exception {
-        EsPing.execute(context, null);
+    public void execute_resourceNameArgIsNull_throws() throws Exception {
+        ResourcePing.execute(context, null, String.class);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void execute_resourceNameArgIsEmpty_throws() throws Exception {
+        ResourcePing.execute(context, "", String.class);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void execute_resourceClassArgIsNull_throws() throws Exception {
+        ResourcePing.execute(context, URL_RESOURCE_NAME, null);
     }
 
     @Test
     public void execute_requiredResourceIsNotAvailable_returnsPingResponseWithStatusFailed() throws Exception {
         when(context.lookup(any(String.class))).thenThrow(new NamingException());
 
-        final PingResponse response = EsPing.execute(context, getSinkContent());
+        final PingResponse response = ResourcePing.execute(context, URL_RESOURCE_NAME, String.class);
         assertThat(response.getStatus(), is(PingResponse.Status.FAILED));
         assertThat(response.getLog().size(), is(1));
     }
 
     @Test
-    public void execute_requiredResourceIsAvailable_returnsPingResponseWithStatusOk() throws Exception {
+    public void execute_requiredUrlResourceIsAvailable_returnsPingResponseWithStatusOk() throws Exception {
+        when(context.lookup(any(String.class))).thenReturn("resource");
+
+        final PingResponse response = ResourcePing.execute(context, URL_RESOURCE_NAME, String.class);
+        assertThat(response.getStatus(), is(PingResponse.Status.OK));
+        assertThat(response.getLog().size(), is(1));
+    }
+
+    @Test
+    public void execute_requiredJdbcResourceIsAvailable_returnsPingResponseWithStatusOk() throws Exception {
         final DataSource dataSource = mock(DataSource.class);
         when(context.lookup(any(String.class))).thenReturn(dataSource);
 
-        final PingResponse response = EsPing.execute(context, getSinkContent());
+        final PingResponse response = ResourcePing.execute(context, JDBC_RESOURCE_NAME, DataSource.class);
         assertThat(response.getStatus(), is(PingResponse.Status.OK));
         assertThat(response.getLog().size(), is(1));
     }
@@ -64,12 +83,8 @@ public class EsPingTest {
     public void execute_requiredResourceIsAvailableButOfWrongType_returnsPingResponseWithStatusFailed() throws Exception {
         when(context.lookup(any(String.class))).thenReturn(new Object());
 
-        final PingResponse response = EsPing.execute(context, getSinkContent());
+        final PingResponse response = ResourcePing.execute(context, URL_RESOURCE_NAME, String.class);
         assertThat(response.getStatus(), is(PingResponse.Status.FAILED));
         assertThat(response.getLog().size(), is(1));
-    }
-
-    private SinkContent getSinkContent() {
-        return new SinkContentBuilder().build();
     }
 }

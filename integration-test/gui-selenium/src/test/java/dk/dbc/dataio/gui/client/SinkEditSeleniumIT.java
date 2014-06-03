@@ -200,7 +200,7 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         findResourceNameElement(webDriver).clear();
 
         //Set an unknown resource
-        findResourceNameElement(webDriver).sendKeys("unknownresource");
+        findResourceNameElement(webDriver).sendKeys("url/unknownresource");
 
         //Attempt saving
         findSaveButton(webDriver).click();

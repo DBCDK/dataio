@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -11,22 +10,17 @@ import dk.dbc.dataio.gui.client.components.SaveButton;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import javax.ws.rs.client.Client;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 import static dk.dbc.dataio.gui.client.SinksShowSeleniumIT.locateAndClickEditButtonForElement;
 import static dk.dbc.dataio.gui.client.SinksShowSeleniumIT.navigateToSinksShowWidget;
-import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -46,25 +40,13 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
 
     private static final int SAVE_SINK_TIMOUT = 4;
 
-    private static Connection dbConnection;
     private static FlowStoreServiceConnector flowStoreServiceConnector;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         Client restClient = HttpClient.newClient();
         String baseUrl = ITUtil.FLOW_STORE_BASE_URL;
-        dbConnection = newDbConnection("flow_store");
         flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws SQLException {
-        JDBCUtil.closeConnection(dbConnection);
-    }
-
-    @After
-    public void tearDown() throws SQLException {
-        clearAllDbTables(dbConnection);
     }
 
     @Test

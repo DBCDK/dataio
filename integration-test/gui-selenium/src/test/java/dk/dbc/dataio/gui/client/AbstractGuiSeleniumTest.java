@@ -1,9 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.integrationtest.ITUtil;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -13,6 +10,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractGuiSeleniumTest {
     private final static XLogger XLOGGER = XLoggerFactory.getXLogger(AbstractGuiSeleniumTest.class);

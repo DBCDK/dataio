@@ -12,16 +12,21 @@ import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.naming.NamingException;
 
+/**
+ * This Enterprise Java Bean (EJB) singleton is used as a connector
+ * to the FBS UpdateMarcXchange web-service.
+ */
 @Singleton
 public class FbsUpdateConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FbsUpdateConnectorBean.class);
+    private static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
     private FbsUpdateConnector fbsUpdateConnector;
 
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
         try {
-            final String endpoint = ServiceUtil.getStringValueFromResource("url/dataio/fbs/ws");
+            final String endpoint = ServiceUtil.getStringValueFromResource(URL_RESOURCE_FBS_WS);
             fbsUpdateConnector = new FbsUpdateConnector(endpoint);
         } catch (NamingException | FbsUpdateConnectorException e) {
             throw new EJBException(e);

@@ -3,10 +3,13 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
-import dk.dbc.dataio.sink.fbs.types.FbsSinkException;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
+import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.util.ArrayList;
 
@@ -14,19 +17,47 @@ import java.util.ArrayList;
 public class FbsPusherBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FbsPusherBean.class);
 
-    /*
-    @EJB
-    UpdateMarcExchangeConnectorBean updateMarcExchangeConnector;
-    */
+    // ToDO: what/how/where?
+    private final static String agencyId = "DBC";
 
-    public SinkChunkResult push(ChunkResult chunkResult) throws FbsSinkException {
+    @EJB
+    FbsUpdateConnectorBean fbsUpdateConnector;
+
+    public SinkChunkResult push(ChunkResult chunkResult) {
         final SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(),
                 chunkResult.getChunkId(), chunkResult.getEncoding(), new ArrayList<ChunkItem>());
         for (ChunkItem chunkItem : chunkResult.getItems()) {
-            LOGGER.error("Replace me with real functionality {}", chunkItem.getId());
-            // updateMarcExchangeConnector.update(...);
-            // sinkChunkResult.addItem(...);
+            final String trackingId = String.format("%d-%d-%d", chunkResult.getJobId(), chunkResult.getChunkId(), chunkItem.getId());
+            try {
+                final UpdateMarcXchangeResult updateMarcXchangeResult = fbsUpdateConnector.updateMarcExchange(agencyId, chunkItem.getData(), trackingId);
+                if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
+                    sinkChunkResult.getItems().add(newSuccessfulChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                } else {
+                    sinkChunkResult.getItems().add(newFailedChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                }
+            } catch (Exception e) {
+                sinkChunkResult.getItems().add(newFailedChunkItem(chunkItem.getId(), ServiceUtil.stackTraceToString(e)));
+            }
         }
         return sinkChunkResult;
+    }
+
+    private ChunkItem newSuccessfulChunkItem(long chunkItemId, String data) {
+        return newChunkItem(chunkItemId, data, ChunkItem.Status.SUCCESS);
+    }
+
+    private ChunkItem newFailedChunkItem(long chunkItemId, String data) {
+        return newChunkItem(chunkItemId, data, ChunkItem.Status.FAILURE);
+    }
+
+    private ChunkItem newChunkItem(long chunkItemId, String data, ChunkItem.Status status) {
+        if (data != null && !data.isEmpty()) {
+            // Todo: base64 encode data
+            LOGGER.error("base64 encode me {}", data);
+        } else {
+            data = "";
+        }
+        return new ChunkItem(chunkItemId, data, status);
+
     }
 }

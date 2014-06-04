@@ -9,8 +9,12 @@ import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.sink.fbs.types.FbsSinkException;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,11 +32,19 @@ public class JobProcessorMessageConsumerBeanTest {
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 
-    @Test(expected = FbsSinkException.class)
+    @Test
     public void handleConsumedMessage_pusherThrowsFbsSinkException_throws() throws InvalidMessageException, FbsSinkException {
-        when(fbsPusherBean.push(any(ChunkResult.class))).thenThrow(new FbsSinkException("DIED"));
+        final FbsSinkException fbsSinkException = new FbsSinkException("DIED");
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+        when(fbsPusherBean.push(any(ChunkResult.class))).thenReturn(sinkChunkResult);
+        doThrow(fbsSinkException).when(jobProcessorMessageProducerBean).send(sinkChunkResult);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
-        getInitializedBean().handleConsumedMessage(consumedMessage);
+        try {
+            getInitializedBean().handleConsumedMessage(consumedMessage);
+            fail("No exception thrown");
+        } catch (FbsSinkException e) {
+            assertThat(e, is(fbsSinkException));
+        }
     }
 
     @Test

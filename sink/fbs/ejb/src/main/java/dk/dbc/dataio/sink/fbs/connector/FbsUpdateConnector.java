@@ -3,6 +3,7 @@ package dk.dbc.dataio.sink.fbs.connector;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
+import dk.dbc.oss.ns.updatemarcxchange.ReasonEnum;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangePortType;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeRequest;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -15,6 +16,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.WebServiceException;
 import java.io.StringReader;
 
 /**
@@ -24,6 +26,8 @@ import java.io.StringReader;
  * </p>
  */
 public class FbsUpdateConnector {
+    public static final String CONNECT_TIMEOUT_PROPERTY = "com.sun.xml.ws.connect.timeout";
+    public static final String REQUEST_TIMEOUT_PROPERTY = "com.sun.xml.ws.request.timeout";
     public static final int CONNECT_TIMEOUT_DEFAULT_IN_MS =  1 * 60 * 1000;    // 1 minute
     public static final int REQUEST_TIMEOUT_DEFAULT_IN_MS =  3 * 60 * 1000;    // 3 minutes
 
@@ -72,9 +76,10 @@ public class FbsUpdateConnector {
      * @throws NullPointerException if passed any null valued {@code agencyId} or {@code collection} argument
      * @throws IllegalArgumentException if passed empty valued {@code agencyId} or {@code collection} argument
      * @throws FbsUpdateConnectorException if unable to transform collection to CollectionType
+     * @throws WebServiceException on general transport layer failure or service internal error
      */
     public UpdateMarcXchangeResult updateMarcExchange(String agencyId, String collection, String trackingId)
-            throws NullPointerException, IllegalArgumentException, FbsUpdateConnectorException {
+            throws NullPointerException, IllegalArgumentException, WebServiceException, FbsUpdateConnectorException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(agencyId, "agencyId");
         InvariantUtil.checkNotNullNotEmptyOrThrow(collection, "collection");
 
@@ -85,9 +90,11 @@ public class FbsUpdateConnector {
         } catch (JAXBException e) {
             throw new FbsUpdateConnectorException("Exception caught while converting to MarcXchangeRecord type", e);
         }
-        if (!trackingId.isEmpty()) {
+        if (trackingId != null && !trackingId.isEmpty()) {
             updateMarcXchangeRequest.setTrackingId(trackingId);
         }
+        // FixMe: set from outside or remove completely
+        updateMarcXchangeRequest.setReason(ReasonEnum.UPDATE_RECORD);
         return getProxy().updateMarcXchange(updateMarcXchangeRequest);
     }
 
@@ -105,8 +112,8 @@ public class FbsUpdateConnector {
         BindingProvider bindingProvider = (BindingProvider)proxy;
         bindingProvider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
         // FixMe: timeouts should be made configurable
-        bindingProvider.getRequestContext().put("com.sun.xml.ws.connect.timeout", CONNECT_TIMEOUT_DEFAULT_IN_MS);
-        bindingProvider.getRequestContext().put("com.sun.xml.ws.request.timeout", REQUEST_TIMEOUT_DEFAULT_IN_MS);
+        bindingProvider.getRequestContext().put(CONNECT_TIMEOUT_PROPERTY, CONNECT_TIMEOUT_DEFAULT_IN_MS);
+        bindingProvider.getRequestContext().put(REQUEST_TIMEOUT_PROPERTY, REQUEST_TIMEOUT_DEFAULT_IN_MS);
 
         return proxy;
     }

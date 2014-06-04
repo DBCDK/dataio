@@ -21,7 +21,7 @@ public class FbsUpdateConnectorBean {
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
         try {
-            final String endpoint = ServiceUtil.getStringValueFromResource("url/fbs/update-marc-exchange");
+            final String endpoint = ServiceUtil.getStringValueFromResource("url/dataio/fbs/ws");
             fbsUpdateConnector = new FbsUpdateConnector(endpoint);
         } catch (NamingException | FbsUpdateConnectorException e) {
             throw new EJBException(e);

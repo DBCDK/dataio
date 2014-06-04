@@ -202,9 +202,9 @@ public class FlowsIT {
         final FlowContent flowContentC = new FlowContentBuilder().setName("c").build();
 
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        Flow flowSortsThird = flowStoreServiceConnector.createFlow(flowContentC);
         Flow flowSortsFirst = flowStoreServiceConnector.createFlow(flowContentA);
         Flow flowSortsSecond = flowStoreServiceConnector.createFlow(flowContentB);
-        Flow flowSortsThird = flowStoreServiceConnector.createFlow(flowContentC);
 
         // When...
         List<Flow> listOfFlows = flowStoreServiceConnector.findAllFlows();

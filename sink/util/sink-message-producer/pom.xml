@@ -20,12 +20,12 @@
       <artifactId>dataio-commons-types</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>dk.dbc</groupId>-->
-      <!--<artifactId>dataio-sink-testutil</artifactId>-->
-      <!--<version>${project.version}</version>-->
-      <!--<scope>test</scope>-->
-    <!--</dependency>-->
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-testutil</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
@@ -37,6 +37,12 @@
       <artifactId>javaee-api</artifactId>
       <version>${javaee.api.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

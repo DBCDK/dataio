@@ -20,7 +20,7 @@ import javax.naming.NamingException;
 public class FbsUpdateConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FbsUpdateConnectorBean.class);
     private static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
-    private FbsUpdateConnector fbsUpdateConnector;
+    FbsUpdateConnector fbsUpdateConnector;
 
     @PostConstruct
     public void initializeConnector() {

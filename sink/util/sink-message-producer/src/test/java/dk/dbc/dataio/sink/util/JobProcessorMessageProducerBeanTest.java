@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.fbs.ejb;
+package dk.dbc.dataio.sink.util;
 
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
-import dk.dbc.dataio.sink.fbs.types.FbsSinkException;
 import dk.dbc.dataio.sink.util.JobProcessorMessageProducerBean;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +47,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void send_sinkChunkResultArgIsNull_throws() throws FbsSinkException {
+    public void send_sinkChunkResultArgIsNull_throws() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
             jobProcessorMessageProducerBean.send(null);
@@ -58,7 +57,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void send_createMessageThrowsJsonException_throws() throws JsonException, FbsSinkException {
+    public void send_createMessageThrowsJsonException_throws() throws JsonException, SinkException {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
         final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
@@ -66,7 +65,7 @@ public class JobProcessorMessageProducerBeanTest {
         try {
             jobProcessorMessageProducerBean.send(sinkChunkResult);
             fail("No exception thrown");
-        } catch (FbsSinkException e) {
+        } catch (SinkException e) {
         }
     }
 

@@ -48,6 +48,12 @@
 	    <version>${jersey.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.8</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
 
 

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.fbs.ejb;
 
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
@@ -19,14 +20,13 @@ import javax.naming.NamingException;
 @Singleton
 public class FbsUpdateConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FbsUpdateConnectorBean.class);
-    private static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
     FbsUpdateConnector fbsUpdateConnector;
 
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
         try {
-            final String endpoint = ServiceUtil.getStringValueFromResource(URL_RESOURCE_FBS_WS);
+            final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_FBS_WS);
             fbsUpdateConnector = new FbsUpdateConnector(endpoint);
         } catch (NamingException | FbsUpdateConnectorException e) {
             throw new EJBException(e);

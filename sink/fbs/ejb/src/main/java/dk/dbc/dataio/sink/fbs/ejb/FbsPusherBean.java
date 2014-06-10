@@ -3,6 +3,7 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
@@ -17,8 +18,8 @@ import java.util.ArrayList;
 public class FbsPusherBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FbsPusherBean.class);
 
-    // ToDO: what/how/where?
-    private final static String agencyId = "DBC";
+    // ToDo: how do we handle non-870970 records
+    private final static String agencyId = "870970";
 
     @EJB
     FbsUpdateConnectorBean fbsUpdateConnector;
@@ -29,14 +30,15 @@ public class FbsPusherBean {
         for (ChunkItem chunkItem : chunkResult.getItems()) {
             final String trackingId = String.format("%d-%d-%d", chunkResult.getJobId(), chunkResult.getChunkId(), chunkItem.getId());
             try {
-                final UpdateMarcXchangeResult updateMarcXchangeResult = fbsUpdateConnector.updateMarcExchange(agencyId, chunkItem.getData(), trackingId);
+                final UpdateMarcXchangeResult updateMarcXchangeResult = fbsUpdateConnector.updateMarcExchange(
+                        agencyId, Base64Util.base64decode(chunkItem.getData()), trackingId);
                 if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
-                    sinkChunkResult.getItems().add(newSuccessfulChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                    sinkChunkResult.addItem(newSuccessfulChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
                 } else {
-                    sinkChunkResult.getItems().add(newFailedChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                    sinkChunkResult.addItem(newFailedChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
                 }
             } catch (Exception e) {
-                sinkChunkResult.getItems().add(newFailedChunkItem(chunkItem.getId(), ServiceUtil.stackTraceToString(e)));
+                sinkChunkResult.addItem(newFailedChunkItem(chunkItem.getId(), ServiceUtil.stackTraceToString(e)));
             }
         }
         return sinkChunkResult;
@@ -52,12 +54,10 @@ public class FbsPusherBean {
 
     private ChunkItem newChunkItem(long chunkItemId, String data, ChunkItem.Status status) {
         if (data != null && !data.isEmpty()) {
-            // Todo: base64 encode data
-            LOGGER.error("base64 encode me {}", data);
+            data = Base64Util.base64encode(data);
         } else {
             data = "";
         }
         return new ChunkItem(chunkItemId, data, status);
-
     }
 }

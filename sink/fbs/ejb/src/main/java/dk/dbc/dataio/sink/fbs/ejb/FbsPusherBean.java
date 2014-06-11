@@ -7,8 +7,6 @@ import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -16,8 +14,6 @@ import java.util.ArrayList;
 
 @Stateless
 public class FbsPusherBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FbsPusherBean.class);
-
     // ToDo: how do we handle non-870970 records
     private final static String agencyId = "870970";
 

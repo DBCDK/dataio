@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -49,6 +50,44 @@ public class JobInfoTest {
     public void constructor_allArgsAreValid_returnsNewInstance() {
         final JobInfo instance =  new JobInfo(JOB_ID, JOB_SPECIFICATION, JOB_CREATION_TIME, JOB_ERROR_CODE, JOB_RECORD_COUNT);
         assertThat(instance, is(notNullValue()));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void setter_setInvalidJobErrorCode_throws() {
+        newJobInfoInstance().setJobErrorCode(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void setter_setInvalidJobRecordCount_throws() {
+        newJobInfoInstance().setJobRecordCount(-1L);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void setter_setInvalidJobSpecification_throws() {
+        newJobInfoInstance().setJobSpecification(null);
+    }
+
+    @Test
+    public void setter_setValidJobErrorCode_changesValue() {
+        JobInfo info = newJobInfoInstance();
+        info.setJobErrorCode(JobErrorCode.DATA_FILE_INVALID);
+        assertThat(info.getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
+    }
+
+    @Test
+    public void setter_setValidJobRecordCount_changesValue() {
+        JobInfo info = newJobInfoInstance();
+        info.setJobRecordCount(23L);
+        assertThat(info.getJobRecordCount(), is(23L));
+    }
+
+    @Test
+    public void setter_setValidJobSpecification_changesValue() {
+        final JobSpecification NEW_JOB_SPECIFICATION = JobSpecificationTest.newJobSpecificationInstance();
+        JobInfo info = newJobInfoInstance();
+        info.setJobSpecification(NEW_JOB_SPECIFICATION);
+        assertThat(info.getJobSpecification(), is(NEW_JOB_SPECIFICATION));
+        assertThat(info.getJobSpecification(), not(JOB_SPECIFICATION));
     }
 
     public static JobInfo newJobInfoInstance() {

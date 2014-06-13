@@ -13,13 +13,13 @@ import java.io.Serializable;
 public class JobInfo implements Serializable {
     private static final long serialVersionUID = -1574107691937748872L;
 
-    private /* final */ long jobId;
-    private /* final */ JobSpecification jobSpecification;
-    private /* final */ long jobCreationTime;
+    private long jobId;
+    private JobSpecification jobSpecification;
+    private long jobCreationTime;
 
-    private /* final */ JobErrorCode jobErrorCode;
+    private JobErrorCode jobErrorCode;
 
-    private /* final */ long jobRecordCount;
+    private long jobRecordCount;
 
     private JobInfo() { }
 
@@ -63,5 +63,17 @@ public class JobInfo implements Serializable {
 
     public long getJobRecordCount() {
         return jobRecordCount;
+    }
+
+    public void setJobErrorCode(JobErrorCode jobErrorCode) {
+        this.jobErrorCode = InvariantUtil.checkNotNullOrThrow(jobErrorCode, "jobErrorCode");
+    }
+
+    public void setJobRecordCount(long jobRecordCount) {
+        this.jobRecordCount = InvariantUtil.checkLowerBoundOrThrow(jobRecordCount, "jobRecordCount", 0);
+    }
+
+    public void setJobSpecification(JobSpecification jobSpecification) {
+        this.jobSpecification = InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
     }
 }

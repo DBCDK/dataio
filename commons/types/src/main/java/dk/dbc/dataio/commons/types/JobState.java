@@ -71,7 +71,27 @@ public class JobState implements Serializable {
         return states.get(InvariantUtil.checkNotNullOrThrow(operationalState, "operationalState"));
     }
 
+    /**
+     * Gets all states for all lifecycles
+     *
+     * @return Map containing states for all lifecycles
+     */
     public Map<OperationalState, LifeCycleState> getStates() {
         return new HashMap<OperationalState, LifeCycleState>(states);
     }
+
+    /**
+     * Tests if all processing is done
+     *
+     * @return True if all processing is done
+     */
+    public boolean checkIfAllIsDone() {
+        for (OperationalState operationalState : OperationalState.values()) {
+            if (states.get(operationalState) != LifeCycleState.DONE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

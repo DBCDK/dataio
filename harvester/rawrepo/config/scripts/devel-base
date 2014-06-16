@@ -7,7 +7,7 @@ rawrepo_resource=jdbc/dataio/rawrepo
 rawrepo_pool_resource=$rawrepo_resource/pool
 logback_resource=env/dataio/harvester/rawrepo/logback
 filestore_endpoint=http\\://localhost\\:8080/file-store-service
-filestore_endpoint_resource=env/dataio/fileStore/endpoint
+filestore_endpoint_resource=url/dataio/filestore/rs
 jobstore_endpoint=http\\://localhost\\:8080/job-store-service
 jobstore_endpoint_resource=dataioJobStoreServiceEndpoint
 

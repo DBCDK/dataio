@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.service;
 
 import dk.dbc.dataio.commons.types.ServiceError;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.slf4j.Logger;
@@ -18,7 +19,6 @@ import java.io.StringWriter;
 public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
 
-    public static final String FILE_STORE_SERVICE_ENDPOINT_RESOURCE = "env/dataio/fileStore/endpoint";
     private static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
     private static final String JOB_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioJobStoreServiceEndpoint";
     private static final String SINK_SERVICE_ENDPOINT_RESOURCE = "dataioSinkServiceEndpoint";
@@ -28,8 +28,9 @@ public class ServiceUtil {
 
     /**
      * Looks up file-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value #FILE_STORE_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
-     * the JNDI lookup can be bypassed by defining a '{@value #FILE_STORE_SERVICE_ENDPOINT_RESOURCE}'
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_FILESTORE_RS}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_FILESTORE_RS}'
      * system property.
      *
      * @return file-store service URL as String
@@ -37,9 +38,9 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getFileStoreServiceEndpoint() throws NamingException {
-        String fileStoreServiceEndpoint = System.getProperty(FILE_STORE_SERVICE_ENDPOINT_RESOURCE);
+        String fileStoreServiceEndpoint = System.getProperty(JndiConstants.URL_RESOURCE_FILESTORE_RS);
         if (fileStoreServiceEndpoint == null || fileStoreServiceEndpoint.isEmpty()) {
-            fileStoreServiceEndpoint = getStringValueFromResource(FILE_STORE_SERVICE_ENDPOINT_RESOURCE);
+            fileStoreServiceEndpoint = getStringValueFromResource(JndiConstants.URL_RESOURCE_FILESTORE_RS);
         }
         return fileStoreServiceEndpoint;
     }

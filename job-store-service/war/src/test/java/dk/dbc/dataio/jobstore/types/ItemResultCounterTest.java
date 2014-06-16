@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.ItemResultCounter;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;

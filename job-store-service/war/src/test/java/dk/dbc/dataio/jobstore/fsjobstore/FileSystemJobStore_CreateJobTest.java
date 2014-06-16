@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
-import dk.dbc.dataio.jobstore.types.ChunkCounter;
+import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;

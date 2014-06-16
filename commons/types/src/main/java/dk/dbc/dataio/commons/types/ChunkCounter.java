@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.types;
+package dk.dbc.dataio.commons.types;
 
 public class ChunkCounter {
     private long total;

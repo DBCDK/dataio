@@ -115,7 +115,7 @@ public class FileSystemJobStore implements JobStore {
         processorResultFileHandler.createCounterFile(jobId);
         sinkResultFileHandler.createCounterFile(jobId);
 
-        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, 0);
+        JobInfo jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
 
         Job job = new Job(jobInfo, new JobState(), flow);
         setJobState(jobId, job.getJobState());
@@ -128,20 +128,24 @@ public class FileSystemJobStore implements JobStore {
                 recordSplitter = newRecordSplitter(jobSpec, jobInputStream);
                 recordCount = applyDefaultXmlSplitter(job, recordSplitter);
             } catch (IOException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_NOT_FOUND, 0);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
+                jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_NOT_FOUND);
                 job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             } catch (IllegalStateException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_ENCODING_MISMATCH, 0);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
+                jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_ENCODING_MISMATCH);
                 job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             } catch (XMLStreamException | IllegalDataException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.DATA_FILE_INVALID, 0);
+                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
+                jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_INVALID);
                 job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             }
 
-            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime, JobErrorCode.NO_ERROR, recordCount);
+            jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
+            jobInfo.setJobRecordCount(recordCount);
             job = new Job(jobInfo, job.getJobState(), flow);
             return job;
         } finally {

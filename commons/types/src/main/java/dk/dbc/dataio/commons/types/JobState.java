@@ -81,9 +81,9 @@ public class JobState implements Serializable {
     }
 
     /**
-     * Tests if all processing is done
+     * Tests if all lifecycles are done
      *
-     * @return True if all processing is done
+     * @return True if all lifecycles are done
      */
     public boolean checkIfAllIsDone() {
         for (OperationalState operationalState : OperationalState.values()) {

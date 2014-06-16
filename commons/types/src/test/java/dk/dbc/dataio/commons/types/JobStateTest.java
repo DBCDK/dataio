@@ -1,6 +1,5 @@
 package dk.dbc.dataio.commons.types;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -17,7 +16,6 @@ import static org.junit.Assert.assertFalse;
  *$
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
-@Ignore
 public class JobStateTest {
 
     @Test

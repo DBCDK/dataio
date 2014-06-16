@@ -42,7 +42,9 @@ public class JobInfoBuilder {
     }
 
     public JobInfo build() {
-        return new JobInfo(jobId, jobSpecification, jobCreationTime, jobErrorCode, jobRecordCount);
-
+        JobInfo jobInfo = new JobInfo(jobId, jobSpecification, jobCreationTime);
+        jobInfo.setJobErrorCode(this.jobErrorCode);
+        jobInfo.setJobRecordCount(this.jobRecordCount);
+        return jobInfo;
     }
 }

@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -62,11 +61,6 @@ public class JobInfoTest {
         newJobInfoInstance().setJobRecordCount(-1L);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void setter_setInvalidJobSpecification_throws() {
-        newJobInfoInstance().setJobSpecification(null);
-    }
-
     @Test
     public void setter_setValidJobErrorCode_changesValue() {
         JobInfo info = newJobInfoInstance();
@@ -79,15 +73,6 @@ public class JobInfoTest {
         JobInfo info = newJobInfoInstance();
         info.setJobRecordCount(23L);
         assertThat(info.getJobRecordCount(), is(23L));
-    }
-
-    @Test
-    public void setter_setValidJobSpecification_changesValue() {
-        final JobSpecification NEW_JOB_SPECIFICATION = JobSpecificationTest.newJobSpecificationInstance();
-        JobInfo info = newJobInfoInstance();
-        info.setJobSpecification(NEW_JOB_SPECIFICATION);
-        assertThat(info.getJobSpecification(), is(NEW_JOB_SPECIFICATION));
-        assertThat(info.getJobSpecification(), not(JOB_SPECIFICATION));
     }
 
     public static JobInfo newJobInfoInstance() {

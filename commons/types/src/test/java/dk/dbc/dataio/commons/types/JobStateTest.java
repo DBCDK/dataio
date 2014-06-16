@@ -8,6 +8,7 @@ import java.util.Map;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
 
 /**
  * JobState unit tests
@@ -44,6 +45,7 @@ public class JobStateTest {
     public void setLifeCycleStateFor_invalidLifeCycleStateRegression_throws() {
         JobState jobState = new JobState();
         jobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.ACTIVE);
+        jobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.ACTIVE);
         jobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.PENDING);
     }
 
@@ -73,22 +75,22 @@ public class JobStateTest {
         assertThat(result.get(JobState.OperationalState.PROCESSING), is(JobState.LifeCycleState.DONE));
     }
 
-//    @Test
-//    public void isAllDone_allIsDone_verifyAllIsDone() {
-//        JobState jobState = new JobState();
-//        jobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
-//        jobState.setLifeCycleStateFor(JobState.OperationalState.DELIVERING, JobState.LifeCycleState.DONE);
-//        jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
-//        assertTrue(jobState.isAllDone());
-//    }
-//
-//    @Test
-//    public void isAllDone_allIsNotDone_verifyAllIsNotDone() {
-//        JobState jobState = new JobState();
-//        jobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
-//        jobState.setLifeCycleStateFor(JobState.OperationalState.DELIVERING, JobState.LifeCycleState.PENDING);
-//        jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
-//        assertFalse(jobState.isAllDone());
-//    }
+    @Test
+    public void isAllDone_allIsDone_verifyAllIsDone() {
+        JobState jobState = new JobState();
+        jobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
+        jobState.setLifeCycleStateFor(JobState.OperationalState.DELIVERING, JobState.LifeCycleState.DONE);
+        jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
+        assertTrue(jobState.checkIfAllIsDone());
+    }
+
+    @Test
+    public void isAllDone_allIsNotDone_verifyAllIsNotDone() {
+        JobState jobState = new JobState();
+        jobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
+        jobState.setLifeCycleStateFor(JobState.OperationalState.DELIVERING, JobState.LifeCycleState.PENDING);
+        jobState.setLifeCycleStateFor(JobState.OperationalState.PROCESSING, JobState.LifeCycleState.DONE);
+        assertFalse(jobState.checkIfAllIsDone());
+    }
 
 }

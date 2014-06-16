@@ -11,4 +11,46 @@
   <artifactId>dataio-integration-test-sinks-fbs</artifactId>
   <name>dataio-integration-test-sinks-fbs</name>
 
+  <properties>
+    <fbs.ws.endpoint>http://test.dbc.dk/fbs/ws</fbs.ws.endpoint>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven-failsafe-plugin.version}</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <systemPropertyVariables>
+            <fbs.ws.endpoint>${fbs.ws.endpoint}</fbs.ws.endpoint>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-fbs-ejb</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>${javaee.api.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
 </project>

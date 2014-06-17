@@ -350,7 +350,7 @@ public class FileSystemJobStore implements JobStore {
 
             // Save jobInfo to filesystem
             storeJobInfoInJob(getJobPath(jobId), jobInfo);
-        };
+        }
     }
 
     @Override
@@ -386,7 +386,7 @@ public class FileSystemJobStore implements JobStore {
             LOGGER.debug("Updating job state for job {}", jobId);
             setJobState(jobId, jobState);
         }
-        return jobState.checkIfAllIsDone();
+        return jobState != null && jobState.checkIfAllIsDone();
     }
 
     private long applyDefaultXmlSplitter(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {

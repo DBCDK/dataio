@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Constants;
@@ -36,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 
@@ -327,7 +329,28 @@ public class FileSystemJobStore implements JobStore {
     @Override
     public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
         sinkResultFileHandler.addResult(sinkResult);
-        updateJobState(sinkResult.getJobId());
+        long jobId = sinkResult.getJobId();
+        if (updateJobState(jobId)) {
+
+            // Retrieve job info
+            JobInfo jobInfo = readJobInfoFromJob(getJobPath(jobId));
+
+            // Retrieve chunk Counters
+            Map<JobState.OperationalState, ChunkCounter> chunkCounters = jobInfo.getChunkCounters();
+
+            // Add chunk counters for the three FileHandlers.
+            chunkCounters.put(JobState.OperationalState.CHUNKIFYING, chunkFileHandler.getChunkCounter(jobId));
+            chunkCounters.put(JobState.OperationalState.PROCESSING, processorResultFileHandler.getChunkCounter(jobId));
+            chunkCounters.put(JobState.OperationalState.DELIVERING, sinkResultFileHandler.getChunkCounter(jobId));
+
+            // Put back to jobInfo
+            jobInfo.setChunkCounter(JobState.OperationalState.CHUNKIFYING, chunkCounters.get(JobState.OperationalState.CHUNKIFYING));
+            jobInfo.setChunkCounter(JobState.OperationalState.PROCESSING, chunkCounters.get(JobState.OperationalState.PROCESSING));
+            jobInfo.setChunkCounter(JobState.OperationalState.DELIVERING, chunkCounters.get(JobState.OperationalState.DELIVERING));
+
+            // Save jobInfo to filesystem
+            storeJobInfoInJob(getJobPath(jobId), jobInfo);
+        };
     }
 
     @Override
@@ -340,7 +363,7 @@ public class FileSystemJobStore implements JobStore {
         return chunkFileHandler.getNumberOfChunksInJob(jobId);
     }
 
-    private synchronized void updateJobState(long jobId) throws JobStoreException {
+    private synchronized boolean updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
         final long processorCount = processorResultFileHandler.getNumberOfChunksInJob(jobId);
         final long sinkCount = sinkResultFileHandler.getNumberOfChunksInJob(jobId);
@@ -363,6 +386,7 @@ public class FileSystemJobStore implements JobStore {
             LOGGER.debug("Updating job state for job {}", jobId);
             setJobState(jobId, jobState);
         }
+        return jobState.checkIfAllIsDone();
     }
 
     private long applyDefaultXmlSplitter(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {

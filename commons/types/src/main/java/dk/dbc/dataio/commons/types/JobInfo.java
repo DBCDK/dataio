@@ -3,6 +3,8 @@ package dk.dbc.dataio.commons.types;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JobInfo DTO class.
@@ -19,6 +21,8 @@ public class JobInfo implements Serializable {
 
     private JobErrorCode jobErrorCode;
     private long jobRecordCount;
+
+    private Map<JobState.OperationalState, ChunkCounter> chunkCounters = new HashMap<JobState.OperationalState, ChunkCounter>();
 
     private JobInfo() { }
 
@@ -99,4 +103,26 @@ public class JobInfo implements Serializable {
         this.jobRecordCount = InvariantUtil.checkLowerBoundOrThrow(jobRecordCount, "jobRecordCount", 0);
     }
 
+    /**
+     * Get map containing chunk counters
+     * @return chunkCounters
+     */
+    public Map<JobState.OperationalState, ChunkCounter> getChunkCounters (){
+        return chunkCounters;
+
+    }
+
+    /**
+     * Sets a ChunkCounter in the JobInfo object.
+     *
+     * Containing the possible errors for chunks.    -> enum OperationalState: CHUNKIFYING
+     * Containing the possible errors for processor. -> enum OperationalState: PROCESSING
+     * Containing the possible errors for sinks.     -> enum OperationalState: DELIVERING
+     *
+     * @param operationalState
+     * @param chunkCounter
+     */
+    public void setChunkCounter(JobState.OperationalState operationalState, ChunkCounter chunkCounter) {
+        chunkCounters.put(operationalState, chunkCounter);
+    }
 }

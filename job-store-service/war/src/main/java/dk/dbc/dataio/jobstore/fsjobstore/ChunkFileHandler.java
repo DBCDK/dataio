@@ -1,10 +1,10 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.AbstractChunk;
-import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,14 +66,17 @@ public class ChunkFileHandler<X extends AbstractChunk> {
         LOGGER.info("Created counter file: {}", counterFile);
     }
 
-    public synchronized long getNumberOfChunksInJob(long jobId) throws JobStoreException {
+    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
+        return getChunkCounter(jobId).getTotal();
+    }
+
+    public synchronized ChunkCounter getChunkCounter(long jobId) throws JobStoreException {
         final Path counterFile = getCounterFile(jobId);
         if (!Files.exists(counterFile)) {
             throw new JobStoreException(String.format("Counter file %s not found", counterFile));
         }
         return JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET)
-                .readObjectFromFile(counterFile, ChunkCounter.class)
-                .getTotal();
+                .readObjectFromFile(counterFile, ChunkCounter.class);
     }
 
     private Path getCounterFile(long jobId) {

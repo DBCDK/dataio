@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import javax.ejb.ApplicationException;
 
 @ApplicationException(rollback = true)
-public class FbsSinkException extends ServiceException {
+public class SinkException extends ServiceException {
     private static final long serialVersionUID = 2194228417266848688L;
 
     /**
@@ -17,7 +17,7 @@ public class FbsSinkException extends ServiceException {
      * @param message detail message saved for later retrieval by the
      *                {@link #getMessage()} method. May be null.
      */
-    public FbsSinkException(String message) {
+    public SinkException(String message) {
         super(message);
     }
 
@@ -35,7 +35,7 @@ public class FbsSinkException extends ServiceException {
      *               permitted, and indicates that the cause is nonexistent or
      *               unknown).
      */
-    public FbsSinkException(String message, Exception cause) {
+    public SinkException(String message, Exception cause) {
         super(message, cause);
     }
 }

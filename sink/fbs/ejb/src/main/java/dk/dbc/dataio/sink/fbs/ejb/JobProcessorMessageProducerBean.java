@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.sink.fbs.types.FbsSinkException;
+import dk.dbc.dataio.sink.fbs.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +32,9 @@ public class JobProcessorMessageProducerBean {
      * @param sinkChunkResult SinkChunkResult instance to be inserted as message payload
      *
      * @throws NullPointerException when given null-valued argument
-     * @throws FbsSinkException when unable to send given NewJob to destination
+     * @throws SinkException when unable to send given NewJob to destination
      */
-    public void send(SinkChunkResult sinkChunkResult) throws NullPointerException, FbsSinkException {
+    public void send(SinkChunkResult sinkChunkResult) throws NullPointerException, SinkException {
         LOGGER.info("Sending SinkChunkResult {} for job {}", sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, sinkChunkResult);
@@ -42,7 +42,7 @@ public class JobProcessorMessageProducerBean {
         } catch (JsonException | JMSException e) {
             final String errorMessage = String.format("Exception caught while sending SinkChunkResult %s for job %s",
                     sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
-            throw new FbsSinkException(errorMessage, e);
+            throw new SinkException(errorMessage, e);
         }
     }
 

@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
-import dk.dbc.dataio.sink.fbs.types.FbsSinkException;
+import dk.dbc.dataio.sink.fbs.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +17,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
+import javax.jms.Queue;
 import javax.jms.TextMessage;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -47,7 +48,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void send_sinkChunkResultArgIsNull_throws() throws FbsSinkException {
+    public void send_sinkChunkResultArgIsNull_throws() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
             jobProcessorMessageProducerBean.send(null);
@@ -57,7 +58,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void send_createMessageThrowsJsonException_throws() throws JsonException, FbsSinkException {
+    public void send_createMessageThrowsJsonException_throws() throws JsonException, SinkException {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
         final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
@@ -65,8 +66,18 @@ public class JobProcessorMessageProducerBeanTest {
         try {
             jobProcessorMessageProducerBean.send(sinkChunkResult);
             fail("No exception thrown");
-        } catch (FbsSinkException e) {
+        } catch (SinkException e) {
         }
+    }
+
+    @Test
+    public void send_sinkChunkResultIsValid_Success() throws SinkException {
+        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
+        when(jmsProducer.send(any(Queue.class), any(TextMessage.class))).thenReturn(jmsProducer);
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+
+        jobProcessorMessageProducerBean.send(sinkChunkResult);
     }
 
     @Test

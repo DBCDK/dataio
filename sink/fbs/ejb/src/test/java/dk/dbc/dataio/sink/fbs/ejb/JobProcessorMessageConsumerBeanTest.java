@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
-import dk.dbc.dataio.sink.fbs.types.FbsSinkException;
+import dk.dbc.dataio.sink.fbs.types.SinkException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -27,14 +27,14 @@ public class JobProcessorMessageConsumerBeanTest {
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
 
     @Test(expected = InvalidMessageException.class)
-    public void handleConsumedMessage_consumedMessageArgContainsInvalidPayload_throws() throws InvalidMessageException, FbsSinkException {
+    public void handleConsumedMessage_consumedMessageArgContainsInvalidPayload_throws() throws InvalidMessageException, SinkException {
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, "payload");
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 
     @Test
-    public void handleConsumedMessage_pusherThrowsFbsSinkException_throws() throws InvalidMessageException, FbsSinkException {
-        final FbsSinkException fbsSinkException = new FbsSinkException("DIED");
+    public void handleConsumedMessage_pusherThrowsFbsSinkException_throws() throws InvalidMessageException, SinkException {
+        final SinkException fbsSinkException = new SinkException("DIED");
         final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
         when(fbsPusherBean.push(any(ChunkResult.class))).thenReturn(sinkChunkResult);
         doThrow(fbsSinkException).when(jobProcessorMessageProducerBean).send(sinkChunkResult);
@@ -42,13 +42,13 @@ public class JobProcessorMessageConsumerBeanTest {
         try {
             getInitializedBean().handleConsumedMessage(consumedMessage);
             fail("No exception thrown");
-        } catch (FbsSinkException e) {
+        } catch (SinkException e) {
             assertThat(e, is(fbsSinkException));
         }
     }
 
     @Test
-    public void handleConsumedMessage_pusherReturnsResult_sendsResult() throws InvalidMessageException, FbsSinkException {
+    public void handleConsumedMessage_pusherReturnsResult_sendsResult() throws InvalidMessageException, SinkException {
         final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
         when(fbsPusherBean.push(any(ChunkResult.class))).thenReturn(sinkChunkResult);
         doNothing().when(jobProcessorMessageProducerBean).send(sinkChunkResult);

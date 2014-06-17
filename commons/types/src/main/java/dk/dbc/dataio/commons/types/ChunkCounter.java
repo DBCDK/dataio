@@ -6,7 +6,7 @@ public class ChunkCounter implements Serializable {
     private static final long serialVersionUID = 4376125910754399339L;
 
     private long total;
-    private final ItemResultCounter itemResultCounter;
+    private ItemResultCounter itemResultCounter;
 
     public ChunkCounter() {
         total = 0;

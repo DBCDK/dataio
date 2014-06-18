@@ -1,8 +1,11 @@
 package dk.dbc.dataio.gui.client.pages.jobsshow;
 
+import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -10,6 +13,7 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
+import dk.dbc.dataio.gui.client.resource.Resources;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -33,6 +37,8 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     // Configuration constants
     private static final int PAGE_SIZE = 20;
 
+    private Resources resources = GWT.create(Resources.class);
+
     // Local variables
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
     private final DioCellTable<JobInfo> table = new DioCellTable<JobInfo>();
@@ -42,6 +48,8 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     TextColumn<JobInfo> fileNameColumn;
     TextColumn<JobInfo> submitterNumberColumn;
     TextColumn<JobInfo> jobCreationTimeColumn;
+    Column<JobInfo, ImageResource> jobStateColumn;
+
     private int currentPageSize = PAGE_SIZE;
 
     /**
@@ -99,6 +107,15 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         };
         submitterNumberColumn.setSortable(true);
         table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
+
+        // Job State Column
+        jobStateColumn = new Column<JobInfo, ImageResource>(new ImageResourceCell()) {
+            @Override
+            public ImageResource getValue(JobInfo content) {
+                return resources.gray();
+            }
+        };
+        table.addColumn(jobStateColumn, constants.columnHeader_JobStatus());
 
         // Add table to view
         add(table);

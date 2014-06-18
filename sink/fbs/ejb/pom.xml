@@ -45,6 +45,7 @@
         <groupId>dk.dbc</groupId>
         <artifactId>dataio-sink-util-message-producer</artifactId>
         <version>${project.version}</version>
+        <type>ejb</type>
     </dependency>
     <!--dependency>
       <groupId>dk.dbc</groupId>

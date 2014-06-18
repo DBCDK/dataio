@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -127,12 +126,25 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
                 FileSystemJobStore.JOBINFO_FILE);
         final JobInfo jobInfo = JsonUtil.fromJson(readFileIntoString(jobInfoPath), JobInfo.class);
         assertThat(jobInfo, is(notNullValue()));
-        Map<JobState.OperationalState, ChunkCounter> jobInfoChunkCounters = jobInfo.getChunkCounters();
-        assertThat(jobInfoChunkCounters, is(notNullValue()));
-        assertThat(jobInfoChunkCounters.size(), is(3));
-        assertThat(jobInfoChunkCounters.containsKey(JobState.OperationalState.CHUNKIFYING), is(true));
-        assertThat(jobInfoChunkCounters.containsKey(JobState.OperationalState.PROCESSING), is(true));
-        assertThat(jobInfoChunkCounters.containsKey(JobState.OperationalState.DELIVERING), is(true));
-    }
 
+        ChunkCounter chunkifyingCounter = jobInfo.getChunkifyingChunkCounter();
+        assertThat(chunkifyingCounter, is(notNullValue()));
+        assertThat(chunkifyingCounter.getItemResultCounter().getFailure(), is(0L));
+        assertThat(chunkifyingCounter.getItemResultCounter().getIgnore(), is(0L));
+        assertThat(chunkifyingCounter.getItemResultCounter().getSuccess(), is(1L));
+
+        ChunkCounter processingCounter = jobInfo.getProcessingChunkCounter();
+        assertThat(jobInfo.getProcessingChunkCounter(), is(notNullValue()));
+        assertThat(processingCounter.getItemResultCounter().getFailure(), is(0L));
+        assertThat(processingCounter.getItemResultCounter().getIgnore(), is(0L));
+        assertThat(processingCounter.getItemResultCounter().getSuccess(), is(1L));
+
+        ChunkCounter deliveringCounter = jobInfo.getDeliveringChunkCounter();
+        assertThat(jobInfo.getDeliveringChunkCounter(), is(notNullValue()));
+        assertThat(deliveringCounter.getItemResultCounter().getFailure(), is(0L));
+        assertThat(deliveringCounter.getItemResultCounter().getIgnore(), is(0L));
+        assertThat(deliveringCounter.getItemResultCounter().getSuccess(), is(1L));
+
+        assertThat(chunkifyingCounter.getTotal(), is(1L));
+    }
 }

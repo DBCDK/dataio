@@ -10,6 +10,10 @@ public class JobInfoJsonBuilder extends JsonBuilder {
     private long jobRecordCount = 0;
     private String jobSpecification = new JobSpecificationJsonBuilder().build();
     private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
+    private String chunkifyingChunkCounter = new ChunkCounterJsonBuilder().build();
+    private String processingChunkCounter = new ChunkCounterJsonBuilder().build();
+    private String deliveringChunkCounter = new ChunkCounterJsonBuilder().build();
+
 
     public JobInfoJsonBuilder setJobId(long jobId) {
         this.jobId = jobId;
@@ -36,6 +40,21 @@ public class JobInfoJsonBuilder extends JsonBuilder {
         return this;
     }
 
+    public JobInfoJsonBuilder setChunkifyingChunkCounter(String chunkifyingChunkCounter) {
+        this.chunkifyingChunkCounter = chunkifyingChunkCounter;
+        return this;
+    }
+
+    public JobInfoJsonBuilder setProcessingChunkCounter(String processingChunkCounter) {
+        this.processingChunkCounter = processingChunkCounter;
+        return this;
+    }
+
+    public JobInfoJsonBuilder setDeliveringChunkCounter(String deliveringChunkCounter) {
+        this.deliveringChunkCounter = deliveringChunkCounter;
+        return this;
+    }
+
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
@@ -43,7 +62,10 @@ public class JobInfoJsonBuilder extends JsonBuilder {
         stringBuilder.append(asLongMember("jobCreationTime", jobCreationTime)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("jobRecordCount", jobRecordCount)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("jobSpecification", jobSpecification)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("jobErrorCode", jobErrorCode.name()));
+        stringBuilder.append(asTextMember("jobErrorCode", jobErrorCode.name())); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asObjectMember("chunkifyingChunkCounter", chunkifyingChunkCounter)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asObjectMember("processingChunkCounter", processingChunkCounter)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asObjectMember("deliveringChunkCounter", deliveringChunkCounter));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

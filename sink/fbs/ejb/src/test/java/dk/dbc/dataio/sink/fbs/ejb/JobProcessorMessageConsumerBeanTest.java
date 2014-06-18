@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
-import dk.dbc.dataio.sink.fbs.types.SinkException;
+import dk.dbc.dataio.sink.util.types.SinkException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -33,17 +33,17 @@ public class JobProcessorMessageConsumerBeanTest {
     }
 
     @Test
-    public void handleConsumedMessage_pusherThrowsFbsSinkException_throws() throws InvalidMessageException, SinkException {
-        final SinkException fbsSinkException = new SinkException("DIED");
+    public void handleConsumedMessage_pusherThrowsSinkException_throws() throws InvalidMessageException, SinkException {
+        final SinkException sinkException = new SinkException("DIED");
         final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
         when(fbsPusherBean.push(any(ChunkResult.class))).thenReturn(sinkChunkResult);
-        doThrow(fbsSinkException).when(jobProcessorMessageProducerBean).send(sinkChunkResult);
+        doThrow(sinkException).when(jobProcessorMessageProducerBean).send(sinkChunkResult);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
         try {
             getInitializedBean().handleConsumedMessage(consumedMessage);
             fail("No exception thrown");
         } catch (SinkException e) {
-            assertThat(e, is(fbsSinkException));
+            assertThat(e, is(sinkException));
         }
     }
 

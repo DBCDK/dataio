@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
-import dk.dbc.dataio.sink.fbs.types.SinkException;
+import dk.dbc.dataio.sink.util.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

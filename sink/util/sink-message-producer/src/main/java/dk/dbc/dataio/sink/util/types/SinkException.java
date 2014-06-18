@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.fbs.types;
+package dk.dbc.dataio.sink.util.types;
 
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 

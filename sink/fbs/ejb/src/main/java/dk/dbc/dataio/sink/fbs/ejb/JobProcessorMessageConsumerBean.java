@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.fbs.types.SinkException;
+import dk.dbc.dataio.sink.util.types.SinkException;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;

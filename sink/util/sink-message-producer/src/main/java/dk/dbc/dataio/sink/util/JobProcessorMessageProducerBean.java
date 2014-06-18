@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.util;
 
+import dk.dbc.dataio.sink.util.types.SinkException;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;

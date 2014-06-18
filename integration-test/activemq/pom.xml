@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>dataio-integration-test</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dataio-integration-test-activemq</artifactId>
+  <name>dataio-integration-test-activemq</name>
+  <packaging>pom</packaging>
+
+  <properties>
+    <external-resources.directory>${project.build.directory}/resources</external-resources.directory>
+    <activemq-distribution>${external-resources.directory}/activemq-dist-${activemq-bin.version}-SNAPSHOT.tar.gz/activemq-dist</activemq-distribution>
+    <activemq.home>${basedir}/home</activemq.home>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.googlecode.maven-download-plugin</groupId>
+        <artifactId>maven-download-plugin</artifactId>
+        <version>${maven-download-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>get activemq distribution</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>artifact</goal>
+            </goals>
+            <configuration>
+              <groupId>dk.dbc</groupId>
+              <artifactId>activemq-dist</artifactId>
+              <version>${activemq-bin.version}-SNAPSHOT</version>
+              <type>tar.gz</type>
+              <outputDirectory>${external-resources.directory}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>truezip-maven-plugin</artifactId>
+        <version>${truezip-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>unpack distribution</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <files>
+                <file>
+                  <source>${activemq-distribution}/amqRemoteInstall.sh</source>
+                  <outputDirectory>${activemq.home}</outputDirectory>
+                </file>
+                <file>
+                  <source>${activemq-distribution}/amqRemoteRemove.sh</source>
+                  <outputDirectory>${activemq.home}</outputDirectory>
+                </file>
+                <file>
+                  <source>${activemq-distribution}/apache-activemq-${activemq-bin.version}-bin.tar.gz</source>
+                  <outputDirectory>${activemq.home}</outputDirectory>
+                </file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

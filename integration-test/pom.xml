@@ -28,6 +28,7 @@
     <module>glassfish</module>
     <module>h2</module>
     <module>postgresql</module>
+    <module>activemq</module>
   </modules>
 
   <build>

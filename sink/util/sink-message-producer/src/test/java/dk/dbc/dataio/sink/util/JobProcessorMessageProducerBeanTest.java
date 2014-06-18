@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import dk.dbc.dataio.sink.util.types.SinkException;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;

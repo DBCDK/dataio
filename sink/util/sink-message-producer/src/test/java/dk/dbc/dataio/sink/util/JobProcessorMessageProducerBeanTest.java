@@ -17,6 +17,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.JMSProducer;
+import javax.jms.Queue;
 import javax.jms.TextMessage;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -67,6 +68,16 @@ public class JobProcessorMessageProducerBeanTest {
             fail("No exception thrown");
         } catch (SinkException e) {
         }
+    }
+
+    @Test
+    public void send_sinkChunkResultIsValid_Success() throws SinkException {
+        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
+        when(jmsProducer.send(any(Queue.class), any(TextMessage.class))).thenReturn(jmsProducer);
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+
+        jobProcessorMessageProducerBean.send(sinkChunkResult);
     }
 
     @Test

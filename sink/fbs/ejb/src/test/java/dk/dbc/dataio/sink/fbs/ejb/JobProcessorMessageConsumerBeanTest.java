@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
-import dk.dbc.dataio.sink.util.types.SinkException;
+import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;

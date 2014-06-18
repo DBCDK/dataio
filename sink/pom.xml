@@ -19,6 +19,7 @@
     <module>es</module>
     <module>fbs</module>
     <module>testutil</module>
+    <module>types</module>
     <module>util</module>
   </modules>
 

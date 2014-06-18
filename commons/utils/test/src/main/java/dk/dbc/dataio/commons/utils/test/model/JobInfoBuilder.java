@@ -64,6 +64,9 @@ public class JobInfoBuilder {
         JobInfo jobInfo = new JobInfo(jobId, jobSpecification, jobCreationTime);
         jobInfo.setJobErrorCode(this.jobErrorCode);
         jobInfo.setJobRecordCount(this.jobRecordCount);
+        jobInfo.setChunkifyingChunkCounter(chunkifyingChunkCounter);
+        jobInfo.setProcessingChunkCounter(processingChunkCounter);
+        jobInfo.setDeliveringChunkCounter(deliveringChunkCounter);
         return jobInfo;
     }
 }

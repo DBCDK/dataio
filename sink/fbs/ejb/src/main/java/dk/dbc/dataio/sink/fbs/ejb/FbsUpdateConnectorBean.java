@@ -33,8 +33,8 @@ public class FbsUpdateConnectorBean {
         }
     }
 
-    public UpdateMarcXchangeResult updateMarcExchange(String agencyId, String collection, String trackingId)
+    public UpdateMarcXchangeResult updateMarcExchange(String collection, String trackingId)
             throws FbsUpdateConnectorException {
-        return fbsUpdateConnector.updateMarcExchange(agencyId, collection, trackingId);
+        return fbsUpdateConnector.updateMarcExchange(collection, trackingId);
     }
 }

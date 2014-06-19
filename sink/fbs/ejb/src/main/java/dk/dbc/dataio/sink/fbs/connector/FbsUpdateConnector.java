@@ -3,7 +3,6 @@ package dk.dbc.dataio.sink.fbs.connector;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
 import dk.dbc.oss.ns.updatemarcxchange.MarcXchangeRecord;
-import dk.dbc.oss.ns.updatemarcxchange.ReasonEnum;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangePortType;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeRequest;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -69,7 +68,6 @@ public class FbsUpdateConnector {
 
     /**
      * Calls updateMarcExchange operation of the UpdateMarcXchange Web service
-     * @param agencyId agency ID
      * @param collection MARC exchange collection
      * @param trackingId tracking ID (can be null or empty)
      * @return UpdateMarcXchangeResult instance
@@ -78,13 +76,11 @@ public class FbsUpdateConnector {
      * @throws FbsUpdateConnectorException if unable to transform collection to CollectionType
      * @throws WebServiceException on general transport layer failure or service internal error
      */
-    public UpdateMarcXchangeResult updateMarcExchange(String agencyId, String collection, String trackingId)
+    public UpdateMarcXchangeResult updateMarcExchange(String collection, String trackingId)
             throws NullPointerException, IllegalArgumentException, WebServiceException, FbsUpdateConnectorException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(agencyId, "agencyId");
         InvariantUtil.checkNotNullNotEmptyOrThrow(collection, "collection");
 
         final UpdateMarcXchangeRequest updateMarcXchangeRequest = new UpdateMarcXchangeRequest();
-        updateMarcXchangeRequest.setAgencyId(agencyId);
         try {
             updateMarcXchangeRequest.setMarcXchangeRecord(toMarcXchangeRecord(collection));
         } catch (JAXBException e) {
@@ -93,8 +89,6 @@ public class FbsUpdateConnector {
         if (trackingId != null && !trackingId.isEmpty()) {
             updateMarcXchangeRequest.setTrackingId(trackingId);
         }
-        // FixMe: set from outside or remove completely
-        updateMarcXchangeRequest.setReason(ReasonEnum.UPDATE_RECORD);
         return getProxy().updateMarcXchange(updateMarcXchangeRequest);
     }
 

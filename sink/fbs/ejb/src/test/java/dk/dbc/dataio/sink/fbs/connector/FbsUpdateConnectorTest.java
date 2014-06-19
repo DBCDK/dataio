@@ -1,7 +1,6 @@
 package dk.dbc.dataio.sink.fbs.connector;
 
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
-import dk.dbc.oss.ns.updatemarcxchange.ReasonEnum;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangePortType;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeRequest;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.when;
 public class FbsUpdateConnectorTest {
     private final UpdateMarcXchangeServices services = mock(UpdateMarcXchangeServices.class);
     private final String endpoint = "http://fbs/ws";
-    private final String agencyId = "agencyId";
     private final String trackingId = "trackingId";
     private final String collection =
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
@@ -61,30 +59,10 @@ public class FbsUpdateConnectorTest {
     }
 
     @Test
-    public void updateMarcExchange_agencyIdArgIsNull_throws() throws FbsUpdateConnectorException {
-        final FbsUpdateConnector connector = getConnector();
-        try {
-            connector.updateMarcExchange(null, collection, trackingId);
-            fail("No Exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void updateMarcExchange_agencyIdArgIsEmpty_throws() throws FbsUpdateConnectorException {
-        final FbsUpdateConnector connector = getConnector();
-        try {
-            connector.updateMarcExchange("", collection, trackingId);
-            fail("No Exception thrown");
-        } catch (IllegalArgumentException e) {
-        }
-    }
-
-    @Test
     public void updateMarcExchange_collectionArgIsNull_throws() throws FbsUpdateConnectorException {
         final FbsUpdateConnector connector = getConnector();
         try {
-            connector.updateMarcExchange(agencyId, null, trackingId);
+            connector.updateMarcExchange(null, trackingId);
             fail("No Exception thrown");
         } catch (NullPointerException e) {
         }
@@ -94,7 +72,7 @@ public class FbsUpdateConnectorTest {
     public void updateMarcExchange_collectionArgIsEmpty_throws() throws FbsUpdateConnectorException {
         final FbsUpdateConnector connector = getConnector();
         try {
-            connector.updateMarcExchange(agencyId, "", trackingId);
+            connector.updateMarcExchange("", trackingId);
             fail("No Exception thrown");
         } catch (IllegalArgumentException e) {
         }
@@ -104,7 +82,7 @@ public class FbsUpdateConnectorTest {
     public void updateMarcExchange_collectionArgIsInvalid_throws() throws FbsUpdateConnectorException {
         final FbsUpdateConnector connector = getConnector();
         try {
-            connector.updateMarcExchange(agencyId, "invalid collection", trackingId);
+            connector.updateMarcExchange("invalid collection", trackingId);
             fail("No Exception thrown");
         } catch (FbsUpdateConnectorException e) {
         }
@@ -114,11 +92,9 @@ public class FbsUpdateConnectorTest {
     public void updateMarcExchange_allArgsAreValid_callsService() throws FbsUpdateConnectorException {
         final FbsUpdateConnector connector = getConnector();
         final MockedUpdateMarcXchangePortType proxy = getMockedUpdateMarcXchangePortType();
-        final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(agencyId, collection, trackingId);
+        final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(collection, trackingId);
         assertThat(updateMarcXchangeResult, is(notNullValue()));
-        assertThat(proxy.lastRequest.getAgencyId(), is(agencyId));
         assertThat(proxy.lastRequest.getTrackingId(), is(trackingId));
-        assertThat(proxy.lastRequest.getReason(), is(ReasonEnum.UPDATE_RECORD));
         assertThat(proxy.lastRequest.getMarcXchangeRecord(), is(notNullValue()));
         assertRequestContext(proxy.getRequestContext());
     }
@@ -127,7 +103,7 @@ public class FbsUpdateConnectorTest {
     public void updateMarcExchange_trackingIdIsNull_callsServiceWithoutTrackingId() throws FbsUpdateConnectorException {
         final FbsUpdateConnector connector = getConnector();
         final MockedUpdateMarcXchangePortType proxy = getMockedUpdateMarcXchangePortType();
-        final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(agencyId, collection, null);
+        final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(collection, null);
         assertThat(updateMarcXchangeResult, is(notNullValue()));
         assertThat(proxy.lastRequest.getTrackingId(), is(nullValue()));
         assertRequestContext(proxy.getRequestContext());
@@ -137,7 +113,7 @@ public class FbsUpdateConnectorTest {
     public void updateMarcExchange_trackingIdIsEmpty_callsServiceWithoutTrackingId() throws FbsUpdateConnectorException {
         final FbsUpdateConnector connector = getConnector();
         final MockedUpdateMarcXchangePortType proxy = getMockedUpdateMarcXchangePortType();
-        final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(agencyId, collection, "");
+        final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(collection, "");
         assertThat(updateMarcXchangeResult, is(notNullValue()));
         assertThat(proxy.lastRequest.getTrackingId(), is(nullValue()));
         assertRequestContext(proxy.getRequestContext());

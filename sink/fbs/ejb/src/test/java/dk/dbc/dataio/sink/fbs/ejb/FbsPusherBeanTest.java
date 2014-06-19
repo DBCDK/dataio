@@ -51,10 +51,10 @@ public class FbsPusherBeanTest {
         final String failedMessage = "FAILED";
         updateMarcXchangeResultFailed.setUpdateMarcXchangeMessage(failedMessage);
 
-        when(fbsUpdateConnectorBean.updateMarcExchange(anyString(), eq(inData0), anyString())).thenThrow(new FbsUpdateConnectorException("DIED"));
-        when(fbsUpdateConnectorBean.updateMarcExchange(anyString(), eq(inData1), anyString())).thenReturn(updateMarcXchangeResultOk);
-        when(fbsUpdateConnectorBean.updateMarcExchange(anyString(), eq(inData2), anyString())).thenThrow(new IllegalStateException());
-        when(fbsUpdateConnectorBean.updateMarcExchange(anyString(), eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
+        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData0), anyString())).thenThrow(new FbsUpdateConnectorException("DIED"));
+        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData1), anyString())).thenReturn(updateMarcXchangeResultOk);
+        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData2), anyString())).thenThrow(new IllegalStateException());
+        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
 
         final SinkChunkResult sinkChunkResult = fbsPusherBean.push(chunkResult);
         assertThat(sinkChunkResult.getItems().size(), is(4));

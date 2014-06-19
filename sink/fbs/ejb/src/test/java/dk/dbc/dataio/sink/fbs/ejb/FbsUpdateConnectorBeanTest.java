@@ -15,7 +15,6 @@ import static org.mockito.Mockito.when;
 
 public class FbsUpdateConnectorBeanTest {
 
-    private static final String agencyId = "agencyId";
     private static final String collection = "collection";
     private static final String trackingId = "trackingId";
 
@@ -32,9 +31,9 @@ public class FbsUpdateConnectorBeanTest {
         final FbsUpdateConnectorBean fbsUpdateConnectorBean = new FbsUpdateConnectorBean();
         fbsUpdateConnectorBean.fbsUpdateConnector = fbsUpdateConnector;
 
-        when(fbsUpdateConnector.updateMarcExchange(any(String.class), any(String.class), any(String.class)))
+        when(fbsUpdateConnector.updateMarcExchange(any(String.class), any(String.class)))
                 .thenThrow(new FbsUpdateConnectorException("FbsUpdateConnectorException thrown"));
-        fbsUpdateConnectorBean.updateMarcExchange(agencyId, collection, trackingId);
+        fbsUpdateConnectorBean.updateMarcExchange(collection, trackingId);
     }
 
     @Test
@@ -46,11 +45,11 @@ public class FbsUpdateConnectorBeanTest {
 
         UpdateMarcXchangeResult updateMarcXchangeResult = new UpdateMarcXchangeResult();
 
-        when(fbsUpdateConnector.updateMarcExchange(any(String.class), any(String.class), any(String.class)))
+        when(fbsUpdateConnector.updateMarcExchange(any(String.class), any(String.class)))
                 .thenReturn(updateMarcXchangeResult);
 
         UpdateMarcXchangeResult returnedupdateMarcXchangeResult =
-                fbsUpdateConnectorBean.updateMarcExchange(agencyId, collection, trackingId);
+                fbsUpdateConnectorBean.updateMarcExchange(collection, trackingId);
 
         assertThat(returnedupdateMarcXchangeResult, is(updateMarcXchangeResult));
     }

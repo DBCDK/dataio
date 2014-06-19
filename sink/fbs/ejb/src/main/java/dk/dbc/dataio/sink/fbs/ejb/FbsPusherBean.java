@@ -27,7 +27,7 @@ public class FbsPusherBean {
             final String trackingId = String.format("%d-%d-%d", chunkResult.getJobId(), chunkResult.getChunkId(), chunkItem.getId());
             try {
                 final UpdateMarcXchangeResult updateMarcXchangeResult = fbsUpdateConnector.updateMarcExchange(
-                        agencyId, Base64Util.base64decode(chunkItem.getData()), trackingId);
+                        Base64Util.base64decode(chunkItem.getData()), trackingId);
                 if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
                     sinkChunkResult.addItem(newSuccessfulChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
                 } else {

@@ -4,17 +4,15 @@ BASEDIR=$(cd "$(dirname "$0")"; pwd)
 
 function startup {
     clear_mountpoint
-    # Starts postgresql. h2, activemq and glassfish
+    # Starts postgresql. h2 and glassfish
     ${BASEDIR}/integration-test/postgresql/bin/start_postgresql
     ${BASEDIR}/integration-test/h2/bin/start_h2
-    ${BASEDIR}/integration-test/activemq/bin/start_activemq
     ${BASEDIR}/integration-test/glassfish/bin/start_glassfish4
 }
 
 function shutdown {
-    # Stops postgresql, h2, activemq and glassfish
+    # Stops postgresql, h2 and glassfish
     ${BASEDIR}/integration-test/glassfish/bin/stop_glassfish4
-    ${BASEDIR}/integration-test/activemq/bin/stop_activemq
     ${BASEDIR}/integration-test/h2/bin/stop_h2
     ${BASEDIR}/integration-test/postgresql/bin/stop_postgresql
     clear_mountpoint

@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-sink-util</artifactId>
+    <artifactId>dataio-sink-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-sink-util-message-producer</artifactId>
-    <name>dataio-sink-util-message-producer</name>
+  <artifactId>dataio-sink-utils-message-producer</artifactId>
+    <name>dataio-sink-utils-message-producer</name>
   <packaging>ejb</packaging>
 
   <dependencies>

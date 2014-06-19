@@ -10,12 +10,12 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-sink-util</artifactId>
-  <name>dataio-sink-util</name>
+  <artifactId>dataio-sink-utils</artifactId>
+  <name>dataio-sink-utils</name>
   <packaging>pom</packaging>
 
   <modules>
-    <module>sink-message-producer</module>
+    <module>message-producer</module>
   </modules>
 
 </project>

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.fbs.ejb;
+package dk.dbc.dataio.sink.utils.messageproducer;
 
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;

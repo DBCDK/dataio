@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.util;
+package dk.dbc.dataio.sink.utils.messageproducer;
 
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.commons.types.SinkChunkResult;

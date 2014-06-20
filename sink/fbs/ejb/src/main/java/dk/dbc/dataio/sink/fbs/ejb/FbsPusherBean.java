@@ -14,9 +14,6 @@ import java.util.ArrayList;
 
 @Stateless
 public class FbsPusherBean {
-    // ToDo: how do we handle non-870970 records
-    private final static String agencyId = "870970";
-
     @EJB
     FbsUpdateConnectorBean fbsUpdateConnector;
 

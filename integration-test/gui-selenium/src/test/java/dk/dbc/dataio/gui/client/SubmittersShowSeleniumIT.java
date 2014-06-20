@@ -44,10 +44,10 @@ public class SubmittersShowSeleniumIT extends AbstractGuiSeleniumTest {
         navigateToSubmittersShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
         table.waitAssertRows(1);
-        List<String> rowData = table.getRow(0);
-        assertThat(rowData.get(0), is((Long.toString(submitter.getContent().getNumber()))));
-        assertThat(rowData.get(1), is(submitter.getContent().getName()));
-        assertThat(rowData.get(2), is(submitter.getContent().getDescription()));
+        List<SeleniumGWTTable.Cell> rowData = table.getRow(0);
+        assertThat(rowData.get(0).getCellContent(), is((Long.toString(submitter.getContent().getNumber()))));
+        assertThat(rowData.get(1).getCellContent(), is(submitter.getContent().getName()));
+        assertThat(rowData.get(2).getCellContent(), is(submitter.getContent().getDescription()));
     }
 
     @Test
@@ -58,13 +58,13 @@ public class SubmittersShowSeleniumIT extends AbstractGuiSeleniumTest {
         navigateToSubmittersShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
         table.waitAssertRows(2);
-        List<List<String>> rowData = table.get();
-        assertThat(rowData.get(0).get(0), is(Long.toString(submitterA.getContent().getNumber())));
-        assertThat(rowData.get(0).get(1), is(submitterA.getContent().getName()));
-        assertThat(rowData.get(0).get(2), is(submitterA.getContent().getDescription()));
-        assertThat(rowData.get(1).get(0), is(Long.toString(submitterB.getContent().getNumber())));
-        assertThat(rowData.get(1).get(1), is(submitterB.getContent().getName()));
-        assertThat(rowData.get(1).get(2), is(submitterB.getContent().getDescription()));
+        List<List<SeleniumGWTTable.Cell>> rowData = table.get();
+        assertThat(rowData.get(0).get(0).getCellContent(), is(Long.toString(submitterA.getContent().getNumber())));
+        assertThat(rowData.get(0).get(1).getCellContent(), is(submitterA.getContent().getName()));
+        assertThat(rowData.get(0).get(2).getCellContent(), is(submitterA.getContent().getDescription()));
+        assertThat(rowData.get(1).get(0).getCellContent(), is(Long.toString(submitterB.getContent().getNumber())));
+        assertThat(rowData.get(1).get(1).getCellContent(), is(submitterB.getContent().getName()));
+        assertThat(rowData.get(1).get(2).getCellContent(), is(submitterB.getContent().getDescription()));
     }
 
     /**

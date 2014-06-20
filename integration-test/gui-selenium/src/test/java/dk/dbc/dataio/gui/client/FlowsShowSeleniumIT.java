@@ -53,10 +53,10 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
         table.waitAssertRows(1);
 
-        List<String> rowData = table.getRow(0);
-        assertThat(rowData.get(0), is(FLOW_NAME));
-        assertThat(rowData.get(1), is(FLOW_DESCRIPTION));
-        assertThat(rowData.get(2), is(FLOW_COMPONENT_NAME));
+        List<SeleniumGWTTable.Cell> rowData = table.getRow(0);
+        assertThat(rowData.get(0).getCellContent(), is(FLOW_NAME));
+        assertThat(rowData.get(1).getCellContent(), is(FLOW_DESCRIPTION));
+        assertThat(rowData.get(2).getCellContent(), is(FLOW_COMPONENT_NAME));
     }
 
     @Test
@@ -75,14 +75,14 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         navigateToFlowsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
         table.waitAssertRows(2);
-        List<List<String>> rowData = table.get();
+        List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
-        assertThat(rowData.get(0).get(0), is(FLOW_NAME_2));
-        assertThat(rowData.get(0).get(1), is(FLOW_DESCRIPTION_2));
-        assertThat(rowData.get(0).get(2), is(FLOW_COMPONENT_NAME_2));
-        assertThat(rowData.get(1).get(0), is(FLOW_NAME_1));
-        assertThat(rowData.get(1).get(1), is(FLOW_DESCRIPTION_1));
-        assertThat(rowData.get(1).get(2), is(FLOW_COMPONENT_NAME_1));
+        assertThat(rowData.get(0).get(0).getCellContent(), is(FLOW_NAME_2));
+        assertThat(rowData.get(0).get(1).getCellContent(), is(FLOW_DESCRIPTION_2));
+        assertThat(rowData.get(0).get(2).getCellContent(), is(FLOW_COMPONENT_NAME_2));
+        assertThat(rowData.get(1).get(0).getCellContent(), is(FLOW_NAME_1));
+        assertThat(rowData.get(1).get(1).getCellContent(), is(FLOW_DESCRIPTION_1));
+        assertThat(rowData.get(1).get(2).getCellContent(), is(FLOW_COMPONENT_NAME_1));
     }
 
     private static void navigateToFlowsShowWidget(WebDriver webDriver) {

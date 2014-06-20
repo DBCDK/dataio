@@ -72,16 +72,16 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(2);
-        List<List<String>> rowData = table.get();
+        List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
-        assertTrue(rowData.get(0).get(0).equals(formatDate(JOB_CREATION_TIME_NEWEST)));
-        assertThat(rowData.get(0).get(1), is(JOB_ID_2));   // Default sorting: Youngest first
-        assertThat(rowData.get(0).get(2), is(FILE_NAME_2));
-        assertThat(rowData.get(0).get(3), is(SUBMITTER_NUMBER_2));
-        assertTrue(rowData.get(1).get(0).equals(formatDate(JOB_CREATION_TIME_OLDEST)));
-        assertThat(rowData.get(1).get(1), is(JOB_ID_1));
-        assertThat(rowData.get(1).get(2), is(FILE_NAME_1));
-        assertThat(rowData.get(1).get(3), is(SUBMITTER_NUMBER_1));
+        assertTrue(rowData.get(0).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_NEWEST)));
+        assertThat(rowData.get(0).get(1).getCellContent(), is(JOB_ID_2));   // Default sorting: Youngest first
+        assertThat(rowData.get(0).get(2).getCellContent(), is(FILE_NAME_2));
+        assertThat(rowData.get(0).get(3).getCellContent(), is(SUBMITTER_NUMBER_2));
+        assertTrue(rowData.get(1).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_OLDEST)));
+        assertThat(rowData.get(1).get(1).getCellContent(), is(JOB_ID_1));
+        assertThat(rowData.get(1).get(2).getCellContent(), is(FILE_NAME_1));
+        assertThat(rowData.get(1).get(3).getCellContent(), is(SUBMITTER_NUMBER_1));
     }
 
     @Test
@@ -122,7 +122,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> rowData = table.get();
+        List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
         // Assert 20 rows
         int i = 0;
@@ -181,7 +181,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         findMoreButton(webDriver).click();
         table.waitAssertRows(1);
-        List<List<String>> rowData = table.get();
+        List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
         // Assert 21 rows
         int i = 0;
@@ -253,7 +253,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         // No need to click on Job Creation Time Header Column - it is selected by default, and column is descending
         SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> firstRowData = firstSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
         int i = 0;
         assertTableRow(firstRowData.get(i++), formatDate(getModifiedDate(jobCreationTime, 20)), "120", "Fil20", "200");
@@ -281,7 +281,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(0).click();  // First column is JobCreationTime column
         SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> secondRowData = secondSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
         i = 0;
         assertTableRow(secondRowData.get(i++), formatDate(getModifiedDate(jobCreationTime, 0)), "100", "Fil00", "220");
@@ -341,7 +341,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(1).click();  // Second column is Filename column
         SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> firstRowData = firstSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
         // Assert correct order of 20 rows - ascending job id's
         int i = 0;
@@ -370,7 +370,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(0).click();  // First column is Job Id column
         SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> secondRowData = secondSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
         i = 0;
         assertTableRow(secondRowData.get(i++), formatDate(getModifiedDate(jobCreationTime, 20)), "120", "Fil20", "200");
@@ -432,7 +432,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(2).click();  // third column is Filename column
         SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> firstRowData = firstSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
         // Assert correct order of 20 rows - ascending file names
         int i = 0;
@@ -461,7 +461,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(2).click();  // Third column is Filename column
         SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> secondRowData = secondSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
         // Assert correct order of 20 rows - descending job Id's
         i = 0;
@@ -523,7 +523,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(3).click();  // fourth column is Submitternumber column
         SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> firstRowData = firstSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
         // Assert correct order of 20 rows - ascending submitter numbers
         int i = 0;
@@ -552,7 +552,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(3).click();  // Fourth column is Submitternumber column
         SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
-        List<List<String>> secondRowData = secondSortTable.get();
+        List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
         // Assert correct order of 20 rows - descending submitter numbers
         i = 0;
@@ -600,7 +600,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(2).click();  // Third column is Filename column => Ascending
         SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
-        List<List<String>> tableData = sortedTable.get();
+        List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
         // Assert that data is as expected
         int i = 0;
@@ -633,7 +633,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(2).click();  // Third column is Filename column => Descending
         SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
-        List<List<String>> tableData = sortedTable.get();
+        List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
         // Assert that data is as expected
         int i = 0;
@@ -666,7 +666,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(0).click();  // First column is JobCreationTime column => Descending
         SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
-        List<List<String>> tableData = sortedTable.get();
+        List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
         // Assert that data is as expected
         int i = 0;
@@ -699,7 +699,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(0).click();  // first column is JobCreationTime column => Ascending
         SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
-        List<List<String>> tableData = sortedTable.get();
+        List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
         // Assert that data is as expected
         int i = 0;
@@ -731,7 +731,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(3).click();  // Fourth column is Submitternumber column => Ascending
         SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
-        List<List<String>> tableData = sortedTable.get();
+        List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
         // Assert that data is as expected
         int i = 0;
@@ -764,7 +764,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.findColumnHeader(3).click();  // Fourth column is Submitternumber column => Descending
         SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
-        List<List<String>> tableData = sortedTable.get();
+        List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
         // Assert that data is as expected
         int i = 0;
@@ -785,11 +785,11 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         return SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_MORE_BUTTON);
     }
 
-    private void assertTableRow(List<String> row, String jobCreationTime, String jobId, String fileName, String submitterId) {
-        assertTrue(row.get(0).equals(jobCreationTime));
-        assertThat(row.get(1), is(jobId));
-        assertThat(row.get(2), is(fileName));
-        assertThat(row.get(3), is(submitterId));
+    private void assertTableRow(List<SeleniumGWTTable.Cell> row, String jobCreationTime, String jobId, String fileName, String submitterId) {
+        assertTrue(row.get(0).getCellContent().equals(jobCreationTime));
+        assertThat(row.get(1).getCellContent(), is(jobId));
+        assertThat(row.get(2).getCellContent(), is(fileName));
+        assertThat(row.get(3).getCellContent(), is(submitterId));
     }
 
     private long getModifiedDate(long currentDate, int minutesToAdd){

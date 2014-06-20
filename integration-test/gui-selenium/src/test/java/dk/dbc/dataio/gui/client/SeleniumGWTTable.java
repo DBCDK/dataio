@@ -9,6 +9,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -68,7 +69,34 @@ public class SeleniumGWTTable {
     private String guiId;
     private long timeout;
     private long lastRowFound = 0;
-    private List<List<String>> tableData;
+    private List<List<Cell>> tableData;
+
+    class Cell {
+        private String cellContent;
+        private String className;
+
+        private Cell(String cellContent, String className) {
+            this.cellContent = cellContent;
+            this.className = className.toLowerCase();
+        }
+
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+
+        String getCellContent() {
+            return cellContent;
+        }
+
+        String getClassName() {
+            return className;
+        }
+
+        boolean hasClassName(String className) {
+            return Arrays.asList(this.className.split(" ")).contains(className.toLowerCase());  // Tests whether className is contained in this.className
+        }
+    }
 
     /**
      * Constructor
@@ -154,17 +182,7 @@ public class SeleniumGWTTable {
      *
      * @return The complete table data as fetched with the corresponding waitXXX methods
      */
-    public List<List<String>> get() {
-
-        for (List<String> row : tableData){
-            if(row != null && !row.isEmpty()){
-                for(int i = 0; i < row.size(); i++) {
-                    if(row.get(i) != null) {
-                        row.set(i, stripHtml(row.get(i)));
-                    }
-                }
-            }
-        }
+    public List<List<Cell>> get() {
         return tableData;
     }
 
@@ -186,7 +204,7 @@ public class SeleniumGWTTable {
      * @param row The row index
      * @return The row data
      */
-    public List<String> getRow(int row) {
+    public List<Cell> getRow(int row) {
          return tableData.get(row);
      }
 
@@ -224,9 +242,11 @@ public class SeleniumGWTTable {
      */
     private void waitAssertOneRow() throws TimeoutException {
          WebElement trElement = waitAndFindNextTrTagContainingData();
-         List<String> currentRow = new ArrayList<>();
+         List<Cell> currentRow = new ArrayList<>();
          for(WebElement tdElement: trElement.findElements(By.tagName("td"))) {
-            currentRow.add(SeleniumUtil.getCoveredText(tdElement.findElement(By.tagName("div"))));
+             Cell tableCell = new Cell(stripHtml(SeleniumUtil.getCoveredText(tdElement.findElement(By.tagName("div")))),
+                     tdElement.getAttribute("class"));
+             currentRow.add(tableCell);
          }
          tableData.add(currentRow);
     }

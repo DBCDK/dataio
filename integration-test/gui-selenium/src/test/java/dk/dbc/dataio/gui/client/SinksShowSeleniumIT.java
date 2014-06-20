@@ -56,21 +56,21 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SinksShowViewImpl.GUIID_SINKS_SHOW_WIDGET);
         table.waitAssertRows(2);
 
-        List<List<String>> rowData = table.get();
+        List<List<SeleniumGWTTable.Cell>> rowData = table.get();
         assertNotNull(rowData);
 
-        for (List <String> row : rowData){
+        for (List <SeleniumGWTTable.Cell> row : rowData){
             assertNotNull(row );
             assertTrue(row.size() == 3);
         }
 
-        assertThat(rowData.get(0).get(0), is(sink2.getContent().getName()));
-        assertThat(rowData.get(0).get(1), is(sink2.getContent().getResource()));
-        assertThat(rowData.get(0).get(2), is(BUTTON_NAME));
+        assertThat(rowData.get(0).get(0).getCellContent(), is(sink2.getContent().getName()));
+        assertThat(rowData.get(0).get(1).getCellContent(), is(sink2.getContent().getResource()));
+        assertThat(rowData.get(0).get(2).getCellContent(), is(BUTTON_NAME));
 
-        assertThat(rowData.get(1).get(0), is(sink1.getContent().getName()));
-        assertThat(rowData.get(1).get(1), is(sink1.getContent().getResource()));
-        assertThat(rowData.get(1).get(2), is(BUTTON_NAME));
+        assertThat(rowData.get(1).get(0).getCellContent(), is(sink1.getContent().getName()));
+        assertThat(rowData.get(1).get(1).getCellContent(), is(sink1.getContent().getResource()));
+        assertThat(rowData.get(1).get(2).getCellContent(), is(BUTTON_NAME));
     }
 
     @Test

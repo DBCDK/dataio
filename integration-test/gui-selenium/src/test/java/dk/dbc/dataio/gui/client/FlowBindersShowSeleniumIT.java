@@ -77,27 +77,27 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
         navigateToFlowBindersShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowBindersShowViewImpl.GUIID_FLOW_BINDERS_SHOW_WIDGET);
         table.waitAssertRows(2);
-        List<List<String>> rowData = table.get();
-        assertThat(rowData.get(0).get(0), is(subjectNameString(FLOW_BINDER_NAME, 16)));  // Navn
-        assertThat(rowData.get(0).get(1), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 16)));  // Beskrivelse
-        assertThat(rowData.get(0).get(2), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 16)));  // Rammeformat
-        assertThat(rowData.get(0).get(3), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 16)));  //Indholdsformat
-        assertThat(rowData.get(0).get(4), is(subjectNameString(FLOW_BINDER_CHAR_SET, 16)));  // Tegnsæt
-        assertThat(rowData.get(0).get(5), is(subjectNameString(FLOW_BINDER_DESTINATION, 16)));  // Destination
-        assertThat(rowData.get(0).get(6), is(flowBinderCreationTexts.translate("label_DefaultRecordSplitter")));  // Recordsplitter
-        assertThat(rowData.get(0).get(7), is(submitterPairString(11)));  // Submittere
-        assertThat(rowData.get(0).get(8), is(subjectNameString(FLOW_NAME, 14)));  // Flow
-        assertThat(rowData.get(0).get(9), is(subjectNameString(SINK_NAME, 15)));  // Sink
-        assertThat(rowData.get(1).get(0), is(subjectNameString(FLOW_BINDER_NAME, 17)));  // Navn
-        assertThat(rowData.get(1).get(1), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 17)));  // Beskrivelse
-        assertThat(rowData.get(1).get(2), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 17)));  // Rammeformat
-        assertThat(rowData.get(1).get(3), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 17)));  //Indholdsformat
-        assertThat(rowData.get(1).get(4), is(subjectNameString(FLOW_BINDER_CHAR_SET, 17)));  // Tegnsæt
-        assertThat(rowData.get(1).get(5), is(subjectNameString(FLOW_BINDER_DESTINATION, 17)));  // Destination
-        assertThat(rowData.get(1).get(6), is(flowBinderCreationTexts.translate("label_DefaultRecordSplitter")));  // Recordsplitter
-        assertThat(rowData.get(1).get(7), is(submitterPairString(11) + ", " + submitterPairString(12)));  // Submittere
-        assertThat(rowData.get(1).get(8), is(subjectNameString(FLOW_NAME, 18)));  // Flow
-        assertThat(rowData.get(1).get(9), is(subjectNameString(SINK_NAME, 19)));  // Sink
+        List<List<SeleniumGWTTable.Cell>> rowData = table.get();
+        assertThat(rowData.get(0).get(0).getCellContent(), is(subjectNameString(FLOW_BINDER_NAME, 16)));  // Navn
+        assertThat(rowData.get(0).get(1).getCellContent(), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 16)));  // Beskrivelse
+        assertThat(rowData.get(0).get(2).getCellContent(), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 16)));  // Rammeformat
+        assertThat(rowData.get(0).get(3).getCellContent(), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 16)));  //Indholdsformat
+        assertThat(rowData.get(0).get(4).getCellContent(), is(subjectNameString(FLOW_BINDER_CHAR_SET, 16)));  // Tegnsæt
+        assertThat(rowData.get(0).get(5).getCellContent(), is(subjectNameString(FLOW_BINDER_DESTINATION, 16)));  // Destination
+        assertThat(rowData.get(0).get(6).getCellContent(), is(flowBinderCreationTexts.translate("label_DefaultRecordSplitter")));  // Recordsplitter
+        assertThat(rowData.get(0).get(7).getCellContent(), is(submitterPairString(11)));  // Submittere
+        assertThat(rowData.get(0).get(8).getCellContent(), is(subjectNameString(FLOW_NAME, 14)));  // Flow
+        assertThat(rowData.get(0).get(9).getCellContent(), is(subjectNameString(SINK_NAME, 15)));  // Sink
+        assertThat(rowData.get(1).get(0).getCellContent(), is(subjectNameString(FLOW_BINDER_NAME, 17)));  // Navn
+        assertThat(rowData.get(1).get(1).getCellContent(), is(subjectNameString(FLOW_BINDER_DESCRIPTION, 17)));  // Beskrivelse
+        assertThat(rowData.get(1).get(2).getCellContent(), is(subjectNameString(FLOW_BINDER_FRAME_FORMAT, 17)));  // Rammeformat
+        assertThat(rowData.get(1).get(3).getCellContent(), is(subjectNameString(FLOW_BINDER_CONTENT_FORMAT, 17)));  //Indholdsformat
+        assertThat(rowData.get(1).get(4).getCellContent(), is(subjectNameString(FLOW_BINDER_CHAR_SET, 17)));  // Tegnsæt
+        assertThat(rowData.get(1).get(5).getCellContent(), is(subjectNameString(FLOW_BINDER_DESTINATION, 17)));  // Destination
+        assertThat(rowData.get(1).get(6).getCellContent(), is(flowBinderCreationTexts.translate("label_DefaultRecordSplitter")));  // Recordsplitter
+        assertThat(rowData.get(1).get(7).getCellContent(), is(submitterPairString(11) + ", " + submitterPairString(12)));  // Submittere
+        assertThat(rowData.get(1).get(8).getCellContent(), is(subjectNameString(FLOW_NAME, 18)));  // Flow
+        assertThat(rowData.get(1).get(9).getCellContent(), is(subjectNameString(SINK_NAME, 19)));  // Sink
 
     }
 

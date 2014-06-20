@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
 import dk.dbc.dataio.commons.types.ChunkCounter;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -9,6 +10,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
@@ -21,6 +23,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -83,14 +88,14 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
     }
 
     @Test
-    public void addSinkResult_sinkResultIsAdded_writesResultFileAndIncrementsProcessorCounterAndUpdatesStateAndUpdatesJobInfo() throws IOException, JobStoreException, JsonException {
+    public void addSinkResult_sinkResultIsAdded_writesResultFileAndIncrementsProcessorCounterAndUpdatesState() throws IOException, JobStoreException, JsonException {
         final Path jobStorePath = getJobStorePath();
         final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
         final Job job;
 
         // Create job in file system
-        try(InputStream is = Files.newInputStream(getDataFile())) {
+        try (InputStream is = Files.newInputStream(getDataFile())) {
             job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
         }
         assertThat(job, is(notNullValue()));
@@ -121,6 +126,34 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
         assertThat(sinkChunkCounter.getItemResultCounter().getTotal(), is(1L));
         assertThat(sinkChunkCounter.getItemResultCounter().getSuccess(), is(1L));
 
+    }
+
+    @Test
+    public void addSinkResult_sinkResultIsAdded_writesResultFileAndIncrementsProcessorCounterAndUpdatesJobInfo() throws IOException, JobStoreException, JsonException {
+
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final JobSpecification jobSpec = createJobSpecification(getDataFile());
+        final Job job;
+
+        // Create job in file system
+        try(InputStream is = Files.newInputStream(getDataFile())) {
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+        }
+        assertThat(job, is(notNullValue()));
+
+        // Create a new chunk and add as Processor Result
+        final ChunkResult processorChunkResult = new ChunkResultBuilder()
+                .setJobId(job.getId())
+                .build();
+        instance.addProcessorResult(processorChunkResult);
+
+        // Create a new chunk and add as Sink Result
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder()
+                .setJobId(job.getId())
+                .build();
+        instance.addSinkResult(sinkChunkResult);
+
         // Read and assert JobInfo file
         final Path jobInfoPath = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
                 FileSystemJobStore.JOBINFO_FILE);
@@ -138,6 +171,66 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
         assertThat(processingCounter.getItemResultCounter().getFailure(), is(0L));
         assertThat(processingCounter.getItemResultCounter().getIgnore(), is(0L));
         assertThat(processingCounter.getItemResultCounter().getSuccess(), is(1L));
+
+        ChunkCounter deliveringCounter = jobInfo.getDeliveringChunkCounter();
+        assertThat(jobInfo.getDeliveringChunkCounter(), is(notNullValue()));
+        assertThat(deliveringCounter.getItemResultCounter().getFailure(), is(0L));
+        assertThat(deliveringCounter.getItemResultCounter().getIgnore(), is(0L));
+        assertThat(deliveringCounter.getItemResultCounter().getSuccess(), is(1L));
+
+        assertThat(chunkifyingCounter.getTotal(), is(1L));
+    }
+
+    @Test
+    public void addSinkResult_sinkResultIsAddedWithFailure_writesResultFileAndIncrementsProcessorCounterAndUpdatesJobInfoWithFailure() throws IOException, JobStoreException, JsonException {
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final JobSpecification jobSpec = createJobSpecification(getDataFile());
+        final Job job;
+
+        // Create job in file system
+        try(InputStream is = Files.newInputStream(getDataFile())) {
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+        }
+        assertThat(job, is(notNullValue()));
+
+        List<ChunkItem> items = new ArrayList<>(Arrays.asList(new ChunkItemBuilder().setStatus(ChunkItem.Status.FAILURE).build()));
+
+        // Create a new chunk and add as Processor Result
+        final ChunkResult processorChunkResult = new ChunkResultBuilder()
+                .setJobId(job.getId())
+                .setItems(items) //Set item with failure
+                .build();
+        instance.addProcessorResult(processorChunkResult);
+
+        // Create a new chunk and add as Sink Result
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder()
+                .setJobId(job.getId())
+                .build();
+        instance.addSinkResult(sinkChunkResult);
+
+        // Read and assert Sink Result from file system
+        final Path sinkResultFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
+                String.format(FileSystemJobStore.SINK_RESULT_FILENAME_PATTERN, sinkChunkResult.getChunkId()));
+        assertThat(Files.exists(sinkResultFile), is(true));
+
+        // Read and assert JobInfo file
+        final Path jobInfoPath = Paths.get(jobStorePath.toString(), Long.toString(job.getId()),
+                FileSystemJobStore.JOBINFO_FILE);
+        final JobInfo jobInfo = JsonUtil.fromJson(readFileIntoString(jobInfoPath), JobInfo.class);
+        assertThat(jobInfo, is(notNullValue()));
+
+        ChunkCounter chunkifyingCounter = jobInfo.getChunkifyingChunkCounter();
+        assertThat(chunkifyingCounter, is(notNullValue()));
+        assertThat(chunkifyingCounter.getItemResultCounter().getFailure(), is(0L));
+        assertThat(chunkifyingCounter.getItemResultCounter().getIgnore(), is(0L));
+        assertThat(chunkifyingCounter.getItemResultCounter().getSuccess(), is(1L));
+
+        ChunkCounter processingCounter = jobInfo.getProcessingChunkCounter();
+        assertThat(jobInfo.getProcessingChunkCounter(), is(notNullValue()));
+        assertThat(processingCounter.getItemResultCounter().getFailure(), is(1L));
+        assertThat(processingCounter.getItemResultCounter().getIgnore(), is(0L));
+        assertThat(processingCounter.getItemResultCounter().getSuccess(), is(0L));
 
         ChunkCounter deliveringCounter = jobInfo.getDeliveringChunkCounter();
         assertThat(jobInfo.getDeliveringChunkCounter(), is(notNullValue()));

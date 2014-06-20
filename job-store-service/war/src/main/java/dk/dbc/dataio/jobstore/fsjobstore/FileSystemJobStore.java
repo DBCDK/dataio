@@ -127,19 +127,15 @@ public class FileSystemJobStore implements JobStore {
             try {
                 recordSplitter = newRecordSplitter(jobSpec, jobInputStream);
                 recordCount = applyDefaultXmlSplitter(job, recordSplitter);
-            } catch (IOException e) {
+            } catch (IOException | IllegalStateException | XMLStreamException | IllegalDataException e) {
                 jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
-                jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_NOT_FOUND);
-                job = new Job(jobInfo, job.getJobState(), flow);
-                return job;
-            } catch (IllegalStateException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
-                jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_ENCODING_MISMATCH);
-                job = new Job(jobInfo, job.getJobState(), flow);
-                return job;
-            } catch (XMLStreamException | IllegalDataException e) {
-                jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
-                jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_INVALID);
+                if (e instanceof IOException) {
+                    jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_NOT_FOUND);
+                } else if (e instanceof IllegalStateException) {
+                    jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_ENCODING_MISMATCH);
+                } else if (e instanceof XMLStreamException || e instanceof IllegalDataException) {
+                    jobInfo.setJobErrorCode(JobErrorCode.DATA_FILE_INVALID);
+                }
                 job = new Job(jobInfo, job.getJobState(), flow);
                 return job;
             }

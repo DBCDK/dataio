@@ -40,6 +40,8 @@ public class FbsPusherBeanTest {
         chunkResult.addItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(inData1)).build());
         chunkResult.addItem(new ChunkItemBuilder().setId(2).setData(Base64Util.base64encode(inData2)).build());
         chunkResult.addItem(new ChunkItemBuilder().setId(3).setData(Base64Util.base64encode(inData3)).build());
+        chunkResult.addItem(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.FAILURE).build());
+        chunkResult.addItem(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.IGNORE).build());
 
         final UpdateMarcXchangeResult updateMarcXchangeResultOk = new UpdateMarcXchangeResult();
         updateMarcXchangeResultOk.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.OK);
@@ -57,13 +59,15 @@ public class FbsPusherBeanTest {
         when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
 
         final SinkChunkResult sinkChunkResult = fbsPusherBean.push(chunkResult);
-        assertThat(sinkChunkResult.getItems().size(), is(4));
+        assertThat(sinkChunkResult.getItems().size(), is(6));
         assertThat(sinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat(sinkChunkResult.getItems().get(1).getData(), is(Base64Util.base64encode(okMessage)));
         assertThat(sinkChunkResult.getItems().get(2).getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(sinkChunkResult.getItems().get(3).getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(sinkChunkResult.getItems().get(3).getData(), is(Base64Util.base64encode(failedMessage)));
+        assertThat(sinkChunkResult.getItems().get(4).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(sinkChunkResult.getItems().get(5).getStatus(), is(ChunkItem.Status.IGNORE));
     }
 
     private FbsPusherBean getInitializedBean() {

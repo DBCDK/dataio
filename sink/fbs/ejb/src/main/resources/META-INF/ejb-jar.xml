@@ -14,7 +14,7 @@
         </activation-config-property>
         <activation-config-property>
           <activation-config-property-name>destinationLookup</activation-config-property-name>
-          <activation-config-property-value>jms/dataio/processor</activation-config-property-value>
+          <activation-config-property-value>jms/dataio/sinks</activation-config-property-value>
         </activation-config-property>
         <activation-config-property>
           <activation-config-property-name>sendUndeliverableMsgsToDMQ</activation-config-property-name>

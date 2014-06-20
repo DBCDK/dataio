@@ -1,5 +1,8 @@
 package dk.dbc.dataio.gui.client;
 
+import dk.dbc.dataio.commons.types.JobErrorCode;
+import dk.dbc.dataio.commons.utils.test.json.ChunkCounterJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.json.ItemResultCounterJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
@@ -63,25 +66,50 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final String JOB_ID_2 = "12234";
         final String FILE_NAME_2 = "File_name_two";
         final String SUBMITTER_NUMBER_2 = "222";
-        final long JOB_CREATION_TIME_OLDEST = new Date().getTime();
-        final long JOB_CREATION_TIME_NEWEST = getModifiedDate(JOB_CREATION_TIME_OLDEST, 1);
+        final String JOB_ID_3 = "11674";
+        final String FILE_NAME_3 = "File_name_three";
+        final String SUBMITTER_NUMBER_3 = "333";
+        final String JOB_ID_4 = "11699";
+        final String FILE_NAME_4 = "File_name_four";
+        final String SUBMITTER_NUMBER_4 = "444";
+        final long JOB_CREATION_TIME_ONE = new Date().getTime();
+        final long JOB_CREATION_TIME_TWO = getModifiedDate(JOB_CREATION_TIME_ONE, 1);
+        final long JOB_CREATION_TIME_THREE = getModifiedDate(JOB_CREATION_TIME_TWO, 1);
+        final long JOB_CREATION_TIME_FOUR = getModifiedDate(JOB_CREATION_TIME_THREE, 1);
 
-        jobstoreFolder.createTestJob(JOB_CREATION_TIME_OLDEST, JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1);
-        jobstoreFolder.createTestJob(JOB_CREATION_TIME_NEWEST, JOB_ID_2, FILE_NAME_2, SUBMITTER_NUMBER_2);
+        jobstoreFolder.createTestJob(JOB_CREATION_TIME_ONE, JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 0L, 0L, 0L);
+        jobstoreFolder.createTestJob(JOB_CREATION_TIME_TWO, JOB_ID_2, FILE_NAME_2, SUBMITTER_NUMBER_2, JobErrorCode.NO_ERROR, true, 1L, 0L, 0L);
+        jobstoreFolder.createTestJob(JOB_CREATION_TIME_THREE, JOB_ID_3, FILE_NAME_3, SUBMITTER_NUMBER_3, JobErrorCode.DATA_FILE_INVALID, true, 0L, 0L, 0L);
+        jobstoreFolder.createTestJob(JOB_CREATION_TIME_FOUR, JOB_ID_4, FILE_NAME_4, SUBMITTER_NUMBER_4, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
 
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
-        table.waitAssertRows(2);
+        table.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
-        assertTrue(rowData.get(0).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_NEWEST)));
-        assertThat(rowData.get(0).get(1).getCellContent(), is(JOB_ID_2));   // Default sorting: Youngest first
-        assertThat(rowData.get(0).get(2).getCellContent(), is(FILE_NAME_2));
-        assertThat(rowData.get(0).get(3).getCellContent(), is(SUBMITTER_NUMBER_2));
-        assertTrue(rowData.get(1).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_OLDEST)));
-        assertThat(rowData.get(1).get(1).getCellContent(), is(JOB_ID_1));
-        assertThat(rowData.get(1).get(2).getCellContent(), is(FILE_NAME_1));
-        assertThat(rowData.get(1).get(3).getCellContent(), is(SUBMITTER_NUMBER_1));
+        assertTrue(rowData.get(0).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_FOUR)));
+        assertThat(rowData.get(0).get(1).getCellContent(), is(JOB_ID_4));   // Default sorting: Youngest first
+        assertThat(rowData.get(0).get(2).getCellContent(), is(FILE_NAME_4));
+        assertThat(rowData.get(0).get(3).getCellContent(), is(SUBMITTER_NUMBER_4));
+        assertThat(rowData.get(0).get(4).hasClassName(JobsShowViewImpl.GUICLASS_GRAY), is(true));
+
+        assertTrue(rowData.get(1).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_THREE)));
+        assertThat(rowData.get(1).get(1).getCellContent(), is(JOB_ID_3));
+        assertThat(rowData.get(1).get(2).getCellContent(), is(FILE_NAME_3));
+        assertThat(rowData.get(1).get(3).getCellContent(), is(SUBMITTER_NUMBER_3));
+        assertThat(rowData.get(1).get(4).hasClassName(JobsShowViewImpl.GUICLASS_RED), is(true));
+
+        assertTrue(rowData.get(2).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_TWO)));
+        assertThat(rowData.get(2).get(1).getCellContent(), is(JOB_ID_2));
+        assertThat(rowData.get(2).get(2).getCellContent(), is(FILE_NAME_2));
+        assertThat(rowData.get(2).get(3).getCellContent(), is(SUBMITTER_NUMBER_2));
+        assertThat(rowData.get(2).get(4).hasClassName(JobsShowViewImpl.GUICLASS_RED), is(true));
+
+        assertTrue(rowData.get(3).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_ONE)));
+        assertThat(rowData.get(3).get(1).getCellContent(), is(JOB_ID_1));
+        assertThat(rowData.get(3).get(2).getCellContent(), is(FILE_NAME_1));
+        assertThat(rowData.get(3).get(3).getCellContent(), is(SUBMITTER_NUMBER_1));
+        assertThat(rowData.get(3).get(4).hasClassName(JobsShowViewImpl.GUICLASS_GREEN), is(true));
     }
 
     @Test
@@ -790,6 +818,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(row.get(1).getCellContent(), is(jobId));
         assertThat(row.get(2).getCellContent(), is(fileName));
         assertThat(row.get(3).getCellContent(), is(submitterId));
+        assertThat(row.get(4).hasClassName(JobsShowViewImpl.GUICLASS_GREEN), is(true));
     }
 
     private long getModifiedDate(long currentDate, int minutesToAdd){
@@ -847,6 +876,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         }
 
         private void createTestJob(long jobCreationTime, String jobId, final String fileName, String submitterNumber) throws IOException {
+            createTestJob(jobCreationTime, jobId, fileName, submitterNumber, JobErrorCode.NO_ERROR, true, 0L, 1L, 0L);
+        }
+
+        private void createTestJob(long jobCreationTime, String jobId, final String fileName, String submitterNumber, JobErrorCode jobErrorCode, boolean isDone, long failure, long success, long ignore) throws IOException {
             // Build JobSpecification JSON
             JobSpecificationJsonBuilder jobSpecificationBuilder = new JobSpecificationJsonBuilder();
             jobSpecificationBuilder.setDataFile(fileName);
@@ -856,6 +889,24 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             jobInfoBuilder.setJobId(Long.parseLong(jobId));
             jobInfoBuilder.setJobSpecification(jobSpecificationBuilder.build());
             jobInfoBuilder.setJobCreationTime(jobCreationTime);
+            jobInfoBuilder.setJobErrorCode(jobErrorCode);
+
+            if (isDone) {
+                jobInfoBuilder.setChunkifyingChunkCounter(new ChunkCounterJsonBuilder()
+                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(failure).setIgnore(ignore).setSuccess(success).build())
+                        .build());
+                jobInfoBuilder.setProcessingChunkCounter(new ChunkCounterJsonBuilder()
+                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(failure).setIgnore(ignore).setSuccess(success).build())
+                        .build());
+                jobInfoBuilder.setDeliveringChunkCounter(new ChunkCounterJsonBuilder()
+                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(failure).setIgnore(ignore).setSuccess(success).build())
+                        .build());
+            } else {
+                jobInfoBuilder.setChunkifyingChunkCounter(null).build();
+                jobInfoBuilder.setProcessingChunkCounter(null).build();
+                jobInfoBuilder.setDeliveringChunkCounter(null).build();
+            }
+
             // Store JobInfo in file system based job-store
             String res = jobInfoBuilder.build();
             createFile(jobId, JOBINFO_FILE_NAME, res);

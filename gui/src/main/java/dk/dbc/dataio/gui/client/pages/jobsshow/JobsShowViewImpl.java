@@ -121,25 +121,23 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             @Override
             public String getCellStyleNames(Cell.Context context, JobInfo content) {
                 switch (getJobStatus(content)) {
-                    case DONE_WITHOUT_ERROR:
-                        return GUICLASS_GREEN;
+                    case NOT_DONE:
+                        return GUICLASS_GRAY;
                     case DONE_WITH_ERROR:
                         return GUICLASS_RED;
                     default:
-                    case NOT_DONE:
-                        return GUICLASS_GRAY;
+                        return GUICLASS_GREEN;
                 }
             }
             @Override
             public ImageResource getValue(JobInfo content) {
                 switch (getJobStatus(content)) {
-                    case DONE_WITHOUT_ERROR:
-                        return resources.green();
+                    case NOT_DONE:
+                        return resources.gray();
                     case DONE_WITH_ERROR:
                         return resources.red();
                     default:
-                    case NOT_DONE:
-                        return resources.gray();
+                        return resources.green();
                 }
             }
         };
@@ -167,27 +165,34 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
      * @return JobStatusEnum: NOT_DONE, DONE_WITHOUT_ERROR or DONE_WITH_ERROR
      */
     private JobStatusEnum getJobStatus(JobInfo jobInfo) {
-        if (jobInfo.getJobErrorCode() != JobErrorCode.NO_ERROR ) {
-            return JobStatusEnum.DONE_WITH_ERROR;
+
+        JobStatusEnum jobStatus = JobStatusEnum.DONE_WITHOUT_ERROR; // Default value
+
+        // The entire job has not failed
+        if(jobInfo.getJobErrorCode() == JobErrorCode.NO_ERROR){
+
+            //Check if the job is completely done
+            if (jobInfo.getChunkifyingChunkCounter() == null ||
+                    jobInfo.getProcessingChunkCounter() == null ||
+                    jobInfo.getDeliveringChunkCounter() == null ) {
+
+                // The counters have not been set: Job is not done
+                jobStatus = JobStatusEnum.NOT_DONE;
+            }
+            // Check error counters
+            else if (jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getFailure() > 0L
+                    || jobInfo.getProcessingChunkCounter().getItemResultCounter().getFailure() > 0L
+                    || jobInfo.getDeliveringChunkCounter().getItemResultCounter().getFailure() > 0L){
+
+                // Errors found
+                jobStatus = JobStatusEnum.DONE_WITH_ERROR;
+            }
         }
-        // Now we know, that JobErrorCode is JobErrorCode.NO_ERROR
-        if (jobInfo.getChunkifyingChunkCounter() == null ||
-                jobInfo.getProcessingChunkCounter() == null ||
-                jobInfo.getDeliveringChunkCounter() == null ) {
-            return JobStatusEnum.NOT_DONE;
+        else {
+            // The entire job has failed
+            jobStatus = JobStatusEnum.DONE_WITH_ERROR;
         }
-        // Now we know, that the three counter have values, and we can now check the counters
-        if (jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getFailure() > 0L) {
-            return JobStatusEnum.DONE_WITH_ERROR;
-        }
-        if (jobInfo.getProcessingChunkCounter().getItemResultCounter().getFailure() > 0L) {
-            return JobStatusEnum.DONE_WITH_ERROR;
-        }
-        if (jobInfo.getDeliveringChunkCounter().getItemResultCounter().getFailure() > 0L) {
-            return JobStatusEnum.DONE_WITH_ERROR;
-        }
-        // We couldn't find any errors, so return with DONE_WITHOUT_ERROR
-        return JobStatusEnum.DONE_WITHOUT_ERROR;
+        return jobStatus;
     }
 
     /*

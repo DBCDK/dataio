@@ -53,6 +53,12 @@
       <type>ejb</type>
     </dependency>
     <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-utils-message-producer</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>
       <version>${slf4j.version}</version>

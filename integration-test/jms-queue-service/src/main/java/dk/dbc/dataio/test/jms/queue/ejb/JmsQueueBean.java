@@ -69,6 +69,7 @@ public class JmsQueueBean {
     @Path("{queueName}")
     @Consumes({ MediaType.APPLICATION_JSON })
     public Response putOnQueue(@PathParam("queueName") String queueName, String message) {
+        System.err.println("TOTEM: Putting message on queue: " + queueName);
         LOGGER.info("Putting message on queue {} <{}>", queueName, message);
 
         try (JMSContext context = messageQueueConnectionFactory.createContext()) {

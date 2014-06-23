@@ -20,6 +20,7 @@ public class JobProcessorMessageConsumerBean extends AbstractSinkMessageConsumer
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
+        System.err.println("TOTEM: message consumed");
         final SinkChunkResult sinkChunkResult = fbsPusher.push(unmarshallPayload(consumedMessage));
         jobProcessorMessageProducer.send(sinkChunkResult);
     }

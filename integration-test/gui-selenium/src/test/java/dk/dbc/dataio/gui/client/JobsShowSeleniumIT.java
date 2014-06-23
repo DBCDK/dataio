@@ -60,27 +60,27 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testJobsInsertTwoRows_TwoElementsShown() throws IOException {
-        final String JOB_ID_1 = "11234";
+        final long JOB_ID_1 = 11234L;
         final String FILE_NAME_1 = "File_name_one";
-        final String SUBMITTER_NUMBER_1 = "111";
-        final String JOB_ID_2 = "12234";
+        final long SUBMITTER_NUMBER_1 = 111L;
+        final long JOB_ID_2 = 12234L;
         final String FILE_NAME_2 = "File_name_two";
-        final String SUBMITTER_NUMBER_2 = "222";
-        final String JOB_ID_3 = "11674";
+        final long SUBMITTER_NUMBER_2 = 222L;
+        final long JOB_ID_3 = 11674L;
         final String FILE_NAME_3 = "File_name_three";
-        final String SUBMITTER_NUMBER_3 = "333";
-        final String JOB_ID_4 = "11699";
+        final long SUBMITTER_NUMBER_3 = 333L;
+        final long JOB_ID_4 = 11699L;
         final String FILE_NAME_4 = "File_name_four";
-        final String SUBMITTER_NUMBER_4 = "444";
+        final long SUBMITTER_NUMBER_4 = 444L;
         final long JOB_CREATION_TIME_ONE = new Date().getTime();
         final long JOB_CREATION_TIME_TWO = getModifiedDate(JOB_CREATION_TIME_ONE, 1);
         final long JOB_CREATION_TIME_THREE = getModifiedDate(JOB_CREATION_TIME_TWO, 1);
         final long JOB_CREATION_TIME_FOUR = getModifiedDate(JOB_CREATION_TIME_THREE, 1);
 
-        jobstoreFolder.createTestJob(JOB_CREATION_TIME_ONE, JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 0L, 0L, 0L);
-        jobstoreFolder.createTestJob(JOB_CREATION_TIME_TWO, JOB_ID_2, FILE_NAME_2, SUBMITTER_NUMBER_2, JobErrorCode.NO_ERROR, true, 1L, 0L, 0L);
-        jobstoreFolder.createTestJob(JOB_CREATION_TIME_THREE, JOB_ID_3, FILE_NAME_3, SUBMITTER_NUMBER_3, JobErrorCode.DATA_FILE_INVALID, true, 0L, 0L, 0L);
-        jobstoreFolder.createTestJob(JOB_CREATION_TIME_FOUR, JOB_ID_4, FILE_NAME_4, SUBMITTER_NUMBER_4, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_ONE, JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 0L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_TWO, JOB_ID_2, FILE_NAME_2, SUBMITTER_NUMBER_2, JobErrorCode.NO_ERROR, true, 1L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_THREE, JOB_ID_3, FILE_NAME_3, SUBMITTER_NUMBER_3, JobErrorCode.DATA_FILE_INVALID, true, 0L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_FOUR, JOB_ID_4, FILE_NAME_4, SUBMITTER_NUMBER_4, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
 
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -88,27 +88,27 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
         assertTrue(rowData.get(0).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_FOUR)));
-        assertThat(rowData.get(0).get(1).getCellContent(), is(JOB_ID_4));   // Default sorting: Youngest first
+        assertThat(rowData.get(0).get(1).getCellContent(), is(Long.toString(JOB_ID_4)));   // Default sorting: Youngest first
         assertThat(rowData.get(0).get(2).getCellContent(), is(FILE_NAME_4));
-        assertThat(rowData.get(0).get(3).getCellContent(), is(SUBMITTER_NUMBER_4));
+        assertThat(rowData.get(0).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_4)));
         assertThat(rowData.get(0).get(4).hasClassName(JobsShowViewImpl.GUICLASS_GRAY), is(true));
 
         assertTrue(rowData.get(1).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_THREE)));
-        assertThat(rowData.get(1).get(1).getCellContent(), is(JOB_ID_3));
+        assertThat(rowData.get(1).get(1).getCellContent(), is(Long.toString(JOB_ID_3)));
         assertThat(rowData.get(1).get(2).getCellContent(), is(FILE_NAME_3));
-        assertThat(rowData.get(1).get(3).getCellContent(), is(SUBMITTER_NUMBER_3));
+        assertThat(rowData.get(1).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_3)));
         assertThat(rowData.get(1).get(4).hasClassName(JobsShowViewImpl.GUICLASS_RED), is(true));
 
         assertTrue(rowData.get(2).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_TWO)));
-        assertThat(rowData.get(2).get(1).getCellContent(), is(JOB_ID_2));
+        assertThat(rowData.get(2).get(1).getCellContent(), is(Long.toString(JOB_ID_2)));
         assertThat(rowData.get(2).get(2).getCellContent(), is(FILE_NAME_2));
-        assertThat(rowData.get(2).get(3).getCellContent(), is(SUBMITTER_NUMBER_2));
+        assertThat(rowData.get(2).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_2)));
         assertThat(rowData.get(2).get(4).hasClassName(JobsShowViewImpl.GUICLASS_RED), is(true));
 
         assertTrue(rowData.get(3).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_ONE)));
-        assertThat(rowData.get(3).get(1).getCellContent(), is(JOB_ID_1));
+        assertThat(rowData.get(3).get(1).getCellContent(), is(Long.toString(JOB_ID_1)));
         assertThat(rowData.get(3).get(2).getCellContent(), is(FILE_NAME_1));
-        assertThat(rowData.get(3).get(3).getCellContent(), is(SUBMITTER_NUMBER_1));
+        assertThat(rowData.get(3).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_1)));
         assertThat(rowData.get(3).get(4).hasClassName(JobsShowViewImpl.GUICLASS_GREEN), is(true));
     }
 
@@ -122,28 +122,28 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     public void testJobsInsertTwoPageData_OnePageElementsShown() throws IOException {
         // Insert 21 rows of job data
         final long jobCreationTime = new Date().getTime(); // Current time
-        jobstoreFolder.createTestJob(jobCreationTime, "100", "Fil00", "220");
+        createFileInJobStore(jobCreationTime, 100L, "Fil00", 220L);
         //Adding one minute to the remaining timestamps to make sure the timestamps do not look identical.
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 1), "101", "Fil01", "219");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 2), "102", "Fil02", "218");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 3), "103", "Fil03", "217");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 4), "104", "Fil04", "216");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 5), "105", "Fil05", "215");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 6), "106", "Fil06", "214");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 7), "107", "Fil07", "213");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 8), "108", "Fil08", "212");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 9), "109", "Fil09", "211");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 10), "110", "Fil10", "210");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 11), "111", "Fil11", "209");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 12), "112", "Fil12", "208");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 13), "113", "Fil13", "207");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 14), "114", "Fil14", "206");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 15), "115", "Fil15", "205");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 16), "116", "Fil16", "204");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 17), "117", "Fil17", "203");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 18), "118", "Fil18", "202");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 19), "119", "Fil19", "201");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 20), "120", "Fil20", "200");
+        createFileInJobStore(getModifiedDate(jobCreationTime, 1), 101L, "Fil01", 219L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 2), 102L, "Fil02", 218L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 3), 103L, "Fil03", 217L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 4), 104L, "Fil04", 216L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 5), 105L, "Fil05", 215L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 6), 106L, "Fil06", 214L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 7), 107L, "Fil07", 213L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 8), 108L, "Fil08", 212L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 9), 109L, "Fil09", 211L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 10), 110L, "Fil10", 210L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 11), 111L, "Fil11", 209L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 12), 112L, "Fil12", 208L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 13), 113L, "Fil13", 207L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 14), 114L, "Fil14", 206L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 15), 115L, "Fil15", 205L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 16), 116L, "Fil16", 204L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 17), 117L, "Fil17", 203L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 18), 118L, "Fil18", 202L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 19), 119L, "Fil19", 201L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 20), 120L, "Fil20", 200L);
 
 
         // Navigate to Jobs Show List
@@ -180,28 +180,28 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     public void testJobsInsert2PagesDataAndClickMore_CorrectNumberOfElementsShown() throws IOException {
         // Insert 21 rows of job data
         final long jobCreationTime = new Date().getTime(); // Current time
-        jobstoreFolder.createTestJob(jobCreationTime, "100", "Fil00", "220");
+        createFileInJobStore(jobCreationTime, 100L, "Fil00", 220L);
         //Adding one minute to the remaining timestamps to make sure the timestamps do not look identical.
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 1), "101", "Fil01", "219");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 2), "102", "Fil02", "218");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 3), "103", "Fil03", "217");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 4), "104", "Fil04", "216");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 5), "105", "Fil05", "215");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 6), "106", "Fil06", "214");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 7), "107", "Fil07", "213");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 8), "108", "Fil08", "212");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 9), "109", "Fil09", "211");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 10), "110", "Fil10", "210");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 11), "111", "Fil11", "209");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 12), "112", "Fil12", "208");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 13), "113", "Fil13", "207");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 14), "114", "Fil14", "206");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 15), "115", "Fil15", "205");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 16), "116", "Fil16", "204");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 17), "117", "Fil17", "203");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 18), "118", "Fil18", "202");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 19), "119", "Fil19", "201");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 20), "120", "Fil20", "200");
+        createFileInJobStore(getModifiedDate(jobCreationTime, 1), 101L, "Fil01", 219L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 2), 102L, "Fil02", 218L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 3), 103L, "Fil03", 217L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 4), 104L, "Fil04", 216L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 5), 105L, "Fil05", 215L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 6), 106L, "Fil06", 214L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 7), 107L, "Fil07", 213L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 8), 108L, "Fil08", 212L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 9), 109L, "Fil09", 211L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 10), 110L, "Fil10", 210L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 11), 111L, "Fil11", 209L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 12), 112L, "Fil12", 208L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 13), 113L, "Fil13", 207L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 14), 114L, "Fil14", 206L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 15), 115L, "Fil15", 205L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 16), 116L, "Fil16", 204L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 17), 117L, "Fil17", 203L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 18), 118L, "Fil18", 202L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 19), 119L, "Fil19", 201L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 20), 120L, "Fil20", 200L);
 
         // Navigate to Jobs Show List and click More
         navigateToJobsShowWidget(webDriver);
@@ -250,28 +250,28 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     public void testClickJobCreationTimeColumnHeader_OrderAccordingly() throws IOException {
         // Insert 21 rows of job data
         final long jobCreationTime = new Date().getTime(); // Current time
-        jobstoreFolder.createTestJob(jobCreationTime, "100", "Fil00", "220");
+        createFileInJobStore(jobCreationTime, 100L, "Fil00", 220L);
         //Adding one minute to the remaining timestamps to make sure the timestamps do not look identical.
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 1), "101", "Fil01", "219");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 2), "102", "Fil02", "218");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 3), "103", "Fil03", "217");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 4), "104", "Fil04", "216");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 5), "105", "Fil05", "215");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 6), "106", "Fil06", "214");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 7), "107", "Fil07", "213");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 8), "108", "Fil08", "212");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 9), "109", "Fil09", "211");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 10), "110", "Fil10", "210");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 11), "111", "Fil11", "209");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 12), "112", "Fil12", "208");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 13), "113", "Fil13", "207");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 14), "114", "Fil14", "206");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 15), "115", "Fil15", "205");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 16), "116", "Fil16", "204");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 17), "117", "Fil17", "203");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 18), "118", "Fil18", "202");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 19), "119", "Fil19", "201");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 20), "120", "Fil20", "200");
+        createFileInJobStore(getModifiedDate(jobCreationTime, 1), 101L, "Fil01", 219L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 2), 102L, "Fil02", 218L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 3), 103L, "Fil03", 217L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 4), 104L, "Fil04", 216L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 5), 105L, "Fil05", 215L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 6), 106L, "Fil06", 214L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 7), 107L, "Fil07", 213L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 8), 108L, "Fil08", 212L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 9), 109L, "Fil09", 211L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 10), 110L, "Fil10", 210L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 11), 111L, "Fil11", 209L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 12), 112L, "Fil12", 208L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 13), 113L, "Fil13", 207L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 14), 114L, "Fil14", 206L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 15), 115L, "Fil15", 205L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 16), 116L, "Fil16", 204L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 17), 117L, "Fil17", 203L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 18), 118L, "Fil18", 202L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 19), 119L, "Fil19", 201L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 20), 120L, "Fil20", 200L);
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
@@ -338,28 +338,28 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     public void testClickJobIdColumnHeader_OrderAccordingly() throws IOException {
         // Insert 21 rows of job data
         final long jobCreationTime = new Date().getTime(); // Current time
-        jobstoreFolder.createTestJob(jobCreationTime, "100", "Fil00", "220");
+        createFileInJobStore(jobCreationTime, 100L, "Fil00", 220L);
         //Adding one minute to the remaining timestamps to make sure the timestamps do not look identical.
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 1), "101", "Fil01", "219");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 2), "102", "Fil02", "218");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 3), "103", "Fil03", "217");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 4), "104", "Fil04", "216");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 5), "105", "Fil05", "215");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 6), "106", "Fil06", "214");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 7), "107", "Fil07", "213");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 8), "108", "Fil08", "212");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 9), "109", "Fil09", "211");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 10), "110", "Fil10", "210");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 11), "111", "Fil11", "209");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 12), "112", "Fil12", "208");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 13), "113", "Fil13", "207");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 14), "114", "Fil14", "206");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 15), "115", "Fil15", "205");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 16), "116", "Fil16", "204");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 17), "117", "Fil17", "203");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 18), "118", "Fil18", "202");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 19), "119", "Fil19", "201");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 20), "120", "Fil20", "200");
+        createFileInJobStore(getModifiedDate(jobCreationTime, 1), 101L, "Fil01", 219L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 2), 102L, "Fil02", 218L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 3), 103L, "Fil03", 217L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 4), 104L, "Fil04", 216L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 5), 105L, "Fil05", 215L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 6), 106L, "Fil06", 214L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 7), 107L, "Fil07", 213L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 8), 108L, "Fil08", 212L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 9), 109L, "Fil09", 211L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 10), 110L, "Fil10", 210L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 11), 111L, "Fil11", 209L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 12), 112L, "Fil12", 208L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 13), 113L, "Fil13", 207L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 14), 114L, "Fil14", 206L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 15), 115L, "Fil15", 205L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 16), 116L, "Fil16", 204L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 17), 117L, "Fil17", 203L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 18), 118L, "Fil18", 202L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 19), 119L, "Fil19", 201L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 20), 120L, "Fil20", 200L);
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
@@ -427,28 +427,28 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     public void testClickFileNameColumnHeader_OrderAccordingly() throws IOException {
         // Insert 21 rows of job data
         final long jobCreationTime = new Date().getTime(); // Current time
-        jobstoreFolder.createTestJob(jobCreationTime, "100", "Fil00", "220");
+        createFileInJobStore(jobCreationTime, 100L, "Fil00", 220L);
         //Adding one minute to the remaining timestamps to make sure the timestamps do not look identical.
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 1), "101", "Fil01", "219");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 2), "102", "Fil02", "218");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 3), "103", "Fil03", "217");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 4), "104", "Fil04", "216");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 5), "105", "Fil05", "215");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 6), "106", "Fil06", "214");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 7), "107", "Fil07", "213");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 8), "108", "Fil08", "212");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 9), "109", "Fil09", "211");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 10), "110", "Fil10", "210");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 11), "111", "Fil11", "209");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 12), "112", "Fil12", "208");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 13), "113", "Fil13", "207");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 14), "114", "Fil14", "206");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 15), "115", "Fil15", "205");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 16), "116", "Fil16", "204");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 17), "117", "Fil17", "203");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 18), "118", "Fil18", "202");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 19), "119", "Fil19", "201");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 20), "120", "Fil20", "200");
+        createFileInJobStore(getModifiedDate(jobCreationTime, 1), 101L, "Fil01", 219L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 2), 102L, "Fil02", 218L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 3), 103L, "Fil03", 217L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 4), 104L, "Fil04", 216L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 5), 105L, "Fil05", 215L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 6), 106L, "Fil06", 214L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 7), 107L, "Fil07", 213L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 8), 108L, "Fil08", 212L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 9), 109L, "Fil09", 211L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 10), 110L, "Fil10", 210L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 11), 111L, "Fil11", 209L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 12), 112L, "Fil12", 208L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 13), 113L, "Fil13", 207L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 14), 114L, "Fil14", 206L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 15), 115L, "Fil15", 205L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 16), 116L, "Fil16", 204L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 17), 117L, "Fil17", 203L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 18), 118L, "Fil18", 202L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 19), 119L, "Fil19", 201L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 20), 120L, "Fil20", 200L);
 
 
         // Navigate to Jobs Show List
@@ -519,28 +519,28 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     public void testClickSubmitterNumberColumnHeader_OrderAccordingly() throws IOException {
         // Insert 21 rows of job data
         final long jobCreationTime = new Date().getTime(); // Current time
-        jobstoreFolder.createTestJob(jobCreationTime, "100", "Fil00", "220");
+        createFileInJobStore(jobCreationTime, 100L, "Fil00", 220L);
         //Adding one minute to the remaining timestamps to make sure the timestamps do not look identical.
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 1), "101", "Fil01", "219");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 2), "102", "Fil02", "218");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 3), "103", "Fil03", "217");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 4), "104", "Fil04", "216");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 5), "105", "Fil05", "215");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 6), "106", "Fil06", "214");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 7), "107", "Fil07", "213");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 8), "108", "Fil08", "212");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 9), "109", "Fil09", "211");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 10), "110", "Fil10", "210");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 11), "111", "Fil11", "209");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 12), "112", "Fil12", "208");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 13), "113", "Fil13", "207");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 14), "114", "Fil14", "206");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 15), "115", "Fil15", "205");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 16), "116", "Fil16", "204");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 17), "117", "Fil17", "203");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 18), "118", "Fil18", "202");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 19), "119", "Fil19", "201");
-        jobstoreFolder.createTestJob(getModifiedDate(jobCreationTime, 20), "120", "Fil20", "200");
+        createFileInJobStore(getModifiedDate(jobCreationTime, 1), 101L, "Fil01", 219L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 2), 102L, "Fil02", 218L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 3), 103L, "Fil03", 217L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 4), 104L, "Fil04", 216L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 5), 105L, "Fil05", 215L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 6), 106L, "Fil06", 214L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 7), 107L, "Fil07", 213L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 8), 108L, "Fil08", 212L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 9), 109L, "Fil09", 211L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 10), 110L, "Fil10", 210L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 11), 111L, "Fil11", 209L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 12), 112L, "Fil12", 208L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 13), 113L, "Fil13", 207L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 14), 114L, "Fil14", 206L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 15), 115L, "Fil15", 205L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 16), 116L, "Fil16", 204L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 17), 117L, "Fil17", 203L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 18), 118L, "Fil18", 202L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 19), 119L, "Fil19", 201L);
+        createFileInJobStore(getModifiedDate(jobCreationTime, 20), 120L, "Fil20", 200L);
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
@@ -609,16 +609,16 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testEqualFilenames_ClickOnceOnFileNameColumn_SortAccordingly() throws IOException {
         final long jobCreationTime1 = new Date().getTime();
-        jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
+        createFileInJobStore(jobCreationTime1, 1L, "b", 2L);
 
         final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
+        createFileInJobStore(jobCreationTime2, 2L, "a", 1L);
 
         final long jobCreationTime3 = jobCreationTime1;
-        jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
+        createFileInJobStore(jobCreationTime3, 3L, "a", 2L);
 
         final long jobCreationTime4 = jobCreationTime2;
-        jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
+        createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -641,16 +641,16 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testEqualFilenames_ClickTwiceOnFileNameColumn_SortAccordingly() throws IOException {
         final long jobCreationTime1 = new Date().getTime();
-        jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
+        createFileInJobStore(jobCreationTime1, 1L, "b", 2L);
 
         final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
+        createFileInJobStore(jobCreationTime2, 2L, "a", 1L);
 
         final long jobCreationTime3 = jobCreationTime1;
-        jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
+        createFileInJobStore(jobCreationTime3, 3L, "a", 2L);
 
         final long jobCreationTime4 = jobCreationTime2;
-        jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
+        createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -675,16 +675,16 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testEqualJobCreationTime_ClickOnceOnJobCreationTimeColumn_SortAccordingly() throws IOException {
         final long jobCreationTime1 = new Date().getTime();
-        jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
+        createFileInJobStore(jobCreationTime1, 1L, "b", 2L);
 
         final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
+        createFileInJobStore(jobCreationTime2, 2L, "a", 1L);
 
         final long jobCreationTime3 = jobCreationTime1;
-        jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
+        createFileInJobStore(jobCreationTime3, 3L, "a", 2L);
 
         final long jobCreationTime4 = jobCreationTime2;
-        jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
+        createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -707,16 +707,16 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testEqualJobCreationTime_ClickTwiceOnJobCreationTimeColumn_SortAccordingly() throws IOException {
         final long jobCreationTime1 = new Date().getTime();
-        jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
+        createFileInJobStore(jobCreationTime1, 1L, "b", 2L);
 
         final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
+        createFileInJobStore(jobCreationTime2, 2L, "a", 1L);
 
         final long jobCreationTime3 = jobCreationTime1;
-        jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
+        createFileInJobStore(jobCreationTime3, 3L, "a", 2L);
 
         final long jobCreationTime4 = jobCreationTime2;
-        jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
+        createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -740,16 +740,16 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testEqualSubmitterNumbers_ClickOnceOnSubmitterNumberColumn_SortAccordingly() throws IOException {
         final long jobCreationTime1 = new Date().getTime();
-        jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
+        createFileInJobStore(jobCreationTime1, 1L, "b", 2L);
 
         final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
+        createFileInJobStore(jobCreationTime2, 2L, "a", 1L);
 
         final long jobCreationTime3 = jobCreationTime1;
-        jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
+        createFileInJobStore(jobCreationTime3, 3L, "a", 2L);
 
         final long jobCreationTime4 = jobCreationTime2;
-        jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
+        createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -772,16 +772,22 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testEqualSubmitterNumbers_ClickTwiceOnSubmitterNumberColumn_SortAccordingly() throws IOException {
         final long jobCreationTime1 = new Date().getTime();
-        jobstoreFolder.createTestJob(jobCreationTime1, "1", "b", "2");
+        createFileInJobStore(jobCreationTime1, 1L, "b", 2L);
+
 
         final long jobCreationTime2 = getModifiedDate(jobCreationTime1, 1);
-        jobstoreFolder.createTestJob(jobCreationTime2, "2", "a", "1");
+        createFileInJobStore(jobCreationTime2, 2L, "a", 1L);
 
         final long jobCreationTime3 = jobCreationTime1;
-        jobstoreFolder.createTestJob(jobCreationTime3, "3", "a", "2");
+        createFileInJobStore(jobCreationTime3, 3L, "a", 2L);
 
         final long jobCreationTime4 = jobCreationTime2;
-        jobstoreFolder.createTestJob(jobCreationTime4, "4", "b", "1");
+        createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
+
+//        private void createTestJob(long jobCreationTime, String jobId, final String fileName, String submitterNumber) throws IOException {
+
+
+
 
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -834,7 +840,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     /**
      * Class for maintaining temporary job storage in file system
      */
-    private class TemporaryDataioJobstoreFolder {
+    class TemporaryDataioJobstoreFolder {
         Path jobFolderRoot = null;
 
         public TemporaryDataioJobstoreFolder(Path rootPath) throws IOException {
@@ -874,19 +880,102 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
                 printWriter.print(fileContent);
             }
         }
+    }
 
-        private void createTestJob(long jobCreationTime, String jobId, final String fileName, String submitterNumber) throws IOException {
-            createTestJob(jobCreationTime, jobId, fileName, submitterNumber, JobErrorCode.NO_ERROR, true, 0L, 1L, 0L);
+    void createFileInJobStore(long jobCreationTime, long jobId, String fileName, long submitterNumber) throws IOException {
+        String jobInfo = new JobInfoContentJsonBuilder().
+                setJobCreationTime(jobCreationTime).
+                setJobId(jobId).
+                setFileName(fileName).
+                setSubmitterNumber(submitterNumber).
+                build();
+        jobstoreFolder.createFile(Long.toString(jobId), JOBINFO_FILE_NAME, jobInfo);
+    }
+
+    void createFileInJobStore(long jobCreationTime, long jobId, String fileName, long submitterNumber,
+                              JobErrorCode jobErrorCode, boolean isDone, long failure, long success, long ignore) throws IOException {
+        String jobInfo = new JobInfoContentJsonBuilder().
+                setJobCreationTime(jobCreationTime).
+                setJobId(jobId).
+                setFileName(fileName).
+                setSubmitterNumber(submitterNumber).
+                setJobErrorCode(jobErrorCode).
+                setDone(isDone).
+                setFailure(failure).
+                setSuccess(success).
+                setIgnore(ignore).
+                build();
+        jobstoreFolder.createFile(Long.toString(jobId), JOBINFO_FILE_NAME, jobInfo);
+    }
+
+    static class JobInfoContentJsonBuilder {
+        private long jobCreationTime;
+        private long jobId = 1L;
+        private String fileName = "testjob-file-name";
+        private long submitterNumber = 1L;
+        private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
+        private boolean isDone = true;
+        private long failure = 0L;
+        private long success = 1L;
+        private long ignore = 0L;
+
+        public JobInfoContentJsonBuilder() {
+            this.jobCreationTime = System.currentTimeMillis();
         }
 
-        private void createTestJob(long jobCreationTime, String jobId, final String fileName, String submitterNumber, JobErrorCode jobErrorCode, boolean isDone, long failure, long success, long ignore) throws IOException {
+        public JobInfoContentJsonBuilder setJobCreationTime(long jobCreationTime) {
+            this.jobCreationTime = jobCreationTime;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setJobId(long jobId) {
+            this.jobId = jobId;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setFileName(String fileName) {
+            this.fileName = fileName;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setSubmitterNumber(long submitterNumber) {
+            this.submitterNumber = submitterNumber;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setJobErrorCode(JobErrorCode jobErrorCode) {
+            this.jobErrorCode = jobErrorCode;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setDone(boolean isDone) {
+            this.isDone = isDone;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setFailure(long failure) {
+            this.failure = failure;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setSuccess(long success) {
+            this.success = success;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setIgnore(long ignore) {
+            this.ignore = ignore;
+            return this;
+        }
+
+        public String build() throws IOException {
             // Build JobSpecification JSON
             JobSpecificationJsonBuilder jobSpecificationBuilder = new JobSpecificationJsonBuilder();
             jobSpecificationBuilder.setDataFile(fileName);
-            jobSpecificationBuilder.setSubmitterId(Long.parseLong(submitterNumber));
+            jobSpecificationBuilder.setSubmitterId(submitterNumber);
             // Build  JobInfo JSON
             JobInfoJsonBuilder jobInfoBuilder = new JobInfoJsonBuilder();
-            jobInfoBuilder.setJobId(Long.parseLong(jobId));
+            jobInfoBuilder.setJobId(jobId);
             jobInfoBuilder.setJobSpecification(jobSpecificationBuilder.build());
             jobInfoBuilder.setJobCreationTime(jobCreationTime);
             jobInfoBuilder.setJobErrorCode(jobErrorCode);
@@ -908,8 +997,8 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             }
 
             // Store JobInfo in file system based job-store
-            String res = jobInfoBuilder.build();
-            createFile(jobId, JOBINFO_FILE_NAME, res);
+            return jobInfoBuilder.build();
         }
+
     }
 }

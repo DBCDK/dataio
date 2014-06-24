@@ -11,26 +11,6 @@
   <artifactId>dataio-integration-test-sinks-fbs</artifactId>
   <name>dataio-integration-test-sinks-fbs</name>
 
-  <properties>
-    <fbs.ws.endpoint>http://test.dbc.dk/fbs/ws</fbs.ws.endpoint>
-  </properties>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${maven-failsafe-plugin.version}</version>
-        <configuration>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <fbs.ws.endpoint>${fbs.ws.endpoint}</fbs.ws.endpoint>
-          </systemPropertyVariables>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>

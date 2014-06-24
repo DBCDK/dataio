@@ -42,6 +42,7 @@
             <container.hostname>${container.hostname}</container.hostname>
             <container.http.port>${container.http.port}</container.http.port>
             <es.dbname>${es.dbname}</es.dbname>
+            <fbs.update.ws.endpoint>${fbs.update.ws.endpoint}</fbs.update.ws.endpoint>
             <file.store.basepath>${file.store.basepath}</file.store.basepath>
             <file-store-service.context>${file-store-service.context}</file-store-service.context>
             <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>

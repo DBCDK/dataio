@@ -46,7 +46,7 @@ public class JobsBeanIT extends AbstractJobStoreTest {
         final String format = "nmxml";
         final String charset = "utf8";
         final String destination = "database";
-        final long submitterNumber = 42;
+        final long submitterNumber = 422442;
         final long flowId = ITUtil.createFlow(restClient, ITUtil.FLOW_STORE_BASE_URL, new FlowContentJsonBuilder().build());
         final long sinkId = ITUtil.createSink(restClient, ITUtil.FLOW_STORE_BASE_URL, new SinkContentJsonBuilder().build());
         final long submitterId = ITUtil.createSubmitter(restClient, ITUtil.FLOW_STORE_BASE_URL,

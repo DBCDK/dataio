@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
 
@@ -33,8 +34,9 @@ public class FbsPusherBean {
 
     private void executeUpdateOperation(SinkChunkResult sinkChunkResult, ChunkItem chunkItem) {
         final String trackingId = String.format("%d-%d-%d", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId(), chunkItem.getId());
+        final FbsUpdateConnector connector = fbsUpdateConnector.getConnector();
         try {
-            final UpdateMarcXchangeResult updateMarcXchangeResult = fbsUpdateConnector.updateMarcExchange(
+            final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(
                     Base64Util.base64decode(chunkItem.getData()), trackingId);
             if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
                 sinkChunkResult.addItem(newSuccessfulChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
@@ -42,6 +44,7 @@ public class FbsPusherBean {
                 sinkChunkResult.addItem(newFailedChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
             }
         } catch (Exception e) {
+            System.err.println("TOTEM: Exception caught - item set to failed: " + e.getMessage());
             sinkChunkResult.addItem(newFailedChunkItem(chunkItem.getId(), ServiceUtil.stackTraceToString(e)));
         }
     }

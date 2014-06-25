@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 public class FbsPusherBeanTest {
     private final FbsUpdateConnectorBean fbsUpdateConnectorBean = mock(FbsUpdateConnectorBean.class);
     private final FbsPusherBean fbsPusherBean = getInitializedBean();
+    private final FbsUpdateConnector fbsUpdateConnector = mock(FbsUpdateConnector.class);
 
     @Test(expected = NullPointerException.class)
     public void push_chunkResultArgIsNull_throws() {
@@ -53,10 +55,11 @@ public class FbsPusherBeanTest {
         final String failedMessage = "FAILED";
         updateMarcXchangeResultFailed.setUpdateMarcXchangeMessage(failedMessage);
 
-        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData0), anyString())).thenThrow(new FbsUpdateConnectorException("DIED"));
-        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData1), anyString())).thenReturn(updateMarcXchangeResultOk);
-        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData2), anyString())).thenThrow(new IllegalStateException());
-        when(fbsUpdateConnectorBean.updateMarcExchange(eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
+        when(fbsUpdateConnectorBean.getConnector()).thenReturn(fbsUpdateConnector);
+        when(fbsUpdateConnector.updateMarcExchange(eq(inData0), anyString())).thenThrow(new FbsUpdateConnectorException("DIED"));
+        when(fbsUpdateConnector.updateMarcExchange(eq(inData1), anyString())).thenReturn(updateMarcXchangeResultOk);
+        when(fbsUpdateConnector.updateMarcExchange(eq(inData2), anyString())).thenThrow(new IllegalStateException());
+        when(fbsUpdateConnector.updateMarcExchange(eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
 
         final SinkChunkResult sinkChunkResult = fbsPusherBean.push(chunkResult);
         assertThat(sinkChunkResult.getItems().size(), is(6));

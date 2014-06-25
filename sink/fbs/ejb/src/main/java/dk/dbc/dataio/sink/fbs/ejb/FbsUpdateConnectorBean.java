@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
-import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,8 +32,8 @@ public class FbsUpdateConnectorBean {
         }
     }
 
-    public UpdateMarcXchangeResult updateMarcExchange(String collection, String trackingId)
-            throws FbsUpdateConnectorException {
-        return fbsUpdateConnector.updateMarcExchange(collection, trackingId);
+    public FbsUpdateConnector getConnector() {
+        System.err.println("TOTEM: Requesting FbsUpdateConnector.");
+        return fbsUpdateConnector;
     }
 }

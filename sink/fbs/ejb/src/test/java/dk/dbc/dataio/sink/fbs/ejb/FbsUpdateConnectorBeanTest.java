@@ -33,7 +33,7 @@ public class FbsUpdateConnectorBeanTest {
 
         when(fbsUpdateConnector.updateMarcExchange(any(String.class), any(String.class)))
                 .thenThrow(new FbsUpdateConnectorException("FbsUpdateConnectorException thrown"));
-        fbsUpdateConnectorBean.updateMarcExchange(collection, trackingId);
+        fbsUpdateConnectorBean.getConnector().updateMarcExchange(collection, trackingId);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class FbsUpdateConnectorBeanTest {
                 .thenReturn(updateMarcXchangeResult);
 
         UpdateMarcXchangeResult returnedupdateMarcXchangeResult =
-                fbsUpdateConnectorBean.updateMarcExchange(collection, trackingId);
+                fbsUpdateConnectorBean.getConnector().updateMarcExchange(collection, trackingId);
 
         assertThat(returnedupdateMarcXchangeResult, is(updateMarcXchangeResult));
     }

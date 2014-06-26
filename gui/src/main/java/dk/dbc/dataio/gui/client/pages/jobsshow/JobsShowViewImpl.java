@@ -12,8 +12,9 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
@@ -43,7 +44,9 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     public static final String GUICLASS_GRAY = "gray-lamp";
     public static final String GUICLASS_GREEN = "green-lamp";
     public static final String GUICLASS_RED = "red-lamp";
-    public static final String CLASS_JOB_SHOW_WIDGET_STATUS_LAMP = "jobsshowwidget_statuslamp";
+    public static final int POPUP_PANEL_WIDTH = 200;
+    public static final int POPUP_PANEL_LEFT_OFFSET = 36;
+    public static final int POPUP_PANEL_TOP_OFFSET = 18;
 
     // Enums
     private enum JobStatusEnum {NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR}
@@ -138,8 +141,15 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                     JobInfo jobInfo, NativeEvent event) {
                 super.onBrowserEvent(context, elem, jobInfo, event);
                 if ("click".equals(event.getType())) {
-                    //This was just for test. Will be removed in a later version.
-                    Window.alert("JobInfo: " + jobInfo.getJobId() + "Error_Code: " + jobInfo.getJobErrorCode());
+
+                   // Create a basic popup widget
+                    final PopupPanel popupPanel = new PopupPanel(true);
+                    int left = elem.getAbsoluteRight() - POPUP_PANEL_WIDTH - POPUP_PANEL_LEFT_OFFSET;
+                    int top = elem.getAbsoluteTop() + POPUP_PANEL_TOP_OFFSET;
+                    popupPanel.setPopupPosition(left, top);
+                    popupPanel.setWidth(POPUP_PANEL_WIDTH + "px");
+                    popupPanel.setWidget(new Label("Click outside of this popup to close it"));
+                    popupPanel.show();
                 }
             }
 

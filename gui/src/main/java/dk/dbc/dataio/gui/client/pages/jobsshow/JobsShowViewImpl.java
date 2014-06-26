@@ -3,6 +3,8 @@ package dk.dbc.dataio.gui.client.pages.jobsshow;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.ImageResource;
@@ -10,6 +12,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.JobErrorCode;
@@ -21,7 +24,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Show Jobs view implementation
@@ -38,6 +43,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     public static final String GUICLASS_GRAY = "gray-lamp";
     public static final String GUICLASS_GREEN = "green-lamp";
     public static final String GUICLASS_RED = "red-lamp";
+    public static final String CLASS_JOB_SHOW_WIDGET_STATUS_LAMP = "jobsshowwidget_statuslamp";
 
     // Enums
     private enum JobStatusEnum {NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR}
@@ -116,8 +122,27 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         submitterNumberColumn.setSortable(true);
         table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
 
+        ImageResourceCell statusCell = new ImageResourceCell() {
+            public Set<String> getConsumedEvents() {
+                HashSet<String> events = new HashSet<String>();
+                events.add("click");
+                return events;
+            }
+        };
+
         // Job State Column
-        jobStateColumn = new Column<JobInfo, ImageResource>(new ImageResourceCell()) {
+        jobStateColumn = new Column<JobInfo, ImageResource>(statusCell) {
+
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element elem,
+                    JobInfo jobInfo, NativeEvent event) {
+                super.onBrowserEvent(context, elem, jobInfo, event);
+                if ("click".equals(event.getType())) {
+                    //This was just for test. Will be removed in a later version.
+                    Window.alert("JobInfo: " + jobInfo.getJobId() + "Error_Code: " + jobInfo.getJobErrorCode());
+                }
+            }
+
             @Override
             public String getCellStyleNames(Cell.Context context, JobInfo content) {
                 switch (getJobStatus(content)) {
@@ -141,6 +166,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                 }
             }
         };
+
         table.addColumn(jobStateColumn, constants.columnHeader_JobStatus());
 
         // Add table to view

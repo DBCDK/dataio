@@ -12,7 +12,6 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
@@ -49,7 +48,6 @@ public class MixIns {
         mixIns.put(SinkContent.class, SinkContentJsonMixIn.class);
         mixIns.put(SupplementaryProcessData.class, SupplementaryProcessDataJsonMixIn.class);
         mixIns.put(PingResponse.class, PingResponseJsonMixIn.class);
-        mixIns.put(NewJob.class, NewJobJsonMixIn.class);
     }
 
     private MixIns() { }

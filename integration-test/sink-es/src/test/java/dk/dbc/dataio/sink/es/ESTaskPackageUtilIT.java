@@ -4,26 +4,26 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import dk.dbc.dataio.jobprocessor.util.Base64Util;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import static org.junit.Assert.assertThat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ESTaskPackageUtilIT {
 

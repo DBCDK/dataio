@@ -24,8 +24,6 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobInfoTest;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobSpecificationTest;
-import dk.dbc.dataio.commons.types.NewJob;
-import dk.dbc.dataio.commons.types.NewJobTest;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.PingResponseTest;
 import dk.dbc.dataio.commons.types.Sink;
@@ -146,11 +144,5 @@ public class MixInsTest {
     public void verify_jsonMixInForSinkChunkResult() throws Exception {
         final String json = JsonUtil.toJson(ChunkResultTest.newChunkResultInstance());
         JsonUtil.fromJson(json, ChunkResult.class, MixIns.getMixIns());
-    }
-
-    @Test
-    public void verify_jsonMixInForNewJob() throws Exception {
-        final String json = JsonUtil.toJson(NewJobTest.newNewJobInstance());
-        JsonUtil.fromJson(json, NewJob.class, MixIns.getMixIns());
     }
 }

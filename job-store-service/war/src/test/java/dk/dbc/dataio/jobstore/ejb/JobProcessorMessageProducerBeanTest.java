@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -62,7 +61,7 @@ public class JobProcessorMessageProducerBeanTest {
     public void send_createMessageThrowsJsonException_throws() throws JsonException, JobStoreException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         mockStatic(JsonUtil.class);
-        when(JsonUtil.toJson(any(NewJob.class))).thenThrow(new JsonException("JsonException"));
+        when(JsonUtil.toJson(any(Chunk.class))).thenThrow(new JsonException("JsonException"));
         final Chunk chunk = new ChunkBuilder().build();
 
         exception.expect(JobStoreException.class);

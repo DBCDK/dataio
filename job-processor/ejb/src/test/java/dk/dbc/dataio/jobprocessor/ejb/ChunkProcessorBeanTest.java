@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -19,16 +20,14 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
-import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64encode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ChunkProcessorBeanTest {
 
@@ -59,11 +58,11 @@ public class ChunkProcessorBeanTest {
     public void process_chunkWithData_returnsResultOfJavaScriptProcessing() throws Exception {
         final String record1 = "one";
         final ChunkItem item1 = new ChunkItemBuilder()
-                .setData(base64encode(record1))
+                .setData(Base64Util.base64encode(record1))
                 .build();
         final String record2 = "two";
         final ChunkItem item2 = new ChunkItemBuilder()
-                .setData(base64encode(record2))
+                .setData(Base64Util.base64encode(record2))
                 .build();
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
@@ -76,19 +75,19 @@ public class ChunkProcessorBeanTest {
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(2));
-        assertThat(base64decode(chunkResult.getItems().get(0).getData()), is(record1.toUpperCase()));
-        assertThat(base64decode(chunkResult.getItems().get(1).getData()), is(record2.toUpperCase()));
+        assertThat(Base64Util.base64decode(chunkResult.getItems().get(0).getData()), is(record1.toUpperCase()));
+        assertThat(Base64Util.base64decode(chunkResult.getItems().get(1).getData()), is(record2.toUpperCase()));
     }
 
     @Test
     public void process_chunkWithDataAndProcessData_returnsResultOfJavaScriptProcessing() throws Exception {
         final String record1 = "one";
         final ChunkItem item1 = new ChunkItemBuilder()
-                .setData(base64encode(record1))
+                .setData(Base64Util.base64encode(record1))
                 .build();
         final String record2 = "two";
         final ChunkItem item2 = new ChunkItemBuilder()
-                .setData(base64encode(record2))
+                .setData(Base64Util.base64encode(record2))
                 .build();
         final long submitter = 456456L;
         final String format = "DasFormat";
@@ -104,14 +103,14 @@ public class ChunkProcessorBeanTest {
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(2));
-        assertThat(base64decode(chunkResult.getItems().get(0).getData()), is("456456oneDasFormat"));
-        assertThat(base64decode(chunkResult.getItems().get(1).getData()), is("456456twoDasFormat"));
+        assertThat(Base64Util.base64decode(chunkResult.getItems().get(0).getData()), is("456456oneDasFormat"));
+        assertThat(Base64Util.base64decode(chunkResult.getItems().get(1).getData()), is("456456twoDasFormat"));
     }
 
     @Test
     public void process_exceptionThrownFromJavascript_chunkItemFailure() throws Exception {
         final ChunkItem item1 = new ChunkItemBuilder()
-                .setData(base64encode("throw"))
+                .setData(Base64Util.base64encode("throw"))
                 .build();
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
@@ -130,13 +129,13 @@ public class ChunkProcessorBeanTest {
     @Test
     public void process_exceptionThrownFromOneOutOfThreeJavascripts_chunkItemFailureForThrowSuccessForRest() throws Exception {
         final ChunkItem item0 = new ChunkItemBuilder()
-                .setData(base64encode("zero"))
+                .setData(Base64Util.base64encode("zero"))
                 .build();
         final ChunkItem item1 = new ChunkItemBuilder()
-                .setData(base64encode("throw"))
+                .setData(Base64Util.base64encode("throw"))
                 .build();
         final ChunkItem item2 = new ChunkItemBuilder()
-                .setData(base64encode("two"))
+                .setData(Base64Util.base64encode("two"))
                 .build();
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
@@ -157,10 +156,10 @@ public class ChunkProcessorBeanTest {
     @Test
     public void process_IllegalJavascriptInEnvironment_chunkItemFailure() throws Exception {
         final ChunkItem item0 = new ChunkItemBuilder()
-                .setData(base64encode("zero"))
+                .setData(Base64Util.base64encode("zero"))
                 .build();
         final ChunkItem item1 = new ChunkItemBuilder()
-                .setData(base64encode("two"))
+                .setData(Base64Util.base64encode("two"))
                 .build();
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
@@ -175,7 +174,7 @@ public class ChunkProcessorBeanTest {
         assertThat(chunkResult.getItems().size(), is(2));
         assertThat(chunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
         // todo: remove next line
-        LOGGER.info("FailureMessage: {}", base64decode(chunkResult.getItems().get(0).getData()));
+        LOGGER.info("FailureMessage: {}", Base64Util.base64decode(chunkResult.getItems().get(0).getData()));
         assertThat(chunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
@@ -213,7 +212,7 @@ public class ChunkProcessorBeanTest {
 
     private JavaScript getJavaScript(String javascript) {
         return new JavaScriptBuilder()
-                .setJavascript(base64encode(javascript))
+                .setJavascript(Base64Util.base64encode(javascript))
                 .build();
     }
 

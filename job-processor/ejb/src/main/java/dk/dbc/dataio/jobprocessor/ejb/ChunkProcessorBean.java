@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
@@ -21,9 +22,6 @@ import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-
-import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
-import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64encode;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in
@@ -48,10 +46,10 @@ public class ChunkProcessorBean {
         for (ChunkItem item : chunk.getItems()) {
             ChunkItem processedItem;
             try {
-                final String processedRecord = invokeJavaScript(flow, base64decode(item.getData()), chunk.getSupplementaryProcessData());
-                processedItem = new ChunkItem(item.getId(), base64encode(processedRecord), ChunkItem.Status.SUCCESS);
+                final String processedRecord = invokeJavaScript(flow, Base64Util.base64decode(item.getData()), chunk.getSupplementaryProcessData());
+                processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(processedRecord), ChunkItem.Status.SUCCESS);
             } catch (Throwable ex) {
-                String failureMsg = "Could not fill in the exception!";
+                String failureMsg;
                 try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
                     ex.printStackTrace(ps);
@@ -59,7 +57,7 @@ public class ChunkProcessorBean {
                 } catch (IOException e) {
                     failureMsg = e.getMessage();
                 }
-                processedItem = new ChunkItem(item.getId(), base64encode(failureMsg), ChunkItem.Status.FAILURE);
+                processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(failureMsg), ChunkItem.Status.FAILURE);
             }
             processedItems.add(processedItem);
         }
@@ -71,7 +69,7 @@ public class ChunkProcessorBean {
         final List<JavaScript> javaScriptsBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts();
         final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>();
         for (JavaScript javascriptBase64 : javaScriptsBase64) {
-            javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), base64decode(javascriptBase64.getJavascript())));
+            javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), Base64Util.base64decode(javascriptBase64.getJavascript())));
         }
         final JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javaScripts);
 

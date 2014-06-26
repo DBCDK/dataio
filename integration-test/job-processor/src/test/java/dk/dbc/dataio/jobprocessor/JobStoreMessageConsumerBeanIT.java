@@ -1,17 +1,27 @@
 package dk.dbc.dataio.jobprocessor;
 
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
-import dk.dbc.dataio.commons.types.NewJob;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.NewJobBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobstore.ejb.JobProcessorMessageProducerBean;
 import org.junit.After;
@@ -20,11 +30,10 @@ import org.junit.Test;
 
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -35,7 +44,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class JobStoreMessageConsumerBeanIT {
     private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
 
-    private final String sinkResourceName = "sinkResourceName";
+    private final String sinkResourceName = new SinkBuilder().build().getContent().getResource();
 
     private JMSContext jmsContext;
 
@@ -52,8 +61,8 @@ public class JobStoreMessageConsumerBeanIT {
     }
 
     @Test
-    public void jobStoreMessageConsumerBean_invalidNewJobOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, JsonException {
-        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(new NewJobBuilder().build());
+    public void jobStoreMessageConsumerBean_invalidChunkOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, JsonException {
+        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(new ChunkBuilder().build());
         jobStoreMessage.setText("invalid");
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
@@ -63,68 +72,104 @@ public class JobStoreMessageConsumerBeanIT {
     }
 
     @Test
-    public void jobStoreMessageConsumerBean_validNewJobOnProcessorQueue_eventuallyRemovedForProcessingWithResultsOnProcessorAndSinkQueues() throws Exception {
+    public void jobStoreMessageConsumerBean_validChunkOnProcessorQueue_eventuallyRemovedForProcessingWithResultsOnProcessorAndSinkQueues() throws Exception {
         final long jobId = 42;
+        final String itemData = "data";
 
-        final NewJob newJob = new NewJobBuilder()
-                .setJobId(jobId)
-                .setChunkCount(2)
-                .setSink(getSink())
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setData(Base64Util.base64encode(itemData))
                 .build();
 
-        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(newJob);
+        final Chunk chunk = new ChunkBuilder()
+                .setJobId(jobId)
+                .setItems(Arrays.asList(chunkItem))
+                .setFlow(buildToUpperFlow())
+                .build();
+
+        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(chunk);
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
 
-        final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
-
-        ChunkResult processorResult;
-
-        Map<Long, ChunkResult> processorResults = new HashMap<>();
-        ChunkResult processorResult0 = assertProcessorMessageForSink(sinksQueue.get(0));
-        processorResults.put(processorResult0.getChunkId(), processorResult0);
-        ChunkResult processorResult1 = assertProcessorMessageForSink(sinksQueue.get(1));
-        processorResults.put(processorResult1.getChunkId(), processorResult1);
-
-        processorResult = processorResults.get(1L);
+        final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
+        ChunkResult processorResult = assertProcessorMessageForSink(sinksQueue.get(0));
         assertThat(processorResult.getJobId(), is(jobId));
-        assertThat(processorResult.getChunkId(), is(1L));
+        assertThat(processorResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(processorResult.getItems().size(), is(1));
-        assertThat(base64decode(processorResult.getItems().get(0).getData()), is("ONE"));
+        assertThat(Base64Util.base64decode(processorResult.getItems().get(0).getData()), is(itemData.toUpperCase()));
 
-        processorResult = processorResults.get(2L);
+        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
+        processorResult = assertProcessorMessageForJobStore(processorQueue.get(0));
         assertThat(processorResult.getJobId(), is(jobId));
-        assertThat(processorResult.getChunkId(), is(2L));
+        assertThat(processorResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(processorResult.getItems().size(), is(1));
-        assertThat(base64decode(processorResult.getItems().get(0).getData()), is("TWO"));
-
-        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
+        assertThat(Base64Util.base64decode(processorResult.getItems().get(0).getData()), is(itemData.toUpperCase()));
     }
 
-    private ChunkResult assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {
+    private ChunkResult assertProcessorMessageForJobStore(MockedJmsTextMessage message) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
-        assertThat(message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sinkResourceName));
         return JsonUtil.fromJson(message.getText(), ChunkResult.class, MixIns.getMixIns());
     }
 
-    private MockedJmsTextMessage newJobStoreMessageForJobProcessor(NewJob newJob) throws JMSException, JsonException {
+    private ChunkResult assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {
+        final ChunkResult chunkResult = assertProcessorMessageForJobStore(message);
+        assertThat(message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sinkResourceName));
+        return chunkResult;
+    }
+
+    private MockedJmsTextMessage newJobStoreMessageForJobProcessor(Chunk chunk) throws JMSException, JsonException {
         final MockedJmsTextMessage message = (MockedJmsTextMessage) new JobProcessorMessageProducerBean()
-                .createMessage(jmsContext, newJob);
-        message.setText(JsonUtil.toJson(newJob));
+                .createMessage(jmsContext, chunk);
+        message.setText(JsonUtil.toJson(chunk));
         return message;
     }
 
-    private Sink getSink() throws Exception {
-        return new SinkBuilder()
-                .setContent(getSinkContent())
+    private Flow buildToUpperFlow() throws Exception {
+        return new FlowBuilder()
+                .setContent(buildToUpperFlowContent())
                 .build();
     }
 
-    private SinkContent getSinkContent() throws Exception {
-        return new SinkContentBuilder()
-                .setResource(sinkResourceName)
+    private FlowContent buildToUpperFlowContent() throws Exception {
+        return new FlowContentBuilder()
+                .setComponents(Arrays.asList(buildToUpperFlowComponent()))
                 .build();
+    }
+
+    private FlowComponent buildToUpperFlowComponent() throws Exception {
+        return new FlowComponentBuilder()
+                .setContent(buildToUpperFlowComponentContent())
+                .build();
+    }
+
+    private FlowComponentContent buildToUpperFlowComponentContent() throws Exception {
+        return new FlowComponentContentBuilder()
+                .setInvocationMethod("toUpper")
+                .setJavascripts(Arrays.asList(
+                        buildJavaScript(buildJavaScriptToUpperFunction(), ""),
+                        buildJavaScript(resourceToString("/ModulesInfo.js"), "ModulesInfo"),
+                        buildJavaScript(resourceToString("/Use.js"), "Use")))
+                .build();
+    }
+
+    private JavaScript buildJavaScript(String javaScript, String moduleName) {
+        return new JavaScriptBuilder()
+                .setModuleName(moduleName)
+                .setJavascript(Base64Util.base64encode(javaScript))
+                .build();
+    }
+
+    private String buildJavaScriptToUpperFunction() {
+        return ""
+            + "function toUpper(str) {\n"
+            + "    return str.toUpperCase();\n"
+            + "}\n";
+    }
+
+    private String resourceToString(String resourceName) throws Exception {
+        final java.net.URL url = this.getClass().getResource(resourceName);
+        final java.nio.file.Path resPath = java.nio.file.Paths.get(url.toURI());
+        return new String(java.nio.file.Files.readAllBytes(resPath), StandardCharsets.UTF_8);
     }
 }

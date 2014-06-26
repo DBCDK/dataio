@@ -1,11 +1,12 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.NewJobBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,7 +53,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void send_newJobArgIsNull_throws() throws JobStoreException {
+    public void send_chunkArgIsNull_throws() throws JobStoreException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         jobProcessorMessageProducerBean.send(null);
     }
@@ -62,21 +63,19 @@ public class JobProcessorMessageProducerBeanTest {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(NewJob.class))).thenThrow(new JsonException("JsonException"));
-        NewJob newJob = new NewJobBuilder().build();
+        final Chunk chunk = new ChunkBuilder().build();
 
         exception.expect(JobStoreException.class);
-        // todo: experiment with com.googlecode.catchexception.CatchException
-        // see: http://code.google.com/p/catch-exception/
-        jobProcessorMessageProducerBean.send(newJob);
+        jobProcessorMessageProducerBean.send(chunk);
     }
 
     @Test
-    public void createMessage_NewJobArgIsValid_returnsMessageWithHeaderProperties() throws JsonException, JMSException {
+    public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JsonException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new NewJobBuilder().build());
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ChunkBuilder().build());
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.JOB_STORE_SOURCE_VALUE));
-        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.NEW_JOB_PAYLOAD_TYPE));
+        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
     }
 
     private JobProcessorMessageProducerBean getInitializedBean() {

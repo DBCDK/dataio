@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -29,16 +29,17 @@ public class JobsBeanIT extends AbstractJobStoreTest {
     private static final String DATA_FILE_RESOURCE = "/data.xml";
 
     @Test
-    public void createJob_newJobIsCreated_newJobMessagePutOnProcessorQueue()
+    public void createJob_newJobIsCreated_chunksArePutOnProcessorQueue()
             throws InterruptedException, JsonException, URISyntaxException, JMSException, JobStoreServiceConnectorException {
         final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
         final JobInfo jobInfo = createJob(restClient, jobSpecification);
 
-        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
-        assertThat(processorQueue.size(), is(1));
-        final NewJob newJob = assertNewJobMessageForProcessor(processorQueue.get(0));
-        assertThat(newJob.getJobId(), is(jobInfo.getJobId()));
-        assertThat(newJob.getChunkCount(), is(2L));
+        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
+        assertThat(processorQueue.size(), is(2));
+        final Chunk chunk1 = assertChunkMessageForProcessor(processorQueue.get(0));
+        assertThat(chunk1.getJobId(), is(jobInfo.getJobId()));
+        final Chunk chunk2 = assertChunkMessageForProcessor(processorQueue.get(1));
+        assertThat(chunk2.getJobId(), is(jobInfo.getJobId()));
     }
 
     public static JobSpecification setupJobPrerequisites(Client restClient) throws URISyntaxException {

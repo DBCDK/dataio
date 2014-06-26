@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
-import dk.dbc.dataio.commons.types.NewJob;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
@@ -110,8 +109,7 @@ public class JobsBean {
         try {
             job = createJobInJobStore(jobSpec, flowBinder, flow, sink);
             jobInfoJson = JsonUtil.toJson(job.getJobInfo());
-            final NewJob newJob = new NewJob(job.getId(), jobStore.getNumberOfChunksInJob(job.getId()), sink);
-            jobProcessorMessageProducer.send(newJob);
+            enqueueChunks(job);
         } catch (JobStoreException | JsonException e) {
             throw new EJBException(e);
         }
@@ -119,7 +117,14 @@ public class JobsBean {
         return Response.created(uriInfo.getAbsolutePath()).entity(jobInfoJson).build();
     }
 
-
+    /* This method is only temporary until we get the sequence analyser up and running
+     */
+    private void enqueueChunks(Job job) throws JobStoreException {
+        final long numberOfChunks =  jobStore.getNumberOfChunksInJob(job.getId());
+        for (long i = 1; i <= numberOfChunks; i++) {
+            jobProcessorMessageProducer.send(jobStore.getChunk(job.getId(), i));
+        }
+    }
 
     private Job createJobInJobStore(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
         String jobDataFile = jobSpec.getDataFile();
@@ -163,6 +168,36 @@ public class JobsBean {
             entity = JsonUtil.toJson(chunk);
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling chunk %d for job %d", chunkId, jobId), e);
+        }
+        return Response.ok().entity(entity).build();
+    }
+
+    /**
+     * Retrieves job sink from the underlying data store
+     *
+     * @param jobId Id of job
+     *
+     * @return a HTTP 200 OK response with Sink entity as JSON string,
+     *         a HTTP 404 NOT_FOUND if unable to locate job.
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading sink from store, or if unable
+     * to marshall retrieved Sink to JSON.
+     */
+    @GET
+    @Path(JobStoreServiceConstants.JOB_SINK)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getSink(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
+        LOGGER.info("Getting sink for job {}", jobId);
+        final Sink sink = jobStore.getSink(jobId);
+        if (sink == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(sink);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling sink for job %d", jobId), e);
         }
         return Response.ok().entity(entity).build();
     }

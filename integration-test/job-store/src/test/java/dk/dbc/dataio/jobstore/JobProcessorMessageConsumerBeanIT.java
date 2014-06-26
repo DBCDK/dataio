@@ -40,8 +40,8 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
     public void onMessage_processorResultReceived_processorResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException, JobStoreServiceConnectorException {
         final JobInfo jobInfo = createJob(restClient, JobsBeanIT.setupJobPrerequisites(restClient));
 
-        // Swallow NewJob message
-        JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
+        // Swallow Chunk messages
+        JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
         JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
 
         JobState jobState = getState(restClient, jobInfo.getJobId());
@@ -74,8 +74,8 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
     public void onMessage_sinkResultReceived_sinkResultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException, JobStoreServiceConnectorException {
         final JobInfo jobInfo = createJob(restClient, JobsBeanIT.setupJobPrerequisites(restClient));
 
-        // Swallow NewJob message
-        JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
+        // Swallow Chunk messages
+        JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
         JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
 
         JobState jobState = getState(restClient, jobInfo.getJobId());

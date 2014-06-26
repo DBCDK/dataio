@@ -8,6 +8,7 @@ public class JmsConstants {
     public static final String PAYLOAD_PROPERTY_NAME = "payload";
     public static final String RESOURCE_PROPERTY_NAME = "resource";
 
+    public static final String CHUNK_PAYLOAD_TYPE = "Chunk";
     public static final String PROCESSOR_RESULT_PAYLOAD_TYPE = "ChunkResult";
     public static final String SINK_RESULT_PAYLOAD_TYPE = "SinkChunkResult";
     public static final String NEW_JOB_PAYLOAD_TYPE = "NewJob";

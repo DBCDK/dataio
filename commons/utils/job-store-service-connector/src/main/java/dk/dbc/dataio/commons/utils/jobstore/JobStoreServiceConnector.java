@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -65,6 +66,26 @@ public class JobStoreServiceConnector {
                         jobInfo.getJobErrorCode());
             }
             return jobInfo;
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves sink associated with job from job-store
+     * @param jobId Id of job
+     * @return job sink
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on failure to retrieve sink
+     */
+    public Sink getSink(long jobId) throws ProcessingException, JobStoreServiceConnectorException {
+        final Map<String, String> pathVariables = new HashMap<>(1);
+        pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+        final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_SINK, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.split(URL_PATH_SEPARATOR));
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, Sink.class);
         } finally {
             response.close();
         }

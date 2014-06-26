@@ -240,4 +240,19 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
 
         assertThat(chunkifyingCounter.getTotal(), is(1L));
     }
+
+    @Test
+    public void test() throws IOException, JobStoreException {
+        final Path jobStorePath = getJobStorePath();
+        final FileSystemJobStore instance = new FileSystemJobStore(jobStorePath);
+        final JobSpecification jobSpec = createJobSpecification(getDataFile());
+        final Job job;
+
+        // Create job in file system
+        try(InputStream is = Files.newInputStream(getDataFile())) {
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+        }
+        assertThat(job, is(notNullValue()));
+        assertThat(instance.getSink(job.getId()).getId(), is(SINK.getId()));
+    }
 }

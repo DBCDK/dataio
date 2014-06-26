@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.commons.types.NewJob;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -29,21 +29,21 @@ public class JobProcessorMessageProducerBean {
     Queue processorQueue;
 
     /**
-     * Sends given NewJob instance as JMS message with JSON payload to processor queue destination
+     * Sends given Chunk instance as JMS message with JSON payload to processor queue destination
      *
-     * @param newJob NewJob instance to be inserted as message payload
+     * @param chunk Chunk instance to be inserted as message payload
      *
      * @throws NullPointerException when given null-valued argument
-     * @throws JobStoreException when unable to send given NewJob to destination
+     * @throws JobStoreException when unable to send given Chunk to destination
      */
-    public void send(NewJob newJob) throws NullPointerException, JobStoreException {
-        LOGGER.info("Sending NewJob for job {}", newJob.getJobId());
+    public void send(Chunk chunk) throws NullPointerException, JobStoreException {
+        LOGGER.info("Sending Chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
-            final TextMessage message = createMessage(context, newJob);
+            final TextMessage message = createMessage(context, chunk);
             context.createProducer().send(processorQueue, message);
         } catch (JsonException | JMSException e) {
-            final String errorMessage = String.format("Exception caught while announcing job %s",
-                    newJob.getJobId());
+            final String errorMessage = String.format("Exception caught while queueing chunk %s for job %s",
+                    chunk.getChunkId(), chunk.getJobId());
             throw new JobStoreException(errorMessage, e);
         }
     }
@@ -53,20 +53,20 @@ public class JobProcessorMessageProducerBean {
      * header properties '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SOURCE_PROPERTY_NAME}'
      * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PAYLOAD_PROPERTY_NAME}'
      * set to '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#JOB_STORE_SOURCE_VALUE}'
-     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#NEW_JOB_PAYLOAD_TYPE}' respectively.
+     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively.
      *
      * @param context active JMS context
-     * @param newJob NewJob instance to be added as payload
+     * @param chunk Chunk instance to be added as payload
      *
      * @return TextMessage instance
      *
-     * @throws JsonException when unable to marshall NewJob instance to JSON
+     * @throws JsonException when unable to marshall Chunk instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, NewJob newJob) throws JsonException, JMSException {
-        final TextMessage message = context.createTextMessage(JsonUtil.toJson(newJob));
+    public TextMessage createMessage(JMSContext context, Chunk chunk) throws JsonException, JMSException {
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(chunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
-        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.NEW_JOB_PAYLOAD_TYPE);
+        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         return message;
     }
 }

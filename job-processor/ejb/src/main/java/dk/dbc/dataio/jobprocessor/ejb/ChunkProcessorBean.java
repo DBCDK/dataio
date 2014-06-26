@@ -15,15 +15,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64decode;
 import static dk.dbc.dataio.jobprocessor.util.Base64Util.base64encode;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in
@@ -32,7 +32,6 @@ import java.io.PrintStream;
 @Stateless
 @LocalBean
 public class ChunkProcessorBean {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
 
     /**

@@ -21,6 +21,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -64,11 +65,14 @@ public class JobStoreBean implements JobStore {
     // <jobId, JobInfo>
     private final Map<Long, JobInfo> inMemoryJobsCreated = new HashMap<>();
 
+    // <jobId, Sink>
+    private final Map<Long, Sink> inMemorySinks = new HashMap<>();
+
     @PostConstruct
     public void setupJobStore() {
         try {
             LOGGER.info("Setting up mocked job-store");
-            inMemoryJobStoreChunks.put(42L, buildChunksForJob42());
+            setupJob42();
         } catch (Exception e) {
             throw new EJBException(e);
         }
@@ -130,8 +134,18 @@ public class JobStoreBean implements JobStore {
     }
 
     @Override
+    public Sink getSink(long jobId) throws JobStoreException {
+        return inMemorySinks.get(jobId);
+    }
+
+    @Override
     public JobState getJobState(long jobId) throws JobStoreException {
         return null;
+    }
+
+    private void setupJob42() throws Exception {
+        inMemoryJobStoreChunks.put(42L, buildChunksForJob42());
+        inMemorySinks.put(42L, new SinkBuilder().build());
     }
 
     private Map<Long, Chunk> buildChunksForJob42() throws Exception {

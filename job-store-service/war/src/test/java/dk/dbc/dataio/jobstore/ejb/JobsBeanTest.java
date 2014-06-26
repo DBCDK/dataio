@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.JobInfo;
+import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -20,10 +22,10 @@ import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -216,6 +218,56 @@ public class JobsBeanTest {
         assertThat(response.hasEntity(), is(true));
         final JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
         assertThat(entityNode.get("chunkId").longValue(), is(chunk.getChunkId()));
+    }
+
+    @Test
+    public void getSink_jobStoreReturnsNull_returnsStatusNotFoundResponse() throws JobStoreException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getSink(jobId)).thenReturn(null);
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getSink(jobId);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getSink_jobStoreThrowsJobStoreException_throws() throws JobStoreException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getSink(jobId)).thenThrow(new JobStoreException("JobStoreException"));
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        jobsBean.getSink(jobId);
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getSink_sinkCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(Sink.class))).thenThrow(new JsonException("JsonException"));
+        when(jobStore.getSink(jobId)).thenReturn(new SinkBuilder().build());
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getSink(jobId);
+        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+    }
+
+    @Test
+    public void getSink_jobStoreReturnsSink_returnsStatusOkResponseWithEntity() throws JobStoreException, JsonException {
+        final long jobId = 42;
+        final JobStoreBean jobStore = mock(JobStoreBean.class);
+        when(jobStore.getSink(jobId)).thenReturn(new SinkBuilder().build());
+
+        final JobsBean jobsBean = new JobsBean();
+        jobsBean.jobStore = jobStore;
+        final Response response = jobsBean.getSink(jobId);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
     }
 
     @Test

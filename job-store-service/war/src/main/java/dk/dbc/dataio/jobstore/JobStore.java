@@ -33,5 +33,6 @@ public interface JobStore {
     void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException;
     SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException;
 
+    Sink getSink(long jobId) throws JobStoreException;
     JobState getJobState(long jobId) throws JobStoreException;
 }

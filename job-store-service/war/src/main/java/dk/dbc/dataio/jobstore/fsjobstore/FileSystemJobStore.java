@@ -168,6 +168,16 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
+    public Sink getSink(long jobId) throws JobStoreException {
+        final Path sinkPath = getSinkPath(jobId);
+        if (Files.exists(sinkPath)) {
+            return JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).readObjectFromFile(sinkPath, Sink.class);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public synchronized JobState getJobState(long jobId) throws JobStoreException {
         final Path jobStatePath = getJobStatePath(jobId);
         if (Files.exists(jobStatePath)) {
@@ -269,6 +279,10 @@ public class FileSystemJobStore implements JobStore {
 
     private Path getJobStatePath(long jobId) {
         return Paths.get(getJobPath(jobId).toString(), JOBSTATE_FILE);
+    }
+
+    private Path getSinkPath(long jobId) {
+        return Paths.get(getJobPath(jobId).toString(), SINK_FILE);
     }
 
     private static List<Path> getDirectories(final Path dir) throws JobStoreException {

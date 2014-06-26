@@ -6,7 +6,7 @@
       <ejb-name>JobProcessorMessageProducerBean</ejb-name>
       <message-destination-ref>
         <message-destination-ref-name>processorJmsQueue</message-destination-ref-name>
-        <jndi-name>jms/dataio/processor</jndi-name>
+        <jndi-name>jms/dataio/sinks</jndi-name>
       </message-destination-ref>
     </ejb>
   </enterprise-beans>

@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -60,6 +62,12 @@ public class JobsBean {
     public static final String REST_FLOWBINDER_QUERY_ENTRY_POINT = "/resolve"; // todo: move this to a better place - this entrypoint is also hardcodet in FlowBindersBean.
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
+
+    /* This injection is only temporary until we get the sequence analyser up and running.
+       The reason is that the @TransactionAttribute-annotations will only be honored, if
+       you call the method via a business interface. */
+    @EJB
+    JobsBean thisBusinessObject;
 
     @EJB
     JobStoreBean jobStore;
@@ -122,8 +130,15 @@ public class JobsBean {
     private void enqueueChunks(Job job) throws JobStoreException {
         final long numberOfChunks =  jobStore.getNumberOfChunksInJob(job.getId());
         for (long i = 1; i <= numberOfChunks; i++) {
-            jobProcessorMessageProducer.send(jobStore.getChunk(job.getId(), i));
+            thisBusinessObject.notifyJobProcessor(jobStore.getChunk(job.getId(), i));
         }
+    }
+
+    /* This method is only temporary until we get the sequence analyser up and running
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void notifyJobProcessor(Chunk chunk) throws JobStoreException {
+        jobProcessorMessageProducer.send(chunk);
     }
 
     private Job createJobInJobStore(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {

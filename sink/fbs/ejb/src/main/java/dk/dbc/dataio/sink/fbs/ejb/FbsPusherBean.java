@@ -8,6 +8,8 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
@@ -15,20 +17,29 @@ import java.util.ArrayList;
 
 @Stateless
 public class FbsPusherBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FbsPusherBean.class);
+
     @EJB
     FbsUpdateConnectorBean fbsUpdateConnector;
 
     public SinkChunkResult push(ChunkResult chunkResult) {
+        LOGGER.info("Examining ChunkResult {} for job {}", chunkResult.getChunkId(), chunkResult.getJobId());
         final SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(),
                 chunkResult.getChunkId(), chunkResult.getEncoding(), new ArrayList<ChunkItem>());
+
+        int itemsPushed = 0;
         for (ChunkItem chunkItem : chunkResult.getItems()) {
             if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
                 executeUpdateOperation(sinkChunkResult, chunkItem);
+                itemsPushed++;
             } else {
                 sinkChunkResult.addItem(newIgnoredChunkItem(chunkItem.getId(),
                         String.format("Processor item status was: %s", chunkItem.getStatus())));
             }
         }
+        LOGGER.info("Pushed {} items from ChunkResult {} for job {}",
+                itemsPushed, chunkResult.getChunkId(), chunkResult.getJobId());
+
         return sinkChunkResult;
     }
 

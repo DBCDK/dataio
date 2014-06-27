@@ -2,17 +2,16 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.ListBox;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
  *
@@ -21,7 +20,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  * https://bitbucket.org/gardellajuanpablo/duallist/src/b040d8237c8adc32f39a5bb8d2762b62ac07e28d/duallist/src/main/java/org/gwtcomponents/duallist/DualList.java?at=default
  *
  */
-public class DualList extends HorizontalPanel {
+public class DualList extends FlowPanel {
     public static final String DUAL_LIST_COMPONENT_CLASS = "dio-DualList";
     public static final String DUAL_LIST_ADDITEM_CLASS = "dual-list-additem-class";
     public static final String DUAL_LIST_REMOVEITEM_CLASS = "dual-list-removeitem-class";
@@ -92,7 +91,7 @@ public class DualList extends HorizontalPanel {
     ListBox left = new ListBox(true);
     Image addItem = new Image();
     Image removeItem = new Image();
-    VerticalPanel buttonPanel = new VerticalPanel();
+    FlowPanel buttonPanel = new FlowPanel();
 
     /**
      * Constructor

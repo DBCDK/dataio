@@ -67,6 +67,7 @@
 
 .dual-list-removeitem-class, .dual-list-additem-class {
     margin: 4px;
+    display: block;
 }
 
 .dio-DataEntry {
@@ -75,4 +76,20 @@
 
 .dio-DataEntry-PromptLabelClass {
     width: 9em;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.dio-SaveButton-ResultLabel {
+    display: inline-block;
+}
+
+.dual-list-selection-buttons-pane-class {
+    width: 3em;
+    display: inline-block;
+    margin: 0 0 0.3em 0;
+}
+
+.dio-DualList {
+    display: inline-block;
 }

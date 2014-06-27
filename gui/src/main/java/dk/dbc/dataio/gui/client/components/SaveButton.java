@@ -3,14 +3,14 @@ package dk.dbc.dataio.gui.client.components;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 
 /**
  *
  * @author slf
  */
-public class SaveButton extends HorizontalPanel {
+public class SaveButton extends FlowPanel {
     public static final String SAVE_BUTTON_CLASS = "dio-SaveButton";
     public static final String SAVE_BUTTON_RESULT_LABEL_CLASS = "dio-SaveButton-ResultLabel";
     public static final String SAVE_BUTTON_BUTTON_CLASS = "dio-SaveButton-Button";

@@ -55,7 +55,8 @@ public class FbsPusherBean {
                 sinkChunkResult.addItem(newFailedChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
             }
         } catch (Exception e) {
-            System.err.println("TOTEM: Exception caught - item set to failed: " + e.getMessage());
+            LOGGER.error("Item {} registered as FAILED for ChunkResult {} for job {} due to exception",
+                    chunkItem.getId(), sinkChunkResult.getChunkId(), sinkChunkResult.getJobId(), e);
             sinkChunkResult.addItem(newFailedChunkItem(chunkItem.getId(), ServiceUtil.stackTraceToString(e)));
         }
     }

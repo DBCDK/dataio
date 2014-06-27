@@ -93,3 +93,14 @@
 .dio-DualList {
     display: inline-block;
 }
+
+.dio-DualPanesPanel-WidgetLeftClass, .dio-DualPanesPanel-WidgetRightClass {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.dio-DualPanesPanel-WidgetLeftClass {
+    margin: 0 1em 0 0;
+}
+
+

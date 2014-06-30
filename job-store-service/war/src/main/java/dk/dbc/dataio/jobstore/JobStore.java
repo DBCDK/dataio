@@ -11,13 +11,15 @@ import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+
 import java.io.InputStream;
 
 import java.util.List;
 
 
 public interface JobStore {
-    Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException;
+    Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException;
 
     void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException;
 

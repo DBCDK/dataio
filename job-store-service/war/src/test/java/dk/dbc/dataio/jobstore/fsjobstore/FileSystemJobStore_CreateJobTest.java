@@ -1,37 +1,43 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
-import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.jobstore.types.Job;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
-import org.junit.Test;
 
 public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil {
+    private final SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator();
 
     @Test(expected = NullPointerException.class)
     public void createJob_dataObjectPathArg_isNull_throws() throws Exception {
         final File dataFile = tmpFolder.newFile();
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
         try(InputStream is = Files.newInputStream(dataFile.toPath())) {
-            instance.createJob(null, FLOWBINDER, FLOW, SINK, is);
+            instance.createJob(null, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
     }
 
@@ -41,7 +47,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
         JobSpecification jobSpec = createJobSpecification(dataFile.toPath());
         try(InputStream is = Files.newInputStream(dataFile.toPath())) {
-            instance.createJob(jobSpec, null, FLOW, SINK, is);
+            instance.createJob(jobSpec, null, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
     }
 
@@ -51,7 +57,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
         JobSpecification jobSpec = createJobSpecification(dataFile.toPath());
         try(InputStream is = Files.newInputStream(dataFile.toPath())) {
-            instance.createJob(jobSpec, FLOWBINDER, null, SINK, is);
+            instance.createJob(jobSpec, FLOWBINDER, null, SINK, is, sequenceAnalyserKeyGenerator);
         }
     }
 
@@ -61,7 +67,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
         JobSpecification jobSpec = createJobSpecification(dataFile.toPath());
         try(InputStream is = Files.newInputStream(dataFile.toPath())) {
-            instance.createJob(jobSpec, FLOWBINDER, FLOW, null, is);
+            instance.createJob(jobSpec, FLOWBINDER, FLOW, null, is, sequenceAnalyserKeyGenerator);
         }
     }
 
@@ -70,7 +76,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final File dataFile = tmpFolder.newFile();
         final FileSystemJobStore instance = new FileSystemJobStore(getJobStorePath());
         JobSpecification jobSpec = createJobSpecification(dataFile.toPath());
-        instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, null);
+        instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, null, sequenceAnalyserKeyGenerator);
     }
 
     @Test
@@ -80,7 +86,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         assertThat(Files.exists(Paths.get(jobStorePath.toString(), Long.toString(job.getId()))), is(true));
@@ -140,7 +146,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
             instance = new FileSystemJobStore(jobStorePath);
 
             try(InputStream is = Files.newInputStream(Paths.get(jobSpec.getDataFile()))) {
-                job = instance.createJob(jobSpec, flowBinder, flow, sink, is);
+                job = instance.createJob(jobSpec, flowBinder, flow, sink, is, sequenceAnalyserKeyGenerator);
             }
             return this;
         }
@@ -165,6 +171,16 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
                 super(message);
             }
         }
+    }
+
+    @Test
+    public void createJob_newJobIsCreated_chunkFileWithGeneratedKeysIsAddedToJobFolder() throws Exception {
+        final TestJob testJob = new TestJob().create();
+        final FileSystemJobStore jobStore = new FileSystemJobStore(testJob.getTheJobStorePath());
+        final Chunk chunk = jobStore.getChunk(testJob.job.getId(), 1);
+        assertThat(chunk, is(notNullValue()));
+        assertThat(chunk.getKeys().size(), is(1));
+        assertThat(chunk.getKeys().contains(testJob.sink.getContent().getName()), is(true));
     }
 
     @Test
@@ -198,7 +214,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         final Path processorCounterFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.PROCESSOR_COUNTER_FILE);
@@ -215,7 +231,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         final Path jobSpecificationFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.JOBSPECIFICATION_FILE);
@@ -229,7 +245,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         final Path jobInfoFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.JOBINFO_FILE);
@@ -246,7 +262,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         final Path jobStateFile = Paths.get(jobStorePath.toString(), Long.toString(job.getId()), FileSystemJobStore.JOBSTATE_FILE);
@@ -263,7 +279,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpec = createJobSpecification(Paths.get("no-such-file"));
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
@@ -285,7 +301,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
@@ -306,7 +322,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job;
         try(InputStream is = Files.newInputStream(Paths.get(jobSpecification.getDataFile()))) {
-            job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
@@ -327,7 +343,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job;
         try(InputStream is = Files.newInputStream(Paths.get(jobSpecification.getDataFile()))) {
-            job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpecification, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));

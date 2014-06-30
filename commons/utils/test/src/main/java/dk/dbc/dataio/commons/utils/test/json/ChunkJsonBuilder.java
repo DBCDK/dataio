@@ -3,6 +3,7 @@ package dk.dbc.dataio.commons.utils.test.json;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class ChunkJsonBuilder extends JsonBuilder {
     private long jobId = 2;
@@ -10,6 +11,7 @@ public class ChunkJsonBuilder extends JsonBuilder {
     private String flow = new FlowJsonBuilder().build();
     private String supplementaryProcessData = new SupplementaryProcessDataJsonBuilder().build();
     private List<String> items = new ArrayList<>(Arrays.asList(new ChunkItemJsonBuilder().build()));
+    private List<String> keys = new ArrayList<>(0);
 
     public ChunkJsonBuilder setJobId(long jobId) {
         this.jobId = jobId;
@@ -36,6 +38,11 @@ public class ChunkJsonBuilder extends JsonBuilder {
         return this;
     }
 
+    public ChunkJsonBuilder setKeys(Set<String> keys) {
+        this.keys = new ArrayList<>(keys);
+        return this;
+    }
+
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
@@ -43,7 +50,8 @@ public class ChunkJsonBuilder extends JsonBuilder {
         stringBuilder.append(asLongMember("chunkId", chunkId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("flow", flow)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("supplementaryProcessData", supplementaryProcessData)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asObjectArray("items", items));
+        stringBuilder.append(asObjectArray("items", items)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asObjectArray("keys", keys));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

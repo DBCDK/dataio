@@ -58,7 +58,7 @@ public class JobStoreBeanTest {
     @Before
     public void setUp() throws IOException, NamingException {
         mockStatic(ServiceUtil.class);
-        when(ServiceUtil.getStringValueFromResource(eq(JobStoreBean.JOB_STORE_SERVICE_JNDI_ENDPOINT))).thenReturn(tmpFolder.newFolder().toString());
+        when(ServiceUtil.getStringValueFromResource(eq(JobStoreBean.PATH_RESOURCE_JOB_STORE_HOME))).thenReturn(tmpFolder.newFolder().toString());
         jsb = new JobStoreBean();
         jsb.setupJobStore();
     }

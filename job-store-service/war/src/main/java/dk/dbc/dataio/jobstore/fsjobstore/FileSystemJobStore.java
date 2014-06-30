@@ -20,6 +20,7 @@ import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,7 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
-    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
+    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException {
         final long jobCreationTime = System.currentTimeMillis();
         final long jobId = jobCreationTime;
         final Path jobPath = getJobPath(jobId);
@@ -126,7 +127,7 @@ public class FileSystemJobStore implements JobStore {
             final DefaultXMLRecordSplitter recordSplitter;
             try {
                 recordSplitter = newRecordSplitter(jobSpec, jobInputStream);
-                recordCount = applyDefaultXmlSplitter(job, recordSplitter);
+                recordCount = applyRecordSplitter(job, recordSplitter, sequenceAnalyserKeyGenerator, sink);
             } catch (IOException | IllegalStateException | XMLStreamException | IllegalDataException e) {
                 jobInfo = new JobInfo(jobId, jobSpec, jobCreationTime);
                 if (e instanceof IOException) {
@@ -312,9 +313,16 @@ public class FileSystemJobStore implements JobStore {
         return new FileSystemJobStore(storePath);
     }
 
-    // todo: Job can be removed for this method.
-    private void addChunk(Job job, Chunk chunk) throws JobStoreException {
-        LOGGER.info("Adding chunk.id {} for job.id {}", chunk.getChunkId(), job.getId());
+    private void generateChunkKeys(Chunk chunk, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Sink sink) {
+        LOGGER.info("Generating chunk keys for chunk.id {} in job.id {}", chunk.getChunkId(), chunk.getJobId());
+        for (final String key : sequenceAnalyserKeyGenerator.generateKeys(chunk, sink)) {
+            chunk.addKey(key);
+        }
+    }
+
+    private void addChunk(Chunk chunk, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Sink sink) throws JobStoreException {
+        LOGGER.info("Adding chunk.id {} for job.id {}", chunk.getChunkId(), chunk.getJobId());
+        generateChunkKeys(chunk, sequenceAnalyserKeyGenerator, sink);
         chunkFileHandler.addResult(chunk);
     }
 
@@ -392,7 +400,7 @@ public class FileSystemJobStore implements JobStore {
         }
     }
 
-    private long applyDefaultXmlSplitter(Job job, DefaultXMLRecordSplitter recordSplitter) throws IllegalDataException, JobStoreException {
+    private long applyRecordSplitter(Job job, DefaultXMLRecordSplitter recordSplitter, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Sink sink) throws IllegalDataException, JobStoreException {
         long jobId = job.getId();
         long chunkId = 1;
         long recordCount = 0;
@@ -408,13 +416,13 @@ public class FileSystemJobStore implements JobStore {
                 chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             } else {
                 counter = 1;
-                addChunk(job, chunk);
+                addChunk(chunk, sequenceAnalyserKeyGenerator, sink);
                 chunk = new Chunk(jobId, ++chunkId, job.getFlow(), supplementaryProcessData);
                 chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             }
         }
         if (counter != 0) {
-            addChunk(job, chunk);
+            addChunk(chunk, sequenceAnalyserKeyGenerator, sink);
         }
         LOGGER.info("Created {} chunks for job {}", chunkId, job.getId());
 

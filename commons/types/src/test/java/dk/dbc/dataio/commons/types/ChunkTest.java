@@ -1,11 +1,14 @@
 package dk.dbc.dataio.commons.types;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -115,7 +118,7 @@ public class ChunkTest {
     }
 
     @Test
-    public void getRecords_recordsCanBeRetrieved() {
+    public void getItems_itemsCanBeRetrieved() {
         final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
         final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
         final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
@@ -128,7 +131,7 @@ public class ChunkTest {
     }
 
     @Test
-    public void getResults_internalResultListCanNotBeMutated() {
+    public void getItems_internalItemsListCanNotBeMutated() {
         final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
         final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
         final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
@@ -144,6 +147,60 @@ public class ChunkTest {
         assertThat(items2.get(0), is(data1));
         assertThat(items2.get(1), is(data2));
         assertThat(items2.get(2), is(data3));
+    }
+
+    @Test
+    public void getKeys_initiallyEmpty() {
+        final Chunk chunk = newChunkInstance();
+        assertThat(chunk.getKeys(), is(notNullValue()));
+        assertThat(chunk.getKeys().size(), is(0));
+    }
+
+    @Test
+    public void addKeys_keysAddedToInternalSet() {
+        final HashSet<String> keys = new HashSet<>();
+        keys.add("key1");
+        keys.add("key2");
+        keys.add(null);
+        final Chunk chunk = newChunkInstance();
+        for (final String key : keys) {
+            chunk.addKey(key);
+        }
+        for (final String key : keys) {
+            chunk.addKey(key);
+        }
+        assertThat(chunk.getKeys().size(), is(3));
+    }
+
+    @Test
+    public void getKeys_keysCanBeRetrieved() {
+        final HashSet<String> keys = new HashSet<>();
+        keys.add("key1");
+        keys.add("key2");
+        keys.add(null);
+        final Chunk chunk = newChunkInstance();
+        for (final String key : keys) {
+            chunk.addKey(key);
+        }
+        assertThat(chunk.getKeys(), CoreMatchers.<Set<String>>is(keys));
+    }
+
+    @Test
+    public void getKeys_internalKeysSetCanNotBeMutated() {
+        final HashSet<String> keys = new HashSet<>();
+        keys.add("key1");
+        keys.add("key2");
+        keys.add(null);
+        final Chunk chunk = newChunkInstance();
+        for (final String key : keys) {
+            chunk.addKey(key);
+        }
+        final Set<String> returnedKeys = chunk.getKeys();
+        // Try mutating returned result
+        returnedKeys.remove("key1");
+        returnedKeys.add("key3");
+        // assert that internal data is still the original
+        assertThat(chunk.getKeys(), CoreMatchers.<Set<String>>is(keys));
     }
 
     public static Chunk newChunkInstance() {

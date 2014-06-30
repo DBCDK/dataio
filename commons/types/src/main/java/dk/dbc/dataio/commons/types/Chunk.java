@@ -4,7 +4,9 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Chunk DTO class.
@@ -14,12 +16,14 @@ public class Chunk extends AbstractChunk implements Serializable {
 
     private /* final */ Flow flow;
     private /* final */ SupplementaryProcessData supplementaryProcessData;
+    private /* final */ Set<String> keys;
 
     private Chunk() {
         // JSON Unmarshalling of '{}' will trigger default constructor
-        // causing getItems() methods to throw NullPointerException
+        // causing getItems()/getKeys() methods to throw NullPointerException
         // unless we set reasonable defaults.
         items = new ArrayList<ChunkItem>(0);
+        keys = new HashSet<>(0);
     }
 
     public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData) {
@@ -35,6 +39,7 @@ public class Chunk extends AbstractChunk implements Serializable {
         if (this.items.size() > Constants.CHUNK_RECORD_COUNT_UPPER_BOUND) {
             throw new IllegalArgumentException("Number of records exceeds CHUNK_RECORD_COUNT_UPPER_BOUND");
         }
+        keys = new HashSet<>();
     }
 
     @Override
@@ -51,5 +56,13 @@ public class Chunk extends AbstractChunk implements Serializable {
 
     public SupplementaryProcessData getSupplementaryProcessData() {
         return supplementaryProcessData;
+    }
+
+    public void addKey(String key) {
+        keys.add(key);
+    }
+
+    public Set<String> getKeys() {
+        return new HashSet<>(keys);
     }
 }

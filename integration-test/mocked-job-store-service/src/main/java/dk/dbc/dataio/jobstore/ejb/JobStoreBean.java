@@ -22,7 +22,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
 @LocalBean
 @Singleton
 @Startup
-public class JobStoreBean implements JobStore {
+public class JobStoreBean {
     public static final String RECORD_42_1 = "one";
     public static final String RECORD_42_2 = "two";
 
@@ -78,7 +77,6 @@ public class JobStoreBean implements JobStore {
         }
     }
 
-    @Override
     public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         final long jobId = jobIdSequence.incrementAndGet();
         final JobInfo jobInfo = new JobInfo(jobId, jobSpec, System.currentTimeMillis());
@@ -87,22 +85,18 @@ public class JobStoreBean implements JobStore {
         return new Job(jobInfo, new JobState(), flow);
     }
 
-    @Override
     public void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException {
 
     }
 
-    @Override
     public List<JobInfo> getAllJobInfos() throws JobStoreException {
         return new ArrayList<>(inMemoryJobsCreated.values());
     }
 
-    @Override
     public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
         return 0;
     }
 
-    @Override
     public Chunk getChunk(long jobId, long chunkId) throws JobStoreException {
         final Map<Long, Chunk> chunks = inMemoryJobStoreChunks.get(jobId);
         if (chunks == null) {
@@ -113,32 +107,26 @@ public class JobStoreBean implements JobStore {
         }
     }
 
-    @Override
     public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
 
     }
 
-    @Override
     public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
         return null;
     }
 
-    @Override
     public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
 
     }
 
-    @Override
     public SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException {
         return null;
     }
 
-    @Override
     public Sink getSink(long jobId) throws JobStoreException {
         return inMemorySinks.get(jobId);
     }
 
-    @Override
     public JobState getJobState(long jobId) throws JobStoreException {
         return null;
     }

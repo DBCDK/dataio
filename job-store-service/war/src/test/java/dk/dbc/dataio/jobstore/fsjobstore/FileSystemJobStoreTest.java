@@ -15,6 +15,8 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.Test;
 
 import java.io.File;
@@ -32,6 +34,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
+    private final SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator();
 
     @Test(expected = NullPointerException.class)
     public void constructor_storePathArgIsNull_throws() throws Exception {
@@ -64,7 +67,7 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
         final JobSpecification jobSpec = createJobSpecification(getDataFile());
         final Job job;
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         final ChunkResult processorResult = new ChunkResultBuilder()
@@ -96,7 +99,7 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
 
         // Create job in file system
         try (InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
 
@@ -138,7 +141,7 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
 
         // Create job in file system
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
 
@@ -190,7 +193,7 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
 
         // Create job in file system
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
 
@@ -250,7 +253,7 @@ public class FileSystemJobStoreTest extends FileSystemJobStoreTestUtil {
 
         // Create job in file system
         try(InputStream is = Files.newInputStream(getDataFile())) {
-            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is);
+            job = instance.createJob(jobSpec, FLOWBINDER, FLOW, SINK, is, sequenceAnalyserKeyGenerator);
         }
         assertThat(job, is(notNullValue()));
         assertThat(instance.getSink(job.getId()).getId(), is(SINK.getId()));

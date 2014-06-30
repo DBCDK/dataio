@@ -7,7 +7,9 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChunkBuilder {
     private long jobId = 3;
@@ -15,6 +17,7 @@ public class ChunkBuilder {
     private Flow flow = new FlowBuilder().build();
     private SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(424242L, "latin-1");
     private List<ChunkItem> items = new ArrayList<>(Arrays.asList(new ChunkItemBuilder().build()));
+    private Set<String> keys = new HashSet<>(0);
 
     public ChunkBuilder setJobId(long jobId) {
         this.jobId = jobId;
@@ -41,7 +44,16 @@ public class ChunkBuilder {
         return this;
     }
 
+    public ChunkBuilder setKeys(Set<String> keys) {
+        this.keys = keys;
+        return this;
+    }
+
     public Chunk build() {
-        return new Chunk(jobId, chunkId, flow, supplementaryProcessData, items);
+        final Chunk chunk = new Chunk(jobId, chunkId, flow, supplementaryProcessData, items);
+        for (final String key : keys) {
+            chunk.addKey(key);
+        }
+        return chunk;
     }
 }

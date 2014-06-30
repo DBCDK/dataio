@@ -4,6 +4,7 @@ import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -13,12 +14,16 @@ import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.view.client.ListDataProvider;
+import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
+import dk.dbc.dataio.gui.client.components.DualPanesPanel;
 import dk.dbc.dataio.gui.client.resource.Resources;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -32,10 +37,10 @@ import java.util.Set;
 /**
  * Show Jobs view implementation
  * Shows a table, containing:
- *  o Job creation Time
- *  o Job ID
- *  o Filename
- *  o Submitternumber
+ * o Job creation Time
+ * o Job ID
+ * o Filename
+ * o Submitternumber
  */
 public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements JobsShowView {
     // Constants (These are not all private since we use them in the selenium tests)
@@ -44,22 +49,27 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     public static final String GUICLASS_GRAY = "gray-lamp";
     public static final String GUICLASS_GREEN = "green-lamp";
     public static final String GUICLASS_RED = "red-lamp";
-    public static final int POPUP_PANEL_WIDTH = 200;
-    public static final int POPUP_PANEL_LEFT_OFFSET = 36;
-    public static final int POPUP_PANEL_TOP_OFFSET = 18;
 
     // Enums
-    private enum JobStatusEnum {NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR}
+    private enum JobStatusEnum {
+        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR
+    }
 
     // Configuration constants
     private static final int PAGE_SIZE = 20;
 
-    private Resources resources = GWT.create(Resources.class);
+    private static final Resources resources = GWT.create(Resources.class);
 
     // Local variables
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
     private final DioCellTable<JobInfo> table = new DioCellTable<JobInfo>();
     private final Button showMoreButton = new Button(constants.button_ShowMore());
+    private static final int POPUP_PANEL_WIDTH = 265;
+    private static final int POPUP_PANEL_LEFT_OFFSET = 36;
+    private static final int POPUP_PANEL_TOP_OFFSET = 18;
+    private static final String CHUNKIFYING = "Chunkifying";
+    private static final String PROCESSING = "Processing";
+    private static final String DELIVERING = "Delivering";
     ListDataProvider<JobInfo> dataProvider = new ListDataProvider<JobInfo>();
     TextColumn<JobInfo> jobIdColumn;
     TextColumn<JobInfo> fileNameColumn;
@@ -138,17 +148,24 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem,
-                    JobInfo jobInfo, NativeEvent event) {
+                                       JobInfo jobInfo, NativeEvent event) {
                 super.onBrowserEvent(context, elem, jobInfo, event);
                 if ("click".equals(event.getType())) {
 
-                   // Create a basic popup widget
+                    ImageElement.as(new Image(resources.red()).getElement());
+
+                    DualPanesPanel dualPanesPanel = new DualPanesPanel(new Image(resources.red()), new Label(jobInfo.getJobErrorCode().toString()));
+
+                    FlowPanel panelMain = new FlowPanel();
+                    panelMain.add(dualPanesPanel);
+
+                    // Create a basic popup widget
                     final PopupPanel popupPanel = new PopupPanel(true);
                     int left = elem.getAbsoluteRight() - POPUP_PANEL_WIDTH - POPUP_PANEL_LEFT_OFFSET;
                     int top = elem.getAbsoluteTop() + POPUP_PANEL_TOP_OFFSET;
                     popupPanel.setPopupPosition(left, top);
                     popupPanel.setWidth(POPUP_PANEL_WIDTH + "px");
-                    popupPanel.setWidget(new Label("Click outside of this popup to close it"));
+                    popupPanel.setWidget(buildFlowPanelForPopupPanel(jobInfo));
                     popupPanel.show();
                 }
             }
@@ -164,6 +181,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                         return GUICLASS_GREEN;
                 }
             }
+
             @Override
             public ImageResource getValue(JobInfo content) {
                 switch (getJobStatus(content)) {
@@ -197,6 +215,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     /**
      * This method maps the logical jobstatus to a JobStatusEnum
+     *
      * @param jobInfo The JobInfo for the job to test
      * @return JobStatusEnum: NOT_DONE, DONE_WITHOUT_ERROR or DONE_WITH_ERROR
      */
@@ -205,12 +224,12 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         JobStatusEnum jobStatus = JobStatusEnum.DONE_WITHOUT_ERROR; // Default value
 
         // The entire job has not failed
-        if(jobInfo.getJobErrorCode() == JobErrorCode.NO_ERROR){
+        if (jobInfo.getJobErrorCode() == JobErrorCode.NO_ERROR) {
 
             //Check if the job is completely done
             if (jobInfo.getChunkifyingChunkCounter() == null ||
                     jobInfo.getProcessingChunkCounter() == null ||
-                    jobInfo.getDeliveringChunkCounter() == null ) {
+                    jobInfo.getDeliveringChunkCounter() == null) {
 
                 // The counters have not been set: Job is not done
                 jobStatus = JobStatusEnum.NOT_DONE;
@@ -218,13 +237,12 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             // Check error counters
             else if (jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getFailure() > 0L
                     || jobInfo.getProcessingChunkCounter().getItemResultCounter().getFailure() > 0L
-                    || jobInfo.getDeliveringChunkCounter().getItemResultCounter().getFailure() > 0L){
+                    || jobInfo.getDeliveringChunkCounter().getItemResultCounter().getFailure() > 0L) {
 
                 // Errors found
                 jobStatus = JobStatusEnum.DONE_WITH_ERROR;
             }
-        }
-        else {
+        } else {
             // The entire job has failed
             jobStatus = JobStatusEnum.DONE_WITH_ERROR;
         }
@@ -251,6 +269,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     /**
      * OnSuccess
+     *
      * @param message The message to display to the user
      */
     @Override
@@ -259,6 +278,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     /**
      * OnFailure
+     *
      * @param message The message to display to the user
      */
     @Override
@@ -269,6 +289,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     /**
      * setJobs is called by the presenter, to push table data to the view
+     *
      * @param jobs List of jobs to view
      */
     @Override
@@ -281,7 +302,8 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         ColumnSortEvent.ListHandler<JobInfo> columnSortHandler = new ColumnSortEvent.ListHandler<JobInfo>(dataProvider.getList()) {
             @Override
             public void onColumnSort(ColumnSortEvent event) {
-                Collections.sort(dataProvider.getList(), Collections.reverseOrder(getComparator(jobCreationTimeColumn)));  // Do sort jobCreationTimeColumn first, to assure, that the secondary search will be by jobCreationTimeColumn
+                // Do sort jobCreationTimeColumn first, to assure, that the secondary search will be by jobCreationTimeColumn
+                Collections.sort(dataProvider.getList(), Collections.reverseOrder(getComparator(jobCreationTimeColumn)));
                 super.onColumnSort(event);
             }
         };
@@ -291,26 +313,30 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                     public int compare(JobInfo o1, JobInfo o2) {
                         return validateObjects(o1, o2) ? compareLongs(o1.getJobCreationTime(), o2.getJobCreationTime()) : 1;
                     }
-                });
+                }
+        );
 
         columnSortHandler.setComparator(jobIdColumn,
                 new Comparator<JobInfo>() {
                     public int compare(JobInfo o1, JobInfo o2) {
                         return validateObjects(o1, o2) ? compareLongs(o1.getJobId(), o2.getJobId()) : 1;
                     }
-                });
+                }
+        );
         columnSortHandler.setComparator(fileNameColumn,
                 new Comparator<JobInfo>() {
                     public int compare(JobInfo o1, JobInfo o2) {
                         return validateObjects(o1, o2) ? compareStrings(o1.getJobSpecification().getDataFile(), o2.getJobSpecification().getDataFile()) : 1;
                     }
-                });
+                }
+        );
         columnSortHandler.setComparator(submitterNumberColumn,
                 new Comparator<JobInfo>() {
                     public int compare(JobInfo o1, JobInfo o2) {
                         return validateObjects(o1, o2) ? compareLongs(o1.getJobSpecification().getSubmitterId(), o2.getJobSpecification().getSubmitterId()) : 1;
                     }
-                });
+                }
+        );
         table.addColumnSortHandler(columnSortHandler);
 
         // Set default sort behavior
@@ -366,5 +392,36 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     private int compareLongs(long l1, long l2) {
         return (l1 == l2) ? 0 : (l1 < l2) ? -1 : 1;
+    }
+
+    private FlowPanel buildFlowPanelForPopupPanel(JobInfo jobInfo) {
+        FlowPanel flowPanel = new FlowPanel();
+        DualPanesPanel dualPanesPanel = new DualPanesPanel();
+
+        if (jobInfo.getJobErrorCode().equals(JobErrorCode.NO_ERROR)) {
+            flowPanel.add(buildDualPanesPanelForChunkCounter(CHUNKIFYING, jobInfo.getChunkifyingChunkCounter()));
+            flowPanel.add(buildDualPanesPanelForChunkCounter(PROCESSING, jobInfo.getProcessingChunkCounter()));
+            flowPanel.add(buildDualPanesPanelForChunkCounter(DELIVERING, jobInfo.getDeliveringChunkCounter()));
+        } else {
+            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.red()), new Label(jobInfo.getJobErrorCode().toString()));
+            flowPanel.add(dualPanesPanel);
+        }
+        return flowPanel;
+    }
+
+    private DualPanesPanel buildDualPanesPanelForChunkCounter(String textMessage, ChunkCounter chunkCounter) {
+        DualPanesPanel dualPanesPanel = new DualPanesPanel();
+
+        if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() == 0) {
+            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.green()), new Label(textMessage + " : Done"));
+
+        } else if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() > 0) {
+            String format = chunkCounter.getItemResultCounter().getFailure() == 1 ? " chunk " : " chunks ";
+            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.red()),
+                    new Label(textMessage + " : " + chunkCounter.getItemResultCounter().getFailure() + format + "failed"));
+        } else {
+            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.gray()), new Label(textMessage + " : Pending..."));
+        }
+        return dualPanesPanel;
     }
 }

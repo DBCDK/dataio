@@ -409,18 +409,18 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         return flowPanel;
     }
 
-    private DualPanesPanel buildDualPanesPanelForChunkCounter(String textMessage, ChunkCounter chunkCounter) {
+    private DualPanesPanel buildDualPanesPanelForChunkCounter(String operationalState, ChunkCounter chunkCounter) {
         DualPanesPanel dualPanesPanel = new DualPanesPanel();
 
         if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() == 0) {
-            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.green()), new Label(textMessage + " : Done"));
+            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.green()), new Label(operationalState + " : Done"));
 
         } else if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() > 0) {
             String format = chunkCounter.getItemResultCounter().getFailure() == 1 ? " chunk " : " chunks ";
             dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.red()),
-                    new Label(textMessage + " : " + chunkCounter.getItemResultCounter().getFailure() + format + "failed"));
+                    new Label(operationalState + " : " + chunkCounter.getItemResultCounter().getFailure() + format + "failed"));
         } else {
-            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.gray()), new Label(textMessage + " : Pending..."));
+            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.gray()), new Label(operationalState + " : Pending..."));
         }
         return dualPanesPanel;
     }

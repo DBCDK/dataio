@@ -72,7 +72,7 @@ public class JobStoreBean {
         return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream, null);
     }
 
-    private class JobStoreImpl implements JobStore {
+    private static class JobStoreImpl implements JobStore {
         public static final String RECORD_42_1 = "one";
         public static final String RECORD_42_2 = "two";
 

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 class NaiveDependencyGraph {
     private final List<Node> nodes = new ArrayList<>();
 

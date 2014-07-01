@@ -3,10 +3,7 @@ package dk.dbc.dataio.sequenceanalyser.naive;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class NaiveSequenceAnalyser implements SequenceAnalyser {
 

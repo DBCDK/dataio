@@ -3,9 +3,9 @@ package dk.dbc.dataio.sequenceanalyser;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.sequenceanalyser.naive.ChunkIdentifier;
-import dk.dbc.dataio.sequenceanalyser.naive.NaiveSequenceAnalyser;
 import java.util.List;
 
+@SuppressWarnings("PMD")
 public interface SequenceAnalyser {
 
     public void addChunk(Chunk chunk, Sink sink);

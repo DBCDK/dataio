@@ -11,7 +11,7 @@ class NaiveDependencyGraph {
     private final List<Node> nodes = new ArrayList<>();
 
     public void insertChunkIntoDependencyGraph(Chunk chunk, Sink sink) {
-        Node node = new Node(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink.getId(), new ArrayList<Edge>(), new ArrayList<Node>(), new ArrayList<String>());
+        Node node = new Node(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink.getId(), new ArrayList<Edge>(), new ArrayList<String>());
         nodes.add(node);
     }
 
@@ -34,29 +34,31 @@ class NaiveDependencyGraph {
         return result;
     }
 
-    private void findDependencies(Node newNode) {
-        for (Node node : nodes) {
+    private void findDependencies(Node fromNode) {
+        for (Node toNode : nodes) {
             // find intersection between keysets (if any)
-            Set<String> keyIntersection = new HashSet<>(node.keys);
-            keyIntersection.retainAll(newNode.keys);
-            if (!keyIntersection.isEmpty()) {
+            Set<String> keyIntersection = new HashSet<>(toNode.keys);
+            keyIntersection.retainAll(fromNode.keys);
+            if (!keyIntersection.isEmpty() && toNode.sinkId == fromNode.sinkId) {
+                // intersection - create new edge and add it to the two nodes
+                Edge edge = new Edge(toNode, fromNode);
+                fromNode.dependsOn.add(edge);
+                toNode.dependsOn.add(edge);
             }
         }
     }
 
-    private class Node {
+    private static class Node {
 
         public final ChunkIdentifier chunkIdentifier;
         public final long sinkId;
         public final List<Edge> dependsOn;
-        public final List<Node> dependsOnMe;
         public final Set<String> keys;
 
-        public Node(ChunkIdentifier chunkIdentifier, long sinkId, List<Edge> dependsOn, List<Node> dependsOnMe, List<String> keys) {
+        public Node(ChunkIdentifier chunkIdentifier, long sinkId, List<Edge> dependsOn, List<String> keys) {
             this.chunkIdentifier = chunkIdentifier;
             this.sinkId = sinkId;
             this.dependsOn = new ArrayList<>(dependsOn);
-            this.dependsOnMe = new ArrayList<>(dependsOnMe);
             this.keys = new HashSet<>(keys);
         }
     }

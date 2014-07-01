@@ -36,7 +36,7 @@ public class MockedJobsBean extends JobsBean {
         LOGGER.info("Mocked job creation");
         final JobSpecification jobSpec = JsonUtil.fromJson(jobSpecData, JobSpecification.class, MixIns.getMixIns());
         try {
-            final Job job = jobStore.createJob(jobSpec, null, new FlowBuilder().build(), null, null);
+            final Job job = jobStoreBean.createJob(jobSpec, null, new FlowBuilder().build(), null, null);
             final String jobInfoJson = JsonUtil.toJson(job.getJobInfo());
             return Response.created(uriInfo.getAbsolutePathBuilder().path(String.valueOf(job.getId())).build())
                     .entity(jobInfoJson).build();

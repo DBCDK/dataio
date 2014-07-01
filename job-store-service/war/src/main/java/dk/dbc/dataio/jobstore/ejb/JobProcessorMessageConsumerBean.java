@@ -24,7 +24,7 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     private static final Logger LOGGER = LoggerFactory.getLogger(JobProcessorMessageConsumerBean.class);
 
     @EJB
-    JobStoreBean jobStore;
+    JobStoreBean jobStoreBean;
 
     /**
      * Handles consumed message by storing contained result payload in the underlying data store
@@ -57,12 +57,12 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
    private void handleProcessorResult(ConsumedMessage consumedMessage) throws JsonException, JobStoreException {
         final ChunkResult processorResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ChunkResult.class, MixIns.getMixIns());
         LOGGER.info("Received processor result {} for job {}", processorResult.getChunkId(), processorResult.getJobId());
-        jobStore.addProcessorResult(processorResult);
+        jobStoreBean.getJobStore().addProcessorResult(processorResult);
     }
 
     private void handleSinkResult(ConsumedMessage consumedMessage) throws JsonException, JobStoreException {
         final SinkChunkResult sinkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
         LOGGER.info("Received sink result {} for job {}", sinkResult.getChunkId(), sinkResult.getJobId());
-        jobStore.addSinkResult(sinkResult);
+        jobStoreBean.getJobStore().addSinkResult(sinkResult);
     }
  }

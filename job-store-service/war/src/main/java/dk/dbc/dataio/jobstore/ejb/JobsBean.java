@@ -70,7 +70,7 @@ public class JobsBean {
     JobsBean thisBusinessObject;
 
     @EJB
-    JobStoreBean jobStore;
+    JobStoreBean jobStoreBean;
 
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducer;
@@ -128,9 +128,9 @@ public class JobsBean {
     /* This method is only temporary until we get the sequence analyser up and running
      */
     private void enqueueChunks(Job job) throws JobStoreException {
-        final long numberOfChunks =  jobStore.getNumberOfChunksInJob(job.getId());
+        final long numberOfChunks =  jobStoreBean.getJobStore().getNumberOfChunksInJob(job.getId());
         for (long i = 1; i <= numberOfChunks; i++) {
-            thisBusinessObject.notifyJobProcessor(jobStore.getChunk(job.getId(), i));
+            thisBusinessObject.notifyJobProcessor(jobStoreBean.getJobStore().getChunk(job.getId(), i));
         }
     }
 
@@ -148,7 +148,7 @@ public class JobsBean {
         // This is to ensure that there is no duplicated code, i.e. two try-with-resources each with a call to createJob,
         // and to ensure that try-with-resources is used.
         try (InputStream jobInputStream = localFile ? Files.newInputStream(Paths.get(jobDataFile)) : fileStoreServiceConnectorBean.getFile(new FileStoreUrn(jobDataFile).getFileId())) {
-            return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream);
+            return jobStoreBean.createJob(jobSpec, flowBinder, flow, sink, jobInputStream);
         } catch (IOException | FileStoreServiceConnectorException | URISyntaxException ex) {
             throw new JobStoreException("An error occured while trying to retrieve jobdatafile from inputstream. Value for jobdatafile: '" + jobDataFile + "'", ex);
         }
@@ -174,7 +174,7 @@ public class JobsBean {
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
         LOGGER.info("Getting chunk {} for job {}", chunkId, jobId);
-        final Chunk chunk = jobStore.getChunk(jobId, chunkId);
+        final Chunk chunk = jobStoreBean.getJobStore().getChunk(jobId, chunkId);
         if (chunk == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -204,7 +204,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getSink(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
         LOGGER.info("Getting sink for job {}", jobId);
-        final Sink sink = jobStore.getSink(jobId);
+        final Sink sink = jobStoreBean.getJobStore().getSink(jobId);
         if (sink == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -234,7 +234,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getState(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
         LOGGER.info("Getting state for job {}", jobId);
-        final JobState jobState = jobStore.getJobState(jobId);
+        final JobState jobState = jobStoreBean.getJobStore().getJobState(jobId);
         if (jobState == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -267,7 +267,7 @@ public class JobsBean {
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
         LOGGER.info("Getting processor result for chunk {} in job {}", chunkId, jobId);
-        final ChunkResult processorResult = jobStore.getProcessorResult(jobId, chunkId);
+        final ChunkResult processorResult = jobStoreBean.getJobStore().getProcessorResult(jobId, chunkId);
         if (processorResult == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -300,7 +300,7 @@ public class JobsBean {
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
         LOGGER.info("Getting sink result for chunk {} in job {}", chunkId, jobId);
-        final SinkChunkResult sinkResult = jobStore.getSinkResult(jobId, chunkId);
+        final SinkChunkResult sinkResult = jobStoreBean.getJobStore().getSinkResult(jobId, chunkId);
         if (sinkResult == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -327,7 +327,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getJobs() throws JobStoreException {
         LOGGER.info("Getting Jobs list");
-        final List<JobInfo> jobInfo = jobStore.getAllJobInfos();
+        final List<JobInfo> jobInfo = jobStoreBean.getJobStore().getAllJobInfos();
         if (jobInfo == null) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }

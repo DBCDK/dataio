@@ -87,7 +87,7 @@ public class JobProcessorMessageConsumerBeanTest {
     private TestableJobProcessorMessageConsumerBean getInitializedBean() {
         final TestableJobProcessorMessageConsumerBean jobStoreMessageConsumerBean = new TestableJobProcessorMessageConsumerBean();
         jobStoreMessageConsumerBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
-        jobStoreMessageConsumerBean.jobStore = mock(JobStoreBean.class);
+        jobStoreMessageConsumerBean.jobStoreBean = mock(JobStoreBean.class);
         return jobStoreMessageConsumerBean;
     }
 

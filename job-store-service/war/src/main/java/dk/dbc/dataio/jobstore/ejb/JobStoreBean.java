@@ -1,14 +1,9 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
@@ -27,7 +22,6 @@ import javax.naming.NamingException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 @LocalBean
 @Singleton
@@ -61,49 +55,55 @@ public class JobStoreBean {
         sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator();
     }
 
+    public JobStore getJobStore() {
+        return jobStore;
+    }
+
     public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream,
                 sequenceAnalyserKeyGenerator);
     }
 
+    /*
     public void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException {
-        jobStore.updateJobInfo(job, jobInfo);
+        jobStoreBean.updateJobInfo(job, jobInfo);
     }
 
     public List<JobInfo> getAllJobInfos() throws JobStoreException {
-        return jobStore.getAllJobInfos();
+        return jobStoreBean.getAllJobInfos();
     }
 
     public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
-        return jobStore.getNumberOfChunksInJob(jobId);
+        return jobStoreBean.getNumberOfChunksInJob(jobId);
     }
 
     public Chunk getChunk(long jobId, long chunkId) throws JobStoreException {
-        return jobStore.getChunk(jobId, chunkId);
+        return jobStoreBean.getChunk(jobId, chunkId);
     }
 
     public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
-        jobStore.addProcessorResult(processorResult);
+        jobStoreBean.addProcessorResult(processorResult);
     }
 
     public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
-        return jobStore.getProcessorResult(jobId, chunkId);
+        return jobStoreBean.getProcessorResult(jobId, chunkId);
     }
 
     public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
-        jobStore.addSinkResult(sinkResult);
+        jobStoreBean.addSinkResult(sinkResult);
     }
 
     public SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException {
-        return jobStore.getSinkResult(jobId, chunkId);
+        return jobStoreBean.getSinkResult(jobId, chunkId);
     }
 
     public Sink getSink(long jobId) throws JobStoreException {
-        return jobStore.getSink(jobId);
+        return jobStoreBean.getSink(jobId);
     }
 
     public JobState getJobState(long jobId) throws JobStoreException {
-        return jobStore.getJobState(jobId);
+        return jobStoreBean.getJobState(jobId);
     }
+    */
 
 }

@@ -63,47 +63,4 @@ public class JobStoreBean {
         return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream,
                 sequenceAnalyserKeyGenerator);
     }
-
-    /*
-    public void updateJobInfo(Job job, JobInfo jobInfo) throws JobStoreException {
-        jobStoreBean.updateJobInfo(job, jobInfo);
-    }
-
-    public List<JobInfo> getAllJobInfos() throws JobStoreException {
-        return jobStoreBean.getAllJobInfos();
-    }
-
-    public long getNumberOfChunksInJob(long jobId) throws JobStoreException {
-        return jobStoreBean.getNumberOfChunksInJob(jobId);
-    }
-
-    public Chunk getChunk(long jobId, long chunkId) throws JobStoreException {
-        return jobStoreBean.getChunk(jobId, chunkId);
-    }
-
-    public void addProcessorResult(ChunkResult processorResult) throws JobStoreException {
-        jobStoreBean.addProcessorResult(processorResult);
-    }
-
-    public ChunkResult getProcessorResult(long jobId, long chunkId) throws JobStoreException {
-        return jobStoreBean.getProcessorResult(jobId, chunkId);
-    }
-
-    public void addSinkResult(SinkChunkResult sinkResult) throws JobStoreException {
-        jobStoreBean.addSinkResult(sinkResult);
-    }
-
-    public SinkChunkResult getSinkResult(long jobId, long chunkId) throws JobStoreException {
-        return jobStoreBean.getSinkResult(jobId, chunkId);
-    }
-
-    public Sink getSink(long jobId) throws JobStoreException {
-        return jobStoreBean.getSink(jobId);
-    }
-
-    public JobState getJobState(long jobId) throws JobStoreException {
-        return jobStoreBean.getJobState(jobId);
-    }
-    */
-
 }

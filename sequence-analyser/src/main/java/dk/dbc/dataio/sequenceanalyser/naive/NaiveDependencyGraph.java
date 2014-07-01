@@ -64,7 +64,7 @@ class NaiveDependencyGraph {
         }
     }
 
-    private class Edge {
+    private static class Edge {
 
         public final Node head;
         public final Node tail;
@@ -74,5 +74,4 @@ class NaiveDependencyGraph {
             this.tail = tail;
         }
     }
-
 }

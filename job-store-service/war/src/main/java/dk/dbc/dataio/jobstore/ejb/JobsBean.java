@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -63,17 +61,8 @@ public class JobsBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
 
-    /* This injection is only temporary until we get the sequence analyser up and running.
-       The reason is that the @TransactionAttribute-annotations will only be honored, if
-       you call the method via a business interface. */
-    @EJB
-    JobsBean thisBusinessObject;
-
     @EJB
     JobStoreBean jobStoreBean;
-
-    @EJB
-    JobProcessorMessageProducerBean jobProcessorMessageProducer;
 
     @EJB
     FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
@@ -103,7 +92,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
             throws NullPointerException, IllegalArgumentException, EJBException, JsonException, ReferencedEntityNotFoundException {
-        // Todo: This code should be refactored into JobStoreBean.createJob.
+        // Todo: This code should be refactored into JobStoreBean.createAndScheduleJob.
         // Notice that JobStoreBean then probably will get another interface than the JobStore interface.
         // The argument for moving this code into the JobStoreBean is to keep the actual code of the webservice as simple as possible.
         LOGGER.trace("JobSpec: {}", jobSpecData);
@@ -117,7 +106,6 @@ public class JobsBean {
         try {
             job = createJobInJobStore(jobSpec, flowBinder, flow, sink);
             jobInfoJson = JsonUtil.toJson(job.getJobInfo());
-            enqueueChunks(job);
         } catch (JobStoreException | JsonException e) {
             throw new EJBException(e);
         }
@@ -125,30 +113,14 @@ public class JobsBean {
         return Response.created(uriInfo.getAbsolutePath()).entity(jobInfoJson).build();
     }
 
-    /* This method is only temporary until we get the sequence analyser up and running
-     */
-    private void enqueueChunks(Job job) throws JobStoreException {
-        final long numberOfChunks =  jobStoreBean.getJobStore().getNumberOfChunksInJob(job.getId());
-        for (long i = 1; i <= numberOfChunks; i++) {
-            thisBusinessObject.notifyJobProcessor(jobStoreBean.getJobStore().getChunk(job.getId(), i));
-        }
-    }
-
-    /* This method is only temporary until we get the sequence analyser up and running
-     */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void notifyJobProcessor(Chunk chunk) throws JobStoreException {
-        jobProcessorMessageProducer.send(chunk);
-    }
-
     private Job createJobInJobStore(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
         String jobDataFile = jobSpec.getDataFile();
         boolean localFile = Files.exists(Paths.get(jobDataFile));
         // A little bit unconventionel: Deciding which InputStream to use based on whether the file is local.
-        // This is to ensure that there is no duplicated code, i.e. two try-with-resources each with a call to createJob,
+        // This is to ensure that there is no duplicated code, i.e. two try-with-resources each with a call to createAndScheduleJob,
         // and to ensure that try-with-resources is used.
         try (InputStream jobInputStream = localFile ? Files.newInputStream(Paths.get(jobDataFile)) : fileStoreServiceConnectorBean.getFile(new FileStoreUrn(jobDataFile).getFileId())) {
-            return jobStoreBean.createJob(jobSpec, flowBinder, flow, sink, jobInputStream);
+            return jobStoreBean.createAndScheduleJob(jobSpec, flowBinder, flow, sink, jobInputStream);
         } catch (IOException | FileStoreServiceConnectorException | URISyntaxException ex) {
             throw new JobStoreException("An error occured while trying to retrieve jobdatafile from inputstream. Value for jobdatafile: '" + jobDataFile + "'", ex);
         }

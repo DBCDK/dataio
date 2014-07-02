@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -27,9 +28,12 @@ import java.nio.file.Paths;
 @Singleton
 @Startup
 public class JobStoreBean {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
+
     public static final String PATH_RESOURCE_JOB_STORE_HOME = "path/dataio/jobstore/home";
+
+    @EJB
+    JobSchedulerBean jobScheduler;
 
     // class scoped for easy test injection
     Path jobStorePath;
@@ -59,8 +63,17 @@ public class JobStoreBean {
         return jobStore;
     }
 
-    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
-        return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream,
+    public Job createAndScheduleJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
+        final Job job = jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream,
                 sequenceAnalyserKeyGenerator);
+        scheduleJob(job);
+        return job;
+    }
+
+    private void scheduleJob(Job job) throws JobStoreException {
+       final long numberOfChunks = jobStore.getNumberOfChunksInJob(job.getId());
+        for (long i = 1; i <= numberOfChunks; i++) {
+            jobScheduler.scheduleChunk(jobStore.getChunk(job.getId(), i));
+        }
     }
 }

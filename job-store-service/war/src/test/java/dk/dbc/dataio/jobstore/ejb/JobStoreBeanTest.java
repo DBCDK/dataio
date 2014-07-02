@@ -39,11 +39,14 @@ import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class JobStoreBeanTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
+
     private JobStoreBean jobStoreBean = null;
+    private JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);
 
     @BeforeClass
     public static void setup() {
@@ -56,6 +59,7 @@ public class JobStoreBeanTest {
         InMemoryInitialContextFactory.bind(JobStoreBean.PATH_RESOURCE_JOB_STORE_HOME, tmpFolder.newFolder().toString());
         jobStoreBean = new JobStoreBean();
         jobStoreBean.setupJobStore();
+        jobStoreBean.jobScheduler = jobSchedulerBean;
     }
 
     @Test
@@ -68,7 +72,7 @@ public class JobStoreBeanTest {
         final JobSpecification jobSpec = createJobSpecification(f);
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(jobSpec, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(jobSpec, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
@@ -95,7 +99,7 @@ public class JobStoreBeanTest {
 
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(jobStoreBean.getJobStore().getChunk(job.getId(), jobStoreBean.getJobStore().getNumberOfChunksInJob(job.getId()) + 1), is(nullValue()));
     }
@@ -108,7 +112,7 @@ public class JobStoreBeanTest {
 
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
@@ -123,7 +127,7 @@ public class JobStoreBeanTest {
 
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
@@ -138,7 +142,7 @@ public class JobStoreBeanTest {
 
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
@@ -153,7 +157,7 @@ public class JobStoreBeanTest {
 
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_INVALID));
@@ -166,7 +170,7 @@ public class JobStoreBeanTest {
         final Path f = Paths.get("no-such-file");
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(createJobSpecification(f), createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_NOT_FOUND));
@@ -185,7 +189,7 @@ public class JobStoreBeanTest {
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.DATA_FILE_ENCODING_MISMATCH));
@@ -204,7 +208,7 @@ public class JobStoreBeanTest {
         final JobSpecification jobSpecification = JsonUtil.fromJson(jobSpecificationData, JobSpecification.class, MixIns.getMixIns());
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
-            job = jobStoreBean.createJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
+            job = jobStoreBean.createAndScheduleJob(jobSpecification, createDefaultFlowBinder(), createDefaultFlow(), createDefaultSink(), is);
         }
         assertThat(job.getJobState().getLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING), is(JobState.LifeCycleState.DONE));
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));

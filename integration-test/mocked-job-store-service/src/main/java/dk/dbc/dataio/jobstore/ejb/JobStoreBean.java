@@ -68,7 +68,7 @@ public class JobStoreBean {
         return jobStore;
     }
 
-    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
+    public Job createAndScheduleJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         return jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream, null);
     }
 

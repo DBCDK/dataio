@@ -12,6 +12,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+@Ignore("Ignored while there is a problem with the Test Oracle database (tora1/tora11) - 03.07.2014")
 public class ESTaskPackageUtilIT {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ESTaskPackageUtilIT.class);

@@ -1,77 +1,183 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.Sink;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 @SuppressWarnings("unused")
 class NaiveDependencyGraph {
+    XLogger LOGGER = XLoggerFactory.getXLogger(NaiveDependencyGraph.class);
+
     private final List<Node> nodes = new ArrayList<>();
 
-    public void insertChunkIntoDependencyGraph(Chunk chunk, Sink sink) {
-        Node node = new Node(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink.getId(), new ArrayList<Edge>(), new ArrayList<String>());
+    /**
+     * Inserts a new Node in the graph, representing the given Chunk and SinkId.
+     *
+     * @param chunk
+     * @param sinkId
+     */
+    public void insert(Chunk chunk, long sinkId) {
+        Node node = new Node(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sinkId, new HashSet<>(chunk.getKeys()));
+        LOGGER.info("Created node: {}", node);
+        findAndUpdateDependencies(node);
         nodes.add(node);
     }
 
-    public void deleteAndReleaseChunk(ChunkIdentifier identifier) {
+    public void deleteAndRelease(ChunkIdentifier identifier) {
         for (Node node : nodes) {
-            if (node.chunkIdentifier.chunkId == identifier.chunkId && node.chunkIdentifier.jobId == identifier.jobId) {
+            if (node.getChunkIdentifier().chunkId == identifier.chunkId && node.getChunkIdentifier().jobId == identifier.jobId) {
+                for(Edge edge : node.getEdges()) {
+                    if(edge.getHead() == node) {
+                        edge.getTail().getEdges().remove(edge);
+                    } else {
+                        edge.getHead().getEdges().remove(edge);
+                    }
+                }
                 nodes.remove(node);
                 return;
             }
         }
     }
 
-    public List<ChunkIdentifier> getIndependentChunks() {
+    /**
+     * An independent Chunk, is a in a Node with no outgoing edges.
+     * Incoming edges are allowed since this only indicates that another
+     * node depends on the current node.
+     *
+     * @return
+     */
+    public List<ChunkIdentifier> getInactiveIndependentChunksAndActivate() {
         List<ChunkIdentifier> result = new ArrayList<>();
         for (Node node : nodes) {
-            if (node.dependsOn.isEmpty()) {
-                result.add(node.chunkIdentifier);
+            if(node.isActivated()) {
+                continue;
+            }
+            if(!doesNodeContainOutgoingEdges(node)) {
+                result.add(node.getChunkIdentifier());
+                node.activate();
             }
         }
         return result;
     }
 
-    private void findDependencies(Node fromNode) {
-        for (Node toNode : nodes) {
+    private boolean doesNodeContainOutgoingEdges(Node node) {
+        boolean outgoingEdge = false;
+        for (Edge edge : node.getEdges()) {
+            if (edge.getTail() == node) {
+                outgoingEdge = true;
+            }
+        }
+        return outgoingEdge;
+    }
+
+    private void findAndUpdateDependencies(Node tailNode) {
+        for (Node headNode : nodes) {
             // find intersection between keysets (if any)
-            Set<String> keyIntersection = new HashSet<>(toNode.keys);
-            keyIntersection.retainAll(fromNode.keys);
-            if (!keyIntersection.isEmpty() && toNode.sinkId == fromNode.sinkId) {
+            Set<String> keyIntersection = new HashSet<>(headNode.getKeys());
+            keyIntersection.retainAll(tailNode.getKeys());
+            if (!keyIntersection.isEmpty() && headNode.getSinkId() == tailNode.getSinkId()) {
                 // intersection - create new edge and add it to the two nodes
-                Edge edge = new Edge(toNode, fromNode);
-                fromNode.dependsOn.add(edge);
-                toNode.dependsOn.add(edge);
+                Edge edge = new Edge(headNode, tailNode);
+                tailNode.getEdges().add(edge);
+                headNode.getEdges().add(edge);
             }
         }
     }
 
+    int size() {
+        return nodes.size();
+    }
+
     private static class Node {
 
-        public final ChunkIdentifier chunkIdentifier;
-        public final long sinkId;
-        public final List<Edge> dependsOn;
-        public final Set<String> keys;
+        private final ChunkIdentifier chunkIdentifier;
+        private final long sinkId;
+        private final List<Edge> edges;
+        private final Set<String> keys;
+        private boolean activated = false;
 
-        public Node(ChunkIdentifier chunkIdentifier, long sinkId, List<Edge> dependsOn, List<String> keys) {
+        public Node(ChunkIdentifier chunkIdentifier, long sinkId, Set<String> keys) {
             this.chunkIdentifier = chunkIdentifier;
             this.sinkId = sinkId;
-            this.dependsOn = new ArrayList<>(dependsOn);
+            this.edges = new ArrayList<>();
             this.keys = new HashSet<>(keys);
+        }
+
+        /**
+         * @return the chunkIdentifier
+         */
+        public ChunkIdentifier getChunkIdentifier() {
+            return chunkIdentifier;
+        }
+
+        /**
+         * @return the sinkId
+         */
+        public long getSinkId() {
+            return sinkId;
+        }
+        /**
+         * @return the edges
+         */
+        public List<Edge> getEdges() {
+            return edges;
+        }
+        /**
+         * @return the keys
+         */
+        public Set<String> getKeys() {
+            return keys;
+        }
+
+        /**
+         * @return the activated
+         */
+        public boolean isActivated() {
+            return activated;
+        }
+
+        public void activate() {
+            activated = true;
+        }
+
+        @Override
+        public String toString() {
+            return "["+getChunkIdentifier() + ", " + getSinkId() + ", " + Arrays.asList(getKeys()) + "]";
         }
     }
 
     private static class Edge {
 
-        public final Node head;
-        public final Node tail;
+        private final Node head;
+        private final Node tail;
 
         public Edge(Node head, Node tail) {
             this.head = head;
             this.tail = tail;
+        }
+
+        /**
+         * @return the head
+         */
+        public Node getHead() {
+            return head;
+        }
+
+        /**
+         * @return the tail
+         */
+        public Node getTail() {
+            return tail;
+        }
+
+        @Override
+        public String toString() {
+            return "[" + getHead() + ", " + getTail() + "]";
         }
     }
 }

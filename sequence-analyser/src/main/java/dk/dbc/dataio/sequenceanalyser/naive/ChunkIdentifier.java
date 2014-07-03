@@ -10,6 +10,11 @@ public class ChunkIdentifier {
     }
 
     @Override
+    public String toString() {
+        return "["+jobId+", "+chunkId+ "]";
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

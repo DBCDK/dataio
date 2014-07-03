@@ -11,18 +11,18 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
 
     @Override
     public void addChunk(Chunk chunk, Sink sink) {
-        dependencyGraph.insertChunkIntoDependencyGraph(chunk, sink);
+        dependencyGraph.insert(chunk, sink.getId());
     }
 
     // throws if not active?
     @Override
     public void deleteAndReleaseChunk(ChunkIdentifier identifier) {
-        dependencyGraph.deleteAndReleaseChunk(identifier);
+        dependencyGraph.deleteAndRelease(identifier);
     }
 
     @Override
     public List<ChunkIdentifier> getInactiveIndependentChunks() {
-        return dependencyGraph.getIndependentChunks();
+        return dependencyGraph.getInactiveIndependentChunksAndActivate();
     }
 
     // ignore if already active or nonexisting
@@ -34,7 +34,7 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
     // Number of elements in internal data-structure.
     @Override
     public int size() {
-        return 0;
+        return dependencyGraph.size();
     }
 
 }

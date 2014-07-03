@@ -26,6 +26,9 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     @EJB
     JobStoreBean jobStoreBean;
 
+    @EJB
+    JobSchedulerBean jobSchedulerBean;
+
     /**
      * Handles consumed message by storing contained result payload in the underlying data store
      *
@@ -64,5 +67,6 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
         final SinkChunkResult sinkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
         LOGGER.info("Received sink result {} for job {}", sinkResult.getChunkId(), sinkResult.getJobId());
         jobStoreBean.getJobStore().addSinkResult(sinkResult);
+        jobSchedulerBean.releaseChunk(sinkResult.getJobId(), sinkResult.getChunkId());
     }
  }

@@ -66,14 +66,14 @@ public class JobStoreBean {
     public Job createAndScheduleJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         final Job job = jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream,
                 sequenceAnalyserKeyGenerator);
-        scheduleJob(job);
+        scheduleJob(job, sink);
         return job;
     }
 
-    private void scheduleJob(Job job) throws JobStoreException {
+    private void scheduleJob(Job job, Sink sink) throws JobStoreException {
        final long numberOfChunks = jobStore.getNumberOfChunksInJob(job.getId());
         for (long i = 1; i <= numberOfChunks; i++) {
-            jobScheduler.scheduleChunk(jobStore.getChunk(job.getId(), i));
+            jobScheduler.scheduleChunk(jobStore.getChunk(job.getId(), i), sink);
         }
     }
 }

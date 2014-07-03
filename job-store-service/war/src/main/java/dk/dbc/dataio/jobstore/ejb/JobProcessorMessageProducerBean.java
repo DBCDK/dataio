@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Resource;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -36,6 +38,7 @@ public class JobProcessorMessageProducerBean {
      * @throws NullPointerException when given null-valued argument
      * @throws JobStoreException when unable to send given Chunk to destination
      */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void send(Chunk chunk) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending Chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {

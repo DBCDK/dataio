@@ -6,6 +6,8 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.naive.ChunkIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.ConcurrencyManagement;
@@ -13,11 +15,8 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This Enterprise Java Bean (EJB) is responsible for chunk scheduling
@@ -28,16 +27,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Startup
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class JobSchedulerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
+
     SequenceAnalyser sequenceAnalyser;
-    ConcurrentHashMap<ChunkIdentifier, Chunk> workRemaining;
 
     @EJB
-    JobProcessorMessageProducerBean jobProcessorMessageProducer;
+    JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
+
+    @EJB
+    JobStoreBean jobStoreBean;
 
     @PostConstruct
     public void initialise() {
         sequenceAnalyser = new SequenceAnalyserImpl();
-        workRemaining = new ConcurrentHashMap<>();
     }
 
     /**
@@ -46,13 +48,11 @@ public class JobSchedulerBean {
      * @param chunk next chunk to enter into sequence analysis
      * @param sink  sink associated with chunk
      * @throws NullPointerException if given any null-valued argument
-     * @throws JobStoreException on failure to notify
      */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void scheduleChunk(Chunk chunk, Sink sink) throws NullPointerException, JobStoreException {
+    public void scheduleChunk(Chunk chunk, Sink sink) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
-        workRemaining.put(getChunkIdentifierFor(chunk), chunk);
+        LOGGER.info("Scheduling chunk.id {} of job.id {}", chunk.getChunkId(), chunk.getJobId());
         sequenceAnalyser.addChunk(chunk, sink);
         notifyWorkloadAvailable();
     }
@@ -63,12 +63,10 @@ public class JobSchedulerBean {
      * pipeline and notifies pipeline of next available workload (if any)
      * @param jobId identifier of job containing chunk
      * @param chunkId identifier of chunk in containing job
-     * @throws JobStoreException on failure to notify
      */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void releaseChunk(long jobId, long chunkId) throws JobStoreException {
+    public void releaseChunk(long jobId, long chunkId) {
+        LOGGER.info("Releasing chunk.id {} of job.id {}", chunkId, jobId);
         final ChunkIdentifier chunkIdentifier = new ChunkIdentifier(jobId, chunkId);
-        workRemaining.remove(chunkIdentifier);
         sequenceAnalyser.deleteAndReleaseChunk(chunkIdentifier);
         notifyWorkloadAvailable();
     }
@@ -77,9 +75,25 @@ public class JobSchedulerBean {
         return new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId());
     }
 
-    private void notifyWorkloadAvailable() throws JobStoreException {
+    private void notifyWorkloadAvailable() {
         for (final ChunkIdentifier chunkIdentifier : sequenceAnalyser.getInactiveIndependentChunks()) {
-            jobProcessorMessageProducer.send(workRemaining.get(chunkIdentifier));
+            try {
+                final Chunk chunk = jobStoreBean.getJobStore().getChunk(chunkIdentifier.jobId, chunkIdentifier.chunkId);
+                if (chunk == null) {
+                    LOGGER.error("Unable to locate chunk.id {} for job.id {}",
+                            chunkIdentifier.chunkId, chunkIdentifier.jobId);
+                } else {
+                    try {
+                        jobProcessorMessageProducerBean.send(chunk);
+                    } catch (JobStoreException e) {
+                        LOGGER.error("Unable to send notification for chunk.id {} for job.id {}",
+                                chunkIdentifier.chunkId, chunkIdentifier.jobId, e);
+                    }
+                }
+            } catch (JobStoreException e) {
+                LOGGER.error("Unable to retrieve chunk.id {} for job.id {}",
+                        chunkIdentifier.chunkId, chunkIdentifier.jobId, e);
+            }
         }
     }
 

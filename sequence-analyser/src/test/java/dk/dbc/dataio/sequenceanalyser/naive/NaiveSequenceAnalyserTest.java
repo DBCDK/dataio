@@ -173,6 +173,35 @@ public class NaiveSequenceAnalyserTest {
     }
 
     /*
+     * Given: A sequence analyser with two dependent chunks
+     * When : a ChunkIdentifier is retrieved with getInactiveIndependentChunksAndActivate(),
+     * Then : subsequent calls to getInactiveIndependentChunksAndActivate() will not return the same ChunkIdentifer,
+     *        but the size of the internal dependecy graph remains the same.
+     */
+    @Test
+    public void alreadyRetreivedChunkMustNotReappearAsIndependent() {
+        // GIVEN
+        Chunk chunk1 = createChunk(1L, 2L, "animal", "horse");
+        Chunk chunk2 = createChunk(3L, 4L, "animal", "goat");
+        Sink sink = new SinkBuilder().build();
+        // add chunks
+        sa.addChunk(chunk1, sink);
+        sa.addChunk(chunk2, sink);
+        // verify that the Sequenceanalyser contains two elements
+        assertThat(sa.size(), is(2));
+        // WHEN
+        // verify that chunks are dependent
+        assertChunks(sa.getInactiveIndependentChunks(), chunk1);
+        // verify that the Sequenceanalyser still contains two elements
+        assertThat(sa.size(), is(2));
+        // THEN
+        // verify that chunk2 has not become independent
+        assertChunks(sa.getInactiveIndependentChunks());
+        // verify that the Sequenceanalyser still contains one element
+        assertThat(sa.size(), is(2));
+    }
+
+    /*
      * A more intervowen test:
      * Given a sequence analyser with three interdependent chunks,
      * i.e. chunk2 depends on chunk1, and chunk3 depends on chunk1 and chunk2.
@@ -207,35 +236,6 @@ public class NaiveSequenceAnalyserTest {
         assertChunks(sa.getInactiveIndependentChunks(), chunk3);
     }
 
-    /*
-     * Given: A sequence analyser with two dependent chunks
-     * When : a ChunkIdentifier is retrieved with getInactiveIndependentChunksAndActivate(),
-     * Then : subsequent calls to getInactiveIndependentChunksAndActivate() will not return the same ChunkIdentifer,
-     *        but the size of the internal dependecy graph remains the same.
-     */
-    @Test
-    public void alreadyRetreivedChunkMustNotReappearAsIndependent() {
-        // GIVEN
-        Chunk chunk1 = createChunk(1L, 2L, "animal", "horse");
-        Chunk chunk2 = createChunk(3L, 4L, "animal", "goat");
-        Sink sink = new SinkBuilder().build();
-        // add chunks
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
-        // verify that the Sequenceanalyser contains two elements
-        assertThat(sa.size(), is(2));
-        // WHEN
-        // verify that chunks are dependent
-        assertChunks(sa.getInactiveIndependentChunks(), chunk1);
-        // verify that the Sequenceanalyser still contains two elements
-        assertThat(sa.size(), is(2));
-        // THEN
-        // verify that chunk2 has not become independent
-        assertChunks(sa.getInactiveIndependentChunks());
-        // verify that the Sequenceanalyser still contains one element
-        assertThat(sa.size(), is(2));
-    }
-
     private void assertChunks(List<ChunkIdentifier> inactiveIndependentChunks, Chunk... chunks) {
         assertThat("size of chunks arrays", inactiveIndependentChunks.size(), is(chunks.length));
         for (int i = 0; i < inactiveIndependentChunks.size(); i++) {
@@ -248,3 +248,4 @@ public class NaiveSequenceAnalyserTest {
         return new ChunkBuilder().setJobId(jobId).setChunkId(chunkId).setKeys(new HashSet<String>(Arrays.asList(keys))).build();
     }
 }
+

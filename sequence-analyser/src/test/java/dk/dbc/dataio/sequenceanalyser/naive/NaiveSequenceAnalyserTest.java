@@ -172,15 +172,15 @@ public class NaiveSequenceAnalyserTest {
         assertChunks(sa.getInactiveIndependentChunks(), chunk1, chunk2);
     }
 
-    // Test: Three chunks where:
-    //       - chunk1 is independent,
-    //       - chunk2 depends on chunk1,
-    //       - chunk3 depends on chunk1 and chunk2.
-    //       - all three chunks are destined for the same sink.
-    //       When chunk1 is released, chunk2 should be available but not chunk3, and
-    //       when chunk2 is released, chunk3 should be available.
+    /*
+     * A more intervowen test:
+     * Given a sequence analyser with three interdependent chunks,
+     * i.e. chunk2 depends on chunk1, and chunk3 depends on chunk1 and chunk2.
+     * When chunk1 is released, only chunk2 must be independent.
+     * When chunk2 is released, chunk3 must be independent.
+     */
     @Test
-    public void test3() {
+    public void testOfDependencyBetweenThreeChunks() {
         Chunk chunk1 = createChunk(1L, 2L, "animal", "bird", "eagle");
         Chunk chunk2 = createChunk(1L, 3L, "animal", "mammal", "goat");
         Chunk chunk3 = createChunk(4L, 5L, "animal", "mammal", "horse");
@@ -189,14 +189,20 @@ public class NaiveSequenceAnalyserTest {
         sa.addChunk(chunk1, sink);
         sa.addChunk(chunk2, sink);
         sa.addChunk(chunk3, sink);
+        // verify that the sequence analyser contains three chunks
+        assertThat(sa.size(), is(3));
         // verify that chunks are dependent
         assertChunks(sa.getInactiveIndependentChunks(), chunk1);
         // remove chunk1
         sa.deleteAndReleaseChunk(new ChunkIdentifier(1L, 2L));
+        // verify that the sequence analyser now contains two chunks
+        assertThat(sa.size(), is(2));
         // verify that chunk2 is now present
         assertChunks(sa.getInactiveIndependentChunks(), chunk2);
         // remove chunk2
         sa.deleteAndReleaseChunk(new ChunkIdentifier(1L, 3L));
+        // verify that the sequence analyser now contains one chunk
+        assertThat(sa.size(), is(1));
         // verify that chunk3 is now present
         assertChunks(sa.getInactiveIndependentChunks(), chunk3);
     }

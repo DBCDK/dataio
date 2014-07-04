@@ -5,11 +5,13 @@ import dk.dbc.dataio.commons.utils.test.json.ChunkCounterJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.ItemResultCounterJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
+import dk.dbc.dataio.gui.client.components.DualPanesPanel;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -26,10 +28,12 @@ import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
+
     private static ConstantsProperties texts = new ConstantsProperties("pages/jobsshow/JobsShowConstants_dk.properties");
 
     private final static String JOBINFO_FILE_NAME = "jobinfo.json";
@@ -37,6 +41,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     private final static Integer JOBS_SHOW_PAGE_SIZE = 20;
 
+    // Enums
+    private enum JobStatusEnum {
+        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR
+    }
 
     @Before
     public void createTempFolders() throws IOException {
@@ -59,7 +67,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     @Test
-    public void testJobsInsertTwoRows_TwoElementsShown() throws IOException {
+    public void testJobsInsertFourRows_FourElementsShown() throws IOException {
         final long JOB_ID_1 = 11234L;
         final String FILE_NAME_1 = "File_name_one";
         final long SUBMITTER_NUMBER_1 = 111L;
@@ -77,10 +85,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long JOB_CREATION_TIME_THREE = getModifiedDate(JOB_CREATION_TIME_TWO, 1);
         final long JOB_CREATION_TIME_FOUR = getModifiedDate(JOB_CREATION_TIME_THREE, 1);
 
-        createFileInJobStore(JOB_CREATION_TIME_ONE, JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 0L, 0L, 0L);
-        createFileInJobStore(JOB_CREATION_TIME_TWO, JOB_ID_2, FILE_NAME_2, SUBMITTER_NUMBER_2, JobErrorCode.NO_ERROR, true, 1L, 0L, 0L);
-        createFileInJobStore(JOB_CREATION_TIME_THREE, JOB_ID_3, FILE_NAME_3, SUBMITTER_NUMBER_3, JobErrorCode.DATA_FILE_INVALID, true, 0L, 0L, 0L);
-        createFileInJobStore(JOB_CREATION_TIME_FOUR, JOB_ID_4, FILE_NAME_4, SUBMITTER_NUMBER_4, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_ONE, JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 1L, 0L, 0L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_TWO, JOB_ID_2, FILE_NAME_2, SUBMITTER_NUMBER_2, JobErrorCode.NO_ERROR, true, 1L, 0L, 1L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_THREE, JOB_ID_3, FILE_NAME_3, SUBMITTER_NUMBER_3, JobErrorCode.DATA_FILE_INVALID, true, 0L, 0L, 0L, 0L, 0L);
+        createFileInJobStore(JOB_CREATION_TIME_FOUR, JOB_ID_4, FILE_NAME_4, SUBMITTER_NUMBER_4, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
 
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
@@ -110,6 +118,72 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(3).get(2).getCellContent(), is(FILE_NAME_1));
         assertThat(rowData.get(3).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_1)));
         assertThat(rowData.get(3).get(4).hasClassName(JobsShowViewImpl.GUICLASS_GREEN), is(true));
+    }
+
+
+    @Test
+    public void testPopupForAllDoneJob_doneWithoutError_NoErrors() throws IOException {
+        final long JOB_ID_1 = 11234L;
+        final String FILE_NAME_1 = "Fil00";
+        final long SUBMITTER_NUMBER_1 = 111L;
+        createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 1L, 0L, 0L, 0L, 0L);
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(1);
+        // Click on the status lamp and set focus on the popupPanel
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_GREEN);
+        // Check that the popupPanel is showing and containing the correct elements and information
+        assertAllElementsAreDisplayedForPopupPanel();
+        assertDualPanesPanelIsDisplayingCorrectInformation();
+    }
+
+    @Test
+    public void testPopupForAllDoneJob_doneWithoutError_OneError() throws IOException {
+        final long JOB_ID_1 = 11234L;
+        final String FILE_NAME_1 = "Fil00";
+        final long SUBMITTER_NUMBER_1 = 111L;
+        createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 1L, 0L, 1L, 0L, 0L);
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(1);
+        // Click on the status lamp and set focus on the popupPanel
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_RED);
+        // Check that the popupPanel is showing and containing the correct elements and information
+        assertAllElementsAreDisplayedForPopupPanel();
+        assertDualPanesPanelIsDisplayingCorrectInformation();
+    }
+
+    @Test
+    public void testPopupForAllDoneJob_doneWithError_dataFileInvalid() throws IOException {
+        final long JOB_ID_1 = 11234L;
+        final String FILE_NAME_1 = "Fil00";
+        final long SUBMITTER_NUMBER_1 = 111L;
+        createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.DATA_FILE_INVALID, true, 0L, 0L,  0L, 0L, 0L);
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(1);
+        // Click on the status lamp and set focus on the popupPanel
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_RED);
+        // Check that the popupPanel is showing and containing the correct elements and information
+        assertAllElementsAreDisplayedForPopupPanel();
+        assertDualPanesPanelIsDisplayingCorrectInformation();
+    }
+
+    @Test
+    public void testPopupForNotDoneJob_notDone() throws IOException {
+        final long JOB_ID_1 = 11234L;
+        final String FILE_NAME_1 = "Fil00";
+        final long SUBMITTER_NUMBER_1 = 111L;
+        createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L, 0L, 0L);
+        navigateToJobsShowWidget(webDriver);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        table.waitAssertRows(1);
+        //Click on the status lamp and set focus on the popupPanel
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_GRAY);
+
+        // Check that the popupPanel is showing and containing the correct elements and information
+        assertAllElementsAreDisplayedForPopupPanel();
+        assertDualPanesPanelIsDisplayingCorrectInformation();
     }
 
     @Test
@@ -784,11 +858,6 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long jobCreationTime4 = jobCreationTime2;
         createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
-//        private void createTestJob(long jobCreationTime, String jobId, final String fileName, String submitterNumber) throws IOException {
-
-
-
-
         navigateToJobsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
@@ -836,6 +905,116 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return simpleDateFormat.format(new Date(date));
     }
+
+    private void locateAndClickStatusLampAndSwitchToPopupPanel(String color) {
+        // Click the status lamp
+        locateAndClickStatusLamp(color);
+        // Switch focus to the popupPanel
+        webDriver.switchTo().activeElement();
+    }
+
+    private static void locateAndClickStatusLamp(String color){
+        if (color.equals(JobsShowViewImpl.GUICLASS_GRAY)){
+            locateAndClickGrayStatusLamp(0);
+        } else if (color.equals(JobsShowViewImpl.GUICLASS_RED)) {
+            locateAndClickRedStatusLamp(0);
+        } else {
+            locateAndClickGreenStatusLamp(0);
+        }
+    }
+
+    private static void locateAndClickGreenStatusLamp(int index) {
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowViewImpl.GUICLASS_GREEN, index);
+        element.findElement(By.tagName("img")).click();
+    }
+
+    private static void locateAndClickGrayStatusLamp(int index) {
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowViewImpl.GUICLASS_GRAY, index);
+        element.findElement(By.tagName("img")).click();
+    }
+
+    private static void locateAndClickRedStatusLamp(int index) {
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowViewImpl.GUICLASS_RED, index);
+        element.findElement(By.tagName("img")).click();
+    }
+
+    private void assertAllElementsAreDisplayedForPopupPanel(){
+
+        // Assert that the popupPanel exists
+        WebElement popupPanelElement = webDriver.findElement(By.className("gwt-PopupPanel"));
+        WebElement popupContentElement = webDriver.findElement(By.className("popupContent"));
+        assertNotNull(popupPanelElement);
+        assertNotNull(popupContentElement);
+
+        // Assert that the popupPanel is displayed:
+        assertTrue(popupPanelElement.isDisplayed());
+        assertTrue(popupContentElement.isDisplayed());
+
+        // Assert that the dualPanesPanel exists
+        List<WebElement> dualPanesPanels = webDriver.findElements(By.className(DualPanesPanel.DUAL_PANES_PANEL_CLASS));
+        assertNotNull(dualPanesPanels);
+    }
+
+    private void assertDualPanesPanelIsDisplayingCorrectInformation () {
+        List<WebElement> dualPanesPanels = webDriver.findElements(By.className(DualPanesPanel.DUAL_PANES_PANEL_CLASS));
+
+        if (dualPanesPanels.size() == 1){
+            // Assert that the statusLamp is set as the left widget and that the lamp is displaying correct color (red)
+            WebElement statusLamp = dualPanesPanels.get(0).findElement(By.id(JobsShowViewImpl.GUICLASS_RED));
+            assertNotNull(statusLamp);
+
+            // Assert that the text message is set as the right widget, and that the text is correct.
+            WebElement statusMessage = dualPanesPanels.get(0).findElement(By.className(DualPanesPanel.DUAL_PANES_PANEL_WIDGET_RIGHT_CLASS));
+            assertNotNull(statusMessage);
+
+        } else {
+            assertThat(dualPanesPanels.size(), is(3));
+            for (WebElement dualPanesPanel : dualPanesPanels){
+                // Assert that the lamp is displaying correct color
+                JobStatusEnum jobStatusEnum = assertAndFindStatusOfLamp(dualPanesPanel);
+
+                // Assert that the text message is set as the right widget, and that the text is correct.
+                WebElement statusMessage = dualPanesPanel.findElement(By.className(DualPanesPanel.DUAL_PANES_PANEL_WIDGET_RIGHT_CLASS));
+                assertNotNull(statusMessage);
+                assertNotNull(statusMessage.getText());
+                assertStatusText(jobStatusEnum, statusMessage.getText());
+            }
+        }
+    }
+
+    private JobStatusEnum assertAndFindStatusOfLamp(WebElement dualPanesPanel) {
+
+        WebElement statusLamp;
+        JobStatusEnum jobStatusEnum;
+        if (dualPanesPanel.getText().toLowerCase().contains("failed")) {
+            statusLamp = dualPanesPanel.findElement(By.id(JobsShowViewImpl.GUICLASS_RED));
+            jobStatusEnum = JobStatusEnum.DONE_WITH_ERROR;
+        } else if (dualPanesPanel.getText().toLowerCase().contains("pending")) {
+            statusLamp = dualPanesPanel.findElement(By.id(JobsShowViewImpl.GUICLASS_GRAY));
+            jobStatusEnum = JobStatusEnum.NOT_DONE;
+        } else {
+            statusLamp = dualPanesPanel.findElement(By.id(JobsShowViewImpl.GUICLASS_GREEN));
+            jobStatusEnum = JobStatusEnum.DONE_WITHOUT_ERROR;
+        }
+        assertNotNull(statusLamp);
+        return  jobStatusEnum;
+    }
+
+    private static void assertStatusText(JobStatusEnum operationalState, String statusText){
+        switch(operationalState){
+            case NOT_DONE:
+                assertTrue(statusText.equals("Chunkifying : Pending...") || statusText.equals("Processing : Pending...") || statusText.equals("Delivering : Pending..."));
+                break;
+            case DONE_WITH_ERROR:
+                assertTrue(statusText.contains("Chunkifying") || statusText.contains("Processing") || statusText.contains("Delivering"));
+                assertTrue(statusText.contains("failed"));
+                break;
+            default:
+                assertTrue(statusText.contains("Chunkifying : Done") || statusText.contains("Processing : Done") || statusText.contains("Delivering : Done"));
+                break;
+        }
+    }
+
 
     /**
      * Class for maintaining temporary job storage in file system
@@ -893,7 +1072,8 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     void createFileInJobStore(long jobCreationTime, long jobId, String fileName, long submitterNumber,
-                              JobErrorCode jobErrorCode, boolean isDone, long failure, long success, long ignore) throws IOException {
+                              JobErrorCode jobErrorCode, boolean isDone, long success, long ignore,
+                              long chunkifyingErrorCount, long processingErrorCount, long deliveringErrorCount) throws IOException {
         String jobInfo = new JobInfoContentJsonBuilder().
                 setJobCreationTime(jobCreationTime).
                 setJobId(jobId).
@@ -901,9 +1081,11 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
                 setSubmitterNumber(submitterNumber).
                 setJobErrorCode(jobErrorCode).
                 setDone(isDone).
-                setFailure(failure).
                 setSuccess(success).
                 setIgnore(ignore).
+                setChunkifyingErrorCount(chunkifyingErrorCount).
+                setProcessingErrorCount(processingErrorCount).
+                setDeliveringErrorCount(deliveringErrorCount).
                 build();
         jobstoreFolder.createFile(Long.toString(jobId), JOBINFO_FILE_NAME, jobInfo);
     }
@@ -915,9 +1097,11 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         private long submitterNumber = 1L;
         private JobErrorCode jobErrorCode = JobErrorCode.NO_ERROR;
         private boolean isDone = true;
-        private long failure = 0L;
         private long success = 1L;
         private long ignore = 0L;
+        private long chunkifyingErrorCount = 0;
+        private long processingErrorCount = 0;
+        private long deliveringErrorCount = 0;
 
         public JobInfoContentJsonBuilder() {
             this.jobCreationTime = System.currentTimeMillis();
@@ -953,11 +1137,6 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             return this;
         }
 
-        public JobInfoContentJsonBuilder setFailure(long failure) {
-            this.failure = failure;
-            return this;
-        }
-
         public JobInfoContentJsonBuilder setSuccess(long success) {
             this.success = success;
             return this;
@@ -967,6 +1146,22 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             this.ignore = ignore;
             return this;
         }
+
+        public JobInfoContentJsonBuilder setChunkifyingErrorCount(long chunkifyingErrorCount){
+            this.chunkifyingErrorCount = chunkifyingErrorCount;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setProcessingErrorCount(long processingErrorCount){
+            this.processingErrorCount = processingErrorCount;
+            return this;
+        }
+
+        public JobInfoContentJsonBuilder setDeliveringErrorCount(long deliveringErrorCount){
+            this.deliveringErrorCount = deliveringErrorCount;
+            return this;
+        }
+
 
         public String build() throws IOException {
             // Build JobSpecification JSON
@@ -982,13 +1177,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
             if (isDone) {
                 jobInfoBuilder.setChunkifyingChunkCounter(new ChunkCounterJsonBuilder()
-                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(failure).setIgnore(ignore).setSuccess(success).build())
+                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(chunkifyingErrorCount).setIgnore(ignore).setSuccess(success).build())
                         .build());
                 jobInfoBuilder.setProcessingChunkCounter(new ChunkCounterJsonBuilder()
-                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(failure).setIgnore(ignore).setSuccess(success).build())
+                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(processingErrorCount).setIgnore(ignore).setSuccess(success).build())
                         .build());
                 jobInfoBuilder.setDeliveringChunkCounter(new ChunkCounterJsonBuilder()
-                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(failure).setIgnore(ignore).setSuccess(success).build())
+                        .setItemResultCounter(new ItemResultCounterJsonBuilder().setFailure(deliveringErrorCount).setIgnore(ignore).setSuccess(success).build())
                         .build());
             } else {
                 jobInfoBuilder.setChunkifyingChunkCounter(null).build();
@@ -999,6 +1194,5 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
             // Store JobInfo in file system based job-store
             return jobInfoBuilder.build();
         }
-
     }
 }

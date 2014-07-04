@@ -4,7 +4,6 @@ import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.ImageElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -49,6 +48,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     public static final String GUICLASS_GRAY = "gray-lamp";
     public static final String GUICLASS_GREEN = "green-lamp";
     public static final String GUICLASS_RED = "red-lamp";
+    public static final String GUIID_JOBS_STATUS_DUAL_PANES_PANEL = "jobsstatusdualpanespanel";
 
     // Enums
     private enum JobStatusEnum {
@@ -58,7 +58,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     // Configuration constants
     private static final int PAGE_SIZE = 20;
 
-    private static final Resources resources = GWT.create(Resources.class);
+    private static final Resources RESOURCES = GWT.create(Resources.class);
 
     // Local variables
     private final static JobsShowConstants constants = GWT.create(JobsShowConstants.class);
@@ -76,6 +76,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     TextColumn<JobInfo> submitterNumberColumn;
     TextColumn<JobInfo> jobCreationTimeColumn;
     Column<JobInfo, ImageResource> jobStateColumn;
+
 
     private int currentPageSize = PAGE_SIZE;
 
@@ -135,7 +136,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         submitterNumberColumn.setSortable(true);
         table.addColumn(submitterNumberColumn, constants.columnHeader_SubmitterNumber());
 
-        ImageResourceCell statusCell = new ImageResourceCell() {
+        final ImageResourceCell statusCell = new ImageResourceCell() {
             public Set<String> getConsumedEvents() {
                 HashSet<String> events = new HashSet<String>();
                 events.add("click");
@@ -151,13 +152,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                                        JobInfo jobInfo, NativeEvent event) {
                 super.onBrowserEvent(context, elem, jobInfo, event);
                 if ("click".equals(event.getType())) {
-
-                    ImageElement.as(new Image(resources.red()).getElement());
-
-                    DualPanesPanel dualPanesPanel = new DualPanesPanel(new Image(resources.red()), new Label(jobInfo.getJobErrorCode().toString()));
-
-                    FlowPanel panelMain = new FlowPanel();
-                    panelMain.add(dualPanesPanel);
 
                     // Create a basic popup widget
                     final PopupPanel popupPanel = new PopupPanel(true);
@@ -186,11 +180,11 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             public ImageResource getValue(JobInfo content) {
                 switch (getJobStatus(content)) {
                     case NOT_DONE:
-                        return resources.gray();
+                        return RESOURCES.gray();
                     case DONE_WITH_ERROR:
-                        return resources.red();
+                        return RESOURCES.red();
                     default:
-                        return resources.green();
+                        return RESOURCES.green();
                 }
             }
         };
@@ -396,31 +390,49 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     private FlowPanel buildFlowPanelForPopupPanel(JobInfo jobInfo) {
         FlowPanel flowPanel = new FlowPanel();
-        DualPanesPanel dualPanesPanel = new DualPanesPanel();
+        DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
 
         if (jobInfo.getJobErrorCode().equals(JobErrorCode.NO_ERROR)) {
             flowPanel.add(buildDualPanesPanelForChunkCounter(CHUNKIFYING, jobInfo.getChunkifyingChunkCounter()));
             flowPanel.add(buildDualPanesPanelForChunkCounter(PROCESSING, jobInfo.getProcessingChunkCounter()));
             flowPanel.add(buildDualPanesPanelForChunkCounter(DELIVERING, jobInfo.getDeliveringChunkCounter()));
         } else {
-            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.red()), new Label(jobInfo.getJobErrorCode().toString()));
+            dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(), new Label(jobInfo.getJobErrorCode().toString()));
             flowPanel.add(dualPanesPanel);
         }
         return flowPanel;
     }
 
+    private Image getGreyImageWithId() {
+        Image image = new Image(RESOURCES.gray());
+        image.getElement().setId(GUICLASS_GRAY);
+        return image;
+    }
+
+    private Image getRedImageWithId() {
+        Image image = new Image(RESOURCES.red());
+        image.getElement().setId(GUICLASS_RED);
+        return image;
+    }
+
+    private Image getGreenImageWithId() {
+        Image image = new Image(RESOURCES.green());
+        image.getElement().setId(GUICLASS_GREEN);
+        return image;
+    }
+
     private DualPanesPanel buildDualPanesPanelForChunkCounter(String operationalState, ChunkCounter chunkCounter) {
-        DualPanesPanel dualPanesPanel = new DualPanesPanel();
+        DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
 
         if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() == 0) {
-            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.green()), new Label(operationalState + " : Done"));
+            dualPanesPanel.setDualPanesPanelWidgets(getGreenImageWithId(), new Label(operationalState + " : Done"));
 
         } else if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() > 0) {
             String format = chunkCounter.getItemResultCounter().getFailure() == 1 ? " chunk " : " chunks ";
-            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.red()),
+            dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(),
                     new Label(operationalState + " : " + chunkCounter.getItemResultCounter().getFailure() + format + "failed"));
         } else {
-            dualPanesPanel.setDualPanesPanelWidgets(new Image(resources.gray()), new Label(operationalState + " : Pending..."));
+            dualPanesPanel.setDualPanesPanelWidgets(getGreyImageWithId(), new Label(operationalState + " : Pending..."));
         }
         return dualPanesPanel;
     }

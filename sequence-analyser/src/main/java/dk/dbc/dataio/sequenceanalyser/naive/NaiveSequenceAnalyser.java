@@ -14,7 +14,6 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
         dependencyGraph.insert(chunk, sink.getId());
     }
 
-    // throws if not active?
     @Override
     public void deleteAndReleaseChunk(ChunkIdentifier identifier) {
         dependencyGraph.deleteAndRelease(identifier);
@@ -23,12 +22,6 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
     @Override
     public List<ChunkIdentifier> getInactiveIndependentChunks() {
         return dependencyGraph.getInactiveIndependentChunksAndActivate();
-    }
-
-    // ignore if already active or nonexisting
-    @Override
-    public void activateChunk(ChunkIdentifier identifier) {
-
     }
 
     // Number of elements in internal data-structure.

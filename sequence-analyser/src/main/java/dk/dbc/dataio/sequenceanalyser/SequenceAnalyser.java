@@ -33,7 +33,7 @@ public interface SequenceAnalyser {
      * exploring dependencies.
      * @param sink The destination for this chunk.
      */
-    public void addChunk(Chunk chunk, Sink sink);
+    void addChunk(Chunk chunk, Sink sink);
 
     /**
      * Releases all chunks the depends on this ChunkIdentifier, and deletes
@@ -41,7 +41,7 @@ public interface SequenceAnalyser {
      *
      * @param identifier
      */
-    public void deleteAndReleaseChunk(ChunkIdentifier identifier);
+    void deleteAndReleaseChunk(ChunkIdentifier identifier);
 
     /**
      * Returns a list of all independent chunks, which was not already flagged
@@ -52,15 +52,12 @@ public interface SequenceAnalyser {
      * @return A list of independent ChunkIdentifiers which are now flagged as
      * active.
      */
-    public List<ChunkIdentifier> getInactiveIndependentChunks();
-
-    // ignore if already active or nonexisting
-    public void activateChunk(ChunkIdentifier identifier);
+    List<ChunkIdentifier> getInactiveIndependentChunks();
 
     /**
      * Number of elements in internal data-structure.
      *
      * @return the number of elements in the internal data structure.
      */
-    public int size();
+    int size();
 }

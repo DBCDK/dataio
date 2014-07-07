@@ -9,7 +9,6 @@ import java.util.Set;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-@SuppressWarnings("unused")
 class NaiveDependencyGraph {
     XLogger LOGGER = XLoggerFactory.getXLogger(NaiveDependencyGraph.class);
 
@@ -28,6 +27,11 @@ class NaiveDependencyGraph {
         nodes.add(node);
     }
 
+    /**
+     * Remove all edges for dependent nodes, and deletes the node represented by the ChunkIdentifier.
+     *
+     * @param identifier
+     */
     public void deleteAndRelease(ChunkIdentifier identifier) {
         for (Node node : nodes) {
             if (node.getChunkIdentifier().chunkId == identifier.chunkId && node.getChunkIdentifier().jobId == identifier.jobId) {
@@ -45,11 +49,14 @@ class NaiveDependencyGraph {
     }
 
     /**
+     * Retrieves all independent chunks which are also inactive.
+     * When returned, the chunks will be changed to active.
+     * <p>
      * An independent Chunk, is a in a Node with no outgoing edges.
      * Incoming edges are allowed since this only indicates that another
      * node depends on the current node.
      *
-     * @return
+     * @return A list of independent chunks which are now flagged as active.
      */
     public List<ChunkIdentifier> getInactiveIndependentChunksAndActivate() {
         List<ChunkIdentifier> result = new ArrayList<>();
@@ -63,6 +70,13 @@ class NaiveDependencyGraph {
             }
         }
         return result;
+    }
+
+    /**
+     * @return the number of nodes in the dependency graph.
+     */
+    int size() {
+        return nodes.size();
     }
 
     private boolean doesNodeContainOutgoingEdges(Node node) {
@@ -89,9 +103,6 @@ class NaiveDependencyGraph {
         }
     }
 
-    int size() {
-        return nodes.size();
-    }
 
     private static class Node {
 

@@ -24,6 +24,7 @@
     <module>job-store-service-connector</module>
     <module>flow-store-service-connector</module>
     <module>json</module>
+    <module>logback</module>
     <module>svn</module>
     <module>service</module>
     <module>test</module>

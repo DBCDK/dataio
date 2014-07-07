@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="${logback.scan}" scanPeriod="${logback.scan.period}">
+  <insertFromJNDI env-entry-name="${logback.jndi.resource}" as="logbackConfiguration"/>
+
+  <if condition='"".equals(property("logbackConfiguration"))'>
+    <then>
+      <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+          <pattern>%date %level [%thread] %logger.%method - %msg%n</pattern>
+        </encoder>
+      </appender>
+
+      <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+      </root>
+    </then>
+    <else>
+      <include url="${logbackConfiguration}"/>
+    </else>
+  </if>
+
+</configuration>

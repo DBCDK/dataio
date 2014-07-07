@@ -7,12 +7,12 @@ import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
-import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.xml.ws.WebServiceException;
 import java.util.ArrayList;
 
 @Stateless
@@ -22,7 +22,16 @@ public class FbsPusherBean {
     @EJB
     FbsUpdateConnectorBean fbsUpdateConnector;
 
-    public SinkChunkResult push(ChunkResult chunkResult) {
+    /**
+     * Pushes items of given ChunkResult to FBS web-service one ChunkItem at a
+     * time
+     * @param chunkResult chunk result ready for delivery
+     * @return sink chunk result
+     * @throws WebServiceException if service communication throws
+     * WebServiceException or if service responds with
+     * UPDATE_FAILED_PLEASE_RESEND_LATER status.
+     */
+    public SinkChunkResult push(ChunkResult chunkResult) throws WebServiceException {
         LOGGER.info("Examining ChunkResult {} for job {}", chunkResult.getChunkId(), chunkResult.getJobId());
         final SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(),
                 chunkResult.getChunkId(), chunkResult.getEncoding(), new ArrayList<ChunkItem>());
@@ -43,17 +52,27 @@ public class FbsPusherBean {
         return sinkChunkResult;
     }
 
-    private void executeUpdateOperation(SinkChunkResult sinkChunkResult, ChunkItem chunkItem) {
+    private void executeUpdateOperation(SinkChunkResult sinkChunkResult, ChunkItem chunkItem) throws WebServiceException {
         final String trackingId = String.format("%d-%d-%d", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId(), chunkItem.getId());
         final FbsUpdateConnector connector = fbsUpdateConnector.getConnector();
         try {
             final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(
                     Base64Util.base64decode(chunkItem.getData()), trackingId);
-            if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
-                sinkChunkResult.addItem(newSuccessfulChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
-            } else {
-                sinkChunkResult.addItem(newFailedChunkItem(chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+            switch(updateMarcXchangeResult.getUpdateMarcXchangeStatus()) {
+                case OK:
+                    sinkChunkResult.addItem(newSuccessfulChunkItem(
+                            chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                    break;
+                case UPDATE_FAILED_PLEASE_RESEND_LATER:
+                    throw new WebServiceException("Service responded with 'please resend later' message");
+                default:
+                    sinkChunkResult.addItem(newFailedChunkItem(
+                            chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
             }
+        } catch (WebServiceException e) {
+            LOGGER.error("WebServiceException caught when handling Item {} for ChunkResult {} for job {}",
+                    chunkItem.getId(), sinkChunkResult.getChunkId(), sinkChunkResult.getJobId(), e);
+            throw e;
         } catch (Exception e) {
             LOGGER.error("Item {} registered as FAILED for ChunkResult {} for job {} due to exception",
                     chunkItem.getId(), sinkChunkResult.getChunkId(), sinkChunkResult.getJobId(), e);

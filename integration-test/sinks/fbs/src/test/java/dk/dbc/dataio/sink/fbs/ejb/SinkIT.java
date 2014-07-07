@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
+import javax.xml.ws.WebServiceException;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -54,6 +55,14 @@ public class SinkIT {
         // And...
         // FixMe: Current version of web-service is proof-of-concept and accepts everything with OK result
         //assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+    }
+
+    @Test(expected = WebServiceException.class)
+    public void fbsPusherBean_endpointCommunicationThrowsbWebServiceException_throws() throws NamingException {
+        // When...
+        InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, "http://nosuchhost.dbc.dk/test");
+        final FbsPusherBean fbsPusherBean = getFbsPusherBean();
+        fbsPusherBean.push(chunkResult);
     }
 
     private FbsPusherBean getFbsPusherBean() throws NamingException {

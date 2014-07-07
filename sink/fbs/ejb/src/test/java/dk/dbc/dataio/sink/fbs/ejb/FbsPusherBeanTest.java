@@ -12,6 +12,7 @@ import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
 import org.junit.Test;
 
+import javax.xml.ws.WebServiceException;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -71,6 +72,22 @@ public class FbsPusherBeanTest {
         assertThat(sinkChunkResult.getItems().get(3).getData(), is(Base64Util.base64encode(failedMessage)));
         assertThat(sinkChunkResult.getItems().get(4).getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat(sinkChunkResult.getItems().get(5).getStatus(), is(ChunkItem.Status.IGNORE));
+    }
+
+    @Test(expected = WebServiceException.class)
+    public void push_connectorThrowsWebServiceException_throws() throws FbsUpdateConnectorException {
+        when(fbsUpdateConnectorBean.getConnector()).thenReturn(fbsUpdateConnector);
+        when(fbsUpdateConnector.updateMarcExchange(anyString(), anyString())).thenThrow(new WebServiceException("died"));
+        fbsPusherBean.push(new ChunkResultBuilder().build());
+    }
+
+    @Test(expected = WebServiceException.class)
+    public void push_serviceRespondsWithPleaseResendLater_throws() throws FbsUpdateConnectorException {
+        final UpdateMarcXchangeResult updateMarcXchangeResultResendLater = new UpdateMarcXchangeResult();
+        updateMarcXchangeResultResendLater.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER);
+        when(fbsUpdateConnectorBean.getConnector()).thenReturn(fbsUpdateConnector);
+        when(fbsUpdateConnector.updateMarcExchange(anyString(), anyString())).thenReturn(updateMarcXchangeResultResendLater);
+        fbsPusherBean.push(new ChunkResultBuilder().build());
     }
 
     private FbsPusherBean getInitializedBean() {

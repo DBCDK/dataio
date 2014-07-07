@@ -10,6 +10,8 @@ import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.junit.Test;
 
+import javax.xml.ws.WebServiceException;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -45,6 +47,19 @@ public class JobProcessorMessageConsumerBeanTest {
             fail("No exception thrown");
         } catch (SinkException e) {
             assertThat(e, is(sinkException));
+        }
+    }
+
+    @Test
+    public void handleConsumedMessage_pusherThrowsWebServiceException_throws() throws InvalidMessageException, SinkException {
+        final WebServiceException webServiceException = new WebServiceException("died");
+        when(fbsPusherBean.push(any(ChunkResult.class))).thenThrow(webServiceException);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
+        try {
+            getInitializedBean().handleConsumedMessage(consumedMessage);
+            fail("No exception thrown");
+        } catch (WebServiceException e) {
+            assertThat(e, is(webServiceException));
         }
     }
 

@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.naive.ChunkIdentifier;
+import dk.dbc.dataio.sequenceanalyser.naive.NaiveSequenceAnalyser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +16,6 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This Enterprise Java Bean (EJB) is responsible for chunk scheduling
@@ -39,7 +38,7 @@ public class JobSchedulerBean {
 
     @PostConstruct
     public void initialise() {
-        sequenceAnalyser = new SequenceAnalyserImpl();
+        sequenceAnalyser = new NaiveSequenceAnalyser();
     }
 
     /**
@@ -71,10 +70,6 @@ public class JobSchedulerBean {
         notifyWorkloadAvailable();
     }
 
-    private ChunkIdentifier getChunkIdentifierFor(Chunk chunk) {
-        return new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId());
-    }
-
     private void notifyWorkloadAvailable() {
         for (final ChunkIdentifier chunkIdentifier : sequenceAnalyser.getInactiveIndependentChunks()) {
             try {
@@ -94,56 +89,6 @@ public class JobSchedulerBean {
                 LOGGER.error("Unable to retrieve chunk.id {} for job.id {}",
                         chunkIdentifier.chunkId, chunkIdentifier.jobId, e);
             }
-        }
-    }
-
-    /* Temporary sequence analyser implementation
-     */
-    private class SequenceAnalyserImpl implements SequenceAnalyser {
-        private final List<ChunkIdentifier> active;
-        private final List<ChunkIdentifier> ready;
-
-        private SequenceAnalyserImpl() {
-            active = new ArrayList<>();
-            ready = new ArrayList<>();
-        }
-
-        @Override
-        public synchronized void addChunk(Chunk chunk, Sink sink) {
-            ready.add(getChunkIdentifierFor(chunk));
-        }
-
-        @Override
-        public synchronized void deleteAndReleaseChunk(ChunkIdentifier identifier) {
-            for(ChunkIdentifier chunkIdentifier : active) {
-                if (chunkIdentifier.equals(identifier)) {
-                    active.remove(identifier);
-                    break;
-                }
-            }
-        }
-
-        @Override
-        public synchronized List<ChunkIdentifier> getInactiveIndependentChunks() {
-            final List<ChunkIdentifier> identifiers = new ArrayList<>();
-            for (final ChunkIdentifier chunkIdentifier : ready) {
-                active.add(chunkIdentifier);
-                identifiers.add(chunkIdentifier);
-            }
-            for (final ChunkIdentifier chunkIdentifier : identifiers) {
-                ready.remove(chunkIdentifier);
-            }
-            return identifiers;
-        }
-
-        @Deprecated
-        @Override
-        public void activateChunk(ChunkIdentifier identifier) {
-        }
-
-        @Override
-        public synchronized int size() {
-            return  active.size() + ready.size();
         }
     }
 }

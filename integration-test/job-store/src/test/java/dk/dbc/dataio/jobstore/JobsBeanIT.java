@@ -34,12 +34,11 @@ public class JobsBeanIT extends AbstractJobStoreTest {
         final JobSpecification jobSpecification = setupJobPrerequisites(restClient);
         final JobInfo jobInfo = createJob(restClient, jobSpecification);
 
-        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
-        assertThat(processorQueue.size(), is(2));
+        final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
+        assertThat(processorQueue.size(), is(1));
         final Chunk chunk1 = assertChunkMessageForProcessor(processorQueue.get(0));
         assertThat(chunk1.getJobId(), is(jobInfo.getJobId()));
-        final Chunk chunk2 = assertChunkMessageForProcessor(processorQueue.get(1));
-        assertThat(chunk2.getJobId(), is(jobInfo.getJobId()));
+        assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME), is(1));
     }
 
     public static JobSpecification setupJobPrerequisites(Client restClient) throws URISyntaxException {

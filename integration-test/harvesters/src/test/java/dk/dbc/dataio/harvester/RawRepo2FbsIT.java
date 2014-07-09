@@ -8,8 +8,10 @@ import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import dk.dbc.opencataloging.update.rawrepo.RawRepoConnector;
-import dk.dbc.opencataloging.update.ws.commons.utils.dom.DomUtil;
+import dk.dbc.rawrepo.RawRepoDAO;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RecordImpl;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.After;
@@ -23,7 +25,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -31,10 +32,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -45,13 +43,21 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class RawRepo2FbsIT {
+    private static final String DATAFIELD_ELEMENT_NAME = "datafield";
+    private static final String DATAFIELD_TAG_ATTRIBUTE_NAME = "tag";
+    private static final String SUBFIELD_ELEMENT_NAME = "subfield";
+    private static final String SUBFIELD_CODE_ATTRIBUTE_NAME = "code";
+       
+    
     private static final String RAWREPO_PROVIDER = "opencataloging-update";
     private static final String JOB_DESTINATION = "fbs";
     private static final String QUEUE_NAME = "fbs-sync";
     private static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v1";
     private final String COLLECTION_ELEMENT_NAME = "collection";
     private final String RECORD_ELEMENT_NAME = "record";
+
     private static Client client;
+    private static String namespace;
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
@@ -113,17 +119,70 @@ public class RawRepo2FbsIT {
     private static void populateRawRepoWithRecordsFromResources(String... resourceNames)
             throws SQLException, ClassNotFoundException, IOException, SAXException, ParserConfigurationException, TransformerException {
         try (final Connection connection = RawRepoUtil.newRawRepoConnection()) {
-            final RawRepoConnector rawRepoConnector = new RawRepoConnector();
+            
             for (final String resource : resourceNames) {
-                rawRepoConnector.addRecord(connection, RAWREPO_PROVIDER,
-                        RawRepoUtil.createRecordBinding(getDocumentElementFromResource(resource)));
+                RawRepoDAO dao = RawRepoDAO.newInstance(connection);
+                Record rec= loadRecordFromResource( resource, dao );
+                dao.saveRecord( rec );
+                dao.changedRecord(RAWREPO_PROVIDER, rec.getId());
             }
+
         }
     }
 
-    private static Element getDocumentElementFromResource(String resourceName) throws ParserConfigurationException, IOException, SAXException {
-        return DomUtil.getDocumentElementFromInputStream(
-                RawRepoUtil.class.getResourceAsStream(resourceName));
+    private static Record loadRecordFromResource(String resourceName, RawRepoDAO dao) throws SQLException, IOException, ParserConfigurationException, SAXException {
+
+        InputStream resource = RawRepoUtil.class.getResourceAsStream(resourceName);
+        byte[] data = IOUtils.toByteArray(RawRepoUtil.class.getResourceAsStream(resourceName));
+        RecordId recordId = readRecordIdFromBytes( data );
+        Record record= dao.fetchRecord( recordId.getId(), recordId.getLibrary() );
+        record.setContent( data );
+        return record;
+    }
+
+    private static RecordId readRecordIdFromBytes(byte[] data) throws ParserConfigurationException, IOException, SAXException {
+        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        final DocumentBuilder builder = factory.newDocumentBuilder();
+        final Document doc = builder.parse(new ByteArrayInputStream( data ));
+        Element topLevel = doc.getDocumentElement();
+
+        namespace = topLevel.getNamespaceURI();
+        return extractRecordId( topLevel );
+    }
+
+
+    private static RecordId extractRecordId(Element documentElement) throws IllegalArgumentException {
+        final NodeList datafields = documentElement.getElementsByTagNameNS(namespace, DATAFIELD_ELEMENT_NAME);
+        for (int i = 0; i < datafields.getLength(); i++) {
+            final Element datafield = (Element) datafields.item(i);
+            final String tag = datafield.getAttribute(DATAFIELD_TAG_ATTRIBUTE_NAME);            
+            switch (tag) {
+                case "001": 
+                    return extractFrom001(datafield);                    
+                default:
+            }
+        }
+        return null;
+    }
+
+    private static RecordId extractFrom001(Element datafield) {
+        final NodeList subfields = datafield.getElementsByTagNameNS(namespace, SUBFIELD_ELEMENT_NAME);
+        
+        String id = null; 
+        int library = 0;
+        for (int i = 0; i < subfields.getLength(); i++) {
+            final Element subfield = (Element) subfields.item(i);
+            final String code = subfield.getAttribute(SUBFIELD_CODE_ATTRIBUTE_NAME);
+            switch (code) {
+                case "a": id = subfield.getTextContent().trim();
+                    break;
+                case "b": library = Integer.parseInt(subfield.getTextContent());
+                    break;
+                default:
+            }
+        }
+        return new RecordId(id, library);
     }
 
     private Document assertJobCreated() throws URISyntaxException, FileStoreServiceConnectorException, IOException, ParserConfigurationException, SAXException {
@@ -137,6 +196,7 @@ public class RawRepo2FbsIT {
         // ToDo; add getJobs() capability to job-store connector
         final Response response = HttpClient.doGet(client, ITUtil.JOB_STORE_BASE_URL, JobStoreServiceConstants.JOB_COLLECTION);
         final List<JobInfo> jobInfos = response.readEntity(new GenericType<List<JobInfo>>() { });
+
         return jobInfos.get(jobInfos.size() - 1);
     }
 

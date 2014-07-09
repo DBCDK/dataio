@@ -70,18 +70,6 @@
       <version>1.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>opencataloging-update-ws-commons-utils-rawrepo-connector</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>opencataloging-update-ws-commons-utils-dom</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>

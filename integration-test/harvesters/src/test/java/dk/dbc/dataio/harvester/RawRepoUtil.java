@@ -1,9 +1,6 @@
 package dk.dbc.dataio.harvester;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.opencataloging.update.rawrepo.DefaultTransformer;
-import dk.dbc.opencataloging.update.rawrepo.MARCXchangeBinding;
-import dk.dbc.opencataloging.update.rawrepo.RecordBinding;
 import org.w3c.dom.Element;
 
 import javax.xml.transform.TransformerException;
@@ -45,11 +42,6 @@ public class RawRepoUtil {
             JDBCUtil.update(connection, "DELETE FROM records");
             JDBCUtil.update(connection, "DELETE FROM queue");
         }
-    }
-
-    public static RecordBinding createRecordBinding(Element record) throws TransformerException, IOException {
-        final DefaultTransformer transformer = new DefaultTransformer(TransformerFactory.newInstance());
-        return new MARCXchangeBinding(record, transformer);
     }
 
     public static void awaitQueueSize(String consumer, long expectedQueueSize, long maxWaitInMs) throws SQLException, ClassNotFoundException {

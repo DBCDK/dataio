@@ -39,7 +39,6 @@
         </configuration>
       </plugin>
 
-      <!-- To be enabled when activating logback logging
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>truezip-maven-plugin</artifactId>
@@ -75,7 +74,6 @@
           </execution>
         </executions>
       </plugin>
-      -->
     </plugins>
   </build>
 
@@ -92,13 +90,11 @@
       <version>${project.version}</version>
       <type>ejb</type>
     </dependency>
-    <!-- To be enabled when activating logback logging
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
-    -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-jdk14</artifactId>

@@ -42,7 +42,7 @@ public class SinkIT {
      * And: the first item has status SUCCESS <br/>
      * And: the second item has status FAILURE <br/>
      */
-    @Ignore("Ignored since FBS endpoint answers with 503")
+    @Ignore("Ignored since FBS endpoint answers with 503 - jda 2014.07.21")
     @Test
     public void fbsPusherBean_endpointResponds() throws NamingException {
         // When...

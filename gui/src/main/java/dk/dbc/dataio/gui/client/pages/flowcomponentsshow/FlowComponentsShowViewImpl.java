@@ -1,11 +1,15 @@
 package dk.dbc.dataio.gui.client.pages.flowcomponentsshow;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+
 import java.util.List;
 
 
@@ -17,6 +21,7 @@ import java.util.List;
 public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowPresenter> implements FlowComponentsShowView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_FLOW_COMPONENTS_SHOW_WIDGET = "flowcomponentsshowwidget";
+    public static final String CLASS_FLOW_COMPONENTS_SHOW_WIDGET_EDIT_BUTTON = "flowcomponentsshowwidget_editbutton";
 
     // Local variables
     private final static FlowComponentsShowConstants constants = GWT.create(FlowComponentsShowConstants.class);
@@ -102,6 +107,27 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
             };
             table.addColumn(javaScriptModulesColumn, constants.columnHeader_JavaScriptModules());
 
+            Column editButtonColumn = new Column<FlowComponent, String>(new ButtonCell()) {
+                @Override
+                public String getValue(FlowComponent flowComponent) {
+                    // The value to display in the button.
+                    return constants.button_Edit();
+                }
+            };
+
+            //Define class name for the button element
+            editButtonColumn.setCellStyleNames(CLASS_FLOW_COMPONENTS_SHOW_WIDGET_EDIT_BUTTON);
+
+            // Handler: Registering key clicks (on the buttonCell available for each flow component).
+            // Clicks on ButtonCells are handled by setting the FieldUpdater for the Column
+            editButtonColumn.setFieldUpdater(new FieldUpdater<FlowComponent, String>() {
+                @Override
+                public void update(int index, FlowComponent flowComponent, String buttonText) {
+                    //TODO
+                }
+            });
+
+            table.addColumn(editButtonColumn, constants.columnHeader_Action());
             add(table);
         }
     }
@@ -153,5 +179,4 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
         table.setRowCount(flowComponents.size());
         table.updateDone();
     }
-
 }

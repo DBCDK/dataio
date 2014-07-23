@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponentcreate;
+package dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
@@ -21,10 +21,10 @@ import java.util.List;
  * This class represents the create flow activity encompassing saving
  * of flow data in the flow store via RPC proxy
  */
-public class FlowComponentCreateActivity extends AbstractActivity implements FlowComponentCreatePresenter {
-    private final FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
+public class FlowComponentCreateActivity extends AbstractActivity implements FlowComponentCreateEditPresenter {
+    private final FlowComponentCreateEditConstants constants = GWT.create(FlowComponentCreateEditConstants.class);
     private ClientFactory clientFactory;
-    private FlowComponentCreateView flowComponentCreateView;
+    private FlowComponentCreateEditView flowComponentCreateView;
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     private FlowStoreProxyAsync flowStoreProxy;
 
@@ -36,7 +36,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
 
     @Override
     public void bind() {
-        flowComponentCreateView = clientFactory.getFlowComponentCreateView();
+        flowComponentCreateView = clientFactory.getFlowComponentCreateEditView();
         flowComponentCreateView.setPresenter(this);
     }
 

@@ -1,8 +1,8 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponentcreate;
+package dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit;
 
 import dk.dbc.dataio.gui.client.presenters.Presenter;
 
-public interface FlowComponentCreatePresenter extends Presenter {
+public interface FlowComponentCreateEditPresenter extends Presenter {
     void projectNameEntered(String projectName);
     void revisionSelected(String projectName, long selectedRevision);
     void scriptNameSelected(String projectName, long selectedRevision, String scriptName);

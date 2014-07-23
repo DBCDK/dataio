@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponentcreate;
+package dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -22,7 +22,7 @@ import java.util.List;
  * This is the implementation of the Flow Component Creation View
  *
  */
-public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreatePresenter> implements FlowComponentCreateView {
+public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentCreateEditPresenter> implements FlowComponentCreateEditView {
 
     // public Identifiers
     public static final String GUIID_FLOW_COMPONENT_CREATION_WIDGET = "flowcomponentcreationwidget";
@@ -37,7 +37,7 @@ public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreat
     public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
 
     // private objects
-    private final static FlowComponentCreateConstants constants = GWT.create(FlowComponentCreateConstants.class);
+    private final static FlowComponentCreateEditConstants constants = GWT.create(FlowComponentCreateEditConstants.class);
     private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, constants.label_ComponentName());
     private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, constants.label_SvnProject());
     private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, constants.label_SvnRevision());
@@ -50,7 +50,7 @@ public class FlowComponentCreateViewImpl extends ContentPanel<FlowComponentCreat
     /**
      * Constructor
      */
-    public FlowComponentCreateViewImpl() {
+    public FlowComponentCreateEditViewImpl() {
         super(constants.menu_FlowComponentCreation());
     }
 

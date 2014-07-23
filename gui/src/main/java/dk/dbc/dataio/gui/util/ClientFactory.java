@@ -6,7 +6,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowView;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.FlowComponentCreateView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditView;
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
@@ -46,7 +46,7 @@ public interface ClientFactory {
 
     // Views
     FlowCreateView getFlowCreateView();
-    FlowComponentCreateView getFlowComponentCreateView();
+    FlowComponentCreateEditView getFlowComponentCreateEditView();
     SubmitterCreateView getSubmitterCreateView();
     FlowbinderCreateView getFlowbinderCreateView();
     SinkCreateEditView getSinkCreateEditView();

@@ -8,7 +8,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.*;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.*;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreate.*;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.*;
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.*;
 import dk.dbc.dataio.gui.client.pages.flowcreate.*;
 import dk.dbc.dataio.gui.client.pages.flowsshow.*;
@@ -45,7 +45,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowComponentsShowConstants flowComponentsShowConstants = GWT.create(FlowComponentsShowConstants.class);
     private final static SubmitterCreateConstants submitterCreateConstants = GWT.create(SubmitterCreateConstants.class);
     private final static FlowCreateConstants flowCreateConstants = GWT.create(FlowCreateConstants.class);
-    private final static FlowComponentCreateConstants flowComponentCreateConstants = GWT.create(FlowComponentCreateConstants.class);
+    private final static FlowComponentCreateEditConstants flowComponentCreateConstants = GWT.create(FlowComponentCreateEditConstants.class);
     private final static FlowbinderCreateConstants flowbinderCreateConstants = GWT.create(FlowbinderCreateConstants.class);
     private final static SinkCreateEditConstants SinkCreateEditConstants = GWT.create(SinkCreateEditConstants.class);
     //private final static HarvestersShowConstants harvestersShowConstants = GWT.create(HarvestersShowConstants.class);
@@ -68,7 +68,7 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Views
     private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
-    private final FlowComponentCreateView flowComponentCreateView = new FlowComponentCreateViewImpl();
+    private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
     private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final SinkCreateEditView sinkCreateEditView = new SinkCreateEditViewImpl();
@@ -209,8 +209,8 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public FlowComponentCreateView getFlowComponentCreateView() {
-        return flowComponentCreateView;
+    public FlowComponentCreateEditView getFlowComponentCreateEditView() {
+        return flowComponentCreateEditView;
     }
 
     @Override

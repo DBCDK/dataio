@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponentcreate;
+package dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit;
 
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;

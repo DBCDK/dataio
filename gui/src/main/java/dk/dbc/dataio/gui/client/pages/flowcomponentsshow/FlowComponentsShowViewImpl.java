@@ -123,7 +123,7 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
             editButtonColumn.setFieldUpdater(new FieldUpdater<FlowComponent, String>() {
                 @Override
                 public void update(int index, FlowComponent flowComponent, String buttonText) {
-                    //TODO
+                    editClick(flowComponent);
                 }
             });
 
@@ -179,4 +179,13 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
         table.setRowCount(flowComponents.size());
         table.updateDone();
     }
+
+    /**
+     * When a key click has been registered, the editFlowComponent method in FlowComponentsShowPresenter is called in order to handle the edit sink action itself.
+     * @param flowComponent The flow component to edit
+     */
+    private void editClick(FlowComponent flowComponent){
+        presenter.editFlowComponent(flowComponent);
+    }
+
 }

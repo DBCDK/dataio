@@ -5,6 +5,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -81,52 +82,73 @@ public class HttpClient {
     }
 
     /**
-     * HTTP POSTs given data entity to endpoint constructed using given baseurl and path elements
+     * HTTP POSTs given data entity to endpoint constructed using given headers, baseurl and path elements
      *
      * @param client web resource client
+     * @param headers HTTP headers
      * @param data data entity
      * @param baseUrl base URL on the form http(s)://host:port/path
      * @param pathElements additional path elements to be added to base URL
      *
      * @return server response
      */
-    public static Response doPost(Client client, Entity data, String baseUrl, String... pathElements) {
+    public static Response doPost(Client client, Map<String, String> headers, Entity data, String baseUrl, String... pathElements) {
         WebTarget target = client.target(baseUrl);
         for (String pathElement : pathElements) {
             target = target.path(pathElement);
         }
-        return target.request().post(data);
+        Invocation.Builder request = target.request();
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                request.header(entry.getKey(), entry.getValue());
+            }
+        }
+        return request.post(data);
+    }
+    public static Response doPost(Client client, Entity data, String baseUrl, String... pathElements) {
+        return doPost(client, null, data, baseUrl, pathElements);
     }
 
     /**
-     * HTTP POSTs given data as application/json to endpoint constructed using given baseurl and path elements
+     * HTTP POSTs given data as application/json to endpoint constructed using given headers, baseurl and path elements
      *
      * @param client web resource client
+     * @param headers HTTP headers
      * @param data JSON data
      * @param baseUrl base URL on the form http(s)://host:port/path
      * @param pathElements additional path elements to be added to base URL
      *
      * @return server response
      */
+    public static Response doPostWithJson(Client client, Map<String, String> headers, String data, String baseUrl, String... pathElements) {
+        return doPost(client, headers, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+    }
+    public static <T> Response doPostWithJson(Client client, Map<String, String> headers, T data, String baseUrl, String... pathElements) {
+        return doPost(client, headers, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+    }
     public static Response doPostWithJson(Client client, String data, String baseUrl, String... pathElements) {
-        return doPost(client, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+        return doPost(client, null, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
     }
     public static <T> Response doPostWithJson(Client client, T data, String baseUrl, String... pathElements) {
-        return doPost(client, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+        return doPost(client, null,  Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
     }
 
     /**
      * HTTP POSTs given data as application/x-www-form-urlencoded to endpoint constructed using given baseurl and path elements
      *
      * @param client web resource client
+     * @param headers HTTP headers
      * @param formData form data
      * @param baseUrl base URL on the form http(s)://host:port/path
      * @param pathElements additional path elements to be added to base URL
      *
      * @return server response
      */
+    public static Response doPostWithFormData(Client client, Map<String, String> headers, MultivaluedMap<String, String> formData, String baseUrl, String... pathElements) {
+        return doPost(client, headers, Entity.form(formData), baseUrl, pathElements);
+    }
     public static Response doPostWithFormData(Client client, MultivaluedMap<String, String> formData, String baseUrl, String... pathElements) {
-        return doPost(client, Entity.form(formData), baseUrl, pathElements);
+        return doPost(client, null, Entity.form(formData), baseUrl, pathElements);
     }
 
     /**

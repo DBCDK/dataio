@@ -213,6 +213,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return result;
     }
 
+    @Override
+    public FlowComponent getFlowComponent(Long id) throws ProxyException {
+        final FlowComponent result;
+        try {
+            result = flowStoreServiceConnector.getFlowComponent(id);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return result;
+    }
+
     private ProxyError translateToProxyError(int statusCode)throws ProxyException {
         final Response.Status status = Response.Status.fromStatusCode(statusCode);
 

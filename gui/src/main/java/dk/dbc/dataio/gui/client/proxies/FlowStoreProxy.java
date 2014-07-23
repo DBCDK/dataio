@@ -35,6 +35,7 @@ public interface FlowStoreProxy extends RemoteService {
     List<Sink> findAllSinks() throws ProxyException;
 
     Sink getSink(Long id) throws ProxyException;
+    FlowComponent getFlowComponent(Long id) throws ProxyException;
 
     void close();
 
@@ -50,3 +51,4 @@ public interface FlowStoreProxy extends RemoteService {
         }
     }
 }
+

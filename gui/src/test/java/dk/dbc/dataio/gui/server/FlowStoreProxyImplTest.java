@@ -478,6 +478,51 @@ public class FlowStoreProxyImplTest {
     }
 
     /*
+    * Test getFlowComponent
+    */
+    @Test
+    public void getFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.getFlowComponent(ID);
+            fail("No INTERNAL_SERVER_ERROR was thrown by getFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void getFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).build();
+        when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenReturn(flowComponent);
+
+        try {
+            final FlowComponent retrievedFlowComponent  = flowStoreProxy.getFlowComponent(flowComponent.getId());
+            assertNotNull(retrievedFlowComponent);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getFlowComponent()");
+        }
+    }
+
+    @Test
+    public void getFlowComponent_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 404));
+
+        try {
+            flowStoreProxy.getFlowComponent(ID);
+            fail("No ENTITY_NOT_FOUND error was thrown by getFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.ENTITY_NOT_FOUND));
+        }
+    }
+
+    /*
      * Test createFlowComponent
      */
     @Test

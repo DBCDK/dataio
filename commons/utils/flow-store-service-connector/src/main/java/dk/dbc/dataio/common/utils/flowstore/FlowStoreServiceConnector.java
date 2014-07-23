@@ -220,6 +220,28 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Retrieves the specified flow component from the flow-store
+     *
+     * @param flowComponentId Id of the flow component
+     * @return the flow component found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flow component
+     */
+    public FlowComponent getFlowComponent(long flowComponentId) throws ProcessingException, FlowStoreServiceConnectorException {
+        final Map<String, String> pathVariables = new HashMap<>(1);
+        pathVariables.put(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, Long.toString(flowComponentId));
+        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.FLOW_COMPONENT, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path);
+
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, FlowComponent.class);
+        } finally {
+            response.close();
+        }
+    }
+
     // ************************************************** Flow **************************************************
 
     /**

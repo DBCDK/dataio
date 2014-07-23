@@ -30,6 +30,7 @@ public interface FlowStoreProxyAsync {
     void findAllSinks(AsyncCallback<List<Sink>> async);
 
     void getSink(Long id, AsyncCallback<Sink> async);
+    void getFlowComponent(Long id, AsyncCallback<FlowComponent> async);
 
     void close(AsyncCallback<Void> async);
 }

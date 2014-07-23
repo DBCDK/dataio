@@ -16,6 +16,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -33,10 +34,33 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Stateless
 @Path("/")
 public class FlowComponentsBean {
+    private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
 
     @PersistenceContext
-    private EntityManager entityManager;
+    EntityManager entityManager;
+
+    /**
+     * Retrieves flow component from underlying data store
+     *
+     * @param id flow component identifier
+     *
+     * @return a HTTP 200 response with flowComponent content as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json flowComponent
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_COMPONENT)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getFlowComponent(@PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id) throws JsonException {
+        final FlowComponent flowComponent = entityManager.find(FlowComponent.class, id);
+        if (flowComponent == null) {
+            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
+        }
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowComponent));
+    }
 
     /**
      * Creates new flow component with data POSTed as JSON and persists it in the

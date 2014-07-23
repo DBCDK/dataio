@@ -138,6 +138,16 @@ public class FlowStoreServiceConnectorBean {
     }
 
     @Lock(LockType.READ)
+    public FlowComponent getFlowComponent(long flowComponentId) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving flow component with id: " + flowComponentId);
+        try {
+            return getFlowStoreServiceConnector().getFlowComponent(flowComponentId);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
     public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws FlowStoreServiceConnectorException {
         LOGGER.debug("Creating new flowComponent");
         try {

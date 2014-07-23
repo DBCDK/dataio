@@ -6,6 +6,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -174,4 +175,61 @@ public class FlowComponentsIT {
         assertThat(listOfFlowComponents.get(1).getContent().getName(), is(flowComponentSortsSecond.getContent().getName()));
         assertThat(listOfFlowComponents.get(2).getContent().getName(), is(flowComponentSortsThird.getContent().getName()));
     }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the flowComponent path with a valid identifier
+     * Then : a flowComponent is found and returned
+     * And  : assert that the flowComponent found has an id, a version and contains the same information as the flowComponent created
+     */
+    @Test
+    public void getFlowComponent_ok() throws Exception{
+
+        // When...
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        // Then...
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+        FlowComponent flowComponentToGet = flowStoreServiceConnector.getFlowComponent(flowComponent.getId());
+
+        // And...
+        assertNotNull(flowComponentToGet);
+        assertNotNull(flowComponentToGet.getContent());
+        assertThat(flowComponentToGet.getContent().getName(), is(flowComponent.getContent().getName()));
+        assertThat(flowComponentToGet.getContent().getInvocationJavascriptName(), is(flowComponent.getContent().getInvocationJavascriptName()));
+        assertThat(flowComponentToGet.getContent().getInvocationMethod(), is(flowComponent.getContent().getInvocationMethod()));
+        assertThat(flowComponentToGet.getContent().getSvnProjectForInvocationJavascript(), is(flowComponent.getContent().getSvnProjectForInvocationJavascript()));
+        assertThat(flowComponentToGet.getContent().getSvnRevision(), is(flowComponent.getContent().getSvnRevision()));
+        assertThat(flowComponentToGet.getVersion(), is (flowComponent.getVersion()));
+        assertThat(flowComponentToGet.getContent().getJavascripts().size(), is (flowComponent.getContent().getJavascripts().size()));
+
+        for (int i= 0; i > flowComponentToGet.getContent().getJavascripts().size(); i++){
+            JavaScript javaScriptReturned = flowComponentToGet.getContent().getJavascripts().get(i);
+            JavaScript javaScriptOriginal = flowComponent.getContent().getJavascripts().get(i);
+            assertThat(javaScriptReturned, is (javaScriptOriginal));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a flow component with an unknown flow component id
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getFlowComponent_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
+        try{
+            // Given...
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+            flowStoreServiceConnector.getFlowComponent(432);
+
+            fail("Invalid request to getFlowComponent() was not detected.");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(404));
+        }
+    }
+
 }

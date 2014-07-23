@@ -416,6 +416,47 @@ public class FlowStoreServiceConnectorTest {
         instance.findAllSubmitters();
     }
 
+    // *************************************** get flow component tests **************************************
+    @Test
+    public void getFlowComponent_flowComponentRetrieved_returnsFlowComponent() throws FlowStoreServiceConnectorException {
+
+        final FlowComponent expectedFlowComponentResult = new FlowComponentBuilder().build();
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedFlowComponentResult));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        final FlowComponent flowComponentResult = instance.getFlowComponent(ID);
+        assertThat(flowComponentResult, is(notNullValue()));
+        assertThat(flowComponentResult.getId(), is(expectedFlowComponentResult.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getFlowComponent_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.getFlowComponent(ID);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getFlowComponent_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.getFlowComponent(ID);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void getFlowComponent_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.getFlowComponent(ID);
+    }
+
     // ************************************* create flow component tests *************************************
 
     @Test(expected = NullPointerException.class)

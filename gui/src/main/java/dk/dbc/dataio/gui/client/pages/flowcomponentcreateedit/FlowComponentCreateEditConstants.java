@@ -10,6 +10,9 @@ public interface FlowComponentCreateEditConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_FlowComponentCreation();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_FlowComponentEdit();
+
 
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -46,6 +49,9 @@ public interface FlowComponentCreateEditConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_JavaScriptReferenceError();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CannotFetchFlowComponent();
+
 
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -58,3 +64,4 @@ public interface FlowComponentCreateEditConstants extends Constants {
     String status_Busy();
 
 }
+

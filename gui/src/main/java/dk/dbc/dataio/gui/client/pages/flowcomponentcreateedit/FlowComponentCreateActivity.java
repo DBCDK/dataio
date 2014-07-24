@@ -14,6 +14,7 @@ import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,7 +62,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
             }
             @Override
             public void onSuccess(List<RevisionInfo> revisions) {
-                flowComponentCreateView.setAvailableRevisions(revisions);
+                flowComponentCreateView.setAvailableRevisions(revisions, 0);
             }
         });
     }
@@ -74,7 +75,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
             }
             @Override
             public void onSuccess(List<String> scriptNames) {
-                flowComponentCreateView.setAvailableScriptNames(scriptNames);
+                flowComponentCreateView.setAvailableScriptNames(scriptNames, null);
             }
         });
     }
@@ -88,7 +89,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
             }
             @Override
             public void onSuccess(List<String> invocationMethods) {
-                flowComponentCreateView.setAvailableInvocationMethods(invocationMethods);
+                flowComponentCreateView.setAvailableInvocationMethods(invocationMethods, null);
             }
         });
     }

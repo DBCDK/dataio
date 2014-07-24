@@ -6,18 +6,73 @@ import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.*;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.*;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.*;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.*;
-import dk.dbc.dataio.gui.client.pages.flowcreate.*;
-import dk.dbc.dataio.gui.client.pages.flowsshow.*;
-import dk.dbc.dataio.gui.client.pages.jobsshow.*;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.*;
-import dk.dbc.dataio.gui.client.pages.sinksshow.*;
-import dk.dbc.dataio.gui.client.pages.submittercreate.*;
-import dk.dbc.dataio.gui.client.pages.submittersshow.*;
-import dk.dbc.dataio.gui.client.proxies.*;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateConstants;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowActivity;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowConstants;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowView;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditConstants;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowConstants;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateConstants;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowActivity;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowConstants;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowActivity;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowConstants;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateActivity;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditConstants;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditView;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreatePlace;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditActivity;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowActivity;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowConstants;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateActivity;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateConstants;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreatePlace;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowActivity;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowConstants;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
+import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.MenuItem;
 
 public class ClientFactoryImpl implements ClientFactory {
@@ -144,6 +199,9 @@ public class ClientFactoryImpl implements ClientFactory {
         }
         if (place instanceof FlowbinderCreatePlace) {
             return new FlowbinderCreateActivity(this);
+        }
+        if (place instanceof FlowComponentEditPlace) {
+            return new FlowComponentEditActivity(place,this);
         }
         if (place instanceof SinkCreatePlace) {
             return new SinkCreateActivity(this);

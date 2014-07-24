@@ -49,6 +49,10 @@ public class ListEntry extends DataEntry {
         return listBox.getValue(selectedRevisionIndex);
     }
 
+    public void setSelected(int selected) {
+        listBox.setItemSelected(selected, true);
+    }
+
     public void setEnabled(boolean enabled) {
         listBox.setEnabled(enabled);
     }

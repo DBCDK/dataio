@@ -7,6 +7,7 @@ import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
@@ -25,25 +26,22 @@ import java.util.List;
 public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentCreateEditPresenter> implements FlowComponentCreateEditView {
 
     // public Identifiers
-    public static final String GUIID_FLOW_COMPONENT_CREATION_WIDGET = "flowcomponentcreationwidget";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL = "flowcomponentcreationnamepanel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL = "flowcomponentcreationprojectpanel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL = "flowcomponentcreationsvnrevisionpanel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL = "flowcomponentcreationscriptnamepanel";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL = "flow-component-invocation-method-panel-id";
-    public static final String GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL = "flow-component-save-panel-id";
-    public static final String FORM_FIELD_COMPONENT_NAME = "formfieldcomponentname";
-    public static final String FORM_FIELD_INVOCATION_METHOD = "formfieldinvocationmethod";
-    public static final String FORM_FIELD_JAVASCRIPT_FILE_UPLOAD = "formfieldjavascriptfileupload";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_EDIT_WIDGET = "flowcomponentcreationeditwidget";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_EDIT_NAME_PANEL = "flowcomponentcreationeditnamepanel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_EDIT_PROJECT_PANEL = "flowcomponentcreationeditprojectpanel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_EDIT_SVN_REVISION_PANEL = "flowcomponentcreationeditsvnrevisionpanel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_EDIT_SCRIPT_NAME_PANEL = "flowcomponentcreationeditscriptnamepanel";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_EDIT_INVOCATION_METHOD_PANEL = "flow-component-invocation-method-panel-id";
+    public static final String GUIID_FLOW_COMPONENT_CREATION_EDIT_SAVE_BUTTON_PANEL = "flow-component-save-panel-id";
 
     // private objects
     private final static FlowComponentCreateEditConstants constants = GWT.create(FlowComponentCreateEditConstants.class);
-    private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_NAME_PANEL, constants.label_ComponentName());
-    private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_PROJECT_PANEL, constants.label_SvnProject());
-    private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SVN_REVISION_PANEL, constants.label_SvnRevision());
-    private ListEntry scriptNamePanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_SCRIPT_NAME_PANEL, constants.label_ScriptName());
-    private ListEntry invocationMethodPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_INVOCATION_METHOD_PANEL, constants.label_InvocationMethod());
-    private SaveButton saveButton = new SaveButton(GUIID_FLOW_COMPONENT_CREATION_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
+    private TextEntry namePanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_EDIT_NAME_PANEL, constants.label_ComponentName());
+    private TextEntry projectPanel = new TextEntry(GUIID_FLOW_COMPONENT_CREATION_EDIT_PROJECT_PANEL, constants.label_SvnProject());
+    private ListEntry revisionPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_EDIT_SVN_REVISION_PANEL, constants.label_SvnRevision());
+    private ListEntry scriptNamePanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_EDIT_SCRIPT_NAME_PANEL, constants.label_ScriptName());
+    private ListEntry invocationMethodPanel = new ListEntry(GUIID_FLOW_COMPONENT_CREATION_EDIT_INVOCATION_METHOD_PANEL, constants.label_InvocationMethod());
+    private SaveButton saveButton = new SaveButton(GUIID_FLOW_COMPONENT_CREATION_EDIT_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
     private Label busyLabel = new Label(constants.status_Busy());
 
 
@@ -59,7 +57,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
      * Initializations of the view
      */
     public void init() {
-        getElement().setId(GUIID_FLOW_COMPONENT_CREATION_WIDGET);
+        getElement().setId(GUIID_FLOW_COMPONENT_CREATION_EDIT_WIDGET);
 
         namePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
         add(namePanel);
@@ -149,16 +147,35 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
     }
 
     /**
-     * This method is called by the presenter, when pushing Revisions to the view
-     * @param availableRevisions
+     * Initialize all fields in this view
      */
     @Override
-    public void setAvailableRevisions(List<RevisionInfo> availableRevisions) {
+    public void initializeFields(String header, FlowComponent flowComponent) {
+        setHeader(header);
+        if (flowComponent == null) {
+            clearFields();
+        } else {
+            namePanel.setText(flowComponent.getContent().getName());
+            projectPanel.setText(flowComponent.getContent().getSvnProjectForInvocationJavascript());
+            projectPanel.fireChangeEvent();
+        }
+    }
+
+    /**
+     *
+     * @param availableRevisions all SVN revisions available for the flow component
+     * @param currentRevision the current SVN revision
+     */
+    @Override
+    public void setAvailableRevisions(List<RevisionInfo> availableRevisions, int currentRevision) {
         setAsBusy(false);
         revisionPanel.clear();
         if (!availableRevisions.isEmpty()) {
             for (RevisionInfo revision: availableRevisions) {
                 revisionPanel.setAvailableItem(String.valueOf(revision.getRevision()));
+                if (revision.getRevision() == currentRevision){
+                    revisionPanel.setSelected(availableRevisions.indexOf(revision));
+                }
             }
             revisionPanel.setEnabled(true);
             revisionPanel.fireChangeEvent();
@@ -167,15 +184,19 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
 
     /**
      * This method is called by the presenter, when pushing Script Names to the view
-     * @param availableScriptNames
+     * @param availableScriptNames all scripts available for the current flow component
+     * @param currentScriptName the name of the current script
      */
     @Override
-    public void setAvailableScriptNames(List<String> availableScriptNames) {
+    public void setAvailableScriptNames(List<String> availableScriptNames, String currentScriptName) {
         setAsBusy(false);
         scriptNamePanel.clear();
         if (!availableScriptNames.isEmpty()) {
             for (String scriptName: availableScriptNames) {
                 scriptNamePanel.setAvailableItem(scriptName);
+                if(scriptName.equals(currentScriptName)){
+                    scriptNamePanel.setSelected(availableScriptNames.indexOf(scriptName));
+                }
             }
             scriptNamePanel.setEnabled(true);
             scriptNamePanel.fireChangeEvent();
@@ -184,15 +205,19 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
 
     /**
      * This method is called by the presenter, when pushing Invocation Method names to the view
-     * @param availableInvocationMethods
+     * @param availableInvocationMethods all available invocation methods for the script attached to the flow component
+     * @param currentInvocationMethod the current invocation method
      */
     @Override
-    public void setAvailableInvocationMethods(List<String> availableInvocationMethods) {
+    public void setAvailableInvocationMethods(List<String> availableInvocationMethods, String currentInvocationMethod) {
         setAsBusy(false);
         invocationMethodPanel.clear();
         if (!availableInvocationMethods.isEmpty()) {
             for (String invocationMethod: availableInvocationMethods) {
                 invocationMethodPanel.setAvailableItem(invocationMethod);
+                if(invocationMethod.equals(currentInvocationMethod)){
+                    invocationMethodPanel.setSelected(availableInvocationMethods.indexOf(invocationMethod));
+                }
             }
             invocationMethodPanel.setEnabled(true);
             invocationMethodPanel.fireChangeEvent();
@@ -299,7 +324,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
         public void buttonPressed() {
             String name = namePanel.getText();
             String project = projectPanel.getText();
-            Long revision = 0L;
+            Long revision;
             try {
                 revision = Long.parseLong(revisionPanel.getSelectedText());
             } catch (NumberFormatException e) {
@@ -324,3 +349,4 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
         }
     }
 }
+

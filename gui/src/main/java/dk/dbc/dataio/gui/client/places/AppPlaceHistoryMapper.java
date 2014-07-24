@@ -5,6 +5,7 @@ import com.google.gwt.place.shared.WithTokenizers;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowPlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditPlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
@@ -18,6 +19,7 @@ import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
 @WithTokenizers({
     FlowCreatePlace.Tokenizer.class,
     FlowComponentCreatePlace.Tokenizer.class,
+    FlowComponentEditPlace.Tokenizer.class,
     SubmitterCreatePlace.Tokenizer.class,
     FlowbinderCreatePlace.Tokenizer.class,
     SinkCreatePlace.Tokenizer.class,

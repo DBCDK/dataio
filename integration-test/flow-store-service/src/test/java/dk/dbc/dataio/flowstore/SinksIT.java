@@ -20,7 +20,9 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSink;
@@ -227,8 +229,10 @@ public class SinksIT {
         final long id = createSink(restClient, baseUrl, new SinkContentJsonBuilder().build());
 
         // Assume, that the very first created sink has version number 1:
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl,
-                FlowStoreServiceConstants.SINKS, Long.toString(id), Long.toString(1L), "content");
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");  // Set version=1
+        final Response response = HttpClient.doPostWithJson(restClient, headers, "<invalid json />", baseUrl,
+                FlowStoreServiceConstants.SINKS, Long.toString(id), "content");
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }

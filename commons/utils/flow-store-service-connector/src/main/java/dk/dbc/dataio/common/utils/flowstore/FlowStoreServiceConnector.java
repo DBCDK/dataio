@@ -126,16 +126,16 @@ public class FlowStoreServiceConnector {
     public Sink updateSink(SinkContent sinkContent, long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
 
-        final Map<String, String> pathVariables = new HashMap<>(2);
+        final Map<String, String> pathVariables = new HashMap<>(1);
         pathVariables.put(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(sinkId));
-        pathVariables.put(FlowStoreServiceConstants.SINK_VERSION_VARIABLE, Long.toString(version));
-
         final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.SINK_CONTENT, pathVariables);
-        final Response response = HttpClient.doPostWithJson(httpClient, sinkContent, baseUrl, path.split(URL_PATH_SEPARATOR));
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+        final Response response = HttpClient.doPostWithJson(httpClient, headers, sinkContent, baseUrl, path.split(URL_PATH_SEPARATOR));
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Sink.class);
-        }finally {
+        } finally {
             response.close();
         }
     }

@@ -15,7 +15,9 @@ public class FlowStoreServiceConstants {
     public static final String SINK = "sinks/{id}";
     public static final String FLOW = "flows/{id}";
     public static final String FLOW_COMPONENT = "components/{id}";
-    public static final String SINK_CONTENT = "sinks/{id}/{version}/content";
+    public static final String SINK_CONTENT = "sinks/{id}/content";
+
+    public static final String IF_MATCH_HEADER = "If-Match";
 
     private FlowStoreServiceConstants() { }
 }

@@ -30,6 +30,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -250,8 +251,10 @@ public class FlowStoreServiceConnectorTest {
     public void updateSink_sinkIsUpdated_returnsSink() throws FlowStoreServiceConnectorException, JsonException {
         final SinkContent sinkContent = new SinkContentBuilder().build();
         final Sink sinkToUpdate = new SinkBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
-        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL, "path"))
+        when(HttpClient.doPostWithJson(CLIENT, headers, sinkContent, FLOW_STORE_URL, "path"))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), sinkToUpdate));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -265,8 +268,10 @@ public class FlowStoreServiceConnectorTest {
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void updateSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
         final SinkContent sinkContent = new SinkContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
-        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL, "path"))
+        when(HttpClient.doPostWithJson(CLIENT, headers, sinkContent, FLOW_STORE_URL, "path"))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -276,8 +281,10 @@ public class FlowStoreServiceConnectorTest {
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateSink_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException{
         final SinkContent sinkContent = new SinkContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
-        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL, "path"))
+        when(HttpClient.doPostWithJson(CLIENT, headers, sinkContent, FLOW_STORE_URL, "path"))
                 .thenReturn(new MockedResponse<>(Response.Status.NOT_ACCEPTABLE.getStatusCode(), ""));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -287,8 +294,10 @@ public class FlowStoreServiceConnectorTest {
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateSink_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException{
         final SinkContent sinkContent = new SinkContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
-        when(HttpClient.doPostWithJson(CLIENT, sinkContent, FLOW_STORE_URL, "path"))
+        when(HttpClient.doPostWithJson(CLIENT, headers, sinkContent, FLOW_STORE_URL, "path"))
                 .thenReturn(new MockedResponse<>(Response.Status.CONFLICT.getStatusCode(), ""));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();

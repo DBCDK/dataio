@@ -10,10 +10,8 @@ import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 import javax.ws.rs.client.Client;
 import java.sql.SQLException;
@@ -74,32 +72,32 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
     }
 
-    @Test
-    public void testFlowComponentsShowClickEditButton_NavigateToFlowComponentCreationEditWidget() throws Exception{
-
-        //Create new flow component
-        createTestFlowComponent(FLOW_COMPONENT_NAME_1);
-
-        //Navigate to the flow components show window.
-        navigateToFlowComponentsShowWidget(webDriver);
-
-        //Navigate to the first row, locate the edit button and click.
-        locateAndClickEditButtonForElement(0);
-
-        //Assert that the SinkCreateEditView is opened.
-        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));
-    }
-
-    /**
-     * The following is public static helper methods.
-     */
-
-    public static void locateAndClickEditButtonForElement(int index){
-        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver,
-                FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET,
-                FlowComponentsShowViewImpl.CLASS_FLOW_COMPONENTS_SHOW_WIDGET_EDIT_BUTTON, index);
-        element.findElement(By.tagName("button")).click();
-    }
+//    @Test
+//    public void testFlowComponentsShowClickEditButton_NavigateToFlowComponentCreationEditWidget() throws Exception{
+//
+//        //Create new flow component
+//        createTestFlowComponent(FLOW_COMPONENT_NAME_1);
+//
+//        //Navigate to the flow components show window.
+//        navigateToFlowComponentsShowWidget(webDriver);
+//
+//        //Navigate to the first row, locate the edit button and click.
+//        locateAndClickEditButtonForElement(0);
+//
+//        //Assert that the SinkCreateEditView is opened.
+//        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));
+//    }
+//
+//    /**
+//     * The following is public static helper methods.
+//     */
+//
+//    public static void locateAndClickEditButtonForElement(int index){
+//        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver,
+//                FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET,
+//                FlowComponentsShowViewImpl.CLASS_FLOW_COMPONENTS_SHOW_WIDGET_EDIT_BUTTON, index);
+//        element.findElement(By.tagName("button")).click();
+//    }
 
     private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW);

@@ -10,8 +10,10 @@ import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import javax.ws.rs.client.Client;
 import java.sql.SQLException;
@@ -23,6 +25,10 @@ import static org.junit.Assert.assertThat;
 public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     private static FlowStoreServiceConnector flowStoreServiceConnector;
+
+    final String FLOW_COMPONENT_NAME_1 = "FlowCoOne";
+    final String FLOW_COMPONENT_NAME_2 = "FlowCoTwo";
+
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -40,22 +46,19 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testFlowComponentsInsertTwoRows_TwoElementsShown() throws Exception{
-        final String COMPONENT_NAME_1 = "FlowCoOne";
-        final String COMPONENT_NAME_2 = "FlowCoTwo";
-
-        createTestFlowComponent(COMPONENT_NAME_1);
-        createTestFlowComponent(COMPONENT_NAME_2);
+        createTestFlowComponent(FLOW_COMPONENT_NAME_1);
+        createTestFlowComponent(FLOW_COMPONENT_NAME_2);
         navigateToFlowComponentsShowWidget(webDriver);
         SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
         table.waitAssertRows(2);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
-        assertThat(rowData.get(0).get(0).getCellContent(), is(COMPONENT_NAME_1));
+        assertThat(rowData.get(0).get(0).getCellContent(), is(FLOW_COMPONENT_NAME_1));
         assertThat(rowData.get(0).get(1).getCellContent(), is("invocationJavascriptName"));
         assertThat(rowData.get(0).get(2).getCellContent(), is("invocationMethod"));
         assertThat(rowData.get(0).get(3).getCellContent(), is("svnprojectforinvocationjavascript"));
         assertThat(rowData.get(0).get(4).getCellContent(), is("1"));
         assertThat(rowData.get(0).get(5).getCellContent(), is("moduleName"));
-        assertThat(rowData.get(1).get(0).getCellContent(), is(COMPONENT_NAME_2));
+        assertThat(rowData.get(1).get(0).getCellContent(), is(FLOW_COMPONENT_NAME_2));
         assertThat(rowData.get(1).get(1).getCellContent(), is("invocationJavascriptName"));
         assertThat(rowData.get(1).get(2).getCellContent(), is("invocationMethod"));
         assertThat(rowData.get(1).get(3).getCellContent(), is("svnprojectforinvocationjavascript"));
@@ -69,6 +72,33 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
                 .build();
 
         return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+    }
+
+    @Test
+    public void testFlowComponentsShowClickEditButton_NavigateToFlowComponentCreationEditWidget() throws Exception{
+
+        //Create new flow component
+        createTestFlowComponent(FLOW_COMPONENT_NAME_1);
+
+        //Navigate to the flow components show window.
+        navigateToFlowComponentsShowWidget(webDriver);
+
+        //Navigate to the first row, locate the edit button and click.
+        locateAndClickEditButtonForElement(0);
+
+        //Assert that the SinkCreateEditView is opened.
+        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));
+    }
+
+    /**
+     * The following is public static helper methods.
+     */
+
+    public static void locateAndClickEditButtonForElement(int index){
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver,
+                FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET,
+                FlowComponentsShowViewImpl.CLASS_FLOW_COMPONENTS_SHOW_WIDGET_EDIT_BUTTON, index);
+        element.findElement(By.tagName("button")).click();
     }
 
     private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {

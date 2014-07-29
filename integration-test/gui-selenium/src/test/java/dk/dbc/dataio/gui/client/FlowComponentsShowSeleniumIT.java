@@ -74,21 +74,21 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
     }
 
-//    @Test
-//    public void testFlowComponentsShowClickEditButton_NavigateToFlowComponentCreationEditWidget() throws Exception{
-//
-//        //Create new flow component
-//        createTestFlowComponent(FLOW_COMPONENT_NAME_1);
-//
-//        //Navigate to the flow components show window.
-//        navigateToFlowComponentsShowWidget(webDriver);
-//
-//        //Navigate to the first row, locate the edit button and click.
-//        locateAndClickEditButtonForElement(0);
-//
-//        //Assert that the SinkCreateEditView is opened.
-//        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));
-//    }
+    @Test
+    public void testFlowComponentsShowClickEditButton_NavigateToFlowComponentCreationEditWidget() throws Exception{
+
+        //Create new flow component
+        createTestFlowComponent(FLOW_COMPONENT_NAME_1);
+
+        //Navigate to the flow components show window.
+        navigateToFlowComponentsShowWidget(webDriver);
+
+        //Navigate to the first row, locate the edit button and click.
+        locateAndClickEditButtonForElement(0);
+
+        //Assert that the SinkCreateEditView is opened.
+        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));
+    }
 
     /**
      * The following is public static helper methods.

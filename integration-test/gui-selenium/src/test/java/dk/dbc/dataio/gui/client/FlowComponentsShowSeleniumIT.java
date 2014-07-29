@@ -84,7 +84,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         navigateToFlowComponentsShowWidget(webDriver);
 
         //Navigate to the first row, locate the edit button and click.
-//        locateAndClickEditButtonForElement(0);
+        locateAndClickEditButtonForElement(0);
 
         //Assert that the SinkCreateEditView is opened.
 //        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));

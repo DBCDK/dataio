@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowViewI
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
@@ -74,8 +75,9 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
     }
 
+    @Ignore("This test is ignored until we are able to test with a Subversion client")
     @Test
-    public void testFlowComponentsShowClickEditButton_NavigateToFlowComponentCreationEditWidget() throws Exception{
+    public void testFlowComponentsShowClickEditButton_NavigateToFlowComponentCreationEditWidget() throws Exception {
 
         //Create new flow component
         createTestFlowComponent(FLOW_COMPONENT_NAME_1);
@@ -87,7 +89,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         locateAndClickEditButtonForElement(0);
 
         //Assert that the SinkCreateEditView is opened.
-//        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));
+        assertThat(webDriver.getCurrentUrl().contains("#EditFlowComponent"), is(true));
     }
 
     /**

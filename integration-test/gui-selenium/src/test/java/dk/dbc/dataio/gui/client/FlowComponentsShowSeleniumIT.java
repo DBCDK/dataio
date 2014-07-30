@@ -29,6 +29,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     final String FLOW_COMPONENT_NAME_1 = "FlowCoOne";
     final String FLOW_COMPONENT_NAME_2 = "FlowCoTwo";
+    final String BUTTON_NAME = "Rediger";
 
 
     @BeforeClass
@@ -59,12 +60,14 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(0).get(3).getCellContent(), is("svnprojectforinvocationjavascript"));
         assertThat(rowData.get(0).get(4).getCellContent(), is("1"));
         assertThat(rowData.get(0).get(5).getCellContent(), is("moduleName"));
+        assertThat(rowData.get(0).get(6).getCellContent(), is(BUTTON_NAME));
         assertThat(rowData.get(1).get(0).getCellContent(), is(FLOW_COMPONENT_NAME_2));
         assertThat(rowData.get(1).get(1).getCellContent(), is("invocationJavascriptName"));
         assertThat(rowData.get(1).get(2).getCellContent(), is("invocationMethod"));
         assertThat(rowData.get(1).get(3).getCellContent(), is("svnprojectforinvocationjavascript"));
         assertThat(rowData.get(1).get(4).getCellContent(), is("1"));
         assertThat(rowData.get(1).get(5).getCellContent(), is("moduleName"));
+        assertThat(rowData.get(1).get(6).getCellContent(), is(BUTTON_NAME));
     }
 
     private static FlowComponent createTestFlowComponent(String flowComponentName) throws Exception{

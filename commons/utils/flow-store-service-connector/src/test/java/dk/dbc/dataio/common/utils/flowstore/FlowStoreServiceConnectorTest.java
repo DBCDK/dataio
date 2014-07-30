@@ -61,6 +61,9 @@ public class FlowStoreServiceConnectorTest {
         mockStatic(HttpClient.class);
         when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK_CONTENT), Matchers.<Map<String, String>>any()))
                 .thenReturn("path");
+
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
     }
 
     @Test(expected = NullPointerException.class)
@@ -583,6 +586,64 @@ public class FlowStoreServiceConnectorTest {
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.findAllFlowComponents();
+    }
+
+    // ************************************** update flow component tests **************************************
+    @Test
+    public void updateFlowComponent_flowComponentIsUpdated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JsonException {
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final FlowComponent flowComponentToUpdate = new FlowComponentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowComponentContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowComponentToUpdate));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        FlowComponent updatedFlowComponent = instance.updateFlowComponent(flowComponentContent, flowComponentToUpdate.getId(), flowComponentToUpdate.getVersion());
+
+        assertThat(updatedFlowComponent, is(notNullValue()));
+        assertThat(updatedFlowComponent.getContent(), is(notNullValue()));
+        assertThat(updatedFlowComponent.getId(), is (flowComponentToUpdate.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void updateFlowComponent_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowComponentContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlowComponent(flowComponentContent, ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlowComponent_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException{
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowComponentContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_ACCEPTABLE.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlowComponent(flowComponentContent, ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlowComponent_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException{
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowComponentContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.CONFLICT.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlowComponent(flowComponentContent, ID, VERSION);
     }
 
     // **************************************** create flow tests ****************************************

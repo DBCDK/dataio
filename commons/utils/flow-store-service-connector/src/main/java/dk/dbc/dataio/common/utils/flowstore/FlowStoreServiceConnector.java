@@ -242,6 +242,33 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Updates an existing flow component from the flow-store
+     *
+     * @param flowComponentContent the new flow component content
+     * @param flowComponentId the id of the flow component to update
+     * @param version the current version of the flow component
+     * @return the updated flow component
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to update the flow component
+     */
+    public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
+        InvariantUtil.checkNotNullOrThrow(flowComponentContent, "flowComponentContent");
+
+        final Map<String, String> pathVariables = new HashMap<>(1);
+        pathVariables.put(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, Long.toString(flowComponentId));
+        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT, pathVariables);
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+        final Response response = HttpClient.doPostWithJson(httpClient, headers, flowComponentContent, baseUrl, path.split(URL_PATH_SEPARATOR));
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, FlowComponent.class);
+        } finally {
+            response.close();
+        }
+    }
+
     // ************************************************** Flow **************************************************
 
     /**

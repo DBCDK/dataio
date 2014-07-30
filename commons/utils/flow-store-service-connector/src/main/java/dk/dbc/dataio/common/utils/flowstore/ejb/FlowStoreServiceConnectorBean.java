@@ -167,6 +167,16 @@ public class FlowStoreServiceConnectorBean {
         }
     }
 
+    @Lock(LockType.READ)
+    public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, long id, long version) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Updating existing flow component");
+        try{
+            return getFlowStoreServiceConnector().updateFlowComponent(flowComponentContent, id, version);
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
     private FlowStoreServiceConnector getFlowStoreServiceConnector() throws NamingException{
         final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
         return new FlowStoreServiceConnector(client, baseUrl);

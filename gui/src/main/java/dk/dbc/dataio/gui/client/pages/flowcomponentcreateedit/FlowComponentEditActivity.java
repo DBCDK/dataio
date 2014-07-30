@@ -117,7 +117,6 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
             public void onSuccess(FlowComponent flowComponent) {
                 flowComponentEditView.onSaveFlowComponentSuccess();
                 setFlowComponent(flowComponent);
-//                flowComponentEditView.initializeFields(constants.menu_FlowComponentEdit(), flowComponent);
             }
         });
     }

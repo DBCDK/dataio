@@ -6,6 +6,8 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
@@ -86,8 +88,39 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
 
     @Override
     public void saveFlowComponent(String componentName, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, String invocationMethod) {
+        fetchJavaScriptsAndUpdate(componentName, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, invocationMethod);  // Calls updateFlowComponentWithJavaScripts asynchronously after having fetched java scripts
     }
 
+    private void fetchJavaScriptsAndUpdate(final String componentName, final String svnProjectForInvocationJavascript, final long svnRevision, final String invocationJavascriptName, final String invocationMethod) {
+        javaScriptProjectFetcher.fetchRequiredJavaScript(svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, invocationMethod, new FilteredAsyncCallback<List<JavaScript>>() {
+            @Override
+            public void onFilteredFailure(Throwable e) {
+                flowComponentEditView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            }
+
+            @Override
+            public void onSuccess(List<JavaScript> javaScripts) {
+                updateFlowComponentWithJavaScripts(componentName, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javaScripts, invocationMethod);
+            }
+        });
+    }
+
+    private void updateFlowComponentWithJavaScripts(String componentName, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javaScripts, String invocationMethod) {
+        final FlowComponentContent flowComponentContent = new FlowComponentContent(componentName, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javaScripts, invocationMethod);
+        flowStoreProxy.updateFlowComponent(flowComponentContent, flowComponent.getId(), flowComponent.getVersion(), new FilteredAsyncCallback<FlowComponent>() {
+            @Override
+            public void onFilteredFailure(Throwable e) {
+                flowComponentEditView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            }
+
+            @Override
+            public void onSuccess(FlowComponent flowComponent) {
+                flowComponentEditView.onSaveFlowComponentSuccess();
+                setFlowComponent(flowComponent);
+//                flowComponentEditView.initializeFields(constants.menu_FlowComponentEdit(), flowComponent);
+            }
+        });
+    }
 
     public void getFlowComponent(final Long flowComponentId) {
         flowStoreProxy.getFlowComponent(flowComponentId, new FilteredAsyncCallback<FlowComponent>() {
@@ -95,6 +128,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
             public void onFilteredFailure(Throwable caught) {
                 flowComponentEditView.onFailure(constants.error_CannotFetchFlowComponent());
             }
+
             @Override
             public void onSuccess(FlowComponent flowComponent) {
                 setFlowComponent(flowComponent);
@@ -114,9 +148,10 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
                 flowComponentEditView.fetchRevisionFailed(getJavaScriptProjectFetcherError(e),
                         e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
+
             @Override
             public void onSuccess(List<RevisionInfo> revisions) {
-                flowComponentEditView.setAvailableRevisions(revisions, (int)flowComponent.getContent().getSvnRevision());
+                flowComponentEditView.setAvailableRevisions(revisions, (int) flowComponent.getContent().getSvnRevision());
             }
         });
     }
@@ -136,6 +171,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
             public void onFilteredFailure(Throwable e) {
                 flowComponentEditView.fetchScriptNamesFailed(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
+
             @Override
             public void onSuccess(List<String> scriptNames) {
                 flowComponentEditView.setAvailableScriptNames(scriptNames, flowComponent.getContent().getInvocationJavascriptName());

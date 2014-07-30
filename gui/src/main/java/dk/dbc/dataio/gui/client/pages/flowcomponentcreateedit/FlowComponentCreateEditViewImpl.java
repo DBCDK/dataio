@@ -44,18 +44,15 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
     private SaveButton saveButton = new SaveButton(GUIID_FLOW_COMPONENT_CREATION_EDIT_SAVE_BUTTON_PANEL, constants.button_Save(), new SaveButtonEvent());
     private Label busyLabel = new Label(constants.status_Busy());
 
-
     /**
      * Constructor
      */
     public FlowComponentCreateEditViewImpl() {
-        super(constants.menu_FlowComponentCreation());
+        super("");  // An empty string is supplied, since we don't know yet, if this is a Create or an Edit view, please refer to initializeFields() below.
     }
-
-
-    /**
-     * Initializations of the view
-     */
+        /**
+         * Initializations of the view
+         */
     public void init() {
         getElement().setId(GUIID_FLOW_COMPONENT_CREATION_EDIT_WIDGET);
 
@@ -147,18 +144,24 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
     }
 
     /**
+     * This method is called by the presenter, when signalling a successful save to the user
+     */
+    @Override
+    public void onSaveFlowComponentSuccess() {
+        onSuccess(constants.status_FlowComponentSuccessfullySaved());
+    }
+
+
+    /**
      * Initialize all fields in this view
      */
     @Override
     public void initializeFields(String header, FlowComponent flowComponent) {
         setHeader(header);
-        if (flowComponent == null) {
-            clearFields();
-        } else {
-            namePanel.setText(flowComponent.getContent().getName());
-            projectPanel.setText(flowComponent.getContent().getSvnProjectForInvocationJavascript());
-            projectPanel.fireChangeEvent();
-        }
+        clearFields();
+        namePanel.setText(flowComponent.getContent().getName());
+        projectPanel.setText(flowComponent.getContent().getSvnProjectForInvocationJavascript());
+        projectPanel.fireChangeEvent();
     }
 
     /**

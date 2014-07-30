@@ -16,4 +16,5 @@ public interface FlowComponentCreateEditView extends IsWidget, View<FlowComponen
     void fetchScriptNamesFailed(String string);
     void fetchInvocationMethodsFailed(JavaScriptProjectFetcherError errorCode, String string);
     void initializeFields(String header, FlowComponent flowComponent);
+    void onSaveFlowComponentSuccess();
 }

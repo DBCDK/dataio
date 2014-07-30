@@ -100,7 +100,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowComponentsShowConstants flowComponentsShowConstants = GWT.create(FlowComponentsShowConstants.class);
     private final static SubmitterCreateConstants submitterCreateConstants = GWT.create(SubmitterCreateConstants.class);
     private final static FlowCreateConstants flowCreateConstants = GWT.create(FlowCreateConstants.class);
-    private final static FlowComponentCreateEditConstants flowComponentCreateConstants = GWT.create(FlowComponentCreateEditConstants.class);
+    private final static FlowComponentCreateEditConstants flowComponentCreateEditConstants = GWT.create(FlowComponentCreateEditConstants.class);
     private final static FlowbinderCreateConstants flowbinderCreateConstants = GWT.create(FlowbinderCreateConstants.class);
     private final static SinkCreateEditConstants SinkCreateEditConstants = GWT.create(SinkCreateEditConstants.class);
     //private final static HarvestersShowConstants harvestersShowConstants = GWT.create(HarvestersShowConstants.class);
@@ -143,7 +143,7 @@ public class ClientFactoryImpl implements ClientFactory {
 
         // Flows Main Menu
         MenuItem createFlow = new MenuItem(GUIID_MENU_ITEM_FLOW_CREATE, flowCreateConstants.menu_FlowCreation(), new FlowCreatePlace());
-        MenuItem createFlowComponent = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE, flowComponentCreateConstants.menu_FlowComponentCreation(), new FlowComponentCreatePlace());
+        MenuItem createFlowComponent = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE, flowComponentCreateEditConstants.menu_FlowComponentCreation(), new FlowComponentCreatePlace());
         MenuItem showFlowComponents = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW, flowComponentsShowConstants.menu_FlowComponentsShow(), new FlowComponentsShowPlace());
         MenuItem createFlowBinder = new MenuItem(GUIID_MENU_ITEM_FLOWBINDER_CREATE, flowbinderCreateConstants.menu_FlowbinderCreation(), new FlowbinderCreatePlace());
         MenuItem showFlowBinders = new MenuItem(GUIID_MENU_ITEM_FLOW_BINDERS_SHOW, flowBindersShowConstants.menu_FlowBindersShow(), new FlowBindersShowPlace());

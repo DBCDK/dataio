@@ -29,6 +29,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -154,6 +155,48 @@ public class FlowComponentsBeanTest {
         final Response response = flowComponentsBean.createComponent(uriInfo, flowComponentContentString);
 
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void updateFlowComponent_nullFlowComponentContent_throws() throws JsonException, ReferencedEntityNotFoundException {
+        newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, null, 0L, 0L);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void updateFlowComponent_emptyFlowComponentContent_throws() throws JsonException, ReferencedEntityNotFoundException {
+        newFlowComponentsBeanWithMockedEntityManager().updateFlowComponent(null, "", 0L, 0L);
+    }
+
+    @Test
+    public void updateFlowComponent_flowComponentNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
+
+        final String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
+        final Response response = flowComponentsBean.updateFlowComponent(null, flowComponentContent, 123L, 4321L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void updateFlowComponent_flowComponentFound_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowComponent flowComponent = mock(FlowComponent.class);
+        final UriInfo uriInfo = mock(UriInfo.class);
+        final UriBuilder uriBuilder = mock(UriBuilder.class);
+        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+
+        when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
+        when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(flowComponent)).thenReturn("test");
+        when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(flowComponent);
+
+        final String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
+        final Response response = flowComponentsBean.updateFlowComponent(uriInfo, flowComponentContent, 123L, 4321L);
+
+        verify(flowComponent).setContent(flowComponentContent);
+        verify(flowComponent).setVersion(4321L);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
     }
 

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -14,6 +15,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -34,6 +36,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Stateless
 @Path("/")
 public class FlowComponentsBean {
+    private static final String FLOW_COMPONENT_CONTENT_DISPLAY_TEXT = "flowComponentContent";
     private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
 
@@ -101,4 +104,42 @@ public class FlowComponentsBean {
         final List<FlowComponent> results = query.getResultList();
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
+
+    /**
+     * Updates an existing sink
+     *
+     * @param uriInfo URI information
+     * @param flowComponentContent The content of the flow component
+     * @param id The flow component ID
+     * @param version The version of the flow component
+     *
+     * @return a HTTP 200 response with sink content as JSON
+     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     *         a HTTP 409 response in case of Concurrent Update error
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json component
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response updateFlowComponent(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id,
+                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+
+        InvariantUtil.checkNotNullNotEmptyOrThrow(flowComponentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
+        final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
+        if (flowComponentEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+        }
+        entityManager.detach(flowComponentEntity);
+        flowComponentEntity.setContent(flowComponentContent);
+        flowComponentEntity.setVersion(version);
+        entityManager.merge(flowComponentEntity);
+        entityManager.flush();
+        final FlowComponent updatedFlowComponent = entityManager.find(FlowComponent.class, id);
+        final String flowComponentJson = JsonUtil.toJson(updatedFlowComponent);
+        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlowComponent)).entity(flowComponentJson).build();
+    }
+
 }

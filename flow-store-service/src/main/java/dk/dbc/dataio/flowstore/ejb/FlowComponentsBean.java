@@ -106,14 +106,14 @@ public class FlowComponentsBean {
     }
 
     /**
-     * Updates an existing sink
+     * Updates an existing flow component
      *
      * @param uriInfo URI information
      * @param flowComponentContent The content of the flow component
      * @param id The flow component ID
      * @param version The version of the flow component
      *
-     * @return a HTTP 200 response with sink content as JSON
+     * @return a HTTP 200 response with flow component content as JSON
      *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
      *         a HTTP 409 response in case of Concurrent Update error
      *         a HTTP 500 response in case of general error.

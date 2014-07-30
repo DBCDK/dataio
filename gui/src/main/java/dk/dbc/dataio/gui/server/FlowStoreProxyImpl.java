@@ -131,6 +131,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException {
+        FlowComponent flowComponent;
+        try {
+            flowComponent = flowStoreServiceConnector.updateFlowComponent(flowComponentContent, id, version);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return flowComponent;
+    }
+
+    @Override
     public List<FlowComponent> findAllFlowComponents() throws ProxyException {
         final List<FlowComponent> result;
         try {

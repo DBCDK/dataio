@@ -27,6 +27,7 @@ public interface FlowStoreProxy extends RemoteService {
     Sink createSink(SinkContent sinkContent) throws NullPointerException, ProxyException;
 
     Sink updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException;
+    FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException;
 
     List<Flow> findAllFlows() throws ProxyException;
     List<FlowBinder> findAllFlowBinders() throws ProxyException;

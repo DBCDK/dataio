@@ -22,6 +22,7 @@ public interface FlowStoreProxyAsync {
     void createSink(SinkContent sinkContent, AsyncCallback<Sink> async);
 
     void updateSink(SinkContent sinkContent, Long id, Long version, AsyncCallback<Sink> async);
+    void updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version, AsyncCallback<FlowComponent> async);
 
     void findAllFlows(AsyncCallback<List<Flow>> async);
     void findAllFlowBinders(AsyncCallback<List<FlowBinder>> async);

@@ -604,4 +604,68 @@ public class FlowStoreProxyImplTest {
             fail("Unexpected error when calling: findAllFlowComponents()");
         }
     }
+
+    /*
+     * Test updateFlowComponent
+     */
+    @Test
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
+        when(flowStoreServiceConnector.updateFlowComponent(eq(flowComponent.getContent()), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.updateFlowComponent(flowComponent.getContent(), flowComponent.getId(), flowComponent.getVersion());
+            fail("No INTERNAL_SERVER_ERROR was thrown by updateFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
+        when(flowStoreServiceConnector.updateFlowComponent(eq(flowComponent.getContent()),(eq(flowComponent.getId())),(eq(flowComponent.getVersion()))))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 409));
+        try {
+            flowStoreProxy.updateFlowComponent(flowComponent.getContent(), flowComponent.getId(), flowComponent.getVersion());
+            fail("No CONFLICT_ERROR was thrown by updateFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.CONFLICT_ERROR));
+        }
+    }
+
+    @Test
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
+        when(flowStoreServiceConnector.updateFlowComponent(eq(flowComponent.getContent()), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 406));
+        try {
+            flowStoreProxy.updateFlowComponent(flowComponent.getContent(), flowComponent.getId(), flowComponent.getVersion());
+            fail("No NOT_ACCEPTABLE error was thrown by updateFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.NOT_ACCEPTABLE));
+        }
+    }
+
+    @Test
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
+        when(flowStoreServiceConnector.updateFlowComponent(eq(flowComponent.getContent()), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
+                .thenReturn(flowComponent);
+
+        try {
+            final FlowComponent updatedFlowComponent = flowStoreProxy.updateFlowComponent(flowComponent.getContent(), flowComponent.getId(), flowComponent.getVersion());
+            assertNotNull(updatedFlowComponent);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: updateFlowComponent()");
+        }
+    }
 }

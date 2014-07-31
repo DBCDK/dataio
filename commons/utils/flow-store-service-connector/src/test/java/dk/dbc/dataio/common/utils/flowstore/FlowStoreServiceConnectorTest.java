@@ -64,6 +64,9 @@ public class FlowStoreServiceConnectorTest {
 
         when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT), Matchers.<Map<String, String>>any()))
                 .thenReturn("path");
+
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
     }
 
     @Test(expected = NullPointerException.class)
@@ -805,6 +808,64 @@ public class FlowStoreServiceConnectorTest {
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.findAllFlows();
+    }
+
+    // ***************************************** update flow tests *****************************************
+    @Test
+    public void updateFlow_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+        final FlowContent flowContent = new FlowContentBuilder().build();
+        final Flow flowToUpdate = new FlowBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowToUpdate));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        Flow updatedFlow = instance.updateFlow(flowContent, flowToUpdate.getId(), flowToUpdate.getVersion());
+
+        assertThat(updatedFlow, is(notNullValue()));
+        assertThat(updatedFlow.getContent(), is(notNullValue()));
+        assertThat(updatedFlow.getId(), is (flowToUpdate.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void updateFlow_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        final FlowContent flowContent = new FlowContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlow(flowContent, ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlow_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException{
+        final FlowContent flowContent = new FlowContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_ACCEPTABLE.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlow(flowContent, ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlow_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException{
+        final FlowContent flowContent = new FlowContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.CONFLICT.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlow(flowContent, ID, VERSION);
     }
 
     private static FlowStoreServiceConnector newFlowStoreServiceConnector() {

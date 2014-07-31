@@ -15,6 +15,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -41,7 +42,7 @@ public class FlowsBean {
     private static final String FLOW_CONTENT_DISPLAY_TEXT = "flowContent";
 
     @PersistenceContext
-    private EntityManager entityManager;
+    EntityManager entityManager;
 
     /**
      * Retrieves flow from underlying data store
@@ -92,6 +93,43 @@ public class FlowsBean {
         entityManager.flush();
         final String flowJson = JsonUtil.toJson(flow);
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flowJson).build();
+    }
+
+    /**
+     * Updates an existing flow
+     *
+     * @param uriInfo URI information
+     * @param flowContent The content of the flow
+     * @param id The flow ID
+     * @param version The version of the flow
+     *
+     * @return a HTTP 200 response with flow content as JSON,
+     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     *         a HTTP 409 response in case of Concurrent Update error
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json flow
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_CONTENT)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response updateFlow(@Context UriInfo uriInfo, String flowContent, @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
+                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+
+        InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
+        final Flow flowEntity = entityManager.find(Flow.class, id);
+        if (flowEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+        }
+        entityManager.detach(flowEntity);
+        flowEntity.setContent(flowContent);
+        flowEntity.setVersion(version);
+        entityManager.merge(flowEntity);
+        entityManager.flush();
+        final Flow updatedFlow = entityManager.find(Flow.class, id);
+        final String flowJson = JsonUtil.toJson(updatedFlow);
+        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlow)).entity(flowJson).build();
     }
 
     /**

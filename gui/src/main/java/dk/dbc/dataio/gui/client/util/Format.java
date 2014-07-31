@@ -42,14 +42,14 @@ public final class Format {
     }
 
     /**
-     * Creates a Submitter Pair String in the form: 'id (name)'
+     * Pair two Strings in the form: 'mainString (inBracketsString)'
      *
-     * @param submitterId
-     * @param submitterName
-     * @return A Submitter Pair String in the form: 'id (name)'
+     * @param mainString
+     * @param inBracketsString
+     * @return A String Pair in the form: 'mainString (inBracketsString)'
      */
-    public static String submitterPairString(Long submitterId, String submitterName) {
-        return new StringBuilder().append(submitterId).append(" (").append(submitterName).append(")").toString();
+    public static String inBracketsPairString(String mainString, String inBracketsString) {
+        return new StringBuilder().append(mainString).append(" (").append(inBracketsString).append(")").toString();
     }
 
     /**
@@ -61,26 +61,4 @@ public final class Format {
         DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss");
         return dateTimeFormat.format(new Date(time));
     }
-
-    /**
-     * Creates a list of Submitter Pair Strings in the form: 'id (name)'
-     *
-     * @param submitterIds A list of Submitter Id's
-     * @param submitterNames A list of Submitter Names
-     * @return A list of Submitter Pair Strings in the form: 'id (name)'
-     * @throws IllegalArgumentException if the two input lists have different lengths
-     */
-//    public static List<String> submitterPairStrings(List<Long> submitterIds, List<String> submitterNames) {
-//        if (submitterIds.size() != submitterNames.size()) {
-//            throw new IllegalArgumentException();
-//        }
-//        List<String> result = new ArrayList<String>();
-//        Iterator<Long> idIterator = submitterIds.iterator();
-//        Iterator<String> nameIterator = submitterNames.iterator();
-//        while (idIterator.hasNext()) {
-//            result.add(submitterPairString(idIterator.next(), nameIterator.next()));
-//        }
-//        return result;
-//    }
-
 }

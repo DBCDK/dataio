@@ -119,7 +119,7 @@ public class FlowBindersShowViewImpl extends ContentPanel<FlowBindersShowPresent
                 public String getValue(FlowBinderContentViewData content) {
                     List<String> result = new ArrayList<String>();
                     for (SubmitterContent submitterContent: content.getSubmitters()) {
-                        result.add(Format.submitterPairString(submitterContent.getNumber(), submitterContent.getName()));
+                        result.add(Format.inBracketsPairString(Long.toString(submitterContent.getNumber()), submitterContent.getName()));
                     }
                     return Format.commaSeparate(result);
                 }

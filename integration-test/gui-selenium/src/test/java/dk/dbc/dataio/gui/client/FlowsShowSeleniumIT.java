@@ -12,7 +12,6 @@ import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -42,7 +41,6 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         table.waitAssertNoRows();
     }
 
-    @Ignore
     @Test
     public void testFlowsInsertOneRow_OneElementShown() throws Exception{
         final String FLOW_NAME = "Flow-name";
@@ -59,10 +57,9 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         List<SeleniumGWTTable.Cell> rowData = table.getRow(0);
         assertThat(rowData.get(0).getCellContent(), is(FLOW_NAME));
         assertThat(rowData.get(1).getCellContent(), is(FLOW_DESCRIPTION));
-        assertThat(rowData.get(2).getCellContent(), is(FLOW_COMPONENT_NAME));
+        assertThat(rowData.get(2).getCellContent(), is(formatFlowComponentName(FLOW_COMPONENT_NAME, FLOW_COMPONENT_REVISION)));
     }
 
-    @Ignore
     @Test
     public void testFlowsInsertTwoRows_TwoElementsShown() throws Exception{
         final String FLOW_NAME_1 = "NamoUno";

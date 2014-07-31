@@ -5,7 +5,10 @@ import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -126,13 +129,16 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      * @return
      */
     private String formatFlowComponents(List<FlowComponent> flowComponents) {
-        StringBuilder result = new StringBuilder();
-        for (FlowComponent component: flowComponents) {
-            if (result.length() > 0) {
-                result.append(", ");
-            }
-            result.append(component.getContent().getName());
+        List<String> parameters = new ArrayList<String>();
+        for(FlowComponent flowComponent : flowComponents){
+            parameters.add(Format.inBracketsPairString(flowComponent.getContent().getName(), formatSvnRevision(flowComponent)));
         }
+        return Format.commaSeparate(parameters);
+    }
+
+    private String formatSvnRevision(FlowComponent flowComponent){
+        StringBuilder result = new StringBuilder();
+        result.append("SVN Rev. ").append(flowComponent.getContent().getSvnRevision());
         return result.toString();
     }
 

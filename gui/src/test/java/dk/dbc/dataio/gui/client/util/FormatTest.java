@@ -1,13 +1,15 @@
 
 package dk.dbc.dataio.gui.client.util;
 
-import static dk.dbc.dataio.gui.client.util.Format.submitterPairString;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static dk.dbc.dataio.gui.client.util.Format.inBracketsPairString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
 
 /**
  * Format unit tests
@@ -39,19 +41,19 @@ public class FormatTest {
 
     @Test
     public void submitterPairString_idNull_validPairString() {
-        String result = submitterPairString(null, "name");
+        String result = inBracketsPairString(null, "name");
         assertThat(result, is("null (name)"));
     }
 
     @Test
     public void submitterPairString_nameNull_validPairString() {
-        String result = submitterPairString(27L, null);
+        String result = inBracketsPairString("27", null);
         assertThat(result, is("27 (null)"));
     }
 
     @Test
     public void submitterPairString_validInput_validPairString() {
-        String result = submitterPairString(27L, "name");
+        String result = inBracketsPairString("27", "name");
         assertThat(result, is("27 (name)"));
     }
 

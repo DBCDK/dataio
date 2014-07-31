@@ -106,7 +106,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         element.findElement(By.tagName("button")).click();
     }
 
-    private static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
+    public static void navigateToFlowComponentsShowWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW);
     }
 

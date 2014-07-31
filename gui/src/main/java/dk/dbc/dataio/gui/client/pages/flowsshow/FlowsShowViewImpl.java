@@ -1,6 +1,9 @@
 package dk.dbc.dataio.gui.client.pages.flowsshow;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -21,6 +24,7 @@ import java.util.List;
 public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implements FlowsShowView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_FLOWS_SHOW_WIDGET = "flowsshowwidget";
+    public static final String CLASS_FLOWS_SHOW_WIDGET_UPDATE_BUTTON = "flowsshowwidget_updatebutton";
 
     // Local variables
     private static final FlowsShowConstants constants = GWT.create(FlowsShowConstants.class);
@@ -67,6 +71,27 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
                 }
             };
             table.addColumn(flowComponentsColumn, constants.columnHeader_FlowComponents());
+
+            Column updateButtonColumn = new Column<Flow, String>(new ButtonCell()) {
+                @Override
+                public String getValue(Flow flow) {
+                    // The value to display in the button.
+                    return constants.button_Update();
+                }
+            };
+
+            //Define class name for the button element
+            updateButtonColumn.setCellStyleNames(CLASS_FLOWS_SHOW_WIDGET_UPDATE_BUTTON);
+
+            // Handler: Registering key clicks (on the buttonCell available for each flow).
+            // Clicks on ButtonCells are handled by setting the FieldUpdater for the Column
+            updateButtonColumn.setFieldUpdater(new FieldUpdater<Flow, String>() {
+                @Override
+                public void update(int index, Flow flow, String buttonText) {
+                    updateClick(flow);
+                }
+            });
+            table.addColumn(updateButtonColumn, constants.columnHeader_Action());
 
             add(table);
         }
@@ -119,6 +144,15 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
         table.setRowCount(flows.size());
         table.updateDone();
     }
+
+    /**
+     * When a key click has been registered, the updateFlow method in FlowsShowPresenter is called in order to handle the update action itself.
+     * @param flow The flow to edit
+     */
+    private void updateClick(Flow flow){
+        presenter.updateFlow(flow);
+    }
+
 
 
     // Private methods

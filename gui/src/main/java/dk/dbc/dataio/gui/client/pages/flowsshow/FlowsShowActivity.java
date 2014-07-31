@@ -41,6 +41,10 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
         fetchFlows();
     }
 
+    @Override
+    public void updateFlow(Flow flow) {
+        // TODO: To be implemented
+    }
 
     // Local methods
     private void fetchFlows() {

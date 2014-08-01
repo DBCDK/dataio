@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -12,12 +13,16 @@ import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 import javax.ws.rs.client.Client;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -88,8 +93,48 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(1).get(2).getCellContent(), is(formatFlowComponentName(FLOW_COMPONENT_NAME_1, FLOW_COMPONENT_REVISION_1)));
     }
 
+    @Ignore
+    @Test
+    public void testFlowsShowClickUpdateButton_UpdateFlowComponent() throws Exception {
+        final String FLOW_COMPONENT_NAME = "Flow Comp Name";
+        final Long FLOW_COMPONENT_SVN_REVISION = 412L;
+        final Long FLOW_COMPONENT_NEW_SVN_REVISION = 7465L;
+        final String FLOW_NAME = "Flouw Naim";
+        final String FLOW_DESCRIPTION = "Flou Deskribsjon";
+
+        // Create new flow, containing a flow component
+        FlowComponent flowComponent = createTestFlowComponent(FLOW_COMPONENT_NAME, FLOW_COMPONENT_SVN_REVISION);
+        Flow old = createTestFlow(FLOW_NAME, FLOW_DESCRIPTION, Arrays.asList(flowComponent));
+
+        // Update the svn revision number in the flow component without updating the flow
+        updateTestFlowComponentSvnRevision(flowComponent, FLOW_COMPONENT_NEW_SVN_REVISION);
+
+        // Navigate to the flows show window.
+        navigateToFlowsShowWidget(webDriver);
+
+        // Assert that the correct svn revision number is shown
+        assertThatDisplayedSvnRevisionNumberIs(webDriver, FLOW_COMPONENT_NAME, FLOW_COMPONENT_SVN_REVISION);
+
+        // Navigate to the first row, locate the edit button and click.
+        locateAndClickEditButtonForElement(0);
+
+        // Assert that the new svn revision number is shown
+        assertThatDisplayedSvnRevisionNumberIs(webDriver, FLOW_COMPONENT_NAME, FLOW_COMPONENT_NEW_SVN_REVISION);
+    }
+
+    /*
+     * Private methods
+     */
+
     private static void navigateToFlowsShowWidget(WebDriver webDriver) {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW);
+    }
+
+    public static void locateAndClickEditButtonForElement(int index) {
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver,
+                FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET,
+                FlowsShowViewImpl.CLASS_FLOWS_SHOW_WIDGET_UPDATE_BUTTON, index);
+        element.findElement(By.tagName("button")).click();
     }
 
     private static Flow createTestFlow(String flowName, String flowDescription, List<FlowComponent> flowComponents) throws Exception{
@@ -97,9 +142,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
                 .setName(flowName)
                 .setDescription(flowDescription)
                 .setComponents(flowComponents)
-
                 .build();
-
         return flowStoreServiceConnector.createFlow(flowContent);
     }
 
@@ -108,11 +151,29 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
                 .setName(flowComponentName)
                 .setSvnRevision(revision)
                 .build();
-
         return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+    }
+
+    private static FlowComponent updateTestFlowComponentSvnRevision(FlowComponent flowComponent, Long svnRevision) throws FlowStoreServiceConnectorException {
+        FlowComponentContent newFlowComponentContent = new FlowComponentContentBuilder()
+                .setName(flowComponent.getContent().getName())
+                .setSvnProjectForInvocationJavascript(flowComponent.getContent().getSvnProjectForInvocationJavascript())
+                .setInvocationJavascriptName(flowComponent.getContent().getInvocationJavascriptName())
+                .setInvocationMethod(flowComponent.getContent().getInvocationMethod())
+                .setSvnRevision(svnRevision)
+                .build();
+        return flowStoreServiceConnector.updateFlowComponent(newFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
+    }
+
+    private void assertThatDisplayedSvnRevisionNumberIs(WebDriver webDriver, String flowComponentName, Long svnRevision) {
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
+        table.waitAssertRows(1);
+        List<SeleniumGWTTable.Cell> data = table.get().get(0);
+        assertThat(data.get(2).getCellContent(), is(formatFlowComponentName(flowComponentName, svnRevision)));
     }
 
     private static String formatFlowComponentName(String name, Long revision) {
         return name + " (SVN Rev. " + revision.toString() + ")";
     }
+
 }

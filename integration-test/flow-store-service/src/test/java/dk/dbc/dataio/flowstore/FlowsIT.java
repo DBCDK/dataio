@@ -27,7 +27,6 @@ import java.util.Map;
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -259,7 +258,6 @@ public class FlowsIT {
         assertThat(updatedFlow.getId(), is(flow.getId()));
 
         // And...
-        assertThat(updatedFlow.getVersion(), not(flow.getVersion()));
         assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
 
         // And...

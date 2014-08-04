@@ -2,70 +2,37 @@ package dk.dbc.dataio.sink.dummy;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Resource;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
+
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.ejb.MessageDrivenContext;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.TextMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
 
 @MessageDriven
-public class DummyMessageProcessorBean {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DummyMessageProcessorBean.class);
-
-    private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME = "chunkResultSource";
-    private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE = "sink";
-
-    @Resource
-    MessageDrivenContext messageDrivenContext;
-
+public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     @EJB
-    TextMessageSenderBean textMessageSender;
+    JobProcessorMessageProducerBean jobProcessorMessageProducer;
 
-    public void onMessage(Message message) {
-        try {
-            if (message instanceof TextMessage) {
-                String messagePayload = ((TextMessage) message).getText();
-                if (messagePayload == null) {
-                    LOGGER.error("Message content was null");
-                    return;
-                }
-                if (messagePayload.isEmpty()) {
-                    LOGGER.error("Message conent was empty");
-                    return;
-                }
-                ChunkResult chunkResult = JsonUtil.fromJson(messagePayload, ChunkResult.class, MixIns.getMixIns());
-                List<ChunkItem> sinkItems = new ArrayList<>(chunkResult.getItems().size());
-                for (ChunkItem item : chunkResult.getItems()) {
-                    // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
-                    ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
-                    sinkItems.add(new ChunkItem(item.getId(), "Set by DummySink", status));
+    @Override
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
+        final ChunkResult chunkResult = unmarshallPayload(consumedMessage);
+        final SinkChunkResult sinkChunkResult = processPayload(chunkResult);
+        jobProcessorMessageProducer.send(sinkChunkResult);
+    }
 
-                }
-                SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(), chunkResult.getChunkId(), chunkResult.getEncoding(), sinkItems);
-
-                List<TextMessageSenderBean.StringProperty> properties = new ArrayList<>();
-                properties.add(new TextMessageSenderBean.StringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
-                properties.add(new TextMessageSenderBean.StringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE));
-                String jsonMessage = JsonUtil.toJson(sinkChunkResult);
-                LOGGER.info("Adding dummy message to queue: {}", jsonMessage);
-                textMessageSender.send(jsonMessage, properties);
-            } else {
-                LOGGER.error("Invalid message type: {}", message);
-            }
-        } catch (JMSException | JsonException ex) {
-            LOGGER.error("Exception caught while processing message.", ex);
+    SinkChunkResult processPayload(ChunkResult chunkResult) {
+        final List<ChunkItem> sinkItems = new ArrayList<>(chunkResult.getItems().size());
+        for (final ChunkItem item : chunkResult.getItems()) {
+            // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
+            ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
+            sinkItems.add(new ChunkItem(item.getId(), "Set by DummySink", status));
         }
+        return new SinkChunkResult(chunkResult.getJobId(), chunkResult.getChunkId(), chunkResult.getEncoding(), sinkItems);
     }
 }

@@ -1,105 +1,62 @@
 package dk.dbc.dataio.sink.dummy;
 
-import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
-import dk.dbc.dataio.sink.testutil.MockedTextMessage;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import java.nio.charset.Charset;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.List;
-import javax.jms.JMSException;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 
 public class DummyMessageProcessorBeanTest {
-
-    private TextMessageSenderBean mockTextMessageSender = mock(TextMessageSenderBean.class);
-
-    @Before
-    public void setup() {
-         mock(TextMessageSenderBean.class);
-    }
-
-    Logger LOGGER = LoggerFactory.getLogger(DummyMessageProcessorBeanTest.class);
+    private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
 
     @Test
-    public void onMessage_nullMessage_noNewMessageOnQueue() {
-        DummyMessageProcessorBean dummy = new DummyMessageProcessorBean();
-        dummy.textMessageSender = mockTextMessageSender;
-        dummy.messageDrivenContext = new MockedMessageDrivenContext();
+    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException {
+        final String messageId = "id";
+        final String payloadType = "ChunkResult";
+        final String payload = new ChunkResultJsonBuilder().build();
+        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, payload);
+        getDummyMessageProcessorBean().handleConsumedMessage(consumedMessage);
 
-        dummy.onMessage(null);
-
-        assertThat(dummy.messageDrivenContext.getRollbackOnly(), is(false));
-        verify(mockTextMessageSender, times(0)).send(any(String.class), any(List.class));
+        verify(jobProcessorMessageProducerBean, times(1)).send(any(SinkChunkResult.class));
     }
 
     @Test
-    public void onMessage_nullTextInMessage_noNewMessageOnQueue() throws JMSException {
-        DummyMessageProcessorBean dummy = new DummyMessageProcessorBean();
-        dummy.textMessageSender = mockTextMessageSender;
-        dummy.messageDrivenContext = new MockedMessageDrivenContext();
-        MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText(null);
+    public void processPayload_chunkResultArgIsNonEmpty_returnsNonEmptySinkChunkResult() {
+        final List<ChunkItem> chunkResultItems = Arrays.asList(
+                new ChunkItemBuilder().setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setStatus(ChunkItem.Status.IGNORE).build()
+        );
+        final ChunkResult chunkResult = new ChunkResultBuilder()
+                .setItems(chunkResultItems)
+                .build();
 
-        dummy.onMessage(textMessage);
-
-        assertThat(dummy.messageDrivenContext.getRollbackOnly(), is(false));
-        verify(mockTextMessageSender, times(0)).send(any(String.class), any(List.class));
+        final SinkChunkResult sinkChunkResult = getDummyMessageProcessorBean().processPayload(chunkResult);
+        assertThat(sinkChunkResult.getItems().size(), is(chunkResultItems.size()));
+        assertThat(sinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(chunkResultItems.get(1).getStatus()));
+        assertThat(sinkChunkResult.getItems().get(2).getStatus(), is(chunkResultItems.get(2).getStatus()));
     }
 
-    @Test
-    public void onMessage_emptyTextInMessage_noNewMessageOnQueue() throws JMSException {
-        DummyMessageProcessorBean dummy = new DummyMessageProcessorBean();
-        dummy.textMessageSender = mockTextMessageSender;
-        dummy.messageDrivenContext = new MockedMessageDrivenContext();
-        MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText("");
-
-        dummy.onMessage(textMessage);
-
-        assertThat(dummy.messageDrivenContext.getRollbackOnly(), is(false));
-        verify(mockTextMessageSender, times(0)).send(any(String.class), any(List.class));
-    }
-
-    @Test
-    public void onMessage_invalidJsonInMessage_noNewMessageOnQueue() throws JMSException {
-        DummyMessageProcessorBean dummy = new DummyMessageProcessorBean();
-        dummy.textMessageSender = mockTextMessageSender;
-        dummy.messageDrivenContext = new MockedMessageDrivenContext();
-        MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText("This is not valid Json!");
-
-        dummy.onMessage(textMessage);
-
-        assertThat(dummy.messageDrivenContext.getRollbackOnly(), is(false));
-        verify(mockTextMessageSender, times(0)).send(any(String.class), any(List.class));
-    }
-
-    @Test
-    public void onMessage_validJsonChunkInMessage_newMessageOnQueue() throws JMSException, JsonException {
-        List<ChunkItem> items = Arrays.asList(new ChunkItem(0, "some data", ChunkItem.Status.SUCCESS));
-        ChunkResult chunk = new ChunkResult(0L, 0L, Charset.forName("UTF-8"), items);
-        DummyMessageProcessorBean dummy = new DummyMessageProcessorBean();
-        dummy.textMessageSender = mockTextMessageSender;
-        dummy.messageDrivenContext = new MockedMessageDrivenContext();
-        MockedTextMessage textMessage = new MockedTextMessage();
-        textMessage.setText((JsonUtil.toJson(chunk)));
-
-        dummy.onMessage(textMessage);
-
-        assertThat(dummy.messageDrivenContext.getRollbackOnly(), is(false));
-        verify(mockTextMessageSender, times(1)).send(any(String.class), any(List.class));
+    private DummyMessageProcessorBean getDummyMessageProcessorBean() {
+        final DummyMessageProcessorBean dummyMessageProcessorBean = new DummyMessageProcessorBean();
+        dummyMessageProcessorBean.jobProcessorMessageProducer = jobProcessorMessageProducerBean;
+        return dummyMessageProcessorBean;
     }
 }

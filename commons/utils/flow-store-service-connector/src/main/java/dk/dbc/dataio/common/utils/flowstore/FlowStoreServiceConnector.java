@@ -331,33 +331,6 @@ public class FlowStoreServiceConnector {
         }
     }
 
-    /**
-     * Updates an existing flow from the flow-store
-     *
-     * @param flowContent the new flow content
-     * @param flowId the id of the flow  to update
-     * @param version the current version of the flow
-     * @return the updated flow
-     * @throws ProcessingException on general communication error
-     * @throws FlowStoreServiceConnectorException on failure to update the flow
-     */
-    public Flow updateFlow(FlowContent flowContent, long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
-        InvariantUtil.checkNotNullOrThrow(flowContent, "flowContent");
-
-        final Map<String, String> pathVariables = new HashMap<>(1);
-        pathVariables.put(FlowStoreServiceConstants.FLOW_ID_VARIABLE, Long.toString(flowId));
-        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.FLOW_CONTENT, pathVariables);
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
-        final Response response = HttpClient.doPostWithJson(httpClient, headers, flowContent, baseUrl, path.split(URL_PATH_SEPARATOR));
-        try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseEntity(response, Flow.class);
-        } finally {
-            response.close();
-        }
-    }
-
     // ******************************************** Private helper methods ********************************************
 
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {

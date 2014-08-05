@@ -810,6 +810,36 @@ public class FlowStoreServiceConnectorTest {
         instance.findAllFlows();
     }
 
+    // ***************************************** update flow tests *****************************************
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+        final Flow flowToUpdate = new FlowBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, "", FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowToUpdate));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        Flow updatedFlow = instance.updateFlowComponentsInFlowToLatestVersion(flowToUpdate.getId(), flowToUpdate.getVersion());
+
+        assertThat(updatedFlow, is(notNullValue()));
+        assertThat(updatedFlow.getContent(), is(notNullValue()));
+        assertThat(updatedFlow.getId(), is (flowToUpdate.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void updateFlowComponentsInFlowToLatestVersion_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, "", FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlowComponentsInFlowToLatestVersion(ID, VERSION);
+    }
+
     private static FlowStoreServiceConnector newFlowStoreServiceConnector() {
         return new FlowStoreServiceConnector(CLIENT, FLOW_STORE_URL);
     }

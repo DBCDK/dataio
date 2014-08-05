@@ -93,7 +93,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(1).get(2).getCellContent(), is(formatFlowComponentName(FLOW_COMPONENT_NAME_1, FLOW_COMPONENT_REVISION_1)));
     }
 
-    @Ignore
+    @Ignore("Ignored since the target code is not yet ready. 2014.08.05 - slf")
     @Test
     public void testFlowsShowClickUpdateButton_UpdateFlowComponent() throws Exception {
         final String FLOW_COMPONENT_NAME = "Flow Comp Name";
@@ -116,7 +116,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThatDisplayedSvnRevisionNumberIs(webDriver, FLOW_COMPONENT_NAME, FLOW_COMPONENT_SVN_REVISION);
 
         // Navigate to the first row, locate the edit button and click.
-        locateAndClickEditButtonForElement(0);
+        locateAndClickUpdateButtonForElement(0);
 
         // Assert that the new svn revision number is shown
         assertThatDisplayedSvnRevisionNumberIs(webDriver, FLOW_COMPONENT_NAME, FLOW_COMPONENT_NEW_SVN_REVISION);
@@ -130,7 +130,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW);
     }
 
-    public static void locateAndClickEditButtonForElement(int index) {
+    public static void locateAndClickUpdateButtonForElement(int index) {
         WebElement element = SeleniumUtil.findElementInCurrentView(webDriver,
                 FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET,
                 FlowsShowViewImpl.CLASS_FLOWS_SHOW_WIDGET_UPDATE_BUTTON, index);

@@ -2,14 +2,16 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.Flow;
+import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -22,6 +24,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -135,7 +138,7 @@ public class FlowsBeanTest {
     public void CreateFlow_flowCreated_returnsResponseWithHttpStatusOk_returnsFlow() throws JsonException, ReferencedEntityNotFoundException {
         final UriInfo uriInfo = mock(UriInfo.class);
         final UriBuilder uriBuilder = mock(UriBuilder.class);
-        final FlowContent flowContent = new FlowContent("CreateContentName", "CreateDescription", new ArrayList<FlowComponent>());
+        final FlowContent flowContent = new FlowContent("CreateContentName", "CreateDescription", new ArrayList<dk.dbc.dataio.commons.types.FlowComponent>());
         final String flowContentString = new FlowContentJsonBuilder().setName("CreateContentName").build();
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
 
@@ -151,28 +154,39 @@ public class FlowsBeanTest {
         assertThat(response.hasEntity(), is(true));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void updateFlow_nullFlowContent_throws() throws JsonException, ReferencedEntityNotFoundException {
-        newFlowsBeanWithMockedEntityManager().updateFlow(null, null, 0L, 0L);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateFlow_emptyFlowContent_throws() throws JsonException, ReferencedEntityNotFoundException {
-        newFlowsBeanWithMockedEntityManager().updateFlow(null, "", 0L, 0L);
-    }
-
     @Test
-    public void updateFlow_flowNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+    public void updateFlowComponentsInFlowToLatestVersion_flowComponentNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
-        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
+        final Flow flow = mock(Flow.class);
+        mockStatic(JsonUtil.class);
+        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
-        final String flowContent = new FlowContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = flowsBean.updateFlow(null, flowContent, 123L, 4321L);
+        FlowComponentContent flowComponentContent = new FlowComponentContent(
+                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod");
+        dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(1L, 22L, flowComponentContent);
+
+        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
+        flowComponents.add(flowComponent);
+
+        FlowContent flowContent = new FlowContent(
+                "TestName", "TestDescription", flowComponents);
+
+        when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
+        when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
+        final Response response = flowsBean.updateFlowComponentsInFlowToLatestVersion(null, 123L, 4321L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
-    public void updateFlow_flowFound_returnsResponseWithHttpStatusOk_returnsFlow() throws JsonException, ReferencedEntityNotFoundException {
+    public void updateFlowComponentsInFlowToLatestVersion_flowNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
+        final Response response = flowsBean.updateFlowComponentsInFlowToLatestVersion(null, 123L, 4321L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_flowFound_returnsResponseWithHttpStatusOk_returnsFlow() throws JsonException, ReferencedEntityNotFoundException {
         final Flow flow = mock(Flow.class);
         final UriInfo uriInfo = mock(UriInfo.class);
         final UriBuilder uriBuilder = mock(UriBuilder.class);
@@ -182,12 +196,27 @@ public class FlowsBeanTest {
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(flow)).thenReturn("test");
+
+        FlowComponentContent flowComponentContent = new FlowComponentContent(
+                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod");
+        dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(1L, 22L, flowComponentContent);
+
+        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
+        flowComponents.add(flowComponent);
+
+        FlowContent flowContent = new FlowContent("TestName", "TestDescription", flowComponents);
+
+        when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
+        when(JsonUtil.fromJson(anyString(), eq(dk.dbc.dataio.commons.types.FlowComponent.class))).thenReturn(flowComponent);
+        when(JsonUtil.toJson(eq(flowComponent))).thenReturn("test");
+
+        when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(new FlowComponent());
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
-        final String flowContent = new FlowContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = flowsBean.updateFlow(uriInfo, flowContent, 123L, 4321L);
 
-        verify(flow).setContent(flowContent);
+        final Response response = flowsBean.updateFlowComponentsInFlowToLatestVersion(uriInfo, 123L, 4321L);
+
+        verify(flow).setContent(JsonUtil.toJson(flowContent));
         verify(flow).setVersion(4321L);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
@@ -198,5 +227,4 @@ public class FlowsBeanTest {
         flowsBean.entityManager = ENTITY_MANAGER;
         return flowsBean;
     }
-
 }

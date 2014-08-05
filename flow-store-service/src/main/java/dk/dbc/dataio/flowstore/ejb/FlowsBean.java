@@ -1,11 +1,14 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
+import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +27,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
 import java.util.List;
 
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
@@ -96,34 +100,45 @@ public class FlowsBean {
     }
 
     /**
-     * Updates an existing flow
+     * Updates an existing flow. The versioned flow components, contained within the flow, are replaced with latest version
+     * Post it data is ignored as the data is collected within this method.
      *
      * @param uriInfo URI information
-     * @param flowContent The content of the flow
      * @param id The flow ID
      * @param version The version of the flow
      *
      * @return a HTTP 200 response with flow content as JSON,
-     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
-     *         a HTTP 409 response in case of Concurrent Update error
      *         a HTTP 500 response in case of general error.
      *
      * @throws JsonException on failure to create json flow
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_CONTENT)
-    @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateFlow(@Context UriInfo uriInfo, String flowContent, @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
+    public Response updateFlowComponentsInFlowToLatestVersion(@Context UriInfo uriInfo, @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
                                @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
 
-        InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
+        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();
+
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
         }
         entityManager.detach(flowEntity);
-        flowEntity.setContent(flowContent);
+        FlowContent flowContent = JsonUtil.fromJson(flowEntity.getContent(), FlowContent.class);
+
+        for(dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()){
+            FlowComponent flowComponentWithLatestVersion = entityManager.find(FlowComponent.class, flowComponent.getId());
+            if (flowComponentWithLatestVersion == null) {
+                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+            }
+            String flowComponentWithLatestVersionJson = JsonUtil.toJson(flowComponentWithLatestVersion);
+            dk.dbc.dataio.commons.types.FlowComponent updatedFlowComponent = JsonUtil.fromJson(flowComponentWithLatestVersionJson, dk.dbc.dataio.commons.types.FlowComponent.class);
+
+            flowComponentsWithLatestVersion.add(updatedFlowComponent);
+        }
+        FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), flowComponentsWithLatestVersion);
+        flowEntity.setContent(JsonUtil.toJson(updatedFlowContent));
         flowEntity.setVersion(version);
         entityManager.merge(flowEntity);
         entityManager.flush();

@@ -53,9 +53,16 @@ public class SinksBean {
     public Response getSink(@PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id) throws JsonException {
         final Sink sink = entityManager.find(Sink.class, id);
         if (sink == null) {
-            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(ServiceUtil.asJsonError(NOT_FOUND_MESSAGE))
+                    .build();
         }
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(sink));
+        return Response
+                .ok()
+                .entity(JsonUtil.toJson(sink))
+                .tag(sink.getVersion().toString())
+                .build();
     }
 
 
@@ -81,7 +88,11 @@ public class SinksBean {
         final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContent);
         entityManager.flush();
         final String sinkJson = JsonUtil.toJson(sink);
-        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sink)).entity(sinkJson).build();
+        return Response
+                .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sink))
+                .entity(sinkJson)
+                .tag(sink.getVersion().toString())
+                .build();
     }
 
     /**
@@ -109,7 +120,9 @@ public class SinksBean {
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
         final Sink sinkEntity = entityManager.find(Sink.class, id);
         if (sinkEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+            return Response
+                    .status(Response.Status.NOT_FOUND.getStatusCode())
+                    .build();
         }
         entityManager.detach(sinkEntity);
         sinkEntity.setContent(sinkContent);
@@ -118,7 +131,11 @@ public class SinksBean {
         entityManager.flush();
         final Sink updatedSink = entityManager.find(Sink.class, id);
         final String sinkJson = JsonUtil.toJson(updatedSink);
-        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedSink)).entity(sinkJson).build();
+        return Response
+                .ok()
+                .entity(sinkJson)
+                .tag(updatedSink.getVersion().toString())
+                .build();
     }
 
 
@@ -135,7 +152,10 @@ public class SinksBean {
     public Response findAllSinks() throws JsonException {
         final TypedQuery<Sink> query = entityManager.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class);
         final List<Sink> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+        return Response
+                .ok()
+                .entity(JsonUtil.toJson(results))
+                .build();
     }
 }
 

@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.flowstore.entity.Sink;
+import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -23,6 +24,7 @@ import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.any;
@@ -35,7 +37,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-        JsonUtil.class,})
+        JsonUtil.class,
+        ServiceUtil.class})
 public class SinksBeanTest {
 
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
@@ -110,12 +113,16 @@ public class SinksBeanTest {
         when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(null);
         Response response = sinksBean.getSink(1L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat(response.getEntityTag(), is(nullValue()));
     }
 
     @Test
     public void getSink_sinkFound_returnsResponseWithHttpStatusOK() throws JsonException {
+        final String SINK_NAME = "testSink";
+        final String EXPECTED_ETAG_VALUE = "234";
         final Sink sink = new Sink();
-        sink.setContent(new SinkContentJsonBuilder().setName("testSink").build());
+        sink.setContent(new SinkContentJsonBuilder().setName(SINK_NAME).build());
+        sink.setVersion(Long.parseLong(EXPECTED_ETAG_VALUE));
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(sink);
 
@@ -123,7 +130,8 @@ public class SinksBeanTest {
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
         JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
-        assertThat(entityNode.get("content").get("name").textValue(), is("testSink"));
+        assertThat(entityNode.get("content").get("name").textValue(), is(SINK_NAME));
+        assertThat(response.getEntityTag().getValue(), is(EXPECTED_ETAG_VALUE));
     }
 
     @Test(expected = NullPointerException.class)
@@ -148,6 +156,8 @@ public class SinksBeanTest {
 
     @Test
     public void updateSink_sinkFound_returnsResponseWithHttpStatusOk_returnsSink() throws JsonException, ReferencedEntityNotFoundException {
+        final Long CURRENT_VERSION = 345L;
+        final Long EXPECTED_ETAG_VALUE = CURRENT_VERSION + 1;
         final Sink sink = mock(Sink.class);
         final UriInfo uriInfo = mock(UriInfo.class);
         final UriBuilder uriBuilder = mock(UriBuilder.class);
@@ -158,14 +168,16 @@ public class SinksBeanTest {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(sink)).thenReturn("test");
         when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(sink);
+        when(sink.getVersion()).thenReturn(EXPECTED_ETAG_VALUE);
 
         final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = sinksBean.updateSink(uriInfo, sinkContent, 123L, 4321L);
+        final Response response = sinksBean.updateSink(uriInfo, sinkContent, 123L, CURRENT_VERSION);
 
         verify(sink).setContent(sinkContent);
-        verify(sink).setVersion(4321L);
+        verify(sink).setVersion(CURRENT_VERSION);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
+        assertThat(response.getEntityTag().getValue(), is(EXPECTED_ETAG_VALUE.toString()));
     }
 
     @Test
@@ -175,17 +187,23 @@ public class SinksBeanTest {
         final SinkContent sinkContent = new SinkContent("CreateContentName", "Resource");
         final String sinkContentString = new SinkContentJsonBuilder().setName("CreateContentName").build();
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        final Sink sink = new Sink();
+        final String expectedETagValue = "123";
+        sink.setVersion(Long.parseLong(expectedETagValue));
 
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         mockStatic(JsonUtil.class);
         when(JsonUtil.fromJson(sinkContentString, SinkContent.class, MixIns.getMixIns())).thenReturn(sinkContent);
         when(JsonUtil.toJson(any(Sink.class))).thenReturn("sink");
+        mockStatic(ServiceUtil.class);
+        when(ServiceUtil.saveAsVersionedEntity(ENTITY_MANAGER, Sink.class, sinkContentString)).thenReturn(sink);
 
         final Response response = sinksBean.createSink(uriInfo, sinkContentString);
 
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
+        assertThat(response.getEntityTag().getValue(), is(expectedETagValue));
     }
 
     public static SinksBean newSinksBeanWithMockedEntityManager() {

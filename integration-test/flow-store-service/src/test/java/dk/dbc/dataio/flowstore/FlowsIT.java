@@ -5,9 +5,12 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
@@ -19,12 +22,14 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -218,5 +223,100 @@ public class FlowsIT {
         assertThat(listOfFlows.get(0).getContent().getName(), is (flowSortsFirst.getContent().getName()));
         assertThat(listOfFlows.get(1).getContent().getName(), is (flowSortsSecond.getContent().getName()));
         assertThat(listOfFlows.get(2).getContent().getName(), is (flowSortsThird.getContent().getName()));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * And  : a valid flow with given id is already stored
+     * When : valid JSON is POSTed to the flow path with an identifier (update)
+     * Then : assert the correct fields have been set with the correct values
+     * And  : assert that the id of the flow has not changed
+     * And  : assert that the version number has been updated
+     * And  : assert that updated data can be found in the underlying database and only one flow exists
+     */
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_ok() throws Exception{
+
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        // And...
+        // Create flow component
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+        final List<FlowComponent> flowComponents = new ArrayList<>();
+        flowComponents.add(flowComponent);
+
+        // Create flow containing the flow component created above
+        final FlowContent flowContent = new FlowContentBuilder().setComponents(flowComponents).build();
+        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+
+        // Update the component to a newer revision
+        FlowComponentContent updatedFlowComponentContent = new FlowComponentContent(
+                flowComponent.getContent().getName(),
+                flowComponent.getContent().getSvnProjectForInvocationJavascript(),
+                flowComponent.getContent().getSvnRevision() + 1,
+                flowComponent.getContent().getInvocationJavascriptName(),
+                flowComponent.getContent().getJavascripts(),
+                flowComponent.getContent().getInvocationMethod());
+
+        flowStoreServiceConnector.updateFlowComponent(updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
+
+        // When...
+        // Update the flow component embedded within the flow to the latest svn revision
+        Flow updatedFlow = flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+
+        // Then...
+        assertNotNull(updatedFlow);
+        assertNotNull(updatedFlow.getContent());
+        assertNotNull(updatedFlow.getId());
+        assertNotNull(updatedFlow.getVersion());
+        assertThat(updatedFlow.getContent().getName(), is(flowContent.getName()));
+        assertThat(updatedFlow.getContent().getDescription(), is(flowContent.getDescription()));
+
+        for(FlowComponent updatedFlowComponent : updatedFlow.getContent().getComponents()){
+            assertThat(updatedFlowComponent.getContent().getSvnRevision(), not(flowComponent.getContent().getSvnRevision()));
+        }
+
+        // And...
+        assertThat(updatedFlow.getId(), is(flow.getId()));
+
+        // And...
+        assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
+
+        // And...
+        final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
+        assertThat(flows.size(), is(1));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the flows path with an identifier (update) and wrong id number
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     * And  : assert that no flows exist in the underlying database
+     */
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        try{
+            // When...
+            flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(1234, 1L);
+
+            fail("Wrong flow Id was not detected as input to updateFlowComponentsInFlowToLatestVersion().");
+
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+
+            // And...
+            assertThat(e.getStatusCode(), is(404));
+
+            // And...
+            final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
+            assertNotNull(flows);
+            assertThat(flows.size(), is(0));
+        }
     }
 }

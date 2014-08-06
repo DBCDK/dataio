@@ -88,11 +88,10 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
             updateButtonColumn.setFieldUpdater(new FieldUpdater<Flow, String>() {
                 @Override
                 public void update(int index, Flow flow, String buttonText) {
-                    updateClick(flow);
+                    updateFlowComponents(flow);
                 }
             });
-            table.addColumn(updateButtonColumn, constants.columnHeader_Action());
-
+                table.addColumn(updateButtonColumn, constants.columnHeader_Action());
             add(table);
         }
     }
@@ -149,11 +148,9 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      * When a key click has been registered, the updateFlow method in FlowsShowPresenter is called in order to handle the update action itself.
      * @param flow The flow to edit
      */
-    private void updateClick(Flow flow){
-        presenter.updateFlow(flow);
+    private void updateFlowComponents(Flow flow){
+        presenter.updateFlowComponentsInFlowToLatestVersion(flow);
     }
-
-
 
     // Private methods
 

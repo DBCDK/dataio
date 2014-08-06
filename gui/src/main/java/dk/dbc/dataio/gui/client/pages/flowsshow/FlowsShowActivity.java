@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+
 import java.util.List;
 
 
@@ -42,8 +43,18 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
     }
 
     @Override
-    public void updateFlow(Flow flow) {
-        // TODO: To be implemented
+    public void updateFlowComponentsInFlowToLatestVersion(Flow flow) {
+        flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion(), new FilteredAsyncCallback<Flow>() {
+            @Override
+            public void onFilteredFailure(Throwable e) {
+                flowsShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+            }
+
+            @Override
+            public void onSuccess(Flow flow) {
+                fetchFlows();
+            }
+        });
     }
 
     // Local methods
@@ -59,5 +70,4 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
             }
         });
     }
-
 }

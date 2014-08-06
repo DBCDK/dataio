@@ -50,8 +50,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-    HttpClient.class,
-    ServiceUtil.class
+        HttpClient.class,
+        ServiceUtil.class
 })
 public class FlowStoreProxyImplTest {
     private final String flowStoreServiceUrl = "http://dataio/flow-service";
@@ -519,6 +519,55 @@ public class FlowStoreProxyImplTest {
             fail("No ENTITY_NOT_FOUND error was thrown by getFlowComponent()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.ENTITY_NOT_FOUND));
+        }
+    }
+
+    /*
+     * Test updateFlow
+     */
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final Flow flow = new FlowBuilder().setId(ID).setVersion(1L).build();
+        when(flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion((eq(flow.getId())), (eq(flow.getVersion()))))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+            fail("No INTERNAL_SERVER_ERROR was thrown by updateFlowComponentsInFlowToLatestVersion()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final Flow flow = new FlowBuilder().setId(ID).setVersion(1L).build();
+        when(flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion((eq(flow.getId())),(eq(flow.getVersion()))))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 409));
+        try {
+            flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+            fail("No CONFLICT_ERROR was thrown by updateFlowComponentsInFlowToLatestVersion()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.CONFLICT_ERROR));
+        }
+    }
+
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_remoteServiceReturnsHttpStatusOk_returnsFlowEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final Flow flow = new FlowBuilder().setId(ID).setVersion(1L).build();
+        when(flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion((eq(flow.getId())), (eq(flow.getVersion()))))
+                .thenReturn(flow);
+
+        try {
+            final Flow updatedFlow = flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+            assertNotNull(updatedFlow);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: updateFlowComponentsInFlowToLatestVersion()");
         }
     }
 

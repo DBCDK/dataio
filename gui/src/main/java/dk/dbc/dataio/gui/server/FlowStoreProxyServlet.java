@@ -69,6 +69,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public Flow updateFlowComponentsInFlowToLatestVersion(Long id, Long version) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(id, version);
+    }
+
+    @Override
     public List<FlowComponent> findAllFlowComponents() throws ProxyException {
         return flowStoreProxy.findAllFlowComponents();
     }

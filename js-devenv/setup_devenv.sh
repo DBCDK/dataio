@@ -24,10 +24,10 @@ if isNotSet BUILD_NUMBER ; then
 fi
 echo $BUILD_NUMBER
 
-svn co -N $REPOS_URL $REPOS_DIR
+svn co --depth empty $REPOS_URL $REPOS_DIR
 cd $REPOS_DIR
-svn co $REPOS_URL/jsshell-acctest/trunk jsshell-acctest
-svn co $REPOS_URL/datawell-convert/trunk datawell-convert
+svn up jsshell-acctest
+svn up datawell-convert
 cd ..
 
 JAIL_DIR=testarea

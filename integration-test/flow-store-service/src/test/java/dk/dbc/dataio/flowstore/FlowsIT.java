@@ -319,4 +319,89 @@ public class FlowsIT {
             assertThat(flows.size(), is(0));
         }
     }
+
+    /**
+     * Given: a deployed flow-store service
+     * And  : a valid flow with given id is already stored and the flow is opened for edit by two different users
+     * And  : the first user updates the flow, valid JSON is POSTed to the flows path with an identifier (update)
+     *        and correct version number
+     * When : the second user attempts to update the original version of the flow, valid JSON is POSTed to the flow components
+     *        path with an identifier (update) and wrong version number
+
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a CONFLICT http status code
+     * And  : assert the flow component embedded within the flow has been updated to the latest version
+     * And  : assert that only one flow exists in the underlying database
+     * And  : assert that updated data from the first user can be found in the underlying database
+     * And  : assert that the version number has been updated only by the first user
+     */
+    @Test
+    public void updateFlowComponentsInFlowToLatestVersion_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
+
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        long flowVersion = -1;
+        long flowComponentId = -1;
+        long flowComponentVersion = -1;
+        long flowId = -1;
+
+        try {
+            // Create flow component
+            final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+            FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+            flowComponentVersion = flowComponent.getVersion();
+            flowComponentId = flowComponent.getId();
+
+            final List<FlowComponent> flowComponents = new ArrayList<>();
+            flowComponents.add(flowComponent);
+
+            // Create flow containing the flow component created above
+            final FlowContent flowContent = new FlowContentBuilder().setComponents(flowComponents).build();
+            Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+                flowVersion = flow.getVersion();
+                flowId = flow.getId();
+
+            // Update the component to a newer revision
+            FlowComponentContent updatedFlowComponentContent = new FlowComponentContent(
+                    flowComponent.getContent().getName(),
+                    flowComponent.getContent().getSvnProjectForInvocationJavascript(),
+                    flowComponent.getContent().getSvnRevision() + 1,
+                    flowComponent.getContent().getInvocationJavascriptName(),
+                    flowComponent.getContent().getJavascripts(),
+                    flowComponent.getContent().getInvocationMethod());
+
+            flowStoreServiceConnector.updateFlowComponent(updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
+
+            // And... First user updates the flow
+            flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+
+            // When... Second user attempts to update the same flow
+            flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+            fail("Edit conflict, in the case of multiple updates, was not detected as input to updateFlowComponentsInFlowToLatestVersion().");
+
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+
+            // And...
+            assertThat(e.getStatusCode(), is(409));
+
+            // And... Find the flowComponent used by the flow, with the latest revision
+            final FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(flowComponentId);
+            assertNotNull(flowComponent);
+            assertThat(flowComponent.getVersion(), is(flowComponentVersion +1));
+
+            // Assert that the flowComponent embedded in the flow matches the flow component found
+            final Flow flow = flowStoreServiceConnector.getFlow(flowId);
+            assertThat(flow.getContent().getComponents().get(0).getId(), is(flowComponent.getId()));
+            assertThat(flow.getContent().getComponents().get(0).getVersion(), is(flowComponent.getVersion()));
+            assertThat(flow.getContent().getComponents().get(0).getContent().getSvnRevision(), is(flowComponent.getContent().getSvnRevision()));
+
+            // And ...
+            assertThat(flowStoreServiceConnector.findAllFlows().size(), is(1));
+
+            // And... Assert the version number of the flow has been updated after creation, but only by the first user.
+            assertThat(flow.getVersion(), is(flowVersion + 1));
+        }
+    }
+
 }

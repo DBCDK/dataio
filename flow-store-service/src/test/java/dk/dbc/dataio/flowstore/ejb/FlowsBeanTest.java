@@ -154,7 +154,7 @@ public class FlowsBeanTest {
         assertThat(response.hasEntity(), is(true));
     }
 
-    @Test
+    @Test(expected = ReferencedEntityNotFoundException.class)
     public void updateFlowComponentsInFlowToLatestVersion_flowComponentNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
         final Flow flow = mock(Flow.class);
@@ -173,8 +173,7 @@ public class FlowsBeanTest {
 
         when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
-        final Response response = flowsBean.updateFlowComponentsInFlowToLatestVersion(null, 123L, 4321L);
-        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        flowsBean.updateFlowComponentsInFlowToLatestVersion(null, 123L, 4321L);
     }
 
     @Test

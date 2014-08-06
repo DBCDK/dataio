@@ -2,6 +2,7 @@ package dk.dbc.dataio.flowstore.ejb;
 
 
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -55,6 +56,7 @@ public class FlowsBean {
      *
      * @return a HTTP 200 response with flow content as JSON,
      *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      */
     @GET
@@ -116,7 +118,7 @@ public class FlowsBean {
     @Path(FlowStoreServiceConstants.FLOW_CONTENT)
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateFlowComponentsInFlowToLatestVersion(@Context UriInfo uriInfo, @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
-                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException, ReferencedEntityNotFoundException {
 
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();
 
@@ -130,11 +132,10 @@ public class FlowsBean {
         for(dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()){
             FlowComponent flowComponentWithLatestVersion = entityManager.find(FlowComponent.class, flowComponent.getId());
             if (flowComponentWithLatestVersion == null) {
-                return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+                throw new ReferencedEntityNotFoundException("Flow component with id: " + flowComponent.getId() + "could not be found in the underlying database");
             }
             String flowComponentWithLatestVersionJson = JsonUtil.toJson(flowComponentWithLatestVersion);
             dk.dbc.dataio.commons.types.FlowComponent updatedFlowComponent = JsonUtil.fromJson(flowComponentWithLatestVersionJson, dk.dbc.dataio.commons.types.FlowComponent.class);
-
             flowComponentsWithLatestVersion.add(updatedFlowComponent);
         }
         FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), flowComponentsWithLatestVersion);

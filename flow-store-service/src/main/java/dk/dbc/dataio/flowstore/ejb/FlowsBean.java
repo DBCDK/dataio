@@ -56,7 +56,6 @@ public class FlowsBean {
      *
      * @return a HTTP 200 response with flow content as JSON,
      *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      */
     @GET
@@ -110,6 +109,7 @@ public class FlowsBean {
      * @param version The version of the flow
      *
      * @return a HTTP 200 response with flow content as JSON,
+     *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      *
      * @throws JsonException on failure to create json flow

@@ -840,6 +840,18 @@ public class FlowStoreServiceConnectorTest {
         instance.updateFlowComponentsInFlowToLatestVersion(ID, VERSION);
     }
 
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlowComponentsInFlowToLatestVersion_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException{
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doPostWithJson(CLIENT, headers, "", FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.CONFLICT.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.updateFlowComponentsInFlowToLatestVersion(ID, VERSION);
+    }
+
     private static FlowStoreServiceConnector newFlowStoreServiceConnector() {
         return new FlowStoreServiceConnector(CLIENT, FLOW_STORE_URL);
     }

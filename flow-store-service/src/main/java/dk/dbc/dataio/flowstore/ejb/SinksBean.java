@@ -98,7 +98,6 @@ public class SinksBean {
     /**
      * Updates an existing sink
      *
-     * @param uriInfo URI information
      * @param sinkContent The content of the sink
      * @param id The Sink ID
      * @param version The version of the sink
@@ -114,7 +113,7 @@ public class SinksBean {
     @Path(FlowStoreServiceConstants.SINK_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateSink(@Context UriInfo uriInfo, String sinkContent, @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id,
+    public Response updateSink(String sinkContent, @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id,
         @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);

@@ -2,9 +2,7 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
@@ -40,8 +38,10 @@ import static org.powermock.api.mockito.PowerMockito.when;
         JsonUtil.class,
         ServiceUtil.class})
 public class SinksBeanTest {
-
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
+    private static final long ID = 123;
+    private static final long VERSION = 41L;
+    private static final String ETAG_VALUE = Long.toString(VERSION);
 
     @Test
     public void sinksBean_validConstructor_newInstance() {
@@ -66,12 +66,13 @@ public class SinksBeanTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void findAllSinks_noSinksFound_returnsResponseWithHttpStatusOk() throws JsonException {
+    public void findAllSinks_noSinksFound_returnsResponseWithHttpStatusOkAndSinkEntity() throws JsonException {
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
         final TypedQuery query = mock(TypedQuery.class);
+
         when(ENTITY_MANAGER.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class)).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList());
 
-        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
         final Response response = sinksBean.findAllSinks();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
@@ -81,7 +82,9 @@ public class SinksBeanTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void findAllSinks_sinksFound_returnsResponseWithHttpStatusOk() throws JsonException {
+    public void findAllSinks_sinksFound_returnsResponseWithHttpStatusOkAndSinkEntities() throws JsonException {
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        final TypedQuery query = mock(TypedQuery.class);
         final String nameSinkA = "A";
         final Sink sinkA = new Sink();
         sinkA.setContent(new SinkContentJsonBuilder()
@@ -93,11 +96,9 @@ public class SinksBeanTest {
                 .setName(nameSinkB)
                 .build());
 
-        final TypedQuery query = mock(TypedQuery.class);
         when(ENTITY_MANAGER.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class)).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(sinkA, sinkB));
 
-        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
         final Response response = sinksBean.findAllSinks();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
@@ -110,100 +111,93 @@ public class SinksBeanTest {
     @Test
     public void getSink_noSinkFound_returnsResponseWithHttpStatusNotFound() throws JsonException {
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+
         when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(null);
-        Response response = sinksBean.getSink(1L);
+
+        Response response = sinksBean.getSink(ID);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat(response.getEntityTag(), is(nullValue()));
     }
 
     @Test
     public void getSink_sinkFound_returnsResponseWithHttpStatusOK() throws JsonException {
-        final String SINK_NAME = "testSink";
-        final String EXPECTED_ETAG_VALUE = "234";
-        final Sink sink = new Sink();
-        sink.setContent(new SinkContentJsonBuilder().setName(SINK_NAME).build());
-        sink.setVersion(Long.parseLong(EXPECTED_ETAG_VALUE));
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        final Sink sink = new Sink();
+        final String sinkName = "testSink";
+        sink.setContent(new SinkContentJsonBuilder().setName(sinkName).build());
+        sink.setVersion(VERSION);
+
         when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(sink);
 
-        Response response = sinksBean.getSink(1L);
+        Response response = sinksBean.getSink(ID);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
         JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
-        assertThat(entityNode.get("content").get("name").textValue(), is(SINK_NAME));
-        assertThat(response.getEntityTag().getValue(), is(EXPECTED_ETAG_VALUE));
+        assertThat(entityNode.get("content").get("name").textValue(), is(sinkName));
+        assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
     }
 
     @Test(expected = NullPointerException.class)
     public void updateSink_nullSinkContent_throws() throws JsonException, ReferencedEntityNotFoundException {
-        newSinksBeanWithMockedEntityManager().updateSink(null, null, 0L, 0L);
+        newSinksBeanWithMockedEntityManager().updateSink(null, ID, VERSION);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void updateSink_emptySinkContent_throws() throws JsonException, ReferencedEntityNotFoundException {
-        newSinksBeanWithMockedEntityManager().updateSink(null, "", 0L, 0L);
+        newSinksBeanWithMockedEntityManager().updateSink("", ID, VERSION);
     }
 
     @Test
     public void updateSink_sinkNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+        final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+
         when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(null);
 
-        final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = sinksBean.updateSink(null, sinkContent, 123L, 4321L);
+        final Response response = sinksBean.updateSink(sinkContent, ID, VERSION);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
     public void updateSink_sinkFound_returnsResponseWithHttpStatusOk_returnsSink() throws JsonException, ReferencedEntityNotFoundException {
-        final Long CURRENT_VERSION = 345L;
-        final Long EXPECTED_ETAG_VALUE = CURRENT_VERSION + 1;
         final Sink sink = mock(Sink.class);
-        final UriInfo uriInfo = mock(UriInfo.class);
-        final UriBuilder uriBuilder = mock(UriBuilder.class);
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        final String sinkContent = new SinkContentJsonBuilder().build();
 
-        when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
-        when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(sink)).thenReturn("test");
         when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(sink);
-        when(sink.getVersion()).thenReturn(EXPECTED_ETAG_VALUE);
+        when(sink.getVersion()).thenReturn(VERSION);
 
-        final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
-        final Response response = sinksBean.updateSink(uriInfo, sinkContent, 123L, CURRENT_VERSION);
-
+        final Response response = sinksBean.updateSink(sinkContent, ID, VERSION);
         verify(sink).setContent(sinkContent);
-        verify(sink).setVersion(CURRENT_VERSION);
+        verify(sink).setVersion(VERSION);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        assertThat(response.getEntityTag().getValue(), is(EXPECTED_ETAG_VALUE.toString()));
+        assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
     }
 
     @Test
     public void CreateSink_sinkCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JsonException, ReferencedEntityNotFoundException {
         final UriInfo uriInfo = mock(UriInfo.class);
         final UriBuilder uriBuilder = mock(UriBuilder.class);
-        final SinkContent sinkContent = new SinkContent("CreateContentName", "Resource");
-        final String sinkContentString = new SinkContentJsonBuilder().setName("CreateContentName").build();
+        final String sinkContent = new SinkContentJsonBuilder().build();
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
         final Sink sink = new Sink();
-        final String expectedETagValue = "123";
-        sink.setVersion(Long.parseLong(expectedETagValue));
+        sink.setVersion(VERSION);
 
+        mockStatic(JsonUtil.class);
+        mockStatic(ServiceUtil.class);
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        mockStatic(JsonUtil.class);
-        when(JsonUtil.fromJson(sinkContentString, SinkContent.class, MixIns.getMixIns())).thenReturn(sinkContent);
         when(JsonUtil.toJson(any(Sink.class))).thenReturn("sink");
-        mockStatic(ServiceUtil.class);
-        when(ServiceUtil.saveAsVersionedEntity(ENTITY_MANAGER, Sink.class, sinkContentString)).thenReturn(sink);
+        when(ServiceUtil.saveAsVersionedEntity(ENTITY_MANAGER, Sink.class, sinkContent)).thenReturn(sink);
 
-        final Response response = sinksBean.createSink(uriInfo, sinkContentString);
+        final Response response = sinksBean.createSink(uriInfo, sinkContent);
 
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        assertThat(response.getEntityTag().getValue(), is(expectedETagValue));
+        assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
     }
 
     public static SinksBean newSinksBeanWithMockedEntityManager() {

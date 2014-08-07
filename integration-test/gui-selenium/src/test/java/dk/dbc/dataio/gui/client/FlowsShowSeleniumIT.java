@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -112,17 +111,6 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
                 .setSvnRevision(revision)
                 .build();
         return flowStoreServiceConnector.createFlowComponent(flowComponentContent);
-    }
-
-    private static FlowComponent updateTestFlowComponentSvnRevision(FlowComponent flowComponent, Long svnRevision) throws FlowStoreServiceConnectorException {
-        FlowComponentContent newFlowComponentContent = new FlowComponentContentBuilder()
-                .setName(flowComponent.getContent().getName())
-                .setSvnProjectForInvocationJavascript(flowComponent.getContent().getSvnProjectForInvocationJavascript())
-                .setInvocationJavascriptName(flowComponent.getContent().getInvocationJavascriptName())
-                .setInvocationMethod(flowComponent.getContent().getInvocationMethod())
-                .setSvnRevision(svnRevision)
-                .build();
-        return flowStoreServiceConnector.updateFlowComponent(newFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
     }
 
     private static String formatFlowComponentName(String name, Long revision) {

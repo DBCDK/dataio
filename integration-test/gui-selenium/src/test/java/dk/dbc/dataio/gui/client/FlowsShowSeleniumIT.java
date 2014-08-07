@@ -14,10 +14,8 @@ import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 import javax.ws.rs.client.Client;
 import java.sql.SQLException;
@@ -99,13 +97,6 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         NavigationPanelSeleniumIT.navigateTo(webDriver, ClientFactoryImpl.GUIID_MENU_ITEM_FLOWS_SHOW);
     }
 
-    public static void locateAndClickUpdateButtonForElement(int index) {
-        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver,
-                FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET,
-                FlowsShowViewImpl.CLASS_FLOWS_SHOW_WIDGET_UPDATE_BUTTON, index);
-        element.findElement(By.tagName("button")).click();
-    }
-
     private static Flow createTestFlow(String flowName, String flowDescription, List<FlowComponent> flowComponents) throws Exception{
         FlowContent flowContent = new FlowContentBuilder()
                 .setName(flowName)
@@ -132,13 +123,6 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
                 .setSvnRevision(svnRevision)
                 .build();
         return flowStoreServiceConnector.updateFlowComponent(newFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
-    }
-
-    private void assertThatDisplayedSvnRevisionNumberIs(WebDriver webDriver, String flowComponentName, Long svnRevision) {
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
-        table.waitAssertRows(1);
-        List<SeleniumGWTTable.Cell> data = table.get().get(0);
-        assertThat(data.get(2).getCellContent(), is(formatFlowComponentName(flowComponentName, svnRevision)));
     }
 
     private static String formatFlowComponentName(String name, Long revision) {

@@ -13,7 +13,6 @@ import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
@@ -22,7 +21,6 @@ import org.openqa.selenium.WebElement;
 
 import javax.ws.rs.client.Client;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -91,35 +89,6 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(1).get(0).getCellContent(), is(FLOW_NAME_1));
         assertThat(rowData.get(1).get(1).getCellContent(), is(FLOW_DESCRIPTION_1));
         assertThat(rowData.get(1).get(2).getCellContent(), is(formatFlowComponentName(FLOW_COMPONENT_NAME_1, FLOW_COMPONENT_REVISION_1)));
-    }
-
-    @Ignore("Ignored since the target code is not yet ready. 2014.08.05 - slf")
-    @Test
-    public void testFlowsShowClickUpdateButton_UpdateFlowComponent() throws Exception {
-        final String FLOW_COMPONENT_NAME = "Flow Comp Name";
-        final Long FLOW_COMPONENT_SVN_REVISION = 412L;
-        final Long FLOW_COMPONENT_NEW_SVN_REVISION = 7465L;
-        final String FLOW_NAME = "Flouw Naim";
-        final String FLOW_DESCRIPTION = "Flou Deskribsjon";
-
-        // Create new flow, containing a flow component
-        FlowComponent flowComponent = createTestFlowComponent(FLOW_COMPONENT_NAME, FLOW_COMPONENT_SVN_REVISION);
-        Flow old = createTestFlow(FLOW_NAME, FLOW_DESCRIPTION, Arrays.asList(flowComponent));
-
-        // Update the svn revision number in the flow component without updating the flow
-        updateTestFlowComponentSvnRevision(flowComponent, FLOW_COMPONENT_NEW_SVN_REVISION);
-
-        // Navigate to the flows show window.
-        navigateToFlowsShowWidget(webDriver);
-
-        // Assert that the correct svn revision number is shown
-        assertThatDisplayedSvnRevisionNumberIs(webDriver, FLOW_COMPONENT_NAME, FLOW_COMPONENT_SVN_REVISION);
-
-        // Navigate to the first row, locate the edit button and click.
-        locateAndClickUpdateButtonForElement(0);
-
-        // Assert that the new svn revision number is shown
-        assertThatDisplayedSvnRevisionNumberIs(webDriver, FLOW_COMPONENT_NAME, FLOW_COMPONENT_NEW_SVN_REVISION);
     }
 
     /*

@@ -5,19 +5,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio</artifactId>
+    <artifactId>dataio-harvester</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-harvester</artifactId>
-  <name>dataio-harvester</name>
+  <artifactId>dataio-harvester-utils</artifactId>
+  <name>dataio-harvester-utils</name>
   <packaging>pom</packaging>
 
   <modules>
-    <module>rawrepo</module>
-    <module>types</module>
-    <module>utils</module>
+    <module>rawrepo-connector</module>
   </modules>
 
 </project>

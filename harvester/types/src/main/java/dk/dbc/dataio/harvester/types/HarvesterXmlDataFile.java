@@ -1,4 +1,4 @@
-package dk.dbc.dataio.harvester.rawrepo;
+package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 

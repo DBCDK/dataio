@@ -1,4 +1,4 @@
-package dk.dbc.dataio.harvester.rawrepo;
+package dk.dbc.dataio.harvester.types;
 
 import org.junit.Test;
 import org.w3c.dom.Document;

@@ -8,6 +8,8 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.Record;

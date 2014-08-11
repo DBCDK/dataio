@@ -1,4 +1,4 @@
-package dk.dbc.dataio.harvester.rawrepo;
+package dk.dbc.dataio.harvester.utils.rawrepo;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.rawrepo.QueueJob;

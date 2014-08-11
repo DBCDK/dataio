@@ -1,8 +1,5 @@
 package dk.dbc.dataio.harvester.types;
 
-import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

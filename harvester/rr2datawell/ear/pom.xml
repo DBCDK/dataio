@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>dataio-harvester-rr2datawell</artifactId>
+    <groupId>dk.dbc</groupId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dataio-harvester-rr2datawell-ear</artifactId>
+  <name>dataio-harvester-rr2datawell-ear</name>
+  <packaging>ear</packaging>
+
+  <properties>
+    <harvester.tmp>${build.directory}</harvester.tmp>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-ear-plugin</artifactId>
+        <version>${maven.ear.plugin.version}</version>
+        <configuration>
+          <version>6</version>
+          <defaultLibBundleDir>lib</defaultLibBundleDir>
+          <filtering>true</filtering>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-binary-file-store</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-harvester-rr2datawell-ejb</artifactId>
+      <version>${project.version}</version>
+      <type>ejb</type>
+    </dependency>
+  </dependencies>
+
+</project>
+

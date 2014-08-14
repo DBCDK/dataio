@@ -46,7 +46,7 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
      * Class constructor
      * @throws HarvesterException if unable to create internal MARC Exchange Collection representation
      */
-    @Deprecated
+    //@Deprecated
     public MarcExchangeCollection() throws HarvesterException {
         final TransformerFactory transformerFactory = TransformerFactory.newInstance();
         try {

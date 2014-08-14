@@ -17,6 +17,8 @@ import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,9 +39,15 @@ import static org.mockito.Mockito.when;
 public class HarvesterBeanTest {
     private final String marcxCollectionSingleRecord =
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-              "<marcx:record format=\"danMARC2\"><marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "<marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
-              "</marcx:record>" +
+                "<marcx:record format=\"danMARC2\">" +
+                    "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                        "<marcx:subfield code=\"a\">id</marcx:subfield>" +
+                        "<marcx:subfield code=\"b\">"+ HarvesterBean.LIBRARY_NUMBER_870970 + "</marcx:subfield>" +
+                    "</marcx:datafield>" +
+                    "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                        "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
+                    "</marcx:datafield>" +
+                "</marcx:record>" +
             "</marcx:collection>";
 
     private final String fileId = "1234";
@@ -223,6 +231,11 @@ public class HarvesterBeanTest {
 
     private HarvesterBean getInitializedBean() {
         final HarvesterBean harvesterBean = new HarvesterBean();
+        try {
+            harvesterBean.init();
+        } catch (ParserConfigurationException | TransformerConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
         harvesterBean.binaryFileStore = binaryFileStoreBean;
         harvesterBean.fileStoreServiceConnector = fileStoreServiceConnector;
         harvesterBean.jobStoreServiceConnector = jobStoreServiceConnector;

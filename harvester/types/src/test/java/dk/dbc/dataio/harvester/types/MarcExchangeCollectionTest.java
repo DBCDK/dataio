@@ -8,6 +8,9 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -61,10 +64,15 @@ public class MarcExchangeCollectionTest {
             "</marcx:collection>";
 
     @Test
+    public void constructor_documentBuilderArgIsNull_throws() {
+
+    }
+
+    @Test
     public void addMember_memberDataArgIsNull_throws() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         try {
-            harvesterRecord.addMember(null);
+            harvesterRecord.addMember((byte[]) null);
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
         }
@@ -72,7 +80,7 @@ public class MarcExchangeCollectionTest {
 
     @Test
     public void addMember_memberDataArgIsNotValidXml_throws() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         try {
             harvesterRecord.addMember("invalid-xml".getBytes());
             fail("No exception thrown");
@@ -82,7 +90,7 @@ public class MarcExchangeCollectionTest {
 
     @Test
     public void addMember_memberDataArgDoesNotIndicateUtf8Encoding_throws() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         try {
             harvesterRecord.addMember(marcxRecordNonUtf8Encoding.getBytes());
             fail("No exception thrown");
@@ -92,7 +100,7 @@ public class MarcExchangeCollectionTest {
 
     @Test
     public void addMember_memberDataArgIncorrectNamespace_throws() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         try {
             harvesterRecord.addMember(marcxCollectionInvalidNamespace.getBytes());
             fail("No exception thrown");
@@ -102,7 +110,7 @@ public class MarcExchangeCollectionTest {
 
     @Test
     public void addMember_memberDataArgIncorrectChildNamespace_throws() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         try {
             harvesterRecord.addMember(marcxCollectionInvalidMemberNamespace.getBytes());
             fail("No exception thrown");
@@ -112,7 +120,7 @@ public class MarcExchangeCollectionTest {
 
     @Test
     public void addMember_memberDataArgIsCollectionWithMultipleRecords_throws() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         try {
             harvesterRecord.addMember(marcxCollectionMultipleRecords.getBytes());
             fail("No exception thrown");
@@ -122,29 +130,94 @@ public class MarcExchangeCollectionTest {
 
     @Test
     public void addMember_memberDataArgIsMarcxCollectionWithSingleRecord_recordIsAddedToCollection() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
         assertMarcExchangeCollection(harvesterRecord.getData(), 1);
     }
 
     @Test
     public void addMember_memberDataArgIsMarcxRecord_recordIsAddedToCollection() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxRecord.getBytes());
         assertMarcExchangeCollection(harvesterRecord.getData(), 1);
     }
 
     @Test
     public void addMember_calledMultipleTimes_multipleRecordsInCollection() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
-        harvesterRecord.addMember(marcxRecord.getBytes());
+        harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
+        assertThat(harvesterRecord.getMemberCount(), is(2));
         assertMarcExchangeCollection(harvesterRecord.getData(), 2);
     }
 
     @Test
+    public void addMember_memberDocArgIsNull_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        try {
+            harvesterRecord.addMember((Document) null);
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void addMember_memberDocArgDoesNotIndicateUtf8Encoding_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        try {
+            harvesterRecord.addMember(asDocument(marcxRecordNonUtf8Encoding.getBytes()));
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void addMember_memberDocArgIncorrectNamespace_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        try {
+            harvesterRecord.addMember(asDocument(marcxCollectionInvalidNamespace.getBytes()));
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void addMember_memberDocArgIncorrectChildNamespace_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        try {
+            harvesterRecord.addMember(asDocument(marcxCollectionInvalidMemberNamespace.getBytes()));
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void addMember_memberDocArgIsCollectionWithMultipleRecords_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        try {
+            harvesterRecord.addMember(asDocument(marcxCollectionMultipleRecords.getBytes()));
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void addMember_memberDocArgIsMarcxCollectionWithSingleRecord_recordIsAddedToCollection() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        harvesterRecord.addMember(asDocument(marcxCollectionSingleRecord.getBytes()));
+        assertMarcExchangeCollection(harvesterRecord.getData(), 1);
+    }
+
+    @Test
+    public void addMember_memberDocArgIsMarcxRecord_recordIsAddedToCollection() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
+        assertMarcExchangeCollection(harvesterRecord.getData(), 1);
+    }
+
+    @Test
     public void getCharset_returnsUtf8() throws HarvesterException {
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         assertThat(StandardCharsets.UTF_8.compareTo(harvesterRecord.getCharset()), is(0));
     }
 
@@ -164,5 +237,36 @@ public class MarcExchangeCollectionTest {
         } catch (ParserConfigurationException | SAXException | IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private Document asDocument(byte[] data) {
+        try {
+            return getDocumentBuilder().parse(new ByteArrayInputStream(data));
+        } catch (SAXException | IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private DocumentBuilder getDocumentBuilder() {
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        try {
+            return documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private Transformer getTransformer() {
+        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        try {
+            return transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private MarcExchangeCollection getMarcExchangeCollection() throws HarvesterException {
+        return new MarcExchangeCollection(getDocumentBuilder(), getTransformer());
     }
 }

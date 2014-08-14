@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.types;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -35,20 +36,48 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
     static final String COLLECTION_ELEMENT_NAME = "collection";
     static final String RECORD_ELEMENT_NAME = "record";
 
-    private final DocumentBuilderFactory documentBuilderFactory;
-    private final TransformerFactory transformerFactory;
+    private final Transformer transformer;
+    private final DocumentBuilder documentBuilder;
     private final Document data;
     private final Charset charset = StandardCharsets.UTF_8;
+    private int memberCount = 0;
 
     /**
      * Class constructor
      * @throws HarvesterException if unable to create internal MARC Exchange Collection representation
      */
+    @Deprecated
     public MarcExchangeCollection() throws HarvesterException {
-        transformerFactory = TransformerFactory.newInstance();
-        documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        try {
+            transformer = transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            throw new HarvesterException("Unable to create transformer", e);
+        }
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
-        data = getDocumentBuilder().newDocument();
+        try {
+            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new HarvesterException("Unable to create document builder", e);
+        }
+        data = documentBuilder.newDocument();
+        data.setXmlStandalone(true);
+        data.appendChild(data.createElementNS(MARC_EXCHANGE_NAMESPACE, COLLECTION_ELEMENT_NAME));
+    }
+
+    /**
+     * Class constructor
+     * @param documentBuilder builder used for XML representations (must be created by a namespace aware factory)
+     * @param transformer transformer used for conversion to byte[]
+     * @throws NullPointerException if given any null-valued argument
+     * @throws HarvesterException if unable to create internal MARC Exchange Collection representation
+     */
+    public MarcExchangeCollection(DocumentBuilder documentBuilder, Transformer transformer)
+            throws NullPointerException, HarvesterException {
+        this.transformer = InvariantUtil.checkNotNullOrThrow(transformer, "transformer");
+        this.documentBuilder = InvariantUtil.checkNotNullOrThrow(documentBuilder, "documentBuilder");
+        data = documentBuilder.newDocument();
         data.setXmlStandalone(true);
         data.appendChild(data.createElementNS(MARC_EXCHANGE_NAMESPACE, COLLECTION_ELEMENT_NAME));
     }
@@ -63,10 +92,12 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         final Source source = new DOMSource(data.getDocumentElement());
         try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             final Result result = new StreamResult(out);
-            getTransformer().transform(source, result);
+            configureTransformer().transform(source, result);
             return out.toByteArray();
         } catch (IOException | TransformerException e) {
             throw new HarvesterException("Unable to transform data into bytes", e);
+        } finally {
+            transformer.reset();
         }
     }
 
@@ -76,6 +107,10 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
     @Override
     public Charset getCharset() {
         return charset;
+    }
+
+    public int getMemberCount() {
+        return memberCount;
     }
 
     /**
@@ -92,35 +127,39 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         if (memberData == null) {
             throw new HarvesterInvalidRecordException("member data can not be null");
         }
-        final DocumentBuilder documentBuilder = getDocumentBuilder();
         final Document memberDoc;
         try {
             memberDoc = documentBuilder.parse(new ByteArrayInputStream(memberData));
-            verifyEncoding(memberDoc);
-            data.getDocumentElement().appendChild(data.importNode(extractRecordNode(memberDoc), true));
+            addMember(memberDoc);
         } catch (SAXException | IOException e) {
             throw new HarvesterInvalidRecordException("member data can not be parsed as XML", e);
+        } finally {
+            documentBuilder.reset();
         }
     }
 
-    private Transformer getTransformer() throws HarvesterException {
-        try {
-            final Transformer transformer;
-            transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty(OutputKeys.INDENT, "no");
-            return transformer;
-        } catch (TransformerConfigurationException e) {
-            throw new HarvesterException("Unable to create new Transformer", e);
+    /**
+     * Extracts record from given MARC Exchange document (either as collection or
+     * standalone record) and adds it to this collection
+     * @param memberDoc  MARC Exchange document
+     * @throws HarvesterInvalidRecordException If given null-valued memberDoc argument.
+     * If given document specifies an encoding != UTF-8.
+     * If the document element of given document is not in namespace {@value #MARC_EXCHANGE_NAMESPACE}.
+     * If given document is itself a collection with more than one record.
+     */
+    public void addMember(Document memberDoc) throws HarvesterException {
+        if (memberDoc == null) {
+            throw new HarvesterInvalidRecordException("member data can not be null");
         }
+        verifyEncoding(memberDoc);
+        data.getDocumentElement().appendChild(data.importNode(extractRecordNode(memberDoc), true));
+        memberCount++;
     }
 
-    private DocumentBuilder getDocumentBuilder() throws HarvesterException {
-        try {
-            return documentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new HarvesterException("Unable to create new DocumentBuilder", e);
-        }
+    private Transformer configureTransformer() throws HarvesterException {
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        transformer.setOutputProperty(OutputKeys.INDENT, "no");
+        return transformer;
     }
 
     private Node extractRecordNode(Document member) throws HarvesterInvalidRecordException {

@@ -12,18 +12,28 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
+import javax.ejb.PostActivate;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +48,8 @@ import java.util.UUID;
  */
 @Stateless
 public class HarvesterBean {
+    public static final int LIBRARY_NUMBER_870970 = 870970;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
 
     private static final String rawRepoConsumerId = "broend-sync";
@@ -53,6 +65,19 @@ public class HarvesterBean {
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnector;
+
+    private DocumentBuilder documentBuilder;
+    private Transformer transformer;
+
+    @PostConstruct
+    @PostActivate
+    public void init() throws ParserConfigurationException, TransformerConfigurationException {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        transformer = transformerFactory.newTransformer();
+    }
 
     /**
      * Executes harvest operation (in its own transactional scope to avoid
@@ -117,9 +142,11 @@ public class HarvesterBean {
                 while (nextQueuedItem != null) {
                     LOGGER.debug("{} ready for harvesting", nextQueuedItem);
                     rawRepoConnector.queueSuccess(nextQueuedItem);
-                    harvesterDataFile.addRecord(getHarvesterRecordForQueuedItem(nextQueuedItem));
-                    recordsAdded++;
-
+                    final MarcExchangeCollection marcExchangeCollection = getHarvesterRecordForQueuedItem(nextQueuedItem);
+                    if (marcExchangeCollection.getMemberCount() > 0) {
+                        harvesterDataFile.addRecord(marcExchangeCollection);
+                        recordsAdded++;
+                    }
                     nextQueuedItem = rawRepoConnector.dequeue(rawRepoConsumerId);
                 }
             } catch (IOException e) {
@@ -145,11 +172,17 @@ public class HarvesterBean {
        its content to a new MARC Exchange collection harvester.
        Returns harvester record.
      */
-    private HarvesterXmlRecord getHarvesterRecordForQueuedItem(QueueJob queueJob) throws SQLException, HarvesterException {
+    private MarcExchangeCollection getHarvesterRecordForQueuedItem(QueueJob queueJob) throws SQLException, HarvesterException {
         final Record record = rawRepoConnector.fetchRecord(queueJob.getJob());
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection();
+        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection(documentBuilder, transformer);
         try {
-            harvesterRecord.addMember(record.getContent());
+            final Document recordDoc = asDocument(record.getContent());
+            final MarcExchangeRecordBinding recordBinding = new MarcExchangeRecordBinding(recordDoc);
+            if (recordBinding.getLibrary() == LIBRARY_NUMBER_870970) {
+                harvesterRecord.addMember(recordDoc);
+            } else {
+                LOGGER.warn("Skipped record with library number {}", recordBinding.getLibrary());
+            }
         } catch (HarvesterInvalidRecordException e) {
             LOGGER.error("Invalid record {}", record, e);
         }
@@ -188,5 +221,17 @@ public class HarvesterBean {
      */
     private BinaryFile getTmpFile() {
         return binaryFileStore.getBinaryFile(Paths.get(UUID.randomUUID().toString()));
+    }
+
+    /* Parses given data as XML returning parsed document
+     */
+    private Document asDocument(byte[] data) throws HarvesterInvalidRecordException {
+        try (final InputStream is = new ByteArrayInputStream(data)) {
+            return documentBuilder.parse(is);
+        } catch (IOException | SAXException e) {
+            throw new HarvesterInvalidRecordException("Unable to parse record data as XML", e);
+        } finally {
+            documentBuilder.reset();
+        }
     }
 }

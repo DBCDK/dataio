@@ -31,7 +31,6 @@ public class SubmittersShowActivity extends AbstractActivity implements Submitte
 
     @Override
     public void reload() {
-		submittersShowView.refresh();
     }
 
     @Override

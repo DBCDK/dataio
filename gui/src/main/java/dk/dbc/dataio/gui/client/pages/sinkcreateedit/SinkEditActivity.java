@@ -47,7 +47,6 @@ public class SinkEditActivity extends AbstractActivity implements SinkCreateEdit
 
     @Override
     public void reload() {
-		sinkEditView.refresh();
     }
 
     @Override

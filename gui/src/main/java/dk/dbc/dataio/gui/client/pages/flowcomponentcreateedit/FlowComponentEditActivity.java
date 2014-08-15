@@ -48,7 +48,6 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
 
     @Override
     public void reload() {
-        flowComponentEditView.refresh();
     }
 
     @Override

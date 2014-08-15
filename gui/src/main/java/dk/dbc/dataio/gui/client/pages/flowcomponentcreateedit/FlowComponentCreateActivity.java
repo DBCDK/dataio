@@ -43,7 +43,6 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
 
     @Override
     public void reload() {
-		flowComponentCreateView.refresh();
     }
 
     @Override

@@ -36,7 +36,6 @@ public class FlowComponentsShowActivity extends AbstractActivity implements Flow
 
     @Override
     public void reload() {
-		flowComponentsShowView.refresh();
     }
 
     @Override

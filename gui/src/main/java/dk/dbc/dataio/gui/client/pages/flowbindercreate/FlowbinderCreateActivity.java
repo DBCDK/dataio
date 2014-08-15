@@ -44,7 +44,6 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
 
     @Override
     public void reload() {
-		flowbinderCreateView.refresh();
     }
 
     @Override

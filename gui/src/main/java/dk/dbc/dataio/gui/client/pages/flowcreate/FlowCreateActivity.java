@@ -41,7 +41,6 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
 
     @Override
     public void reload() {
-		flowCreateView.refresh();
     }
 
     @Override

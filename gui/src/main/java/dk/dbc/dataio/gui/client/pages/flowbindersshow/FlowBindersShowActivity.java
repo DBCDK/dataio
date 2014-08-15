@@ -45,7 +45,6 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
 
     @Override
     public void reload() {
-		flowBindersShowView.refresh();
     }
 
     @Override

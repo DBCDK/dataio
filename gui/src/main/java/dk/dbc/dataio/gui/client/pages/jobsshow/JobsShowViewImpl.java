@@ -248,13 +248,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

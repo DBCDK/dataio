@@ -58,13 +58,6 @@ public class SinkCreateEditViewImpl extends ContentPanel<SinkCreateEditPresenter
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

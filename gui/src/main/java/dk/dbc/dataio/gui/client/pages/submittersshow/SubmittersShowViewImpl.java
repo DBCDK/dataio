@@ -73,13 +73,6 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

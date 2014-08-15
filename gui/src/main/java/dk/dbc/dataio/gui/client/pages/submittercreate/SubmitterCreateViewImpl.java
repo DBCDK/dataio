@@ -63,13 +63,6 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

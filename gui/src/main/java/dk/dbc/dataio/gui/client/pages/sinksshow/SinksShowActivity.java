@@ -35,7 +35,6 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
 
     @Override
     public void reload() {
-		sinksShowView.refresh();
     }
 
     @Override

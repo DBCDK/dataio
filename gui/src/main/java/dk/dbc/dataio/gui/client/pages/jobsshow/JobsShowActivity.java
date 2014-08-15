@@ -33,7 +33,6 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
     @Override
     public void reload() {
         fetchJobs();
-		jobsShowView.refresh();
     }
 
     @Override

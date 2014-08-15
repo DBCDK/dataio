@@ -112,13 +112,6 @@ public class FlowbinderCreateViewImpl extends ContentPanel<FlowbinderCreatePrese
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

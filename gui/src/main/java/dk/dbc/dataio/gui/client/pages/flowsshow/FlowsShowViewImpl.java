@@ -102,13 +102,6 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

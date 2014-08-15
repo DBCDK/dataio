@@ -137,13 +137,6 @@ public class FlowComponentsShowViewImpl extends ContentPanel<FlowComponentsShowP
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

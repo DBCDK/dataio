@@ -32,7 +32,6 @@ public class HarvestersShowActivity extends AbstractActivity implements Harveste
 
     @Override
     public void reload() {
-//        harvestersShowView.refresh();
     }
 
     @Override

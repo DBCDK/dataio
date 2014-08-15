@@ -32,7 +32,6 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
 
     @Override
     public void reload() {
-		flowsShowView.refresh();
     }
 
     @Override

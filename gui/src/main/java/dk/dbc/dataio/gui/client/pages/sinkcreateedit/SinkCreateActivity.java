@@ -40,7 +40,6 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreateEd
 
     @Override
     public void reload() {
-		sinkCreateView.refresh();
     }
 
     @Override

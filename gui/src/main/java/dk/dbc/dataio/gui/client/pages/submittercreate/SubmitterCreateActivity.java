@@ -33,7 +33,6 @@ public class SubmitterCreateActivity extends AbstractActivity implements Submitt
 
     @Override
     public void reload() {
-        submitterCreateView.refresh();
     }
 
     @Override

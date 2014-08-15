@@ -154,13 +154,6 @@ public class FlowBindersShowViewImpl extends ContentPanel<FlowBindersShowPresent
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

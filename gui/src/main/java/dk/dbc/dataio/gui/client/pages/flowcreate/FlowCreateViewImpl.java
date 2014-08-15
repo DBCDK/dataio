@@ -74,13 +74,6 @@ public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implem
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

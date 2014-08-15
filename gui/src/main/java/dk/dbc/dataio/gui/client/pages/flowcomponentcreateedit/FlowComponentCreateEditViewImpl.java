@@ -105,13 +105,6 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
      */
 
     /**
-     * Refresh
-     */
-    @Override
-    public void refresh() {
-    }
-
-    /**
      * Clear all fields in this view
      */
     @Override

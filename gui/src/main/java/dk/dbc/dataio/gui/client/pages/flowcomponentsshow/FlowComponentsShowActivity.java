@@ -16,9 +16,9 @@ import java.util.List;
 /**
  * This class represents the show flows activity
  */
-public class FlowComponentsShowActivity extends AbstractActivity implements FlowComponentsShowGenericPresenter {
+public class FlowComponentsShowActivity extends AbstractActivity implements FlowComponentsShowPresenter {
     private ClientFactory clientFactory;
-    private FlowComponentsShowGenericView flowComponentsShowView;
+    private FlowComponentsShowView flowComponentsShowView;
     private FlowStoreProxyAsync flowStoreProxy;
     private final PlaceController placeController;
 

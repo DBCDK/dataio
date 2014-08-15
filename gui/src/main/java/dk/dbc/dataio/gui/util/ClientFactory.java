@@ -4,17 +4,17 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateGenericView;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowGenericView;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditGenericView;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowGenericView;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateGenericView;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowGenericView;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowGenericView;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditGenericView;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowGenericView;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateGenericView;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowGenericView;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditView;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -45,17 +45,17 @@ public interface ClientFactory {
     MenuItem getMenuStructure();
 
     // Views
-    FlowCreateGenericView getFlowCreateView();
-    FlowComponentCreateEditGenericView getFlowComponentCreateEditView();
-    SubmitterCreateGenericView getSubmitterCreateView();
-    FlowbinderCreateGenericView getFlowbinderCreateView();
-    SinkCreateEditGenericView getSinkCreateEditView();
-    FlowComponentsShowGenericView getFlowComponentsShowView();
-    FlowsShowGenericView getFlowsShowView();
-    SubmittersShowGenericView getSubmittersShowView();
-    JobsShowGenericView getJobsShowView();
-    SinksShowGenericView getSinksShowView();
-    FlowBindersShowGenericView getFlowBindersShowView();
+    FlowCreateView getFlowCreateView();
+    FlowComponentCreateEditView getFlowComponentCreateEditView();
+    SubmitterCreateView getSubmitterCreateView();
+    FlowbinderCreateView getFlowbinderCreateView();
+    SinkCreateEditView getSinkCreateEditView();
+    FlowComponentsShowView getFlowComponentsShowView();
+    FlowsShowView getFlowsShowView();
+    SubmittersShowView getSubmittersShowView();
+    JobsShowView getJobsShowView();
+    SinksShowView getSinksShowView();
+    FlowBindersShowView getFlowBindersShowView();
     //HarvestersShowView getHarvestersShowView();
 
 }

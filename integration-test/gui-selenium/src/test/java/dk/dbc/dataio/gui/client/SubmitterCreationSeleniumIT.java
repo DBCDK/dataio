@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client;
 
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateGenericViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -162,27 +162,27 @@ public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static WebElement findSubmitterCreationWidget(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateGenericViewImpl.GUIID_SUBMITTER_CREATION_WIDGET);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_WIDGET);
     }
 
     private static WebElement findNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateGenericViewImpl.GUIID_SUBMITTER_CREATION_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findNumberElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateGenericViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_NUMBER_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findDescriptionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateGenericViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_DESCRIPTION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSaveButton(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateGenericViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultLabel(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateGenericViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
     private void insertTextInInputFieldsAndClickSaveButtonAndWaitForSuccessfullSave() {
@@ -190,6 +190,6 @@ public class SubmitterCreationSeleniumIT extends AbstractGuiSeleniumTest {
         findNumberElement(webDriver).sendKeys("1");
         findDescriptionElement(webDriver).sendKeys("d");
         findSaveButton(webDriver).click();
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateGenericViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SUBMITTER_TIMOUT, SubmitterCreateViewImpl.GUIID_SUBMITTER_CREATION_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SubmitterSuccessfullySaved"));
     }
 }

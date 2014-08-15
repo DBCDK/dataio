@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.utils.test.json.ItemResultCounterJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.gui.client.components.DualPanesPanel;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowGenericViewImpl;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -62,7 +62,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testJobsShowEmptyList_NoContentIsShown() {
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertNoRows();
     }
 
@@ -91,7 +91,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createFileInJobStore(JOB_CREATION_TIME_FOUR, JOB_ID_4, FILE_NAME_4, SUBMITTER_NUMBER_4, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
 
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
@@ -99,25 +99,25 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(rowData.get(0).get(1).getCellContent(), is(Long.toString(JOB_ID_4)));   // Default sorting: Youngest first
         assertThat(rowData.get(0).get(2).getCellContent(), is(FILE_NAME_4));
         assertThat(rowData.get(0).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_4)));
-        assertThat(rowData.get(0).get(4).hasClassName(JobsShowGenericViewImpl.GUICLASS_GRAY), is(true));
+        assertThat(rowData.get(0).get(4).hasClassName(JobsShowViewImpl.GUICLASS_GRAY), is(true));
 
         assertTrue(rowData.get(1).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_THREE)));
         assertThat(rowData.get(1).get(1).getCellContent(), is(Long.toString(JOB_ID_3)));
         assertThat(rowData.get(1).get(2).getCellContent(), is(FILE_NAME_3));
         assertThat(rowData.get(1).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_3)));
-        assertThat(rowData.get(1).get(4).hasClassName(JobsShowGenericViewImpl.GUICLASS_RED), is(true));
+        assertThat(rowData.get(1).get(4).hasClassName(JobsShowViewImpl.GUICLASS_RED), is(true));
 
         assertTrue(rowData.get(2).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_TWO)));
         assertThat(rowData.get(2).get(1).getCellContent(), is(Long.toString(JOB_ID_2)));
         assertThat(rowData.get(2).get(2).getCellContent(), is(FILE_NAME_2));
         assertThat(rowData.get(2).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_2)));
-        assertThat(rowData.get(2).get(4).hasClassName(JobsShowGenericViewImpl.GUICLASS_RED), is(true));
+        assertThat(rowData.get(2).get(4).hasClassName(JobsShowViewImpl.GUICLASS_RED), is(true));
 
         assertTrue(rowData.get(3).get(0).getCellContent().equals(formatDate(JOB_CREATION_TIME_ONE)));
         assertThat(rowData.get(3).get(1).getCellContent(), is(Long.toString(JOB_ID_1)));
         assertThat(rowData.get(3).get(2).getCellContent(), is(FILE_NAME_1));
         assertThat(rowData.get(3).get(3).getCellContent(), is(Long.toString(SUBMITTER_NUMBER_1)));
-        assertThat(rowData.get(3).get(4).hasClassName(JobsShowGenericViewImpl.GUICLASS_GREEN), is(true));
+        assertThat(rowData.get(3).get(4).hasClassName(JobsShowViewImpl.GUICLASS_GREEN), is(true));
     }
 
 
@@ -128,10 +128,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long SUBMITTER_NUMBER_1 = 111L;
         createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 1L, 0L, 0L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(1);
         // Click on the status lamp and set focus on the popupPanel
-        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowGenericViewImpl.GUICLASS_GREEN);
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_GREEN);
         // Check that the popupPanel is showing and containing the correct elements and information
         assertAllElementsAreDisplayedForPopupPanel();
         assertDualPanesPanelIsDisplayingCorrectInformation();
@@ -144,10 +144,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long SUBMITTER_NUMBER_1 = 111L;
         createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, true, 1L, 0L, 1L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(1);
         // Click on the status lamp and set focus on the popupPanel
-        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowGenericViewImpl.GUICLASS_RED);
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_RED);
         // Check that the popupPanel is showing and containing the correct elements and information
         assertAllElementsAreDisplayedForPopupPanel();
         assertDualPanesPanelIsDisplayingCorrectInformation();
@@ -160,10 +160,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long SUBMITTER_NUMBER_1 = 111L;
         createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.DATA_FILE_INVALID, true, 0L, 0L,  0L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(1);
         // Click on the status lamp and set focus on the popupPanel
-        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowGenericViewImpl.GUICLASS_RED);
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_RED);
         // Check that the popupPanel is showing and containing the correct elements and information
         assertAllElementsAreDisplayedForPopupPanel();
         assertDualPanesPanelIsDisplayingCorrectInformation();
@@ -176,10 +176,10 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         final long SUBMITTER_NUMBER_1 = 111L;
         createFileInJobStore(new Date().getTime(), JOB_ID_1, FILE_NAME_1, SUBMITTER_NUMBER_1, JobErrorCode.NO_ERROR, false, 0L, 0L, 0L, 0L, 0L);
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(1);
         //Click on the status lamp and set focus on the popupPanel
-        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowGenericViewImpl.GUICLASS_GRAY);
+        locateAndClickStatusLampAndSwitchToPopupPanel(JobsShowViewImpl.GUICLASS_GRAY);
 
         // Check that the popupPanel is showing and containing the correct elements and information
         assertAllElementsAreDisplayedForPopupPanel();
@@ -222,7 +222,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 
@@ -279,7 +279,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Navigate to Jobs Show List and click More
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         findMoreButton(webDriver).click();
         table.waitAssertRows(1);
@@ -313,7 +313,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testColumnHeaderNames() throws IOException {
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         assertThat(table.findColumnHeader(0).getText(), is(texts.translate("columnHeader_JobCreationTime")));
         assertThat(table.findColumnHeader(1).getText(), is(texts.translate("columnHeader_JobId")));
         assertThat(table.findColumnHeader(2).getText(), is(texts.translate("columnHeader_FileName")));
@@ -349,11 +349,11 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
 
         // No need to click on Job Creation Time Header Column - it is selected by default, and column is descending
-        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
@@ -381,7 +381,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Second click on Job Creation Time Column makes column ascending
         table.findColumnHeader(0).click();  // First column is JobCreationTime column
-        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
@@ -437,11 +437,11 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
 
         table.findColumnHeader(1).click();  // Second column is Filename column
-        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
@@ -470,7 +470,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Second click on Job Id Header Column makes makes column descending
         table.findColumnHeader(0).click();  // First column is Job Id column
-        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
@@ -527,12 +527,12 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
 
         // First click on Filename Header Column makes Filename column ascending ( => Job Id column is also ascending)
         table.findColumnHeader(2).click();  // third column is Filename column
-        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
@@ -561,7 +561,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Second click on Filename Header Column makes Filename column descending ( => Job Id column is also descending)
         table.findColumnHeader(2).click();  // Third column is Filename column
-        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
@@ -618,12 +618,12 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Navigate to Jobs Show List
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
 
         // First click on Submitternumber Header Column makes Submitternumber column ascending
         table.findColumnHeader(3).click();  // fourth column is Submitternumber column
-        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable firstSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         firstSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> firstRowData = firstSortTable.get();
 
@@ -652,7 +652,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         // Second click on Submitternumber Header Column makes Submitternumber column descending
         table.findColumnHeader(3).click();  // Fourth column is Submitternumber column
-        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable secondSortTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         secondSortTable.waitAssertRows(JOBS_SHOW_PAGE_SIZE);
         List<List<SeleniumGWTTable.Cell>> secondRowData = secondSortTable.get();
 
@@ -695,12 +695,12 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
 
         // Click on the Filename Column
         table.findColumnHeader(2).click();  // Third column is Filename column => Ascending
-        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
@@ -727,13 +727,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
 
         // Click on the Filename Column
         table.findColumnHeader(2).click();  // Third column is Filename column => Ascending
         table.findColumnHeader(2).click();  // Third column is Filename column => Descending
-        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
@@ -761,12 +761,12 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
 
         // Click on the JobCreationTime Column
         table.findColumnHeader(0).click();  // First column is JobCreationTime column => Descending
-        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
@@ -793,13 +793,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
 
         // Click on the JobCreationTime Column
         table.findColumnHeader(0).click();  // first column is JobCreationTime column => Descending
         table.findColumnHeader(0).click();  // first column is JobCreationTime column => Ascending
-        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
@@ -826,12 +826,12 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
 
         // Click on the Filename Column
         table.findColumnHeader(3).click();  // Fourth column is Submitternumber column => Ascending
-        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
@@ -859,13 +859,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createFileInJobStore(jobCreationTime4, 4L, "b", 1L);
 
         navigateToJobsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         table.waitAssertRows(4);
 
         // Click on the Filename Column
         table.findColumnHeader(3).click();  // Fourth column is Submitternumber column => Ascending
         table.findColumnHeader(3).click();  // Fourth column is Submitternumber column => Descending
-        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET);
+        SeleniumGWTTable sortedTable = new SeleniumGWTTable(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET);
         sortedTable.waitAssertRows(4);
         List<List<SeleniumGWTTable.Cell>> tableData = sortedTable.get();
 
@@ -885,7 +885,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static WebElement findMoreButton(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_MORE_BUTTON);
+        return SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_MORE_BUTTON);
     }
 
     private void assertTableRow(List<SeleniumGWTTable.Cell> row, String jobCreationTime, String jobId, String fileName, String submitterId) {
@@ -893,7 +893,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         assertThat(row.get(1).getCellContent(), is(jobId));
         assertThat(row.get(2).getCellContent(), is(fileName));
         assertThat(row.get(3).getCellContent(), is(submitterId));
-        assertThat(row.get(4).hasClassName(JobsShowGenericViewImpl.GUICLASS_GREEN), is(true));
+        assertThat(row.get(4).hasClassName(JobsShowViewImpl.GUICLASS_GREEN), is(true));
     }
 
     private long getModifiedDate(long currentDate, int minutesToAdd){
@@ -914,9 +914,9 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void locateAndClickStatusLamp(String color){
-        if (color.equals(JobsShowGenericViewImpl.GUICLASS_GRAY)){
+        if (color.equals(JobsShowViewImpl.GUICLASS_GRAY)){
             locateAndClickGrayStatusLamp(0);
-        } else if (color.equals(JobsShowGenericViewImpl.GUICLASS_RED)) {
+        } else if (color.equals(JobsShowViewImpl.GUICLASS_RED)) {
             locateAndClickRedStatusLamp(0);
         } else {
             locateAndClickGreenStatusLamp(0);
@@ -924,17 +924,17 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static void locateAndClickGreenStatusLamp(int index) {
-        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowGenericViewImpl.GUICLASS_GREEN, index);
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowViewImpl.GUICLASS_GREEN, index);
         element.findElement(By.tagName("img")).click();
     }
 
     private static void locateAndClickGrayStatusLamp(int index) {
-        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowGenericViewImpl.GUICLASS_GRAY, index);
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowViewImpl.GUICLASS_GRAY, index);
         element.findElement(By.tagName("img")).click();
     }
 
     private static void locateAndClickRedStatusLamp(int index) {
-        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowGenericViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowGenericViewImpl.GUICLASS_RED, index);
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, JobsShowViewImpl.GUIID_JOBS_SHOW_WIDGET, JobsShowViewImpl.GUICLASS_RED, index);
         element.findElement(By.tagName("img")).click();
     }
 
@@ -960,7 +960,7 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         if (dualPanesPanels.size() == 1){
             // Assert that the statusLamp is set as the left widget and that the lamp is displaying correct color (red)
-            WebElement statusLamp = dualPanesPanels.get(0).findElement(By.id(JobsShowGenericViewImpl.GUICLASS_RED));
+            WebElement statusLamp = dualPanesPanels.get(0).findElement(By.id(JobsShowViewImpl.GUICLASS_RED));
             assertNotNull(statusLamp);
 
             // Assert that the text message is set as the right widget, and that the text is correct.
@@ -987,13 +987,13 @@ public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
         WebElement statusLamp;
         JobStatusEnum jobStatusEnum;
         if (dualPanesPanel.getText().toLowerCase().contains("failed")) {
-            statusLamp = dualPanesPanel.findElement(By.id(JobsShowGenericViewImpl.GUICLASS_RED));
+            statusLamp = dualPanesPanel.findElement(By.id(JobsShowViewImpl.GUICLASS_RED));
             jobStatusEnum = JobStatusEnum.DONE_WITH_ERROR;
         } else if (dualPanesPanel.getText().toLowerCase().contains("pending")) {
-            statusLamp = dualPanesPanel.findElement(By.id(JobsShowGenericViewImpl.GUICLASS_GRAY));
+            statusLamp = dualPanesPanel.findElement(By.id(JobsShowViewImpl.GUICLASS_GRAY));
             jobStatusEnum = JobStatusEnum.NOT_DONE;
         } else {
-            statusLamp = dualPanesPanel.findElement(By.id(JobsShowGenericViewImpl.GUICLASS_GREEN));
+            statusLamp = dualPanesPanel.findElement(By.id(JobsShowViewImpl.GUICLASS_GREEN));
             jobStatusEnum = JobStatusEnum.DONE_WITHOUT_ERROR;
         }
         assertNotNull(statusLamp);

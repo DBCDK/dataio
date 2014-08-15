@@ -21,10 +21,10 @@ import java.util.Map;
  * This class represents the create flow activity encompassing saving
  * of flow data in the flow store via RPC proxy
  */
-public class FlowCreateActivity extends AbstractActivity implements FlowCreateGenericPresenter {
+public class FlowCreateActivity extends AbstractActivity implements FlowCreatePresenter {
     private final FlowCreateConstants constants = GWT.create(FlowCreateConstants.class);
     private ClientFactory clientFactory;
-    private FlowCreateGenericView flowCreateView;
+    private FlowCreateView flowCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
     private Map<String, FlowComponent> availableFlowComponents = new HashMap<String, FlowComponent>();
 

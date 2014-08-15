@@ -18,11 +18,11 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * This class represents the create sink activity encompassing saving
  * of sink data in the flow store via RPC proxy
  */
-public class SinkCreateActivity extends AbstractActivity implements SinkCreateEditGenericPresenter {
+public class SinkCreateActivity extends AbstractActivity implements SinkCreateEditPresenter {
     private final SinkCreateEditConstants constants = GWT.create(SinkCreateEditConstants.class);
 
     private ClientFactory clientFactory;
-    private SinkCreateEditGenericView sinkCreateView;
+    private SinkCreateEditView sinkCreateView;
     private SinkServiceProxyAsync sinkServiceProxy;
     private FlowStoreProxyAsync flowStoreProxy;
 

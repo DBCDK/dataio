@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by sma on 25/04/14.
  */
-public class HarvestersShowActivity extends AbstractActivity implements HarvestersShowGenericPresenter {
+public class HarvestersShowActivity extends AbstractActivity implements HarvestersShowPresenter {
 
     //TODO indkommenter når tilføjet til ClientFactory
 //    private final ClientFactory clientFactory;

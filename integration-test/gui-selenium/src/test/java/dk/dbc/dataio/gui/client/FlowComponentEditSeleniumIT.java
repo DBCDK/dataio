@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditGenericViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -131,30 +131,30 @@ public class FlowComponentEditSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static WebElement findFlowComponentNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditGenericViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSvnProjectElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditGenericViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_PROJECT_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_PROJECT_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSvnRevisionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditGenericViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SVN_REVISION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SVN_REVISION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findJavaScriptNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditGenericViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SCRIPT_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SCRIPT_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findInvocationMethodElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditGenericViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_INVOCATION_METHOD_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSaveButton(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditGenericViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultLabel(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditGenericViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowComponentCreateEditViewImpl.GUIID_FLOW_COMPONENT_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 }

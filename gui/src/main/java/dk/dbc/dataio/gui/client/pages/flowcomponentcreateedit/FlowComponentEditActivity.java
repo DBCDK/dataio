@@ -19,11 +19,11 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.Arrays;
 import java.util.List;
 
-public class FlowComponentEditActivity extends AbstractActivity implements FlowComponentCreateEditGenericPresenter {
+public class FlowComponentEditActivity extends AbstractActivity implements FlowComponentCreateEditPresenter {
     private final FlowComponentCreateEditConstants constants = GWT.create(FlowComponentCreateEditConstants.class);
 
     private ClientFactory clientFactory;
-    private FlowComponentCreateEditGenericView flowComponentEditView;
+    private FlowComponentCreateEditView flowComponentEditView;
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     private FlowStoreProxyAsync flowStoreProxy;
 

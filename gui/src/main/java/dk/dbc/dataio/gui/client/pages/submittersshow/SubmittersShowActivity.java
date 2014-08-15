@@ -13,9 +13,9 @@ import java.util.List;
 /**
  * This class represents the show submitters activity
  */
-public class SubmittersShowActivity extends AbstractActivity implements SubmittersShowGenericPresenter {
+public class SubmittersShowActivity extends AbstractActivity implements SubmittersShowPresenter {
     private final ClientFactory clientFactory;
-    private SubmittersShowGenericView submittersShowView;
+    private SubmittersShowView submittersShowView;
     private FlowStoreProxyAsync flowStoreProxy;
 
     public SubmittersShowActivity(ClientFactory clientFactory) {

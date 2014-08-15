@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowGenericViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -34,7 +34,7 @@ public class SubmittersShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testSubmittersShowEmptyList_NoContentIsShown() throws TimeoutException, InterruptedException, Exception {
         navigateToSubmittersShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowGenericViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
         table.waitAssertNoRows();
     }
 
@@ -42,7 +42,7 @@ public class SubmittersShowSeleniumIT extends AbstractGuiSeleniumTest {
     public void testSubmittersInsertOneRow_OneElementShown() throws Exception{
         Submitter submitter = createTestSubmitter(111L, "Submitter-name", "Submitter-description");
         navigateToSubmittersShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowGenericViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
         table.waitAssertRows(1);
         List<SeleniumGWTTable.Cell> rowData = table.getRow(0);
         assertThat(rowData.get(0).getCellContent(), is((Long.toString(submitter.getContent().getNumber()))));
@@ -56,7 +56,7 @@ public class SubmittersShowSeleniumIT extends AbstractGuiSeleniumTest {
         Submitter submitterB = createTestSubmitter(2222L, "NamoDuo", "DesiDuo");
 
         navigateToSubmittersShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowGenericViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SubmittersShowViewImpl.GUIID_SUBMITTERS_SHOW_WIDGET);
         table.waitAssertRows(2);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
         assertThat(rowData.get(0).get(0).getCellContent(), is(Long.toString(submitterA.getContent().getNumber())));

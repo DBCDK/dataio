@@ -1,8 +1,0 @@
-package dk.dbc.dataio.gui.client.pages.flowsshow;
-
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
-
-public interface FlowsShowGenericPresenter extends GenericPresenter {
-    void updateFlowComponentsInFlowToLatestVersion(Flow flow);
-}

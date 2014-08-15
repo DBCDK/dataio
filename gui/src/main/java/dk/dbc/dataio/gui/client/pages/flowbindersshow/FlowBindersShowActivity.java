@@ -21,9 +21,9 @@ import java.util.Map;
 /**
  * This class represents the show flowbinders activity
  */
-public class FlowBindersShowActivity extends AbstractActivity implements FlowBindersShowGenericPresenter {
+public class FlowBindersShowActivity extends AbstractActivity implements FlowBindersShowPresenter {
     private final ClientFactory clientFactory;
-    private FlowBindersShowGenericView flowBindersShowView;
+    private FlowBindersShowView flowBindersShowView;
     private final FlowStoreProxyAsync flowStoreProxy;
 
     private static List<FlowBinder> flowBinders = null;

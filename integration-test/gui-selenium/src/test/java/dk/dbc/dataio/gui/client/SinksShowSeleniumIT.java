@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowGenericViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -41,7 +41,7 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testSinksShowEmptyList_NoContentIsShown() throws Exception {
         navigateToSinksShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SinksShowViewImpl.GUIID_SINKS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SinksShowGenericViewImpl.GUIID_SINKS_SHOW_WIDGET);
         table.waitAssertNoRows();
     }
 
@@ -53,7 +53,7 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
 
         navigateToSinksShowWidget(webDriver);
 
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SinksShowViewImpl.GUIID_SINKS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, SinksShowGenericViewImpl.GUIID_SINKS_SHOW_WIDGET);
         table.waitAssertRows(2);
 
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
@@ -109,7 +109,7 @@ public class SinksShowSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     public static void locateAndClickEditButtonForElement(int index){
-        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, SinksShowViewImpl.GUUID_SHOW_SINK_TABLE_EDIT, SinksShowViewImpl.CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON, index);
+        WebElement element = SeleniumUtil.findElementInCurrentView(webDriver, SinksShowGenericViewImpl.GUUID_SHOW_SINK_TABLE_EDIT, SinksShowGenericViewImpl.CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON, index);
         element.findElement(By.tagName("button")).click();
     }
 }

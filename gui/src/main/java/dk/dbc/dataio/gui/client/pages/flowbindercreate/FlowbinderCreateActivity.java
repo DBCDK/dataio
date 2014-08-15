@@ -22,10 +22,10 @@ import java.util.Map;
  * This class represents the create flowbinder activity encompassing saving
  * of flowbinder data in the flow store via RPC proxy
  */
-public class FlowbinderCreateActivity extends AbstractActivity implements FlowbinderCreatePresenter {
+public class FlowbinderCreateActivity extends AbstractActivity implements FlowbinderCreateGenericPresenter {
     private final FlowbinderCreateConstants constants = GWT.create(FlowbinderCreateConstants.class);
     private ClientFactory clientFactory;
-    private FlowbinderCreateView flowbinderCreateView;
+    private FlowbinderCreateGenericView flowbinderCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
     private Map<String, Sink> availableSinks = new HashMap<String, Sink>();
     private Map<String, Submitter> availableSubmitters = new HashMap<String, Submitter>();

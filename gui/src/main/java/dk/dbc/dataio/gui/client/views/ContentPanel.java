@@ -7,14 +7,14 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
-import dk.dbc.dataio.gui.client.presenters.Presenter;
+import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 /**
  * This is a container panel, for holding a Header panel together with
  * a content panel
  * @param <T> The presenter to use with this view
  */
-public abstract class ContentPanel<T extends Presenter> extends FlowPanel {
+public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel {
     protected final static MainConstants mainConstants = GWT.create(MainConstants.class);
     private static final String GUIID_HEADER_PANEL = "header-panel";
     private static final String GUIID_CONTENT_PANEL = "content-panel";

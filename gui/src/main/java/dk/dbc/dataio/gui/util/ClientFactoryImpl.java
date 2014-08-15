@@ -8,63 +8,63 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateActivity;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateConstants;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateGenericView;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowActivity;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowConstants;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowView;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowGenericView;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateActivity;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditConstants;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditView;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditGenericView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditActivity;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditPlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowActivity;
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowConstants;
 import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowGenericView;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateActivity;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateConstants;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateGenericView;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowActivity;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowConstants;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowGenericView;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowActivity;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowConstants;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowGenericView;
+import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateActivity;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditConstants;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditView;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditGenericView;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditActivity;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowActivity;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowConstants;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowGenericView;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateActivity;
 import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateConstants;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateGenericViewImpl;
 import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreatePlace;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateGenericView;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowActivity;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowConstants;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowGenericView;
+import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowGenericViewImpl;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -122,17 +122,17 @@ public class ClientFactoryImpl implements ClientFactory {
     private final MenuItem menuStructure;
 
     // Views
-    private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
-    private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
-    private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
-    private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
-    private final SinkCreateEditView sinkCreateEditView = new SinkCreateEditViewImpl();
-    private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
-    private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
-    private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
-    private final JobsShowView jobsShowView = new JobsShowViewImpl();
-    private final SinksShowView sinksShowView = new SinksShowViewImpl();
-    private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
+    private final FlowCreateGenericView flowCreateView = new FlowCreateGenericViewImpl();
+    private final FlowComponentCreateEditGenericView flowComponentCreateEditView = new FlowComponentCreateEditGenericViewImpl();
+    private final SubmitterCreateGenericView submitterCreateView = new SubmitterCreateGenericViewImpl();
+    private final FlowbinderCreateGenericView flowbinderCreateView = new FlowbinderCreateGenericViewImpl();
+    private final SinkCreateEditGenericView sinkCreateEditView = new SinkCreateEditGenericViewImpl();
+    private final FlowComponentsShowGenericView flowComponentsShowView = new FlowComponentsShowGenericViewImpl();
+    private final FlowsShowGenericView flowsShowView = new FlowsShowGenericViewImpl();
+    private final SubmittersShowGenericView submittersShowView = new SubmittersShowGenericViewImpl();
+    private final JobsShowGenericView jobsShowView = new JobsShowGenericViewImpl();
+    private final SinksShowGenericView sinksShowView = new SinksShowGenericViewImpl();
+    private final FlowBindersShowGenericView flowBindersShowView = new FlowBindersShowGenericViewImpl();
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {
@@ -262,57 +262,57 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Views
     @Override
-    public FlowCreateView getFlowCreateView() {
+    public FlowCreateGenericView getFlowCreateView() {
         return flowCreateView;
     }
 
     @Override
-    public FlowComponentCreateEditView getFlowComponentCreateEditView() {
+    public FlowComponentCreateEditGenericView getFlowComponentCreateEditView() {
         return flowComponentCreateEditView;
     }
 
     @Override
-    public SubmitterCreateView getSubmitterCreateView() {
+    public SubmitterCreateGenericView getSubmitterCreateView() {
         return submitterCreateView;
     }
 
     @Override
-    public FlowbinderCreateView getFlowbinderCreateView() {
+    public FlowbinderCreateGenericView getFlowbinderCreateView() {
         return flowbinderCreateView;
     }
 
     @Override
-    public SinkCreateEditView getSinkCreateEditView() {
+    public SinkCreateEditGenericView getSinkCreateEditView() {
         return sinkCreateEditView;
     }
 
     @Override
-    public FlowComponentsShowView getFlowComponentsShowView() {
+    public FlowComponentsShowGenericView getFlowComponentsShowView() {
         return flowComponentsShowView;
     }
 
     @Override
-    public FlowsShowView getFlowsShowView() {
+    public FlowsShowGenericView getFlowsShowView() {
         return flowsShowView;
     }
 
     @Override
-    public SubmittersShowView getSubmittersShowView() {
+    public SubmittersShowGenericView getSubmittersShowView() {
         return submittersShowView;
     }
 
     @Override
-    public JobsShowView getJobsShowView() {
+    public JobsShowGenericView getJobsShowView() {
         return jobsShowView;
     }
 
     @Override
-    public SinksShowView getSinksShowView() {
+    public SinksShowGenericView getSinksShowView() {
         return sinksShowView;
     }
 
     @Override
-    public FlowBindersShowView getFlowBindersShowView() {
+    public FlowBindersShowGenericView getFlowBindersShowView() {
         return flowBindersShowView;
     }
 

@@ -15,9 +15,9 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * This class represents the create submitter activity encompassing saving
  * of submitter data in the flow store via RPC proxy
  */
-public class SubmitterCreateActivity extends AbstractActivity implements SubmitterCreatePresenter {
+public class SubmitterCreateActivity extends AbstractActivity implements SubmitterCreateGenericPresenter {
     private ClientFactory clientFactory;
-    private SubmitterCreateView submitterCreateView;
+    private SubmitterCreateGenericView submitterCreateView;
     private FlowStoreProxyAsync flowStoreProxy;
 
     public SubmitterCreateActivity(ClientFactory clientFactory) {

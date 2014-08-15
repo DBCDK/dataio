@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateGenericViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -185,7 +185,7 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
         findDescriptionElement(webDriver).sendKeys("b");
         SeleniumUtil.selectItemInDualList(findComponentSelectionElement(webDriver), flowComponentName);
         findSaveButtonElement(webDriver).click();
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_FlowSuccessfullySaved"));
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowCreateGenericViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_FlowSuccessfullySaved"));
     }
 
     private static void navigateToFlowCreationWidget(WebDriver webDriver) {
@@ -193,27 +193,27 @@ public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static WebElement findFlowCreationWidget(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_WIDGET);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateGenericViewImpl.GUIID_FLOW_CREATION_WIDGET);
     }
 
     private static WebElement findNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateGenericViewImpl.GUIID_FLOW_CREATION_FLOW_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findDescriptionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateGenericViewImpl.GUIID_FLOW_CREATION_FLOW_DESCRIPTION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findComponentSelectionElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateGenericViewImpl.GUIID_FLOW_CREATION_FLOW_COMPONENT_SELECTION_PANEL);
     }
 
     private static WebElement findSaveButtonElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateGenericViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, FlowCreateGenericViewImpl.GUIID_FLOW_CREATION_FLOW_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 
     private void navigateAwayFromFlowCreationWidget(WebDriver webDriver) {

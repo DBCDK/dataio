@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * This class represents the show flows activity
  */
-public class FlowsShowActivity extends AbstractActivity implements FlowsShowPresenter {
+public class FlowsShowActivity extends AbstractActivity implements FlowsShowGenericPresenter {
     private ClientFactory clientFactory;
-    private FlowsShowView flowsShowView;
+    private FlowsShowGenericView flowsShowView;
     private FlowStoreProxyAsync flowStoreProxy;
 
     public FlowsShowActivity(ClientFactory clientFactory) {

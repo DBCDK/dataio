@@ -7,8 +7,8 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditGenericViewImpl;
+import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowGenericViewImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -398,11 +398,11 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
         findSinkNameElement(webDriver).getAttribute("value");
         findResourceNameElement(webDriver).getAttribute("value");
         findSaveButton(webDriver).click();
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SinkSuccessfullySaved"));
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_SINK_TIMOUT, SinkCreateEditGenericViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SinkSuccessfullySaved"));
     }
 
     private int getTableSize(){
-        List<WebElement> elements = SeleniumUtil.findElementsInCurrentView(webDriver, SinksShowViewImpl.GUUID_SHOW_SINK_TABLE_EDIT, SinksShowViewImpl.CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON);
+        List<WebElement> elements = SeleniumUtil.findElementsInCurrentView(webDriver, SinksShowGenericViewImpl.GUUID_SHOW_SINK_TABLE_EDIT, SinksShowGenericViewImpl.CLASS_SINK_SHOW_WIDGET_EDIT_BUTTON);
         return elements.size();
     }
 
@@ -415,18 +415,18 @@ public class SinkEditSeleniumIT extends AbstractGuiSeleniumTest {
      * The following is private static helper methods.
      */
     private static WebElement findSinkNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_SINK_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditGenericViewImpl.GUIID_SINK_CREATION_EDIT_SINK_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findResourceNameElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_RESOURCE_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditGenericViewImpl.GUIID_SINK_CREATION_EDIT_RESOURCE_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSaveButton(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditGenericViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
     }
 
     private static WebElement findSaveResultLabel(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, SinkCreateEditGenericViewImpl.GUIID_SINK_CREATION_EDIT_SAVE_BUTTON_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
     }
 }

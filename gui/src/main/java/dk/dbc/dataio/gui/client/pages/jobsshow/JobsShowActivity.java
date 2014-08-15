@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * This class represents the show jobs activity
  */
-public class JobsShowActivity extends AbstractActivity implements JobsShowPresenter {
+public class JobsShowActivity extends AbstractActivity implements JobsShowGenericPresenter {
     private ClientFactory clientFactory;
-    private JobsShowView jobsShowView;
+    private JobsShowGenericView jobsShowView;
     private JobStoreProxyAsync jobStoreProxy;
 
     public JobsShowActivity(ClientFactory clientFactory) {

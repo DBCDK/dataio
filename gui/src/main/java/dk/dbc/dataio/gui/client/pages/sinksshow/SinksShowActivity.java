@@ -15,9 +15,9 @@ import java.util.List;
 /**
  * This class represents the show sinks activity
  */
-public class SinksShowActivity extends AbstractActivity implements SinksShowPresenter {
+public class SinksShowActivity extends AbstractActivity implements SinksShowGenericPresenter {
     private final ClientFactory clientFactory;
-    private SinksShowView sinksShowView;
+    private SinksShowGenericView sinksShowView;
     private final FlowStoreProxyAsync flowStoreProxy;
     private final PlaceController placeController;
 

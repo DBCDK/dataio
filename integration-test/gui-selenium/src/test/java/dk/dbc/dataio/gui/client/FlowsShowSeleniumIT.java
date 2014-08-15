@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowGenericViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -37,7 +37,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowsShowEmptyList_NoContentIsShown() throws TimeoutException, Exception {
         navigateToFlowsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowGenericViewImpl.GUIID_FLOWS_SHOW_WIDGET);
         table.waitAssertNoRows();
     }
 
@@ -51,7 +51,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         FlowComponent flowComponent = createTestFlowComponent(FLOW_COMPONENT_NAME, FLOW_COMPONENT_REVISION);
         createTestFlow(FLOW_NAME, FLOW_DESCRIPTION, java.util.Arrays.asList(flowComponent));
         navigateToFlowsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowGenericViewImpl.GUIID_FLOWS_SHOW_WIDGET);
         table.waitAssertRows(1);
 
         List<SeleniumGWTTable.Cell> rowData = table.getRow(0);
@@ -76,7 +76,7 @@ public class FlowsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createTestFlow(FLOW_NAME_1, FLOW_DESCRIPTION_1, java.util.Arrays.asList(flowComponentA));
         createTestFlow(FLOW_NAME_2, FLOW_DESCRIPTION_2, java.util.Arrays.asList(flowComponentB));
         navigateToFlowsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowViewImpl.GUIID_FLOWS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowsShowGenericViewImpl.GUIID_FLOWS_SHOW_WIDGET);
         table.waitAssertRows(2);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
 

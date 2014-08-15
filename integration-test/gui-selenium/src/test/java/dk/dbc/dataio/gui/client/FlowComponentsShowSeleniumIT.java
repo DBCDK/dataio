@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowGenericViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -42,7 +42,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowComponentsShowEmptyList_NoContentIsShown() throws TimeoutException, Exception {
         navigateToFlowComponentsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowComponentsShowGenericViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
         table.waitAssertNoRows();
     }
 
@@ -51,7 +51,7 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
         createTestFlowComponent(FLOW_COMPONENT_NAME_1);
         createTestFlowComponent(FLOW_COMPONENT_NAME_2);
         navigateToFlowComponentsShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowComponentsShowGenericViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET);
         table.waitAssertRows(2);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
         assertThat(rowData.get(0).get(0).getCellContent(), is(FLOW_COMPONENT_NAME_1));
@@ -101,8 +101,8 @@ public class FlowComponentsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
     public static void locateAndClickEditButtonForElement(int index){
         WebElement element = SeleniumUtil.findElementInCurrentView(webDriver,
-                FlowComponentsShowViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET,
-                FlowComponentsShowViewImpl.CLASS_FLOW_COMPONENTS_SHOW_WIDGET_EDIT_BUTTON, index);
+                FlowComponentsShowGenericViewImpl.GUIID_FLOW_COMPONENTS_SHOW_WIDGET,
+                FlowComponentsShowGenericViewImpl.CLASS_FLOW_COMPONENTS_SHOW_WIDGET_EDIT_BUTTON, index);
         element.findElement(By.tagName("button")).click();
     }
 

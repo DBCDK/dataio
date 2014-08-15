@@ -22,10 +22,10 @@ import java.util.List;
  * This class represents the create flow activity encompassing saving
  * of flow data in the flow store via RPC proxy
  */
-public class FlowComponentCreateActivity extends AbstractActivity implements FlowComponentCreateEditPresenter {
+public class FlowComponentCreateActivity extends AbstractActivity implements FlowComponentCreateEditGenericPresenter {
     private final FlowComponentCreateEditConstants constants = GWT.create(FlowComponentCreateEditConstants.class);
     private ClientFactory clientFactory;
-    private FlowComponentCreateEditView flowComponentCreateView;
+    private FlowComponentCreateEditGenericView flowComponentCreateView;
     private JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     private FlowStoreProxyAsync flowStoreProxy;
 

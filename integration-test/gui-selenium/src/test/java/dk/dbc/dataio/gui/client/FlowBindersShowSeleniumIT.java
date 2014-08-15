@@ -12,7 +12,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowGenericViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -56,7 +56,7 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowBindersShowEmptyList_NoContentIsShown() {
         navigateToFlowBindersShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowBindersShowViewImpl.GUIID_FLOW_BINDERS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowBindersShowGenericViewImpl.GUIID_FLOW_BINDERS_SHOW_WIDGET);
         table.waitAssertNoRows();
     }
 
@@ -75,7 +75,7 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
         createTestFlowBinder(webDriver, 17, Arrays.asList(12), 18, 19);  // Flowbinder #7 containing Submitter(s) (#2, #1), Flow #8 and Sink #9
 
         navigateToFlowBindersShowWidget(webDriver);
-        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowBindersShowViewImpl.GUIID_FLOW_BINDERS_SHOW_WIDGET);
+        SeleniumGWTTable table = new SeleniumGWTTable(webDriver, FlowBindersShowGenericViewImpl.GUIID_FLOW_BINDERS_SHOW_WIDGET);
         table.waitAssertRows(2);
         List<List<SeleniumGWTTable.Cell>> rowData = table.get();
         assertThat(rowData.get(0).get(0).getCellContent(), is(subjectNameString(FLOW_BINDER_NAME, 16)));  // Navn

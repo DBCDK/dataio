@@ -11,6 +11,11 @@ public class RawRepoConnectorBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
+    public void fetchRecordCollection_idArgIsNull_throws() throws SQLException {
+        new RawRepoConnectorBean().fetchRecordCollection(null);
+    }
+
+    @Test(expected = NullPointerException.class)
     public void dequeue_consumerIdArgIsNull_throws() throws SQLException {
         new RawRepoConnectorBean().dequeue(null);
     }

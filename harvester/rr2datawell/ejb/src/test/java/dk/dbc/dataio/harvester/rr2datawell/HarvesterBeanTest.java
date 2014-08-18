@@ -11,6 +11,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.MockedQueueJob;
+import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -20,10 +21,13 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -35,22 +39,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvesterBeanTest {
-    private final String marcxCollectionSingleRecord =
-            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\">" +
-                    "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                        "<marcx:subfield code=\"a\">id</marcx:subfield>" +
-                        "<marcx:subfield code=\"b\">"+ HarvesterBean.LIBRARY_NUMBER_870970 + "</marcx:subfield>" +
-                    "</marcx:datafield>" +
-                    "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                        "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
-                    "</marcx:datafield>" +
-                "</marcx:record>" +
-            "</marcx:collection>";
+    private final static RecordId RECORD_ID = new RecordId("record", HarvesterBean.LIBRARY_NUMBER_870970);
+    private final static String RECORD_CONTENT = asRcordContent(RECORD_ID);
+    private final static Record RECORD = new MockedRecord(RECORD_ID, true);
+    private final static QueueJob QUEUE_JOB = asQueueJob(RECORD_ID);
+    private final static String FILE_ID = "1234";
 
-    private final String fileId = "1234";
+    static {
+        RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
+    }
 
-    private QueueJob queueJob = new MockedQueueJob("id", 42, "worker", new Timestamp(new Date().getTime()));
     private BinaryFile binaryFile = mock(BinaryFile.class);
     private OutputStream os = mock(OutputStream.class);
     private InputStream is = mock(InputStream.class);
@@ -67,11 +65,12 @@ public class HarvesterBeanTest {
         when(binaryFile.openInputStream()).thenReturn(is);
         when(binaryFile.openOutputStream()).thenReturn(os);
         when(repoConnectorBean.dequeue(anyString()))
-                .thenReturn(queueJob)
+                .thenReturn(QUEUE_JOB)
                 .thenReturn(null);
-        when(repoConnectorBean.fetchRecord(any(RecordId.class))).thenReturn(rrRecord);
-        when(rrRecord.getContent()).thenReturn(marcxCollectionSingleRecord.getBytes());
-        when(fileStoreServiceConnector.addFile(is)).thenReturn(fileId);
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));
+        when(rrRecord.getContent()).thenReturn(RECORD.getContent());
+        when(fileStoreServiceConnector.addFile(is)).thenReturn(FILE_ID);
         when(jobStoreServiceConnector.createJob(any(JobSpecification.class))).thenReturn(jobInfo);
     }
 
@@ -88,7 +87,7 @@ public class HarvesterBeanTest {
 
     @Test
     public void harvest_repoConnectorBeanQueueSuccessThrowsSqlException_throws() throws SQLException {
-        doThrow(new SQLException()).when(repoConnectorBean).queueSuccess(queueJob);
+        doThrow(new SQLException()).when(repoConnectorBean).queueSuccess(QUEUE_JOB);
 
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
@@ -237,4 +236,23 @@ public class HarvesterBeanTest {
         return harvesterBean;
     }
 
+    public static QueueJob asQueueJob(RecordId recordId) {
+        return new MockedQueueJob(recordId.getId(), recordId.getLibrary(), HarvesterBean.RAW_REPO_CONSUMER_ID,
+                new Timestamp(new Date().getTime()));
+    }
+
+    public static String asRcordContent(RecordId recordId) {
+        return
+        "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+            "<marcx:record format=\"danMARC2\">" +
+                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                    "<marcx:subfield code=\"a\">" + recordId.getId() + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"b\">" + recordId.getLibrary() + "</marcx:subfield>" +
+                "</marcx:datafield>" +
+                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                    "<marcx:subfield code=\"a\">title</marcx:subfield>" +
+                "</marcx:datafield>" +
+            "</marcx:record>" +
+        "</marcx:collection>";
+    }
 }

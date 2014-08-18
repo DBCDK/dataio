@@ -11,6 +11,7 @@ import javax.ejb.Stateless;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the RawRepo through datasource
@@ -27,6 +28,15 @@ public class RawRepoConnectorBean {
         InvariantUtil.checkNotNullOrThrow(id, "id");
         try (final Connection connection = dataSource.getConnection()) {
             return RawRepoDAO.newInstance(connection).fetchRecord(id.getId(), id.getLibrary());
+        } catch (ClassNotFoundException e) {
+            throw new SQLException(e);
+        }
+    }
+
+    public Set<Record> fetchRecordCollection(RecordId id) throws NullPointerException, SQLException {
+        InvariantUtil.checkNotNullOrThrow(id, "id");
+        try (final Connection connection = dataSource.getConnection()) {
+            return RawRepoDAO.newInstance(connection).fetchRecordCollection(id.getId(), id.getLibrary());
         } catch (ClassNotFoundException e) {
             throw new SQLException(e);
         }

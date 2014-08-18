@@ -18,7 +18,9 @@ public class MockedRecord implements Record {
 
     @Override
     public byte[] getContent() {
-        return content;
+        final byte[] copy = new byte[content.length];
+        System.arraycopy(content, 0, copy, 0, content.length);
+        return copy;
     }
 
     @Override
@@ -28,7 +30,7 @@ public class MockedRecord implements Record {
 
     @Override
     public Date getCreated() {
-        return created;
+        return new Date(created.getTime());
     }
 
     @Override
@@ -38,7 +40,7 @@ public class MockedRecord implements Record {
 
     @Override
     public Date getModified() {
-        return modified;
+        return new Date(modified.getTime());
     }
 
     @Override
@@ -48,16 +50,17 @@ public class MockedRecord implements Record {
 
     @Override
     public void setContent(byte[] bytes) {
-        content = bytes;
+        content = new byte[bytes.length];
+        System.arraycopy(bytes, 0, content, 0, bytes.length);
     }
 
     @Override
     public void setCreated(Date date) {
-        created = date;
+        created = new Date(date.getTime());
     }
 
     @Override
     public void setModified(Date date) {
-        modified = date;
+        modified = new Date(date.getTime());
     }
 }

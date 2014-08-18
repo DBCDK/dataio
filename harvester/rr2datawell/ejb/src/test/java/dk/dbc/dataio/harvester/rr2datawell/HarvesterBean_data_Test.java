@@ -46,50 +46,50 @@ public class HarvesterBean_data_Test {
     private final static RawRepoConnectorBean RAW_REPO_CONNECTOR_BEAN = mock(RawRepoConnectorBean.class);
     private final static QueueJob QUEUE_JOB = new MockedQueueJob("id", 42, "worker", new Timestamp(new Date().getTime()));
 
+    private final static RecordId FIRST_RECORD_ID = new RecordId("first", HarvesterBean.LIBRARY_NUMBER_870970);
     private final static String FIRST_RECORD_CONTENT =
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                    "<marcx:subfield code=\"a\">first</marcx:subfield>" +
-                    "<marcx:subfield code=\"b\">"+ HarvesterBean.LIBRARY_NUMBER_870970 + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">" + FIRST_RECORD_ID.getId() + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"b\">" + FIRST_RECORD_ID.getLibrary() + "</marcx:subfield>" +
                 "</marcx:datafield>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                     "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
                 "</marcx:datafield>" +
             "</marcx:record>" +
         "</marcx:collection>";
-    private final static RecordId FIRST_RECORD_ID = new RecordId("first", HarvesterBean.LIBRARY_NUMBER_870970);
     private final static Record FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
 
+    private final static RecordId SECOND_RECORD_ID = new RecordId("second", 123456);
     private final static String SECOND_RECORD_CONTENT =
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                    "<marcx:subfield code=\"a\">second</marcx:subfield>" +
-                    "<marcx:subfield code=\"b\">1234567</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">" + SECOND_RECORD_ID.getId() + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"b\">" + SECOND_RECORD_ID.getLibrary() + "</marcx:subfield>" +
                 "</marcx:datafield>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                     "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
                 "</marcx:datafield>" +
             "</marcx:record>" +
         "</marcx:collection>";
-    private final static RecordId SECOND_RECORD_ID = new RecordId("second", 123456);
     private final static Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID, true);
 
 
+    private final static RecordId THIRD_RECORD_ID = new RecordId("third", HarvesterBean.LIBRARY_NUMBER_870970);
     private final static String THIRD_RECORD_CONTENT =
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                    "<marcx:subfield code=\"a\">first</marcx:subfield>" +
-                    "<marcx:subfield code=\"b\">"+ HarvesterBean.LIBRARY_NUMBER_870970 + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">" + THIRD_RECORD_ID.getId() + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"b\">"+ THIRD_RECORD_ID.getLibrary() + "</marcx:subfield>" +
                 "</marcx:datafield>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                     "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
                 "</marcx:datafield>" +
             "</marcx:record>" +
         "</marcx:collection>";
-    private final static RecordId THIRD_RECORD_ID = new RecordId("third", HarvesterBean.LIBRARY_NUMBER_870970);
     private final static Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID, true);
 
     static {

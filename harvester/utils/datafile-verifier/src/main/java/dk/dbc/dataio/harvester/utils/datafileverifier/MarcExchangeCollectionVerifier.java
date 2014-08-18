@@ -57,6 +57,7 @@ public class MarcExchangeCollectionVerifier {
             assertThat(recordNode.getNamespaceURI(), is(MARC_EXCHANGE_NAMESPACE));
             final Document recordDocument = domUtil.asDocument((Element) recordNode);
             final MarcExchangeRecordBinding marcExchangeRecordBinding = new MarcExchangeRecordBinding(recordDocument);
+            assertThat(marcExchangeRecordBinding.getId(), is(recordIds.get(i).getId()));
             assertThat(marcExchangeRecordBinding.getLibrary(), is(recordIds.get(i).getNumber()));
         }
     }

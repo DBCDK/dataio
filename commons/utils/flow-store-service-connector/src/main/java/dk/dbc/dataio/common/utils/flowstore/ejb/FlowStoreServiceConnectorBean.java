@@ -98,6 +98,16 @@ public class FlowStoreServiceConnectorBean {
     }
 
     @Lock(LockType.READ)
+    public Submitter updateSubmitter(SubmitterContent submitterContent, long id, long version) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Updating existing submitter");
+        try{
+            return getFlowStoreServiceConnector().updateSubmitter(submitterContent, id, version);
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
     public List<Submitter> findAllSubmitters() throws FlowStoreServiceConnectorException {
         LOGGER.debug("Retrieving all submitters");
         try{

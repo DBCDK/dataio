@@ -14,6 +14,7 @@ import dk.dbc.dataio.gui.client.views.GenericView;
  * @author slf
  */
 public interface SinkCreateEditView extends IsWidget, GenericView<SinkCreateEditPresenter> {
+    void clearFields();
     void initializeFields(String header, Sink sink);
     void onFlowStoreProxyFailure(ProxyError errorCode, String detail);
     void onSaveSinkSuccess();

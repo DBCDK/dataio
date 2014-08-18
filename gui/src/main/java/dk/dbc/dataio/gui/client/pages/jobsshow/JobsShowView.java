@@ -7,5 +7,6 @@ import dk.dbc.dataio.gui.client.views.GenericView;
 import java.util.List;
 
 public interface JobsShowView extends IsWidget, GenericView<JobsShowPresenter> {
+    void clearFields();
     void setJobs(List<JobInfo> job);
 }

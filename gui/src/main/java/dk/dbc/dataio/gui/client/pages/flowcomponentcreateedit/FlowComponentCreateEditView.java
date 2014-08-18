@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.views.GenericView;
 import java.util.List;
 
 public interface FlowComponentCreateEditView extends IsWidget, GenericView<FlowComponentCreateEditPresenter> {
+    void clearFields();
     void setAvailableRevisions(List<RevisionInfo> availableRevisions, int currentRevision);
     void setAvailableScriptNames(List<String> availableScriptNames, String currentScriptName);
     void setAvailableInvocationMethods(List<String> availableInvocationMethods, String currentInvocationMethod);

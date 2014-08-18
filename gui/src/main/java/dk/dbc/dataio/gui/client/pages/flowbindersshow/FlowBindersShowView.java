@@ -6,5 +6,6 @@ import dk.dbc.dataio.gui.types.FlowBinderContentViewData;
 import java.util.List;
 
 public interface FlowBindersShowView extends IsWidget, GenericView<FlowBindersShowPresenter> {
+    void clearFields();
     void setFlowBinders(List<FlowBinderContentViewData> flowBinders);
 }

@@ -5,6 +5,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.views.GenericView;
 
 public interface SubmitterCreateView extends IsWidget, GenericView<SubmitterCreatePresenter> {
+    void clearFields();
     void onFlowStoreProxyFailure(ProxyError errorCode, String detail);
     void onSaveSubmitterSuccess();
 }

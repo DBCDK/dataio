@@ -7,5 +7,6 @@ import dk.dbc.dataio.gui.client.views.GenericView;
 import java.util.List;
 
 public interface SubmittersShowView extends IsWidget, GenericView<SubmittersShowPresenter> {
+    void clearFields();
     void setSubmitters(List<Submitter> submitter);
 }

@@ -51,7 +51,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
     }
 
     /**
-     * Abstract Initilaization for the View
+     * Abstract Initialization for the View
      */
     public abstract void init();
 

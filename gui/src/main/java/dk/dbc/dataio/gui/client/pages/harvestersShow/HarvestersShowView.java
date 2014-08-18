@@ -10,5 +10,6 @@ import java.util.List;
  */
 //TODO - SinkShowPresenter - TODO needs to be replaced with list of Harvester objects
 public interface HarvestersShowView extends IsWidget, GenericView<HarvestersShowPresenter> {
+    void clearFields();
     void setHarvesters(List<String> job);
 }

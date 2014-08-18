@@ -9,7 +9,6 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
  * @param <T> specific Presenter sub type
  */
 public interface GenericView<T extends GenericPresenter> {
-    void clearFields();
     void setPresenter(T presenter);
     void onSuccess(String message);
     void onFailure(String message);

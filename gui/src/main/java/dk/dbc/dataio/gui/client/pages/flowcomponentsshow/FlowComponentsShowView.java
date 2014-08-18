@@ -6,5 +6,6 @@ import dk.dbc.dataio.gui.client.views.GenericView;
 import java.util.List;
 
 public interface FlowComponentsShowView extends IsWidget, GenericView<FlowComponentsShowPresenter> {
+    void clearFields();
     void setFlowComponents(List<FlowComponent> flowComponents);
 }

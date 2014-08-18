@@ -44,10 +44,6 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowBindersShowView.asWidget());

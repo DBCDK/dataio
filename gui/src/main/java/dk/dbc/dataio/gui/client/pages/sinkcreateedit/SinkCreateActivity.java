@@ -39,10 +39,6 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreateEd
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(sinkCreateView.asWidget());

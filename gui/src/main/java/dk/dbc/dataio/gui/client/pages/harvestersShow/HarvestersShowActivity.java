@@ -31,10 +31,6 @@ public class HarvestersShowActivity extends AbstractActivity implements Harveste
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
 //        containerWidget.setWidget(harvestersShowView.asWidget());

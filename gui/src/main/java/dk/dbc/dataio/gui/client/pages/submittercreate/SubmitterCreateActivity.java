@@ -32,10 +32,6 @@ public class SubmitterCreateActivity extends AbstractActivity implements Submitt
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void saveSubmitter(String name, String number, String description) {
         final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(number), name, description);
 

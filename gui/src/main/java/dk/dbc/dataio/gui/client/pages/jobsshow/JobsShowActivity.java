@@ -31,11 +31,6 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
     }
 
     @Override
-    public void reload() {
-        fetchJobs();
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(jobsShowView.asWidget());

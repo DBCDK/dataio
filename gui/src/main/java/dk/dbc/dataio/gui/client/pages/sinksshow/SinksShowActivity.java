@@ -34,10 +34,6 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(sinksShowView.asWidget());

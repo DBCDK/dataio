@@ -30,10 +30,6 @@ public class SubmittersShowActivity extends AbstractActivity implements Submitte
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(submittersShowView.asWidget());

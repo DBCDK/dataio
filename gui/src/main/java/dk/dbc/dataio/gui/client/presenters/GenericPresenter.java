@@ -10,6 +10,4 @@ public interface GenericPresenter {
      * method to bind the view to itself.
      */
     void bind();
-
-    void reload();
 }

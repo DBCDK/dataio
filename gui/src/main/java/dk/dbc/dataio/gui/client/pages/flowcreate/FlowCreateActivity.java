@@ -40,10 +40,6 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowCreateView.asWidget());

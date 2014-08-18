@@ -43,10 +43,6 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowbinderCreateView.asWidget());

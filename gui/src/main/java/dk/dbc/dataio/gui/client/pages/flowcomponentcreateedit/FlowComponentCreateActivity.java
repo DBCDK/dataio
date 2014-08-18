@@ -42,10 +42,6 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowComponentCreateView.asWidget());

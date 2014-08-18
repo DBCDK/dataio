@@ -47,10 +47,6 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
     }
 
     @Override
-    public void reload() {
-    }
-
-    @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         bind();
         containerWidget.setWidget(flowComponentEditView.asWidget());

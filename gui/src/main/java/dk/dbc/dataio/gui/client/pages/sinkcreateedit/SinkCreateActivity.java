@@ -43,7 +43,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreateEd
         bind();
         containerWidget.setWidget(sinkCreateView.asWidget());
         sinkCreateView.initializeFields(constants.menu_SinkCreation(), null);  // A null sink is used to clear the view
-        sinkCreateView.onSuccess("");  // Clear status message
+        sinkCreateView.setStatusText("");  // Clear status message
     }
 
     @Override

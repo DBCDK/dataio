@@ -77,7 +77,7 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
      * @param message The message to display to the user
      */
     @Override
-    public void onSuccess(String message) {
+    public void setStatusText(String message) {
         saveButton.setStatusText(message);
     }
 
@@ -109,7 +109,7 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
      */
     @Override
     public void onSaveSubmitterSuccess() {
-        onSuccess(constants.status_SubmitterSuccessfullySaved());
+        setStatusText(constants.status_SubmitterSuccessfullySaved());
     }
 
 

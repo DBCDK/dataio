@@ -85,7 +85,7 @@ public class SinkCreateEditViewImpl extends ContentPanel<SinkCreateEditPresenter
      * @param message The message to display to the user
      */
     @Override
-    public void onSuccess(String message) {
+    public void setStatusText(String message) {
         saveButton.setStatusText(message);
     }
 
@@ -117,7 +117,7 @@ public class SinkCreateEditViewImpl extends ContentPanel<SinkCreateEditPresenter
      */
     @Override
     public void onSaveSinkSuccess() {
-        onSuccess(constants.status_SinkSuccessfullySaved());
+        setStatusText(constants.status_SinkSuccessfullySaved());
     }
 
 

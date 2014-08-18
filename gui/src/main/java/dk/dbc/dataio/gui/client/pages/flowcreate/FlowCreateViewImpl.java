@@ -88,7 +88,7 @@ public class FlowCreateViewImpl extends ContentPanel<FlowCreatePresenter> implem
      * @param message The message to display to the user
      */
     @Override
-    public void onSuccess(String message) {
+    public void setStatusText(String message) {
         saveButton.setStatusText(message);
     }
 

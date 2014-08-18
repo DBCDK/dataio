@@ -113,7 +113,7 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      * @param message The message to display to the user
      */
     @Override
-    public void onSuccess(String message) {
+    public void setStatusText(String message) {
     }
 
     /**

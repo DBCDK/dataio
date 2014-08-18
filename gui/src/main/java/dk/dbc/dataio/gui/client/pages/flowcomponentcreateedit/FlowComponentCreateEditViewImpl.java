@@ -132,7 +132,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
      * @param message The message to display to the user
      */
     @Override
-    public void onSuccess(String message) {
+    public void setStatusText(String message) {
         saveButton.setStatusText(message);
     }
 
@@ -141,7 +141,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
      */
     @Override
     public void onSaveFlowComponentSuccess() {
-        onSuccess(constants.status_FlowComponentSuccessfullySaved());
+        setStatusText(constants.status_FlowComponentSuccessfullySaved());
     }
 
 

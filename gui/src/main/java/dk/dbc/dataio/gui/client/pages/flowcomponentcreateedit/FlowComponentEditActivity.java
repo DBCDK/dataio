@@ -51,7 +51,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         bind();
         containerWidget.setWidget(flowComponentEditView.asWidget());
         getFlowComponent(flowComponentId);
-        flowComponentEditView.onSuccess("");  // Clear status message
+        flowComponentEditView.setStatusText("");  // Clear status message
     }
 
     @Override

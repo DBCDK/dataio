@@ -144,7 +144,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
             }
             @Override
             public void onSuccess(Void result) {
-                flowbinderCreateView.onSuccess(constants.status_SaveSuccess());
+                flowbinderCreateView.setStatusText(constants.status_SaveSuccess());
             }
         });
     }

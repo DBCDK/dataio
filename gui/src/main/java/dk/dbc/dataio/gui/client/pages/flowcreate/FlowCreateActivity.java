@@ -82,7 +82,7 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
             }
             @Override
             public void onSuccess(Flow flow) {
-                flowCreateView.onSuccess(constants.status_FlowSuccessfullySaved());
+                flowCreateView.setStatusText(constants.status_FlowSuccessfullySaved());
             }
         });
     }

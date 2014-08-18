@@ -145,7 +145,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
 
             @Override
             public void onSuccess(FlowComponent flowComponent) {
-                flowComponentCreateView.onSuccess(constants.status_FlowComponentSuccessfullySaved());
+                flowComponentCreateView.setStatusText(constants.status_FlowComponentSuccessfullySaved());
             }
         });
     }

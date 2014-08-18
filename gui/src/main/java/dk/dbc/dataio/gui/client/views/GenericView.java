@@ -10,6 +10,6 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
  */
 public interface GenericView<T extends GenericPresenter> {
     void setPresenter(T presenter);
-    void onSuccess(String message);
+    void setStatusText(String message);
     void onFailure(String message);
 }

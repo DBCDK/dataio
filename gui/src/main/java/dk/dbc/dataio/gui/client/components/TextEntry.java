@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.components;
 
+import com.google.gwt.event.dom.client.BlurHandler;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyDownHandler;
@@ -53,5 +54,9 @@ public class TextEntry extends DataEntry {
     
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return textBox.addChangeHandler(handler);
+    }
+
+    public HandlerRegistration addBlurHandler(BlurHandler handler){
+        return textBox.addBlurHandler(handler);
     }
 }

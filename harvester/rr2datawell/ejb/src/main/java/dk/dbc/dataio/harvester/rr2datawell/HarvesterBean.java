@@ -13,6 +13,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.MarcExchangeRecordBinding;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.Record;
@@ -23,6 +24,7 @@ import org.xml.sax.SAXException;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.PostActivate;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -48,11 +50,14 @@ import java.util.UUID;
  */
 @Stateless
 public class HarvesterBean {
+    public static final String RAW_REPO_CONSUMER_ID = "broend-sync";
     public static final int LIBRARY_NUMBER_870970 = 870970;
+    public static final String PACKAGING = "xml";
+    public static final String FORMAT = "basis";
+    public static final String CHARSET = "utf8";
+    public static final String DESTINATION = "broend3";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
-
-    private static final String rawRepoConsumerId = "broend-sync";
 
     @EJB
     RawRepoConnectorBean rawRepoConnector;
@@ -71,12 +76,20 @@ public class HarvesterBean {
 
     @PostConstruct
     @PostActivate
-    public void init() throws ParserConfigurationException, TransformerConfigurationException {
+    public void init() throws EJBException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
-        documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        try {
+            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new EJBException(e);
+        }
         final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        transformer = transformerFactory.newTransformer();
+        try {
+            transformer = transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            throw new EJBException(e);
+        }
     }
 
     /**
@@ -105,7 +118,7 @@ public class HarvesterBean {
         final BinaryFile tmpFile = getTmpFile();
         try {
             final long recordsHarvested = addRecordsToHarvesterDataFile(tmpFile);
-            LOGGER.info("Harvested {} records from {} queue", recordsHarvested, rawRepoConsumerId);
+            LOGGER.info("Harvested {} records from {} queue", recordsHarvested, RAW_REPO_CONSUMER_ID);
             if (recordsHarvested > 0) {
                 try (final InputStream is = tmpFile.openInputStream()) {
                     fileId = fileStoreServiceConnector.addFile(is);
@@ -147,7 +160,7 @@ public class HarvesterBean {
                         harvesterDataFile.addRecord(marcExchangeCollection);
                         recordsAdded++;
                     }
-                    nextQueuedItem = rawRepoConnector.dequeue(rawRepoConsumerId);
+                    nextQueuedItem = getNextQueuedItem();
                 }
             } catch (IOException e) {
                 throw new HarvesterException("Unable to close tmp file OutputStream", e);
@@ -162,7 +175,7 @@ public class HarvesterBean {
      */
     private QueueJob getNextQueuedItem() throws HarvesterException {
         try {
-            return rawRepoConnector.dequeue(rawRepoConsumerId);
+            return rawRepoConnector.dequeue(RAW_REPO_CONSUMER_ID);
         } catch (SQLException e) {
             throw new HarvesterException(e);
         }
@@ -203,18 +216,13 @@ public class HarvesterBean {
     /* Returns job specification for given file ID
      */
     private JobSpecification createJobSpecification(String fileId) throws HarvesterException {
-        final String packaging = "xml";
-        final String format = "basis";
-        final String charset = "utf8";
-        final String destination = "broend3";
-        final long submitterId = 870970;
         final FileStoreUrn fileStoreUrn;
         try {
             fileStoreUrn = FileStoreUrn.create(fileId);
         } catch (URISyntaxException e) {
             throw new HarvesterException("Unable to create FileStoreUrn", e);
         }
-        return new JobSpecification(packaging, format, charset, destination, submitterId, "", "", "", fileStoreUrn.toString());
+        return new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, LIBRARY_NUMBER_870970, "", "", "", fileStoreUrn.toString());
     }
 
     /* Returns temporary binary file for harvested data

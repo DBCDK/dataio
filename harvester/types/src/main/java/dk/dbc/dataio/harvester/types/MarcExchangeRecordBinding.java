@@ -1,4 +1,4 @@
-package dk.dbc.dataio.harvester.rr2datawell;
+package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.w3c.dom.Document;
@@ -8,7 +8,9 @@ import org.w3c.dom.NodeList;
 /**
  * This class exposes specialized field value bindings from MarcXchange documents
  * <br/>
- * * Extracts library from 001b
+ * * Extracts identifier from 001a (must be non-empty)
+ * <br/>
+ * * Extracts library from 001b (must be non-empty numeric)
  */
 public class MarcExchangeRecordBinding {
     public static final String DATAFIELD_ELEMENT_NAME = "datafield";
@@ -16,6 +18,7 @@ public class MarcExchangeRecordBinding {
     public static final String SUBFIELD_ELEMENT_NAME = "subfield";
     public static final String SUBFIELD_CODE_ATTRIBUTE_NAME = "code";
     private String namespace;
+    private String id = null;
     private int library = 0;
 
     /**
@@ -29,6 +32,10 @@ public class MarcExchangeRecordBinding {
         final Element documentElement = document.getDocumentElement();
         namespace = documentElement.getNamespaceURI();
         extract(documentElement);
+    }
+
+    public String getId() {
+        return id;
     }
 
     public int getLibrary() {
@@ -55,6 +62,8 @@ public class MarcExchangeRecordBinding {
             final Element subfield = (Element) subfields.item(i);
             final String code = subfield.getAttribute(SUBFIELD_CODE_ATTRIBUTE_NAME);
             switch (code) {
+                case "a": id = subfield.getTextContent();
+                    break;
                 case "b": library = Integer.parseInt(subfield.getTextContent());
                     break;
                 default:
@@ -63,8 +72,11 @@ public class MarcExchangeRecordBinding {
     }
 
     private void verifyExtraction() throws IllegalArgumentException {
+        if (id == null || id.isEmpty()) {
+            throw new IllegalArgumentException("invalid identifier (001*a)");
+        }
         if (library == 0) {
-            throw new IllegalArgumentException("invalid library");
+            throw new IllegalArgumentException("invalid library (001*b)");
         }
     }
 }

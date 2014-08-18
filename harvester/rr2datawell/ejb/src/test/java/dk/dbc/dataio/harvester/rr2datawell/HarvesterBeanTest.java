@@ -17,8 +17,6 @@ import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -231,11 +229,7 @@ public class HarvesterBeanTest {
 
     private HarvesterBean getInitializedBean() {
         final HarvesterBean harvesterBean = new HarvesterBean();
-        try {
-            harvesterBean.init();
-        } catch (ParserConfigurationException | TransformerConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
+        harvesterBean.init();
         harvesterBean.binaryFileStore = binaryFileStoreBean;
         harvesterBean.fileStoreServiceConnector = fileStoreServiceConnector;
         harvesterBean.jobStoreServiceConnector = jobStoreServiceConnector;

@@ -15,6 +15,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>datafile-verifier</module>
     <module>rawrepo-connector</module>
   </modules>
 

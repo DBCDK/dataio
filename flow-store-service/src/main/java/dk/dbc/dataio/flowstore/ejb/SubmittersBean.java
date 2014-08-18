@@ -26,6 +26,8 @@ import java.util.List;
 
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PathParam;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -38,7 +40,7 @@ public class SubmittersBean {
     private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
 
     @PersistenceContext
-    private EntityManager entityManager;
+    EntityManager entityManager;
 
     /**
      * Creates new submitter with data POST'ed as JSON and persists it in the
@@ -67,7 +69,53 @@ public class SubmittersBean {
         final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
         entityManager.flush();
         final String submitterJson = JsonUtil.toJson(submitter);
-        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter)).entity(submitterJson).build();
+        return Response
+                .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter))
+                .entity(submitterJson)
+                .tag(submitter.getVersion().toString())
+                .build();
+    }
+
+    /**
+     * Updates an existing submitter
+     *
+     * @param submitterContent The content of the submitter
+     * @param id The Submitter ID
+     * @param version The version of the submitter
+     *
+     * @return a HTTP 200 response with submitter content as JSON,
+     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     *         a HTTP 409 response in case of Concurrent Update error
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json submitter
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.SUBMITTER_CONTENT)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response updateSubmitter(String submitterContent, @PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id,
+        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+
+        InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
+        final Submitter submitterEntity = entityManager.find(Submitter.class, id);
+        if (submitterEntity == null) {
+            return Response
+                    .status(Response.Status.NOT_FOUND.getStatusCode())
+                    .build();
+        }
+        entityManager.detach(submitterEntity);
+        submitterEntity.setContent(submitterContent);
+        submitterEntity.setVersion(version);
+        entityManager.merge(submitterEntity);
+        entityManager.flush();
+        final Submitter updatedSubmitter = entityManager.find(Submitter.class, id);
+        final String submitterJson = JsonUtil.toJson(updatedSubmitter);
+        return Response
+                .ok()
+                .entity(submitterJson)
+                .tag(updatedSubmitter.getVersion().toString())
+                .build();
     }
 
     /**

@@ -9,12 +9,14 @@ public class FlowStoreServiceConstants {
 
     public static final String SINK_ID_VARIABLE = "id";
     public static final String FLOW_ID_VARIABLE = "id";
+    public static final String SUBMITTER_ID_VARIABLE = "id";
     public static final String FLOW_COMPONENT_ID_VARIABLE = "id";
 
     public static final String SINK = "sinks/{id}";
     public static final String FLOW = "flows/{id}";
     public static final String FLOW_COMPONENT = "components/{id}";
     public static final String SINK_CONTENT = "sinks/{id}/content";
+    public static final String SUBMITTER_CONTENT = "submitters/{id}/content";
     public static final String FLOW_COMPONENT_CONTENT = "components/{id}/content";
     public static final String FLOW_CONTENT = "flows/{id}/content";
 

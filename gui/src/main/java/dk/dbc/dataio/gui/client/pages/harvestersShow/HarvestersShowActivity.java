@@ -24,8 +24,7 @@ public class HarvestersShowActivity extends AbstractActivity implements Harveste
 //        placeController = clientFactory.getPlaceController();
 //    }
 
-    @Override
-    public void bind() {
+    private void bind() {
 //        harvestersShowView = clientFactory.getHarvestersShowView();
 //        harvestersShowView.setPresenter(this);
     }

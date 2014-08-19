@@ -24,8 +24,7 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         jobsShowView = clientFactory.getJobsShowView();
         jobsShowView.setPresenter(this);
     }

@@ -24,8 +24,7 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         flowsShowView = clientFactory.getFlowsShowView();
         flowsShowView.setPresenter(this);
     }

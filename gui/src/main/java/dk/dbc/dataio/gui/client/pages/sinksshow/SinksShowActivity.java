@@ -27,8 +27,7 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
         placeController = clientFactory.getPlaceController();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         sinksShowView = clientFactory.getSinksShowView();
         sinksShowView.setPresenter(this);
     }

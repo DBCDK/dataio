@@ -35,8 +35,7 @@ public class FlowComponentCreateActivity extends AbstractActivity implements Flo
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         flowComponentCreateView = clientFactory.getFlowComponentCreateEditView();
         flowComponentCreateView.setPresenter(this);
     }

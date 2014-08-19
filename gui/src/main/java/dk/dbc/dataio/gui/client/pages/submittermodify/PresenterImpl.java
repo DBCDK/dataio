@@ -28,12 +28,6 @@ public class PresenterImpl extends AbstractActivity implements SubmitterCreatePr
     }
 
     @Override
-    public void bind() {
-        submitterCreateView = clientFactory.getSubmitterCreateView();
-        submitterCreateView.setPresenter(this);
-    }
-
-    @Override
     public void saveSubmitter(String name, String number, String description) {
         final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(number), name, description);
 
@@ -52,7 +46,8 @@ public class PresenterImpl extends AbstractActivity implements SubmitterCreatePr
 
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        bind();
+        submitterCreateView = clientFactory.getSubmitterCreateView();
+        submitterCreateView.setPresenter(this);
         containerWidget.setWidget(submitterCreateView.asWidget());
         submitterCreateView.clearFields();
     }

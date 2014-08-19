@@ -40,8 +40,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         flowComponentEditView = clientFactory.getFlowComponentCreateEditView();
         flowComponentEditView.setPresenter(this);
     }

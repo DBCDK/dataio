@@ -28,8 +28,7 @@ public class FlowComponentsShowActivity extends AbstractActivity implements Flow
         placeController = clientFactory.getPlaceController();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         flowComponentsShowView = clientFactory.getFlowComponentsShowView();
         flowComponentsShowView.setPresenter(this);
     }

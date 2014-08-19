@@ -32,8 +32,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreateEd
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         sinkCreateView = clientFactory.getSinkCreateEditView();
         sinkCreateView.setPresenter(this);
     }

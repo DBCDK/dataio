@@ -36,8 +36,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         flowbinderCreateView = clientFactory.getFlowbinderCreateView();
         flowbinderCreateView.setPresenter(this);
     }

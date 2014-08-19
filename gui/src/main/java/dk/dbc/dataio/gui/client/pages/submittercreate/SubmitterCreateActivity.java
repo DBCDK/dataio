@@ -25,8 +25,7 @@ public class SubmitterCreateActivity extends AbstractActivity implements Submitt
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         submitterCreateView = clientFactory.getSubmitterCreateView();
         submitterCreateView.setPresenter(this);
     }

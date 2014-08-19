@@ -37,8 +37,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void bind() {
+    private void bind() {
         flowBindersShowView = clientFactory.getFlowBindersShowView();
         flowBindersShowView.setPresenter(this);
     }

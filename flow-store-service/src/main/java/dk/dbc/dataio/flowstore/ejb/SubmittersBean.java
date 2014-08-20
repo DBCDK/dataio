@@ -84,8 +84,9 @@ public class SubmittersBean {
      * @param version The version of the submitter
      *
      * @return a HTTP 200 response with submitter content as JSON,
-     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
-     *         a HTTP 409 response in case of Concurrent Update error
+     *         a HTTP 404 response in case of Submitter ID not found,
+     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation,
+     *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      *
      * @throws JsonException on failure to create json submitter

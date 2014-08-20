@@ -5,9 +5,7 @@ import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import static dk.dbc.dataio.flowstore.ejb.SubmittersBeanTest.newSubmittersBeanWithMockedEntityManager;
-import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import java.util.Arrays;
@@ -99,7 +97,7 @@ public class SubmittersBeanTest {
     }
 
     @Test
-    public void updateSubmitter_submitterNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+    public void updateSubmitter_submitterNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
         final String submitterContent = new SubmitterContentJsonBuilder().setName("UpdateContentName").build();
         final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
 

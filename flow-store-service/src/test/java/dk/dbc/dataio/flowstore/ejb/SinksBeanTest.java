@@ -148,7 +148,7 @@ public class SinksBeanTest {
     }
 
     @Test
-    public void updateSink_sinkNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+    public void updateSink_sinkNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
         final String sinkContent = new SinkContentJsonBuilder().setName("UpdateContentName").build();
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
 

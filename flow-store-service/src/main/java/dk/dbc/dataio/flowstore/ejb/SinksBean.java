@@ -103,6 +103,7 @@ public class SinksBean {
      * @param version The version of the sink
      *
      * @return a HTTP 200 response with sink content as JSON,
+     *         a HTTP 404 response in case of Sink ID is not found,
      *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
      *         a HTTP 409 response in case of Concurrent Update error
      *         a HTTP 500 response in case of general error.

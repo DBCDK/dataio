@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvesterBeanTest {
-    private final static RecordId RECORD_ID = new RecordId("record", HarvesterBean.LIBRARY_NUMBER_870970);
+    private final static RecordId RECORD_ID = new RecordId("record", HarvesterBean.COMMUNITY_LIBRARY_NUMBER);
     private final static String RECORD_CONTENT = asRcordContent(RECORD_ID);
     private final static Record RECORD = new MockedRecord(RECORD_ID, true);
     private final static QueueJob QUEUE_JOB = asQueueJob(RECORD_ID);

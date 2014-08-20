@@ -8,6 +8,10 @@ import org.junit.Test;
 
 public class FlowStoreServiceConnector_Constructor_Test extends FlowStoreServiceConnectorTestSuper {
 
+    public FlowStoreServiceConnector_Constructor_Test() {
+        super();
+    }
+
     @Test(expected = NullPointerException.class)
     public void constructor_httpClientArgIsNull_throws() {
         new FlowStoreServiceConnector(null, FLOW_STORE_URL);
@@ -30,5 +34,4 @@ public class FlowStoreServiceConnector_Constructor_Test extends FlowStoreService
         assertThat(instance.getHttpClient(), is(CLIENT));
         assertThat(instance.getBaseUrl(), is(FLOW_STORE_URL));
     }
-
 }

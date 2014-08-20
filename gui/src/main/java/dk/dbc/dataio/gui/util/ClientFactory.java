@@ -33,7 +33,7 @@ public interface ClientFactory {
 
     // Place Controller
     PlaceController getPlaceController();
-    Activity getActivity(Place place);
+    Activity getPresenter(Place place);
 
     // Proxies
     FlowStoreProxyAsync getFlowStoreProxyAsync();

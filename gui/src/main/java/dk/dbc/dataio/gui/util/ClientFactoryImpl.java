@@ -187,7 +187,7 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public Activity getActivity(Place place) {
+    public Activity getPresenter(Place place) {
         if (place instanceof FlowCreatePlace) {
             return new FlowCreateActivity(this);
         }

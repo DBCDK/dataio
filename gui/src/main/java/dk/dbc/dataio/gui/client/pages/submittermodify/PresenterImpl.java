@@ -12,7 +12,6 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    protected ClientFactory clientFactory;
     protected SubmitterModifyConstants constants;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected View view;

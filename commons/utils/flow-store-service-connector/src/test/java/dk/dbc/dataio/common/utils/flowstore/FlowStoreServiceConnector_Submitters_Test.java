@@ -1,10 +1,10 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.CLIENT;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.FLOW_STORE_URL;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.ID;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.VERSION;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.newFlowStoreServiceConnector;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -37,22 +37,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-        HttpClient.class,
-})
+    HttpClient.class,})
 public class FlowStoreServiceConnector_Submitters_Test {
-
 
     @Before
     public void setup() throws Exception {
         mockStatic(HttpClient.class);
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
     }
 
     // ************************************** create submitter tests **************************************
@@ -64,40 +54,34 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     @Test
     public void createSubmitter_submitterIsCreated_returnsSubmitter() throws FlowStoreServiceConnectorException, JsonException {
-        final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
         final Submitter expectedSubmitter = new SubmitterBuilder().build();
-
-        when(HttpClient.doPostWithJson(CLIENT, submitterContent, FLOW_STORE_URL, FlowStoreServiceConstants.SUBMITTERS))
-                .thenReturn(new MockedResponse<>(Response.Status.CREATED.getStatusCode(), expectedSubmitter));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        final Submitter submitter = instance.createSubmitter(submitterContent);
+        final Submitter submitter = createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedSubmitter);
         assertThat(submitter, is(notNullValue()));
         assertThat(submitter.getId(), is(expectedSubmitter.getId()));
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void createSubmitter_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        createSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+        createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void createSubmitter_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        createSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
+        createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void createSubmitter_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
-        createSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "");
+        createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "");
     }
 
-    private void createSubmitter_mockTestWithSpecifiedReturnErrorCode(int statusCode, String returnValue) throws FlowStoreServiceConnectorException {
+    // Helper method
+    private Submitter createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
         when(HttpClient.doPostWithJson(CLIENT, submitterContent, FLOW_STORE_URL, FlowStoreServiceConstants.SUBMITTERS))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
-
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.createSubmitter(submitterContent);
+        return instance.createSubmitter(submitterContent);
     }
 
     // **************************************** update submitter tests ****************************************
@@ -123,25 +107,26 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void updateSubmitter_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        updateSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateSubmitter_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
-        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode());
+        updateSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode());
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateSubmitter_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
-        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode());
+        updateSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode());
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateSubmitter_responseWithSubmitterIDNotFound_throws() throws FlowStoreServiceConnectorException {
-        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode());
+        updateSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode());
     }
 
-    private void updateSubmitter_mockTestWithSpecifiedReturnErrorCode(int statusCode) throws ProcessingException, FlowStoreServiceConnectorException {
+    // Helper method
+    private void updateSubmitter_mockedHttpWithSpecifiedReturnErrorCode(int statusCode) throws FlowStoreServiceConnectorException {
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
@@ -168,11 +153,8 @@ public class FlowStoreServiceConnector_Submitters_Test {
         expectedSubmitterResultList.add(expectedSubmitterResultA);
         expectedSubmitterResultList.add(expectedSubmitterResultB);
 
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSubmitterResultList));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        final List<Submitter> submitterResultList = instance.findAllSubmitters();
+        final List<Submitter> submitterResultList =
+                findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedSubmitterResultList);
 
         assertNotNull(submitterResultList);
         assertFalse(submitterResultList.isEmpty());
@@ -185,40 +167,32 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void findAllSubmitters_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.findAllSubmitters();
+        findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
     }
 
     @Test
     public void findAllSubmitters_noResults() throws FlowStoreServiceConnectorException {
-        List<Submitter> submitterResultList = new ArrayList<>();
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), submitterResultList));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        submitterResultList = instance.findAllSubmitters();
+        List<Submitter> submitterResultList =
+                findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), new ArrayList<Submitter>());
         assertThat(submitterResultList, is(notNullValue()));
         assertThat(submitterResultList.size(), is(0));
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void findAllSubmitters_noListReturned() throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.findAllSubmitters();
+        findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void findAllSubmitters_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
+        findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
+    }
 
+    // Helper method
+    private List<Submitter> findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.findAllSubmitters();
+        return instance.findAllSubmitters();
     }
 }

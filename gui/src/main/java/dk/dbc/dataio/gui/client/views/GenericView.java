@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.views;
 
+import com.google.gwt.user.client.ui.IsWidget;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 /**
@@ -8,7 +9,7 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
  *
  * @param <T> specific Presenter sub type
  */
-public interface GenericView<T extends GenericPresenter> {
+public interface GenericView<T extends GenericPresenter> extends IsWidget {
     void setPresenter(T presenter);
     void setStatusText(String message);
     void setErrorText(String message);

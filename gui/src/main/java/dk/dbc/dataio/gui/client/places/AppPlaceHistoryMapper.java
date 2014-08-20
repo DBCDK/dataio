@@ -13,14 +13,14 @@ import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreatePlace;
+import dk.dbc.dataio.gui.client.pages.submittermodify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
 
 @WithTokenizers({
     FlowCreatePlace.Tokenizer.class,
     FlowComponentCreatePlace.Tokenizer.class,
     FlowComponentEditPlace.Tokenizer.class,
-    SubmitterCreatePlace.Tokenizer.class,
+    CreatePlace.Tokenizer.class,
     FlowbinderCreatePlace.Tokenizer.class,
     SinkCreatePlace.Tokenizer.class,
     SinkEditPlace.Tokenizer.class,
@@ -29,10 +29,9 @@ import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
     SubmittersShowPlace.Tokenizer.class,
     JobsShowPlace.Tokenizer.class,
     SinksShowPlace.Tokenizer.class,
-    FlowBindersShowPlace.Tokenizer.class,
+    FlowBindersShowPlace.Tokenizer.class
 })
 
-public interface AppPlaceHistoryMapper extends PlaceHistoryMapper
-{
+public interface AppPlaceHistoryMapper extends PlaceHistoryMapper {
 }
 

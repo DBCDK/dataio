@@ -3,61 +3,151 @@ package dk.dbc.dataio.gui.client.pages.submittermodify;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreatePresenter;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
- * This class represents the create submitter activity encompassing saving
- * of submitter data in the flow store via RPC proxy
+ * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
-public class PresenterImpl extends AbstractActivity implements SubmitterCreatePresenter {
-    private ClientFactory clientFactory;
-    private SubmitterCreateView submitterCreateView;
-    private FlowStoreProxyAsync flowStoreProxy;
+public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+    protected ClientFactory clientFactory;
+    protected SubmitterModifyConstants constants;
+    protected FlowStoreProxyAsync flowStoreProxy;
+    protected View view;
+    protected Model model;
 
-    public PresenterImpl(ClientFactory clientFactory) {
+    private final static String EMPTY = "";
+
+
+    /**
+     * Constructor
+     * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
+     * Put code, utilizing view in the start method
+     *
+     * @param clientFactory, clientFactory
+     * @param constants, the constants for submitter modify
+     */
+    public PresenterImpl(ClientFactory clientFactory, SubmitterModifyConstants constants) {
         this.clientFactory = clientFactory;
+        this.constants = constants;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
-    @Override
-    public void saveSubmitter(String name, String number, String description) {
-        final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(number), name, description);
 
-        flowStoreProxy.createSubmitter(submitterContent, new FilteredAsyncCallback<Submitter>() {
-            @Override
-            public void onFilteredFailure(Throwable e) {
-                submitterCreateView.onFlowStoreProxyFailure(getErrorCode(e), e.getMessage());
-            }
-
-            @Override
-            public void onSuccess(Submitter submitter) {
-                submitterCreateView.onSaveSubmitterSuccess();
-            }
-        });
-    }
-
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     * @param containerWidget the widget to use
+     * @param eventBus the eventBus to use
+     */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        submitterCreateView = clientFactory.getSubmitterCreateView();
-        submitterCreateView.setPresenter(this);
-        containerWidget.setWidget(submitterCreateView.asWidget());
-        submitterCreateView.clearFields();
+        view.setPresenter(this);
+        containerWidget.setWidget(view.asWidget());
+        getModel();
+        updateAllFieldsAccordingToCurrentState();
     }
 
-    private ProxyError getErrorCode(Throwable e) {
+    /**
+     * A signal to the presenter, saying that the number field has been changed
+     * @param number, the new number value
+     */
+    public void numberChanged(String number) {
+        model.setNumber(number);
+    }
+
+    /**
+     * A signal to the presenter, saying that the name field has been changed
+     * @param name, the new name value
+     */
+    public void nameChanged(String name) {
+        model.setName(name);
+    }
+
+    /**
+     * A signal to the presenter, saying that the description field has been changed
+     * @param description, the new description value
+     */
+    public void descriptionChanged(String description) {
+        model.setDescription(description);
+    }
+
+    /**
+     * A signal to the presenter, saying that a key has been pressed in either of the fields
+     */
+    public void keyPressed() {
+        view.setStatusText(EMPTY);
+    }
+
+    /**
+     * A signal to the presenter, saying that the save button has been pressed
+     */
+    public void saveButtonPressed() {
+        saveModel();
+    }
+
+
+
+    /*
+     * Private methods
+     */
+
+    /**
+     * A local method used to update all fields in the view according to the current state of the class
+     */
+    private void updateAllFieldsAccordingToCurrentState() {
+        view.setNumber(model.getNumber());
+        view.setName(model.getName());
+        view.setDescription(model.getDescription());
+        view.setStatusText(EMPTY);
+    }
+
+
+    /*
+     * Protected methods
+     */
+
+    /**
+     * A local method to be used to translate an exception to a readable text
+     * @param e Exception
+     * @return errorMessage, the error text
+     */
+    protected String getErrorText(Throwable e) {
         ProxyError errorCode = null;
         if (e instanceof ProxyException) {
             errorCode = ((ProxyException) e).getErrorCode();
         }
-        return errorCode;
+        final String errorMessage;
+        if (errorCode == null) {
+            errorMessage = e.getMessage();
+        } else {
+            switch (errorCode) {
+                case NOT_ACCEPTABLE: errorMessage = constants.error_ProxyKeyViolationError();
+                    break;
+                case BAD_REQUEST: errorMessage = constants.error_ProxyDataValidationError();
+                    break;
+                default: errorMessage = e.getMessage();
+                    break;
+            }
+        }
+        return errorMessage;
     }
+
+    /*
+     * Abstract methods
+     */
+
+    /**
+     * getModel
+     */
+    abstract void getModel();
+
+    /**
+     * saveModel
+     */
+    abstract void saveModel();
 
 }

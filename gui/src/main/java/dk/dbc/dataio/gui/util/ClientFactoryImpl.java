@@ -8,14 +8,14 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateActivity;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateConstants;
+import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowActivity;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowConstants;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowPlace;
 import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowView;
+import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateActivity;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditConstants;
 import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditView;
@@ -35,9 +35,9 @@ import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowActivity;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowConstants;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
+import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowActivity;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowConstants;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
@@ -55,11 +55,11 @@ import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowConstants;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateActivity;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateConstants;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateViewImpl;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreatePlace;
-import dk.dbc.dataio.gui.client.pages.submittercreate.SubmitterCreateView;
+import dk.dbc.dataio.gui.client.pages.submittermodify.CreatePlace;
+import dk.dbc.dataio.gui.client.pages.submittermodify.PresenterCreateImpl;
+import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModifyConstants;
+import dk.dbc.dataio.gui.client.pages.submittermodify.View;
+import dk.dbc.dataio.gui.client.pages.submittermodify.ViewImpl;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowActivity;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowConstants;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
@@ -98,11 +98,11 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static SinksShowConstants sinksShowConstants = GWT.create(SinksShowConstants.class);
     private final static JobsShowConstants jobsShowConstants = GWT.create(JobsShowConstants.class);
     private final static FlowComponentsShowConstants flowComponentsShowConstants = GWT.create(FlowComponentsShowConstants.class);
-    private final static SubmitterCreateConstants submitterCreateConstants = GWT.create(SubmitterCreateConstants.class);
     private final static FlowCreateConstants flowCreateConstants = GWT.create(FlowCreateConstants.class);
     private final static FlowComponentCreateEditConstants flowComponentCreateEditConstants = GWT.create(FlowComponentCreateEditConstants.class);
     private final static FlowbinderCreateConstants flowbinderCreateConstants = GWT.create(FlowbinderCreateConstants.class);
     private final static SinkCreateEditConstants SinkCreateEditConstants = GWT.create(SinkCreateEditConstants.class);
+    private final static SubmitterModifyConstants submitterModifyConstants = GWT.create(SubmitterModifyConstants.class);
     //private final static HarvestersShowConstants harvestersShowConstants = GWT.create(HarvestersShowConstants.class);
 
     // Event Bus
@@ -124,7 +124,6 @@ public class ClientFactoryImpl implements ClientFactory {
     // Views
     private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
     private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
-    private final SubmitterCreateView submitterCreateView = new SubmitterCreateViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final SinkCreateEditView sinkCreateEditView = new SinkCreateEditViewImpl();
     private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
@@ -133,11 +132,12 @@ public class ClientFactoryImpl implements ClientFactory {
     private final JobsShowView jobsShowView = new JobsShowViewImpl();
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
+    private final ViewImpl submitterCreateView = new ViewImpl(submitterModifyConstants.menu_SubmitterCreation(), submitterModifyConstants);
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {
         // Submitters Main Menu
-        MenuItem createSubmitter = new MenuItem(GUIID_MENU_ITEM_SUBMITTER_CREATE, submitterCreateConstants.menu_SubmitterCreation(), new SubmitterCreatePlace());
+        MenuItem createSubmitter = new MenuItem(GUIID_MENU_ITEM_SUBMITTER_CREATE, submitterModifyConstants.menu_SubmitterCreation(), new CreatePlace());
         MenuItem submittersMenu = new MenuItem(GUIID_MENU_ITEM_SUBMITTERS_SHOW, submittersShowConstants.menu_Submitters(), new SubmittersShowPlace(),
                                                createSubmitter);
 
@@ -194,8 +194,8 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof FlowComponentCreatePlace) {
             return new FlowComponentCreateActivity(this);
         }
-        if (place instanceof SubmitterCreatePlace) {
-            return new SubmitterCreateActivity(this);
+        if (place instanceof CreatePlace) {
+            return new PresenterCreateImpl(this, submitterModifyConstants);
         }
         if (place instanceof FlowbinderCreatePlace) {
             return new FlowbinderCreateActivity(this);
@@ -272,7 +272,7 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public SubmitterCreateView getSubmitterCreateView() {
+    public View getSubmitterCreateView() {
         return submitterCreateView;
     }
 

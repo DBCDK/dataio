@@ -1,12 +1,11 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
-public class Model {
-    private Long id;
-    private Long version;
+import dk.dbc.dataio.gui.client.model.GenericModel;
+
+public class Model extends GenericModel {
     private String number;
     private String name;
     private String description;
-
 
     /**
      * Constructor with all parameters
@@ -17,42 +16,12 @@ public class Model {
      * @param description
      */
     public Model(Long id, Long version, String number, String name, String description) {
-        this.id = id;
-        this.version = version;
+        super(id, version);
         this.number = number;
         this.name = name;
         this.description = description;
     }
 
-    /**
-     * @return id
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set id
-     * @param id
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * @return version
-     */
-    public Long getVersion() {
-        return version;
-    }
-
-    /**
-     * Set version
-     * @param version
-     */
-    public void setVersion(Long version) {
-        this.version = version;
-    }
 
     /**
      * @return number
@@ -104,17 +73,15 @@ public class Model {
      *
      * @return true if valid, false if not valid
      */
-    public Boolean validate() {
-        Boolean isValid = true;
+    public void validate(SubmitterModifyConstants constants) {
         if (number.isEmpty() || name.isEmpty() || description.isEmpty()) {
-            isValid = false;
+            throw new IllegalArgumentException(constants.error_InputFieldValidationError());
         }
         try {
             Long.valueOf(number);
         } catch (NumberFormatException e) {
-            isValid = false;
+            throw new NumberFormatException(constants.error_NumberInputFieldValidationError());
         }
-        return isValid;
     }
 
 

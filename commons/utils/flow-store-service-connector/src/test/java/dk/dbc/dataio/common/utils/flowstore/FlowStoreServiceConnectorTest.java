@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.ProcessingException;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -385,36 +386,25 @@ public class FlowStoreServiceConnectorTest {
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void updateSubmitter_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
-
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SUBMITTER_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, "path"))
-                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.updateSubmitter(submitterContent, ID, VERSION);
+        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateSubmitter_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
-        final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
-
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SUBMITTER_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, "path"))
-                .thenReturn(new MockedResponse<>(Response.Status.NOT_ACCEPTABLE.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.updateSubmitter(submitterContent, ID, VERSION);
+        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode());
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateSubmitter_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
+        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode());
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateSubmitter_responseWithSubmitterIDNotFound_throws() throws FlowStoreServiceConnectorException {
+        updateSubmitter_mockTestWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode());
+    }
+
+    private void updateSubmitter_mockTestWithSpecifiedReturnErrorCode(int statusCode) throws ProcessingException, FlowStoreServiceConnectorException {
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
@@ -422,7 +412,7 @@ public class FlowStoreServiceConnectorTest {
         when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SUBMITTER_CONTENT), Matchers.<Map<String, String>>any()))
                 .thenReturn("path");
         when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, "path"))
-                .thenReturn(new MockedResponse<>(Response.Status.CONFLICT.getStatusCode(), ""));
+                .thenReturn(new MockedResponse<>(statusCode, ""));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.updateSubmitter(submitterContent, ID, VERSION);

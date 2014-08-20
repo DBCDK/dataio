@@ -31,7 +31,7 @@ public final class ModelMapper {
      */
     public static Submitter toSubmitter(Model model){
         SubmitterContent content = new SubmitterContent(
-                Long.valueOf(model.getNumber()).longValue(),
+                Long.parseLong(model.getNumber()),
                 model.getName(),
                 model.getDescription());
 

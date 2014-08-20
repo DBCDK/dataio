@@ -1,5 +1,10 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.CLIENT;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.FLOW_STORE_URL;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.ID;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.VERSION;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.newFlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -34,7 +39,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({
         HttpClient.class,
 })
-public class FlowStoreServiceConnector_Submitters_Test extends FlowStoreServiceConnectorTestSuper {
+public class FlowStoreServiceConnector_Submitters_Test {
 
 
     @Before

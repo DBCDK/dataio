@@ -1,12 +1,14 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.CLIENT;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.FLOW_STORE_URL;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestSuper.newFlowStoreServiceConnector;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
-public class FlowStoreServiceConnector_Constructor_Test extends FlowStoreServiceConnectorTestSuper {
+public class FlowStoreServiceConnector_Constructor_Test {
 
     public FlowStoreServiceConnector_Constructor_Test() {
         super();

@@ -43,7 +43,7 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
         jobStoreProxy.findAllJobs(new FilteredAsyncCallback<List<JobInfo>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                jobsShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                jobsShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<JobInfo> jobs) {

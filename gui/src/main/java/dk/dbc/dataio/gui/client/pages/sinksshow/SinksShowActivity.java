@@ -55,7 +55,7 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
         flowStoreProxy.findAllSinks(new FilteredAsyncCallback<List<Sink>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                sinksShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                sinksShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<Sink> result) {

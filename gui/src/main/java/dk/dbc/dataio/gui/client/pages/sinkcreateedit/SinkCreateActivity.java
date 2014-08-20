@@ -55,7 +55,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreateEd
         sinkServiceProxy.ping(sinkContent, new FilteredAsyncCallback<PingResponse>() {
             @Override
             public void onFilteredFailure(Throwable caught) {
-                sinkCreateView.onFailure(constants.error_PingCommunicationError());
+                sinkCreateView.setErrorText(constants.error_PingCommunicationError());
             }
             @Override
             public void onSuccess(PingResponse result) {
@@ -63,7 +63,7 @@ public class SinkCreateActivity extends AbstractActivity implements SinkCreateEd
                 if (status == PingResponse.Status.OK) {
                     doSaveSink(sinkContent);
                 } else {
-                    sinkCreateView.onFailure(constants.error_ResourceNameNotValid());
+                    sinkCreateView.setErrorText(constants.error_ResourceNameNotValid());
                 }
             }
         });

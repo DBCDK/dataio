@@ -111,7 +111,7 @@ public class HarvestersShowViewImpl extends ContentPanel<HarvestersShowPresenter
      * @param message The message to display to the user
      */
     @Override
-    public void onFailure(String message) {
+    public void setErrorText(String message) {
 
     }
 

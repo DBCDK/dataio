@@ -87,6 +87,6 @@ public class FlowCreateActivity extends AbstractActivity implements FlowCreatePr
     }
 
     private void onFailureSendExceptionToView(Throwable e) {
-        flowCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+        flowCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
     }
 }

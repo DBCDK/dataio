@@ -41,7 +41,7 @@ public class SubmittersShowActivity extends AbstractActivity implements Submitte
         flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<Submitter>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                submittersShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                submittersShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
 
             @Override

@@ -109,7 +109,7 @@ public class SinkCreateEditViewImpl extends ContentPanel<SinkCreateEditPresenter
                     break;
             }
         }
-        onFailure(errorMessage);
+        setErrorText(errorMessage);
     }
 
     /**

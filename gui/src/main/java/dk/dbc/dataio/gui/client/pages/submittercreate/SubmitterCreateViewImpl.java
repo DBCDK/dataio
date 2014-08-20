@@ -101,7 +101,7 @@ public class SubmitterCreateViewImpl extends ContentPanel<SubmitterCreatePresent
                     break;
             }
         }
-        onFailure(errorMessage);
+        setErrorText(errorMessage);
     }
 
     /**

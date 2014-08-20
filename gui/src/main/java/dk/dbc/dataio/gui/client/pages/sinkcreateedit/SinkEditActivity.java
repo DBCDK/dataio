@@ -62,7 +62,7 @@ public class SinkEditActivity extends AbstractActivity implements SinkCreateEdit
         flowStoreProxy.getSink(sinkId, new FilteredAsyncCallback<Sink>() {
             @Override
             public void onFilteredFailure(Throwable caught) {
-                sinkEditView.onFailure(constants.error_CannotFetchSink());
+                sinkEditView.setErrorText(constants.error_CannotFetchSink());
             }
             @Override
             public void onSuccess(Sink sink) {
@@ -76,7 +76,7 @@ public class SinkEditActivity extends AbstractActivity implements SinkCreateEdit
         sinkServiceProxy.ping(sink.getContent(), new FilteredAsyncCallback<PingResponse>() {
             @Override
             public void onFilteredFailure(Throwable caught) {
-                sinkEditView.onFailure(constants.error_PingCommunicationError());
+                sinkEditView.setErrorText(constants.error_PingCommunicationError());
             }
 
             @Override
@@ -85,7 +85,7 @@ public class SinkEditActivity extends AbstractActivity implements SinkCreateEdit
                 if (status == PingResponse.Status.OK) {
                     doUpdateSink(sink.getContent());
                 } else {
-                    sinkEditView.onFailure(constants.error_ResourceNameNotValid());
+                    sinkEditView.setErrorText(constants.error_ResourceNameNotValid());
                 }
             }
         });

@@ -41,7 +41,7 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
         flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion(), new FilteredAsyncCallback<Flow>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowsShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowsShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
 
             @Override
@@ -56,7 +56,7 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
         flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<Flow>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowsShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowsShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<Flow> flows) {

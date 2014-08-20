@@ -117,8 +117,8 @@ public class SinksShowViewImpl extends ContentPanel<SinksShowPresenter> implemen
      * @param message The message to display to the user
      */
     @Override
-    public void onFailure(String message) {
-        super.onFailure(message);
+    public void setErrorText(String message) {
+        super.setErrorText(message);
         table.updateDone();
     }
 

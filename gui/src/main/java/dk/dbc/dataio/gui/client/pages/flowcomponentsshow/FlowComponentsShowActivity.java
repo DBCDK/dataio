@@ -54,7 +54,7 @@ public class FlowComponentsShowActivity extends AbstractActivity implements Flow
         flowStoreProxy.findAllFlowComponents(new FilteredAsyncCallback<List<FlowComponent>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowComponentsShowView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowComponentsShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
 
             @Override

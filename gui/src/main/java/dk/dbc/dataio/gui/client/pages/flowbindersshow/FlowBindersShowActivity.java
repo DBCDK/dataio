@@ -196,7 +196,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void displayErrorMessage(String message, Throwable e) {
-        flowBindersShowView.onFailure(message + ", " + e.getClass().getName() + " - " + e.getMessage());
+        flowBindersShowView.setErrorText(message + ", " + e.getClass().getName() + " - " + e.getMessage());
     }
 
     private static class SimpleCounter {

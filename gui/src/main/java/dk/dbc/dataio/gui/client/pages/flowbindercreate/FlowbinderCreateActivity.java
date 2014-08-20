@@ -55,7 +55,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.findAllSinks(new FilteredAsyncCallback<List<Sink>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<Sink> result) {
@@ -66,7 +66,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
                         availableSinks.put(key, sink);
                         sinksToView.put(key, sink.getContent().getName());
                     } catch (Exception e) {
-                        flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                        flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
                     }
                     flowbinderCreateView.setAvailableSinks(sinksToView);
                 }
@@ -78,7 +78,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<Submitter>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<Submitter> result) {
@@ -89,7 +89,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
                         availableSubmitters.put(key, submitter);
                         submittersToView.put(key, formatSubmitterName(submitter.getContent()));
                     } catch (Exception e) {
-                        flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                        flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
                     }
                 }
                 flowbinderCreateView.setAvailableSubmitters(submittersToView);
@@ -101,7 +101,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
         flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<Flow>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
             @Override
             public void onSuccess(List<Flow> result) {
@@ -112,7 +112,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
                         availableFlows.put(key, flow);
                         flowsToView.put(key, flow.getContent().getName());
                     } catch (Exception e) {
-                        flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+                        flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
                     }
                     flowbinderCreateView.setAvailableFlows(flowsToView);
                 }
@@ -134,12 +134,12 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
             }
             flowbinderContent = new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, sinkId);
         } catch (Exception e) {
-            flowbinderCreateView.onFailure(e.getClass().getName() + " - " + e.getMessage());
+            flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
         }
         flowStoreProxy.createFlowBinder(flowbinderContent, new FilteredAsyncCallback<Void>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowbinderCreateView.onFailure(constants.error_FlowbinderAlreadyExistsError());
+                flowbinderCreateView.setErrorText(constants.error_FlowbinderAlreadyExistsError());
             }
             @Override
             public void onSuccess(Void result) {

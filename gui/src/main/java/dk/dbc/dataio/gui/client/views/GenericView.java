@@ -11,5 +11,5 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 public interface GenericView<T extends GenericPresenter> {
     void setPresenter(T presenter);
     void setStatusText(String message);
-    void onFailure(String message);
+    void setErrorText(String message);
 }

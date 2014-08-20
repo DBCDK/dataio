@@ -121,7 +121,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
      * @param message The fail message to display to the user
      */
     @Override
-    public void onFailure(String message) {
+    public void setErrorText(String message) {
         setAsBusy(false);
         saveButton.setStatusText("");
         Window.alert("Error: " + message);
@@ -243,7 +243,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
                     break;
             }
         }
-        onFailure(errorMessage);
+        setErrorText(errorMessage);
     }
 
     /**
@@ -254,7 +254,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
     public void fetchScriptNamesFailed(String failText) {
         scriptNamePanel.setEnabled(false);
         invocationMethodPanel.setEnabled(false);
-        onFailure(failText);
+        setErrorText(failText);
     }
 
     /**
@@ -276,7 +276,7 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
                     break;
             }
         }
-        onFailure(errorMessage);
+        setErrorText(errorMessage);
     }
 
 
@@ -324,13 +324,13 @@ public class FlowComponentCreateEditViewImpl extends ContentPanel<FlowComponentC
             try {
                 revision = Long.parseLong(revisionPanel.getSelectedText());
             } catch (NumberFormatException e) {
-                onFailure(constants.error_InputFieldValidationError());
+                setErrorText(constants.error_InputFieldValidationError());
                 return;
             }
             String scriptName = scriptNamePanel.getSelectedText();
             String invocationMethod = invocationMethodPanel.getSelectedText();
             if (name.isEmpty() || project.isEmpty() || revision == 0 || scriptName.isEmpty() || invocationMethod.isEmpty()) {
-                onFailure(constants.error_InputFieldValidationError());
+                setErrorText(constants.error_InputFieldValidationError());
             } else {
                 saveButton.setStatusText(constants.status_SavingFlowComponent());
                 presenter.saveFlowComponent(name, project, revision, scriptName, invocationMethod);

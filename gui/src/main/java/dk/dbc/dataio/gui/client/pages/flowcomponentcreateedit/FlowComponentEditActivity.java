@@ -58,7 +58,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         try {
             fetchRevisions(projectName);
         } catch (JavaScriptProjectFetcherException e) {
-            flowComponentEditView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            flowComponentEditView.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -67,7 +67,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         try {
             fetchScriptNames(projectName, selectedRevision);
         } catch (JavaScriptProjectFetcherException e) {
-            flowComponentEditView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            flowComponentEditView.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -76,7 +76,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         try {
             fetchInvocationMethods(projectName, selectedRevision, scriptName);
         } catch (JavaScriptProjectFetcherException e) {
-            flowComponentEditView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            flowComponentEditView.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -89,7 +89,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         javaScriptProjectFetcher.fetchRequiredJavaScript(svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, invocationMethod, new FilteredAsyncCallback<List<JavaScript>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowComponentEditView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentEditView.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override
@@ -104,7 +104,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         flowStoreProxy.updateFlowComponent(flowComponentContent, flowComponent.getId(), flowComponent.getVersion(), new FilteredAsyncCallback<FlowComponent>() {
             @Override
             public void onFilteredFailure(Throwable e) {
-                flowComponentEditView.onFailure(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+                flowComponentEditView.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
             }
 
             @Override
@@ -119,7 +119,7 @@ public class FlowComponentEditActivity extends AbstractActivity implements FlowC
         flowStoreProxy.getFlowComponent(flowComponentId, new FilteredAsyncCallback<FlowComponent>() {
             @Override
             public void onFilteredFailure(Throwable caught) {
-                flowComponentEditView.onFailure(constants.error_CannotFetchFlowComponent());
+                flowComponentEditView.setErrorText(constants.error_CannotFetchFlowComponent());
             }
 
             @Override

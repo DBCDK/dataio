@@ -80,7 +80,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
      * Generic method to signal a failure to the user
      * @param message
      */
-    public void onFailure(String message) {
+    public void setErrorText(String message) {
         Window.alert("Error: " + message);
     }
 

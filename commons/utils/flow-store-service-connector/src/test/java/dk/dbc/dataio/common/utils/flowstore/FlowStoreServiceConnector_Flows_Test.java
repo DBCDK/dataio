@@ -43,12 +43,6 @@ public class FlowStoreServiceConnector_Flows_Test {
     @Before
     public void setup() throws Exception {
         mockStatic(HttpClient.class);
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SINK_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-
         when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
                 .thenReturn("path");
     }

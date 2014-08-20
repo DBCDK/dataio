@@ -42,8 +42,6 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     @Before
     public void setup() throws Exception {
         mockStatic(HttpClient.class);
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
     }
 
     // ************************************* create flow component tests *************************************
@@ -159,6 +157,8 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
         when(HttpClient.doPostWithJson(CLIENT, headers, flowComponentContent, FLOW_STORE_URL, "path"))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();

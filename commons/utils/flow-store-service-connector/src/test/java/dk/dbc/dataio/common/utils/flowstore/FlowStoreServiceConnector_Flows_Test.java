@@ -14,6 +14,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,217 +37,166 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-        HttpClient.class,
-})
+    HttpClient.class,})
 public class FlowStoreServiceConnector_Flows_Test {
 
     @Before
     public void setup() throws Exception {
         mockStatic(HttpClient.class);
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
     }
 
     // **************************************** create flow tests ****************************************
-
     @Test(expected = NullPointerException.class)
     public void createFlow_flowContentArgIsNull_throws() throws FlowStoreServiceConnectorException {
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.createFlow(null);
     }
 
+    @Test
+    public void createFlow_flowIsCreated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+        final Flow expectedFlow = new FlowBuilder().build();
+        final Flow flow = createFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedFlow);
+        assertThat(flow, is(notNullValue()));
+        assertThat(flow.getId(), is(expectedFlow.getId()));
+    }
+
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void createFlow_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        final FlowContent flowContent = new FlowContentBuilder().build();
-        when(HttpClient.doPostWithJson(CLIENT, flowContent, FLOW_STORE_URL, FlowStoreServiceConstants.FLOWS))
-                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.createFlow(flowContent);
+        createFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void createFlow_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        final FlowContent flowContent = new FlowContentBuilder().build();
-        when(HttpClient.doPostWithJson(CLIENT, flowContent, FLOW_STORE_URL, FlowStoreServiceConstants.FLOWS))
-                .thenReturn(new MockedResponse<>(Response.Status.CREATED.getStatusCode(), null));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.createFlow(flowContent);
+        createFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void createFlow_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException{
-        final FlowContent flowContent = new FlowContentBuilder().build();
-        when(HttpClient.doPostWithJson(CLIENT, flowContent, FLOW_STORE_URL, FlowStoreServiceConstants.FLOWS))
-                .thenReturn(new MockedResponse<>(Response.Status.NOT_ACCEPTABLE.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.createFlow(flowContent);
+    public void createFlow_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
+        createFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "");
     }
 
-    @Test
-    public void createFlow_flowIsCreated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+    // Helper method
+    private Flow createFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final FlowContent flowContent = new FlowContentBuilder().build();
-        final Flow expectedFlow = new FlowBuilder().build();
-
         when(HttpClient.doPostWithJson(CLIENT, flowContent, FLOW_STORE_URL, FlowStoreServiceConstants.FLOWS))
-                .thenReturn(new MockedResponse<>(Response.Status.CREATED.getStatusCode(), expectedFlow));
-
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        final Flow flow = instance.createFlow(flowContent);
-        assertThat(flow, is(notNullValue()));
-        assertThat(flow.getId(), is(expectedFlow.getId()));
+        return instance.createFlow(flowContent);
     }
 
     // **************************************** get flow tests ****************************************
     @Test
     public void getFlow_flowRetrieved_returnsFlow() throws FlowStoreServiceConnectorException {
-
         final Flow expectedFlowResult = new FlowBuilder().build();
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedFlowResult));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        final Flow flowResult = instance.getFlow(ID);
+        final Flow flowResult
+                = getFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedFlowResult, ID);
         assertThat(flowResult, is(notNullValue()));
         assertThat(flowResult.getId(), is(expectedFlowResult.getId()));
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void getFlow_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.getFlow(ID);
+        getFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", ID);
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void getFlow_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.getFlow(ID);
+        getFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null, ID);
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void getFlow_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.getFlow(ID);
+    public void getFlow_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
+        getFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null, ID);
     }
 
-    // ************************************* find all flows tests *************************************
-    @Test
-    public void findAllFlows_flowsRetrieved_returnsFlows() throws FlowStoreServiceConnectorException {
-
-        final FlowContent flowContentA = new FlowContentBuilder().setName("a").build();
-        final FlowContent flowContentB = new FlowContentBuilder().setName("b").build();
-
-        final Flow expectedFlowResultA = new FlowBuilder().setContent(flowContentA).build();
-        final Flow expectedFlowResultB = new FlowBuilder().setContent(flowContentB).build();
-
-        List<Flow> expectedFlowResultList = new ArrayList<>();
-        expectedFlowResultList.add(expectedFlowResultA);
-        expectedFlowResultList.add(expectedFlowResultB);
-
+    // Helper method
+    private Flow getFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id) throws FlowStoreServiceConnectorException {
         when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedFlowResultList));
-
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        final List<Flow> flowResultList = instance.findAllFlows();
-
-        assertNotNull(flowResultList);
-        assertFalse(flowResultList.isEmpty());
-        assertThat(flowResultList.size(), is(2));
-
-        for (Flow flow : flowResultList){
-            assertThat(flow, is(notNullValue()));
-        }
-    }
-
-    @Test(expected = FlowStoreServiceConnectorException.class)
-    public void findAllFlows_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.findAllFlows();
-    }
-
-    @Test
-    public void findAllFlows_noResults() throws FlowStoreServiceConnectorException {
-        List<Flow> flowResultList = new ArrayList<>();
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowResultList));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        flowResultList = instance.findAllFlows();
-        assertThat(flowResultList, is(notNullValue()));
-        assertThat(flowResultList.size(), is(0));
-    }
-
-    @Test(expected = FlowStoreServiceConnectorException.class)
-    public void findAllFlows_noListReturned() throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.findAllFlows();
-    }
-
-    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void findAllFlows_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
-                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.findAllFlows();
+        return instance.getFlow(id);
     }
 
     // ***************************************** update flow tests *****************************************
     @Test
     public void updateFlowComponentsInFlowToLatestVersion_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
         final Flow flowToUpdate = new FlowBuilder().build();
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
-
-        when(HttpClient.doPostWithJson(CLIENT, headers, "", FLOW_STORE_URL, "path"))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowToUpdate));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        Flow updatedFlow = instance.updateFlowComponentsInFlowToLatestVersion(flowToUpdate.getId(), flowToUpdate.getVersion());
-
+        Flow updatedFlow = updateFlow_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.OK.getStatusCode(),
+                flowToUpdate,
+                flowToUpdate.getId(),
+                flowToUpdate.getVersion());
         assertThat(updatedFlow, is(notNullValue()));
         assertThat(updatedFlow.getContent(), is(notNullValue()));
-        assertThat(updatedFlow.getId(), is (flowToUpdate.getId()));
+        assertThat(updatedFlow.getId(), is(flowToUpdate.getId()));
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void updateFlowComponentsInFlowToLatestVersion_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        final Map<String, String> headers = new HashMap<>(1);
-        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
-
-        when(HttpClient.doPostWithJson(CLIENT, headers, "", FLOW_STORE_URL, "path"))
-                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.updateFlowComponentsInFlowToLatestVersion(ID, VERSION);
+        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", ID, VERSION);
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void updateFlowComponentsInFlowToLatestVersion_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException{
+    public void updateFlowComponentsInFlowToLatestVersion_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
+        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
+    }
+
+    // Helper method
+    private Flow updateFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
-
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
         when(HttpClient.doPostWithJson(CLIENT, headers, "", FLOW_STORE_URL, "path"))
-                .thenReturn(new MockedResponse<>(Response.Status.CONFLICT.getStatusCode(), ""));
-
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        instance.updateFlowComponentsInFlowToLatestVersion(ID, VERSION);
+        return instance.updateFlowComponentsInFlowToLatestVersion(id, version);
+    }
+
+    // ************************************* find all flows tests *************************************
+    @Test
+    public void findAllFlows_flowsRetrieved_returnsFlows() throws FlowStoreServiceConnectorException {
+        final FlowContent flowContentA = new FlowContentBuilder().setName("a").build();
+        final FlowContent flowContentB = new FlowContentBuilder().setName("b").build();
+        final Flow expectedFlowResultA = new FlowBuilder().setContent(flowContentA).build();
+        final Flow expectedFlowResultB = new FlowBuilder().setContent(flowContentB).build();
+        List<Flow> expectedFlowResultList = Arrays.asList(expectedFlowResultA, expectedFlowResultB);
+        final List<Flow> flowResultList = findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedFlowResultList);
+
+        assertNotNull(flowResultList);
+        assertFalse(flowResultList.isEmpty());
+        assertThat(flowResultList.size(), is(2));
+        assertThat(flowResultList.get(0), is(notNullValue()));
+        assertThat(flowResultList.get(1), is(notNullValue()));
+    }
+
+    @Test
+    public void findAllFlows_noResults() throws FlowStoreServiceConnectorException {
+        List<Flow> flowResultList = findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), new ArrayList<Flow>());
+        assertThat(flowResultList, is(notNullValue()));
+        assertThat(flowResultList.size(), is(0));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void findAllFlows_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void findAllFlows_noListReturned() throws FlowStoreServiceConnectorException {
+        findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void findAllFlows_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
+        findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
+    }
+
+    // Helper method
+    private List<Flow> findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.findAllFlows();
     }
 }

@@ -1,46 +1,16 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import javax.ws.rs.ProcessingException;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -51,11 +21,11 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({
         HttpClient.class,
 })
-public class FlowStoreServiceConnectorTest {
-    private static final Client CLIENT = mock(Client.class);
-    private static final String FLOW_STORE_URL = "http://dataio/flow-store";
-    private static final long ID = 1;
-    private static final long VERSION = 1;
+public class FlowStoreServiceConnectorTestSuper {
+    static final Client CLIENT = mock(Client.class);
+    static final String FLOW_STORE_URL = "http://dataio/flow-store";
+    static final long ID = 1;
+    static final long VERSION = 1;
 
     @Before
     public void setup() throws Exception {
@@ -70,29 +40,7 @@ public class FlowStoreServiceConnectorTest {
                 .thenReturn("path");
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_httpClientArgIsNull_throws() {
-        new FlowStoreServiceConnector(null, FLOW_STORE_URL);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_baseUrlArgIsNull_throws() {
-        new FlowStoreServiceConnector(CLIENT, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_baseUrlArgIsEmpty_throws() {
-        new FlowStoreServiceConnector(CLIENT, "");
-    }
-
-    @Test
-    public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        assertThat(instance, is(notNullValue()));
-        assertThat(instance.getHttpClient(), is(CLIENT));
-        assertThat(instance.getBaseUrl(), is(FLOW_STORE_URL));
-    }
-
+    /*
     // **************************************** create sink tests ****************************************
 
     @Test(expected = NullPointerException.class)
@@ -907,8 +855,8 @@ public class FlowStoreServiceConnectorTest {
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.updateFlowComponentsInFlowToLatestVersion(ID, VERSION);
     }
-
-    private static FlowStoreServiceConnector newFlowStoreServiceConnector() {
+*/
+    public static FlowStoreServiceConnector newFlowStoreServiceConnector() {
         return new FlowStoreServiceConnector(CLIENT, FLOW_STORE_URL);
     }
 }

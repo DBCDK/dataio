@@ -30,7 +30,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param constants, the constants for submitter modify
      */
     public PresenterImpl(ClientFactory clientFactory, SubmitterModifyConstants constants) {
-        this.clientFactory = clientFactory;
         this.constants = constants;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }

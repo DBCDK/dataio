@@ -59,7 +59,7 @@
           <excludeDefaultDirectories>true</excludeDefaultDirectories>
           <filesets>
             <fileset>
-              <directory>${build.directory}</directory>
+              <directory>${project.build.directory}</directory>
               <excludes>
                 <exclude>postgresql-cluster/**</exclude>
               </excludes>

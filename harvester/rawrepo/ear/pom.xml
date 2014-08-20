@@ -15,7 +15,7 @@
   <packaging>ear</packaging>
 
   <properties>
-    <harvester.tmp>${build.directory}</harvester.tmp>
+    <harvester.tmp>${project.build.directory}</harvester.tmp>
   </properties>
 
   <build>

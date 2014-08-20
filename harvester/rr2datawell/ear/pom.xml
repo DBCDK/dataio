@@ -15,8 +15,8 @@
   <packaging>ear</packaging>
 
   <properties>
-    <harvester.tmp>${build.directory}</harvester.tmp>
-    <logback.staging.directory>${build.directory}/logback</logback.staging.directory>
+    <harvester.tmp>${project.build.directory}</harvester.tmp>
+    <logback.staging.directory>${project.build.directory}/logback</logback.staging.directory>
     <logback.jndi.resource>${jndi.url.harvester.rr2datawell.logback}</logback.jndi.resource>
   </properties>
 
@@ -67,8 +67,8 @@
             <configuration>
               <files>
                  <file>
-                  <source>${build.directory}/classes/logback.xml</source>
-                  <outputDirectory>${build.directory}/dataio-harvester-rr2datawell-ear-${project.version}.ear/lib/dataio-commons-utils-logback-${project.version}.jar</outputDirectory>
+                  <source>${project.build.directory}/classes/logback.xml</source>
+                  <outputDirectory>${project.build.directory}/dataio-harvester-rr2datawell-ear-${project.version}.ear/lib/dataio-commons-utils-logback-${project.version}.jar</outputDirectory>
                 </file>
               </files>
             </configuration>

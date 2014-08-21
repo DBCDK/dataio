@@ -77,6 +77,35 @@ public class SubmittersBean {
     }
 
     /**
+     * Retrieves submitter from underlying data store
+     *
+     * @param id submitter identifier
+     *
+     * @return a HTTP 200 response with submitter content as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json submitter
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.SUBMITTER)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getSubmitter(@PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id) throws JsonException {
+        final Submitter submitter = entityManager.find(Submitter.class, id);
+        if (submitter == null) {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(ServiceUtil.asJsonError("Submitter with id: " + id + " not "))
+                    .build();
+        }
+        return Response
+                .ok()
+                .entity(JsonUtil.toJson(submitter))
+                .tag(submitter.getVersion().toString())
+                .build();
+    }
+
+    /**
      * Updates an existing submitter
      *
      * @param submitterContent The content of the submitter

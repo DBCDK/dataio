@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.ejb;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,6 +87,39 @@ public class SubmittersBeanTest {
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
     }
+
+    /*
+    @Test
+    public void getSubmitter_submitterFound_returnsResponseWithHttpStatusOK() throws JsonException {
+        final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
+        final Submitter submitter = new Submitter();
+        final String submitterName = "testSubmitter";
+        final Long submitterNumber = 555555L;
+        submitter.setContent(new SubmitterContentJsonBuilder().setName(submitterName).setNumber(submitterNumber).build());
+        submitter.setVersion(DEFAULT_TEST_VERSION);
+
+        when(ENTITY_MANAGER.find(eq(Submitter.class), any())).thenReturn(submitter);
+
+        Response response = submittersBean.getSubmitter(DEFAULT_TEST_ID);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        assertThat(entityNode.get("content").get("name").textValue(), is(submitterName));
+        assertThat(entityNode.get("content").get("number").longValue(), is(submitterNumber));
+        assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
+    }
+
+    @Test
+    public void getSubmitter_noSubmitterFound_returnsResponseWithHttpStatusNotFound() throws JsonException {
+        final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(Submitter.class), any())).thenReturn(null);
+
+        Response response = submittersBean.getSubmitter(DEFAULT_TEST_ID);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat(response.getEntityTag(), is(nullValue()));
+    }
+    */
 
     @Test(expected = NullPointerException.class)
     public void updateSubmitter_nullSubmitterContent_throws() throws JsonException {

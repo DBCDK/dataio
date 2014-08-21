@@ -13,6 +13,7 @@ public class FlowStoreServiceConstants {
     public static final String FLOW_COMPONENT_ID_VARIABLE = "id";
 
     public static final String SINK = "sinks/{id}";
+    public static final String SUBMITTER = "submitters/{id}";
     public static final String FLOW = "flows/{id}";
     public static final String FLOW_COMPONENT = "components/{id}";
     public static final String SINK_CONTENT = "sinks/{id}/content";

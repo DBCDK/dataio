@@ -169,6 +169,52 @@ public class SubmittersIT {
         }
     }
 
+//    /**
+//     * Given: a deployed flow-store service
+//     * When : valid JSON is POSTed to the submitters path with a valid identifier
+//     * Then : a submitter is found and returned
+//     * And  : assert that the submitter found has an id, a version and contains the same information as the submitter created
+//     */
+//    @Test
+//    public void getSubmitter_ok() throws Exception{
+//
+//        // When...
+//        final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
+//        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+//
+//        // Then...
+//        Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
+//        Submitter submitterToGet = flowStoreServiceConnector.getSubmitter(submitter.getId());
+//
+//        // And...
+//        assertNotNull(submitterToGet);
+//        assertNotNull(submitterToGet.getContent());
+//        assertThat(submitterToGet.getContent().getName(), is(submitter.getContent().getName()));
+//        assertThat(submitterToGet.getContent().getNumber(), is(submitter.getContent().getNumber()));
+//        assertThat(submitterToGet.getContent().getDescription(), is(submitter.getContent().getDescription()));
+//    }
+//
+//    /**
+//     * Given: a deployed flow-store service
+//     * When : Attempting to retrieve a submitter with an unknown submitter id
+//     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+//     * And  : request returns with a NOT_FOUND http status code
+//     */
+//    @Test
+//    public void getSubmitter_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
+//        try{
+//            // Given...
+//            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+//            flowStoreServiceConnector.getSubmitter(432);
+//
+//            fail("Invalid request to getSubmitter() was not detected.");
+//            // Then...
+//        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+//            // And...
+//            assertThat(e.getStatusCode(), is(404));
+//        }
+//    }
+
     /*
      * Given: a deployed flow-store service
      * And  : a valid submitter with given id is already stored

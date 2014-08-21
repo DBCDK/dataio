@@ -109,6 +109,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public Submitter getSubmitter(Long id) throws ProxyException {
+        return flowStoreProxy.getSubmitter(id);
+    }
+
+    @Override
     public FlowComponent getFlowComponent(Long id) throws ProxyException {
         return flowStoreProxy.getFlowComponent(id);
     }

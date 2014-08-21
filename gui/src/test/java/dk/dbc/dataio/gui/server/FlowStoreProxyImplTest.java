@@ -383,6 +383,47 @@ public class FlowStoreProxyImplTest {
     }
 
     /*
+    * Test getSubmitter
+    */
+    @Test
+    public void getSubmitter_remoteServiceReturnsHttpStatusOk_returnsSubmitterEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final Submitter submitter = new SubmitterBuilder().setId(ID).build();
+        when(flowStoreServiceConnector.getSubmitter(eq(ID))).thenReturn(submitter);
+
+        try {
+            final Submitter retrievedSubmitter  = flowStoreProxy.getSubmitter(submitter.getId());
+            assertNotNull(retrievedSubmitter);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getSubmitter()");
+        }
+    }
+
+    @Test
+    public void getSubmitter_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        getSubmitter_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void getSubmitter_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        getSubmitter_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    private void getSubmitter_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getSubmitter(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.getSubmitter(ID);
+            fail("No " + expectedErrorName + " error was thrown by getSubmitter()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    /*
      * Test findAllSubmitters
      */
     @Test

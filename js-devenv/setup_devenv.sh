@@ -24,11 +24,13 @@ if isNotSet BUILD_NUMBER ; then
 fi
 echo $BUILD_NUMBER
 
-svn co --depth empty $REPOS_URL $REPOS_DIR
-cd $REPOS_DIR
-svn up jsshell-acctest
-svn up datawell-convert
-cd ..
+if [ ! -d "$REPOS_DIR" ]; then
+    svn co --depth empty $REPOS_URL $REPOS_DIR
+    cd $REPOS_DIR
+    svn up jsshell-acctest
+    svn up datawell-convert
+    cd ..
+fi
 
 JAIL_DIR=testarea
 rm -rf $JAIL_DIR

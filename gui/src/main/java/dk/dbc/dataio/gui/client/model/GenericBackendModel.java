@@ -1,16 +1,16 @@
 package dk.dbc.dataio.gui.client.model;
 
-public class GenericModel {
+public class GenericBackendModel {
 
-    protected Long id;
-    protected Long version;
+    protected long id;
+    protected long version;
 
     /**
      * Constructor
      * @param id
      * @param version
      */
-    protected GenericModel(Long id, Long version) {
+    protected GenericBackendModel(long id, long version) {
         this.id = id;
         this.version = version;
     }
@@ -18,14 +18,14 @@ public class GenericModel {
     /**
      * Constructor with no parameters
      */
-    protected GenericModel() {
+    protected GenericBackendModel() {
     }
 
     /**
      * Get id
      * @return id
      */
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
@@ -33,7 +33,7 @@ public class GenericModel {
      * Set id
      * @param id
      */
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -41,7 +41,7 @@ public class GenericModel {
      * Get version
      * @return version
      */
-    public Long getVersion() {
+    public long getVersion() {
         return version;
     }
 
@@ -49,7 +49,7 @@ public class GenericModel {
      * Set version
      * @param version
      */
-    public void setVersion(Long version) {
+    public void setVersion(long version) {
         this.version = version;
     }
 }

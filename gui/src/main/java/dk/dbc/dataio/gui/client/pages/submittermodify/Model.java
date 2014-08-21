@@ -1,8 +1,8 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
-import dk.dbc.dataio.gui.client.model.GenericModel;
+import dk.dbc.dataio.gui.client.model.GenericBackendModel;
 
-public class Model extends GenericModel {
+public class Model extends GenericBackendModel {
     private String number;
     private String name;
     private String description;
@@ -15,11 +15,19 @@ public class Model extends GenericModel {
      * @param name
      * @param description
      */
-    public Model(Long id, Long version, String number, String name, String description) {
+    public Model(long id, long version, String number, String name, String description) {
         super(id, version);
         this.number = number;
         this.name = name;
         this.description = description;
+    }
+
+    public Model() {
+        this.id = 0L;
+        this.version = 0L;
+        this.number = "";
+        this.name = "";
+        this.description = "";
     }
 
 
@@ -70,8 +78,7 @@ public class Model extends GenericModel {
 
     /**
      * Validates the class attributes in this model
-     *
-     * @return true if valid, false if not valid
+     * TODO: Split op i enkelt valideringer
      */
     public void validate(SubmitterModifyConstants constants) {
         if (number.isEmpty() || name.isEmpty() || description.isEmpty()) {

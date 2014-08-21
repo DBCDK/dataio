@@ -110,6 +110,19 @@ public class FlowStoreServiceConnectorBeanTest {
     }
 
     @Test
+    public void getSubmitter_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.getSubmitter(1L);
+            fail("No exception thrown by getSubmitter()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
     public void updateSubmitter_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
         final NamingException namingException = new NamingException();
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);

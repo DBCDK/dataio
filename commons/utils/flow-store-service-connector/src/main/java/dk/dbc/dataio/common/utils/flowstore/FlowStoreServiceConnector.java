@@ -164,6 +164,28 @@ public class FlowStoreServiceConnector {
     }
 
     /**
+     * Retrieves the specified submitter from the flow-store
+     *
+     * @param submitterId Id of the submitter
+     * @return the submitter found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the submitter
+     */
+    public Submitter getSubmitter(long submitterId) throws ProcessingException, FlowStoreServiceConnectorException {
+        final Map<String, String> pathVariables = new HashMap<>(1);
+        pathVariables.put(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, Long.toString(submitterId));
+        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.SUBMITTER, pathVariables);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path);
+
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, Submitter.class);
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
      * Updates an existing submitter in the flow-store
      *
      * @param submitterContent the new submitter content

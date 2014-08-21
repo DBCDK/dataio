@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -82,6 +81,37 @@ public class FlowStoreServiceConnector_Submitters_Test {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.createSubmitter(submitterContent);
+    }
+
+    // **************************************** get submitter tests ****************************************
+    @Test
+    public void getSubmitter_submitterRetrieved_returnsSubmitter() throws FlowStoreServiceConnectorException {
+        final Submitter expectedSubmitterResult = new SubmitterBuilder().build();
+        final Submitter submitterResult = getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedSubmitterResult);
+        assertThat(submitterResult, is(notNullValue()));
+        assertThat(submitterResult.getId(), is(expectedSubmitterResult.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getSubmitter_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getSubmitter_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
+        getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void getSubmitter_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
+        getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
+    }
+
+    private Submitter getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.getSubmitter(ID);
     }
 
     // **************************************** update submitter tests ****************************************

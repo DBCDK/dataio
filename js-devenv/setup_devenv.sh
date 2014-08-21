@@ -16,7 +16,7 @@ isNotSet() {
 
 
 if isNotSet JOB_NAME ; then
-     JOB_NAME=dataio-js-acceptance-test
+     JOB_NAME=dataio-js-acceptance-test-VERIFIED
 fi
 echo $JOB_NAME
 if isNotSet BUILD_NUMBER ; then

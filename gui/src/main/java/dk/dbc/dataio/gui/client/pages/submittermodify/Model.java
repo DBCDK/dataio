@@ -91,6 +91,6 @@ public class Model extends GenericBackendModel implements IsSerializable {
      * Checks for empty String values
      */
     public boolean isInputFieldsEmpty() throws IllegalArgumentException {
-        return (number.isEmpty() || name.isEmpty() || description.isEmpty()) ;
+        return number.isEmpty() || name.isEmpty() || description.isEmpty() ;
     }
 }

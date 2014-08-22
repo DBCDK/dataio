@@ -36,7 +36,7 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     void saveModel() {
         try {
-            model.validate(constants);
+            model.validateNumber(constants);
             final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(model.getNumber()), model.getName(), model.getDescription());
             flowStoreProxy.createSubmitter(submitterContent, new FilteredAsyncCallback<Submitter>() {
                 @Override

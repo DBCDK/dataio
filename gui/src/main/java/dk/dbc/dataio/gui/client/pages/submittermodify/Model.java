@@ -1,8 +1,9 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
+import com.google.gwt.user.client.rpc.IsSerializable;
 import dk.dbc.dataio.gui.client.model.GenericBackendModel;
 
-public class Model extends GenericBackendModel {
+public class Model extends GenericBackendModel implements IsSerializable {
     private String number;
     private String name;
     private String description;
@@ -75,14 +76,10 @@ public class Model extends GenericBackendModel {
         this.description = description;
     }
 
-    /**
-     * Validates the class attributes in this model
-     * TODO: Split op i enkelt valideringer
+    /*
+     * Validates if the String, set as number, can be cast to number format
      */
-    public void validate(SubmitterModifyConstants constants) {
-        if (number.isEmpty() || name.isEmpty() || description.isEmpty()) {
-            throw new IllegalArgumentException(constants.error_InputFieldValidationError());
-        }
+    public void validateNumber(SubmitterModifyConstants constants) {
         try {
             Long.valueOf(number);
         } catch (NumberFormatException e) {
@@ -90,5 +87,10 @@ public class Model extends GenericBackendModel {
         }
     }
 
-
+    /**
+     * Checks for empty String values
+     */
+    public boolean isInputFieldsEmpty() throws IllegalArgumentException {
+        return (number.isEmpty() || name.isEmpty() || description.isEmpty()) ;
+    }
 }

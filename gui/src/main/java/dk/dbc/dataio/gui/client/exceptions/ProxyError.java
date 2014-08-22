@@ -7,4 +7,5 @@ public enum ProxyError {
     ENTITY_NOT_FOUND,
     CONFLICT_ERROR,             // Concurrent Update Error
     INTERNAL_SERVER_ERROR,
+    MODEL_MAPPER_EMPTY_FIELDS
 }

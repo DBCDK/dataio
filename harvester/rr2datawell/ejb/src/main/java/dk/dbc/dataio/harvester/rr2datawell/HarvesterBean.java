@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
@@ -105,10 +106,8 @@ public class HarvesterBean {
         ) {
             QueueJob nextQueuedItem = getNextQueuedItem();
             while (nextQueuedItem != null) {
-                LOGGER.debug("{} ready for harvesting", nextQueuedItem);
+                LOGGER.info("{} ready for harvesting", nextQueuedItem);
                 try {
-                    rawRepoConnector.queueSuccess(nextQueuedItem);
-
                     final RecordId queuedRecordId = nextQueuedItem.getJob();
                     final MarcExchangeCollection harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
                     switch (queuedRecordId.getLibrary()) {
@@ -119,8 +118,10 @@ public class HarvesterBean {
                             localRecordsJobBuilder.addHarvesterRecord(harvesterRecord);
                             break;
                     }
-                } catch (SQLException e) {
-                    throw new HarvesterException("Unable to remove item " + nextQueuedItem.toString() + " from queue", e);
+                    markAsSuccess(nextQueuedItem);
+                } catch (HarvesterInvalidRecordException e) {
+                    LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
+                    markAsFailure(nextQueuedItem, e.getMessage());
                 }
                 nextQueuedItem = getNextQueuedItem();
             }
@@ -146,19 +147,38 @@ public class HarvesterBean {
        its content to a new MARC exchange collection.
        Returns harvester record.
      */
-    private MarcExchangeCollection getHarvesterRecordForQueuedRecord(RecordId recordId) throws SQLException, HarvesterException {
-        final Set<Record> records = rawRepoConnector.fetchRecordCollection(recordId);
+    private MarcExchangeCollection getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
+        final Set<Record> records;
+        try {
+            records = rawRepoConnector.fetchRecordCollection(recordId);
+        } catch (IllegalStateException e) {
+            throw new HarvesterInvalidRecordException("Invalid state of rawrepo", e);
+        } catch (SQLException e) {
+            throw new HarvesterException("Unable to fetch record collection for " + recordId.toString(), e);
+        }
         LOGGER.debug("Fetched rawrepo collection<{}> for {}", records, recordId);
         final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection(documentBuilder, transformer);
         for (Record record : records) {
-            try {
-                LOGGER.debug("Adding {} member to {} harvester record", record.getId(), recordId);
-                harvesterRecord.addMember(record.getContent());
-            } catch (HarvesterException e) {
-                LOGGER.error("Invalid record: {}", record.getId(), e);
-            }
+            LOGGER.debug("Adding {} member to {} harvester record", record.getId(), recordId);
+            harvesterRecord.addMember(record.getContent());
         }
         return harvesterRecord;
+    }
+
+    private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {
+        try {
+            rawRepoConnector.queueSuccess(queuedItem);
+        } catch (SQLException e) {
+            throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as success", e);
+        }
+    }
+
+    private void markAsFailure(QueueJob queuedItem, String errorMessage) throws HarvesterException {
+        try {
+            rawRepoConnector.queueFail(queuedItem, errorMessage);
+        } catch (SQLException e) {
+            throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as failure", e);
+        }
     }
 
     /**
@@ -186,15 +206,13 @@ public class HarvesterBean {
 
         /**
          * Adds given MarcExchangeCollection to harvester data file provided that
-         * the collection in question contains record members and has encountered
-         * no invalid members
+         * the collection in question contains record members
          * @param marcExchangeCollection harvester record as MarcExchangeCollection
          * @return true if added, false if not
          * @throws HarvesterException if unable to add harvester record
          */
         public boolean addHarvesterRecord(MarcExchangeCollection marcExchangeCollection) throws HarvesterException {
-            if (marcExchangeCollection.getMemberCount() > 0 &&
-                    marcExchangeCollection.getInvalidMemberCount() == 0) {
+            if (marcExchangeCollection.getMemberCount() > 0) {
                 dataFile.addRecord(marcExchangeCollection);
                 recordsAdded++;
                 return true;
@@ -212,7 +230,11 @@ public class HarvesterBean {
          */
         public JobInfo build() throws HarvesterException {
             dataFile.close();
-            closeTmpFileOutputStream();
+            try {
+                closeTmpFileOutputStream();
+            } catch (IllegalStateException e) {
+                throw new HarvesterException(e);
+            }
             if (recordsAdded > 0) {
                 final String fileId = uploadToFileStore();
                 if (fileId != null) {
@@ -224,20 +246,19 @@ public class HarvesterBean {
 
         /**
          * Closes associated file resources and deletes temporary file
+         * @throws IllegalStateException if unable to close temporary file output stream
          */
         @Override
-        public void close() {
+        public void close() throws IllegalStateException {
             closeTmpFileOutputStream();
             deleteTmpFile();
         }
 
-        private void closeTmpFileOutputStream() {
+        private void closeTmpFileOutputStream() throws IllegalStateException {
             try {
                 tmpFileOutputStream.close();
             } catch (IOException e) {
-                // We don't want to rollback the entire transaction, just
-                // because we can't close the output stream to the temporary file.
-                LOGGER.warn("Unable to close temporary file {} output stream", tmpFile.getPath(), e);
+                throw new IllegalStateException(e);
             }
         }
 

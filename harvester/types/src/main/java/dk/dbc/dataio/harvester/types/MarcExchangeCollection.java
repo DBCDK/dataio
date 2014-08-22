@@ -41,7 +41,6 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
     private final Document data;
     private final Charset charset = StandardCharsets.UTF_8;
     private int memberCount = 0;
-    private int invalidMemberCount = 0;
 
     /**
      * Class constructor
@@ -114,10 +113,6 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         return memberCount;
     }
 
-    public int getInvalidMemberCount() {
-        return invalidMemberCount;
-    }
-
     /**
      * Extracts record from given MARC Exchange document (either as collection or
      * standalone record) and adds it to this collection
@@ -130,20 +125,15 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
      */
     public void addMember(byte[] memberData) throws HarvesterException {
         final Document memberDoc;
+        if (memberData == null) {
+            throw new HarvesterInvalidRecordException("member data can not be null");
+        }
         try {
-            if (memberData == null) {
-                throw new HarvesterInvalidRecordException("member data can not be null");
-            }
-            try {
-                memberDoc = documentBuilder.parse(new ByteArrayInputStream(memberData));
-            } catch (SAXException | IOException e) {
-                throw new HarvesterInvalidRecordException("member data can not be parsed as XML", e);
-            } finally {
-                documentBuilder.reset();
-            }
-        } catch (HarvesterException e) {
-            invalidMemberCount++;
-            throw e;
+            memberDoc = documentBuilder.parse(new ByteArrayInputStream(memberData));
+        } catch (SAXException | IOException e) {
+            throw new HarvesterInvalidRecordException("member data can not be parsed as XML", e);
+        } finally {
+            documentBuilder.reset();
         }
         addMember(memberDoc);
     }
@@ -158,17 +148,12 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
      * If given document is itself a collection with more than one record.
      */
     public void addMember(Document memberDoc) throws HarvesterException {
-        try {
-            if (memberDoc == null) {
-                throw new HarvesterInvalidRecordException("member data can not be null");
-            }
-            verifyEncoding(memberDoc);
-            data.getDocumentElement().appendChild(data.importNode(extractRecordNode(memberDoc), true));
-            memberCount++;
-        } catch (HarvesterException e) {
-            invalidMemberCount++;
-            throw e;
+        if (memberDoc == null) {
+            throw new HarvesterInvalidRecordException("member data can not be null");
         }
+        verifyEncoding(memberDoc);
+        data.getDocumentElement().appendChild(data.importNode(extractRecordNode(memberDoc), true));
+        memberCount++;
     }
 
     private Transformer configureTransformer() throws HarvesterException {

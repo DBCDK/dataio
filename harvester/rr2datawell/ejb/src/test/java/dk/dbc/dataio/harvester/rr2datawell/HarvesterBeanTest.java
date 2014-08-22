@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -81,6 +82,7 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }
@@ -92,27 +94,44 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }
 
     @Test
-    public void harvest_repoConnectorBeanFetchRecordThrowsSqlException_throws() throws SQLException {
-        when(repoConnectorBean.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
+    public void harvest_repoConnectorBeanQueueFailThrowsSqlException_throws() throws SQLException {
+        when(rrRecord.getContent()).thenReturn("invalid".getBytes());
+        doThrow(new SQLException()).when(repoConnectorBean).queueFail(any(QueueJob.class), anyString());
 
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }
 
     @Test
-    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException {
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsSqlException_throws() throws SQLException {
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new SQLException());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        try {
+            harvesterBean.harvest();
+            fail("No exception thrown");
+        } catch (HarvesterException e) {
+        }
+    }
+
+    @Test
+    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException, SQLException {
         when(rrRecord.getContent()).thenReturn("invalid".getBytes());
 
         final HarvesterBean harvesterBean = getInitializedBean();
         harvesterBean.harvest();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
     }
 
     @Test
@@ -122,17 +141,19 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (IllegalStateException e) {
         }
     }
 
     @Test
-    public void harvest_closingOfOutputStreamThrowsIOException_throws() throws IOException, HarvesterException {
+    public void harvest_closingOfOutputStreamThrowsIllegalStateException_throws() throws IOException, HarvesterException {
         doThrow(new IOException()).when(os).close();
 
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }
@@ -144,6 +165,7 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }
@@ -155,6 +177,7 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (IllegalStateException e) {
         }
     }
@@ -174,6 +197,7 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }
@@ -211,6 +235,7 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }
@@ -222,6 +247,7 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest();
+            fail("No exception thrown");
         } catch (HarvesterException e) {
         }
     }

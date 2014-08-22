@@ -75,7 +75,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember((byte[]) null);
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -86,7 +85,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember("invalid-xml".getBytes());
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -97,7 +95,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(marcxRecordNonUtf8Encoding.getBytes());
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -108,7 +105,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(marcxCollectionInvalidNamespace.getBytes());
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -119,7 +115,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(marcxCollectionInvalidMemberNamespace.getBytes());
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -130,7 +125,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(marcxCollectionMultipleRecords.getBytes());
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -140,7 +134,6 @@ public class MarcExchangeCollectionTest {
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
         assertMarcExchangeCollection(harvesterRecord.getData(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
-        assertThat(harvesterRecord.getInvalidMemberCount(), is(0));
     }
 
     @Test
@@ -149,7 +142,6 @@ public class MarcExchangeCollectionTest {
         harvesterRecord.addMember(marcxRecord.getBytes());
         assertMarcExchangeCollection(harvesterRecord.getData(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
-        assertThat(harvesterRecord.getInvalidMemberCount(), is(0));
     }
 
     @Test
@@ -159,7 +151,6 @@ public class MarcExchangeCollectionTest {
         harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
         assertMarcExchangeCollection(harvesterRecord.getData(), 2);
         assertThat(harvesterRecord.getMemberCount(), is(2));
-        assertThat(harvesterRecord.getInvalidMemberCount(), is(0));
     }
 
     @Test
@@ -169,7 +160,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember((Document) null);
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -180,7 +170,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(asDocument(marcxRecordNonUtf8Encoding.getBytes()));
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -191,7 +180,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(asDocument(marcxCollectionInvalidNamespace.getBytes()));
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -202,7 +190,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(asDocument(marcxCollectionInvalidMemberNamespace.getBytes()));
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -213,7 +200,6 @@ public class MarcExchangeCollectionTest {
             harvesterRecord.addMember(asDocument(marcxCollectionMultipleRecords.getBytes()));
             fail("No exception thrown");
         } catch (HarvesterInvalidRecordException e) {
-            assertThat(harvesterRecord.getInvalidMemberCount(), is(1));
         }
     }
 
@@ -223,7 +209,6 @@ public class MarcExchangeCollectionTest {
         harvesterRecord.addMember(asDocument(marcxCollectionSingleRecord.getBytes()));
         assertMarcExchangeCollection(harvesterRecord.getData(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
-        assertThat(harvesterRecord.getInvalidMemberCount(), is(0));
     }
 
     @Test
@@ -232,7 +217,6 @@ public class MarcExchangeCollectionTest {
         harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
         assertMarcExchangeCollection(harvesterRecord.getData(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
-        assertThat(harvesterRecord.getInvalidMemberCount(), is(0));
     }
 
     @Test

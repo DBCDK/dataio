@@ -23,8 +23,7 @@ public class Model extends GenericBackendModel {
     }
 
     public Model() {
-        this.id = 0L;
-        this.version = 0L;
+        super(0L, 0L);
         this.number = "";
         this.name = "";
         this.description = "";

@@ -45,7 +45,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
-        getModel();
+        initializeModel();
         updateAllFieldsAccordingToCurrentState();
     }
 
@@ -141,7 +141,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /**
      * getModel
      */
-    abstract void getModel();
+    abstract void initializeModel();
 
     /**
      * saveModel

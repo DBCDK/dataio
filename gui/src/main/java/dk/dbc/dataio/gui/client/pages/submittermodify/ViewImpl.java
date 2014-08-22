@@ -23,7 +23,6 @@ public class ViewImpl extends ContentPanel<Presenter>  implements View {
     public static final String GUIID_SUBMITTER_MODIFY_SAVE_BUTTON_PANEL = "submittermodifysavebuttonpanel";
     private static final int SUBMITTER_MODIFY_DESCRIPTION_MAX_LENGTH = 160;
 
-    // Local variables
     private final TextEntry submitterNumberPanel;
     private final TextEntry submitterNamePanel;
     private final TextAreaEntry submitterDescriptionPanel;
@@ -48,9 +47,10 @@ public class ViewImpl extends ContentPanel<Presenter>  implements View {
     public void init() {
         getElement().setId(GUIID_SUBMITTER_MODIFY_WIDGET);
 
-        submitterNumberPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
-        submitterNamePanel.addKeyDownHandler(new InputFieldKeyDownHandler());
-        submitterDescriptionPanel.addKeyDownHandler(new InputFieldKeyDownHandler());
+        InputFieldKeyDownHandler inputFieldKeyDownHandler = new InputFieldKeyDownHandler();
+        submitterNumberPanel.addKeyDownHandler(inputFieldKeyDownHandler);
+        submitterNamePanel.addKeyDownHandler(inputFieldKeyDownHandler);
+        submitterDescriptionPanel.addKeyDownHandler(inputFieldKeyDownHandler);
 
         submitterNumberPanel.addBlurHandler(new SubmitterNumberBlurHandler());
         submitterNamePanel.addBlurHandler(new SubmitterNameBlurHandler());

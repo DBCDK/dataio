@@ -10,9 +10,8 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.submittermodify.Model;
+import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 
 import javax.naming.NamingException;
@@ -45,8 +44,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createSubmitter(submitterContent);
+    public SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createSubmitter(model);
     }
 
     @Override
@@ -65,8 +64,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public Model updateSubmitter(Model model, Long id, Long version) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateSubmitter(model, id, version);
+    public SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateSubmitter(model);
     }
 
     @Override
@@ -110,7 +109,7 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public Model getSubmitter(Long id) throws ProxyException {
+    public SubmitterModel getSubmitter(Long id) throws ProxyException {
         return flowStoreProxy.getSubmitter(id);
     }
 

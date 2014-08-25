@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.pages.submittermodify.Model;
+import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModel;
 
 public final class SubmitterModelMapper {
 
@@ -16,8 +16,8 @@ public final class SubmitterModelMapper {
      * @param submitter
      * @return model
      */
-    public static Model toModel(Submitter submitter){
-        return new Model(
+    public static SubmitterModel toModel(Submitter submitter){
+        return new SubmitterModel(
                 submitter.getId(),
                 submitter.getVersion(),
                 Long.toString(submitter.getContent().getNumber()),
@@ -30,16 +30,25 @@ public final class SubmitterModelMapper {
      * @param model
      * @return submitter
      */
-    public static Submitter toSubmitter(Model model) throws IllegalArgumentException {
-        SubmitterContent content;
+    public static Submitter toSubmitter(SubmitterModel model) throws IllegalArgumentException {
+        return new Submitter(model.getId(), model.getVersion(), toSubmitterContent(model));
+    }
+
+    /**
+     * Maps a model to submitter content
+     * @param model
+     * @return submitterContent
+     * @throws IllegalArgumentException
+     */
+    public static SubmitterContent toSubmitterContent(SubmitterModel model) throws IllegalArgumentException {
+
         if(model.isInputFieldsEmpty()) {
             throw new IllegalArgumentException("model.number, model.name, model.description cannot be empty");
         }
-        content = new SubmitterContent(
+
+        return new SubmitterContent(
                 Long.parseLong(model.getNumber()),
                 model.getName(),
                 model.getDescription());
-
-        return new Submitter(model.getId(), model.getVersion(), content);
     }
 }

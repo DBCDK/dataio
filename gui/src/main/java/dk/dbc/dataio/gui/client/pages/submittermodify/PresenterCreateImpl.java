@@ -1,7 +1,5 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -26,7 +24,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     public void initializeModel() {
-        model = new Model();
+        model = new SubmitterModel();
     }
 
     /**
@@ -35,22 +33,21 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        try {
-            model.validateNumber(constants);
-            final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(model.getNumber()), model.getName(), model.getDescription());
-            flowStoreProxy.createSubmitter(submitterContent, new FilteredAsyncCallback<Submitter>() {
+
+        if(model.isNumberValid()) {
+            flowStoreProxy.createSubmitter(model, new FilteredAsyncCallback<SubmitterModel>() {
                 @Override
                 public void onFilteredFailure(Throwable e) {
                     view.setErrorText(getErrorText(e));
                 }
 
                 @Override
-                public void onSuccess(Submitter submitter) {
+                public void onSuccess(SubmitterModel model) {
                     view.setStatusText(constants.status_SubmitterSuccessfullySaved());
                 }
             });
-        } catch (IllegalArgumentException e) {
-            view.setErrorText(e.getMessage());
+        } else {
+            view.setErrorText("Could not translate (String)model.number to long value.");
         }
     }
 

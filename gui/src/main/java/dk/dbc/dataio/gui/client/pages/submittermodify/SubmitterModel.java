@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.pages.submittermodify;
 import com.google.gwt.user.client.rpc.IsSerializable;
 import dk.dbc.dataio.gui.client.model.GenericBackendModel;
 
-public class Model extends GenericBackendModel implements IsSerializable {
+public class SubmitterModel extends GenericBackendModel implements IsSerializable {
     private String number;
     private String name;
     private String description;
@@ -16,14 +16,14 @@ public class Model extends GenericBackendModel implements IsSerializable {
      * @param name
      * @param description
      */
-    public Model(long id, long version, String number, String name, String description) {
+    public SubmitterModel(long id, long version, String number, String name, String description) {
         super(id, version);
         this.number = number;
         this.name = name;
         this.description = description;
     }
 
-    public Model() {
+    public SubmitterModel() {
         super(0L, 0L);
         this.number = "";
         this.name = "";
@@ -79,12 +79,13 @@ public class Model extends GenericBackendModel implements IsSerializable {
     /*
      * Validates if the String, set as number, can be cast to number format
      */
-    public void validateNumber(SubmitterModifyConstants constants) {
+    public boolean isNumberValid() {
         try {
             Long.valueOf(number);
         } catch (NumberFormatException e) {
-            throw new NumberFormatException(constants.error_NumberInputFieldValidationError());
+            return false;
         }
+        return true;
     }
 
     /**

@@ -12,9 +12,8 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.submittermodify.Model;
+import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModel;
 
 import java.util.List;
 
@@ -24,11 +23,11 @@ public interface FlowStoreProxy extends RemoteService {
     Flow createFlow(FlowContent flowContent) throws NullPointerException, ProxyException;
     void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException;
     FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
-    Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException;
+    SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
     Sink createSink(SinkContent sinkContent) throws NullPointerException, ProxyException;
 
     Sink updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException;
-    Model updateSubmitter(Model model, Long id, Long version) throws NullPointerException, ProxyException;
+    SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
     FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException;
     Flow updateFlowComponentsInFlowToLatestVersion(Long id, Long version) throws NullPointerException, ProxyException;
 
@@ -39,7 +38,7 @@ public interface FlowStoreProxy extends RemoteService {
     List<Sink> findAllSinks() throws ProxyException;
 
     Sink getSink(Long id) throws ProxyException;
-    Model getSubmitter(Long id) throws ProxyException;
+    SubmitterModel getSubmitter(Long id) throws ProxyException;
     FlowComponent getFlowComponent(Long id) throws ProxyException;
 
     void close();

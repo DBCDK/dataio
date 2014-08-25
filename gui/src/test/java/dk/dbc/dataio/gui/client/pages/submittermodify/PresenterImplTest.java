@@ -15,7 +15,6 @@ import org.mockito.Matchers;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,7 +34,7 @@ public class PresenterImplTest {
     private AcceptsOneWidget mockedContainerWidget;
     private EventBus mockedEventBus;
     private View mockedView;
-    private Model mockedModel;
+    private SubmitterModel mockedModel;
 
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
@@ -83,7 +82,7 @@ public class PresenterImplTest {
         mockedContainerWidget = mock(AcceptsOneWidget.class);
         mockedEventBus = mock(EventBus.class);
         mockedView = mock(View.class);
-        mockedModel = mock(Model.class);
+        mockedModel = mock(SubmitterModel.class);
         when(mockedModel.getNumber()).thenReturn(DEFAULT_NUMBER);
         when(mockedModel.getName()).thenReturn(DEFAULT_NAME);
         when(mockedModel.getDescription()).thenReturn(DEFAULT_DESCRIPTION);

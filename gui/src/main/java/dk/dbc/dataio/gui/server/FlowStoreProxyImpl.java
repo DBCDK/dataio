@@ -12,14 +12,13 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.submittermodify.Model;
+import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.server.ModelMappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
@@ -78,16 +77,18 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProxyException {
+    public SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
         Submitter submitter;
         try {
-            submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
+            submitter = flowStoreServiceConnector.createSubmitter(SubmitterModelMapper.toSubmitterContent(model));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e){
+            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
         }
-        return submitter;
+        return SubmitterModelMapper.toModel(submitter);
     }
 
     @Override
@@ -133,10 +134,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public Model updateSubmitter(Model model, Long id, Long version) throws NullPointerException, ProxyException, IllegalArgumentException {
-        Submitter result;
+    public SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException, IllegalArgumentException {
+        Submitter submitter;
         try {
-            result = flowStoreServiceConnector.updateSubmitter(SubmitterModelMapper.toSubmitter(model).getContent(), id, version);
+            submitter = flowStoreServiceConnector.updateSubmitter(SubmitterModelMapper.toSubmitterContent(model), model.getId(), model.getVersion());
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
@@ -144,7 +145,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e){
             throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
         }
-        return SubmitterModelMapper.toModel(result);
+        return SubmitterModelMapper.toModel(submitter);
     }
 
     @Override
@@ -257,16 +258,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public Model getSubmitter(Long id) throws ProxyException {
-        final Submitter result;
+    public SubmitterModel getSubmitter(Long id) throws ProxyException {
+        final Submitter submitter;
         try {
-            result = flowStoreServiceConnector.getSubmitter(id);
+            submitter = flowStoreServiceConnector.getSubmitter(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        return SubmitterModelMapper.toModel(result);
+        return SubmitterModelMapper.toModel(submitter);
     }
 
     @Override

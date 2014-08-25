@@ -15,7 +15,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected SubmitterModifyConstants constants;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected View view;
-    protected Model model;
+    protected SubmitterModel model;
 
     private final static String EMPTY = "";
 

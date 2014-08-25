@@ -10,8 +10,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.pages.submittermodify.Model;
+import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModel;
 
 import java.util.List;
 
@@ -19,11 +18,11 @@ public interface FlowStoreProxyAsync {
     void createFlow(FlowContent flowContent, AsyncCallback<Flow> callback);
     void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<Void> async);
     void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<FlowComponent> async);
-    void createSubmitter(SubmitterContent submitterContent, AsyncCallback<Submitter> async);
+    void createSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
     void createSink(SinkContent sinkContent, AsyncCallback<Sink> async);
 
     void updateSink(SinkContent sinkContent, Long id, Long version, AsyncCallback<Sink> async);
-    void updateSubmitter(Model model, Long id, Long version, AsyncCallback<Model> async);
+    void updateSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
     void updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version, AsyncCallback<FlowComponent> async);
     void updateFlowComponentsInFlowToLatestVersion(Long id, Long version, AsyncCallback<Flow> async);
 
@@ -34,7 +33,7 @@ public interface FlowStoreProxyAsync {
     void findAllSinks(AsyncCallback<List<Sink>> async);
 
     void getSink(Long id, AsyncCallback<Sink> async);
-    void getSubmitter(Long id, AsyncCallback<Model> async);
+    void getSubmitter(Long id, AsyncCallback<SubmitterModel> async);
     void getFlowComponent(Long id, AsyncCallback<FlowComponent> async);
 
     void close(AsyncCallback<Void> async);

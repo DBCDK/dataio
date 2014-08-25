@@ -26,15 +26,6 @@ public final class SubmitterModelMapper {
     }
 
     /**
-     * Maps a Model to a Submitter
-     * @param model
-     * @return submitter
-     */
-    public static Submitter toSubmitter(SubmitterModel model) throws IllegalArgumentException {
-        return new Submitter(model.getId(), model.getVersion(), toSubmitterContent(model));
-    }
-
-    /**
      * Maps a model to submitter content
      * @param model
      * @return submitterContent

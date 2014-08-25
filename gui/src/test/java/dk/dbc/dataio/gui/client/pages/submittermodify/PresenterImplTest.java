@@ -34,11 +34,13 @@ public class PresenterImplTest {
     private AcceptsOneWidget mockedContainerWidget;
     private EventBus mockedEventBus;
     private View mockedView;
-    private SubmitterModel mockedModel;
+    private SubmitterModel replicatedModel;
 
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
 
+    private final static long DEFAULT_ID = 0;
+    private final static long DEFAULT_VERSION = 0;
     private final static String DEFAULT_NUMBER = "123";
     private final static String DEFAULT_NAME = "Hello";
     private final static String DEFAULT_DESCRIPTION = "Note";
@@ -52,7 +54,8 @@ public class PresenterImplTest {
 
         @Override
         void initializeModel() {
-            model = mockedModel;
+            model = new SubmitterModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NUMBER, DEFAULT_NAME, DEFAULT_DESCRIPTION);
+            replicatedModel = model;  // Since model is not immutable, this is a reference, meaning that changes in model is reflected in replicatedModel
         }
 
         @Override
@@ -82,10 +85,6 @@ public class PresenterImplTest {
         mockedContainerWidget = mock(AcceptsOneWidget.class);
         mockedEventBus = mock(EventBus.class);
         mockedView = mock(View.class);
-        mockedModel = mock(SubmitterModel.class);
-        when(mockedModel.getNumber()).thenReturn(DEFAULT_NUMBER);
-        when(mockedModel.getName()).thenReturn(DEFAULT_NAME);
-        when(mockedModel.getDescription()).thenReturn(DEFAULT_DESCRIPTION);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -106,13 +105,15 @@ public class PresenterImplTest {
         verify(mockedView, times(1)).setPresenter(presenterImpl);
         verify(mockedView, times(1)).asWidget();
         verify(mockedContainerWidget, times(1)).setWidget(Matchers.any(IsWidget.class));
-        verify(mockedModel, times(1)).getNumber();
         verify(mockedView, times(1)).setNumber(DEFAULT_NUMBER);
-        verify(mockedModel, times(1)).getName();
         verify(mockedView, times(1)).setName(DEFAULT_NAME);
-        verify(mockedModel, times(1)).getDescription();
         verify(mockedView, times(1)).setDescription(DEFAULT_DESCRIPTION);
         verify(mockedView, times(1)).setStatusText(EMPTY);
+        assertThat(replicatedModel.getId(), is(DEFAULT_ID));
+        assertThat(replicatedModel.getVersion(), is(DEFAULT_VERSION));
+        assertThat(replicatedModel.getNumber(), is(DEFAULT_NUMBER));
+        assertThat(replicatedModel.getName(), is(DEFAULT_NAME));
+        assertThat(replicatedModel.getDescription(), is(DEFAULT_DESCRIPTION));
     }
 
     @Test
@@ -124,7 +125,7 @@ public class PresenterImplTest {
 
         presenterImpl.numberChanged(CHANGED_NUMBER);
 
-        verify(mockedModel, times(1)).setNumber(CHANGED_NUMBER);
+        assertThat(replicatedModel.getNumber(), is(CHANGED_NUMBER));
     }
 
     @Test
@@ -136,7 +137,7 @@ public class PresenterImplTest {
 
         presenterImpl.nameChanged(CHANGED_NAME);
 
-        verify(mockedModel, times(1)).setName(CHANGED_NAME);
+        assertThat(replicatedModel.getName(), is(CHANGED_NAME));
     }
 
     @Test
@@ -148,7 +149,7 @@ public class PresenterImplTest {
 
         presenterImpl.descriptionChanged(CHANGED_DESCRIPTION);
 
-        verify(mockedModel, times(1)).setDescription(CHANGED_DESCRIPTION);
+        assertThat(replicatedModel.getDescription(), is(CHANGED_DESCRIPTION));
     }
 
     @Test
@@ -181,20 +182,45 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void getErrorText_callGetErrorTextWithEmptyProxyException_returnsEmptyString() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        assertThat(presenterImpl.getErrorText(new ProxyException()), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (Throwable) null)), is(nullValue()));
-    }
-
-    @Test
-    public void getErrorText_callGetErrorTextWithProxyExceptionWithProxyError_returnsPredefinedErrorTexts() {
+    public void getErrorText_callGetErrorTextWithNotAcceptableProxyException_returnsErrorStringOrNullString() {
         final String PROXY_ERROR_TEXT = "Proxy Error Text";
         final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
         final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
+
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedConstants.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
+        when(mockedConstants.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
+
+        // Empty Proxy Exception
+        assertThat(presenterImpl.getErrorText(new ProxyException()), is(nullValue()));
+
+        // Proxy Exception instantiated with null String
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, (String) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, (String) null)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, (String) null)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (String) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (String) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (String) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, (String) null)), is(nullValue()));
+
+        // Proxy Exception instantiated with null Throwable
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, (Throwable) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, (Throwable) null)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, (Throwable) null)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (Throwable) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (Throwable) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (Throwable) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, (Throwable) null)), is(nullValue()));
+    }
+
+    @Test
+    public void getErrorText_callGetErrorTextWithProxyExceptionWithCorrectProxyError_returnsPredefinedErrorTexts() {
+        final String PROXY_ERROR_TEXT = "Proxy Error Text";
+        final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
+        final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
+
         presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 

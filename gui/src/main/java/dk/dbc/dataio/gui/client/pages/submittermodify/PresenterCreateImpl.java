@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**

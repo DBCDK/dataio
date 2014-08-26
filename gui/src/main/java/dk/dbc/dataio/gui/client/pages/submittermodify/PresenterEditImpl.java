@@ -1,14 +1,12 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
 import com.google.gwt.place.shared.Place;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Submitter Edit
  */
+@SuppressWarnings("PMD.UnusedFormalParameter")  // TODO: Fjern denne her når edit er implementeret
 public class PresenterEditImpl extends PresenterImpl {
 //    private Long id;
 

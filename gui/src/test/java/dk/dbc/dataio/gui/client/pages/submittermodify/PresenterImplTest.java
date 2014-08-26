@@ -34,7 +34,6 @@ public class PresenterImplTest {
     private AcceptsOneWidget mockedContainerWidget;
     private EventBus mockedEventBus;
     private View mockedView;
-    private SubmitterModel replicatedModel;
 
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
@@ -55,7 +54,6 @@ public class PresenterImplTest {
         @Override
         void initializeModel() {
             model = new SubmitterModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NUMBER, DEFAULT_NAME, DEFAULT_DESCRIPTION);
-            replicatedModel = model;  // Since model is not immutable, this is a reference, meaning that changes in model is reflected in replicatedModel
         }
 
         @Override
@@ -109,11 +107,11 @@ public class PresenterImplTest {
         verify(mockedView, times(1)).setName(DEFAULT_NAME);
         verify(mockedView, times(1)).setDescription(DEFAULT_DESCRIPTION);
         verify(mockedView, times(1)).setStatusText(EMPTY);
-        assertThat(replicatedModel.getId(), is(DEFAULT_ID));
-        assertThat(replicatedModel.getVersion(), is(DEFAULT_VERSION));
-        assertThat(replicatedModel.getNumber(), is(DEFAULT_NUMBER));
-        assertThat(replicatedModel.getName(), is(DEFAULT_NAME));
-        assertThat(replicatedModel.getDescription(), is(DEFAULT_DESCRIPTION));
+        assertThat(presenterImpl.model.getId(), is(DEFAULT_ID));
+        assertThat(presenterImpl.model.getVersion(), is(DEFAULT_VERSION));
+        assertThat(presenterImpl.model.getNumber(), is(DEFAULT_NUMBER));
+        assertThat(presenterImpl.model.getName(), is(DEFAULT_NAME));
+        assertThat(presenterImpl.model.getDescription(), is(DEFAULT_DESCRIPTION));
     }
 
     @Test
@@ -125,7 +123,7 @@ public class PresenterImplTest {
 
         presenterImpl.numberChanged(CHANGED_NUMBER);
 
-        assertThat(replicatedModel.getNumber(), is(CHANGED_NUMBER));
+        assertThat(presenterImpl.model.getNumber(), is(CHANGED_NUMBER));
     }
 
     @Test
@@ -137,7 +135,7 @@ public class PresenterImplTest {
 
         presenterImpl.nameChanged(CHANGED_NAME);
 
-        assertThat(replicatedModel.getName(), is(CHANGED_NAME));
+        assertThat(presenterImpl.model.getName(), is(CHANGED_NAME));
     }
 
     @Test
@@ -149,7 +147,7 @@ public class PresenterImplTest {
 
         presenterImpl.descriptionChanged(CHANGED_DESCRIPTION);
 
-        assertThat(replicatedModel.getDescription(), is(CHANGED_DESCRIPTION));
+        assertThat(presenterImpl.model.getDescription(), is(CHANGED_DESCRIPTION));
     }
 
     @Test

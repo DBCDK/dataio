@@ -1,14 +1,14 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
 import com.google.gwt.place.shared.Place;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Submitter Edit
  */
-@SuppressWarnings("PMD.UnusedFormalParameter")  // TODO: Fjern denne her når edit er implementeret
 public class PresenterEditImpl extends PresenterImpl {
-//    private Long id;
+    private Long id;
 
     /**
      * Constructor
@@ -17,42 +17,60 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     public PresenterEditImpl(Place place, ClientFactory clientFactory, SubmitterModifyConstants constants) {
         super(clientFactory, constants);
-//        view = clientFactory.getSubmitterCreateView();
-//        SinkEditPlace sinkEditPlace = (SinkEditPlace) place;
-//        id = sinkEditPlace.getSinkId();
-        initializeModel();
+        view = clientFactory.getSubmitterEditView();
+        EditPlace editPlace = (EditPlace) place;
+        id = editPlace.getSubmitterId();
     }
 
 
     /**
-     * getModel - initializes the model
+     * Initializing the model
      * The method fetches the stored Submitter, as given in the Place (referenced by this.id)
      */
-    public void initializeModel(){
-//        SubmitterContent content = new SubmitterContent(234L, "Submitter Name...", "Description...");
-//        Submitter submitter = new Submitter(22L, 123L, content);
-//        model = ModelMapper.toModel(submitter);
+    @Override
+    public void initializeModel() {
+        getSubmitter(id);
     }
 
 
     /**
      * saveModel
-     * Saves the embedded model as a new Submitter in the database
+     * Updates the embedded model as a Submitter in the database
      */
     @Override
     void saveModel() {
-//        final SubmitterContent submitterContent = new SubmitterContent(Long.parseLong(model.getNumber()), model.getName(), model.getDescription());
-//        flowStoreProxy.createSubmitter(submitterContent, new FilteredAsyncCallback<Submitter>() {
-//            @Override
-//            public void onFilteredFailure(Throwable e) {
-//                view.setErrorText(getErrorText(e));
-//            }
-//
-//            @Override
-//            public void onSuccess(Submitter submitter) {
-//                view.setStatusText(constants.status_SubmitterSuccessfullySaved());
-//            }
-//        });
+        if (!model.isNumberValid()) {
+            view.setErrorText(constants.error_NumberInputFieldValidationError());
+        } else {
+            flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
+        }
+    }
+
+    // Private methods
+    private void getSubmitter(final Long submitterId) {
+        flowStoreProxy.getSubmitter(submitterId, new GetSubmitterModelFilteredAsyncCallback());
+    }
+
+    private void setSubmitterModel(SubmitterModel model) {
+        this.model = model;
+    }
+
+    // Private classes
+
+    /**
+     * private call back class to be instantiated in the call to getSubmitter in flowstore proxy
+     */
+    private class GetSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
+        @Override
+        public void onFilteredFailure(Throwable caught) {
+            view.setErrorText(constants.error_CannotFetchSubmitter());
+        }
+
+        @Override
+        public void onSuccess(SubmitterModel model) {
+            setSubmitterModel(model);
+            updateAllFieldsAccordingToCurrentState();
+        }
     }
 
 }

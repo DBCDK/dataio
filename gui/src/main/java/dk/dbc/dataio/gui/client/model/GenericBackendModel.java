@@ -1,6 +1,8 @@
 package dk.dbc.dataio.gui.client.model;
 
-public class GenericBackendModel {
+import com.google.gwt.user.client.rpc.IsSerializable;
+
+public class GenericBackendModel implements IsSerializable {
 
     protected long id;
     protected long version;

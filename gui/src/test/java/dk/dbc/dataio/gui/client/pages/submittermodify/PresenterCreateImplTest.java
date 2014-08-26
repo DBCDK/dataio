@@ -3,8 +3,6 @@ package dk.dbc.dataio.gui.client.pages.submittermodify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -105,7 +103,7 @@ public class PresenterCreateImplTest {
 
         presenterCreateImpl.saveModel();
 
-        verify(mockedFlowStoreProxy, times(1)).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SubmitterModelFilteredAsyncCallback.class));
+        verify(mockedFlowStoreProxy, times(1)).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
     }
 
 }

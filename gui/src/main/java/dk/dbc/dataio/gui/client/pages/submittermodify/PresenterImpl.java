@@ -47,7 +47,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
         initializeModel();
-        updateAllFieldsAccordingToCurrentState();
     }
 
     /**
@@ -95,9 +94,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     /**
-     * A local method used to update all fields in the view according to the current state of the class
+     * Method used to update all fields in the view according to the current state of the class
      */
-    private void updateAllFieldsAccordingToCurrentState() {
+    void updateAllFieldsAccordingToCurrentState() {
         view.setNumber(model.getNumber());
         view.setName(model.getName());
         view.setDescription(model.getDescription());
@@ -143,7 +142,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /**
      * Local call back class to be instantiated in the call to createSubmitter or updateSubmitter in flowstore proxy
      */
-    class SubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
+    class SaveSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
             view.setErrorText(getErrorText(e));

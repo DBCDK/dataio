@@ -24,6 +24,7 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     public void initializeModel() {
         model = new SubmitterModel();
+        updateAllFieldsAccordingToCurrentState();
     }
 
     /**
@@ -35,7 +36,7 @@ public class PresenterCreateImpl extends PresenterImpl {
         if (!model.isNumberValid()) {
             view.setErrorText(constants.error_NumberInputFieldValidationError());
         } else {
-            flowStoreProxy.createSubmitter(model, new SubmitterModelFilteredAsyncCallback());
+            flowStoreProxy.createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
         }
 
     }

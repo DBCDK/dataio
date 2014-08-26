@@ -56,7 +56,9 @@ import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
 import dk.dbc.dataio.gui.client.pages.submittermodify.CreatePlace;
+import dk.dbc.dataio.gui.client.pages.submittermodify.EditPlace;
 import dk.dbc.dataio.gui.client.pages.submittermodify.PresenterCreateImpl;
+import dk.dbc.dataio.gui.client.pages.submittermodify.PresenterEditImpl;
 import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModifyConstants;
 import dk.dbc.dataio.gui.client.pages.submittermodify.View;
 import dk.dbc.dataio.gui.client.pages.submittermodify.ViewImpl;
@@ -133,6 +135,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
     private final ViewImpl submitterCreateView = new ViewImpl(submitterModifyConstants.menu_SubmitterCreation(), submitterModifyConstants);
+    private final ViewImpl submitterEditView = new ViewImpl(submitterModifyConstants.menu_SubmitterEdit(), submitterModifyConstants);
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {
@@ -196,6 +199,9 @@ public class ClientFactoryImpl implements ClientFactory {
         }
         if (place instanceof CreatePlace) {
             return new PresenterCreateImpl(this, submitterModifyConstants);
+        }
+        if (place instanceof EditPlace) {
+            return new PresenterEditImpl(place, this, submitterModifyConstants);
         }
         if (place instanceof FlowbinderCreatePlace) {
             return new FlowbinderCreateActivity(this);
@@ -274,6 +280,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public View getSubmitterCreateView() {
         return submitterCreateView;
+    }
+
+    @Override
+    public View getSubmitterEditView() {
+        return submitterEditView;
     }
 
     @Override

@@ -1,10 +1,14 @@
 package dk.dbc.dataio.gui.client.pages.submittersshow;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.components.DioCellTable;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+
 import java.util.List;
 
 /**
@@ -17,6 +21,7 @@ import java.util.List;
 public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter> implements SubmittersShowView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_SUBMITTERS_SHOW_WIDGET = "submittersshowwidget";
+    public static final String CLASS_SUBMITTERS_SHOW_WIDGET_EDIT_BUTTON = "submittersshowwidget_editbutton";
 
     // Local variables
     private final static SubmittersShowConstants constants = GWT.create(SubmittersShowConstants.class);
@@ -63,6 +68,27 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
             };
             table.addColumn(descriptionColumn, constants.columnHeader_Description());
 
+            Column editButtonColumn = new Column<Submitter, String>(new ButtonCell()) {
+                @Override
+                public String getValue(Submitter submitter) {
+                    // The value to display in the button.
+                    return constants.button_Edit();
+                }
+            };
+
+            //Define class name for the button element
+            editButtonColumn.setCellStyleNames(CLASS_SUBMITTERS_SHOW_WIDGET_EDIT_BUTTON);
+
+            // Handler: Registering key clicks (on the buttonCell available for each submitter).
+            editButtonColumn.setFieldUpdater(new FieldUpdater<Submitter, String>() {
+                @Override
+                public void update(int index, Submitter submitter, String buttonText) {
+                    editClick(submitter);
+                }
+            });
+
+            table.addColumn(editButtonColumn, constants.columnHeader_Action());
+
             add(table);
         }
     }
@@ -107,6 +133,15 @@ public class SubmittersShowViewImpl extends ContentPanel<SubmittersShowPresenter
         table.setRowData(0, submitters);
         table.setRowCount(submitters.size());
         table.updateDone();
+    }
+
+    /**
+     * When a key click has been registered, the editSubmitter method in SubmitterShowPresenter is called,
+     * in order to handle the edit submitter action itself.
+     * @param submitter The submitter to edit
+     */
+    private void editClick(Submitter submitter){
+        presenter.editSubmitter(submitter);
     }
 
 }

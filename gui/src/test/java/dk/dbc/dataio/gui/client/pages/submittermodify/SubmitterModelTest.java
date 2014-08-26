@@ -6,7 +6,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class ModelTest {
+public class SubmitterModelTest {
 
     @Test
     public void createModel_noArgs_returnsNewInstanceWithDefaultValues() {

@@ -1,12 +1,13 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
-import com.google.gwt.user.client.rpc.IsSerializable;
 import dk.dbc.dataio.gui.client.model.GenericBackendModel;
 
-public class SubmitterModel extends GenericBackendModel implements IsSerializable {
+public class SubmitterModel extends GenericBackendModel {
     private String number;
     private String name;
     private String description;
+//    private long id;
+//    private long version;
 
     /**
      * Constructor with all parameters
@@ -18,6 +19,7 @@ public class SubmitterModel extends GenericBackendModel implements IsSerializabl
      */
     public SubmitterModel(long id, long version, String number, String name, String description) {
         super(id, version);
+        this.version = version;
         this.number = number;
         this.name = name;
         this.description = description;
@@ -94,4 +96,20 @@ public class SubmitterModel extends GenericBackendModel implements IsSerializabl
     public boolean isInputFieldsEmpty() {
         return number.isEmpty() || name.isEmpty() || description.isEmpty() ;
     }
+
+//    public long getId() {
+//        return id;
+//    }
+//
+//    public void setId(long id) {
+//        this.id = id;
+//    }
+//
+//    public long getVersion() {
+//        return version;
+//    }
+//
+//    public void setVersion(long version) {
+//        this.version = version;
+//    }
 }

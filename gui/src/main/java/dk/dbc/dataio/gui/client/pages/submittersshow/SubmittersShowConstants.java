@@ -10,11 +10,13 @@ public interface SubmittersShowConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_Submitters();
 
-
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Submitters();
 
+    // Buttons
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Edit();
 
     // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -25,5 +27,8 @@ public interface SubmittersShowConstants extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Description();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Action();
 
 }

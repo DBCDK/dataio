@@ -48,6 +48,7 @@ public interface ClientFactory {
     FlowCreateView getFlowCreateView();
     FlowComponentCreateEditView getFlowComponentCreateEditView();
     View getSubmitterCreateView();
+    View getSubmitterEditView();
     FlowbinderCreateView getFlowbinderCreateView();
     SinkCreateEditView getSinkCreateEditView();
     FlowComponentsShowView getFlowComponentsShowView();

@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.pages.submittermodify;
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -11,7 +10,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Concrete Presenter Implementation Class for Submitter Edit
  */
 public class PresenterEditImpl extends PresenterImpl {
-    private Long id;
+//    private Long id;
 
     /**
      * Constructor
@@ -20,9 +19,9 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     public PresenterEditImpl(Place place, ClientFactory clientFactory, SubmitterModifyConstants constants) {
         super(clientFactory, constants);
-        view = clientFactory.getSubmitterCreateView();
-        SinkEditPlace sinkEditPlace = (SinkEditPlace) place;
-        id = sinkEditPlace.getSinkId();
+//        view = clientFactory.getSubmitterCreateView();
+//        SinkEditPlace sinkEditPlace = (SinkEditPlace) place;
+//        id = sinkEditPlace.getSinkId();
         initializeModel();
     }
 
@@ -32,9 +31,8 @@ public class PresenterEditImpl extends PresenterImpl {
      * The method fetches the stored Submitter, as given in the Place (referenced by this.id)
      */
     public void initializeModel(){
-        //TODO
-        SubmitterContent content = new SubmitterContent(234L, "Submitter Name...", "Description...");
-        Submitter submitter = new Submitter(22L, 123L, content);
+//        SubmitterContent content = new SubmitterContent(234L, "Submitter Name...", "Description...");
+//        Submitter submitter = new Submitter(22L, 123L, content);
 //        model = ModelMapper.toModel(submitter);
     }
 

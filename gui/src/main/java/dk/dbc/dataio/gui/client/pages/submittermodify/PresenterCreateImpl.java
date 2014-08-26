@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client.pages.submittermodify;
 
-import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -33,24 +32,10 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        if(!model.isNumberValid()) {
-            view.setErrorText("Could not translate (String)model.number to long value.");
+        if (!model.isNumberValid()) {
+            view.setErrorText(constants.error_NumberInputFieldValidationError());
         } else {
-//            try {
-                flowStoreProxy.createSubmitter(model, new FilteredAsyncCallback<SubmitterModel>() {
-                    @Override
-                    public void onFilteredFailure(Throwable e) {
-                        view.setErrorText(getErrorText(e));
-                    }
-
-                    @Override
-                    public void onSuccess(SubmitterModel model) {
-                        view.setStatusText(constants.status_SubmitterSuccessfullySaved());
-                    }
-                });
-//            } catch (ProxyException e) {
-//                view.setErrorText(e.getMessage());
-//            }
+            flowStoreProxy.createSubmitter(model, new SubmitterModelFilteredAsyncCallback());
         }
 
     }

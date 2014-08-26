@@ -61,6 +61,8 @@ public class PresenterImplTest {
             saveModelHasBeenCalled = true;
         }
 
+        public SubmitterModelFilteredAsyncCallback callback = new SubmitterModelFilteredAsyncCallback();
+
         // Test method for reading flowStoreProxy
         public FlowStoreProxyAsync getFlowStoreProxy() {
             return flowStoreProxy;
@@ -241,6 +243,34 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         assertThat(presenterImpl.getErrorText(new IllegalArgumentException(EXCEPTION_ERROR_TEXT)), is(EXCEPTION_ERROR_TEXT));
+    }
+
+    @Test
+    public void submitterModelFilteredAsyncCallback_successfulCallback_setStatusTextCalledInView() {
+        final String SUCCESS_TEXT = "SuccessText";
+
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedConstants.status_SubmitterSuccessfullySaved()).thenReturn(SUCCESS_TEXT);
+
+        presenterImpl.callback.onSuccess(new SubmitterModel());  // Emulate a successful callback from flowstore
+
+        verify(mockedView, times(1)).setStatusText(SUCCESS_TEXT);  // Expect the status text to be set in View
+
+    }
+
+    @Test
+    public void submitterModelFilteredAsyncCallback_unsuccessfulCallback_setErrorTextCalledInView() {
+        final String FAILURE_TEXT = "FailureText";
+
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        presenterImpl.callback.onFailure(new Throwable(FAILURE_TEXT));  // Emulate an unsuccessful callback from flowstore
+
+        verify(mockedView, times(1)).setErrorText(FAILURE_TEXT);  // Expect the error text to be set in View
+
     }
 
 }

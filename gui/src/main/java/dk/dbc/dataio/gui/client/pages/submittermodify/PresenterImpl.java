@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.submittermodify;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -133,6 +134,27 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         return errorMessage;
     }
+
+
+    /*
+     * Local class
+     */
+
+    /**
+     * Local call back class to be instantiated in the call to createSubmitter or updateSubmitter in flowstore proxy
+     */
+    class SubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(getErrorText(e));
+        }
+
+        @Override
+        public void onSuccess(SubmitterModel model) {
+            view.setStatusText(constants.status_SubmitterSuccessfullySaved());
+        }
+    }
+
 
     /*
      * Abstract methods

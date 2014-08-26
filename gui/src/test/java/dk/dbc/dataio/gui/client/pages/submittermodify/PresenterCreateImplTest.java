@@ -10,6 +10,8 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,7 +35,7 @@ public class PresenterCreateImplTest {
     private PresenterCreateImpl presenterCreateImpl;
 
     private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
-    private final static String NUMBER_INPUT_FIELD_VALIDATION_ERROR = "Could not translate (String)model.number to long value.";
+    private final static String NUMBER_INPUT_FIELD_VALIDATION_ERROR = "NumberInputFieldValidationError";
     private final static String PROXY_DATA_VALIDATION_ERROR = "ProxyDataValidationError";
     private final static String PROXY_KEY_VIOLATION_ERROR = "ProxyKeyViolationError";
 
@@ -91,45 +93,19 @@ public class PresenterCreateImplTest {
 
         verify(mockedCreateView, times(1)).setErrorText(NUMBER_INPUT_FIELD_VALIDATION_ERROR);
     }
-//
-//    @Test
-//    public void saveModel_submitterContentNameEmptyError_errorTextIsDisplayedOnView() {
-//        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
-//        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-//
-//        presenterCreateImpl.numberChanged("1");                 // Number is ok
-//        presenterCreateImpl.nameChanged("");                    // Name must not be empty
-//        presenterCreateImpl.descriptionChanged("description");  // Description is ok
-//        presenterCreateImpl.saveModel();
-//
-//        verify(mockedCreateView, times(1)).setErrorText("Value of parameter 'name' cannot be empty");
-//    }
-//
-//    @Test
-//    public void saveModel_submitterContentDescriptionEmptyError_errorTextIsDisplayedOnView() {
-//        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
-//        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-//
-//        presenterCreateImpl.numberChanged("1");                 // Number is ok
-//        presenterCreateImpl.nameChanged("name");                // Name is ok
-//        presenterCreateImpl.descriptionChanged("");             // Description must not be empty
-//        presenterCreateImpl.saveModel();
-//
-//        verify(mockedCreateView, times(1)).setErrorText("Value of parameter 'description' cannot be empty");
-//    }
 
-//    @Test
-//    public void saveModel_submitterContentOk_xxx() {
-//        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
-//        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-//
-//        FilteredAsyncCallback<Submitter>   // Hmmm.... Todo: Den nuværende version af Flowstore bruger Submitter og SubmitterContent. Denne er ved at blive lavet om, og er færdig om en halv time. Derfor tjekker jeg denne version ind uden at færdiggøre Happy Path'en af saveModel() metoden...
-//
-//        presenterCreateImpl.numberChanged("1");                 // Number is ok
-//        presenterCreateImpl.nameChanged("name");                // Name is ok
-//        presenterCreateImpl.descriptionChanged("description");  // Description must not be empty
-//        presenterCreateImpl.saveModel();
-//
-//    }
+    @Test
+    public void saveModel_submitterContentOk_createSubmitterCalled() {
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
+        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
+
+        presenterCreateImpl.numberChanged("1");                 // Number is ok
+        presenterCreateImpl.nameChanged("a");                   // Name is ok
+        presenterCreateImpl.descriptionChanged("description");  // Description is ok
+
+        presenterCreateImpl.saveModel();
+
+        verify(mockedFlowStoreProxy, times(1)).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SubmitterModelFilteredAsyncCallback.class));
+    }
 
 }

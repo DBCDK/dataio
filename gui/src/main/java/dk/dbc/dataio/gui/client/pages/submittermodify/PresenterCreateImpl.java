@@ -38,7 +38,6 @@ public class PresenterCreateImpl extends PresenterImpl {
         } else {
             flowStoreProxy.createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
         }
-
     }
 
 }

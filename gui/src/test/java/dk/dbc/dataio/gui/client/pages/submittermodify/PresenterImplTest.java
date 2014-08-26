@@ -105,15 +105,6 @@ public class PresenterImplTest {
         verify(mockedView, times(1)).setPresenter(presenterImpl);
         verify(mockedView, times(1)).asWidget();
         verify(mockedContainerWidget, times(1)).setWidget(Matchers.any(IsWidget.class));
-//        verify(mockedView, times(1)).setNumber(DEFAULT_NUMBER);
-//        verify(mockedView, times(1)).setName(DEFAULT_NAME);
-//        verify(mockedView, times(1)).setDescription(DEFAULT_DESCRIPTION);
-//        verify(mockedView, times(1)).setStatusText(EMPTY);
-//        assertThat(presenterImpl.model.getId(), is(DEFAULT_ID));
-//        assertThat(presenterImpl.model.getVersion(), is(DEFAULT_VERSION));
-//        assertThat(presenterImpl.model.getNumber(), is(DEFAULT_NUMBER));
-//        assertThat(presenterImpl.model.getName(), is(DEFAULT_NAME));
-//        assertThat(presenterImpl.model.getDescription(), is(DEFAULT_DESCRIPTION));
     }
 
     @Test
@@ -159,7 +150,7 @@ public class PresenterImplTest {
 
         presenterImpl.keyPressed();
 
-        verify(mockedView, times(1)).setStatusText("");  // Please note, that setStatusText is called once from both the start method and from keyPressed()
+        verify(mockedView, times(1)).setStatusText("");
     }
 
     @Test

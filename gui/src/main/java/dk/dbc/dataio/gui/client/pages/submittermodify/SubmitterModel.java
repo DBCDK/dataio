@@ -6,8 +6,6 @@ public class SubmitterModel extends GenericBackendModel {
     private String number;
     private String name;
     private String description;
-//    private long id;
-//    private long version;
 
     /**
      * Constructor with all parameters
@@ -96,20 +94,4 @@ public class SubmitterModel extends GenericBackendModel {
     public boolean isInputFieldsEmpty() {
         return number.isEmpty() || name.isEmpty() || description.isEmpty() ;
     }
-
-//    public long getId() {
-//        return id;
-//    }
-//
-//    public void setId(long id) {
-//        this.id = id;
-//    }
-//
-//    public long getVersion() {
-//        return version;
-//    }
-//
-//    public void setVersion(long version) {
-//        this.version = version;
-//    }
 }

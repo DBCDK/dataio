@@ -72,7 +72,6 @@ public class ViewImpl extends ContentPanel<Presenter>  implements View {
         add(numberPanel);
         add(namePanel);
         add(descriptionPanel);
-        add(statusText);
         buttonPanel.add(statusText);
         buttonPanel.add(saveButton);
         add(buttonPanel);

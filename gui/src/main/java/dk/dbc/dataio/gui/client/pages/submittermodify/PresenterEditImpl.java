@@ -55,12 +55,10 @@ public class PresenterEditImpl extends PresenterImpl {
         this.model = model;
     }
 
-    // Private classes
-
     /**
-     * private call back class to be instantiated in the call to getSubmitter in flowstore proxy
+     * Call back class to be instantiated in the call to getSubmitter in flowstore proxy
      */
-    private class GetSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
+    class GetSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             view.setErrorText(constants.error_CannotFetchSubmitter());

@@ -43,6 +43,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private static final long SAVE_TIMEOUT = 4;
 
     private static FlowStoreServiceConnector flowStoreServiceConnector;
+    private static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -114,7 +115,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     // This can, for some reason, not be included with the other visibility tests
     @Test
     public void testFlowbinderCreationSinkListIsVisibleAndAnElementCanBeSelected() throws Exception{
-        Sink sink = createTestSink("oneSinkName", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+        Sink sink = createTestSink("oneSinkName", SINK_CREATION_KNOWN_RESOURCE_NAME);
         navigateToFlowbinderCreationWidget(webDriver);
         SeleniumUtil.assertListBoxIsVisibleAndAnElementCanBeSelected(webDriver, findSinkListElement(webDriver), sink.getContent().getName());
     }
@@ -186,7 +187,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testSaveButton_emptySubmitterInputField_displayErrorPopup() throws Exception{
-        Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+        Sink sink = createTestSink("sinkName45", SINK_CREATION_KNOWN_RESOURCE_NAME);
         FlowComponent flowComponent = createTestFlowComponent("flowComponent12");
         Flow flow = createTestFlow("flowName12", "description", java.util.Arrays.asList(flowComponent));
         navigateToFlowbinderCreationWidget(webDriver);
@@ -199,7 +200,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testSaveButton_emptyFlowInputField_displayErrorPopup() throws Exception{
-        Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+        Sink sink = createTestSink("sinkName45", SINK_CREATION_KNOWN_RESOURCE_NAME);
         Submitter submitter = createTestSubmitter("defaultSubmitter", 123456L);
         navigateToFlowbinderCreationWidget(webDriver);
         populateAllTextInputFieldsWhenInFlowbinderCreationWidget();
@@ -284,7 +285,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
     @Test
     public void testFlowBinderCreationSinkInputFieldUpdate_clearsSaveResultLabel() throws Exception{
-        Sink sink = createTestSink("anotherSink", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+        Sink sink = createTestSink("anotherSink", SINK_CREATION_KNOWN_RESOURCE_NAME);
         populateAllInputFieldsAndClickSaveAndWaitForSuccess();
         SeleniumUtil.selectItemInListBox(findSinkListElement(webDriver), sink.getContent().getName());
         assertThat(findSaveResultLabelElement(webDriver).getText(), is(""));
@@ -293,7 +294,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     @Test
     public void testFlowBinderCreationLeaveAndGetBack_clearsAllFields() throws Exception{
         // To assure, that two sinks will be created
-        createTestSink("anExtraSinkName", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+        createTestSink("anExtraSinkName", SINK_CREATION_KNOWN_RESOURCE_NAME);
         populateAllInputFields();
         assertAllInputFields("Name", "Description", "Frame", "ContentFormat", "CharacterSet", "Destination", "Default Record Splitter", Arrays.asList("123456 (defaultSubmitter)"), "flowName12", "sinkName45");
         navigateAwayFromFlowbinderCreationWidget(webDriver);
@@ -306,7 +307,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
      */
     private void populateAllInputFields() throws Exception{
         Submitter submitter = createTestSubmitter("defaultSubmitter", 123456L);
-        Sink sink = createTestSink("sinkName45", SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME);
+        Sink sink = createTestSink("sinkName45", SINK_CREATION_KNOWN_RESOURCE_NAME);
         FlowComponent flowComponent = createTestFlowComponent("flowComponent12");
         Flow flow = createTestFlow("flowName12", "description", java.util.Arrays.asList(flowComponent));
         navigateToFlowbinderCreationWidget(webDriver);

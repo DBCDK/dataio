@@ -43,6 +43,7 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     private final static String FLOW_BINDER_CONTENT_FORMAT = "FloBinderContentFormat";
     private final static String FLOW_BINDER_CHAR_SET = "FloBinderCharSet";
     private final static String FLOW_BINDER_DESTINATION = "FloBinderDestination";
+    private static final String SINK_CREATION_KNOWN_RESOURCE_NAME = "jdbc/flowStoreDb";
 
     private static FlowStoreServiceConnector flowStoreServiceConnector;
 
@@ -127,7 +128,7 @@ public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
     private static void createTestSink(int number) throws Exception{
         SinkContent sinkContent = new SinkContentBuilder()
                 .setName(subjectNameString(SINK_NAME, number))
-                .setResource(SinkCreationSeleniumIT.SINK_CREATION_KNOWN_RESOURCE_NAME)
+                .setResource(SINK_CREATION_KNOWN_RESOURCE_NAME)
                 .build();
 
         flowStoreServiceConnector.createSink(sinkContent);

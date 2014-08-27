@@ -139,7 +139,7 @@ public class HarvesterXmlDataFileTest {
         }
 
         @Override
-        public byte[] getData() {
+        public byte[] asBytes() {
             return data;
         }
 

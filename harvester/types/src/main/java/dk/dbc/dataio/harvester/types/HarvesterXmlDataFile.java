@@ -53,7 +53,7 @@ public class HarvesterXmlDataFile implements AutoCloseable {
                     record.getCharset().displayName(), charset.displayName()));
         }
         try {
-            outputStream.write(record.getData(), 0, record.getData().length);
+            outputStream.write(record.asBytes(), 0, record.asBytes().length);
         } catch (IOException e) {
             throw new HarvesterException("Unable to add record to OutputStream", e);
         }

@@ -3,6 +3,6 @@ package dk.dbc.dataio.harvester.types;
 import java.nio.charset.Charset;
 
 public interface HarvesterXmlRecord {
-    byte[] getData() throws HarvesterException;
+    byte[] asBytes() throws HarvesterException;
     Charset getCharset();
 }

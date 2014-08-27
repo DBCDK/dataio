@@ -88,7 +88,7 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
      * to byte array
      */
     @Override
-    public byte[] getData() throws HarvesterException {
+    public byte[] asBytes() throws HarvesterException {
         final Source source = new DOMSource(data.getDocumentElement());
         try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             final Result result = new StreamResult(out);
@@ -99,6 +99,10 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         } finally {
             transformer.reset();
         }
+    }
+
+    public Document asDocument() {
+        return data;
     }
 
     /**

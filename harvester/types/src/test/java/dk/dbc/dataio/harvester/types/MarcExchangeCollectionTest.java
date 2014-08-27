@@ -132,7 +132,7 @@ public class MarcExchangeCollectionTest {
     public void addMember_memberDataArgIsMarcxCollectionWithSingleRecord_recordIsAddedToCollection() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
-        assertMarcExchangeCollection(harvesterRecord.getData(), 1);
+        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 
@@ -140,7 +140,7 @@ public class MarcExchangeCollectionTest {
     public void addMember_memberDataArgIsMarcxRecord_recordIsAddedToCollection() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxRecord.getBytes());
-        assertMarcExchangeCollection(harvesterRecord.getData(), 1);
+        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 
@@ -149,7 +149,7 @@ public class MarcExchangeCollectionTest {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
         harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
-        assertMarcExchangeCollection(harvesterRecord.getData(), 2);
+        assertMarcExchangeCollection(harvesterRecord.asBytes(), 2);
         assertThat(harvesterRecord.getMemberCount(), is(2));
     }
 
@@ -207,7 +207,7 @@ public class MarcExchangeCollectionTest {
     public void addMember_memberDocArgIsMarcxCollectionWithSingleRecord_recordIsAddedToCollection() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(asDocument(marcxCollectionSingleRecord.getBytes()));
-        assertMarcExchangeCollection(harvesterRecord.getData(), 1);
+        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 
@@ -215,7 +215,7 @@ public class MarcExchangeCollectionTest {
     public void addMember_memberDocArgIsMarcxRecord_recordIsAddedToCollection() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
-        assertMarcExchangeCollection(harvesterRecord.getData(), 1);
+        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
         assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 

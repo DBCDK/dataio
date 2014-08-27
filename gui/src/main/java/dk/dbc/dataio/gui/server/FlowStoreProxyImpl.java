@@ -18,8 +18,10 @@ import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.server.ModelMappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 
@@ -108,6 +110,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException {
+        Sink sink;
+        try {
+            sink = flowStoreServiceConnector.createSink(SinkModelMapper.toSinkContent(model));
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e){
+            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+        }
+        return SinkModelMapper.toModel(sink);
+    }
+
+    @Override
     public Sink createSink(SinkContent sinkContent) throws NullPointerException, ProxyException {
         Sink sink;
         try {
@@ -118,6 +135,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return sink;
+    }
+
+    @Override
+    public SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException {
+        Sink sink;
+        try {
+            sink = flowStoreServiceConnector.updateSink(SinkModelMapper.toSinkContent(model), model.getId(), model.getVersion());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e){
+            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+        }
+        return SinkModelMapper.toModel(sink);
     }
 
     @Override
@@ -245,16 +277,29 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public Sink getSink(Long id) throws ProxyException {
-        final Sink result;
+    public SinkModel getSinkModel(Long id) throws ProxyException {
+        final Sink sink;
         try {
-            result = flowStoreServiceConnector.getSink(id);
+            sink = flowStoreServiceConnector.getSink(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        return result;
+        return SinkModelMapper.toModel(sink);
+    }
+
+    @Override
+    public Sink getSink(Long id) throws ProxyException {
+        final Sink sink;
+        try {
+            sink = flowStoreServiceConnector.getSink(id);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return sink;
     }
 
     @Override

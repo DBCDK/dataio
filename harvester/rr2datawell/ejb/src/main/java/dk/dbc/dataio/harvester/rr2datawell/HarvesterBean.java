@@ -208,16 +208,11 @@ public class HarvesterBean {
          * Adds given MarcExchangeCollection to harvester data file provided that
          * the collection in question contains record members
          * @param marcExchangeCollection harvester record as MarcExchangeCollection
-         * @return true if added, false if not
          * @throws HarvesterException if unable to add harvester record
          */
-        public boolean addHarvesterRecord(MarcExchangeCollection marcExchangeCollection) throws HarvesterException {
-            if (marcExchangeCollection.getMemberCount() > 0) {
-                dataFile.addRecord(marcExchangeCollection);
-                recordsAdded++;
-                return true;
-            }
-            return false;
+        public void addHarvesterRecord(MarcExchangeCollection marcExchangeCollection) throws HarvesterException {
+            dataFile.addRecord(marcExchangeCollection);
+            recordsAdded++;
         }
 
         /**

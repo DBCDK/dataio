@@ -117,8 +117,12 @@ public class HarvesterBean {
                 while (nextQueuedItem != null) {
                     LOGGER.debug("{} ready for harvesting", nextQueuedItem);
                     rawRepoConnector.queueSuccess(nextQueuedItem);
-                    harvesterDataFile.addRecord(getHarvesterRecordForQueuedItem(nextQueuedItem));
-                    recordsAdded++;
+                    try {
+                        harvesterDataFile.addRecord(getHarvesterRecordForQueuedItem(nextQueuedItem));
+                        recordsAdded++;
+                    } catch (HarvesterInvalidRecordException e) {
+                        LOGGER.error("Queue item {} failure", nextQueuedItem, e);
+                    }
 
                     nextQueuedItem = rawRepoConnector.dequeue(rawRepoConsumerId);
                 }

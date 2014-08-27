@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.types;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -67,6 +68,19 @@ public class HarvesterXmlDataFileTest {
     public void addRecord_charsetMismatch_throws() throws HarvesterException {
         final MockedHarvesterXmlRecord harvesterRecord = new MockedHarvesterXmlRecord();
         harvesterRecord.setCharset(StandardCharsets.ISO_8859_1);
+        harvesterRecord.setData("data".getBytes(StandardCharsets.ISO_8859_1));
+        final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream);
+        try {
+            harvesterDataFile.addRecord(harvesterRecord);
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void addRecord_recordThrowsHarvesterInvalidRecordExceptionWhenConvertingToByteArray_throws() throws HarvesterException {
+        final MockedHarvesterXmlRecord harvesterRecord = new MockedHarvesterXmlRecord();
+        harvesterRecord.setCharset(StandardCharsets.UTF_8);
         final HarvesterXmlDataFile harvesterDataFile = new HarvesterXmlDataFile(charset, outputStream);
         try {
             harvesterDataFile.addRecord(harvesterRecord);
@@ -139,8 +153,16 @@ public class HarvesterXmlDataFileTest {
         }
 
         @Override
-        public byte[] asBytes() {
+        public byte[] asBytes() throws HarvesterException {
+            if (data == null) {
+                throw new HarvesterInvalidRecordException("Invalid data");
+            }
             return data;
+        }
+
+        @Override
+        public Document asDocument() throws HarvesterException {
+            return null;
         }
 
         @Override

@@ -133,7 +133,6 @@ public class MarcExchangeCollectionTest {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
         assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
-        assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 
     @Test
@@ -141,7 +140,6 @@ public class MarcExchangeCollectionTest {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxRecord.getBytes());
         assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
-        assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 
     @Test
@@ -150,7 +148,6 @@ public class MarcExchangeCollectionTest {
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
         harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
         assertMarcExchangeCollection(harvesterRecord.asBytes(), 2);
-        assertThat(harvesterRecord.getMemberCount(), is(2));
     }
 
     @Test
@@ -208,7 +205,6 @@ public class MarcExchangeCollectionTest {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(asDocument(marcxCollectionSingleRecord.getBytes()));
         assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
-        assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 
     @Test
@@ -216,13 +212,32 @@ public class MarcExchangeCollectionTest {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(asDocument(marcxRecord.getBytes()));
         assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
-        assertThat(harvesterRecord.getMemberCount(), is(1));
     }
 
     @Test
     public void getCharset_returnsUtf8() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         assertThat(StandardCharsets.UTF_8.compareTo(harvesterRecord.getCharset()), is(0));
+    }
+
+    @Test
+    public void asBytes_collectionContainsNoRecordMembers_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        try {
+            harvesterRecord.asBytes();
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
+    }
+
+    @Test
+    public void asDocument_collectionContainsNoRecordMembers_throws() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        try {
+            harvesterRecord.asDocument();
+            fail("No exception thrown");
+        } catch (HarvesterInvalidRecordException e) {
+        }
     }
 
     private void assertMarcExchangeCollection(byte[] data, int expectedMemberCount) {

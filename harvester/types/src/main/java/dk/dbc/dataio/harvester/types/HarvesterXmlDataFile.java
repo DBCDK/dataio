@@ -10,7 +10,7 @@ import java.nio.charset.Charset;
  * This class represents a harvester data file in XML format.
  * <p>
  * The generated file will be enclosed in
- * {@code <dataio-havester-datafile>...</dataio-havester-datafile>} tags.
+ * {@code <dataio-harvester-datafile>...</dataio-harvester-datafile>} tags.
  * </p>
  */
 public class HarvesterXmlDataFile implements AutoCloseable {
@@ -43,7 +43,8 @@ public class HarvesterXmlDataFile implements AutoCloseable {
      * Adds given record to this data file
      * @param record record representation whose data content will be written to the output stream
      * @throws NullPointerException if given null-valued record argument
-     * @throws HarvesterInvalidRecordException if charset of given record does not match charset of data file
+     * @throws HarvesterInvalidRecordException if charset of given record does not match charset
+     * of data file or if record is invalid
      * @throws HarvesterException if unable to write record data to the output stream
      */
     public void addRecord(HarvesterXmlRecord record) throws NullPointerException, HarvesterException {
@@ -53,7 +54,8 @@ public class HarvesterXmlDataFile implements AutoCloseable {
                     record.getCharset().displayName(), charset.displayName()));
         }
         try {
-            outputStream.write(record.asBytes(), 0, record.asBytes().length);
+            final byte[] bytes = record.asBytes();
+            outputStream.write(bytes, 0, bytes.length);
         } catch (IOException e) {
             throw new HarvesterException("Unable to add record to OutputStream", e);
         }

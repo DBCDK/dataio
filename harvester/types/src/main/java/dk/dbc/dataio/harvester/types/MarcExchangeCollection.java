@@ -84,12 +84,14 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
 
     /**
      * @return this MARC Exchange Collection XML representation as byte array
+     * @throws HarvesterInvalidRecordException if collection contains no record members
      * @throws HarvesterException if unable to transform internal MARC Exchange Collection representation
      * to byte array
      */
     @Override
     public byte[] asBytes() throws HarvesterException {
-        final Source source = new DOMSource(data.getDocumentElement());
+        final Document document = asDocument();
+        final Source source = new DOMSource(document.getDocumentElement());
         try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             final Result result = new StreamResult(out);
             configureTransformer().transform(source, result);
@@ -101,7 +103,15 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         }
     }
 
-    public Document asDocument() {
+    /**
+     * @return this MARC Exchange Collection XML representation as Document
+     * @throws HarvesterInvalidRecordException if collection contains no record members
+     */
+    @Override
+    public Document asDocument() throws HarvesterInvalidRecordException {
+        if (memberCount == 0) {
+            throw new HarvesterInvalidRecordException("MARC exchange collection contains no record members");
+        }
         return data;
     }
 
@@ -111,10 +121,6 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
     @Override
     public Charset getCharset() {
         return charset;
-    }
-
-    public int getMemberCount() {
-        return memberCount;
     }
 
     /**

@@ -20,7 +20,7 @@ public class CreatePlace extends Place {
     public static class Tokenizer implements PlaceTokenizer<CreatePlace> {
         @Override
         public String getToken(CreatePlace place) {
-            return null;
+            return "";
         }
         @Override
         public CreatePlace getPlace(String token) {

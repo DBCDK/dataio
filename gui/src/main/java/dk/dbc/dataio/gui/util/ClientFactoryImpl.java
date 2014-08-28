@@ -50,6 +50,7 @@ import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreatePlace;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditActivity;
 import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
+import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModifyConstants;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowActivity;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowConstants;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
@@ -104,6 +105,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowComponentCreateEditConstants flowComponentCreateEditConstants = GWT.create(FlowComponentCreateEditConstants.class);
     private final static FlowbinderCreateConstants flowbinderCreateConstants = GWT.create(FlowbinderCreateConstants.class);
     private final static SinkCreateEditConstants SinkCreateEditConstants = GWT.create(SinkCreateEditConstants.class);
+    private final static SinkModifyConstants sinkModifyConstants = GWT.create(SinkModifyConstants.class);
     private final static SubmitterModifyConstants submitterModifyConstants = GWT.create(SubmitterModifyConstants.class);
     //private final static HarvestersShowConstants harvestersShowConstants = GWT.create(HarvestersShowConstants.class);
 
@@ -128,6 +130,8 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final SinkCreateEditView sinkCreateEditView = new SinkCreateEditViewImpl();
+    private final dk.dbc.dataio.gui.client.pages.sinkmodify.View sinkCreateView =
+            new dk.dbc.dataio.gui.client.pages.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkCreation(), sinkModifyConstants);
     private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
     private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
     private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
@@ -212,6 +216,9 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof SinkCreatePlace) {
             return new SinkCreateActivity(this);
         }
+        if (place instanceof dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace) {
+            return new dk.dbc.dataio.gui.client.pages.sinkmodify.PresenterCreateImpl(this, sinkModifyConstants);
+        }
         if (place instanceof SinkEditPlace) {
             return new SinkEditActivity(place, this);
         }
@@ -295,6 +302,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public SinkCreateEditView getSinkCreateEditView() {
         return sinkCreateEditView;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkCreateView() {
+        return sinkCreateView;
     }
 
     @Override

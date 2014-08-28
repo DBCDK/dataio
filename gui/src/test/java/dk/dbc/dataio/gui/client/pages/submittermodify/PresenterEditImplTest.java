@@ -8,10 +8,10 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -119,7 +119,7 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete.callback.onSuccess(submitterModel);  // Emulate a successful callback from flowstore
 
         // Assert that the submitter model has been updated correctly
-        assertNotNull(presenterEditImplConcrete.model);
+        assertThat(presenterEditImplConcrete.model, not(null));
         assertThat(presenterEditImplConcrete.model.getId(), is(submitterModel.getId()));
         assertThat(presenterEditImplConcrete.model.getVersion(), is(submitterModel.getVersion()));
         assertThat(presenterEditImplConcrete.model.getNumber(), is(submitterModel.getNumber()));

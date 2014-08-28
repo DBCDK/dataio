@@ -34,6 +34,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 })
 public class JobStoreProxyImplTest {
     private final String jobStoreServiceUrl = "http://dataio/job-service";
+    private final String jobStoreFilesystemUrl = "http://dataio/job-store/filesystem";
     private final Client client = mock(Client.class);
 
     @Before
@@ -41,7 +42,28 @@ public class JobStoreProxyImplTest {
         mockStatic(ServiceUtil.class);
         mockStatic(HttpClient.class);
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
+        when(ServiceUtil.getJobStoreFilesystemUrl()).thenReturn(jobStoreFilesystemUrl);
         when(HttpClient.newClient()).thenReturn(client);
+    }
+
+    @Test(expected = ProxyException.class)
+    public void getJobStoreFilesystemUrl_jobStoreServiceEndpointCanNotBeLookedUp_throws() throws NamingException, ProxyException {
+        when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(new NamingException());
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
+        try {
+            jobStoreProxy.getJobStoreFilesystemUrl();
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
+            throw e;
+        }
+    }
+
+    @Test
+    public void getJobStoreFilesystemUrl_success_jobStoreFilesystemUrlReturned() throws NamingException, ProxyException {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
+        String jobStoreFilesystemUrl = jobStoreProxy.getJobStoreFilesystemUrl();
+        assertThat(jobStoreFilesystemUrl, is(jobStoreFilesystemUrl));
     }
 
     @Test(expected = ProxyException.class)

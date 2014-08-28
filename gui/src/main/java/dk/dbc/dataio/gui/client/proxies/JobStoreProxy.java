@@ -10,8 +10,8 @@ import java.util.List;
 @RemoteServiceRelativePath("JobStoreProxy")
 public interface JobStoreProxy extends RemoteService {
 
+    String getJobStoreFilesystemUrl() throws ProxyException;
     List<JobInfo> findAllJobs() throws ProxyException;
-
     void close();
 
     class Factory {

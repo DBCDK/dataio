@@ -51,6 +51,7 @@ public interface ClientFactory {
     View getSubmitterEditView();
     FlowbinderCreateView getFlowbinderCreateView();
     dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkCreateView();
+    dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkEditView();
     SinkCreateEditView getSinkCreateEditView();
     FlowComponentsShowView getFlowComponentsShowView();
     FlowsShowView getFlowsShowView();

@@ -132,6 +132,8 @@ public class ClientFactoryImpl implements ClientFactory {
     private final SinkCreateEditView sinkCreateEditView = new SinkCreateEditViewImpl();
     private final dk.dbc.dataio.gui.client.pages.sinkmodify.View sinkCreateView =
             new dk.dbc.dataio.gui.client.pages.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkCreation(), sinkModifyConstants);
+    private final dk.dbc.dataio.gui.client.pages.sinkmodify.View sinkEditView =
+            new dk.dbc.dataio.gui.client.pages.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkEdit(), sinkModifyConstants);
     private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
     private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
     private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
@@ -307,6 +309,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkCreateView() {
         return sinkCreateView;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkEditView() {
+        return sinkEditView;
     }
 
     @Override

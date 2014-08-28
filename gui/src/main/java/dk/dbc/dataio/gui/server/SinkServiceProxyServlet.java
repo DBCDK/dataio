@@ -4,7 +4,9 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
+
 import javax.servlet.ServletException;
 
 public class SinkServiceProxyServlet extends RemoteServiceServlet implements SinkServiceProxy {
@@ -21,6 +23,11 @@ public class SinkServiceProxyServlet extends RemoteServiceServlet implements Sin
     @Override
     public PingResponse ping(SinkContent sinkContent) throws ProxyException {
         return sinkServiceProxy.ping(sinkContent);
+    }
+
+    @Override
+    public PingResponse ping(SinkModel model) throws ProxyException {
+        return sinkServiceProxy.ping(model);
     }
 
     @Override

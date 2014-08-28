@@ -8,7 +8,9 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
+import dk.dbc.dataio.gui.server.ModelMappers.SinkModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 
 import javax.servlet.ServletException;
@@ -43,6 +45,28 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
         }
         return result;
     }
+
+    @Override
+    public PingResponse ping(SinkModel model) throws ProxyException {
+        InvariantUtil.checkNotNullOrThrow(model, "model");
+
+        final Response response;
+        final PingResponse result;
+        try {
+            response = HttpClient.doPostWithJson(client, SinkModelMapper.toSinkContent(model),
+                    ServletUtil.getSinkServiceEndpoint(), SinkServiceConstants.PING);
+        } catch (ServletException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+            result = response.readEntity(PingResponse.class);
+        } finally {
+            response.close();
+        }
+        return result;
+    }
+
 
     @Override
     public void close() {

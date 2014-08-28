@@ -7,23 +7,26 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import java.util.Arrays;
-import javax.naming.NamingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.naming.NamingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -43,9 +46,10 @@ public class SinkServiceProxyImplTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void ping_sinkContentArgIsNull_throws() throws Exception {
+    public void ping_sinkModelArgIsNull_throws() throws Exception {
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
-        sinkServiceProxy.ping(null);
+        final SinkModel model = null;
+        sinkServiceProxy.ping(model);
     }
 
     @Test(expected = ProxyException.class)
@@ -54,7 +58,7 @@ public class SinkServiceProxyImplTest {
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
-            sinkServiceProxy.ping(getValidSinkContent());
+            sinkServiceProxy.ping(getValidSinkModel());
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
             throw e;
@@ -68,7 +72,7 @@ public class SinkServiceProxyImplTest {
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
-            sinkServiceProxy.ping(getValidSinkContent());
+            sinkServiceProxy.ping(getValidSinkModel());
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.BAD_REQUEST));
             throw e;
@@ -82,7 +86,7 @@ public class SinkServiceProxyImplTest {
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
-            sinkServiceProxy.ping(getValidSinkContent());
+            sinkServiceProxy.ping(getValidSinkModel());
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
             throw e;
@@ -96,7 +100,7 @@ public class SinkServiceProxyImplTest {
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
         try {
-            sinkServiceProxy.ping(getValidSinkContent());
+            sinkServiceProxy.ping(getValidSinkModel());
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
             throw e;
@@ -110,15 +114,15 @@ public class SinkServiceProxyImplTest {
                 .thenReturn(new MockedHttpClientResponse<PingResponse>(Response.Status.OK.getStatusCode(), expectedPingResponse));
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
-        final PingResponse pingResponse = sinkServiceProxy.ping(getValidSinkContent());
+        final PingResponse pingResponse = sinkServiceProxy.ping(getValidSinkModel());
         assertThat(pingResponse, is(notNullValue()));
         assertThat(pingResponse.getStatus(), is(expectedPingResponse.getStatus()));
         assertThat(pingResponse.getLog().size(), is(1));
         assertThat(pingResponse.getLog().get(0), is(expectedPingResponse.getLog().get(0)));
     }
 
-    private SinkContent getValidSinkContent() {
-        return new SinkContent("name", "dataio/resource");
+    private SinkModel getValidSinkModel() {
+        return new SinkModel(0, 0 , "name", "dataio/resource");
     }
 
 }

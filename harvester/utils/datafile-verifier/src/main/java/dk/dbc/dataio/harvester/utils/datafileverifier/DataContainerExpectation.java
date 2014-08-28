@@ -22,6 +22,7 @@ public class DataContainerExpectation implements DataFileExpectation {
 
     public DataContainerExpectation() {
         supplementaryDataExpectation = new HashMap<>();
+        dataExpectation = null;
     }
 
     /**

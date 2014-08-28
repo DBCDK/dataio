@@ -57,7 +57,6 @@ public class HarvesterBeanTest {
     private FileStoreServiceConnectorBean fileStoreServiceConnector = mock(FileStoreServiceConnectorBean.class);
     private JobStoreServiceConnectorBean jobStoreServiceConnector = mock(JobStoreServiceConnectorBean.class);
     private RawRepoConnectorBean repoConnectorBean = mock(RawRepoConnectorBean.class);
-    private Record rrRecord = mock(Record.class);
     private JobInfo jobInfo = mock(JobInfo.class);
 
     @Before
@@ -69,8 +68,7 @@ public class HarvesterBeanTest {
                 .thenReturn(QUEUE_JOB)
                 .thenReturn(null);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));
-        when(rrRecord.getContent()).thenReturn(RECORD.getContent());
+                .thenReturn(new HashSet<>(Arrays.asList(RECORD)));
         when(fileStoreServiceConnector.addFile(is)).thenReturn(FILE_ID);
         when(jobStoreServiceConnector.createJob(any(JobSpecification.class))).thenReturn(jobInfo);
     }
@@ -101,6 +99,9 @@ public class HarvesterBeanTest {
 
     @Test
     public void harvest_repoConnectorBeanQueueFailThrowsSqlException_throws() throws SQLException {
+        final Record rrRecord = mock(Record.class);
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));
         when(rrRecord.getContent()).thenReturn("invalid".getBytes());
         doThrow(new SQLException()).when(repoConnectorBean).queueFail(any(QueueJob.class), anyString());
 
@@ -126,6 +127,9 @@ public class HarvesterBeanTest {
 
     @Test
     public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException, SQLException {
+        final Record rrRecord = mock(Record.class);
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));
         when(rrRecord.getContent()).thenReturn("invalid".getBytes());
 
         final HarvesterBean harvesterBean = getInitializedBean();

@@ -8,9 +8,11 @@ import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.filestore.service.connector.ejb.MockedFileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
+import dk.dbc.dataio.harvester.utils.datafileverifier.DataFileExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
-import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
+import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
@@ -29,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -84,8 +87,8 @@ public class HarvesterBean_data_Test {
     private MockedFileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean;
     private File harvesterDataFileWithCommunityRecords;
     private File harvesterDataFileWithLocalRecords;
-    private List<MarcExchangeCollectionExpectation> harvesterDataFileWithCommunityRecordsExpectations;
-    private List<MarcExchangeCollectionExpectation> harvesterDataFileWithLocalRecordsExpectations;
+    private List<DataFileExpectation> harvesterDataFileWithCommunityRecordsExpectations;
+    private List<DataFileExpectation> harvesterDataFileWithLocalRecordsExpectations;
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -135,18 +138,27 @@ public class HarvesterBean_data_Test {
                 .thenReturn(new HashSet<>(Arrays.asList(THIRD_RECORD)));
 
         // Setup harvester datafile content expectations
-        final MarcExchangeCollectionExpectation communityExpectation1 = new MarcExchangeCollectionExpectation();
-        communityExpectation1.records.add(asMarcExchangeRecordExpectation(FIRST_RECORD_HEAD_ID));
-        communityExpectation1.records.add(asMarcExchangeRecordExpectation(FIRST_RECORD_SECTION_ID));
-        communityExpectation1.records.add(asMarcExchangeRecordExpectation(FIRST_RECORD_ID));
+        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
+        marcExchangeCollectionExpectation1.records.add(asMarcExchangeRecord(FIRST_RECORD_HEAD_ID));
+        marcExchangeCollectionExpectation1.records.add(asMarcExchangeRecord(FIRST_RECORD_SECTION_ID));
+        marcExchangeCollectionExpectation1.records.add(asMarcExchangeRecord(FIRST_RECORD_ID));
+        final DataContainerExpectation communityExpectation1 = new DataContainerExpectation();
+        communityExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
+        communityExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
         harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
 
-        final MarcExchangeCollectionExpectation communityExpectation2 = new MarcExchangeCollectionExpectation();
-        communityExpectation2.records.add(asMarcExchangeRecordExpectation(THIRD_RECORD_ID));
+        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
+        marcExchangeCollectionExpectation2.records.add(asMarcExchangeRecord(THIRD_RECORD_ID));
+        final DataContainerExpectation communityExpectation2 = new DataContainerExpectation();
+        communityExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
+        communityExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
         harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation2);
 
-        final MarcExchangeCollectionExpectation localExpectation1 = new MarcExchangeCollectionExpectation();
-        localExpectation1.records.add(asMarcExchangeRecordExpectation(SECOND_RECORD_ID));
+        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
+        marcExchangeCollectionExpectation3.records.add(asMarcExchangeRecord(SECOND_RECORD_ID));
+        final DataContainerExpectation localExpectation1 = new DataContainerExpectation();
+        localExpectation1.dataExpectation = marcExchangeCollectionExpectation3;
+        localExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
         harvesterDataFileWithLocalRecordsExpectations.add(localExpectation1);
 
         // Execute harvest
@@ -169,12 +181,18 @@ public class HarvesterBean_data_Test {
                 .thenReturn(new HashSet<>(Arrays.asList(THIRD_RECORD)));
 
         // Setup harvester datafile content expectations
-        final MarcExchangeCollectionExpectation localExpectation1 = new MarcExchangeCollectionExpectation();
-        localExpectation1.records.add(asMarcExchangeRecordExpectation(SECOND_RECORD_ID));
+        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
+        marcExchangeCollectionExpectation1.records.add(asMarcExchangeRecord(SECOND_RECORD_ID));
+        final DataContainerExpectation localExpectation1 = new DataContainerExpectation();
+        localExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
+        localExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
         harvesterDataFileWithLocalRecordsExpectations.add(localExpectation1);
 
-        final MarcExchangeCollectionExpectation communityExpectation1 = new MarcExchangeCollectionExpectation();
-        communityExpectation1.records.add(asMarcExchangeRecordExpectation(THIRD_RECORD_ID));
+        final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
+        marcExchangeCollectionExpectation2.records.add(asMarcExchangeRecord(THIRD_RECORD_ID));
+        final DataContainerExpectation communityExpectation1 = new DataContainerExpectation();
+        communityExpectation1.dataExpectation = marcExchangeCollectionExpectation2;
+        communityExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
         harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
 
         // Execute harvest
@@ -215,7 +233,11 @@ public class HarvesterBean_data_Test {
         assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecordExpectation asMarcExchangeRecordExpectation(RecordId recordId) {
-        return new MarcExchangeRecordExpectation(recordId.getId(), recordId.getLibrary());
+    private MarcExchangeRecord asMarcExchangeRecord(RecordId recordId) {
+        return new MarcExchangeRecord(recordId.getId(), recordId.getLibrary());
+    }
+
+    private String getRecordCreationDate(Record record) {
+        return new SimpleDateFormat("YYYYMMdd").format(record.getCreated());
     }
 }

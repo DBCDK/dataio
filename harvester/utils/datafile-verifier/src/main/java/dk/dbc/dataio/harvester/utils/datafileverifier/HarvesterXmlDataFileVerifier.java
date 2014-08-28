@@ -24,14 +24,14 @@ public class HarvesterXmlDataFileVerifier {
     }
 
     /**
-     * Verifies MARC exchange content of given XML file against given list of
+     * Verifies content of given XML file against given list of
      * expectations throwing assertion error unless all expectations can be met
      * @param dataFile harvester data file
-     * @param expectations list of MarcExchangeCollectionExpectation
+     * @param expectations list of DataFileExpectation
      * @throws IOException if unable to read harvester data file
      * @throws SAXException if unable to parse harvester data file as XML
      */
-    public void verify(File dataFile, List<MarcExchangeCollectionExpectation> expectations) throws IOException, SAXException {
+    public void verify(File dataFile, List<DataFileExpectation> expectations) throws IOException, SAXException {
         final Document document = domUtil.asDocument(dataFile);
         final NodeList childNodes = document.getDocumentElement().getChildNodes();
         assertThat(childNodes, is(notNullValue()));
@@ -39,13 +39,11 @@ public class HarvesterXmlDataFileVerifier {
         verifyDataFileMembers(childNodes, expectations);
     }
 
-    /* Verifies all harvester data file members as MARC exchange collections
+    /* Verifies all harvester data file members
      */
-    private void verifyDataFileMembers(NodeList memberNodes, List<MarcExchangeCollectionExpectation> expectations) {
-        final MarcExchangeCollectionVerifier marcExchangeCollectionVerifier =
-                new MarcExchangeCollectionVerifier(domUtil);
-        for (int i = 0; i < memberNodes.getLength(); i++) {
-            marcExchangeCollectionVerifier.verify(memberNodes.item(i), expectations.get(i).records);
+    private void verifyDataFileMembers(NodeList memberNodes, List<DataFileExpectation> expectations) {
+        for (int i = 0; i < expectations.size(); i++) {
+            expectations.get(i).verify(memberNodes.item(i));
         }
     }
 }

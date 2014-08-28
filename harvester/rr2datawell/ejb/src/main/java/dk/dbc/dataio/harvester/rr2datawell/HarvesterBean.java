@@ -9,9 +9,11 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.types.DataContainer;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
+import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.QueueJob;
@@ -40,6 +42,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -109,7 +112,7 @@ public class HarvesterBean {
                 LOGGER.info("{} ready for harvesting", nextQueuedItem);
                 try {
                     final RecordId queuedRecordId = nextQueuedItem.getJob();
-                    final MarcExchangeCollection harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
+                    final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
                     switch (queuedRecordId.getLibrary()) {
                         case COMMUNITY_LIBRARY_NUMBER:
                             communityRecordsJobBuilder.addHarvesterRecord(harvesterRecord);
@@ -145,9 +148,10 @@ public class HarvesterBean {
 
     /* Fetches rawrepo record collection associated with given record ID and adds
        its content to a new MARC exchange collection.
-       Returns harvester record.
+       Returns data container harvester record containing MARC exchange collection as data
+       and record creation date as supplementary data.
      */
-    private MarcExchangeCollection getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
+    private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
         final Set<Record> records;
         try {
             records = rawRepoConnector.fetchRecordCollection(recordId);
@@ -157,12 +161,24 @@ public class HarvesterBean {
             throw new HarvesterException("Unable to fetch record collection for " + recordId.toString(), e);
         }
         LOGGER.debug("Fetched rawrepo collection<{}> for {}", records, recordId);
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection(documentBuilder, transformer);
+        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
         for (Record record : records) {
-            LOGGER.debug("Adding {} member to {} harvester record", record.getId(), recordId);
-            harvesterRecord.addMember(record.getContent());
+            LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
+            marcExchangeCollection.addMember(record.getContent());
         }
-        return harvesterRecord;
+        final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
+        dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
+        dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
+        return dataContainer;
+    }
+
+    private Date getRecordCreationDate(RecordId recordId, Set<Record> records) {
+        for (Record record : records) {
+            if (record.getId().equals(recordId)) {
+                return record.getCreated();
+            }
+        }
+        return null;
     }
 
     private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {
@@ -207,11 +223,11 @@ public class HarvesterBean {
         /**
          * Adds given MarcExchangeCollection to harvester data file provided that
          * the collection in question contains record members
-         * @param marcExchangeCollection harvester record as MarcExchangeCollection
+         * @param harvesterRecord harvester record
          * @throws HarvesterException if unable to add harvester record
          */
-        public void addHarvesterRecord(MarcExchangeCollection marcExchangeCollection) throws HarvesterException {
-            dataFile.addRecord(marcExchangeCollection);
+        public void addHarvesterRecord(HarvesterXmlRecord harvesterRecord) throws HarvesterException {
+            dataFile.addRecord(harvesterRecord);
             recordsAdded++;
         }
 

@@ -9,6 +9,7 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Verifier helper class for data-container expectations
@@ -23,7 +24,12 @@ public class DataContainerExpectation implements DataFileExpectation {
 
     public DataContainerExpectation() {
         supplementaryDataExpectation = new HashMap<>();
-        dataExpectation = null;
+        dataExpectation = new DataFileExpectation() {
+            @Override
+            public void verify(Node node) {
+                fail("No data expectation set");
+            }
+        };
     }
 
     /**
@@ -45,9 +51,7 @@ public class DataContainerExpectation implements DataFileExpectation {
         assertThat(node.getNodeType(), is(Node.ELEMENT_NODE));
         assertThat(node.getLocalName(), is(DATA_ELEMENT_NAME));
         assertThat(dataExpectation, is(notNullValue()));
-        if (dataExpectation != null) {
-            dataExpectation.verify(node.getFirstChild());
-        }
+        dataExpectation.verify(node.getFirstChild());
     }
 
     private void verifyDataSupplementary(Node node) {

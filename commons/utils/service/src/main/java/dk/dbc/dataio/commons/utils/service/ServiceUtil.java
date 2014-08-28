@@ -27,6 +27,21 @@ public class ServiceUtil {
     private ServiceUtil() { }
 
     /**
+     * Looks up file-store filesystem url through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_FILESYSTEM}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_FILESYSTEM}'
+     * system property.
+     *
+     * @return job-store filesystem URL as String
+     *
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getJobStoreFilesystemUrl() throws NamingException {
+        return System.getProperty(JndiConstants.URL_RESOURCE_JOBSTORE_FILESYSTEM);
+    }
+
+    /**
      * Looks up file-store service endpoint through Java Naming and Directory Interface (JNDI)
      * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_FILESTORE_RS}'.
      * For testing purposes the JNDI lookup can be bypassed by defining a '{@value

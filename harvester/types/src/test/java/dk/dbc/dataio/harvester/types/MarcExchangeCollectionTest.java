@@ -63,9 +63,14 @@ public class MarcExchangeCollectionTest {
               "</invalid:record>" +
             "</marcx:collection>";
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void constructor_documentBuilderArgIsNull_throws() {
+        new MarcExchangeCollection(null, getTransformer());
+    }
 
+    @Test(expected = NullPointerException.class)
+    public void constructor_transformerArgIsNull_throws() {
+        new MarcExchangeCollection(getDocumentBuilder(), null);
     }
 
     @Test
@@ -240,7 +245,7 @@ public class MarcExchangeCollectionTest {
         }
     }
 
-    private void assertMarcExchangeCollection(byte[] data, int expectedMemberCount) {
+    void assertMarcExchangeCollection(byte[] data, int expectedMemberCount) {
         final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
         try {

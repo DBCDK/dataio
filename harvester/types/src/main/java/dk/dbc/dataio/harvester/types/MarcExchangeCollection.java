@@ -71,10 +71,9 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
      * @param documentBuilder builder used for XML representations (must be created by a namespace aware factory)
      * @param transformer transformer used for conversion to byte[]
      * @throws NullPointerException if given any null-valued argument
-     * @throws HarvesterException if unable to create internal MARC Exchange Collection representation
      */
     public MarcExchangeCollection(DocumentBuilder documentBuilder, Transformer transformer)
-            throws NullPointerException, HarvesterException {
+            throws NullPointerException {
         this.transformer = InvariantUtil.checkNotNullOrThrow(transformer, "transformer");
         this.documentBuilder = InvariantUtil.checkNotNullOrThrow(documentBuilder, "documentBuilder");
         data = documentBuilder.newDocument();

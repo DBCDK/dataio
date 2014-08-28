@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -43,7 +44,10 @@ public class DataContainerExpectation implements DataFileExpectation {
     private void verifyData(Node node) {
         assertThat(node.getNodeType(), is(Node.ELEMENT_NODE));
         assertThat(node.getLocalName(), is(DATA_ELEMENT_NAME));
-        dataExpectation.verify(node.getFirstChild());
+        assertThat(dataExpectation, is(notNullValue()));
+        if (dataExpectation != null) {
+            dataExpectation.verify(node.getFirstChild());
+        }
     }
 
     private void verifyDataSupplementary(Node node) {

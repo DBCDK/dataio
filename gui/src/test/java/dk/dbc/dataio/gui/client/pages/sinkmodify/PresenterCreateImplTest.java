@@ -61,8 +61,6 @@ public class PresenterCreateImplTest {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
-        // Since we cannot access the protected view attribute in presenterCreateImpl, we can only test, that no exceptions are thrown
-        // We must therefore rely on the following tests to assure, that view has been initialized correctly
     }
 
     @Test

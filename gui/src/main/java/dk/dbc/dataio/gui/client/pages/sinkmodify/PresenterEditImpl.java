@@ -41,7 +41,7 @@ public class PresenterEditImpl extends PresenterImpl {
 
     // Private methods
     private void getSink(final Long sinkId) {
-        flowStoreProxy.getSinkModel(sinkId, new GetSinkModelFilteredAsyncCallback());
+        flowStoreProxy.getSink(sinkId, new GetSinkModelFilteredAsyncCallback());
     }
 
     private void setSinkModel(SinkModel model) {

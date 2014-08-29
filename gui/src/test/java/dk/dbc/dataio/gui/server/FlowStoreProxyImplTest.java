@@ -121,7 +121,7 @@ public class FlowStoreProxyImplTest {
     */
 
     @Test
-    public void createSink_remoteServiceReturnsHttpStatusCreated_returnsSinkEntity() throws Exception {
+    public void createSink_remoteServiceReturnsHttpStatusCreated_returnsSinkModelEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Sink sink = new SinkBuilder().build();
@@ -159,14 +159,14 @@ public class FlowStoreProxyImplTest {
     */
 
     @Test
-    public void getSink_remoteServiceReturnsHttpStatusOk_returnsSinkEntity() throws Exception {
+    public void getSink_remoteServiceReturnsHttpStatusOk_returnsSinkModelEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Sink sink = new SinkBuilder().setId(ID).build();
         when(flowStoreServiceConnector.getSink(eq(ID))).thenReturn(sink);
 
         try {
-            final SinkModel retrievedModel = flowStoreProxy.getSinkModel(sink.getId());
+            final SinkModel retrievedModel = flowStoreProxy.getSink(sink.getId());
             assertNotNull(retrievedModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getSink()");
@@ -234,7 +234,7 @@ public class FlowStoreProxyImplTest {
      * Test updateSink
      */
     @Test
-    public void updateSink_remoteServiceReturnsHttpStatusOk_returnsModelEntity() throws Exception {
+    public void updateSink_remoteServiceReturnsHttpStatusOk_returnsSinkModelEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Sink sink = new SinkBuilder().setId(ID).setVersion(1).build();

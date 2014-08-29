@@ -48,8 +48,7 @@ public class SinkServiceProxyImplTest {
     @Test(expected = NullPointerException.class)
     public void ping_sinkModelArgIsNull_throws() throws Exception {
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
-        final SinkModel model = null;
-        sinkServiceProxy.ping(model);
+        sinkServiceProxy.ping(null);
     }
 
     @Test(expected = ProxyException.class)

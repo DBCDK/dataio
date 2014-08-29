@@ -11,7 +11,6 @@ import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
 import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditView;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.submittermodify.View;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
@@ -52,7 +51,6 @@ public interface ClientFactory {
     FlowbinderCreateView getFlowbinderCreateView();
     dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkCreateView();
     dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkEditView();
-    SinkCreateEditView getSinkCreateEditView();
     FlowComponentsShowView getFlowComponentsShowView();
     FlowsShowView getFlowsShowView();
     SubmittersShowView getSubmittersShowView();

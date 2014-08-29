@@ -43,13 +43,6 @@ import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowConstants;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
 import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateActivity;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditConstants;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditView;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreateEditViewImpl;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkCreatePlace;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditActivity;
-import dk.dbc.dataio.gui.client.pages.sinkcreateedit.SinkEditPlace;
 import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModifyConstants;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowActivity;
 import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowConstants;
@@ -104,7 +97,6 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowCreateConstants flowCreateConstants = GWT.create(FlowCreateConstants.class);
     private final static FlowComponentCreateEditConstants flowComponentCreateEditConstants = GWT.create(FlowComponentCreateEditConstants.class);
     private final static FlowbinderCreateConstants flowbinderCreateConstants = GWT.create(FlowbinderCreateConstants.class);
-    private final static SinkCreateEditConstants SinkCreateEditConstants = GWT.create(SinkCreateEditConstants.class);
     private final static SinkModifyConstants sinkModifyConstants = GWT.create(SinkModifyConstants.class);
     private final static SubmitterModifyConstants submitterModifyConstants = GWT.create(SubmitterModifyConstants.class);
     //private final static HarvestersShowConstants harvestersShowConstants = GWT.create(HarvestersShowConstants.class);
@@ -129,7 +121,6 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
     private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
-    private final SinkCreateEditView sinkCreateEditView = new SinkCreateEditViewImpl();
     private final dk.dbc.dataio.gui.client.pages.sinkmodify.View sinkCreateView =
             new dk.dbc.dataio.gui.client.pages.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkCreation(), sinkModifyConstants);
     private final dk.dbc.dataio.gui.client.pages.sinkmodify.View sinkEditView =
@@ -163,10 +154,9 @@ public class ClientFactoryImpl implements ClientFactory {
                                           createFlowBinder,
                                           showFlowBinders);
 
-        // Sinks Main Menu
-        MenuItem createSink = new MenuItem(GUIID_MENU_ITEM_SINK_CREATE, SinkCreateEditConstants.menu_SinkCreation(), new SinkCreatePlace());
+        MenuItem createSink = new MenuItem(GUIID_MENU_ITEM_SINK_CREATE, sinkModifyConstants.menu_SinkCreation(), new dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace());
         MenuItem sinksMenu = new MenuItem(GUIID_MENU_ITEM_SINKS_SHOW, sinksShowConstants.menu_Sinks(), new SinksShowPlace(),
-                                          createSink);
+                createSink);
 
         // Jobs Main Menu
         MenuItem jobsMenu = new MenuItem(GUIID_MENU_ITEM_JOBS_SHOW, jobsShowConstants.menu_Jobs(), new JobsShowPlace());
@@ -215,14 +205,14 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof FlowComponentEditPlace) {
             return new FlowComponentEditActivity(place,this);
         }
-        if (place instanceof SinkCreatePlace) {
-            return new SinkCreateActivity(this);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace) {
+            return new dk.dbc.dataio.gui.client.pages.sinkmodify.PresenterCreateImpl(this, sinkModifyConstants);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.sinkmodify.PresenterCreateImpl(this, sinkModifyConstants);
         }
-        if (place instanceof SinkEditPlace) {
-            return new SinkEditActivity(place, this);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.sinkmodify.EditPlace) {
+            return new dk.dbc.dataio.gui.client.pages.sinkmodify.PresenterEditImpl(place, this, sinkModifyConstants);
         }
         if (place instanceof FlowComponentsShowPlace) {
             return new FlowComponentsShowActivity(this);
@@ -299,11 +289,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public FlowbinderCreateView getFlowbinderCreateView() {
         return flowbinderCreateView;
-    }
-
-    @Override
-    public SinkCreateEditView getSinkCreateEditView() {
-        return sinkCreateEditView;
     }
 
     @Override

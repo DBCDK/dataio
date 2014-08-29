@@ -71,7 +71,7 @@ public class PresenterEditImplTest {
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
         // initializeModel has the responsibility to setup the model in the presenter correctly
         // In this case, we expect the model to be initialized with the submitter values.
-        verify(mockedFlowStoreProxy, times(1)).getSinkModel(any(Long.class), any(PresenterEditImpl.SaveSinkModelFilteredAsyncCallback.class));
+        verify(mockedFlowStoreProxy, times(1)).getSink(any(Long.class), any(PresenterEditImpl.SaveSinkModelFilteredAsyncCallback.class));
     }
 
     @Test

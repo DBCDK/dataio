@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.PingResponse;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -23,27 +22,6 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
     public SinkServiceProxyImpl() {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
-    }
-
-    @Override
-    public PingResponse ping(SinkContent sinkContent) throws ProxyException {
-        InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
-
-        final Response response;
-        final PingResponse result;
-        try {
-            response = HttpClient.doPostWithJson(client, sinkContent,
-                    ServletUtil.getSinkServiceEndpoint(), SinkServiceConstants.PING);
-        } catch (ServletException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        try {
-            assertStatusCode(response, Response.Status.OK);
-            result = response.readEntity(PingResponse.class);
-        } finally {
-            response.close();
-        }
-        return result;
     }
 
     @Override

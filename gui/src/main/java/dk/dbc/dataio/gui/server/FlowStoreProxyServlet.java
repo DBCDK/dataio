@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModel;
@@ -60,18 +59,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public Sink createSink(SinkContent sinkContent) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createSink(sinkContent);
-    }
-
-    @Override
     public SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException {
         return flowStoreProxy.updateSink(model);
-    }
-
-    @Override
-    public Sink updateSink(SinkContent sinkContent, Long id, Long version) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateSink(sinkContent, id, version);
     }
 
     @Override
@@ -115,11 +104,7 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public SinkModel getSinkModel(Long id) throws ProxyException {
-        return flowStoreProxy.getSinkModel(id);
-    }
-
-    public Sink getSink(Long id) throws ProxyException {
+    public SinkModel getSink(Long id) throws ProxyException {
         return flowStoreProxy.getSink(id);
     }
 

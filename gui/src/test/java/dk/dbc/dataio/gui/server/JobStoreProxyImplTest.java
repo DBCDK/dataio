@@ -48,7 +48,7 @@ public class JobStoreProxyImplTest {
 
     @Test(expected = ProxyException.class)
     public void getJobStoreFilesystemUrl_jobStoreServiceEndpointCanNotBeLookedUp_throws() throws NamingException, ProxyException {
-        when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(new NamingException());
+        when(ServiceUtil.getJobStoreFilesystemUrl()).thenThrow(new NamingException());
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
         try {

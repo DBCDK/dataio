@@ -26,7 +26,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     @Override
     public String getJobStoreFilesystemUrl() throws ProxyException {
         try {
-            return ServletUtil.getJobStoreServiceEndpoint();
+            return ServletUtil.getJobStoreFilesystemUrl();
         } catch (ServletException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }

@@ -8,10 +8,10 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -97,12 +97,12 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
         SinkModel model = new SinkModel(4453, 1L, "Name", "Resource");
 
-        assertTrue(presenterEditImplConcrete.model != null); // Assert that the model has not yet been initialized
+        assertThat(presenterEditImplConcrete.model, is(nullValue())); // Assert that the model has not yet been initialized
 
         presenterEditImplConcrete.getSinkCallback.onSuccess(model);  // Emulate a successful callback from flowstore
 
         // Assert that the sink model has been updated correctly
-        assertThat(presenterEditImplConcrete.model, not(null));
+        assertThat(presenterEditImplConcrete.model, is(notNullValue()));
         assertThat(presenterEditImplConcrete.model.getId(), is(model.getId()));
         assertThat(presenterEditImplConcrete.model.getVersion(), is(model.getVersion()));
         assertThat(presenterEditImplConcrete.model.getSinkName(), is(model.getSinkName()));

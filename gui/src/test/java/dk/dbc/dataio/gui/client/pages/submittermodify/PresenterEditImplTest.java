@@ -8,9 +8,10 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.TestCase.assertNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -114,12 +115,12 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
         SubmitterModel submitterModel = new SubmitterModel(4453, 1L, "7466", "Name", "Description");
 
-        assertNull(presenterEditImplConcrete.model); // Assert that the model has not yet been initialized
+        assertThat(presenterEditImplConcrete.model, is(nullValue())); // Assert that the model has not yet been initialized
 
         presenterEditImplConcrete.callback.onSuccess(submitterModel);  // Emulate a successful callback from flowstore
 
         // Assert that the submitter model has been updated correctly
-        assertTrue(presenterEditImplConcrete.model != null);
+        assertThat(presenterEditImplConcrete.model, is(notNullValue()));
         assertThat(presenterEditImplConcrete.model.getId(), is(submitterModel.getId()));
         assertThat(presenterEditImplConcrete.model.getVersion(), is(submitterModel.getVersion()));
         assertThat(presenterEditImplConcrete.model.getNumber(), is(submitterModel.getNumber()));

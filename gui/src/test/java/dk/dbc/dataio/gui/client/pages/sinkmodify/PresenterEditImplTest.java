@@ -39,7 +39,6 @@ public class PresenterEditImplTest {
         }
 
         public GetSinkModelFilteredAsyncCallback getSinkCallback = new GetSinkModelFilteredAsyncCallback();
-        public PingSinkServiceFilteredAsyncCallback getPingCallback = new PingSinkServiceFilteredAsyncCallback();
     }
     //------------------------------------------------------------------------------------------------------------------
 

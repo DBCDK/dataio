@@ -1,4 +1,4 @@
-package dk.dbc.dataio.harvester.rawrepo;
+package dk.dbc.dataio.harvester.rr2fbs;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

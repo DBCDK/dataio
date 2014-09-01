@@ -9,4 +9,5 @@ import java.util.List;
 public interface JobsShowView extends IsWidget, GenericView<JobsShowPresenter> {
     void clearFields();
     void setJobs(List<JobInfo> job);
+    void setJobStoreFilesystemUrl(String jobStoreFilesystemUrl);
 }

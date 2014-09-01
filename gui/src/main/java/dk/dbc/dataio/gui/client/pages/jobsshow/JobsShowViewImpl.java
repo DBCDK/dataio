@@ -12,6 +12,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Image;
@@ -76,6 +77,8 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     TextColumn<JobInfo> submitterNumberColumn;
     TextColumn<JobInfo> jobCreationTimeColumn;
     Column<JobInfo, ImageResource> jobStateColumn;
+    String jobStoreFilesystemUrl = "";
+
 
 
     private int currentPageSize = PAGE_SIZE;
@@ -342,6 +345,18 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     }
 
     /**
+     * setJobStoreFilesystemUrl is called by the presenter, to set the jobStoreFilesystemUrl to be used by the view
+     *
+     * @param jobStoreFilesystemUrl
+     */
+    @Override
+    public void setJobStoreFilesystemUrl(String jobStoreFilesystemUrl) {
+        if (jobStoreFilesystemUrl != null) {
+            this.jobStoreFilesystemUrl = jobStoreFilesystemUrl;
+        }
+    }
+
+    /**
      * Increases currentPageSize to show one more page
      */
     public void increasePageSize() {
@@ -381,6 +396,10 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         return (l1 == l2) ? 0 : (l1 < l2) ? -1 : 1;
     }
 
+    private String getJobstoreLink(long id) {
+        return jobStoreFilesystemUrl.concat("/").concat(Long.toString(id));
+    }
+
     private FlowPanel buildFlowPanelForPopupPanel(JobInfo jobInfo) {
         FlowPanel flowPanel = new FlowPanel();
         DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
@@ -393,6 +412,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(), new Label(jobInfo.getJobErrorCode().toString()));
             flowPanel.add(dualPanesPanel);
         }
+        flowPanel.add(new Anchor(constants.link_MoreInfo(), getJobstoreLink(jobInfo.getJobId()), "_blank"));
         return flowPanel;
     }
 

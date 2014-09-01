@@ -37,4 +37,9 @@ public interface JobsShowConstants extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_ShowMore();
 
+
+    // Links
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String link_MoreInfo();
+
 }

@@ -35,6 +35,7 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
         containerWidget.setWidget(jobsShowView.asWidget());
         jobsShowView.clearFields();
         fetchJobs();
+        fetchJobStoreFilesystemUrl();
     }
 
 
@@ -48,6 +49,19 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
             @Override
             public void onSuccess(List<JobInfo> jobs) {
                 jobsShowView.setJobs(jobs);
+            }
+        });
+    }
+
+    private void fetchJobStoreFilesystemUrl() {
+        jobStoreProxy.getJobStoreFilesystemUrl(new FilteredAsyncCallback<String>() {
+            @Override
+            public void onFilteredFailure(Throwable e) {
+                jobsShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            }
+            @Override
+            public void onSuccess(String result) {
+                jobsShowView.setJobStoreFilesystemUrl(result);
             }
         });
     }

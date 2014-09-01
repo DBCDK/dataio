@@ -66,7 +66,7 @@ public class PresenterImplTest {
         }
 
         public SaveSinkModelFilteredAsyncCallback saveSinkCallback = new SaveSinkModelFilteredAsyncCallback();
-        public PingSinkServiceFilteredAsyncCallback pinkSinkCallback  = new PingSinkServiceFilteredAsyncCallback();
+        public PingSinkServiceFilteredAsyncCallback pingSinkCallback = new PingSinkServiceFilteredAsyncCallback();
 
         // Test method for reading flowStoreProxy
         public FlowStoreProxyAsync getFlowStoreProxy() {
@@ -112,8 +112,7 @@ public class PresenterImplTest {
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         verify(mockedView, times(1)).setPresenter(presenterImpl);
         verify(mockedView, times(1)).asWidget();
@@ -124,8 +123,7 @@ public class PresenterImplTest {
     public void nameChanged_callName_nameIsChangedAccordingly() {
         final String CHANGED_NAME = "UpdatedName";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         presenterImpl.nameChanged(CHANGED_NAME);
 
@@ -136,8 +134,7 @@ public class PresenterImplTest {
     public void resourceChanged_callResourceChanged_recourceIsChangedAccordingly() {
         final String CHANGED_RESOURCE = "UpdatedResource";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         presenterImpl.resourceChanged(CHANGED_RESOURCE);
 
@@ -146,8 +143,7 @@ public class PresenterImplTest {
 
     @Test
     public void keyPressed_callKeyPressed_statusFieldIsCleared() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         presenterImpl.keyPressed();
 
@@ -156,16 +152,14 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressed_pingIsCalled() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
         presenterImpl.saveButtonPressed();
         verify(mockedSinkServiceProxy, times(1)).ping(any(SinkModel.class), any(PresenterImpl.PingSinkServiceFilteredAsyncCallback.class));
     }
 
     @Test(expected = NullPointerException.class)
     public void getErrorText_callGetErrorTextWithNullException_throwsNullPointerException() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         presenterImpl.getErrorText(null);
     }
@@ -175,8 +169,7 @@ public class PresenterImplTest {
         final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
         final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         when(mockedConstants.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
         when(mockedConstants.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
@@ -209,8 +202,7 @@ public class PresenterImplTest {
         final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
         final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         when(mockedConstants.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
         when(mockedConstants.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
@@ -227,43 +219,38 @@ public class PresenterImplTest {
     @Test
     public void getErrorText_callGetErrorTextWithNonProxyException_returnsExceptionErrorText() {
         final String EXCEPTION_ERROR_TEXT = "Exception Error Text";
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
 
         assertThat(presenterImpl.getErrorText(new IllegalArgumentException(EXCEPTION_ERROR_TEXT)), is(EXCEPTION_ERROR_TEXT));
     }
 
     @Test
     public void pingSinkServiceFilteredAsyncCallback_successfulCallbackStatusOk_saveModelIsCalled() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
         saveModelHasBeenCalled = false;
-        presenterImpl.pinkSinkCallback.onSuccess(new PingResponse(PingResponse.Status.OK, Arrays.asList("log")));
+        presenterImpl.pingSinkCallback.onSuccess(new PingResponse(PingResponse.Status.OK, Arrays.asList("log")));
         assertThat(saveModelHasBeenCalled, is(true));
     }
 
     @Test
     public void pingSinkServiceFilteredAsyncCallback_successfulCallbackStatusFailed_setStatusTextCalledInView() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
         when(mockedConstants.error_ResourceNameNotValid()).thenReturn(FAILURE_TEXT);
-        presenterImpl.pinkSinkCallback.onSuccess(new PingResponse(PingResponse.Status.FAILED, Arrays.asList("log")));
+        presenterImpl.pingSinkCallback.onSuccess(new PingResponse(PingResponse.Status.FAILED, Arrays.asList("log")));
         verify(mockedView, times(1)).setErrorText(FAILURE_TEXT);
     }
 
     @Test
-    public void pinkSinkServiceFilteredAsyncCallback_unsuccessfulCallback_setStatusTextCalledInView() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+    public void pingSinkServiceFilteredAsyncCallback_unsuccessfulCallback_setStatusTextCalledInView() {
+        createAndInitializePresenterImpl();
         when(mockedConstants.error_PingCommunicationError()).thenReturn(FAILURE_TEXT);
-        presenterImpl.pinkSinkCallback.onFilteredFailure(new Throwable(FAILURE_TEXT));
+        presenterImpl.pingSinkCallback.onFilteredFailure(new Throwable(FAILURE_TEXT));
         verify(mockedView, times(1)).setErrorText(FAILURE_TEXT);
     }
 
     @Test
     public void saveSinkModelFilteredAsyncCallback_successfulCallback_setStatusTextCalledInView() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
         when(mockedConstants.status_SinkSuccessfullySaved()).thenReturn(SUCCESS_TEXT);
         presenterImpl.saveSinkCallback.onSuccess(new SinkModel());
         verify(mockedView, times(1)).setStatusText(SUCCESS_TEXT);
@@ -271,10 +258,18 @@ public class PresenterImplTest {
 
     @Test
     public void sinkModelFilteredAsyncCallback_unsuccessfulCallback_setErrorTextCalledInView() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        createAndInitializePresenterImpl();
         presenterImpl.saveSinkCallback.onFailure(new Throwable(FAILURE_TEXT));
         verify(mockedView, times(1)).setErrorText(FAILURE_TEXT);
+    }
+
+
+    /*
+     * Private methods
+     */
+    private void createAndInitializePresenterImpl() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedConstants);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
 
 }

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client.pages.sinkmodify;
 
-import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModel;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -20,21 +19,14 @@ public class SinkModelTest {
     }
 
     @Test
-    public void isInputFieldsEmpty_emptyNumberInput_returnsTrue() {
+    public void isInputFieldsEmpty_emptySinkNameInput_returnsTrue() {
         SinkModel model = getTestModel();
         model.setSinkName("");
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
     @Test
-    public void isInputFieldsEmpty_emptyNameInput_returnsTrue() {
-        SinkModel model = getTestModel();
-        model.setSinkName("");
-        assertThat(model.isInputFieldsEmpty(), is(true));
-    }
-
-    @Test
-    public void isInputFieldsEmpty_emptyResourceInput_returnsTrue() {
+    public void isInputFieldsEmpty_emptyResourceNameInput_returnsTrue() {
         SinkModel model = getTestModel();
         model.setResourceName("");
         assertThat(model.isInputFieldsEmpty(), is(true));

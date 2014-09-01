@@ -8,7 +8,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Concrete Presenter Implementation Class for Sink Edit
  */
 public class PresenterEditImpl extends PresenterImpl {
-    private Long id;
+    private long id;
 
     /**
      * Constructor
@@ -40,7 +40,7 @@ public class PresenterEditImpl extends PresenterImpl {
     }
 
     // Private methods
-    private void getSink(final Long sinkId) {
+    private void getSink(final long sinkId) {
         flowStoreProxy.getSink(sinkId, new GetSinkModelFilteredAsyncCallback());
     }
 

@@ -55,6 +55,7 @@ import dk.dbc.dataio.gui.client.pages.submittermodify.PresenterCreateImpl;
 import dk.dbc.dataio.gui.client.pages.submittermodify.PresenterEditImpl;
 import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModifyConstants;
 import dk.dbc.dataio.gui.client.pages.submittermodify.View;
+import dk.dbc.dataio.gui.client.pages.submittermodify.ViewEditImpl;
 import dk.dbc.dataio.gui.client.pages.submittermodify.ViewImpl;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowActivity;
 import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowConstants;
@@ -132,7 +133,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
     private final ViewImpl submitterCreateView = new ViewImpl(submitterModifyConstants.menu_SubmitterCreation(), submitterModifyConstants);
-    private final ViewImpl submitterEditView = new ViewImpl(submitterModifyConstants.menu_SubmitterEdit(), submitterModifyConstants);
+    private final ViewImpl submitterEditView = new ViewEditImpl(submitterModifyConstants.menu_SubmitterEdit(), submitterModifyConstants);
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {

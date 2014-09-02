@@ -28,7 +28,7 @@ public class ViewImpl extends ContentPanel<Presenter>  implements View {
     public static final String CLASS_FLOW_ELEMENT = "dio-flow-element";
     private static final int SUBMITTER_MODIFY_DESCRIPTION_MAX_LENGTH = 160;
 
-    private final TextEntry numberPanel;
+    protected final TextEntry numberPanel;
     private final TextEntry namePanel;
     private final TextAreaEntry descriptionPanel;
     private final FlowPanel buttonPanel;

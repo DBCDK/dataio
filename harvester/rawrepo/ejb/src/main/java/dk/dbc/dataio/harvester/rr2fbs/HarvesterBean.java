@@ -24,7 +24,7 @@ import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.PostActivate;
-import javax.ejb.Stateless;
+import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.xml.parsers.DocumentBuilder;
@@ -43,9 +43,9 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 /**
- * This stateless Enterprise Java Bean (EJB) handles an actual RawRepo harvest
+ * This stateless Enterprise Java Bean (EJB) handles an actual RawRepo-to-FBS harvest
  */
-@Stateless
+@Singleton
 public class HarvesterBean {
     public static final String RAW_REPO_CONSUMER_ID = "fbs-sync";
     public static final JobSpecification JOB_SPECIFICATION_TEMPLATE =

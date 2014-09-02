@@ -35,6 +35,7 @@ import java.io.InputStream;
 @LocalBean
 public class FileStoreServiceConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileStoreServiceConnectorBean.class);
+    private static final int MAX_HTTP_CONNECTIONS = 100;
 
     Client client;
 
@@ -53,6 +54,8 @@ public class FileStoreServiceConnectorBean {
         // version before this shift can be made.
         final org.apache.http.impl.conn.PoolingClientConnectionManager poolingClientConnectionManager =
                 new org.apache.http.impl.conn.PoolingClientConnectionManager();
+        poolingClientConnectionManager.setMaxTotal(MAX_HTTP_CONNECTIONS);
+        poolingClientConnectionManager.setDefaultMaxPerRoute(MAX_HTTP_CONNECTIONS);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingClientConnectionManager);
 
         //config.connectorProvider(new ApacheConnectorProvider());     //jersey v2.7 only

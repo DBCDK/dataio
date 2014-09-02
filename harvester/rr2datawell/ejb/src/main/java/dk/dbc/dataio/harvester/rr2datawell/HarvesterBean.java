@@ -26,7 +26,7 @@ import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.PostActivate;
-import javax.ejb.Stateless;
+import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.xml.parsers.DocumentBuilder;
@@ -47,9 +47,9 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * This stateless Enterprise Java Bean (EJB) handles an actual RawRepo harvest
+ * This stateless Enterprise Java Bean (EJB) handles an actual RawRepo-to-datawell harvest
  */
-@Stateless
+@Singleton
 public class HarvesterBean {
     public static final String RAW_REPO_CONSUMER_ID = "broend-sync";
     public static final int COMMUNITY_LIBRARY_NUMBER = 870970;

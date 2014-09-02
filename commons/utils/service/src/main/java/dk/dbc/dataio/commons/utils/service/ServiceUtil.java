@@ -38,7 +38,11 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getJobStoreFilesystemUrl() throws NamingException {
-        return System.getProperty(JndiConstants.URL_RESOURCE_JOBSTORE_FILESYSTEM);
+        String jobStoreFileSystemUrl = System.getProperty(JndiConstants.URL_RESOURCE_JOBSTORE_FILESYSTEM);
+        if (jobStoreFileSystemUrl == null || jobStoreFileSystemUrl.isEmpty()) {
+            jobStoreFileSystemUrl = getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_FILESYSTEM);
+        }
+        return jobStoreFileSystemUrl;
     }
 
     /**

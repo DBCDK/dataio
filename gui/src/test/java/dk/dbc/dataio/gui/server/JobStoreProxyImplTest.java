@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -46,16 +47,16 @@ public class JobStoreProxyImplTest {
         when(HttpClient.newClient()).thenReturn(client);
     }
 
-    @Test(expected = ProxyException.class)
+    @Test
     public void getJobStoreFilesystemUrl_jobStoreServiceEndpointCanNotBeLookedUp_throws() throws NamingException, ProxyException {
         when(ServiceUtil.getJobStoreFilesystemUrl()).thenThrow(new NamingException());
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
         try {
             jobStoreProxy.getJobStoreFilesystemUrl();
+            fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
-            throw e;
         }
     }
 
@@ -66,20 +67,20 @@ public class JobStoreProxyImplTest {
         assertThat(jobStoreFilesystemUrl, is(jobStoreFilesystemUrl));
     }
 
-    @Test(expected = ProxyException.class)
+    @Test
     public void findAllSinks_jobStoreServiceEndpointCanNotBeLookedUp_throws() throws Exception {
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(new NamingException());
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
         try {
             jobStoreProxy.findAllJobs();
+            fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
-            throw e;
         }
     }
 
-    @Test(expected = ProxyException.class)
+    @Test
     public void findAllSinks_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceConstants.JOB_COLLECTION)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
@@ -87,9 +88,9 @@ public class JobStoreProxyImplTest {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
         try {
             jobStoreProxy.findAllJobs();
+            fail();
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
-            throw e;
         }
     }
 

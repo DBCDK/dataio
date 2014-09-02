@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnector;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
@@ -22,7 +23,7 @@ import javax.ws.rs.client.Client;
 import java.io.InputStream;
 
 /**
- * This Enterprise Java Bean (EJB) singleton is used as a connector
+ * This Enterprise Java Bean (EJB) is used as a connector
  * to the file-store REST interface.
  * <p>
  * This class expects that the file-store service endpoint can be looked
@@ -38,6 +39,7 @@ public class FileStoreServiceConnectorBean {
     Client client;
 
     @PostConstruct
+    @SuppressWarnings("deprecation")
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
         /* Since we need to be able to add data amounts exceeding the JVM
@@ -46,6 +48,13 @@ public class FileStoreServiceConnectorBean {
            HttpClient connector instead to avoid OutOfMemory errors.
          */
         final ClientConfig config = new ClientConfig();
+        // PoolingClientConnectionManager is deprecated in favour of
+        // PoolingHttpClientConnectionManager but we need to bump jersey
+        // version before this shift can be made.
+        final org.apache.http.impl.conn.PoolingClientConnectionManager poolingClientConnectionManager =
+                new org.apache.http.impl.conn.PoolingClientConnectionManager();
+        config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingClientConnectionManager);
+
         //config.connectorProvider(new ApacheConnectorProvider());     //jersey v2.7 only
         final ApacheConnector connector = new ApacheConnector(config);
         config.connector(connector);

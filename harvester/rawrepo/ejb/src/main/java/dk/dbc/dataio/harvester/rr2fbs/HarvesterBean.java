@@ -69,7 +69,6 @@ public class HarvesterBean {
     private Transformer transformer;
 
     @PostConstruct
-    @PostActivate
     public void init() throws EJBException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);

@@ -32,6 +32,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -104,6 +105,44 @@ public class EsMessageProcessorBeanIT {
         JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
         assertThat(getNumberOfRecordsInFlight(), is(0));
     }
+
+    @Test
+    public void esMessageProcessorBean_chunkWithAllRecordsFailed_notProcessedAndSinkResultIsAllIgnored()
+            throws JMSException, JsonException, SQLException, ClassNotFoundException {
+        final int itemsInChunk = 10;
+        // Create ChunkResult with 10 failed items:
+        List<ChunkItem> items = new ArrayList<>(itemsInChunk);
+        for(long i=0; i<itemsInChunk; i++) {
+            items.add( new ChunkItemBuilder().setId(i).setStatus(ChunkItem.Status.FAILURE).build() );
+        }
+        final ChunkResult processorResult = new ChunkResultBuilder().setItems(items).build();
+
+        // Put ChunkResult on Queue as message:
+        final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processorResult);
+        JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
+
+        // Wait for sink-queue to be empty - ie. message has been taken by ProcessorBean:
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
+
+        // Since all items are failed, there should not be any Records in flight:
+        assertThat(getNumberOfRecordsInFlight(), is(0));
+
+        // There should not have been added any taskpackages
+        assertThat(getEsTaskPackages().size(), is(0));
+
+        // Get SinkResult from queue
+        final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
+        final SinkChunkResult sinkResult = assertSinkMessageForProcessor(sinksQueue.get(0));
+
+        // Assert that SinkResult corresponds to ChunkResult and that all items are ignored:
+        assertThat(sinkResult.getJobId(), is(processorResult.getJobId()));
+        assertThat(sinkResult.getChunkId(), is(processorResult.getChunkId()));
+        assertThat(sinkResult.getItems().size(), is(itemsInChunk));
+        for (final ChunkItem chunkItem : sinkResult.getItems()) {
+            assertThat(chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
+        }
+    }
+
 
     @Test
     public void esMessageProcessorBean_validProcessorResultOnSinksQueue_eventuallyProcessed()

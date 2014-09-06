@@ -10,7 +10,7 @@ function die() {
 # Set constants according to environment
 
 echo "Copy m2.tar.gz from last successful build:"
-time curl -sO http://is.dbc.dk/job/dataio/lastStableBuild/artifact/m2.tar.gz || die "Could not download m2.tar.gz from last successfull build"
+time wget http://is.dbc.dk/job/dataio/lastStableBuild/artifact/m2.tar.gz || die "Could not download m2.tar.gz from last successfull build"
 
 echo "Unpackage .m2 from tar-file:"
 time tar zxf m2.tar.gz || die "Could not un tar-package m2.tar.gz"

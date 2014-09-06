@@ -11,7 +11,7 @@ public class RawRepoConnectorBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void fetchRecordCollection_idArgIsNull_throws() throws SQLException {
+    public void fetchRecordCollection_idArgIsNull_throws() throws SQLException, RawRepoIllegalStateException {
         new RawRepoConnectorBean().fetchRecordCollection(null);
     }
 

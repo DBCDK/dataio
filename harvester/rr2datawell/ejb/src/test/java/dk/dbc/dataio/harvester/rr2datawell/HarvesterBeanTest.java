@@ -10,6 +10,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoIllegalStateException;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
@@ -60,7 +61,7 @@ public class HarvesterBeanTest {
     private JobInfo jobInfo = mock(JobInfo.class);
 
     @Before
-    public void setupMocks() throws SQLException, FileStoreServiceConnectorException, JobStoreServiceConnectorException {
+    public void setupMocks() throws SQLException, FileStoreServiceConnectorException, JobStoreServiceConnectorException, RawRepoIllegalStateException {
         when(binaryFileStoreBean.getBinaryFile(any(Path.class))).thenReturn(binaryFile);
         when(binaryFile.openInputStream()).thenReturn(is);
         when(binaryFile.openOutputStream()).thenReturn(os);
@@ -98,7 +99,7 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_repoConnectorBeanQueueFailThrowsSqlException_throws() throws SQLException {
+    public void harvest_repoConnectorBeanQueueFailThrowsSqlException_throws() throws SQLException, RawRepoIllegalStateException {
         final Record rrRecord = mock(Record.class);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));
@@ -114,7 +115,7 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsSqlException_throws() throws SQLException {
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsSqlException_throws() throws SQLException, RawRepoIllegalStateException {
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvesterBean harvesterBean = getInitializedBean();
@@ -126,7 +127,7 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException, SQLException {
+    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException, SQLException, RawRepoIllegalStateException {
         final Record rrRecord = mock(Record.class);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));

@@ -14,6 +14,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifi
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoIllegalStateException;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.Record;
@@ -130,7 +131,7 @@ public class HarvesterBean_data_Test {
 
     @Test
     public void harvest_multipleLibraryNumbersHarvested_CommunityAndLocalRecordsInSeparateJobs()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException {
+            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoIllegalStateException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR_BEAN.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashSet<>(Arrays.asList(FIRST_RECORD_HEAD, FIRST_RECORD_SECTION, FIRST_RECORD)))
@@ -170,7 +171,7 @@ public class HarvesterBean_data_Test {
 
     @Test
     public void harvest_recordCollectionContainsInvalidEntry_recordIsSkipped()
-            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException {
+            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoIllegalStateException {
         final MockedRecord invalidRecord = new MockedRecord(FIRST_RECORD_HEAD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 

@@ -33,10 +33,13 @@ public class RawRepoConnectorBean {
         }
     }
 
-    public Set<Record> fetchRecordCollection(RecordId id) throws NullPointerException, SQLException {
+    public Set<Record> fetchRecordCollection(RecordId id)
+            throws NullPointerException, SQLException, RawRepoIllegalStateException {
         InvariantUtil.checkNotNullOrThrow(id, "id");
         try (final Connection connection = dataSource.getConnection()) {
             return RawRepoDAO.newInstance(connection).fetchRecordCollection(id.getId(), id.getLibrary());
+        } catch (IllegalStateException e) {
+            throw new RawRepoIllegalStateException("Invalid state of rawrepo", e);
         } catch (ClassNotFoundException e) {
             throw new SQLException(e);
         }

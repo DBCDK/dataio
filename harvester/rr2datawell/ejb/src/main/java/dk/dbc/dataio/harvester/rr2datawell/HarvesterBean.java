@@ -16,6 +16,7 @@ import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoIllegalStateException;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -153,7 +154,7 @@ public class HarvesterBean {
         final Set<Record> records;
         try {
             records = rawRepoConnector.fetchRecordCollection(recordId);
-        } catch (IllegalStateException e) {
+        } catch (RawRepoIllegalStateException e) {
             throw new HarvesterInvalidRecordException("Invalid state of rawrepo", e);
         } catch (SQLException e) {
             throw new HarvesterException("Unable to fetch record collection for " + recordId.toString(), e);
@@ -162,12 +163,20 @@ public class HarvesterBean {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
         for (Record record : records) {
             LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
-            marcExchangeCollection.addMember(record.getContent());
+            marcExchangeCollection.addMember(getRecordContent(record));
         }
         final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
         dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
         return dataContainer;
+    }
+
+    private byte[] getRecordContent(Record record) throws HarvesterInvalidRecordException {
+        try {
+            return record.getContent();
+        } catch (NullPointerException e) {
+             throw new HarvesterInvalidRecordException("Record content is null");
+        }
     }
 
     private Date getRecordCreationDate(RecordId recordId, Set<Record> records) {

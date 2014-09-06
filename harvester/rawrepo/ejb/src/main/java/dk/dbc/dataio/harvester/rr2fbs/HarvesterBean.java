@@ -139,8 +139,16 @@ public class HarvesterBean {
             throw new HarvesterException("Unable to fetch record for " + recordId.toString(), e);
         }
         final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection(documentBuilder, transformer);
-        harvesterRecord.addMember(record.getContent());
+        harvesterRecord.addMember(getRecordContent(record));
         return harvesterRecord;
+    }
+
+    private byte[] getRecordContent(Record record) throws HarvesterInvalidRecordException {
+        try {
+            return record.getContent();
+        } catch (NullPointerException e) {
+             throw new HarvesterInvalidRecordException("Record content is null");
+        }
     }
 
     private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {

@@ -2,18 +2,18 @@ package dk.dbc.dataio.gui.client.places;
 
 import com.google.gwt.place.shared.PlaceHistoryMapper;
 import com.google.gwt.place.shared.WithTokenizers;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditPlace;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
-import dk.dbc.dataio.gui.client.pages.submittermodify.CreatePlace;
-import dk.dbc.dataio.gui.client.pages.submittermodify.EditPlace;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindercreate.FlowbinderCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindersshow.FlowBindersShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentEditPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentsshow.FlowComponentsShowPlace;
+import dk.dbc.dataio.gui.client.pages.flow.flowcreate.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flow.flowsshow.FlowsShowPlace;
+import dk.dbc.dataio.gui.client.pages.job.jobsshow.JobsShowPlace;
+import dk.dbc.dataio.gui.client.pages.sink.sinksshow.SinksShowPlace;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.CreatePlace;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.EditPlace;
+import dk.dbc.dataio.gui.client.pages.submitter.submittersshow.SubmittersShowPlace;
 
 @WithTokenizers({
     FlowCreatePlace.Tokenizer.class,
@@ -22,8 +22,8 @@ import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
     CreatePlace.Tokenizer.class,
     EditPlace.Tokenizer.class,
     FlowbinderCreatePlace.Tokenizer.class,
-    dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace.Tokenizer.class,
-    dk.dbc.dataio.gui.client.pages.sinkmodify.EditPlace.Tokenizer.class,
+    dk.dbc.dataio.gui.client.pages.sink.sinkmodify.CreatePlace.Tokenizer.class,
+    dk.dbc.dataio.gui.client.pages.sink.sinkmodify.EditPlace.Tokenizer.class,
     FlowComponentsShowPlace.Tokenizer.class,
     FlowsShowPlace.Tokenizer.class,
     SubmittersShowPlace.Tokenizer.class,

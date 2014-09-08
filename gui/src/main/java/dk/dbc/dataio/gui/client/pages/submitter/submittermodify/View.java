@@ -1,0 +1,12 @@
+package dk.dbc.dataio.gui.client.pages.submitter.submittermodify;
+
+import dk.dbc.dataio.gui.client.views.GenericView;
+
+public interface View extends GenericView<Presenter> {
+    void setNumber(String number);
+    String getNumber();
+    void setName(String name);
+    String getName();
+    void setDescription(String description);
+    String getDescription();
+}

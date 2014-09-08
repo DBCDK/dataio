@@ -6,62 +6,62 @@ import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateActivity;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateConstants;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateView;
-import dk.dbc.dataio.gui.client.pages.flowbindercreate.FlowbinderCreateViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowActivity;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowConstants;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowView;
-import dk.dbc.dataio.gui.client.pages.flowbindersshow.FlowBindersShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateActivity;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditConstants;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditView;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreateEditViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditActivity;
-import dk.dbc.dataio.gui.client.pages.flowcomponentcreateedit.FlowComponentEditPlace;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowActivity;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowConstants;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowView;
-import dk.dbc.dataio.gui.client.pages.flowcomponentsshow.FlowComponentsShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateActivity;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateConstants;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateView;
-import dk.dbc.dataio.gui.client.pages.flowcreate.FlowCreateViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowActivity;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowConstants;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowPlace;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowView;
-import dk.dbc.dataio.gui.client.pages.flowsshow.FlowsShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowActivity;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowConstants;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowPlace;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowView;
-import dk.dbc.dataio.gui.client.pages.jobsshow.JobsShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModifyConstants;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowActivity;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowConstants;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowPlace;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowView;
-import dk.dbc.dataio.gui.client.pages.sinksshow.SinksShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.submittermodify.CreatePlace;
-import dk.dbc.dataio.gui.client.pages.submittermodify.EditPlace;
-import dk.dbc.dataio.gui.client.pages.submittermodify.PresenterCreateImpl;
-import dk.dbc.dataio.gui.client.pages.submittermodify.PresenterEditImpl;
-import dk.dbc.dataio.gui.client.pages.submittermodify.SubmitterModifyConstants;
-import dk.dbc.dataio.gui.client.pages.submittermodify.View;
-import dk.dbc.dataio.gui.client.pages.submittermodify.ViewEditImpl;
-import dk.dbc.dataio.gui.client.pages.submittermodify.ViewImpl;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowActivity;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowConstants;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowPlace;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowView;
-import dk.dbc.dataio.gui.client.pages.submittersshow.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindercreate.FlowbinderCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindercreate.FlowbinderCreateConstants;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindercreate.FlowbinderCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindercreate.FlowbinderCreateView;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindercreate.FlowbinderCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindersshow.FlowBindersShowActivity;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindersshow.FlowBindersShowConstants;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindersshow.FlowBindersShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindersshow.FlowBindersShowView;
+import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindersshow.FlowBindersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentCreateEditConstants;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentCreateEditView;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentCreateEditViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentEditActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentcreateedit.FlowComponentEditPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentsshow.FlowComponentsShowActivity;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentsshow.FlowComponentsShowConstants;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentsshow.FlowComponentsShowPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentsshow.FlowComponentsShowView;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.flowcomponentsshow.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flow.flowcreate.FlowCreateActivity;
+import dk.dbc.dataio.gui.client.pages.flow.flowcreate.FlowCreateConstants;
+import dk.dbc.dataio.gui.client.pages.flow.flowcreate.FlowCreatePlace;
+import dk.dbc.dataio.gui.client.pages.flow.flowcreate.FlowCreateView;
+import dk.dbc.dataio.gui.client.pages.flow.flowcreate.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flow.flowsshow.FlowsShowActivity;
+import dk.dbc.dataio.gui.client.pages.flow.flowsshow.FlowsShowConstants;
+import dk.dbc.dataio.gui.client.pages.flow.flowsshow.FlowsShowPlace;
+import dk.dbc.dataio.gui.client.pages.flow.flowsshow.FlowsShowView;
+import dk.dbc.dataio.gui.client.pages.flow.flowsshow.FlowsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.job.jobsshow.JobsShowActivity;
+import dk.dbc.dataio.gui.client.pages.job.jobsshow.JobsShowConstants;
+import dk.dbc.dataio.gui.client.pages.job.jobsshow.JobsShowPlace;
+import dk.dbc.dataio.gui.client.pages.job.jobsshow.JobsShowView;
+import dk.dbc.dataio.gui.client.pages.job.jobsshow.JobsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.sink.sinkmodify.SinkModifyConstants;
+import dk.dbc.dataio.gui.client.pages.sink.sinksshow.SinksShowActivity;
+import dk.dbc.dataio.gui.client.pages.sink.sinksshow.SinksShowConstants;
+import dk.dbc.dataio.gui.client.pages.sink.sinksshow.SinksShowPlace;
+import dk.dbc.dataio.gui.client.pages.sink.sinksshow.SinksShowView;
+import dk.dbc.dataio.gui.client.pages.sink.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.CreatePlace;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.EditPlace;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.PresenterCreateImpl;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.PresenterEditImpl;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.SubmitterModifyConstants;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.View;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.ViewEditImpl;
+import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.ViewImpl;
+import dk.dbc.dataio.gui.client.pages.submitter.submittersshow.SubmittersShowActivity;
+import dk.dbc.dataio.gui.client.pages.submitter.submittersshow.SubmittersShowConstants;
+import dk.dbc.dataio.gui.client.pages.submitter.submittersshow.SubmittersShowPlace;
+import dk.dbc.dataio.gui.client.pages.submitter.submittersshow.SubmittersShowView;
+import dk.dbc.dataio.gui.client.pages.submitter.submittersshow.SubmittersShowViewImpl;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -122,10 +122,10 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
     private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
-    private final dk.dbc.dataio.gui.client.pages.sinkmodify.View sinkCreateView =
-            new dk.dbc.dataio.gui.client.pages.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkCreation(), sinkModifyConstants);
-    private final dk.dbc.dataio.gui.client.pages.sinkmodify.View sinkEditView =
-            new dk.dbc.dataio.gui.client.pages.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkEdit(), sinkModifyConstants);
+    private final dk.dbc.dataio.gui.client.pages.sink.sinkmodify.View sinkCreateView =
+            new dk.dbc.dataio.gui.client.pages.sink.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkCreation(), sinkModifyConstants);
+    private final dk.dbc.dataio.gui.client.pages.sink.sinkmodify.View sinkEditView =
+            new dk.dbc.dataio.gui.client.pages.sink.sinkmodify.ViewImpl(sinkModifyConstants.menu_SinkEdit(), sinkModifyConstants);
     private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
     private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
     private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
@@ -155,7 +155,7 @@ public class ClientFactoryImpl implements ClientFactory {
                                           createFlowBinder,
                                           showFlowBinders);
 
-        MenuItem createSink = new MenuItem(GUIID_MENU_ITEM_SINK_CREATE, sinkModifyConstants.menu_SinkCreation(), new dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace());
+        MenuItem createSink = new MenuItem(GUIID_MENU_ITEM_SINK_CREATE, sinkModifyConstants.menu_SinkCreation(), new dk.dbc.dataio.gui.client.pages.sink.sinkmodify.CreatePlace());
         MenuItem sinksMenu = new MenuItem(GUIID_MENU_ITEM_SINKS_SHOW, sinksShowConstants.menu_Sinks(), new SinksShowPlace(),
                 createSink);
 
@@ -206,14 +206,14 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof FlowComponentEditPlace) {
             return new FlowComponentEditActivity(place,this);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.sinkmodify.PresenterCreateImpl(this, sinkModifyConstants);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.sinkmodify.CreatePlace) {
+            return new dk.dbc.dataio.gui.client.pages.sink.sinkmodify.PresenterCreateImpl(this, sinkModifyConstants);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.sinkmodify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.sinkmodify.PresenterCreateImpl(this, sinkModifyConstants);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.sinkmodify.CreatePlace) {
+            return new dk.dbc.dataio.gui.client.pages.sink.sinkmodify.PresenterCreateImpl(this, sinkModifyConstants);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.sinkmodify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.sinkmodify.PresenterEditImpl(place, this, sinkModifyConstants);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.sinkmodify.EditPlace) {
+            return new dk.dbc.dataio.gui.client.pages.sink.sinkmodify.PresenterEditImpl(place, this, sinkModifyConstants);
         }
         if (place instanceof FlowComponentsShowPlace) {
             return new FlowComponentsShowActivity(this);
@@ -293,12 +293,12 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkCreateView() {
+    public dk.dbc.dataio.gui.client.pages.sink.sinkmodify.View getSinkCreateView() {
         return sinkCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.sinkmodify.View getSinkEditView() {
+    public dk.dbc.dataio.gui.client.pages.sink.sinkmodify.View getSinkEditView() {
         return sinkEditView;
     }
 

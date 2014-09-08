@@ -5,7 +5,7 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.sinkmodify.SinkModel;
+import dk.dbc.dataio.gui.client.pages.sink.sinkmodify.SinkModel;
 
 @RemoteServiceRelativePath("SinkServiceProxy")
 public interface SinkServiceProxy extends RemoteService {

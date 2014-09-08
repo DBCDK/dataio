@@ -54,7 +54,7 @@ public class JobStoreProxyImplTest {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
         try {
             jobStoreProxy.getJobStoreFilesystemUrl();
-            fail();
+            fail("JobStoreFileSystemUrl was successfully looked up, where a ProxyException was expected");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
         }
@@ -74,7 +74,7 @@ public class JobStoreProxyImplTest {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
         try {
             jobStoreProxy.findAllJobs();
-            fail();
+            fail("The call to jobStoreProxy.findAllJobs() succeeded, where a ProxyException(SERVICE_NOT_FOUND) was expected");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
         }
@@ -88,7 +88,7 @@ public class JobStoreProxyImplTest {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
         try {
             jobStoreProxy.findAllJobs();
-            fail();
+            fail("The call to jobStoreProxy.findAllJobs() succeeded, where a ProxyException(INTERNAL_SERVER_ERROR) was expected");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
         }

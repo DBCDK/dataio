@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<marcx:record format="danMARC2" type="Bibliographic" xmlns:marcx="info:lc/xmlns/marcxchange-v1">
+      <marcx:leader>00000n    2200000   4500</marcx:leader>
+      <marcx:datafield tag="001" ind1="0" ind2="0">
+        <marcx:subfield code="a">4 542 567 3</marcx:subfield>
+        <marcx:subfield code="b">777777</marcx:subfield>
+        <marcx:subfield code="c">20130704122945</marcx:subfield>
+        <marcx:subfield code="d">20130704</marcx:subfield>
+        <marcx:subfield code="f">a</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield tag="002" ind1="0" ind2="0">
+        <marcx:subfield code="b">710100</marcx:subfield>
+        <marcx:subfield code="c">9 330 071 8</marcx:subfield>
+        <marcx:subfield code="x">71010093300718</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield tag="004" ind1="0" ind2="0">
+        <marcx:subfield code="r">c</marcx:subfield>
+        <marcx:subfield code="a">s</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield tag="008" ind1="0" ind2="0">
+        <marcx:subfield code="v">0</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield tag="014" ind1="0" ind2="0">
+        <marcx:subfield code="a">4 542 566 5</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield tag="245" ind1="0" ind2="0">
+        <marcx:subfield code="A">1</marcx:subfield>
+        <marcx:subfield code="a">Flute</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield tag="300" ind1="0" ind2="0">
+        <marcx:subfield code="n">\spillepartitur\</marcx:subfield>
+        <marcx:subfield code="a">bind</marcx:subfield>
+      </marcx:datafield>
+    </marcx:record>

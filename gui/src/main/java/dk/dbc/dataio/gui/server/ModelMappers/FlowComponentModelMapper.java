@@ -56,7 +56,6 @@ public final class FlowComponentModelMapper {
         if (model.isInputFieldsEmpty()) {
             throw new IllegalArgumentException("model.name, model.svnProject, model.svnRevision, model.invocationJavascript, model.invocationMethod, model.javascriptModules cannot be empty");
         }
-        String a = String.valueOf(model.getSvnRevision());
         return new FlowComponentContent(
                 model.getName(),
                 model.getSvnProject(),

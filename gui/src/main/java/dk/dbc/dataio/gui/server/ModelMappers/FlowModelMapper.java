@@ -14,6 +14,8 @@ import java.util.Map;
 
 public final class FlowModelMapper {
 
+    private final static String NOT_APPLICABLE = "n/a";
+
     /**
      * Private Constructor prevents instantiation of this static class
      */
@@ -61,11 +63,11 @@ public final class FlowModelMapper {
 
     private static List<FlowComponent> getFlowComponentsList(Map<String, String> flowComponentMap) {
         List<FlowComponent> list = new ArrayList<FlowComponent>();
-        for (String key: flowComponentMap.keySet()) {
+        for (Map.Entry<String, String> entry: flowComponentMap.entrySet()) {
             List<JavaScript> javaScripts = new ArrayList<JavaScript>();
-            javaScripts.add(new JavaScript("a", "b"));  // Java script list must not be empty
-            FlowComponentContent content = new FlowComponentContent(flowComponentMap.get(key), "c", 1L, "d", javaScripts, "");
-            list.add(new FlowComponent(Long.valueOf(key), 1L, content));
+            javaScripts.add(new JavaScript(NOT_APPLICABLE, NOT_APPLICABLE));  // Java script list must not be empty
+            FlowComponentContent content = new FlowComponentContent(entry.getValue(), NOT_APPLICABLE, 1L, NOT_APPLICABLE, javaScripts, "");
+            list.add(new FlowComponent(Long.parseLong(entry.getKey()), 1L, content));
         }
         return list;
     }

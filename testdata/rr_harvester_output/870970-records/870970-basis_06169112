@@ -1,3 +1,8 @@
+<data-container>
+<data-supplementary>
+<creationDate>20050301</creationDate>
+</data-supplementary>
+<data>
 <collection xmlns="info:lc/xmlns/marcxchange-v1"><marcx:record xmlns:marcx="info:lc/xmlns/marcxchange-v1" format="danMARC2" type="Bibliographic">
       <marcx:leader>00000n    2200000   4500</marcx:leader>
       <marcx:datafield ind1="0" ind2="0" tag="001">
@@ -122,4 +127,8 @@
       <marcx:datafield ind1="0" ind2="0" tag="n55">
         <marcx:subfield code="a">20050301</marcx:subfield>
       </marcx:datafield>
-    </marcx:record></collection>
+    </marcx:record>
+</collection>
+</data>
+</data-container>
+

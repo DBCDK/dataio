@@ -2,29 +2,20 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.sink.SinkException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
+import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
-import javax.jms.JMSException;
-import javax.jms.Queue;
-import javax.jms.TextMessage;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,11 +28,7 @@ import java.util.Map;
 @Startup
 @DependsOn("EsThrottlerBean")
 public class EsScheduledCleanupBean {
-
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(EsScheduledCleanupBean.class);
-
-    private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME = "chunkResultSource";
-    private static final String SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE = "sink";
 
     @EJB
     EsConnectorBean esConnector;
@@ -53,13 +40,7 @@ public class EsScheduledCleanupBean {
     EsThrottlerBean esThrottler;
 
     @EJB
-    EsSinkConfigurationBean configuration;
-
-    @Resource
-    ConnectionFactory jobProcessorQueueConnectionFactory;
-
-    @Resource(name = "jobProcessorJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
-    Queue jobProcessorJmsQueue;
+    JobProcessorMessageProducerBean jobProcessorMessageProducer;
 
     @PostConstruct
     public void startup() {
@@ -115,23 +96,12 @@ public class EsScheduledCleanupBean {
             List<SinkChunkResult> sinkChunkResults = createSinkChunkResults(finishedEsInFlight);
             esConnector.deleteESTaskpackages(finishedTargetReferences);
             removeEsInFlights(finishedEsInFlight);
-            sendSinkResultsToJobProcessor(sinkChunkResults);
+            for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
+                jobProcessorMessageProducer.send(sinkChunkResult);
+            }
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
-        }
-    }
-
-    private void sendSinkResultsToJobProcessor(List<SinkChunkResult> sinkChunkResults) {
-        try (JMSContext context = jobProcessorQueueConnectionFactory.createContext()) {
-            for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
-                final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
-                message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
-                message.setStringProperty(SINK_CHUNK_RESULT_MESSAGE_PROPERTY_NAME, SINK_CHUNK_RESULT_MESSAGE_PROPERTY_VALUE);
-                context.createProducer().send(jobProcessorJmsQueue, message);
-            }
-        } catch (JsonException | JMSException e) {
-            throw new EJBException(e);
         }
     }
 

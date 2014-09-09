@@ -705,7 +705,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1L).build();
-        when(flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion((eq(flow.getId())), (eq(flow.getVersion()))))
+        when(flowStoreServiceConnector.refreshFlowComponents((eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
             flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
@@ -720,7 +720,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1L).build();
-        when(flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion((eq(flow.getId())),(eq(flow.getVersion()))))
+        when(flowStoreServiceConnector.refreshFlowComponents((eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 409));
         try {
             flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
@@ -735,7 +735,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1L).build();
-        when(flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion((eq(flow.getId())), (eq(flow.getVersion()))))
+        when(flowStoreServiceConnector.refreshFlowComponents((eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenReturn(flow);
 
         try {

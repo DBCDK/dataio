@@ -29,7 +29,6 @@ import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -57,7 +56,7 @@ public class FlowsIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearAllDbTables(dbConnection);
+       clearAllDbTables(dbConnection);
     }
 
     /**
@@ -235,7 +234,7 @@ public class FlowsIT {
      * And  : assert that updated data can be found in the underlying database and only one flow exists
      */
     @Test
-    public void updateFlowComponentsInFlowToLatestVersion_ok() throws Exception{
+    public void refreshFlowComponents_ok() throws Exception{
 
         // Given...
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
@@ -264,19 +263,11 @@ public class FlowsIT {
 
         // When...
         // Update the flow component embedded within the flow to the latest svn revision
-        Flow updatedFlow = flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+        Flow updatedFlow = flowStoreServiceConnector.refreshFlowComponents(flow.getId(), flow.getVersion());
 
         // Then...
-        assertNotNull(updatedFlow);
-        assertNotNull(updatedFlow.getContent());
-        assertNotNull(updatedFlow.getId());
-        assertNotNull(updatedFlow.getVersion());
-        assertThat(updatedFlow.getContent().getName(), is(flowContent.getName()));
-        assertThat(updatedFlow.getContent().getDescription(), is(flowContent.getDescription()));
-
-        for(FlowComponent updatedFlowComponent : updatedFlow.getContent().getComponents()){
-            assertThat(updatedFlowComponent.getContent().getSvnRevision(), not(flowComponent.getContent().getSvnRevision()));
-        }
+        assertFlowNotNull(updatedFlow);
+        assertFlowContentEquals(true, updatedFlow.getContent(), flow.getContent());
 
         // And...
         assertThat(updatedFlow.getId(), is(flow.getId()));
@@ -287,6 +278,7 @@ public class FlowsIT {
         // And...
         final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
         assertThat(flows.size(), is(1));
+        assertFlowEquals(true, flows.get(0), updatedFlow);
     }
 
     /**
@@ -297,13 +289,13 @@ public class FlowsIT {
      * And  : assert that no flows exist in the underlying database
      */
     @Test
-    public void updateFlowComponentsInFlowToLatestVersion_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+    public void refreshFlowComponents_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         try{
             // When...
-            flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(1234, 1L);
+            flowStoreServiceConnector.refreshFlowComponents(1234, 1L);
 
             fail("Wrong flow Id was not detected as input to updateFlowComponentsInFlowToLatestVersion().");
 
@@ -336,7 +328,7 @@ public class FlowsIT {
      * And  : assert that the version number has been updated only by the first user
      */
     @Test
-    public void updateFlowComponentsInFlowToLatestVersion_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
+    public void refreshFlowComponents_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
 
         // Given...
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
@@ -373,10 +365,10 @@ public class FlowsIT {
             flowStoreServiceConnector.updateFlowComponent(updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
 
             // And... First user updates the flow
-            flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+            flowStoreServiceConnector.refreshFlowComponents(flow.getId(), flow.getVersion());
 
             // When... Second user attempts to update the same flow
-            flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion());
+            flowStoreServiceConnector.refreshFlowComponents(flow.getId(), flow.getVersion());
             fail("Edit conflict, in the case of multiple updates, was not detected as input to updateFlowComponentsInFlowToLatestVersion().");
 
             // Then...
@@ -392,6 +384,8 @@ public class FlowsIT {
 
             // Assert that the flowComponent embedded in the flow matches the flow component found
             final Flow flow = flowStoreServiceConnector.getFlow(flowId);
+
+            assertFlowNotNull(flow);
             assertThat(flow.getContent().getComponents().get(0).getId(), is(flowComponent.getId()));
             assertThat(flow.getContent().getComponents().get(0).getVersion(), is(flowComponent.getVersion()));
             assertThat(flow.getContent().getComponents().get(0).getContent().getSvnRevision(), is(flowComponent.getContent().getSvnRevision()));
@@ -401,6 +395,63 @@ public class FlowsIT {
 
             // And... Assert the version number of the flow has been updated after creation, but only by the first user.
             assertThat(flow.getVersion(), is(flowVersion + 1));
+        }
+    }
+
+    private void assertFlowNotNull(Flow flow) {
+        assertNotNull(flow);
+        assertNotNull(flow.getContent());
+        assertNotNull(flow.getId());
+        assertNotNull(flow.getVersion());
+    }
+
+    private void assertFlowContentEquals(boolean isRefresh, FlowContent flowContent1, FlowContent flowContent2) {
+        assertThat(flowContent1.getName(), is(flowContent2.getName()));
+        assertThat(flowContent1.getDescription(), is(flowContent2.getDescription()));
+        assertThat(flowContent1.getComponents().size(), is(flowContent2.getComponents().size()));
+        if(isRefresh){
+            assertFlowComponentDifferentVersion(flowContent1.getComponents(), flowContent2.getComponents());
+        } else {
+            assertFlowComponents(flowContent1.getComponents(), flowContent2.getComponents());
+        }
+    }
+
+    private void assertFlowComponents(List<FlowComponent> flowComponents1, List<FlowComponent> flowComponents2) {
+        assertThat(flowComponents1.size(), is(flowComponents2.size()));
+        for(int i = 0; i < flowComponents1.size(); i++) {
+            assertFlowComponentEquals(flowComponents1.get(i), flowComponents2.get(i));
+        }
+    }
+
+    private void assertFlowComponentDifferentVersion(List<FlowComponent> flowComponents1, List<FlowComponent> flowComponents2) {
+        boolean hasComponentsBeenUpdated = false;
+        for(int i = 0; i < flowComponents1.size(); i++) {
+            assertThat(flowComponents1.get(i).getId(), is(flowComponents2.get(i).getId()));
+            if(flowComponents1.get(i).getVersion() != flowComponents2.get(i).getVersion()) {
+                hasComponentsBeenUpdated = true;
+            }
+        }
+        assertThat(hasComponentsBeenUpdated, is(true));
+    }
+
+    private void assertFlowComponentEquals(FlowComponent flowComponent1, FlowComponent flowComponent2) {
+        assertThat(flowComponent1.getId(), is(flowComponent2.getId()));
+        assertFlowComponentContentEquals(flowComponent1.getContent(), flowComponent2.getContent());
+        assertThat(flowComponent1.getVersion(), is(flowComponent2.getVersion()));
+    }
+
+    private void assertFlowComponentContentEquals(FlowComponentContent flowComponentContent1, FlowComponentContent flowComponentContent2) {
+        assertThat(flowComponentContent1.getName(), is(flowComponentContent2.getName()));
+        assertThat(flowComponentContent1.getInvocationJavascriptName(), is(flowComponentContent2.getInvocationJavascriptName()));
+        assertThat(flowComponentContent1.getSvnRevision(), is(flowComponentContent2.getSvnRevision()));
+        assertThat(flowComponentContent1.getInvocationMethod(), is(flowComponentContent2.getInvocationMethod()));
+    }
+
+    private void assertFlowEquals(boolean isRefresh, Flow flow1, Flow flow2) {
+        assertThat(flow1.getId(), is(flow2.getId()));
+        if(!isRefresh) {
+            assertThat(flow1.getVersion(), is(flow2.getVersion()));
+            assertFlowContentEquals(isRefresh, flow1.getContent(), flow2.getContent());
         }
     }
 

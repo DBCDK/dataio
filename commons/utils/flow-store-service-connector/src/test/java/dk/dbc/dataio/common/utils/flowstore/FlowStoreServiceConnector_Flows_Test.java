@@ -1,10 +1,5 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
-import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -13,27 +8,34 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.Response;
+
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -119,9 +121,9 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     // ***************************************** update flow tests *****************************************
     @Test
-    public void updateFlowComponentsInFlowToLatestVersion_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+    public void refreshFlowComponents_componentsInFlowAreUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
         final Flow flowToUpdate = new FlowBuilder().build();
-        Flow updatedFlow = updateFlow_mockedHttpWithSpecifiedReturnErrorCode(
+        Flow updatedFlow = refreshFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(
                 Response.Status.OK.getStatusCode(),
                 flowToUpdate,
                 flowToUpdate.getId(),
@@ -132,25 +134,31 @@ public class FlowStoreServiceConnector_Flows_Test {
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
-    public void updateFlowComponentsInFlowToLatestVersion_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", ID, VERSION);
+    public void refreshFlowComponents_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        refreshFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", ID, VERSION);
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
-    public void updateFlowComponentsInFlowToLatestVersion_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
-        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
+    public void refreshFlowComponents_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
+        refreshFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
     }
 
     // Helper method
-    private Flow updateFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
+    private Flow refreshFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final Map<String, Object> queryParameters = new HashMap<>(1);
+        queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, true);
+
         when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
                 .thenReturn("path");
-        when(HttpClient.doPostWithJson(CLIENT, headers, "", FLOW_STORE_URL, "path"))
+
+        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, "", FLOW_STORE_URL, "path"))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.updateFlowComponentsInFlowToLatestVersion(id, version);
+        return instance.refreshFlowComponents(id, version);
     }
 
     // ************************************* find all flows tests *************************************

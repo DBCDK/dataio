@@ -170,7 +170,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public Flow updateFlowComponentsInFlowToLatestVersion(Long id, Long version) throws NullPointerException, ProxyException {
         Flow flow;
         try {
-            flow = flowStoreServiceConnector.updateFlowComponentsInFlowToLatestVersion(id, version);
+            flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {

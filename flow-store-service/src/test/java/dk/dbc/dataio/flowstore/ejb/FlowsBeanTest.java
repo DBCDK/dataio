@@ -32,6 +32,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -44,6 +45,10 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class FlowsBeanTest {
 
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
+
+    private static final Long DEFAULT_TEST_ID = 23L;
+    private static final Long DEFAULT_TEST_VERSION = 4L;
+    private static final String DEFAULT_TEST_ETAG_VALUE = Long.toString(DEFAULT_TEST_VERSION);
 
     @Test
     public void flowsBean_validConstructor_newInstance() {
@@ -155,7 +160,7 @@ public class FlowsBeanTest {
     }
 
     @Test(expected = ReferencedEntityNotFoundException.class)
-    public void updateFlowComponentsInFlowToLatestVersion_flowComponentNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+    public void refreshFlowComponents_flowComponentNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
         final Flow flow = mock(Flow.class);
         mockStatic(JsonUtil.class);
@@ -173,19 +178,19 @@ public class FlowsBeanTest {
 
         when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
-        flowsBean.updateFlowComponentsInFlowToLatestVersion(null, 123L, 4321L);
+        flowsBean.updateFlow(null, 123L, 4321L, true);
     }
 
     @Test
-    public void updateFlowComponentsInFlowToLatestVersion_flowNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+    public void refreshFlowComponents_flowNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
-        final Response response = flowsBean.updateFlowComponentsInFlowToLatestVersion(null, 123L, 4321L);
+        final Response response = flowsBean.updateFlow(null, 123L, 4321L, true);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
-    public void updateFlowComponentsInFlowToLatestVersion_flowFound_returnsResponseWithHttpStatusOk_returnsFlow() throws JsonException, ReferencedEntityNotFoundException {
+    public void refreshFlowComponents_flowFound_returnsResponseWithHttpStatusOk_returnsFlow() throws JsonException, ReferencedEntityNotFoundException {
         final Flow flow = mock(Flow.class);
         final UriInfo uriInfo = mock(UriInfo.class);
         final UriBuilder uriBuilder = mock(UriBuilder.class);
@@ -198,7 +203,7 @@ public class FlowsBeanTest {
 
         FlowComponentContent flowComponentContent = new FlowComponentContent(
                 "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod");
-        dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(1L, 22L, flowComponentContent);
+        dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, flowComponentContent);
 
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
         flowComponents.add(flowComponent);
@@ -212,11 +217,14 @@ public class FlowsBeanTest {
         when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(new FlowComponent());
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
-
-        final Response response = flowsBean.updateFlowComponentsInFlowToLatestVersion(uriInfo, 123L, 4321L);
+        final Response response = flowsBean.updateFlow(uriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
 
         verify(flow).setContent(JsonUtil.toJson(flowContent));
-        verify(flow).setVersion(4321L);
+        verify(flow).setVersion(DEFAULT_TEST_VERSION);
+
+        // Verifying that the private method invoked is: updateFlowComponentsInFlowToLatestVersion.
+        // The other method: updateFlowContent does not invoke flow.getContent().
+        verify(flow, times(1)).getContent();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
     }

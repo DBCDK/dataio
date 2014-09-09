@@ -189,12 +189,12 @@ public class FlowStoreServiceConnectorBeanTest {
     }
 
     @Test
-    public void updateFlowComponentsInFlowToLatestVersion_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+    public void refreshComponents_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
         final NamingException namingException = new NamingException();
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
         final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
         try {
-            flowStoreServiceConnectorBean.updateFlowComponentsInFlowToLatestVersion(1, 1);
+            flowStoreServiceConnectorBean.refreshFlowComponents(1, 1);
             fail("No exception thrown by updateFlowComponentsInFlowToLatestVersion()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));

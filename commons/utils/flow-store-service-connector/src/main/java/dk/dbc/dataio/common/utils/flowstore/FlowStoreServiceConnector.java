@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
+
 /**
  * Created by sma on 29/04/14.
  *
@@ -65,7 +67,7 @@ public class FlowStoreServiceConnector {
      */
     public Sink createSink(SinkContent sinkContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
-        final Response response = HttpClient.doPostWithJson(httpClient, sinkContent, baseUrl, FlowStoreServiceConstants.SINKS);
+        final Response response = doPostWithJson(httpClient, sinkContent, baseUrl, FlowStoreServiceConstants.SINKS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
             return readResponseEntity(response, Sink.class);
@@ -131,7 +133,7 @@ public class FlowStoreServiceConnector {
         final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.SINK_CONTENT, pathVariables);
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
-        final Response response = HttpClient.doPostWithJson(httpClient, headers, sinkContent, baseUrl, path.split(URL_PATH_SEPARATOR));
+        final Response response = doPostWithJson(httpClient, headers, sinkContent, baseUrl, path.split(URL_PATH_SEPARATOR));
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Sink.class);
@@ -154,7 +156,7 @@ public class FlowStoreServiceConnector {
      */
     public Submitter createSubmitter(SubmitterContent submitterContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(submitterContent, "submitterContent");
-        final Response response = HttpClient.doPostWithJson(httpClient, submitterContent, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
+        final Response response = doPostWithJson(httpClient, submitterContent, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
             return readResponseEntity(response, Submitter.class);
@@ -203,7 +205,7 @@ public class FlowStoreServiceConnector {
         final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.SUBMITTER_CONTENT, pathVariables);
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
-        final Response response = HttpClient.doPostWithJson(httpClient, headers, submitterContent, baseUrl, path.split(URL_PATH_SEPARATOR));
+        final Response response = doPostWithJson(httpClient, headers, submitterContent, baseUrl, path.split(URL_PATH_SEPARATOR));
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Submitter.class);
@@ -243,7 +245,7 @@ public class FlowStoreServiceConnector {
      */
     public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(flowComponentContent, "flowComponentContent");
-        final Response response = HttpClient.doPostWithJson(httpClient, flowComponentContent, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
+        final Response response = doPostWithJson(httpClient, flowComponentContent, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
             return readResponseEntity(response, FlowComponent.class);
@@ -309,7 +311,7 @@ public class FlowStoreServiceConnector {
         final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT, pathVariables);
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
-        final Response response = HttpClient.doPostWithJson(httpClient, headers, flowComponentContent, baseUrl, path.split(URL_PATH_SEPARATOR));
+        final Response response = doPostWithJson(httpClient, headers, flowComponentContent, baseUrl, path.split(URL_PATH_SEPARATOR));
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, FlowComponent.class);
@@ -332,7 +334,7 @@ public class FlowStoreServiceConnector {
      */
     public Flow createFlow(FlowContent flowContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
         InvariantUtil.checkNotNullOrThrow(flowContent, "flowContent");
-        final Response response = HttpClient.doPostWithJson(httpClient, flowContent, baseUrl, FlowStoreServiceConstants.FLOWS);
+        final Response response = doPostWithJson(httpClient, flowContent, baseUrl, FlowStoreServiceConstants.FLOWS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
             return readResponseEntity(response, Flow.class);
@@ -381,7 +383,7 @@ public class FlowStoreServiceConnector {
     }
 
     /**
-     * Updates an existing flow from the flow-store. The versioned flow components, contained within the flow, are replaced with latest version
+     * Updates the versioned flow components contained within the flow, to latest version
      *
      * @param flowId the id of the flow  to update
      * @param version the current version of the flow
@@ -389,16 +391,22 @@ public class FlowStoreServiceConnector {
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to update the flow
      */
-    public Flow updateFlowComponentsInFlowToLatestVersion(long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
+    public Flow refreshFlowComponents(long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
 
         final Map<String, String> pathVariables = new HashMap<>(1);
         pathVariables.put(FlowStoreServiceConstants.FLOW_ID_VARIABLE, Long.toString(flowId));
-        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.FLOW_CONTENT, pathVariables);
+
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        final Map<String, Object> queryParameters = new HashMap<>(1);
+        queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, true);
+
+        final String path = HttpClient.interpolatePathVariables(FlowStoreServiceConstants.FLOW_CONTENT, pathVariables);
+
         // An empty string is given as post data because post have to have some sort of input. Nothing cannot be posted.
         // An update is still desired, but the "real" data to post is not provided.
-        final Response response = HttpClient.doPostWithJson(httpClient, headers, "", baseUrl, path.split(URL_PATH_SEPARATOR));
+        final Response response = doPostWithJson(httpClient, queryParameters, headers, "", baseUrl, path.split(URL_PATH_SEPARATOR));
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Flow.class);

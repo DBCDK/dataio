@@ -158,10 +158,10 @@ public class FlowStoreServiceConnectorBean {
     }
 
     @Lock(LockType.READ)
-    public Flow updateFlowComponentsInFlowToLatestVersion(long id, long version) throws FlowStoreServiceConnectorException {
+    public Flow refreshFlowComponents(long id, long version) throws FlowStoreServiceConnectorException {
         LOGGER.debug("Updating existing flow to use the latest version of the flow components");
         try{
-            return getFlowStoreServiceConnector().updateFlowComponentsInFlowToLatestVersion(id, version);
+            return getFlowStoreServiceConnector().refreshFlowComponents(id, version);
         }catch (NamingException e) {
             throw new EJBException(e);
         }

@@ -81,6 +81,39 @@ public class HttpClient {
         return doGet(client, new HashMap<String, Object>(), baseUrl, pathElements);
     }
 
+
+    /**
+     * HTTP POSTs given data entity to endpoint constructed using given queryParameters, headers, baseurl and path elements
+     *
+     * @param client
+     * @param queryParameters
+     * @param headers
+     * @param data
+     * @param baseUrl
+     * @param pathElements
+     *
+     * @return server response
+     */
+    public static Response doPost(Client client, Map<String, Object> queryParameters, Map<String, String> headers, Entity data, String baseUrl, String... pathElements) {
+        WebTarget target = client.target(baseUrl);
+        for (String pathElement : pathElements) {
+            target = target.path(pathElement);
+        }
+
+        for (Map.Entry<String, Object> queryParameter : queryParameters.entrySet()) {
+            target = target.queryParam(queryParameter.getKey(), queryParameter.getValue());
+        }
+        Invocation.Builder request = target.request();
+
+        if (headers != null) {
+
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                request.header(entry.getKey(), entry.getValue());
+            }
+        }
+        return request.post(data);
+    }
+
     /**
      * HTTP POSTs given data entity to endpoint constructed using given headers, baseurl and path elements
      *
@@ -105,6 +138,7 @@ public class HttpClient {
         }
         return request.post(data);
     }
+
     public static Response doPost(Client client, Entity data, String baseUrl, String... pathElements) {
         return doPost(client, null, data, baseUrl, pathElements);
     }
@@ -131,6 +165,9 @@ public class HttpClient {
     }
     public static <T> Response doPostWithJson(Client client, T data, String baseUrl, String... pathElements) {
         return doPost(client, null,  Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+    }
+    public static <T> Response doPostWithJson(Client client, Map<String, Object> queryParameters, Map<String, String> headers, T data, String baseUrl, String... pathElements) {
+        return doPost(client, queryParameters, headers, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
     }
 
     /**

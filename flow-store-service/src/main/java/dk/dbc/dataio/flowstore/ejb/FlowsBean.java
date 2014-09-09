@@ -24,6 +24,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -101,8 +102,61 @@ public class FlowsBean {
     }
 
     /**
-     * Updates an existing flow. The versioned flow components, contained within the flow, are replaced with latest version
-     * Post it data is ignored as the data is collected within this method.
+     * Updates an existing flow
+     *
+     * @param uriInfo URI information
+     * @param id The flow ID
+     * @param version The version of the flow
+     * @param isRefresh boolean value defining whether or not:
+     *                  a) The update is to be performed on the flow
+     *                  b) The versioned flow components, contained within the flow, are to be replaced with latest version
+     *
+     * @return a HTTP 200 response with flow content as JSON,
+     *         a HTTP 409 response in case of Concurrent Update error,
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json flow
+     * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_CONTENT)
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    public Response updateFlow(
+            @Context UriInfo uriInfo,
+            @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
+            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version,
+            @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JsonException, ReferencedEntityNotFoundException {
+
+        Response response = null;
+        if(isRefresh != null && isRefresh) {
+            response = refreshFlowComponents(uriInfo, id, version);
+        }else {
+            //Will be implemented shortly
+        }
+        return response;
+    }
+
+    /**
+     * Returns list of all versions of all stored flows sorted by name in ascending order
+     *
+     * @return a HTTP OK response with result list as JSON
+     *
+     * @throws JsonException on failure to create result list as JSON
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.FLOWS)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllFlows() throws JsonException {
+        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
+        final List<Flow> results = query.getResultList();
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+    }
+
+    // private methods
+
+    /**
+     * Updates the versioned flow components contained within the flow. Each is replaced with latest version
      *
      * @param uriInfo URI information
      * @param id The flow ID
@@ -113,12 +167,9 @@ public class FlowsBean {
      *         a HTTP 500 response in case of general error.
      *
      * @throws JsonException on failure to create json flow
+     * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
      */
-    @POST
-    @Path(FlowStoreServiceConstants.FLOW_CONTENT)
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response updateFlowComponentsInFlowToLatestVersion(@Context UriInfo uriInfo, @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
-                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException, ReferencedEntityNotFoundException {
+    private Response refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JsonException, ReferencedEntityNotFoundException {
 
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();
 
@@ -138,7 +189,9 @@ public class FlowsBean {
             dk.dbc.dataio.commons.types.FlowComponent updatedFlowComponent = JsonUtil.fromJson(flowComponentWithLatestVersionJson, dk.dbc.dataio.commons.types.FlowComponent.class);
             flowComponentsWithLatestVersion.add(updatedFlowComponent);
         }
+
         FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), flowComponentsWithLatestVersion);
+
         flowEntity.setContent(JsonUtil.toJson(updatedFlowContent));
         flowEntity.setVersion(version);
         entityManager.merge(flowEntity);
@@ -146,21 +199,5 @@ public class FlowsBean {
         final Flow updatedFlow = entityManager.find(Flow.class, id);
         final String flowJson = JsonUtil.toJson(updatedFlow);
         return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlow)).entity(flowJson).build();
-    }
-
-    /**
-     * Returns list of all versions of all stored flows sorted by name in ascending order
-     *
-     * @return a HTTP OK response with result list as JSON
-     *
-     * @throws JsonException on failure to create result list as JSON
-     */
-    @GET
-    @Path(FlowStoreServiceConstants.FLOWS)
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllFlows() throws JsonException {
-        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
-        final List<Flow> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 }

@@ -169,6 +169,7 @@ public class FlowsBean {
      * @throws JsonException on failure to create json flow
      * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
      */
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private Response refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JsonException, ReferencedEntityNotFoundException {
 
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();

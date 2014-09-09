@@ -128,11 +128,11 @@ public class FlowsBean {
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version,
             @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JsonException, ReferencedEntityNotFoundException {
 
-        Response response = null;
+        Response response;
         if(isRefresh != null && isRefresh) {
             response = refreshFlowComponents(uriInfo, id, version);
         }else {
-            //Will be implemented shortly
+            response = null;
         }
         return response;
     }

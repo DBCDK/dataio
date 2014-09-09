@@ -178,14 +178,14 @@ public class FlowsBeanTest {
 
         when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
-        flowsBean.updateFlow(null, 123L, 4321L, true);
+        flowsBean.updateFlow(null,null, 123L, 4321L, true);
     }
 
     @Test
     public void refreshFlowComponents_flowNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
-        final Response response = flowsBean.updateFlow(null, 123L, 4321L, true);
+        final Response response = flowsBean.updateFlow(null, null, 123L, 4321L, true);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
@@ -217,7 +217,7 @@ public class FlowsBeanTest {
         when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(new FlowComponent());
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
-        final Response response = flowsBean.updateFlow(uriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
+        final Response response = flowsBean.updateFlow("", uriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
 
         verify(flow).setContent(JsonUtil.toJson(flowContent));
         verify(flow).setVersion(DEFAULT_TEST_VERSION);
@@ -227,6 +227,46 @@ public class FlowsBeanTest {
         verify(flow, times(1)).getContent();
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void updateFlow_nullFlowContent_throws() throws JsonException, ReferencedEntityNotFoundException {
+        newFlowsBeanWithMockedEntityManager().updateFlow(null, null, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, false);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void updateFlow_emptyFlowContent_throws() throws JsonException, ReferencedEntityNotFoundException {
+        newFlowsBeanWithMockedEntityManager().updateFlow("", null, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, false);
+    }
+
+    @Test
+    public void updateFlow_flowNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
+        final String flowContent = new FlowContentJsonBuilder().setName("UpdateContentName").build();
+        final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
+
+        final Response response = flowsBean.updateFlow(flowContent, null, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, false);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void updateFlow_flowFound_returnsResponseWithHttpStatusOk_returnsFlow() throws JsonException, ReferencedEntityNotFoundException {
+        final Flow flow = mock(Flow.class);
+        final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
+        final String flowContent = new FlowContentJsonBuilder().build();
+
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(flow)).thenReturn("test");
+        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
+        when(flow.getVersion()).thenReturn(DEFAULT_TEST_VERSION);
+
+        final Response response = flowsBean.updateFlow(flowContent, null, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, false);
+        verify(flow).setContent(flowContent);
+        verify(flow).setVersion(DEFAULT_TEST_VERSION);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
     }
 
     public static FlowsBean newFlowsBeanWithMockedEntityManager() {

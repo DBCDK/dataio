@@ -217,6 +217,7 @@ public class FlowsBean {
      *
      * @throws JsonException JsonException on failure to create json flow
      */
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private Response updateFlowContent(String flowContent, Long id, Long version) throws JsonException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);

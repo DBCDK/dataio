@@ -148,6 +148,16 @@ public class FlowStoreServiceConnectorBean {
     }
 
     @Lock(LockType.READ)
+    public Flow updateFlow(FlowContent flowContent, long id, long version) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Updating existing flow");
+        try{
+            return getFlowStoreServiceConnector().updateFlow(flowContent, id, version);
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
     public List<Flow> findAllFlows() throws FlowStoreServiceConnectorException {
         LOGGER.debug("Retrieving all flows");
         try{

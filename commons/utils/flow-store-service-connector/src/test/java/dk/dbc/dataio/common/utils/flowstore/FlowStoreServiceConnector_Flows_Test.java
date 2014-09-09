@@ -161,6 +161,71 @@ public class FlowStoreServiceConnector_Flows_Test {
         return instance.refreshFlowComponents(id, version);
     }
 
+    @Test
+    public void updateFlow_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+        final FlowContent flowContent = new FlowContentBuilder().build();
+        final Flow flowToUpdate = new FlowBuilder().build();
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final Map<String, Object> queryParameters = new HashMap<>(1);
+        queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false);
+
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+
+        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowToUpdate));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        Flow updatedFlow = instance.updateFlow(flowContent, flowToUpdate.getId(), flowToUpdate.getVersion());
+
+        assertThat(updatedFlow, is(notNullValue()));
+        assertThat(updatedFlow.getContent(), is(notNullValue()));
+        assertThat(updatedFlow.getId(), is(flowToUpdate.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void updateFlow_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlow_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
+        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "", ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlow_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
+        updateFlow_mockedHttpWithSpecifiedReturnErrorCode( Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlow_responseWithFlowIDNotFound_throws() throws FlowStoreServiceConnectorException {
+        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), "", ID, VERSION);
+    }
+
+    // Helper method
+    private Flow updateFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
+        final FlowContent flowContent = new FlowContentBuilder().build();
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final Map<String, Object> queryParameters = new HashMap<>(1);
+        queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false);
+
+        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
+                .thenReturn("path");
+
+        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, "path"))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.updateFlow(flowContent, id, version);
+    }
+
     // ************************************* find all flows tests *************************************
     @Test
     public void findAllFlows_flowsRetrieved_returnsFlows() throws FlowStoreServiceConnectorException {

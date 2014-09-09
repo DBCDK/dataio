@@ -1,0 +1,8 @@
+package dk.dbc.dataio.gui.client.pages.sink.show;
+
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
+
+public interface SinksShowPresenter extends GenericPresenter {
+    void editSink(Sink sink);
+}

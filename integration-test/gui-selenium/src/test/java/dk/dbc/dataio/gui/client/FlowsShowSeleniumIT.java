@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.gui.client.pages.flow.flowsshow.FlowsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;

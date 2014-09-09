@@ -17,7 +17,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindercreate.FlowbinderCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -38,7 +38,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("pages/flowbinder/flowbindercreate/FlowbinderCreateConstants_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("flowbinder/modify/FlowbinderCreateTexts_dk.properties");
 
     private static final long SAVE_TIMEOUT = 4;
 

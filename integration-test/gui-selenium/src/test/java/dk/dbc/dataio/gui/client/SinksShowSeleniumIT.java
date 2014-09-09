@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.gui.client.pages.sink.sinksshow.SinksShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;

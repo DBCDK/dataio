@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.sink.sinkmodify.SinkModel;
+import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 
 import javax.servlet.ServletException;

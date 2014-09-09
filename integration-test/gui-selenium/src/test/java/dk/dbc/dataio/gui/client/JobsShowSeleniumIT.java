@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.utils.test.json.ItemResultCounterJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.gui.client.components.DualPanesPanel;
-import dk.dbc.dataio.gui.client.pages.job.jobsshow.JobsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.job.show.JobsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -34,7 +34,7 @@ import static org.junit.Assert.assertTrue;
 
 public class  JobsShowSeleniumIT extends AbstractGuiSeleniumTest {
 
-    private static ConstantsProperties texts = new ConstantsProperties("pages/job/jobsshow/JobsShowConstants_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("job/show/JobsShowTexts_dk.properties");
 
     private final static String JOBINFO_FILE_NAME = "jobinfo.json";
     private TemporaryDataioJobstoreFolder jobstoreFolder;

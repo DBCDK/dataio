@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.SubmitterModel;
+import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 
 public final class SubmitterModelMapper {
 

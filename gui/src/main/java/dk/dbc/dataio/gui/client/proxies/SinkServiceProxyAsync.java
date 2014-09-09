@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import dk.dbc.dataio.commons.types.PingResponse;
-import dk.dbc.dataio.gui.client.pages.sink.sinkmodify.SinkModel;
+import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 
 public interface SinkServiceProxyAsync {
     void ping(SinkModel model, AsyncCallback<PingResponse> async);

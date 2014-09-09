@@ -12,7 +12,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.gui.client.pages.flowbinder.flowbindersshow.FlowBindersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -29,7 +29,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class FlowBindersShowSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties flowBinderCreationTexts = new ConstantsProperties("pages/flowbinder/flowbindercreate/FlowbinderCreateConstants_dk.properties");
+    private static ConstantsProperties flowBinderCreationTexts = new ConstantsProperties("flowbinder/modify/FlowbinderCreateTexts_dk.properties");
 
     private final static String SUBMITTER_NAME = "SubmitterName";
     private final static String SUBMITTER_DESCRIPTION = "SubmitterDescription";

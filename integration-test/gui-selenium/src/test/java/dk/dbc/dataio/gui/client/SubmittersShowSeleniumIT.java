@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.gui.client.pages.submitter.submittersshow.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;

@@ -12,8 +12,8 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.sink.sinkmodify.SinkModel;
-import dk.dbc.dataio.gui.client.pages.submitter.submittermodify.SubmitterModel;
+import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
+import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 
 import java.util.List;
 

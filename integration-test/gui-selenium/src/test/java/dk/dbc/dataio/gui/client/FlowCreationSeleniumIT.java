@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.flow.flowcreate.FlowCreateViewImpl;
+import dk.dbc.dataio.gui.client.pages.flow.modify.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class FlowCreationSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("pages/flow/flowcreate/FlowCreateConstants_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("flow/modify/FlowCreateTexts_dk.properties");
 
     private static final long SAVE_TIMEOUT = 4;
     private static FlowStoreServiceConnector flowStoreServiceConnector;

@@ -96,9 +96,7 @@ public class EsScheduledCleanupBean {
             List<SinkChunkResult> sinkChunkResults = createSinkChunkResults(finishedEsInFlight);
             esConnector.deleteESTaskpackages(finishedTargetReferences);
             removeEsInFlights(finishedEsInFlight);
-            for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
-                jobProcessorMessageProducer.send(sinkChunkResult);
-            }
+            jobProcessorMessageProducer.sendAll(sinkChunkResults);
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);

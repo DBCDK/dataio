@@ -20,11 +20,15 @@ import javax.jms.JMSProducer;
 import javax.jms.Queue;
 import javax.jms.TextMessage;
 
+import java.util.Arrays;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
@@ -78,6 +82,51 @@ public class JobProcessorMessageProducerBeanTest {
         final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
 
         jobProcessorMessageProducerBean.send(sinkChunkResult);
+    }
+
+    @Test
+    public void sendAll_sinkChunkResultsArgIsNull_throws() throws SinkException {
+        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
+        try {
+            jobProcessorMessageProducerBean.sendAll(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void sendAll_sinkChunkResultsArgContainsNullEntry_throws() throws SinkException {
+        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
+        try {
+            jobProcessorMessageProducerBean.sendAll(Arrays.asList((SinkChunkResult)null));
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void sendAll_createMessageThrowsJsonException_throws() throws JsonException, SinkException {
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
+        try {
+            jobProcessorMessageProducerBean.sendAll(Arrays.asList(sinkChunkResult));
+            fail("No exception thrown");
+        } catch (SinkException e) {
+        }
+    }
+
+    @Test
+    public void sendAll_sinkChunkResultsEntriesAreValid_allEntriesSent() throws SinkException {
+        final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
+        when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
+        when(jmsProducer.send(any(Queue.class), any(TextMessage.class))).thenReturn(jmsProducer);
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+
+        jobProcessorMessageProducerBean.sendAll(Arrays.asList(sinkChunkResult, sinkChunkResult, sinkChunkResult));
+
+        verify(jmsProducer, times(3)).send(any(Queue.class), any(TextMessage.class));
     }
 
     @Test

@@ -43,6 +43,7 @@ public interface FlowStoreProxy extends RemoteService {
     SinkModel getSink(Long id) throws ProxyException;
     SubmitterModel getSubmitter(Long id) throws ProxyException;
     FlowComponent getFlowComponent(Long id) throws ProxyException;
+    FlowModel getFlow(Long id) throws ProxyException;
 
     void close();
 

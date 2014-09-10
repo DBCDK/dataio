@@ -130,6 +130,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public FlowModel getFlow(Long id) throws ProxyException {
+        return flowStoreProxy.getFlow(id);
+    }
+
+    @Override
     public void close() {
         if (flowStoreProxy != null) {
             flowStoreProxy.close();

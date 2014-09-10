@@ -38,6 +38,7 @@ public interface FlowStoreProxyAsync {
     void getSink(Long id, AsyncCallback<SinkModel> async);
     void getSubmitter(Long id, AsyncCallback<SubmitterModel> async);
     void getFlowComponent(Long id, AsyncCallback<FlowComponent> async);
+    void getFlow(Long id, AsyncCallback<FlowModel> async);
 
     void close(AsyncCallback<Void> async);
 }

@@ -592,6 +592,48 @@ public class FlowStoreProxyImplTest {
     }
 
     /*
+    * Test getFlow
+    */
+
+    @Test
+    public void getFlow_remoteServiceReturnsHttpStatusOk_returnsFlowModelEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final Flow flow = new FlowBuilder().setId(ID).build();
+        when(flowStoreServiceConnector.getFlow(eq(ID))).thenReturn(flow);
+
+        try {
+            final FlowModel retrievedModel = flowStoreProxy.getFlow(flow.getId());
+            assertNotNull(retrievedModel);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getFlow()");
+        }
+    }
+
+    @Test
+    public void getFlow_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        getFlow_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void getFlow_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        getFlow_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    private void getFlow_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.getFlow(ID);
+            fail("No " + expectedErrorName + " error was thrown by getFlow()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    /*
     * Test findAllFlows
     */
     @Test

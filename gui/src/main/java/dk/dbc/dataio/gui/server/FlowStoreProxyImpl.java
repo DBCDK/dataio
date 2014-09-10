@@ -198,13 +198,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
         Flow flow;
         try {
-            FlowContent newFlowContent = FlowModelMapper.toFlowContent(model);
-            Flow existingFlow = flowStoreServiceConnector.getFlow(model.getId());
-            // Clear all existing "dummy" components from the new flow content object
-            newFlowContent.getComponents().clear();
-            // transfer all components found on the old flow
-            newFlowContent.getComponents().addAll(existingFlow.getContent().getComponents());
-            flow = flowStoreServiceConnector.updateFlow(newFlowContent, model.getId(), model.getVersion());
+            flow = flowStoreServiceConnector.updateFlow(FlowModelMapper.toFlowContent(model), model.getId(), model.getVersion());
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {

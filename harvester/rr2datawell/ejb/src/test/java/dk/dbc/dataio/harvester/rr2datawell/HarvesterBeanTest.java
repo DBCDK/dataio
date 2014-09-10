@@ -10,10 +10,12 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoIllegalStateException;
+import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RawRepoExceptionRecordNotFound;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
@@ -26,9 +28,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -61,7 +62,7 @@ public class HarvesterBeanTest {
     private JobInfo jobInfo = mock(JobInfo.class);
 
     @Before
-    public void setupMocks() throws SQLException, FileStoreServiceConnectorException, JobStoreServiceConnectorException, RawRepoIllegalStateException {
+    public void setupMocks() throws SQLException, FileStoreServiceConnectorException, JobStoreServiceConnectorException, RawRepoException, MarcXMergerException {
         when(binaryFileStoreBean.getBinaryFile(any(Path.class))).thenReturn(binaryFile);
         when(binaryFile.openInputStream()).thenReturn(is);
         when(binaryFile.openOutputStream()).thenReturn(os);
@@ -69,13 +70,15 @@ public class HarvesterBeanTest {
                 .thenReturn(QUEUE_JOB)
                 .thenReturn(null);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashSet<>(Arrays.asList(RECORD)));
+                .thenReturn(new HashMap<String, Record>(){{
+                    put(RECORD_ID.toString(), RECORD);
+                }});
         when(fileStoreServiceConnector.addFile(is)).thenReturn(FILE_ID);
         when(jobStoreServiceConnector.createJob(any(JobSpecification.class))).thenReturn(jobInfo);
     }
 
     @Test
-    public void harvest_repoConnectorBeanDequeueThrowsSqlException_throws() throws SQLException {
+    public void harvest_repoConnectorBeanDequeueThrowsSqlException_throws() throws SQLException, RawRepoException {
         when(repoConnectorBean.dequeue(anyString())).thenThrow(new SQLException());
 
         final HarvesterBean harvesterBean = getInitializedBean();
@@ -87,7 +90,19 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_repoConnectorBeanQueueSuccessThrowsSqlException_throws() throws SQLException {
+    public void harvest_repoConnectorBeanDequeueThrowsRawRepoException_throws() throws SQLException, RawRepoException {
+        when(repoConnectorBean.dequeue(anyString())).thenThrow(new RawRepoException());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        try {
+            harvesterBean.harvest();
+            fail("No exception thrown");
+        } catch (HarvesterException e) {
+        }
+    }
+
+    @Test
+    public void harvest_repoConnectorBeanQueueSuccessThrowsSqlException_throws() throws SQLException, RawRepoException {
         doThrow(new SQLException()).when(repoConnectorBean).queueSuccess(QUEUE_JOB);
 
         final HarvesterBean harvesterBean = getInitializedBean();
@@ -99,10 +114,23 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_repoConnectorBeanQueueFailThrowsSqlException_throws() throws SQLException, RawRepoIllegalStateException {
+    public void harvest_repoConnectorBeanQueueSuccessThrowsRawRepoException_throws() throws SQLException, RawRepoException {
+        doThrow(new RawRepoException()).when(repoConnectorBean).queueSuccess(QUEUE_JOB);
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        try {
+            harvesterBean.harvest();
+            fail("No exception thrown");
+        } catch (HarvesterException e) {
+        }
+    }
+
+    @Test
+    public void harvest_repoConnectorBeanQueueFailThrowsSqlException_throws() throws SQLException, RawRepoException, MarcXMergerException {
         final Record rrRecord = mock(Record.class);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));
+                .thenReturn(new HashMap<String, Record>(){{
+                    put("ID", rrRecord);}});
         when(rrRecord.getContent()).thenReturn("invalid".getBytes());
         doThrow(new SQLException()).when(repoConnectorBean).queueFail(any(QueueJob.class), anyString());
 
@@ -115,7 +143,24 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsSqlException_throws() throws SQLException, RawRepoIllegalStateException {
+    public void harvest_repoConnectorBeanQueueFailThrowsRawRepoException_throws() throws SQLException, RawRepoException, MarcXMergerException {
+        final Record rrRecord = mock(Record.class);
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>(){{
+                    put("ID", rrRecord);}});
+        when(rrRecord.getContent()).thenReturn("invalid".getBytes());
+        doThrow(new RawRepoException()).when(repoConnectorBean).queueFail(any(QueueJob.class), anyString());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        try {
+            harvesterBean.harvest();
+            fail("No exception thrown");
+        } catch (HarvesterException e) {
+        }
+    }
+
+    @Test
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsSqlException_throws() throws SQLException, RawRepoException, MarcXMergerException {
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvesterBean harvesterBean = getInitializedBean();
@@ -127,10 +172,33 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException, SQLException, RawRepoIllegalStateException {
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsRawRepoException_throws() throws SQLException, RawRepoException, MarcXMergerException {
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new RawRepoException());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        try {
+            harvesterBean.harvest();
+            fail("No exception thrown");
+        } catch (HarvesterException e) {
+        }
+    }
+
+    @Test
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsRawRepoExceptionRecordNotFound_recordIsIgnored() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new RawRepoExceptionRecordNotFound());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        harvesterBean.harvest();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
+    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException, SQLException, RawRepoException, MarcXMergerException {
         final Record rrRecord = mock(Record.class);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashSet<>(Arrays.asList(rrRecord)));
+                .thenReturn(new HashMap<String, Record>(){{
+                    put("ID", rrRecord);}});
         when(rrRecord.getContent()).thenReturn("invalid".getBytes());
 
         final HarvesterBean harvesterBean = getInitializedBean();
@@ -216,7 +284,7 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_noDataToHarvest_noJobIsCreated() throws SQLException, HarvesterException, JobStoreServiceConnectorException {
+    public void harvest_noDataToHarvest_noJobIsCreated() throws SQLException, HarvesterException, JobStoreServiceConnectorException, RawRepoException {
         when(repoConnectorBean.dequeue(anyString())).thenReturn(null);
 
         final HarvesterBean harvesterBean = getInitializedBean();

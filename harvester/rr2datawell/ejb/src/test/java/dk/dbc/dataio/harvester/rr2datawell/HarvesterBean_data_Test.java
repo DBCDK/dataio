@@ -14,9 +14,10 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifi
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoIllegalStateException;
+import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
@@ -34,8 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -101,7 +101,7 @@ public class HarvesterBean_data_Test {
     }
 
     @Before
-    public void setupMocks() throws SQLException, IOException {
+    public void setupMocks() throws SQLException, IOException, RawRepoException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
@@ -131,12 +131,20 @@ public class HarvesterBean_data_Test {
 
     @Test
     public void harvest_multipleLibraryNumbersHarvested_CommunityAndLocalRecordsInSeparateJobs()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoIllegalStateException {
+            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR_BEAN.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashSet<>(Arrays.asList(FIRST_RECORD_HEAD, FIRST_RECORD_SECTION, FIRST_RECORD)))
-                .thenReturn(new HashSet<>(Arrays.asList(SECOND_RECORD)))
-                .thenReturn(new HashSet<>(Arrays.asList(THIRD_RECORD)));
+                .thenReturn(new HashMap<String, Record>(){{
+                    put(FIRST_RECORD_HEAD_ID.toString(), FIRST_RECORD_HEAD);
+                    put(FIRST_RECORD_SECTION_ID.toString(), FIRST_RECORD_SECTION);
+                    put(FIRST_RECORD_ID.toString(), FIRST_RECORD);
+                }})
+                .thenReturn(new HashMap<String, Record>(){{
+                    put(SECOND_RECORD_ID.toString(), SECOND_RECORD);
+                }})
+                .thenReturn(new HashMap<String, Record>(){{
+                    put(THIRD_RECORD_ID.toString(), THIRD_RECORD);
+                }});
 
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
@@ -171,15 +179,22 @@ public class HarvesterBean_data_Test {
 
     @Test
     public void harvest_recordCollectionContainsInvalidEntry_recordIsSkipped()
-            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoIllegalStateException {
+            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException {
         final MockedRecord invalidRecord = new MockedRecord(FIRST_RECORD_HEAD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR_BEAN.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashSet<>(Arrays.asList(FIRST_RECORD, invalidRecord)))
-                .thenReturn(new HashSet<>(Arrays.asList(SECOND_RECORD)))
-                .thenReturn(new HashSet<>(Arrays.asList(THIRD_RECORD)));
+                .thenReturn(new HashMap<String, Record>(){{
+                    put(FIRST_RECORD_ID.toString(), FIRST_RECORD);
+                    put("INVALID_RECORD_ID", invalidRecord);
+                }})
+                .thenReturn(new HashMap<String, Record>(){{
+                    put(SECOND_RECORD_ID.toString(), SECOND_RECORD);
+                }})
+                .thenReturn(new HashMap<String, Record>(){{
+                    put(THIRD_RECORD_ID.toString(), THIRD_RECORD);
+                }});
 
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();

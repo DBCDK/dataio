@@ -16,8 +16,10 @@ import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoIllegalStateException;
+import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RawRepoExceptionRecordNotFound;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
@@ -43,6 +45,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -140,7 +144,7 @@ public class HarvesterBean {
     private QueueJob getNextQueuedItem() throws HarvesterException {
         try {
             return rawRepoConnector.dequeue(RAW_REPO_CONSUMER_ID);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException e) {
             throw new HarvesterException(e);
         }
     }
@@ -153,10 +157,10 @@ public class HarvesterBean {
     private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
         final Set<Record> records;
         try {
-            records = rawRepoConnector.fetchRecordCollection(recordId);
-        } catch (RawRepoIllegalStateException e) {
+            records = asSet(rawRepoConnector.fetchRecordCollection(recordId));
+        } catch (RawRepoExceptionRecordNotFound e) {
             throw new HarvesterInvalidRecordException("Invalid state of rawrepo", e);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException | MarcXMergerException e) {
             throw new HarvesterException("Unable to fetch record collection for " + recordId.toString(), e);
         }
         LOGGER.debug("Fetched rawrepo collection<{}> for {}", records, recordId);
@@ -169,6 +173,14 @@ public class HarvesterBean {
         dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
         return dataContainer;
+    }
+
+    private Set<Record> asSet(Map<String, Record> recordMap) {
+        final Set<Record> records = new HashSet<>(recordMap.size());
+        for (Record record : recordMap.values()) {
+            records.add(record);
+        }
+        return records;
     }
 
     private byte[] getRecordContent(Record record) throws HarvesterInvalidRecordException {
@@ -191,7 +203,7 @@ public class HarvesterBean {
     private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {
         try {
             rawRepoConnector.queueSuccess(queuedItem);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException e) {
             throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as success", e);
         }
     }
@@ -199,7 +211,7 @@ public class HarvesterBean {
     private void markAsFailure(QueueJob queuedItem, String errorMessage) throws HarvesterException {
         try {
             rawRepoConnector.queueFail(queuedItem, errorMessage);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException e) {
             throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as failure", e);
         }
     }

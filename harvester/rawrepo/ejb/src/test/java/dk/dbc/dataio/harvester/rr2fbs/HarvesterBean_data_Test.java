@@ -15,6 +15,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
@@ -82,7 +83,7 @@ public class HarvesterBean_data_Test {
     }
 
     @Before
-    public void setupMocks() throws SQLException, IOException {
+    public void setupMocks() throws SQLException, IOException, RawRepoException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
@@ -108,7 +109,7 @@ public class HarvesterBean_data_Test {
 
     @Test
     public void harvest_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException {
+            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR_BEAN.fetchRecord(any(RecordId.class)))
                 .thenReturn(FIRST_RECORD)
@@ -137,7 +138,7 @@ public class HarvesterBean_data_Test {
 
     @Test
     public void harvest_recordIsInvalid_recordIsSkipped()
-            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException {
+            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoException {
         final MockedRecord invalidRecord = new MockedRecord(SECOND_RECORD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 

@@ -15,6 +15,7 @@ import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
@@ -121,7 +122,7 @@ public class HarvesterBean {
     private QueueJob getNextQueuedItem() throws HarvesterException {
         try {
             return rawRepoConnector.dequeue(RAW_REPO_CONSUMER_ID);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException e) {
             throw new HarvesterException(e);
         }
     }
@@ -135,7 +136,7 @@ public class HarvesterBean {
         try {
             record = rawRepoConnector.fetchRecord(recordId);
             LOGGER.debug("Fetched rawrepo record<{}>", record);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException e) {
             throw new HarvesterException("Unable to fetch record for " + recordId.toString(), e);
         }
         final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection(documentBuilder, transformer);
@@ -154,7 +155,7 @@ public class HarvesterBean {
     private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {
         try {
             rawRepoConnector.queueSuccess(queuedItem);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException e) {
             throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as success", e);
         }
     }
@@ -162,7 +163,7 @@ public class HarvesterBean {
     private void markAsFailure(QueueJob queuedItem, String errorMessage) throws HarvesterException {
         try {
             rawRepoConnector.queueFail(queuedItem, errorMessage);
-        } catch (SQLException e) {
+        } catch (SQLException | RawRepoException e) {
             throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as failure", e);
         }
     }

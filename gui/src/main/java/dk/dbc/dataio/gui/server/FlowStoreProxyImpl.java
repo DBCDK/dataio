@@ -17,9 +17,11 @@ import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.server.ModelMappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
@@ -167,7 +169,20 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public Flow updateFlowComponentsInFlowToLatestVersion(Long id, Long version) throws NullPointerException, ProxyException {
+    public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
+        Flow flow;
+        try {
+            flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return FlowModelMapper.toModel(flow);
+    }
+
+    @Override
+    public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
         Flow flow;
         try {
             flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
@@ -177,6 +192,27 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return flow;
+    }
+
+    @Override
+    public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
+        Flow flow;
+        try {
+            FlowContent newFlowContent = FlowModelMapper.toFlowContent(model);
+            Flow existingFlow = flowStoreServiceConnector.getFlow(model.getId());
+            // Clear all existing "dummy" components from the new flow content object
+            newFlowContent.getComponents().clear();
+            // transfer all components found on the old flow
+            newFlowContent.getComponents().addAll(existingFlow.getContent().getComponents());
+            flow = flowStoreServiceConnector.updateFlow(newFlowContent, model.getId(), model.getVersion());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e){
+            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+        }
+        return FlowModelMapper.toModel(flow);
     }
 
     @Override

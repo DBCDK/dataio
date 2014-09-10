@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
@@ -74,8 +75,18 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public Flow updateFlowComponentsInFlowToLatestVersion(Long id, Long version) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(id, version);
+    public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
+        return flowStoreProxy.refreshFlowComponents(id, version);
+    }
+
+    @Override
+    public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
+        return flowStoreProxy.refreshFlowComponentsOld(id, version);
+    }
+
+    @Override
+    public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateFlow(model);
     }
 
     @Override

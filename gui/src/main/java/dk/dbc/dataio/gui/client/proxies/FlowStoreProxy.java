@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 
@@ -29,7 +30,9 @@ public interface FlowStoreProxy extends RemoteService {
     SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException;
     SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
     FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException;
-    Flow updateFlowComponentsInFlowToLatestVersion(Long id, Long version) throws NullPointerException, ProxyException;
+    FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException;
+    Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException;
+    FlowModel updateFlow(FlowModel FlowContent) throws NullPointerException, ProxyException;
 
     List<Flow> findAllFlows() throws ProxyException;
     List<FlowBinder> findAllFlowBinders() throws ProxyException;

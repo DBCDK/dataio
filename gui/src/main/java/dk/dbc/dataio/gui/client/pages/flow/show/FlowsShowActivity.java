@@ -38,7 +38,7 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
 
     @Override
     public void updateFlowComponentsInFlowToLatestVersion(Flow flow) {
-        flowStoreProxy.updateFlowComponentsInFlowToLatestVersion(flow.getId(), flow.getVersion(), new FilteredAsyncCallback<Flow>() {
+        flowStoreProxy.refreshFlowComponentsOld(flow.getId(), flow.getVersion(), new FilteredAsyncCallback<Flow>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowsShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());

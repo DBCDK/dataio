@@ -384,6 +384,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         return Long.toString(content.getJobSpecification().getSubmitterId());
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private boolean validateObjects(Object o1, Object o2) {
         return o1 != null && o2 != null;
     }

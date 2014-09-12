@@ -165,6 +165,7 @@ public class MarcExchangeCollection implements HarvesterXmlRecord {
         memberCount++;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private Transformer configureTransformer() throws HarvesterException {
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
         transformer.setOutputProperty(OutputKeys.INDENT, "no");

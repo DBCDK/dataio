@@ -176,6 +176,7 @@ public class SvnConnector {
         return SVNURL.parseURIEncoded(uri.toASCIIString());
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private static List<RevisionInfo>  processSvnLogEntries(final LinkedList<SVNLogEntry> logEntries) {
         log.debug("{} log entries to process", logEntries.size());
         final List<RevisionInfo> revisions = new ArrayList<>();
@@ -198,6 +199,7 @@ public class SvnConnector {
         return changedItems;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private static void processPath(SVNRepository repository, long revision, String path, Collection<String> pathEntries) throws SVNException {
         final Collection<SVNDirEntry> dirEntries = new ArrayList<>();
         repository.getDir(path, revision, false, dirEntries);

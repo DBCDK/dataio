@@ -84,6 +84,7 @@ public class FilesBean {
         return Response.ok(stream).build();
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private URI getUri(UriInfo uriInfo, String fileId) {
         final UriBuilder absolutePathBuilder = uriInfo.getAbsolutePathBuilder();
         return absolutePathBuilder.path(fileId).build();

@@ -98,6 +98,7 @@ public class FbsUpdateConnector {
         return endpoint;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private UpdateMarcXchangePortType getProxy() {
         // getUpdateMarcXchangePort() calls getPort() which is not thread safe, so
         // we cannot let the proxy be application scoped.

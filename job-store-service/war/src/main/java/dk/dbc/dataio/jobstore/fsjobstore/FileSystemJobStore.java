@@ -237,6 +237,8 @@ public class FileSystemJobStore implements JobStore {
 //            throw new JobStoreException(String.format("Exception caught when trying to write JobSpecification: %s", jobSpecPath.toString()), e);
 //        }
 //    }
+
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private <T> void storeJsonObjectAsFileInJob(Path jobPath, String filename, T jsonObject, long objectId) throws JobStoreException {
         final Path path = Paths.get(jobPath.toString(), filename);
         LOGGER.info("Creating json-file: {}", path);

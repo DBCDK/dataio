@@ -52,6 +52,7 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
     }
 
     // Remove this method and the obsolete lines in fetchRevisions when hack is removed.
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     private List<RevisionInfo> deployHackForRetrievingASingleTestedRevision() throws JavaScriptProjectFetcherException {
         List<RevisionInfo> hackedRevisionList = new ArrayList<RevisionInfo>();
         try {

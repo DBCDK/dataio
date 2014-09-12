@@ -146,6 +146,7 @@ public class JmsQueueBean {
         return textMessage;
     }
 
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private static Queue getQueueResource(String resourceName) throws NamingException {
         Queue resourceValue;
         InitialContext initialContext = null;

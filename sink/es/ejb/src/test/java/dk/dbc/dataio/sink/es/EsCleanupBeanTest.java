@@ -32,10 +32,10 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 /*
- * This is a simple white-box test of the EsScheduledCleanupBean.cleanup() method.
+ * This is a simple white-box test of the EsCleanupBean.cleanup() method.
  */
-public class EsScheduledCleanupBeanTest {
-    private EsScheduledCleanupBean cleanupBean;
+public class EsCleanupBeanTest {
+    private EsCleanupBean cleanupBean;
     private EsInFlightBean esInFlightAdmin;
     private EsConnectorBean esConnector;
     private EsThrottlerBean esThrottler;
@@ -56,7 +56,7 @@ public class EsScheduledCleanupBeanTest {
     @Before
     public void setup() {
 
-        cleanupBean = new EsScheduledCleanupBean();
+        cleanupBean = new EsCleanupBean();
 
         esInFlightAdmin = mock(EsInFlightBean.class);
         cleanupBean.esInFlightAdmin = esInFlightAdmin;

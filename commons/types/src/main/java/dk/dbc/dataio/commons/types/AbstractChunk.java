@@ -1,6 +1,5 @@
 package dk.dbc.dataio.commons.types;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractChunk {
@@ -21,6 +20,6 @@ public abstract class AbstractChunk {
     }
 
     public List<ChunkItem> getItems() {
-        return new ArrayList<ChunkItem>(items);
+        return items;
     }
 }

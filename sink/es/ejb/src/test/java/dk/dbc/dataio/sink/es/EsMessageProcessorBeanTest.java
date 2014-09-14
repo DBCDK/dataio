@@ -1,6 +1,7 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -22,10 +23,13 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
@@ -105,6 +109,65 @@ public class EsMessageProcessorBeanTest {
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY - 1));
+    }
+
+    @Test
+    public void getEsWorkloadFromChunkResult_chunkResultArgIsNull_throws() throws SinkException {
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        try {
+            esMessageProcessorBean.getEsWorkloadFromChunkResult(null);
+            fail("No exception thrown");
+        } catch(NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void getEsWorkloadFromChunkResult_chunkResultArgIsNonEmpty_returnsEsWorkload() throws SinkException {
+        final String validAddi = "1\na\n1\nb\n";
+        final ArrayList<ChunkItem> chunkItems = new ArrayList<>();
+        chunkItems.add(new ChunkItemBuilder()               // processed successfully
+                .setId(1)
+                .setData(Base64Util.base64encode(validAddi))
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+        chunkItems.add(new ChunkItemBuilder()               // ignored by processor
+                .setId(2)
+                .setStatus(ChunkItem.Status.IGNORE)
+                .build());
+        chunkItems.add(new ChunkItemBuilder()               // failed by processor
+                .setId(3)
+                .setStatus(ChunkItem.Status.FAILURE)
+                .build());
+        chunkItems.add(new ChunkItemBuilder()               // processor produces invalid addi
+                .setId(4)
+                .setData("invalid")
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+        chunkItems.add(new ChunkItemBuilder()               // processed successfully
+                .setId(5)
+                .setData(Base64Util.base64encode(validAddi))
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+        final ChunkResult chunkResult = new ChunkResultBuilder()
+                .setItems(chunkItems)
+                .build();
+
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        final EsWorkload esWorkloadFromChunkResult = esMessageProcessorBean.getEsWorkloadFromChunkResult(chunkResult);
+
+        assertThat(esWorkloadFromChunkResult, is(notNullValue()));
+        assertThat(esWorkloadFromChunkResult.getAddiRecords().size(), is(2));
+        assertThat(esWorkloadFromChunkResult.getSinkChunkResult().getItems().size(), is(5));
+        assertThat("chunkItem 1 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getId(), is(1L));
+        assertThat("chunkItem 1 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem 2 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getId(), is(2L));
+        assertThat("chunkItem 2 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("chunkItem 3 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(2).getId(), is(3L));
+        assertThat("chunkItem 3 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(2).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("chunkItem 4 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getId(), is(4L));
+        assertThat("chunkItem 4 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("chunkItem 5 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getId(), is(5L));
+        assertThat("chunkItem 5 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

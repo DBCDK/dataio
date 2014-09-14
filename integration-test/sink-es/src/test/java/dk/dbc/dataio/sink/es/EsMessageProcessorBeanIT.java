@@ -43,7 +43,6 @@ import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@Ignore("Ignored since it hangs - jda 2014.07.21")
 public class EsMessageProcessorBeanIT {
     // todo: investigate why it takes a very long time (30+ secs) to obtain a ES db connection in certain cases (fx. on the Jenkins node)
     private static final long MAX_QUEUE_WAIT_IN_MS = 120000;
@@ -106,6 +105,7 @@ public class EsMessageProcessorBeanIT {
         assertThat(getNumberOfRecordsInFlight(), is(0));
     }
 
+    @Ignore("Ignored since US#373 is not finished - 12-09-2014")
     @Test
     public void esMessageProcessorBean_chunkWithAllRecordsFailed_notProcessedAndSinkResultIsAllIgnored()
             throws JMSException, JsonException, SQLException, ClassNotFoundException {

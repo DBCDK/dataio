@@ -4,6 +4,7 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
@@ -11,7 +12,6 @@ import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,6 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-@Ignore("Ignored since it hangs - jda 2014.07.21")
 public class ESTaskPackageUtilIT {
     private static Logger LOGGER = LoggerFactory.getLogger(ESTaskPackageUtilIT.class);
 
@@ -242,7 +241,9 @@ public class ESTaskPackageUtilIT {
         private int createTPAndInsertAddis() throws IllegalStateException, NumberFormatException, IOException, SQLException {
             List<ChunkItem> chunkItems = createChunkItemList();
             ChunkResult chunkResult = createChunkResult(chunkItems);
-            EsWorkload esWorkload = new EsWorkload(chunkResult, ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult));
+            final SinkChunkResult sinkChunkResult = new SinkChunkResult(
+                    chunkResult.getJobId(), chunkResult.getChunkId(), chunkResult.getEncoding(), chunkResult.getItems());
+            EsWorkload esWorkload = new EsWorkload(sinkChunkResult, ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult));
             return ESTaskPackageUtil.insertTaskPackage(conn, dbname, esWorkload);
         }
 

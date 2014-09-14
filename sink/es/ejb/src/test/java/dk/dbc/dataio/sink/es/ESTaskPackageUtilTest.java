@@ -7,6 +7,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +17,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -37,6 +40,10 @@ import static org.powermock.api.mockito.PowerMockito.when;
     JDBCUtil.class,
     ESUtil.class,})
 public class ESTaskPackageUtilTest {
+    private static final long JOB_ID = 11L;
+    private static final long CHUNK_ID = 17L;
+    private static final Charset ENCODING = Charset.defaultCharset();
+    private static final String DB_NAME = "dbname";
 
     @Test
     public void test() throws SQLException {
@@ -89,6 +96,48 @@ public class ESTaskPackageUtilTest {
         final ChunkResult chunkResult = newChunkResult(simpleAddiString);
         final List<AddiRecord> addiRecordsFromChunk = ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult);
         assertThat(addiRecordsFromChunk.size(), is(1));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getAddiRecordFromChunkItem_chunkItemArgIsNull_throws() throws Exception {
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(null, StandardCharsets.UTF_8);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getAddiRecordFromChunkItem_encodingArgIsNull_throws() throws Exception {
+        final String simpleAddiString = "1\na\n1\nb\n";
+        final ChunkItem chunkItem = newChunkItem(simpleAddiString);
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, null);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getAddiRecordFromChunkItem_twoAddiInOneRecord_throws() throws Exception {
+        final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
+        final ChunkItem chunkItem = newChunkItem(addiWithTwoRecords);
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void getAddiRecordFromChunkItem_chunkItemArgContainsNonAddiData_throws() throws Exception {
+        final ChunkItem chunkItem = newChunkItem("non-addi");
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void getAddiRecordFromChunkItem_chunkItemArgContainsNonBase64EncodedAddi_throws() throws Exception {
+        final String simpleAddiString = "1\na\n1\nb\n";
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setData(simpleAddiString)
+                .build();
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+    }
+
+    @Test
+    public void getAddiRecordFromChunkItem_chunkItemArgContainsValidAddi_returnsAddiRecordInstance() throws Exception {
+        final String simpleAddiString = "1\na\n1\nb\n";
+        final ChunkItem chunkItem = newChunkItem(simpleAddiString);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        assertThat(addiRecord, is(notNullValue()));
     }
 
     @Test
@@ -179,14 +228,19 @@ public class ESTaskPackageUtilTest {
 
 
     private EsWorkload newEsWorkload(String record) throws IOException {
-        return new EsWorkload(newChunkResult(record), Arrays.asList(newAddiRecordFromString(record)));
+        return new EsWorkload(new SinkChunkResultBuilder().build(),
+                Arrays.asList(newAddiRecordFromString(record)));
+    }
+
+    private ChunkItem newChunkItem(String record) {
+        return new ChunkItemBuilder()
+                .setData(encodeBase64(record))
+                .build();
     }
 
     private ChunkResult newChunkResult(String record) {
-        final ChunkItem item = new ChunkItemBuilder()
-                .setData(encodeBase64(record))
-                .build();
-        return new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(item));
+        return new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(
+                newChunkItem(record)));
     }
 
     private AddiRecord newAddiRecordFromString(String record) throws IOException {
@@ -197,10 +251,4 @@ public class ESTaskPackageUtilTest {
     private String encodeBase64(String dataToEncode) {
         return Base64.encodeBase64String(dataToEncode.getBytes(ENCODING));
     }
-
-    private static final long JOB_ID = 11L;
-    private static final long CHUNK_ID = 17L;
-    private static final Charset ENCODING = Charset.defaultCharset();
-    private static final String DB_NAME = "dbname";
-
 }

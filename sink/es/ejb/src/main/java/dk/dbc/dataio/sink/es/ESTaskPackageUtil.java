@@ -121,6 +121,31 @@ public class ESTaskPackageUtil {
     }
 
     /**
+     * Extracts addi-record from given chunk item.
+     * Items data is assumed to be base64 encoded.
+     * @param chunkItem Object containing base64 encoded addi-record data
+     * @param encoding addi-data encoding
+     * @return AddiRecord object.
+     * @throws NullPointerException if given any null-valued argument
+     * @throws IOException if an error occurs during reading of the addi-data.
+     * @throws IllegalStateException if contained addi-record is invalid or if
+     * addi-data contains multiple addi-records
+     * @throws NumberFormatException if contained record is not
+     * addi-format or not base64 encoded.
+     */
+    public static AddiRecord getAddiRecordFromChunkItem(ChunkItem chunkItem, Charset encoding)
+            throws NullPointerException, IllegalStateException, NumberFormatException, IOException {
+        final List<AddiRecord> addiRecords = new ArrayList<>();
+        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(
+                decodeBase64(chunkItem.getData(), encoding).getBytes(encoding)));
+        addiRecords.add(addiReader.getNextRecord());
+        if (addiReader.getNextRecord() != null) {
+            throw new IllegalStateException(String.format("More than one Addi in record"));
+        }
+        return addiRecords.get(0);
+    }
+
+    /**
      * Inserts the addi-records contained in given workload into the ES-base
      * with the given dbname.
      *
@@ -138,8 +163,8 @@ public class ESTaskPackageUtil {
         InvariantUtil.checkNotNullOrThrow(esConn, "esConn");
         InvariantUtil.checkNotNullNotEmptyOrThrow(dbname, "dbname");
         InvariantUtil.checkNotNullOrThrow(esWorkload, "esInFlight");
-        final String creator = createCreatorString(esWorkload.getChunkResult().getJobId(), esWorkload.getChunkResult().getChunkId());
-        final ESUtil.AddiListInsertionResult insertionResult = ESUtil.insertAddiList(esConn, esWorkload.getAddiRecords(), dbname, esWorkload.getChunkResult().getEncoding(), creator);
+        final String creator = createCreatorString(esWorkload.getSinkChunkResult().getJobId(), esWorkload.getSinkChunkResult().getChunkId());
+        final ESUtil.AddiListInsertionResult insertionResult = ESUtil.insertAddiList(esConn, esWorkload.getAddiRecords(), dbname, esWorkload.getSinkChunkResult().getEncoding(), creator);
         validateTaskPackageState(insertionResult, esWorkload);
         return insertionResult.getTargetReference();
     }

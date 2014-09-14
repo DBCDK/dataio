@@ -2,6 +2,8 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -16,7 +18,6 @@ import javax.ejb.LocalBean;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -125,10 +126,38 @@ public class EsScheduledCleanupBean {
         return sinkChunkResults;
     }
 
-    private SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) throws SinkException {
-        LOGGER.info("creating ChunkItems for tp: {}", esInFlight.getTargetReference());
+    SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) throws SinkException {
+        LOGGER.info("Finishing SinkChunkResult for tp: {}", esInFlight.getTargetReference());
+        final SinkChunkResult sinkChunkResult;
+        try {
+            sinkChunkResult = JsonUtil.fromJson(esInFlight.getSinkChunkResult(), SinkChunkResult.class);
+        } catch (JsonException e) {
+            throw new SinkException(String.format("Unable to marshall SinkChunkResult for tp: %d", esInFlight.getTargetReference()), e);
+        }
+
         final List<ChunkItem> items = esConnector.getSinkResultItemsForTaskPackage(esInFlight.getTargetReference());
-        return new SinkChunkResult(esInFlight.getJobId(), esInFlight.getChunkId(), Charset.defaultCharset(), items);
+        final List<ChunkItem> resultItems = sinkChunkResult.getItems();
+
+        // Fill out empty slots in pre-built SinkChunkResult
+        int j = 0;
+        for (int i = 0; i < resultItems.size(); i++) {
+            if (resultItems.get(i).getStatus() == ChunkItem.Status.SUCCESS) {
+                try {
+                    resultItems.set(i, new ChunkItem(i + 1, items.get(j).getData(), items.get(j).getStatus()));
+                    j++;
+                } catch (IndexOutOfBoundsException e) {
+                    throw new SinkException(String.format("SinkChunkResult item discrepancy for tp<%d>: %d items returned, more expected",
+                    esInFlight.getTargetReference(), items.size()));
+                }
+            }
+        }
+
+        if (items.size() != j) {
+            throw new SinkException(String.format("SinkChunkResult item discrepancy for tp<%d>: %d items returned, %d items used",
+                    esInFlight.getTargetReference(), items.size(), j));
+        }
+
+        return sinkChunkResult;
     }
 
     private Map<Integer, EsInFlight> createEsInFlightMap(List<EsInFlight> esInFlightList) {

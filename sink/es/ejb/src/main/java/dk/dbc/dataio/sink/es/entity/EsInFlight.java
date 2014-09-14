@@ -36,6 +36,10 @@ public class EsInFlight {
     @Column(nullable = false)
     private Integer recordSlots;
 
+    @Lob
+    @Column(nullable = false)
+    private String sinkChunkResult;
+
     public Long getChunkId() {
         return chunkId;
     }
@@ -74,5 +78,13 @@ public class EsInFlight {
 
     public void setResourceName(String resourceName) {
         this.resourceName = resourceName;
+    }
+
+    public String getSinkChunkResult() {
+        return sinkChunkResult;
+    }
+
+    public void setSinkChunkResult(String sinkChunkResult) {
+        this.sinkChunkResult = sinkChunkResult;
     }
 }

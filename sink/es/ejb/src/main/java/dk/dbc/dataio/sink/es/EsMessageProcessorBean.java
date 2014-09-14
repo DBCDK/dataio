@@ -1,8 +1,12 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -12,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @MessageDriven
 public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
@@ -29,16 +35,18 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     @EJB
     EsSinkConfigurationBean configuration;
 
+    /**
+     * Generates ES workload from given processor result, ensures that ES processing
+     * capacity is not exceeded by acquiring the necessary number of record slots from
+     * the ES throttler, creates ES task package, and marks it as being in-flight.
+     * @param consumedMessage message containing ChunkResult payload
+     * @throws SinkException on any failure during workload processing
+     * @throws InvalidMessageException if unable to unmarshall message payload to ChunkResult
+     */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
         final ChunkResult chunkResult = unmarshallPayload(consumedMessage);
-        final EsWorkload workload;
-        try {
-            workload = new EsWorkload(chunkResult, ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult));
-        } catch (RuntimeException | IOException e) {
-            throw new InvalidMessageException(String.format(
-                    "Message<%s> ChunkResult payload contained invalid addi", consumedMessage.getMessageId()), e);
-        }
+        final EsWorkload workload = getEsWorkloadFromChunkResult(chunkResult);
 
         try {
             esThrottler.acquireRecordSlots(workload.getAddiRecords().size());
@@ -46,21 +54,63 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             throw new SinkException("Interrupted while waiting for free record slots", e);
         }
         try {
+            // ToDo: handle case where nothing is to be delivered
             final int targetReference = esConnector.insertEsTaskPackage(workload);
             final EsInFlight esInFlight = new EsInFlight();
             esInFlight.setResourceName(configuration.getEsResourceName());
-            esInFlight.setJobId(workload.getChunkResult().getJobId());
-            esInFlight.setChunkId(workload.getChunkResult().getChunkId());
+            esInFlight.setJobId(workload.getSinkChunkResult().getJobId());
+            esInFlight.setChunkId(workload.getSinkChunkResult().getChunkId());
             esInFlight.setRecordSlots(workload.getAddiRecords().size());
             esInFlight.setTargetReference(targetReference);
+            esInFlight.setSinkChunkResult(JsonUtil.toJson(workload.getSinkChunkResult()));
             esInFlightAdmin.addEsInFlight(esInFlight);
 
             LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
-                    targetReference, workload.getChunkResult().getChunkId(), workload.getChunkResult().getJobId());
+                    targetReference, workload.getSinkChunkResult().getChunkId(), workload.getSinkChunkResult().getJobId());
 
         } catch (Exception e) {
             esThrottler.releaseRecordSlots(workload.getAddiRecords().size());
             throw new SinkException("Exception caught during workload processing", e);
         }
+    }
+
+    /**
+     * Generates ES workload based on given ChunkResult content.
+     * <br/> All input ChunkItems with status SUCCESS containing valid Addi records are converted into ChunkItem placeholders with status SUCCESS in SinkChunkResult
+     * <br/> All input ChunkItems with status SUCCESS containing invalid Addi records are converted into ChunkItems with status FAILURE in SinkChunkResult
+     * <br/> All input ChunkItems with status IGNORE are converted into ChunkItems with status IGNORE in SinkChunkResult
+     * <br/> All input ChunkItems with status FAILURE are converted into ChunkItems with status IGNORE in SinkChunkResult
+     * @param chunkResult processor result
+     * @return ES workload
+     * @throws SinkException on unhandled ChunkItem status
+     */
+    EsWorkload getEsWorkloadFromChunkResult(ChunkResult chunkResult) throws SinkException {
+        final int numberOfItems = chunkResult.getItems().size();
+        final List<AddiRecord> addiRecords = new ArrayList<>(numberOfItems);
+        final SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(), chunkResult.getChunkId(),
+                chunkResult.getEncoding(), new ArrayList<ChunkItem>(numberOfItems));
+
+        for (int i = 0; i < numberOfItems; i++) {
+            final ChunkItem chunkItem = chunkResult.getItems().get(i);
+            switch (chunkItem.getStatus()) {
+                case SUCCESS:
+                    try {
+                        addiRecords.add(ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, chunkResult.getEncoding()));
+                        sinkChunkResult.getItems().add(new ChunkItem(i + 1, "Empty slot", ChunkItem.Status.SUCCESS));
+                    } catch (RuntimeException | IOException e) {
+                        sinkChunkResult.getItems().add(new ChunkItem(i + 1, e.getMessage(), ChunkItem.Status.FAILURE));
+                    }
+                    break;
+                case FAILURE:
+                    sinkChunkResult.getItems().add(new ChunkItem(i + 1, "Failed by processor", ChunkItem.Status.IGNORE));
+                    break;
+                case IGNORE:
+                    sinkChunkResult.getItems().add(new ChunkItem(i + 1, "Ignored by processor", ChunkItem.Status.IGNORE));
+                    break;
+                default:
+                    throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
+            }
+        }
+        return new EsWorkload(sinkChunkResult, addiRecords);
     }
 }

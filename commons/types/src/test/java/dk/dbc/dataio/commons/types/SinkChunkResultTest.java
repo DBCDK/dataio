@@ -55,25 +55,6 @@ public class SinkChunkResultTest {
         assertThat(items.get(2), is(data3));
     }
 
-    @Test
-    public void getResults_internalResultListCanNotBeMutated() {
-        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
-        final SinkChunkResult instance = new SinkChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList(data1, data2, data3));
-        final List<ChunkItem> items = instance.getItems();
-        // Try mutating returned result
-        items.remove(0);
-        items.set(0, ChunkItemTest.newChunkItemInstance());
-        items.set(1, null);
-        // assert that internal data is still the original
-        List<ChunkItem> items2 = instance.getItems();
-        assertThat(items2.size(), is(3));
-        assertThat(items2.get(0), is(data1));
-        assertThat(items2.get(1), is(data2));
-        assertThat(items2.get(2), is(data3));
-    }
-
     public static SinkChunkResult newSinkChunkResultInstance() {
         return new SinkChunkResult(JOBID, CHUNKID, ENCODING, ITEMS);
     }

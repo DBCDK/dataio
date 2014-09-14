@@ -131,25 +131,6 @@ public class ChunkTest {
     }
 
     @Test
-    public void getItems_internalItemsListCanNotBeMutated() {
-        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
-        final Chunk chunk = new Chunk(JOB_ID, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA, Arrays.asList(data1, data2, data3));
-        List<ChunkItem> items = chunk.getItems();
-        // Try mutating returned result
-        items.remove(0);
-        items.set(0, ChunkItemTest.newChunkItemInstance());
-        items.set(1, null);
-        // assert that internal data is still the original
-        final List<ChunkItem> items2 = chunk.getItems();
-        assertThat(items2.size(), is(3));
-        assertThat(items2.get(0), is(data1));
-        assertThat(items2.get(1), is(data2));
-        assertThat(items2.get(2), is(data3));
-    }
-
-    @Test
     public void getKeys_initiallyEmpty() {
         final Chunk chunk = newChunkInstance();
         assertThat(chunk.getKeys(), is(notNullValue()));

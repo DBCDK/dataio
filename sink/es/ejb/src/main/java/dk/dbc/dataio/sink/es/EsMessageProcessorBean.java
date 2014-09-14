@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,9 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     @EJB
     EsSinkConfigurationBean configuration;
 
+    @EJB
+    JobProcessorMessageProducerBean jobProcessorMessageProducer;
+
     /**
      * Generates ES workload from given processor result, ensures that ES processing
      * capacity is not exceeded by acquiring the necessary number of record slots from
@@ -54,20 +58,25 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             throw new SinkException("Interrupted while waiting for free record slots", e);
         }
         try {
-            // ToDo: handle case where nothing is to be delivered
-            final int targetReference = esConnector.insertEsTaskPackage(workload);
-            final EsInFlight esInFlight = new EsInFlight();
-            esInFlight.setResourceName(configuration.getEsResourceName());
-            esInFlight.setJobId(workload.getSinkChunkResult().getJobId());
-            esInFlight.setChunkId(workload.getSinkChunkResult().getChunkId());
-            esInFlight.setRecordSlots(workload.getAddiRecords().size());
-            esInFlight.setTargetReference(targetReference);
-            esInFlight.setSinkChunkResult(JsonUtil.toJson(workload.getSinkChunkResult()));
-            esInFlightAdmin.addEsInFlight(esInFlight);
+            if (workload.getAddiRecords().size() == 0) {
+                jobProcessorMessageProducer.send(workload.getSinkChunkResult());
 
-            LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
-                    targetReference, workload.getSinkChunkResult().getChunkId(), workload.getSinkChunkResult().getJobId());
+                LOGGER.info("chunk {} of job {} contained no Addi records - sending result",
+                        workload.getSinkChunkResult().getChunkId(), workload.getSinkChunkResult().getJobId());
+            } else {
+                final int targetReference = esConnector.insertEsTaskPackage(workload);
+                final EsInFlight esInFlight = new EsInFlight();
+                esInFlight.setResourceName(configuration.getEsResourceName());
+                esInFlight.setJobId(workload.getSinkChunkResult().getJobId());
+                esInFlight.setChunkId(workload.getSinkChunkResult().getChunkId());
+                esInFlight.setRecordSlots(workload.getAddiRecords().size());
+                esInFlight.setTargetReference(targetReference);
+                esInFlight.setSinkChunkResult(JsonUtil.toJson(workload.getSinkChunkResult()));
+                esInFlightAdmin.addEsInFlight(esInFlight);
 
+                LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
+                        targetReference, workload.getSinkChunkResult().getChunkId(), workload.getSinkChunkResult().getJobId());
+            }
         } catch (Exception e) {
             esThrottler.releaseRecordSlots(workload.getAddiRecords().size());
             throw new SinkException("Exception caught during workload processing", e);

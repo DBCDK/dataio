@@ -23,7 +23,6 @@ import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.JMSContext;
@@ -105,7 +104,6 @@ public class EsMessageProcessorBeanIT {
         assertThat(getNumberOfRecordsInFlight(), is(0));
     }
 
-    @Ignore("Ignored since US#373 is not finished - 12-09-2014")
     @Test
     public void esMessageProcessorBean_chunkWithAllRecordsFailed_notProcessedAndSinkResultIsAllIgnored()
             throws JMSException, JsonException, SQLException, ClassNotFoundException {
@@ -121,8 +119,11 @@ public class EsMessageProcessorBeanIT {
         final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processorResult);
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
+        // Below wait is defunc - since precessing happens so fast that
+        // the result is put on the queue before we can assert the empty queue
+        //
         // Wait for sink-queue to be empty - ie. message has been taken by ProcessorBean:
-        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
+        //JmsQueueConnector.awaitQueueSize(JmsQueueConnector.SINKS_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
 
         // Since all items are failed, there should not be any Records in flight:
         assertThat(getNumberOfRecordsInFlight(), is(0));

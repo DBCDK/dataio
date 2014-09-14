@@ -2,6 +2,7 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -13,6 +14,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
@@ -35,6 +37,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -51,13 +55,15 @@ public class EsMessageProcessorBeanTest {
     private final String chunkResultWithOneValidAddiRecord = generateChunkResultJsonWithResource("/1record.addi");
     private final EsConnectorBean esConnector = mock(EsConnectorBean.class);
     private final EsInFlightBean esInFlightAdmin = mock(EsInFlightBean.class);
+    private final JobProcessorMessageProducerBean jobProcessorMessageProducer = mock(JobProcessorMessageProducerBean.class);
 
     @Test
-    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_noTransactionRollback() throws JMSException {
+    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_sinkChunkResultSentToQueue() throws JMSException, SinkException {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, new ChunkResultJsonBuilder().build());
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+        verify(jobProcessorMessageProducer, times(1)).send(any(SinkChunkResult.class));
     }
 
     @Test
@@ -190,6 +196,7 @@ public class EsMessageProcessorBeanTest {
         }
         testableMessageConsumerBean.esConnector = esConnector;
         testableMessageConsumerBean.esInFlightAdmin = esInFlightAdmin;
+        testableMessageConsumerBean.jobProcessorMessageProducer = jobProcessorMessageProducer;
         return testableMessageConsumerBean;
     }
 

@@ -24,9 +24,9 @@ public class EsConnectorBean {
     EsSinkConfigurationBean configuration;
 
     public Connection getConnection() throws SQLException, NamingException {
-        LOGGER.info("TEST: getConnection");
+        LOGGER.debug("Looking up datasource");
         final DataSource dataSource = doDataSourceLookup();
-        LOGGER.info("TEST: got datasource");
+        LOGGER.debug("Looked up datasource");
         return dataSource.getConnection();
     }
 
@@ -41,9 +41,9 @@ public class EsConnectorBean {
     }
 
     public int insertEsTaskPackage(EsWorkload esWorkload) throws SinkException {
-        LOGGER.info("TEST: trying");
+        LOGGER.debug("Getting connection");
         try (final Connection connection = getConnection()) {
-            LOGGER.info("TEST: inside try");
+            LOGGER.debug("Inserting task package");
             return ESTaskPackageUtil.insertTaskPackage(
                     connection, configuration.getEsDatabaseName(), esWorkload);
         } catch (SQLException | NamingException e) {
@@ -88,22 +88,21 @@ public class EsConnectorBean {
     }
 
     private DataSource doDataSourceLookup() throws NamingException {
-        LOGGER.info("TEST: doDataSourceLookup Begin");
+        LOGGER.debug("Getting initial context");
         final InitialContext initialContext = getInitialContext();
         try {
             final String esResourceName = configuration.getEsResourceName();
-            LOGGER.info("TEST: Looking up ES resource {}", esResourceName);
             LOGGER.debug("Looking up ES resource {}", esResourceName);
             final Object lookup = initialContext.lookup(esResourceName);
-            LOGGER.info("TEST: Done! Looking up ES resource {}", esResourceName);
+            LOGGER.debug("Looked up ES resource {}", esResourceName);
             if (!(lookup instanceof DataSource)) {
                 throw new NamingException("Unexpected type of resource returned from lookup");
             }
             return (DataSource) lookup;
         } finally {
-            LOGGER.info("TEST: doDataSourceLookup END 1");
+            LOGGER.debug("Closing initial context");
             closeInitialContext(initialContext);
-            LOGGER.info("TEST: doDataSourceLookup END 2");
+            LOGGER.debug("Closed initital context");
         }
     }
 }

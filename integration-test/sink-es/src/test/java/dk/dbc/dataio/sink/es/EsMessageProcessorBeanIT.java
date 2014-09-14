@@ -119,7 +119,7 @@ public class EsMessageProcessorBeanIT {
         final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processorResult);
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
-        // Below wait is defunc - since precessing happens so fast that
+        // Below wait is defunc - since processing happens so fast that
         // the result is put on the queue before we can assert the empty queue
         //
         // Wait for sink-queue to be empty - ie. message has been taken by ProcessorBean:

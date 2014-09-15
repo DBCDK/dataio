@@ -1,9 +1,10 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -39,7 +40,7 @@ public class FlowModelTest {
     @Test
     public void isInputFieldsEmpty_emptyFlowDescriptionMapInput_returnsTrue() {
         FlowModel model = getTestModel();
-        model.setFlowComponents(new HashMap<String, String>());
+        model.setFlowComponents(new ArrayList<FlowComponentModel>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
@@ -50,9 +51,17 @@ public class FlowModelTest {
     }
 
     private FlowModel getTestModel() {
-        Map<String, String> flowComponents = new HashMap<String, String>();
-        flowComponents.put("12", "Flowcomponent");
-        return new FlowModel(11, 22, "Name", "Description", flowComponents);
+        FlowComponentModel flowComponentModel = new FlowComponentModel(
+                1,
+                2,
+                "FlowComponentModel",
+                "svnProject",
+                "svnRevision",
+                "invocationJavascript",
+                "invocationMethod",
+                new ArrayList<String>());
+
+        return new FlowModel(11, 22, "Name", "Description", Arrays.asList(flowComponentModel));
     }
 
 }

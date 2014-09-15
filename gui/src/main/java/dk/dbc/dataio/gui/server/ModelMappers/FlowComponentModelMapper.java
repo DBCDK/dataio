@@ -46,10 +46,10 @@ public final class FlowComponentModelMapper {
     }
 
     /**
-     * Maps a model to flow content
+     * Maps a model to flow component content
      *
      * @param model The model
-     * @return FlowContent The content of the Flow
+     * @return FlowComponentContent The content of the Flow component
      * @throws IllegalArgumentException
      */
     public static FlowComponentContent toFlowComponentContent(FlowComponentModel model) throws IllegalArgumentException {
@@ -72,6 +72,16 @@ public final class FlowComponentModelMapper {
             javascripts.add(new JavaScript(NOT_APPLICABLE, module));  // Please note, that the content of the javascript is not known at this time, and is there set as being empty!
         }
         return javascripts;
+    }
+
+    /**
+     * Maps a model to flow component
+     *
+     * @param model The model
+     * @return FlowComponent
+     */
+    public static FlowComponent toFlowComponent(FlowComponentModel model) {
+        return new FlowComponent(model.getId(), model.getVersion(), toFlowComponentContent(model));
     }
 
 }

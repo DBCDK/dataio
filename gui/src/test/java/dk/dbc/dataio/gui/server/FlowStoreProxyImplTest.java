@@ -24,8 +24,10 @@ import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
+import dk.dbc.dataio.gui.server.ModelMappers.FlowComponentModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,10 +38,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -799,7 +800,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1).build();
-        FlowModel model = getDefaultFlowModel(flow.getId(), flow.getVersion());
+        FlowModel model = getDefaultFlowModel(flow);
 
         when(flowStoreServiceConnector.updateFlow(any(FlowContent.class), (eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenReturn(flow);
@@ -834,22 +835,17 @@ public class FlowStoreProxyImplTest {
     @Test
     public void updateFlow_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        FlowModel model = getDefaultFlowModel(1, 1);
+        FlowModel model = getDefaultFlowModel(new FlowBuilder().build());
         model.setFlowName("");
         updateFlow_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
     }
 
-    private FlowModel getDefaultFlowModel(long id, long version) {
-        Map<String, String> flowComponents = new HashMap<String, String>();
-        flowComponents.put("1", "FlowComponentName");
-        return new FlowModel(id, version, "flowName", "flowDescription", flowComponents);
-    }
 
     private void updateFlow_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1).build();
-        FlowModel model = getDefaultFlowModel(flow.getId(), flow.getVersion());
+        FlowModel model = getDefaultFlowModel(flow);
         when(flowStoreServiceConnector.updateFlow(any(FlowContent.class), (eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
@@ -859,6 +855,15 @@ public class FlowStoreProxyImplTest {
             assertThat(e.getErrorCode(), is(expectedError));
         }
     }
+
+    private FlowModel getDefaultFlowModel(Flow flow) {
+        List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>();
+        for(FlowComponent flowComponent : flow.getContent().getComponents()) {
+            flowComponentModels.add(FlowComponentModelMapper.toModel(flowComponent));
+        }
+        return new FlowModel(flow.getId(), flow.getVersion(), flow.getContent().getName(), flow.getContent().getDescription(), flowComponentModels);
+    }
+
 
     private void updateFlow_testForProxyError(FlowModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);

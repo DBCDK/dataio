@@ -20,18 +20,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FlowComponentModelMapperTest {
-    final long   ID = 434L;
-    final long   VERSION = 215L;
-    final String NAME = "Flow Component Model Navn";
-    final String SVN_PROJECT = "Svn Project";
-    final long   SVN_REVISION_LONG = 747L;
-    final String SVN_REVISION_STR = String.valueOf(SVN_REVISION_LONG);
-    final String JAVASCRIPT_NAME = "Javascript Name";
-    final String INVOCATION_METHOD = "Invocation Method";
-    final String JAVASCRIPT_1 = "javascript code no. 1";
-    final String JAVASCRIPT_2 = "javascript code no. 2";
-    final String MODULE_NAME_1 = "module name no. 1";
-    final String MODULE_NAME_2 = "module name no. 2";
+    private static final long   ID = 434L;
+    private static final long   VERSION = 215L;
+    private static final String NAME = "Flow Component Model Navn";
+    private static final String SVN_PROJECT = "Svn Project";
+    private static final long   SVN_REVISION_LONG = 747L;
+    private static final String SVN_REVISION_STR = String.valueOf(SVN_REVISION_LONG);
+    private static final String JAVASCRIPT_NAME = "Javascript Name";
+    private static final String INVOCATION_METHOD = "Invocation Method";
+    private static final String JAVASCRIPT_1 = "javascript code no. 1";
+    private static final String JAVASCRIPT_2 = "javascript code no. 2";
+    private static final String MODULE_NAME_1 = "module name no. 1";
+    private static final String MODULE_NAME_2 = "module name no. 2";
 
     @Test(expected = NullPointerException.class)
     public void toModel_nullInput_throws() {
@@ -80,8 +80,6 @@ public class FlowComponentModelMapperTest {
         assertThat(model.getJavascriptModules().get(1), is(MODULE_NAME_2));
     }
 
-
-
     @Test(expected = NullPointerException.class)
     public void toFlowComponentContent_nullInput_throwsNullPointerException() {
         FlowComponentModelMapper.toFlowComponentContent(null);
@@ -95,7 +93,7 @@ public class FlowComponentModelMapperTest {
     }
 
     @Test
-    public void toFlowContent_validInput_returnsValidModel() {
+    public void toFlowComponentContent_validInput_returnsValidFlowComponentContent() {
         FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
 
         FlowComponentContent flowComponentContent = FlowComponentModelMapper.toFlowComponentContent(model);
@@ -109,12 +107,29 @@ public class FlowComponentModelMapperTest {
         assertThat(flowComponentContent.getJavascripts().get(1).getModuleName(), is(MODULE_NAME_2));
     }
 
+    @Test
+    public void toFlowComponent_validInput_returnsValidFlowComponent() {
+        FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
+
+        FlowComponent flowComponent = FlowComponentModelMapper.toFlowComponent(model);
+
+        assertThat(flowComponent.getId(), is(model.getId()));
+        assertThat(flowComponent.getVersion(), is(model.getVersion()));
+        assertThat(flowComponent.getContent().getName(), is(NAME));
+        assertThat(flowComponent.getContent().getSvnProjectForInvocationJavascript(), is(SVN_PROJECT));
+        assertThat(flowComponent.getContent().getSvnRevision(), is(Long.parseLong(SVN_REVISION_STR)));
+        assertThat(flowComponent.getContent().getInvocationJavascriptName(), is(JAVASCRIPT_NAME));
+        assertThat(flowComponent.getContent().getInvocationMethod(), is(INVOCATION_METHOD));
+        assertThat(flowComponent.getContent().getJavascripts().get(0).getModuleName(), is(MODULE_NAME_1));
+        assertThat(flowComponent.getContent().getJavascripts().get(1).getModuleName(), is(MODULE_NAME_2));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void toFlowComponentContent_emptyName_throwsIllegalArgumentException() {
         FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
         model.setName("");  // Invalidate model
 
-        FlowComponentContent flowComponentContent = FlowComponentModelMapper.toFlowComponentContent(model);
+        FlowComponentModelMapper.toFlowComponentContent(model);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -122,7 +137,7 @@ public class FlowComponentModelMapperTest {
         FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
         model.setSvnProject("");  // Invalidate model
 
-        FlowComponentContent flowComponentContent = FlowComponentModelMapper.toFlowComponentContent(model);
+        FlowComponentModelMapper.toFlowComponentContent(model);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -130,7 +145,7 @@ public class FlowComponentModelMapperTest {
         FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
         model.setSvnRevision("");  // Invalidate model
 
-        FlowComponentContent flowComponentContent = FlowComponentModelMapper.toFlowComponentContent(model);
+        FlowComponentModelMapper.toFlowComponentContent(model);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -138,7 +153,7 @@ public class FlowComponentModelMapperTest {
         FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
         model.setInvocationJavascript("");  // Invalidate model
 
-        FlowComponentContent flowComponentContent = FlowComponentModelMapper.toFlowComponentContent(model);
+        FlowComponentModelMapper.toFlowComponentContent(model);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -146,7 +161,7 @@ public class FlowComponentModelMapperTest {
         FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
         model.setInvocationMethod("");  // Invalidate model
 
-        FlowComponentContent flowComponentContent = FlowComponentModelMapper.toFlowComponentContent(model);
+        FlowComponentModelMapper.toFlowComponentContent(model);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -154,7 +169,7 @@ public class FlowComponentModelMapperTest {
         FlowComponentModel model = buildValidFlowComponentModelContainingTwoJavascripts();
         model.setJavascriptModules(new ArrayList<String>());  // Invalidate model
 
-        FlowComponentContent flowComponentContent = FlowComponentModelMapper.toFlowComponentContent(model);
+        FlowComponentModelMapper.toFlowComponentContent(model);
     }
 
 }

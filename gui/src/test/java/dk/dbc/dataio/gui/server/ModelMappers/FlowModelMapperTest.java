@@ -2,16 +2,16 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,6 +25,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class FlowModelMapperTest {
 
+    private static final long   ID = 746L;
+    private static final long   VERSION = 8483L;
+    private static final String NAME = "the name";
+    private static final String DESCRIPTION = "the description";
+
+    private static final long   FLOW_COMPONENT_ID_1 = 364L;
+    private static final long   FLOW_COMPONENT_VERSION_1 = 156L;
+
+    private static final long   FLOW_COMPONENT_ID_2 = 227884L;
+    private static final long   FLOW_COMPONENT_VERSION_2 = 74L;
+
     @Test(expected = NullPointerException.class)
     public void toModel_nullInput_throws() {
         FlowModelMapper.toModel(null);
@@ -32,11 +43,6 @@ public class FlowModelMapperTest {
 
     @Test
     public void toModel_validInputNoFlowComponents_returnsValidModelNoFlowComponents() {
-        // Build a Flow containing no flow components
-        final String NAME = "the name";
-        final String DESCRIPTION = "the description";
-        final long   ID = 746L;
-        final long   VERSION = 8483L;
 
         List<FlowComponent> components = new ArrayList<FlowComponent>();
         FlowContent flowContent = new FlowContent(NAME, DESCRIPTION, components);
@@ -52,47 +58,35 @@ public class FlowModelMapperTest {
 
     @Test
     public void toModel_validInput_returnsValidModel() {
-        // Build a Flow containing two flow components
-        final String NAME = "the name";
-        final String DESCRIPTION = "the description";
-        final long   ID = 746L;
-        final long   VERSION = 8483L;
-        final long   FLOW_COMPONENT_ID_1 = 364L;
-        final long   FLOW_COMPONENT_VERSION_1 = 156L;
-        final String CONTENT_NAME_1 = "content navn nr. 1";
-        final String SVN_PROJECT_1 = "svn projekt nr. 1";
-        final long   SVN_REVISION_1 = 8957L;
-        final String INVOCATION_NAME_1 = "invocation navn nr. 1";
-        final String INVOCATION_METHOD_1 = "invocation method nr. 1";
-        final long   FLOW_COMPONENT_ID_2 = 227884L;
-        final long   FLOW_COMPONENT_VERSION_2 = 74L;
-        final String CONTENT_NAME_2 = "content navn nr. 2";
-        final String SVN_PROJECT_2 = "svn projekt nr. 2";
-        final long   SVN_REVISION_2 = 8884L;
-        final String INVOCATION_NAME_2 = "invocation navn nr. 2";
-        final String INVOCATION_METHOD_2 = "invocation method nr. 2";
 
         List<FlowComponent> components = new ArrayList<FlowComponent>();
         components.add(new FlowComponent(
-                FLOW_COMPONENT_ID_1, FLOW_COMPONENT_VERSION_1,
-                new FlowComponentContent(CONTENT_NAME_1, SVN_PROJECT_1, SVN_REVISION_1, INVOCATION_NAME_1, new ArrayList<JavaScript>(), INVOCATION_METHOD_1)
-        ));
+                FLOW_COMPONENT_ID_1, FLOW_COMPONENT_VERSION_1, new FlowComponentContentBuilder().build()));
+
         components.add(new FlowComponent(
-                FLOW_COMPONENT_ID_2, FLOW_COMPONENT_VERSION_2,
-                new FlowComponentContent(CONTENT_NAME_2, SVN_PROJECT_2, SVN_REVISION_2, INVOCATION_NAME_2, new ArrayList<JavaScript>(), INVOCATION_METHOD_2)
-        ));
+                FLOW_COMPONENT_ID_2, FLOW_COMPONENT_VERSION_2, new FlowComponentContentBuilder().build()));
+
         FlowContent flowContent = new FlowContent(NAME, DESCRIPTION, components);
         Flow flow = new Flow(ID, VERSION, flowContent);
 
+        // Convert flow content to model
         FlowModel model = FlowModelMapper.toModel(flow);
+
+        // Verify that the flow specific values have been set in the flow model.
+        // (The flow component specific values have been tested in flowComponentModelMapperTest)
         assertThat(model.getId(), is(ID));
         assertThat(model.getVersion(), is(VERSION));
         assertThat(model.getFlowName(), is(NAME));
         assertThat(model.getDescription(), is(DESCRIPTION));
-        Map<String, String> comps = model.getFlowComponents();
-        assertThat(comps.size(), is(2));
-        assertThat(comps.get(Long.toString(FLOW_COMPONENT_ID_1)), is(CONTENT_NAME_1));
-        assertThat(comps.get(Long.toString(FLOW_COMPONENT_ID_2)), is(CONTENT_NAME_2));
+
+        // Verify that the mapping between flow model object and flow object is correct
+        assertThat(flow.getId(), is(model.getId()));
+        assertThat(flow.getVersion(), is(model.getVersion()));
+        assertThat(flow.getContent().getName(), is(model.getFlowName()));
+        assertThat(flow.getContent().getDescription(), is(model.getDescription()));
+        assertThat(flow.getContent().getComponents().size(), is(2));
+        assertFlowComponentEquals(flow.getContent().getComponents().get(0), model.getFlowComponents().get(0));
+        assertFlowComponentEquals(flow.getContent().getComponents().get(1), model.getFlowComponents().get(1));
     }
 
     @Test(expected = NullPointerException.class)
@@ -103,41 +97,73 @@ public class FlowModelMapperTest {
     @Test(expected = IllegalArgumentException.class)
     public void toFlowContent_validInputNoFlowComponents_throwsIllegalArgumentException() {
         // Build a FlowModel containing no flow components
-        final long   ID = 234L;
-        final long   VERSION = 23L;
-        final String NAME = "Flow Model Navn";
-        final String DESCRIPTION = "Flow Model Description";
-        FlowModel model = new FlowModel(ID, VERSION, NAME, DESCRIPTION, new HashMap<String, String>());
-
-        FlowContent flowContent = FlowModelMapper.toFlowContent(model);
+        FlowModel model = new FlowModel(ID, VERSION, NAME, DESCRIPTION, new ArrayList<FlowComponentModel>());
+        FlowModelMapper.toFlowContent(model);
     }
 
     @Test
-    public void toFlowContent_validInput_returnsValidModel() {
-        // Build a FlowModel containing two flow components
-        final long   ID = 234L;
-        final long   VERSION = 23L;
-        final String NAME = "Flow Model Navn";
-        final String DESCRIPTION = "Flow Model Description";
-        final String FLOW_COMPONENT_ID_1 = "435";
-        final String FLOW_COMPONENT_NAME_1 = "Flow Component Name 1";
-        final String FLOW_COMPONENT_ID_2 = "4444";
-        final String FLOW_COMPONENT_NAME_2 = "Flow Component Name 2";
+    public void toFlowContent_validInput_returnsValidFlowContent() {
 
-        Map<String, String> compontents = new HashMap<String, String>();
-        compontents.put(FLOW_COMPONENT_ID_1, FLOW_COMPONENT_NAME_1);
-        compontents.put(FLOW_COMPONENT_ID_2, FLOW_COMPONENT_NAME_2);
-        FlowModel model = new FlowModel(ID, VERSION, NAME, DESCRIPTION, compontents);
+        List<FlowComponentModel> components = new ArrayList<FlowComponentModel>();
+        FlowComponentModel flowComponentModel1 =
+                new FlowComponentModel(FLOW_COMPONENT_ID_1,
+                        FLOW_COMPONENT_VERSION_1,
+                        "content navn nr. 1",
+                        "svn projekt nr. 1",
+                        "8957",
+                        "invocation navn nr. 1",
+                        "invocation method nr. 1",
+                        Arrays.asList("JavaScript 1"));
 
+        FlowComponentModel flowComponentModel2 =
+                new FlowComponentModel(FLOW_COMPONENT_ID_2,
+                        FLOW_COMPONENT_VERSION_2,
+                        "content navn nr. 2",
+                        "svn projekt nr. 2",
+                        "8884",
+                        "invocation navn nr. 2",
+                        "invocation method nr. 2",
+                        Arrays.asList("JavaScript 2"));
+
+        components.add(flowComponentModel1);
+        components.add(flowComponentModel2);
+
+        FlowModel model = new FlowModel(ID, VERSION, NAME, DESCRIPTION, components);
+
+        // Convert model to flow content
         FlowContent flowContent = FlowModelMapper.toFlowContent(model);
+
+        // Verify that the correct values have been set in the flow content
+        // (The flow component specific values have been tested in flowComponentModelMapperTest)
         assertThat(flowContent.getName(), is(NAME));
         assertThat(flowContent.getDescription(), is(DESCRIPTION));
-        assertThat(flowContent.getComponents().size(), is (2));
-        List<FlowComponent> flowComponents = flowContent.getComponents();
-        assertThat(Long.toString(flowComponents.get(0).getId()), is(FLOW_COMPONENT_ID_1));
-        assertThat(flowComponents.get(0).getContent().getName(), is(FLOW_COMPONENT_NAME_1));
-        assertThat(Long.toString(flowComponents.get(1).getId()), is(FLOW_COMPONENT_ID_2));
-        assertThat(flowComponents.get(1).getContent().getName(), is(FLOW_COMPONENT_NAME_2));
+
+        // Verify that the mapping between flow model object and flow object is correct
+        assertThat(flowContent.getName(), is(model.getFlowName()));
+        assertThat(flowContent.getDescription(), is(model.getDescription()));
+        assertThat(flowContent.getComponents().size(), is(2));
+        assertFlowComponentEquals(flowContent.getComponents().get(0), flowComponentModel1);
+        assertFlowComponentEquals(flowContent.getComponents().get(1), flowComponentModel2);
+    }
+
+    private void assertFlowComponentEquals(FlowComponent flowComponent, FlowComponentModel flowComponentModel) {
+        assertThat(flowComponent.getId(), is(flowComponentModel.getId()));
+        assertThat(flowComponent.getVersion(), is(flowComponentModel.getVersion()));
+        assertThat(Long.toString(flowComponent.getContent().getSvnRevision()), is(flowComponentModel.getSvnRevision()));
+        assertThat(flowComponent.getContent().getName(), is(flowComponentModel.getName()));
+        assertThat(flowComponent.getContent().getInvocationJavascriptName(), is(flowComponentModel.getInvocationJavascript()));
+        assertThat(flowComponent.getContent().getSvnProjectForInvocationJavascript(), is(flowComponentModel.getSvnProject()));
+        assertThat(flowComponent.getContent().getInvocationMethod(), is(flowComponentModel.getInvocationMethod()));
+        assertThat(flowComponent.getContent().getJavascripts().size(), is(flowComponentModel.getJavascriptModules().size()));
+        assertJavaScriptsEquals(flowComponent.getContent().getJavascripts(), flowComponentModel.getJavascriptModules());
+
+    }
+
+    private void assertJavaScriptsEquals(List<JavaScript> javaScripts, List<String> javaScriptModules) {
+        assertThat(javaScripts.size(), is(javaScriptModules.size()));
+        for (int i = 0; i > javaScripts.size(); i ++) {
+            assertThat(javaScripts.get(i).getJavascript(), is(javaScriptModules.get(i)));
+        }
     }
 
 }

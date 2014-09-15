@@ -2,19 +2,14 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public final class FlowModelMapper {
-
-    private final static String NOT_APPLICABLE = "n/a";
 
     /**
      * Private Constructor prevents instantiation of this static class
@@ -32,16 +27,16 @@ public final class FlowModelMapper {
                 flow.getVersion(),
                 flow.getContent().getName(),
                 flow.getContent().getDescription(),
-                getFlowComponentsMap(flow.getContent())
+                getFlowComponents(flow.getContent())
         );
     }
 
-    private static Map<String, String> getFlowComponentsMap(FlowContent content) {
-        Map<String, String> map = new HashMap<String, String>();
+    private static List<FlowComponentModel> getFlowComponents(FlowContent content) {
+        List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>();
         for (FlowComponent flowComponent: content.getComponents()) {
-            map.put(Long.toString(flowComponent.getId()), flowComponent.getContent().getName());
+            flowComponentModels.add(FlowComponentModelMapper.toModel(flowComponent));
         }
-        return map;
+        return flowComponentModels;
     }
 
     /**
@@ -54,21 +49,16 @@ public final class FlowModelMapper {
         if(model.isInputFieldsEmpty()) {
             throw new IllegalArgumentException("model.name, model.description, model.flowcomponents cannot be empty");
         }
+
+        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>();
+        for(FlowComponentModel flowComponentModel : model.getFlowComponents()) {
+            flowComponents.add(FlowComponentModelMapper.toFlowComponent(flowComponentModel));
+        }
+
         return new FlowContent(
                 model.getFlowName(),
                 model.getDescription(),
-                getFlowComponentsList(model.getFlowComponents())
+                flowComponents
         );
-    }
-
-    private static List<FlowComponent> getFlowComponentsList(Map<String, String> flowComponentMap) {
-        List<FlowComponent> list = new ArrayList<FlowComponent>();
-        for (Map.Entry<String, String> entry: flowComponentMap.entrySet()) {
-            List<JavaScript> javaScripts = new ArrayList<JavaScript>();
-            javaScripts.add(new JavaScript(NOT_APPLICABLE, NOT_APPLICABLE));  // Java script list must not be empty
-            FlowComponentContent content = new FlowComponentContent(entry.getValue(), NOT_APPLICABLE, 1L, NOT_APPLICABLE, javaScripts, "");
-            list.add(new FlowComponent(Long.parseLong(entry.getKey()), 1L, content));
-        }
-        return list;
     }
 }

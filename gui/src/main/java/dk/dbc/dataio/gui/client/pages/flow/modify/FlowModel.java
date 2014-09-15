@@ -1,17 +1,18 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import dk.dbc.dataio.gui.client.model.GenericBackendModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FlowModel extends GenericBackendModel {
 
     private String flowName;
     private String description;
-    private Map<String, String> flowComponents;
+    private List<FlowComponentModel> flowComponents;
 
-    public FlowModel(long id, long version, String name, String description, Map<String, String> flowComponents) {
+    public FlowModel(long id, long version, String name, String description, List<FlowComponentModel> flowComponents) {
         super(id, version);
         this.flowName = name;
         this.description = description;
@@ -22,7 +23,7 @@ public class FlowModel extends GenericBackendModel {
         super(0L, 0L);
         this.flowName = "";
         this.description = "";
-        this.flowComponents = new HashMap<String, String>();
+        this.flowComponents = new ArrayList<FlowComponentModel>();
     }
 
     /**
@@ -58,7 +59,7 @@ public class FlowModel extends GenericBackendModel {
     /**
      * @return The list of flowcomponents in the flow
      */
-    public Map<String, String> getFlowComponents() {
+    public List<FlowComponentModel> getFlowComponents() {
         return flowComponents;
     }
 
@@ -66,7 +67,7 @@ public class FlowModel extends GenericBackendModel {
      * Set the list of flowcomponents in the flow
      * @param flowComponents The list of flowcomponents
      */
-    public void setFlowComponents(Map<String, String> flowComponents) {
+    public void setFlowComponents(List<FlowComponentModel> flowComponents) {
         this.flowComponents = flowComponents;
     }
 

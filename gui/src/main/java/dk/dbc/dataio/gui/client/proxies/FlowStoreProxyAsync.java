@@ -17,6 +17,7 @@ import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 import java.util.List;
 
 public interface FlowStoreProxyAsync {
+    void createFlow(FlowModel model, AsyncCallback<FlowModel> callback);
     void createFlow(FlowContent flowContent, AsyncCallback<Flow> callback);
     void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<Void> async);
     void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<FlowComponent> async);

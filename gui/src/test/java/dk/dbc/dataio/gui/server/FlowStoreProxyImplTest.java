@@ -18,7 +18,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -546,49 +545,73 @@ public class FlowStoreProxyImplTest {
     /*
     * Test createFlow
     */
+
     @Test
-    public void createFlow_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+    public void createFlow_remoteServiceReturnsHttpStatusCreated_returnsFlowModelEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        FlowContent flowContent = new FlowContentBuilder().build();
-        when(flowStoreServiceConnector.createFlow(eq(flowContent))).
-                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        final Flow flow = new FlowBuilder().build();
+        when(flowStoreServiceConnector.createFlow(any(FlowContent.class))).thenReturn(flow);
+
         try {
-            flowStoreProxy.createFlow(flowContent);
-            fail("No INTERNAL_SERVER_ERROR error was thrown by createFlow()");
+            final FlowModel createdModel  = flowStoreProxy.createFlow(getDefaultFlowModel(0, 0));
+            assertNotNull(createdModel);
         } catch (ProxyException e) {
-            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+            fail("Unexpected error when calling: createFlow()");
         }
+    }
+
+    @Test
+    public void createFlow_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        createFlow_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
     }
 
     @Test
     public void createFlow_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        FlowContent flowContent = new FlowContentBuilder().build();
-        when(flowStoreServiceConnector.createFlow(eq(flowContent))).
-                thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 406));
-        try {
-            flowStoreProxy.createFlow(flowContent);
-            fail("No NOT_ACCEPTABLE error was thrown by createFlow()");
-        } catch (ProxyException e) {
-            assertThat(e.getErrorCode(), is(ProxyError.NOT_ACCEPTABLE));
-        }
+        createFlow_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
     }
 
     @Test
-    public void createFlow_remoteServiceReturnsHttpStatusCreated_returnsFlowEntity() throws Exception {
+    public void createFlow_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        FlowModel model = getDefaultFlowModel(0, 0);
+        model.setFlowName("");
+        createFlow_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+    }
+
+
+    private FlowModel getDefaultFlowModel(long id, long version) {
+        FlowComponentModel flowComponentModel =
+                new FlowComponentModel(1, 1, "FlowComponentName", "svnProject", "1233", "invocationJavaScript", "invocationMethod", Arrays.asList("JavaScriptModuleName"));
+        return new FlowModel(id, version, "FlowName", "description", Arrays.asList(flowComponentModel));
+    }
+
+    private void createFlow_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowContent flowContent = new FlowContentBuilder().build();
-        final Flow flow = new FlowBuilder().build();
-        when(flowStoreServiceConnector.createFlow(flowContent)).thenReturn(flow);
+
+        when(flowStoreServiceConnector.createFlow(any(FlowContent.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+        try {
+            flowStoreProxy.createFlow(getDefaultFlowModel(0, 0));
+            fail("No " + expectedErrorName + " error was thrown by createFlow()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void createFlow_testForProxyError(FlowModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        when(flowStoreServiceConnector.createFlow(any(FlowContent.class)))
+                .thenThrow(exception);
 
         try {
-            final Flow createdFlow  = flowStoreProxy.createFlow(flowContent);
-            assertNotNull(createdFlow);
+            flowStoreProxy.createFlow(model);
+            fail("No " + expectedErrorName + " error was thrown by createFlow()");
         } catch (ProxyException e) {
-            fail("Unexpected error when calling: createFlow()");
+            assertThat(e.getErrorCode(), is(expectedError));
         }
     }
 

@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 
@@ -32,7 +33,7 @@ public interface FlowStoreProxyAsync {
     void findAllFlows(AsyncCallback<List<Flow>> async);
     void findAllFlowBinders(AsyncCallback<List<FlowBinder>> async);
     void findAllFlowComponentsOld(AsyncCallback<List<FlowComponent>> async);
-    void findAllFlowComponents(AsyncCallback<List<FlowComponent>> async);
+    void findAllFlowComponents(AsyncCallback<List<FlowComponentModel>> async);
     void findAllSubmitters(AsyncCallback<List<Submitter>> async);
     void findAllSinks(AsyncCallback<List<Sink>> async);
 

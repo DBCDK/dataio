@@ -13,6 +13,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 
@@ -36,7 +37,8 @@ public interface FlowStoreProxy extends RemoteService {
 
     List<Flow> findAllFlows() throws ProxyException;
     List<FlowBinder> findAllFlowBinders() throws ProxyException;
-    List<FlowComponent> findAllFlowComponents() throws ProxyException;
+    List<FlowComponent> findAllFlowComponentsOld() throws ProxyException;
+    List<FlowComponentModel> findAllFlowComponents() throws ProxyException;
     List<Submitter> findAllSubmitters() throws ProxyException;
     List<Sink> findAllSinks() throws ProxyException;
 

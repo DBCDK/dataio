@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
@@ -90,7 +91,12 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<FlowComponent> findAllFlowComponents() throws ProxyException {
+    public List<FlowComponent> findAllFlowComponentsOld() throws ProxyException {
+        return flowStoreProxy.findAllFlowComponentsOld();
+    }
+
+    @Override
+    public List<FlowComponentModel> findAllFlowComponents() throws ProxyException {
         return flowStoreProxy.findAllFlowComponents();
     }
 

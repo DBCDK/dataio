@@ -84,4 +84,18 @@ public final class FlowComponentModelMapper {
         return new FlowComponent(model.getId(), model.getVersion(), toFlowComponentContent(model));
     }
 
+    /**
+     * Maps a list of flow components to a list of flow component models
+     *
+     * @param flowComponents
+     * @return flowComponentModels
+     */
+    public static List<FlowComponentModel> toListOfFlowComponentModels(List<FlowComponent> flowComponents) {
+        List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>(flowComponents.size());
+        for (FlowComponent flowComponent : flowComponents) {
+            flowComponentModels.add(toModel(flowComponent));
+        }
+        return flowComponentModels;
+    }
+
 }

@@ -940,7 +940,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.findAllFlowComponents()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
             flowStoreProxy.findAllFlowComponents();
-            fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlowComponenst()");
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlowComponents()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
         }
@@ -955,7 +955,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllFlowComponents()).thenReturn(Arrays.asList(flowComponent));
         try {
-            final List<FlowComponent> allFlowComponents  = flowStoreProxy.findAllFlowComponents();
+            final List<FlowComponentModel> allFlowComponents  = flowStoreProxy.findAllFlowComponents();
             assertNotNull(allFlowComponents);
             assertThat(allFlowComponents.size(), is(1));
             assertThat(allFlowComponents.get(0).getId(), is(flowComponent.getId()));

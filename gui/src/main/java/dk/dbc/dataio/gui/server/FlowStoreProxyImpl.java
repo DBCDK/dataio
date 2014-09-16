@@ -18,9 +18,11 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.server.ModelMappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.SubmitterModelMapper;
@@ -210,7 +212,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<FlowComponent> findAllFlowComponents() throws ProxyException {
+    public List<FlowComponent> findAllFlowComponentsOld() throws ProxyException {
         final List<FlowComponent> result;
         try {
             result = flowStoreServiceConnector.findAllFlowComponents();
@@ -219,7 +221,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
+
         return result;
+    }
+
+    @Override
+    public List<FlowComponentModel> findAllFlowComponents() throws ProxyException {
+        final List<FlowComponent> result;
+        try {
+            result = flowStoreServiceConnector.findAllFlowComponents();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return FlowComponentModelMapper.toListOfFlowComponentModels(result);
     }
 
     @Override

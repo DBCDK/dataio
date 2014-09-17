@@ -23,7 +23,7 @@ public class PresenterEditImpl extends PresenterImpl {
     }
     /**
      * Initializing the model
-     * The method fetches the stored Submitter, as given in the Place (referenced by this.id)
+     * The method fetches the stored Sink, as given in the Place (referenced by this.id)
      */
     @Override
     public void initializeModel() {
@@ -32,7 +32,7 @@ public class PresenterEditImpl extends PresenterImpl {
 
     /**
      * saveModel
-     * Updates the embedded model as a Submitter in the database
+     * Updates the embedded model as a Sink in the database
      */
     @Override
     void saveModel() {
@@ -50,7 +50,7 @@ public class PresenterEditImpl extends PresenterImpl {
 
 
     /**
-     * Call back class to be instantiated in the call to getSubmitter in flowstore proxy
+     * Call back class to be instantiated in the call to getSink in flowstore proxy
      */
     class GetSinkModelFilteredAsyncCallback extends FilteredAsyncCallback<SinkModel> {
         @Override

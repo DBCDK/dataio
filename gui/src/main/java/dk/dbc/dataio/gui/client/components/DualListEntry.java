@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -32,7 +33,21 @@ public class DualListEntry extends DataEntry {
     public void addAvailableItem(String text, String key) {
         dualList.addAvailableItem(text, key);
     }
-    
+
+    public void setAvailableItems(Map<String, String> availableItems) {
+        dualList.clearAvailableItems();
+        for (Map.Entry<String, String> entry: availableItems.entrySet()) {
+            dualList.addAvailableItem(entry.getValue(), entry.getKey());
+        }
+    }
+
+    public void setSelectedItems(Map<String, String> selectedItems) {
+        dualList.clearSelectedItems();
+        for (Entry<String, String> selectedItem: selectedItems.entrySet()) {
+            dualList.addSelectedItem(selectedItem.getValue(), selectedItem.getKey());
+        }
+    }
+
     public int getSelectedItemCount() {
         return dualList.getSelectedItemCount();
     }

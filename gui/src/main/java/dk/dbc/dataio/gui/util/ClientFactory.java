@@ -4,12 +4,11 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
+import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowView;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowbinderCreateView;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowView;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentCreateEditView;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowView;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowCreateView;
-import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowView;
 import dk.dbc.dataio.gui.client.pages.job.show.JobsShowView;
 import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.View;
@@ -44,7 +43,7 @@ public interface ClientFactory {
     MenuItem getMenuStructure();
 
     // Views
-    FlowCreateView getFlowCreateView();
+    dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView();
     FlowComponentCreateEditView getFlowComponentCreateEditView();
     View getSubmitterCreateView();
     View getSubmitterEditView();

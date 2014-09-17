@@ -2,10 +2,12 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
+import java.util.Map;
+
 public interface Presenter extends GenericPresenter {
     void nameChanged(String name);
     void descriptionChanged(String description);
-    void flowComponentsChanged();
+    void flowComponentsChanged(Map<String, String> flowComponentModels);
     void keyPressed();
     void saveButtonPressed();
 }

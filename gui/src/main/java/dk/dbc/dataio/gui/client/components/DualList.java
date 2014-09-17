@@ -144,6 +144,18 @@ public class DualList extends FlowPanel {
     }
 
     /**
+     * Adds one item to the selectedItems list
+     *
+     * @param value The value of the item to add
+     * @param key The item to add
+     * @see DualList#addSelectedItems(Collection) to bulk operations.
+     */
+    public void addSelectedItem(String value, String key) {
+        right.addItem(value, key);
+        enableOrDisableButtonsAndCheckListboxWidth();
+    }
+
+    /**
      * Adds a collection of item to the selectedItems list
      *
      * @param items

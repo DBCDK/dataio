@@ -6,11 +6,6 @@ import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowCreateActivity;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowCreatePlace;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowCreateTexts;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowCreateView;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowCreateViewImpl;
 import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowActivity;
 import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowPlace;
 import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowTexts;
@@ -86,7 +81,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static SinksShowTexts sinksShowTexts = GWT.create(SinksShowTexts.class);
     private final static JobsShowTexts jobsShowTexts = GWT.create(JobsShowTexts.class);
     private final static FlowComponentsShowTexts flowComponentsShowTexts = GWT.create(FlowComponentsShowTexts.class);
-    private final static FlowCreateTexts flowCreateTexts = GWT.create(FlowCreateTexts.class);
+    private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts flowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
     private final static FlowComponentCreateEditTexts flowComponentCreateEditTexts = GWT.create(FlowComponentCreateEditTexts.class);
     private final static FlowbinderCreateTexts flowBinderCreateTexts = GWT.create(FlowbinderCreateTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.sink.modify.Texts sinkModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.modify.Texts.class);
@@ -110,7 +105,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final MenuItem menuStructure;
 
     // Views
-    private final FlowCreateView flowCreateView = new FlowCreateViewImpl();
+    private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowCreateView = new dk.dbc.dataio.gui.client.pages.flow.modify.ViewImpl(flowModifyTexts.menu_FlowCreation(), flowModifyTexts);
     private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final dk.dbc.dataio.gui.client.pages.sink.modify.View sinkCreateView = new dk.dbc.dataio.gui.client.pages.sink.modify.ViewImpl(sinkModifyTexts.menu_SinkCreation(), sinkModifyTexts);
@@ -132,7 +127,7 @@ public class ClientFactoryImpl implements ClientFactory {
                                                createSubmitter);
 
         // Flows Main Menu
-        MenuItem createFlow = new MenuItem(GUIID_MENU_ITEM_FLOW_CREATE, flowCreateTexts.menu_FlowCreation(), new FlowCreatePlace());
+        MenuItem createFlow = new MenuItem(GUIID_MENU_ITEM_FLOW_CREATE, flowModifyTexts.menu_FlowCreation(), new dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace());
         MenuItem createFlowComponent = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE, flowComponentCreateEditTexts.menu_FlowComponentCreation(), new FlowComponentCreatePlace());
         MenuItem showFlowComponents = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW, flowComponentsShowTexts.menu_FlowComponentsShow(), new FlowComponentsShowPlace());
         MenuItem createFlowBinder = new MenuItem(GUIID_MENU_ITEM_FLOWBINDER_CREATE, flowBinderCreateTexts.menu_FlowbinderCreation(), new FlowbinderCreatePlace());
@@ -177,8 +172,8 @@ public class ClientFactoryImpl implements ClientFactory {
 
     @Override
     public Activity getPresenter(Place place) {
-        if (place instanceof FlowCreatePlace) {
-            return new FlowCreateActivity(this);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
+            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this, flowModifyTexts);
         }
         if (place instanceof FlowComponentCreatePlace) {
             return new FlowComponentCreateActivity(this);
@@ -254,7 +249,7 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Views
     @Override
-    public FlowCreateView getFlowCreateView() {
+    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView() {
         return flowCreateView;
     }
 

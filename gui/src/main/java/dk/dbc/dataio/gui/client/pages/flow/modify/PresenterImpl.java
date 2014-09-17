@@ -76,7 +76,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private FlowComponentModel getFlowComponentModel(String idString) {
-        long id = Long.valueOf(idString);
+        long id = Long.parseLong(idString);
         for (FlowComponentModel flowComponentModel: availableFlowComponentModels) {
             if (flowComponentModel.getId() == id) {
                 return flowComponentModel;

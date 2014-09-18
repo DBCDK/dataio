@@ -24,7 +24,8 @@ import java.util.List;
 public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implements FlowsShowView {
     // Constants (These are not all private since we use them in the selenium tests)
     public static final String GUIID_FLOWS_SHOW_WIDGET = "flowsshowwidget";
-    public static final String CLASS_FLOWS_SHOW_WIDGET_UPDATE_BUTTON = "flowsshowwidget_updatebutton";
+    public static final String CLASS_FLOWS_SHOW_WIDGET_REFRESH_BUTTON = "flowsshowwidget_refreshbutton";
+    public static final String CLASS_FLOWS_SHOW_WIDGET_EDIT_BUTTON = "flowsshowwidget_editbutton";
 
     // Local variables
     private static final FlowsShowTexts constants = GWT.create(FlowsShowTexts.class);
@@ -72,7 +73,28 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
             };
             table.addColumn(flowComponentsColumn, constants.columnHeader_FlowComponents());
 
-            Column updateButtonColumn = new Column<Flow, String>(new ButtonCell()) {
+            Column refreshButtonColumn = new Column<Flow, String>(new ButtonCell()) {
+                @Override
+                public String getValue(Flow flow) {
+                    // The value to display in the button.
+                    return constants.button_Refresh();
+                }
+            };
+
+            //Define class name for the button element
+            refreshButtonColumn.setCellStyleNames(CLASS_FLOWS_SHOW_WIDGET_REFRESH_BUTTON);
+
+            // Handler: Registering key clicks (on the buttonCell available for each flow).
+            // Clicks on ButtonCells are handled by setting the FieldUpdater for the Column
+            refreshButtonColumn.setFieldUpdater(new FieldUpdater<Flow, String>() {
+                @Override
+                public void update(int index, Flow flow, String buttonText) {
+                    refreshFlowComponents(flow);
+                }
+            });
+            table.addColumn(refreshButtonColumn, constants.columnHeader_Action_Refresh());
+
+            Column editButtonColumn = new Column<Flow, String>(new ButtonCell()) {
                 @Override
                 public String getValue(Flow flow) {
                     // The value to display in the button.
@@ -81,17 +103,18 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
             };
 
             //Define class name for the button element
-            updateButtonColumn.setCellStyleNames(CLASS_FLOWS_SHOW_WIDGET_UPDATE_BUTTON);
+            editButtonColumn.setCellStyleNames(CLASS_FLOWS_SHOW_WIDGET_EDIT_BUTTON);
 
-            // Handler: Registering key clicks (on the buttonCell available for each flow).
+            // Handler: Registering key clicks (on the buttonCell available for each sink).
             // Clicks on ButtonCells are handled by setting the FieldUpdater for the Column
-            updateButtonColumn.setFieldUpdater(new FieldUpdater<Flow, String>() {
+            editButtonColumn.setFieldUpdater(new FieldUpdater<Flow, String>() {
                 @Override
                 public void update(int index, Flow flow, String buttonText) {
-                    updateFlowComponents(flow);
+                    updateFlow(flow);
                 }
             });
-                table.addColumn(updateButtonColumn, constants.columnHeader_Action());
+
+            table.addColumn(editButtonColumn, constants.columnHeader_Action_Update());
             add(table);
         }
     }
@@ -141,8 +164,12 @@ public class FlowsShowViewImpl extends ContentPanel<FlowsShowPresenter> implemen
      * When a key click has been registered, the updateFlow method in FlowsShowPresenter is called in order to handle the update action itself.
      * @param flow The flow to edit
      */
-    private void updateFlowComponents(Flow flow){
-        presenter.updateFlowComponentsInFlowToLatestVersion(flow);
+    private void refreshFlowComponents(Flow flow){
+        presenter.refreshFlowComponents(flow);
+    }
+
+    private void updateFlow(Flow flow){
+        presenter.updateFlow(flow);
     }
 
     // Private methods

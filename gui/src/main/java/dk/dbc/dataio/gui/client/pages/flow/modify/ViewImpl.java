@@ -20,7 +20,7 @@ import java.util.Map;
 
 /**
  *
- * The implementation of the Sink Modify View
+ * The implementation of the Flow Modify View
  *
  */
 public class ViewImpl extends ContentPanel<Presenter> implements View {

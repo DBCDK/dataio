@@ -14,8 +14,10 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
+import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RawRepoExceptionRecordNotFound;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
@@ -40,6 +42,8 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -132,21 +136,37 @@ public class HarvesterBean {
        Returns harvester record.
      */
     private MarcExchangeCollection getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
-        final Record record;
+        final Map<RecordId, Record> records;
         try {
-            record = rawRepoConnector.fetchRecord(recordId);
-            LOGGER.debug("Fetched rawrepo record<{}>", record);
-        } catch (SQLException | RawRepoException e) {
-            throw new HarvesterException("Unable to fetch record for " + recordId.toString(), e);
+            records = asMap(rawRepoConnector.fetchRecordCollection(recordId));
+        } catch (RawRepoExceptionRecordNotFound e) {
+            throw new HarvesterInvalidRecordException("Invalid state of rawrepo", e);
+        } catch (SQLException | RawRepoException | MarcXMergerException e) {
+            throw new HarvesterException("Unable to fetch record collection for " + recordId.toString(), e);
         }
+        LOGGER.debug("Fetched rawrepo collection<{}> for {}", records.values(), recordId);
         final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection(documentBuilder, transformer);
-        harvesterRecord.addMember(getRecordContent(record));
+        harvesterRecord.addMember(getRecordContent(recordId, records));
         return harvesterRecord;
     }
 
-    private byte[] getRecordContent(Record record) throws HarvesterInvalidRecordException {
+    private Map<RecordId, Record> asMap(Map<String, Record> recordMap) {
+        // I do this map-to-map conversion since I'm not exactly sure
+        // what the string key of the original map represents
+        final Map<RecordId, Record> records = new HashMap<>(recordMap.size());
+        for (Record record : recordMap.values()) {
+            records.put(record.getId(), record);
+        }
+        return records;
+    }
+
+    private byte[] getRecordContent(RecordId recordId, Map<RecordId, Record> records) throws HarvesterInvalidRecordException {
         try {
-            return record.getContent();
+            if (!records.containsKey(recordId)) {
+                throw new HarvesterInvalidRecordException(String.format(
+                        "Record %s was not found in returned collection", recordId.toString()));
+            }
+            return records.get(recordId).getContent();
         } catch (NullPointerException e) {
              throw new HarvesterInvalidRecordException("Record content is null");
         }

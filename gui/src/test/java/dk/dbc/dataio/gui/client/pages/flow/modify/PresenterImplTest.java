@@ -39,12 +39,10 @@ public class PresenterImplTest {
     private View mockedView;
 
     private PresenterImplConcrete presenterImpl;
-    private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
     List<FlowComponentModel> selectedFlowComponentModelList;
     Map<String, String> selectedFlowComponentModelMap;
     List<FlowComponentModel> availableFlowComponentModelList;
-    Map<String, String> availableFlowComponentModelMap;
 
     private final static long   DEFAULT_ID = 0;
     private final static long   DEFAULT_VERSION = 0;
@@ -66,14 +64,11 @@ public class PresenterImplTest {
             view = mockedView;
             model = new FlowModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NAME, DEFAULT_DESCRIPTION, selectedFlowComponentModelList);
             availableFlowComponentModels = availableFlowComponentModelList;
-            initializeModelHasBeenCalled = false;
             saveModelHasBeenCalled = false;
         }
 
         @Override
-        void initializeModel() {
-            initializeModelHasBeenCalled = true;
-        }
+        void initializeModel() {}
 
         @Override
         void saveModel() {
@@ -111,11 +106,6 @@ public class PresenterImplTest {
         availableFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_2, FLOW_COMPONENT_NAME_2));
         availableFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_3, FLOW_COMPONENT_NAME_3));
         availableFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_4, FLOW_COMPONENT_NAME_4));
-        availableFlowComponentModelMap = new HashMap<String, String>();
-        availableFlowComponentModelMap.put(String.valueOf(FLOW_COMPONENT_ID_1), FLOW_COMPONENT_NAME_1);
-        availableFlowComponentModelMap.put(String.valueOf(FLOW_COMPONENT_ID_2), FLOW_COMPONENT_NAME_2);
-        availableFlowComponentModelMap.put(String.valueOf(FLOW_COMPONENT_ID_3), FLOW_COMPONENT_NAME_3);
-        availableFlowComponentModelMap.put(String.valueOf(FLOW_COMPONENT_ID_4), FLOW_COMPONENT_NAME_4);
     }
 
     @Before
@@ -148,22 +138,6 @@ public class PresenterImplTest {
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
         verify(mockedFlowStoreProxy).findAllFlowComponents(any(PresenterImpl.FindAllFlowComponentsAsyncCallback.class));
-        verify(mockedView).setName(DEFAULT_NAME);
-        verify(mockedView).setDescription(DEFAULT_DESCRIPTION);
-        verify(mockedView).setSelectedFlowComponents(selectedFlowComponentModelMap);
-
-        assertThat(initializeModelHasBeenCalled, is(true));
-        assertThat(presenterImpl.model.getId(), is(DEFAULT_ID));
-        assertThat(presenterImpl.model.getFlowName(), is(DEFAULT_NAME));
-        assertThat(presenterImpl.model.getDescription(), is(DEFAULT_DESCRIPTION));
-        assertThat(presenterImpl.model.getFlowComponents().size(), is(2));
-        assertThat(presenterImpl.model.getFlowComponents().get(0).getName(), is(FLOW_COMPONENT_NAME_1));
-        assertThat(presenterImpl.model.getFlowComponents().get(1).getName(), is(FLOW_COMPONENT_NAME_3));
-        assertThat(presenterImpl.availableFlowComponentModels.size(), is(4));
-        assertThat(presenterImpl.availableFlowComponentModels.get(0).getName(), is(FLOW_COMPONENT_NAME_1));
-        assertThat(presenterImpl.availableFlowComponentModels.get(1).getName(), is(FLOW_COMPONENT_NAME_2));
-        assertThat(presenterImpl.availableFlowComponentModels.get(2).getName(), is(FLOW_COMPONENT_NAME_3));
-        assertThat(presenterImpl.availableFlowComponentModels.get(3).getName(), is(FLOW_COMPONENT_NAME_4));
     }
 
     @Test

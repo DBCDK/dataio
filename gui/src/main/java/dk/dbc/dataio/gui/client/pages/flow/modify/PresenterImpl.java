@@ -42,7 +42,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         containerWidget.setWidget(view.asWidget());
         initializeModel();
         initializeAvailableFlowComponentModels();
-        updateAllFieldsAccordingToCurrentState();
     }
 
     /**

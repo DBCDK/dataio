@@ -106,6 +106,7 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Views
     private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowCreateView = new dk.dbc.dataio.gui.client.pages.flow.modify.ViewImpl(flowModifyTexts.menu_FlowCreation(), flowModifyTexts);
+    private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowEditView = new dk.dbc.dataio.gui.client.pages.flow.modify.ViewImpl(flowModifyTexts.menu_FlowEdit(), flowModifyTexts);
     private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
     private final FlowbinderCreateView flowbinderCreateView = new FlowbinderCreateViewImpl();
     private final dk.dbc.dataio.gui.client.pages.sink.modify.View sinkCreateView = new dk.dbc.dataio.gui.client.pages.sink.modify.ViewImpl(sinkModifyTexts.menu_SinkCreation(), sinkModifyTexts);
@@ -174,6 +175,9 @@ public class ClientFactoryImpl implements ClientFactory {
     public Activity getPresenter(Place place) {
         if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this, flowModifyTexts);
+        }
+        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace) {
+            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterEditImpl(place, this, flowModifyTexts);
         }
         if (place instanceof FlowComponentCreatePlace) {
             return new FlowComponentCreateActivity(this);
@@ -251,6 +255,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView() {
         return flowCreateView;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowEditView() {
+        return flowEditView;
     }
 
     @Override

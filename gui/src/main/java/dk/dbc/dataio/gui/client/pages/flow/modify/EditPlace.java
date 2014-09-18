@@ -1,0 +1,34 @@
+package dk.dbc.dataio.gui.client.pages.flow.modify;
+
+import com.google.gwt.place.shared.Place;
+import com.google.gwt.place.shared.PlaceTokenizer;
+import com.google.gwt.place.shared.Prefix;
+import dk.dbc.dataio.commons.types.Flow;
+
+public class EditPlace extends Place {
+    private Long flowId;
+
+    public EditPlace(String url) {
+        this.flowId = Long.valueOf(url);
+    }
+
+    public EditPlace(Flow flow) {
+        this.flowId = flow.getId();
+    }
+
+    public Long getFlowId() {
+        return flowId;
+    }
+
+    @Prefix("EditFlow")
+    public static class Tokenizer implements PlaceTokenizer<EditPlace> {
+        @Override
+        public String getToken(EditPlace place) {
+            return String.valueOf(place.getFlowId());
+        }
+        @Override
+        public EditPlace getPlace(String token) {
+            return new EditPlace(token);
+        }
+    }
+}

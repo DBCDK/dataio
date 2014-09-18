@@ -95,25 +95,6 @@
         <marcx:subfield code="a">DIHR</marcx:subfield>
         <marcx:subfield code="z">710/1</marcx:subfield>
       </marcx:datafield>
-      <marcx:datafield tag="d08" ind1="0" ind2="0">
-        <marcx:subfield code="o">dra</marcx:subfield>
-        <marcx:subfield code="a">856: ikke tilgængelig på udgivers hjemmeside</marcx:subfield>
-      </marcx:datafield>
-      <marcx:datafield tag="d70" ind1="0" ind2="0">
-        <marcx:subfield code="b">Bog</marcx:subfield>
-      </marcx:datafield>
-      <marcx:datafield tag="s10" ind1="0" ind2="0">
-        <marcx:subfield code="a">DBC</marcx:subfield>
-      </marcx:datafield>
-      <marcx:datafield tag="s12" ind1="0" ind2="0">
-        <marcx:subfield code="t">TeamBLY201409</marcx:subfield>
-      </marcx:datafield>
-      <marcx:datafield tag="z99" ind1="0" ind2="0">
-        <marcx:subfield code="a">dra</marcx:subfield>
-      </marcx:datafield>
-      <marcx:datafield tag="n55" ind1="0" ind2="0">
-        <marcx:subfield code="a">20140228</marcx:subfield>
-      </marcx:datafield>
       <marcx:datafield tag="900" ind1="0" ind2="0">
         <marcx:subfield code="0"/>
         <marcx:subfield code="a">Sørensen</marcx:subfield>

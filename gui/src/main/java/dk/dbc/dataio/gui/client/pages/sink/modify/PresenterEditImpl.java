@@ -44,11 +44,6 @@ public class PresenterEditImpl extends PresenterImpl {
         flowStoreProxy.getSink(sinkId, new GetSinkModelFilteredAsyncCallback());
     }
 
-    private void setSinkModel(SinkModel model) {
-        this.model = model;
-    }
-
-
     /**
      * Call back class to be instantiated in the call to getSink in flowstore proxy
      */

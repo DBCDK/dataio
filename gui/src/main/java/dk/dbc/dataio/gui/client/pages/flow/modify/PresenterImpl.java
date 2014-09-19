@@ -148,12 +148,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return result;
     }
 
-
     /*
      * Protected methods
      */
 
-
+    /**
+     * Method used to set the model after a successful update or a save
+     * @param model
+     */
+    protected void setFlowModel(FlowModel model) {
+        this.model = model;
+    }
 
     /*
      * Local classes
@@ -186,9 +191,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(FlowModel model) {
             view.setStatusText(texts.status_FlowSuccessfullySaved());
+            setFlowModel(model);
         }
     }
-
 
     /*
      * Abstract methods

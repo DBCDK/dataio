@@ -109,6 +109,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     /**
+     * Method used to set the model after a successful update or a save
+     * @param model
+     */
+    protected void setSubmitterModel(SubmitterModel model) {
+        this.model = model;
+    }
+
+    /**
      * A local method to be used to translate an exception to a readable text
      * @param e Exception
      * @return errorMessage, the error text
@@ -151,6 +159,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(SubmitterModel model) {
             view.setStatusText(constants.status_SubmitterSuccessfullySaved());
+            setSubmitterModel(model);
         }
     }
 

@@ -51,10 +51,6 @@ public class PresenterEditImpl extends PresenterImpl {
         flowStoreProxy.getSubmitter(submitterId, new GetSubmitterModelFilteredAsyncCallback());
     }
 
-    private void setSubmitterModel(SubmitterModel model) {
-        this.model = model;
-    }
-
     /**
      * Call back class to be instantiated in the call to getSubmitter in flowstore proxy
      */

@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -38,6 +39,10 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
         fetchJobStoreFilesystemUrl();
     }
 
+    @Override
+    public void showFailedItems(long jobId) {
+        Window.alert("Job id er: " + jobId);
+    }
 
     // Local methods
     private void fetchJobs() {

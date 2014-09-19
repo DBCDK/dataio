@@ -42,4 +42,7 @@ public interface JobsShowTexts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String link_MoreInfo();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String link_FailedItems();
+
 }

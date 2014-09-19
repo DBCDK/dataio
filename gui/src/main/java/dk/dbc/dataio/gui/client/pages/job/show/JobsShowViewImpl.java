@@ -401,20 +401,30 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         return jobStoreFilesystemUrl.concat("/").concat(Long.toString(id));
     }
 
-    private FlowPanel buildFlowPanelForPopupPanel(JobInfo jobInfo) {
-        FlowPanel flowPanel = new FlowPanel();
+    private FlowPanel buildFlowPanelForPopupPanel(final JobInfo jobInfo) {
+        FlowPanel panel = new FlowPanel();
         DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
 
         if (jobInfo.getJobErrorCode().equals(JobErrorCode.NO_ERROR)) {
-            flowPanel.add(buildDualPanesPanelForChunkCounter(CHUNKIFYING, jobInfo.getChunkifyingChunkCounter()));
-            flowPanel.add(buildDualPanesPanelForChunkCounter(PROCESSING, jobInfo.getProcessingChunkCounter()));
-            flowPanel.add(buildDualPanesPanelForChunkCounter(DELIVERING, jobInfo.getDeliveringChunkCounter()));
+            panel.add(buildDualPanesPanelForChunkCounter(CHUNKIFYING, jobInfo.getChunkifyingChunkCounter()));
+            panel.add(buildDualPanesPanelForChunkCounter(PROCESSING, jobInfo.getProcessingChunkCounter()));
+            panel.add(buildDualPanesPanelForChunkCounter(DELIVERING, jobInfo.getDeliveringChunkCounter()));
         } else {
             dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(), new Label(jobInfo.getJobErrorCode().toString()));
-            flowPanel.add(dualPanesPanel);
+            panel.add(dualPanesPanel);
         }
-        flowPanel.add(new Anchor(constants.link_MoreInfo(), getJobstoreLink(jobInfo.getJobId()), "_blank"));
-        return flowPanel;
+        panel.add(new Anchor(constants.link_MoreInfo(), getJobstoreLink(jobInfo.getJobId()), "_blank"));
+        panel.add(new FlowPanel());  // Line break
+        Anchor failedItemsAnchor = new Anchor(constants.link_FailedItems());
+        failedItemsAnchor.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent clickEvent) {
+                presenter.showFailedItems(jobInfo.getJobId());
+            }
+        });
+        panel.add(failedItemsAnchor);
+
+        return panel;
     }
 
     private Image getGreyImageWithId() {

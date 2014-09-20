@@ -19,6 +19,11 @@
 	    <version>${jersey.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-invariant</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
 </project>

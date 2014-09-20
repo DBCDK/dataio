@@ -18,8 +18,6 @@ import java.util.Map;
  * This utility class provides convenience methods for accessing web resources via HTTP
  */
 public class HttpClient {
-    public static final String URL_PATH_SEPARATOR = "/";
-
     private HttpClient() { }
 
     /**
@@ -203,25 +201,6 @@ public class HttpClient {
             target = target.path(pathElement);
         }
         return target.request().delete();
-    }
-
-    /**
-     * Interpolates embedded path variables on the form {key} with value
-     * found by doing values.get(key), if any.
-     *
-     * @param path path containing path variables on the form {key}, can be null
-     * @param variables key-to-value mappings, can be null
-     *
-     * @return path with values interpolated
-     */
-    public static String interpolatePathVariables(String path, Map<String, String> variables) {
-        String interpolatedPath = path;
-        if (interpolatedPath != null && variables != null) {
-            for (Map.Entry<String, String> entry : variables.entrySet()) {
-                interpolatedPath = interpolatedPath.replaceAll(String.format("\\{%s\\}", entry.getKey()), entry.getValue());
-            }
-        }
-        return interpolatedPath;
     }
 
     public static List<Object> getHeader(Response response, String headerName) {

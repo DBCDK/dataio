@@ -2,6 +2,7 @@ package dk.dbc.dataio.filestore.service.connector;
 
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import javax.ws.rs.ProcessingException;
@@ -10,9 +11,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * FileStoreServiceConnector - dataIO file-store REST service client.
@@ -89,10 +88,10 @@ public class FileStoreServiceConnector {
     public InputStream getFile(final String fileId)
             throws NullPointerException, IllegalArgumentException, ProcessingException, FileStoreServiceConnectorException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
-        final Map<String, String> pathVariables = new HashMap<>(1);
-        pathVariables.put(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
-        final String path = HttpClient.interpolatePathVariables(FileStoreServiceConstants.FILE, pathVariables);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.split(HttpClient.URL_PATH_SEPARATOR));
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
         return readResponseInputStream(response);
     }

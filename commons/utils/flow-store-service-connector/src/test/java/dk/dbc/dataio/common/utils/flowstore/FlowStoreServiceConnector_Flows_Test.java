@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
@@ -11,7 +12,6 @@ import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -32,8 +32,6 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -113,7 +111,9 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     // Helper method
     private Flow getFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id) throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW)
+                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, id);
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.getFlow(id);
@@ -151,10 +151,10 @@ public class FlowStoreServiceConnector_Flows_Test {
         final Map<String, Object> queryParameters = new HashMap<>(1);
         queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, true);
 
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
+                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, id);
 
-        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, "", FLOW_STORE_URL, "path"))
+        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, "", FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -172,10 +172,10 @@ public class FlowStoreServiceConnector_Flows_Test {
         final Map<String, Object> queryParameters = new HashMap<>(1);
         queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false);
 
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
+                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, flowToUpdate.getId());
 
-        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, "path"))
+        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowToUpdate));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -216,10 +216,10 @@ public class FlowStoreServiceConnector_Flows_Test {
         final Map<String, Object> queryParameters = new HashMap<>(1);
         queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false);
 
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.FLOW_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
+                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, id);
 
-        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, "path"))
+        when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -267,7 +267,7 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     // Helper method
     private List<Flow> findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, FlowStoreServiceConstants.FLOWS))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllFlows();

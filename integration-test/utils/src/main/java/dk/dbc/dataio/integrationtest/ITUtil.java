@@ -4,6 +4,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
@@ -30,9 +31,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Integration test utility
@@ -44,7 +43,6 @@ public class ITUtil {
                 System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("flow-store-service.context"));
     public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
                 System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("job-store-service.context"));
-    public static final String URL_PATH_SEPARATOR = "/";
 
     public static final String FLOW_STORE_DATABASE_NAME = "flow_store";
     public static final String FLOWS_TABLE_NAME = "flows";
@@ -181,11 +179,10 @@ public class ITUtil {
     }
 
     public static Response getJobProcessorResult(Client restClient, long jobId, long chunkId) {
-        final Map<String, String> pathVariables = new HashMap<>(2);
-        pathVariables.put(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
-        pathVariables.put(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId));
-        final String path = HttpClient.interpolatePathVariables(JobStoreServiceConstants.JOB_PROCESSED, pathVariables);
-        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.split(URL_PATH_SEPARATOR));
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_PROCESSED)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
+        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.build());
     }
 
     /**

@@ -1,38 +1,38 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
+import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.ws.rs.core.Response;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -108,7 +108,9 @@ public class FlowStoreServiceConnector_Submitters_Test {
     }
 
     private Submitter getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER)
+                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, ID);
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.getSubmitter(ID);
@@ -122,9 +124,9 @@ public class FlowStoreServiceConnector_Submitters_Test {
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SUBMITTER_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, "path"))
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_CONTENT)
+                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, submitterToUpdate.getId());
+        when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), submitterToUpdate));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -161,9 +163,9 @@ public class FlowStoreServiceConnector_Submitters_Test {
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
-        when(HttpClient.interpolatePathVariables(eq(FlowStoreServiceConstants.SUBMITTER_CONTENT), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, "path"))
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_CONTENT)
+                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, ID);
+        when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, ""));
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -220,7 +222,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     // Helper method
     private List<Submitter> findAllSubmitters_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(eq(CLIENT), eq(FLOW_STORE_URL), (String) anyVararg()))
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, FlowStoreServiceConstants.SUBMITTERS))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllSubmitters();

@@ -2,11 +2,11 @@ package dk.dbc.dataio.filestore.service.connector;
 
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -15,14 +15,12 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -139,9 +137,9 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getFile_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(FileStoreServiceConstants.FILE), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(FILE_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doGet(CLIENT, FILE_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
@@ -155,9 +153,9 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getFile_responseWithNullEntity_throws() throws FileStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(FileStoreServiceConstants.FILE), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(FILE_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doGet(CLIENT, FILE_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
@@ -171,9 +169,9 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void getFile_fileExists_returnsInputStream() throws FileStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(FileStoreServiceConstants.FILE), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(FILE_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doGet(CLIENT, FILE_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), INPUT_STREAM));
 
         final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();

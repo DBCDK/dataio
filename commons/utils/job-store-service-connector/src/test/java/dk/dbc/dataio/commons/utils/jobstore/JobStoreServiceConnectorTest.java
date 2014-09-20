@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
@@ -19,19 +20,15 @@ import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyVararg;
-import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -130,9 +127,9 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getSink_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_SINK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_SINK)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -141,9 +138,9 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getSink_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_SINK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_SINK)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -152,10 +149,10 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getSink_sinkRetrieved_returnsSink() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_SINK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         final Sink expectedSink = new SinkBuilder().build();
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_SINK)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSink));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -166,9 +163,9 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getState_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_STATE), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_STATE)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -177,9 +174,9 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getState_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_STATE), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_STATE)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -188,11 +185,11 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getState_stateRetrieved_returnsState() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_STATE), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
         final JobState expectedJobState = new JobState();
         expectedJobState.setLifeCycleStateFor(JobState.OperationalState.CHUNKIFYING, JobState.LifeCycleState.DONE);
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_STATE)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedJobState));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -203,9 +200,10 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getChunk_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_CHUNK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CHUNK)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, CHUNK_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -214,9 +212,10 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getChunk_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_CHUNK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CHUNK)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, CHUNK_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -226,9 +225,10 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void getChunk_chunkRetrieved_returnsChunk() throws JobStoreServiceConnectorException {
         final Chunk expectedChunk = new ChunkBuilder().build();
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_CHUNK), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CHUNK)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, CHUNK_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedChunk));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -239,9 +239,10 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getSinkChunkResult_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_DELIVERED), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_DELIVERED)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, CHUNK_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -250,9 +251,10 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void getSinkChunkResult_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_DELIVERED), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_DELIVERED)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, CHUNK_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
@@ -262,9 +264,10 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void getSinkChunkResult_sinkChunkResultRetrieved_returnsSinkChunkResult() throws JobStoreServiceConnectorException {
         final SinkChunkResult expectedSinkChunkResult = new SinkChunkResultBuilder().build();
-        when(HttpClient.interpolatePathVariables(eq(JobStoreServiceConstants.JOB_DELIVERED), Matchers.<Map<String, String>>any()))
-                .thenReturn("path");
-        when(HttpClient.doGet(eq(CLIENT), eq(JOB_STORE_URL), (String) anyVararg()))
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_DELIVERED)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID)
+                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, CHUNK_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSinkChunkResult));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();

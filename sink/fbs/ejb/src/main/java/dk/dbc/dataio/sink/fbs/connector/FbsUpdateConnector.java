@@ -78,8 +78,6 @@ public class FbsUpdateConnector {
      */
     public UpdateMarcXchangeResult updateMarcExchange(String collection, String trackingId)
             throws NullPointerException, IllegalArgumentException, WebServiceException, FbsUpdateConnectorException {
-        System.err.println("TOTEM: Calling updateMarcExchange in Connector");
-        System.err.println("TOTEM: endpoint: " + endpoint);
         InvariantUtil.checkNotNullNotEmptyOrThrow(collection, "collection");
 
         final UpdateMarcXchangeRequest updateMarcXchangeRequest = new UpdateMarcXchangeRequest();

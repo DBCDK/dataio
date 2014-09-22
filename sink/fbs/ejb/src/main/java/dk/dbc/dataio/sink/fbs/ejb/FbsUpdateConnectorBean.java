@@ -33,7 +33,6 @@ public class FbsUpdateConnectorBean {
     }
 
     public FbsUpdateConnector getConnector() {
-        System.err.println("TOTEM: Requesting FbsUpdateConnector.");
         return fbsUpdateConnector;
     }
 }

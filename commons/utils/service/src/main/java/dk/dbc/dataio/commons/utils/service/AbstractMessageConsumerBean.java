@@ -83,7 +83,6 @@ public abstract class AbstractMessageConsumerBean {
      * @param message message received
      */
     public void onMessage(Message message) {
-        System.err.println("TOTEM: Message recieved: " + message);
         String messageId = null;
         int messageDeliveryCount = 0;
         try {
@@ -92,10 +91,8 @@ public abstract class AbstractMessageConsumerBean {
             messageDeliveryCount = message.getIntProperty(DELIVERY_COUNT_PROPERTY);
             handleConsumedMessage(consumedMessage);
         } catch (InvalidMessageException e) {
-            System.err.println("TOTEM: Message rejected: " + e);
             LOGGER.error("Message rejected", e);
         } catch (Throwable t) {
-            System.err.println("TOTEM: Message rejected: " + t);
             // Ensure that this container-managed transaction can never commit
             // and therefore that this message subsequently will be re-delivered.
             messageDrivenContext.setRollbackOnly();

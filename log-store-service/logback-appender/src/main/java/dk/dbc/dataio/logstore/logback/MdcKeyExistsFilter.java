@@ -1,4 +1,4 @@
-package dk.dbc.dataio.logback;
+package dk.dbc.dataio.logstore.logback;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.filter.AbstractMatcherFilter;

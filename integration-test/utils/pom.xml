@@ -45,9 +45,14 @@
       <version>${jersey.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

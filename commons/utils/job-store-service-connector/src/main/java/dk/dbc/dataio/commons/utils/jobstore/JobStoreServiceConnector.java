@@ -1,6 +1,9 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkCompletionState;
+import dk.dbc.dataio.commons.types.ItemCompletionState;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -11,6 +14,9 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -146,6 +152,44 @@ public class JobStoreServiceConnector {
         } finally {
             response.close();
         }
+    }
+
+    public JobCompletionState getJobCompletionState(long jobId) throws JobStoreServiceConnectorException {
+        List<ItemCompletionState> itemCompletionStates0 = new ArrayList<>();
+        itemCompletionStates0.add(new ItemCompletionState(0, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(1, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(2, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(3, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(4, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(5, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(6, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(7, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(8, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(9, ItemCompletionState.State.SUCCESS));
+        List<ItemCompletionState> itemCompletionStates1 = new ArrayList<>();
+        itemCompletionStates1.add(new ItemCompletionState(0, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(1, ItemCompletionState.State.FAILURE));
+        itemCompletionStates1.add(new ItemCompletionState(2, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(3, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(4, ItemCompletionState.State.FAILURE));
+        itemCompletionStates1.add(new ItemCompletionState(5, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(6, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(7, ItemCompletionState.State.IGNORED));
+        itemCompletionStates1.add(new ItemCompletionState(8, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(9, ItemCompletionState.State.SUCCESS));
+        List<ItemCompletionState> itemCompletionStates2 = new ArrayList<>();
+        itemCompletionStates2.add(new ItemCompletionState(0, ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(1, ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(2, ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(3, ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(4, ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(5, ItemCompletionState.State.INCOMPLETE));
+        List<ChunkCompletionState> chunkCompletionStates = new ArrayList<>();
+        chunkCompletionStates.add(new ChunkCompletionState(0, itemCompletionStates0));
+        chunkCompletionStates.add(new ChunkCompletionState(1, itemCompletionStates1));
+        chunkCompletionStates.add(new ChunkCompletionState(2, itemCompletionStates2));
+        JobCompletionState jobCompletionState = new JobCompletionState(jobId, chunkCompletionStates);
+        return jobCompletionState;
     }
 
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws JobStoreServiceConnectorException {

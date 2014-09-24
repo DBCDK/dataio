@@ -1,13 +1,6 @@
 package dk.dbc.dataio.gui.client.pages.faileditems;
 
-
-import com.google.gwt.user.client.rpc.IsSerializable;
-import com.google.gwt.view.client.ProvidesKey;
-import com.sun.corba.se.pept.transport.ContactInfo;
-
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Failed Items Model<br>

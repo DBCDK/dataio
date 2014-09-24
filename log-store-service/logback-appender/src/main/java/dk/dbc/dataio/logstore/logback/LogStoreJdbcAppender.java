@@ -147,7 +147,7 @@ public class LogStoreJdbcAppender extends DBAppenderBase<ILoggingEvent> {
         if (stack != null) {
             for (StackTraceElementProxy stackTraceElement : stack) {
                 sb.append(indent);
-                sb.append("\tat ");
+                sb.append("\t");
                 sb.append(stackTraceElement.toString());
                 sb.append("\n");
             }

@@ -16,8 +16,11 @@
 
   <modules>
     <module>dbhelper</module>
+    <module>ear</module>
+    <module>ejb</module>
     <module>logback-appender</module>
     <module>types</module>
+    <module>war</module>
   </modules>
 
 </project>

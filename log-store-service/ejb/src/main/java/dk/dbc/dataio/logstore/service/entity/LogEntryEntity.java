@@ -32,11 +32,11 @@ public class LogEntryEntity {
     @Basic
     @javax.persistence.Column(name = "timestamp")
     public Timestamp getTimestamp() {
-        return timestamp;
+        return new Timestamp(timestamp.getTime());
     }
 
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+        this.timestamp = new Timestamp(timestamp.getTime());
     }
 
     private String formattedMessage;

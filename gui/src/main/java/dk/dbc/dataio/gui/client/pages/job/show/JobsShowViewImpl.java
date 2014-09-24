@@ -415,6 +415,11 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         }
         panel.add(new Anchor(constants.link_MoreInfo(), getJobstoreLink(jobInfo.getJobId()), "_blank"));
         panel.add(new FlowPanel());  // Line break
+        panel.add(getFailedItemsAnchor(jobInfo));
+        return panel;
+    }
+
+    private Anchor getFailedItemsAnchor(final JobInfo jobInfo) {
         Anchor failedItemsAnchor = new Anchor(constants.link_FailedItems());
         failedItemsAnchor.addClickHandler(new ClickHandler() {
             @Override
@@ -422,9 +427,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                 presenter.showFailedItems(jobInfo.getJobId());
             }
         });
-        panel.add(failedItemsAnchor);
-
-        return panel;
+        return failedItemsAnchor;
     }
 
     private Image getGreyImageWithId() {

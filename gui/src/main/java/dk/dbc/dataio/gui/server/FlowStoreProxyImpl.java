@@ -74,11 +74,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         Flow flow;
         List<FlowComponent> flowComponents;
         try {
-            flowComponents = new ArrayList<FlowComponent>(model.getFlowComponents().size());
-            for(FlowComponentModel flowComponentModel : model.getFlowComponents()) {
-                FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(flowComponentModel.getId());
-                flowComponents.add(flowComponent);
-            }
+            flowComponents = getFlowComponentsLatestVersion(model.getFlowComponents());
             flow = flowStoreServiceConnector.createFlow(FlowModelMapper.toFlowContent(model, flowComponents));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
@@ -88,6 +84,24 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
     }
         return FlowModelMapper.toModel(flow);
+    }
+
+    /**
+     * For each flow component model given as input, the method retrieves the latest version of a flow component
+     * from the flow store
+     *
+     * @param flowComponentModels containing information regarding which flow components should be retrieved from the flow store
+     * @return flowComponents, a list containing the retrieved flow components
+     *
+     * @throws FlowStoreServiceConnectorException
+     */
+    private List<FlowComponent> getFlowComponentsLatestVersion (List<FlowComponentModel> flowComponentModels) throws FlowStoreServiceConnectorException {
+        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>(flowComponentModels.size());
+        for(FlowComponentModel flowComponentModel : flowComponentModels) {
+            FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(flowComponentModel.getId());
+            flowComponents.add(flowComponent);
+        }
+        return flowComponents;
     }
 
     @Override

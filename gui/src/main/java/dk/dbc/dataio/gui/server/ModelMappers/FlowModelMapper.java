@@ -1,8 +1,11 @@
 package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+
+import java.util.List;
 
 public final class FlowModelMapper {
 
@@ -32,7 +35,7 @@ public final class FlowModelMapper {
      * @return FlowContent The content of the Flow
      * @throws IllegalArgumentException
      */
-    public static FlowContent toFlowContent(FlowModel model) throws IllegalArgumentException {
+    public static FlowContent toFlowContent(FlowModel model, List<FlowComponent> flowComponents) throws IllegalArgumentException {
         if(model.isInputFieldsEmpty()) {
             throw new IllegalArgumentException("model.name, model.description, model.flowcomponents cannot be empty");
         }
@@ -40,7 +43,7 @@ public final class FlowModelMapper {
         return new FlowContent(
                 model.getFlowName(),
                 model.getDescription(),
-                FlowComponentModelMapper.toListOfFlowComponents(model.getFlowComponents())
+                flowComponents
         );
     }
 }

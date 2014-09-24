@@ -825,6 +825,7 @@ public class FlowStoreProxyImplTest {
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1).build();
         FlowModel model = getDefaultFlowModel(flow);
 
+        when(flowStoreServiceConnector.getFlow(any(Long.class))).thenReturn(flow);
         when(flowStoreServiceConnector.updateFlow(any(FlowContent.class), (eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenReturn(flow);
         try {
@@ -869,6 +870,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1).build();
         FlowModel model = getDefaultFlowModel(flow);
+        when(flowStoreServiceConnector.getFlow(any(Long.class))).thenReturn(flow);
         when(flowStoreServiceConnector.updateFlow(any(FlowContent.class), (eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
@@ -893,6 +895,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).setVersion(1).build();
 
+        when(flowStoreServiceConnector.getFlow(any(Long.class))).thenReturn(flow);
         when(flowStoreServiceConnector.updateFlow(any(FlowContent.class), (eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenThrow(exception);
 

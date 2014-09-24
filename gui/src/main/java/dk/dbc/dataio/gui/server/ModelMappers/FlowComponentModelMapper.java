@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 
@@ -9,9 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class FlowComponentModelMapper {
-
-    private final static String NOT_APPLICABLE = "n/a";
-
     /**
      * Private Constructor prevents instantiation of this static class
      */
@@ -46,45 +42,6 @@ public final class FlowComponentModelMapper {
     }
 
     /**
-     * Maps a model to flow component content
-     *
-     * @param model The model
-     * @return FlowComponentContent The content of the Flow component
-     * @throws IllegalArgumentException
-     */
-    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model) throws IllegalArgumentException {
-        if (model.isInputFieldsEmpty()) {
-            throw new IllegalArgumentException("model.name, model.svnProject, model.svnRevision, model.invocationJavascript, model.invocationMethod, model.javascriptModules cannot be empty");
-        }
-        return new FlowComponentContent(
-                model.getName(),
-                model.getSvnProject(),
-                Long.parseLong(model.getSvnRevision()),
-                model.getInvocationJavascript(),
-                getJavaScripts(model.getJavascriptModules()),
-                model.getInvocationMethod()
-        );
-    }
-
-    private static List<JavaScript> getJavaScripts(List<String> javascriptNames) {
-        List<JavaScript> javascripts = new ArrayList<JavaScript>();
-        for (String module : javascriptNames) {
-            javascripts.add(new JavaScript(NOT_APPLICABLE, module));  // Please note, that the content of the javascript is not known at this time, and is there set as being empty!
-        }
-        return javascripts;
-    }
-
-    /**
-     * Maps a model to flow component
-     *
-     * @param model The model
-     * @return FlowComponent
-     */
-    public static FlowComponent toFlowComponent(FlowComponentModel model) {
-        return new FlowComponent(model.getId(), model.getVersion(), toFlowComponentContent(model));
-    }
-
-    /**
      * Maps a list of flow components to a list of flow component models
      *
      * @param flowComponents the list of flowComponents
@@ -96,20 +53,6 @@ public final class FlowComponentModelMapper {
             flowComponentModels.add(toModel(flowComponent));
         }
         return flowComponentModels;
-    }
-
-    /**
-     * Maps a list of flow component models to a list of flow components
-     *
-     * @param flowComponentModels
-     * @return
-     */
-    public static List<FlowComponent> toListOfFlowComponents(List<FlowComponentModel> flowComponentModels) {
-        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>();
-        for(FlowComponentModel flowComponentModel : flowComponentModels) {
-            flowComponents.add(toFlowComponent(flowComponentModel));
-        }
-        return flowComponents;
     }
 
 }

@@ -33,6 +33,7 @@ import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
@@ -71,8 +72,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException {
         Flow flow;
+        List<FlowComponent> flowComponents;
         try {
-            flow = flowStoreServiceConnector.createFlow(FlowModelMapper.toFlowContent(model));
+            flowComponents = new ArrayList<FlowComponent>(model.getFlowComponents().size());
+            for(FlowComponentModel flowComponentModel : model.getFlowComponents()) {
+                FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(flowComponentModel.getId());
+                flowComponents.add(flowComponent);
+            }
+            flow = flowStoreServiceConnector.createFlow(FlowModelMapper.toFlowContent(model, flowComponents));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
@@ -214,8 +221,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
         Flow flow;
+        List<FlowComponent> flowComponents;
         try {
-            flow = flowStoreServiceConnector.updateFlow(FlowModelMapper.toFlowContent(model), model.getId(), model.getVersion());
+            // Retrieve the currently saved version of the flow
+            Flow flowOpenedForUpdate = flowStoreServiceConnector.getFlow(model.getId());
+
+            // If the flow has been updated by another user: Throw proxyException - conflict error
+            if(model.getVersion() != flowOpenedForUpdate.getVersion()) {
+                throw new ProxyException(ProxyError.CONFLICT_ERROR, "Concurrent Update Error");
+            }
+            else {
+                flowComponents = getFlowComponents(flowOpenedForUpdate, model.getFlowComponents());
+                flow = flowStoreServiceConnector.updateFlow(FlowModelMapper.toFlowContent(model, flowComponents), model.getId(), model.getVersion());
+            }
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
@@ -224,6 +242,47 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
         }
         return FlowModelMapper.toModel(flow);
+    }
+
+    /**
+     * This method loops through a list of flow component models and compares the id of each, with the id of the flow components nested
+     * within the flow.
+     * if the id is located, the method takes the flow component from the flow, and adds it to a list
+     * if the id is not located, the flow component is taken directly from the flow store and adds it to the list
+     *
+     * This is done for the following reasons:
+     *      The frontend object (flowComponentModel) does not contain the full data set needed by
+     *      the backend object (flowComponent).
+     *
+     *      The flow component is nested within a flow. Therefore the flow components of an existing flow cannot be replaced by
+     *      retrieving the latest version of the same flow component from the flow store.
+     *
+     * @param flow, the version of the flow that is currently saved in the underlying database
+     * @param model containing the updated flow data
+     *
+     * @return flowComponents, a list containing the flow components that should be used.
+     * @throws FlowStoreServiceConnectorException
+     */
+    private List<FlowComponent> getFlowComponents (Flow flow, List<FlowComponentModel> model) throws FlowStoreServiceConnectorException {
+        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>(model.size());
+        for (FlowComponentModel flowComponentModel : model) {
+            int counter = 0;
+            boolean isNewFlowComponent = true;
+            while(isNewFlowComponent && counter < flow.getContent().getComponents().size()){
+                if (flowComponentModel.getId() == flow.getContent().getComponents().get(counter).getId()) {
+                    // The flow component lave been located within the existing flow. Re-use the flow component
+                    flowComponents.add(flow.getContent().getComponents().get(counter));
+                    // End loop.
+                    isNewFlowComponent = false;
+                }
+                counter ++;
+            }
+            if (isNewFlowComponent) {
+                // Retrieve the latest version of the flow component from the flow store
+                flowComponents.add(flowStoreServiceConnector.getFlowComponent(flowComponentModel.getId()));
+            }
+        }
+        return flowComponents;
     }
 
     @Override

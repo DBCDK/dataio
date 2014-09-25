@@ -116,7 +116,7 @@ public class HarvesterBean {
                 try {
                     final RecordId queuedRecordId = nextQueuedItem.getJob();
                     final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
-                    switch (queuedRecordId.getLibrary()) {
+                    switch (queuedRecordId.getAgencyId()) {
                         case COMMUNITY_LIBRARY_NUMBER:
                             communityRecordsJobBuilder.addHarvesterRecord(harvesterRecord);
                             break;

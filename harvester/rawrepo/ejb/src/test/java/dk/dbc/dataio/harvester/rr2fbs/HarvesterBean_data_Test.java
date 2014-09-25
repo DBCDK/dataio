@@ -212,6 +212,6 @@ public class HarvesterBean_data_Test {
     }
 
     private MarcExchangeRecord asMarcExchangeRecord(RecordId recordId) {
-        return new MarcExchangeRecord(recordId.getId(), recordId.getLibrary());
+        return new MarcExchangeRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 }

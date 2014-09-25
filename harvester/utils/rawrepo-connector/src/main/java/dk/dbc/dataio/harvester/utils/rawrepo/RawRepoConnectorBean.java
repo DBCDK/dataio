@@ -35,7 +35,7 @@ public class RawRepoConnectorBean {
         InvariantUtil.checkNotNullOrThrow(id, "id");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
-            final Record record = RawRepoDAO.newInstance(connection).fetchRecord(id.getId(), id.getLibrary());
+            final Record record = RawRepoDAO.newInstance(connection).fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
             LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             return record;
         }
@@ -50,7 +50,7 @@ public class RawRepoConnectorBean {
             // internal Transformer and DocumentBuilder
             final MarcXMerger marcXMerger = new MarcXMerger();
             final Map<String, Record> recordMap = RawRepoDAO.newInstance(connection)
-                    .fetchRecordCollection(id.getId(), id.getLibrary(), marcXMerger);
+                    .fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId(), marcXMerger);
             LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             return recordMap;
         }

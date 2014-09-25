@@ -317,7 +317,7 @@ public class HarvesterBeanTest {
     }
 
     public static QueueJob asQueueJob(RecordId recordId) {
-        return new MockedQueueJob(recordId.getId(), recordId.getLibrary(), HarvesterBean.RAW_REPO_CONSUMER_ID,
+        return new MockedQueueJob(recordId.getBibliographicRecordId(), recordId.getAgencyId(), HarvesterBean.RAW_REPO_CONSUMER_ID,
                 new Timestamp(new Date().getTime()));
     }
 
@@ -326,8 +326,8 @@ public class HarvesterBeanTest {
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                    "<marcx:subfield code=\"a\">" + recordId.getId() + "</marcx:subfield>" +
-                    "<marcx:subfield code=\"b\">" + recordId.getLibrary() + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
                 "</marcx:datafield>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                     "<marcx:subfield code=\"a\">title</marcx:subfield>" +

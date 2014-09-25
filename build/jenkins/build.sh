@@ -1,5 +1,4 @@
 #!/bin/bash
-
 export IS_THIS_JENKINS=1 # Assume we are on Jenkins as default
 
 # Function for exiting gracefully - kind of.
@@ -145,7 +144,7 @@ function validateAndPerformState() {
     esac
 }
 
-while getopts ":p:s:" optname
+while getopts ":p:s:i" optname
 do
     case "$optname" in
 	"p")
@@ -154,6 +153,10 @@ do
 	    ;;
 	"s")
 	    validateAndPerformState $OPTARG
+	    ;;
+	"i")
+	    getIntegrationTestsInCommaSeparatedString
+	    echo $INTEGRATION_TEST_POMS
 	    ;;
 	":")
 	    echo "No argument value for $OPTARG"

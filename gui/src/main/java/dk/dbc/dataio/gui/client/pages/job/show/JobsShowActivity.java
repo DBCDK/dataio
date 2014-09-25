@@ -2,10 +2,12 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
+import com.google.gwt.place.shared.Place;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -19,10 +21,12 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
     private ClientFactory clientFactory;
     private JobsShowView jobsShowView;
     private JobStoreProxyAsync jobStoreProxy;
+    private final PlaceController placeController;
 
     public JobsShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
+        placeController = clientFactory.getPlaceController();
     }
 
     private void bind() {
@@ -41,7 +45,8 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
 
     @Override
     public void showFailedItems(long jobId) {
-        Window.alert("Job id er: " + jobId);
+        Place p = new ShowPlace(jobId);
+        placeController.goTo(new ShowPlace(jobId));
     }
 
     // Local methods

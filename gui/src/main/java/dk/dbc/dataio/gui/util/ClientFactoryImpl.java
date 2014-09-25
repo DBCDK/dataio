@@ -48,6 +48,7 @@ import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowPlace;
 import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowTexts;
 import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowView;
 import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowViewImpl;
+import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -86,6 +87,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowbinderCreateTexts flowBinderCreateTexts = GWT.create(FlowbinderCreateTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.sink.modify.Texts sinkModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.submitter.modify.Texts submitterModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.submitter.modify.Texts.class);
+    private final static dk.dbc.dataio.gui.client.pages.faileditems.Texts failedItemsTexts = GWT.create(dk.dbc.dataio.gui.client.pages.faileditems.Texts.class);
     //private final static HarvestersShowTexts harvestersShowTexts = GWT.create(HarvestersShowTexts.class);
 
     // Event Bus
@@ -94,6 +96,9 @@ public class ClientFactoryImpl implements ClientFactory {
     // Place Controller
     private final PlaceController placeController = new PlaceController(eventBus);
     public final static Place NOWHERE = null;
+
+    // History Mapper
+    private final AppPlaceHistoryMapper historyMapper = GWT.create(AppPlaceHistoryMapper.class);
 
     // Proxies
     private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
@@ -119,6 +124,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl(submitterModifyTexts.menu_SubmitterCreation(), submitterModifyTexts);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.ViewEditImpl(submitterModifyTexts.menu_SubmitterEdit(), submitterModifyTexts);
+    private final dk.dbc.dataio.gui.client.pages.faileditems.View faileditemsView = new dk.dbc.dataio.gui.client.pages.faileditems.View(failedItemsTexts.label_FailedItems(), failedItemsTexts);
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {
@@ -171,6 +177,13 @@ public class ClientFactoryImpl implements ClientFactory {
         return placeController;
     }
 
+    // History Mapper
+    @Override
+    public AppPlaceHistoryMapper getHistoryMapper() {
+        return historyMapper;
+    }
+
+    // getPresenter
     @Override
     public Activity getPresenter(Place place) {
         if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
@@ -217,6 +230,9 @@ public class ClientFactoryImpl implements ClientFactory {
         }
         if (place instanceof FlowBindersShowPlace) {
             return new FlowBindersShowActivity(this);
+        }
+        if (place instanceof dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace) {
+            return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(this, failedItemsTexts);
         }
 //        if (place instanceof HarvestersShowPlace) {
 //            return new HarvestersShowActivity(this);
@@ -320,6 +336,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public FlowBindersShowView getFlowBindersShowView() {
         return flowBindersShowView;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.faileditems.View getFaileditemsView() {
+        return faileditemsView;
     }
 
 //    @Override

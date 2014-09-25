@@ -62,7 +62,7 @@ public class MainEntryPoint implements EntryPoint {
         activityManager.setDisplay(appPanel.applicationPanel);
 
         // Start PlaceHistoryHandler with our PlaceHistoryMapper
-        AppPlaceHistoryMapper historyMapper= GWT.create(AppPlaceHistoryMapper.class);
+        AppPlaceHistoryMapper historyMapper = clientFactory.getHistoryMapper();
         PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
         historyHandler.register(placeController, eventBus, new SubmittersShowPlace());
         historyHandler.handleCurrentHistory();

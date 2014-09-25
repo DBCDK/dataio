@@ -78,7 +78,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     TextColumn<JobInfo> jobCreationTimeColumn;
     Column<JobInfo, ImageResource> jobStateColumn;
     String jobStoreFilesystemUrl = "";
-
+    PopupPanel popupPanel;
 
 
     private int currentPageSize = PAGE_SIZE;
@@ -92,7 +92,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
 
     /**
      * Initializations of the view
-     * Sets up the three columns in the CellTable
+     * Sets up the columns in the CellTable
      */
     public void init() {
         table.updateStarted();
@@ -157,7 +157,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
                 if ("click".equals(event.getType())) {
 
                     // Create a basic popup widget
-                    final PopupPanel popupPanel = new PopupPanel(true);
+                    popupPanel = new PopupPanel(true);
                     int left = elem.getAbsoluteRight() - POPUP_PANEL_WIDTH - POPUP_PANEL_LEFT_OFFSET;
                     int top = elem.getAbsoluteTop() + POPUP_PANEL_TOP_OFFSET;
                     popupPanel.setPopupPosition(left, top);
@@ -462,5 +462,10 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
             dualPanesPanel.setDualPanesPanelWidgets(getGreyImageWithId(), new Label(operationalState + " : Pending..."));
         }
         return dualPanesPanel;
+    }
+
+    @Override
+    protected void onUnload() {
+        popupPanel.hide();
     }
 }

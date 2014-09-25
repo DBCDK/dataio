@@ -13,6 +13,7 @@ import dk.dbc.dataio.gui.client.pages.job.show.JobsShowView;
 import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.View;
 import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowView;
+import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -57,4 +58,7 @@ public interface ClientFactory {
     JobsShowView getJobsShowView();
     SinksShowView getSinksShowView();
     FlowBindersShowView getFlowBindersShowView();
+    dk.dbc.dataio.gui.client.pages.faileditems.View getFaileditemsView();
+
+    AppPlaceHistoryMapper getHistoryMapper();
 }

@@ -1,0 +1,57 @@
+package dk.dbc.dataio.gui.client.pages.faileditems;
+
+import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.view.client.ListDataProvider;
+import dk.dbc.dataio.gui.util.ClientFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class PresenterImpl extends AbstractActivity implements Presenter {
+    protected ClientFactory clientFactory;
+    protected Texts texts;
+    protected View view;
+
+    protected ListDataProvider<FailedItemModel> failedItemsDataProvider = new ListDataProvider<FailedItemModel>();
+
+    public PresenterImpl(ClientFactory clientFactory, Texts texts) {
+        this.clientFactory = clientFactory;
+        this.texts = texts;
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the Place is being invoked
+     * This method is the start signal for the presenter
+     * @param containerWidget the widget to use
+     * @param eventBus the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        view = clientFactory.getFaileditemsView();
+        view.setPresenter(this);
+        containerWidget.setWidget(view.asWidget());
+        getAllFailedItems();
+    }
+
+    private void getAllFailedItems() {
+        // The following implementation is replaced by the call to the Job Store Proxy, whenever it is ready
+        List<FailedItemModel> failedItems = new ArrayList<FailedItemModel>();
+        failedItems.add(new FailedItemModel("11", "Første fejlede post"));
+        failedItems.add(new FailedItemModel("22", "Anden fejlede post"));
+        failedItems.add(new FailedItemModel("33", "Tredje fejlede post"));
+        failedItemsDataProvider.setList(failedItems);
+        view.setFailedItemsDataProvider(failedItemsDataProvider);
+    }
+
+    /**
+     * A signal from the view, saying that an item has been selected in the failed items list
+     */
+    @Override
+    public void failedItemSelected(String failedItemId) {
+        view.setErrorText("Selected item id: " + failedItemId);  // To be changed when the actual implementation of Java Script log is ready
+    }
+
+}

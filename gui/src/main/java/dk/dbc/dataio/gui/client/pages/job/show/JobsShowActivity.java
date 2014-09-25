@@ -45,7 +45,6 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
 
     @Override
     public void showFailedItems(long jobId) {
-        Place p = new ShowPlace(jobId);
         placeController.goTo(new ShowPlace(jobId));
     }
 

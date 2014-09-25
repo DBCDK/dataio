@@ -11,14 +11,12 @@ import java.util.List;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
     protected ClientFactory clientFactory;
-    protected Texts texts;
     protected View view;
 
     protected ListDataProvider<FailedItemModel> failedItemsDataProvider = new ListDataProvider<FailedItemModel>();
 
-    public PresenterImpl(ClientFactory clientFactory, Texts texts) {
+    public PresenterImpl(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
-        this.texts = texts;
     }
 
     /**

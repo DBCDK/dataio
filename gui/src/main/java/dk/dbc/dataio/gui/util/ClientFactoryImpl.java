@@ -232,7 +232,7 @@ public class ClientFactoryImpl implements ClientFactory {
             return new FlowBindersShowActivity(this);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace) {
-            return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(this, failedItemsTexts);
+            return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(this);
         }
 //        if (place instanceof HarvestersShowPlace) {
 //            return new HarvestersShowActivity(this);

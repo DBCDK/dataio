@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
     private ClientFactory mockedClientFactory;
-    private Texts mockedConstants;
     private AcceptsOneWidget mockedContainerWidget;
     private EventBus mockedEventBus;
     private View mockedView;
@@ -39,7 +38,6 @@ public class PresenterImplTest {
     @Before
     public void setupMockedObjects() {
         mockedClientFactory = mock(ClientFactory.class);
-        mockedConstants = mock(Texts.class);
         mockedContainerWidget = mock(AcceptsOneWidget.class);
         mockedEventBus = mock(EventBus.class);
         mockedView = mock(View.class);
@@ -53,15 +51,14 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        PresenterImpl presenterImpl = new PresenterImpl(mockedClientFactory, mockedConstants);
+        PresenterImpl presenterImpl = new PresenterImpl(mockedClientFactory);
 
-        assertThat(presenterImpl.texts, is(mockedConstants));
         assertThat(presenterImpl.clientFactory, is(mockedClientFactory));
     }
 
     @Test
     public void start_callStart_objectStartedInitialized() {
-        PresenterImpl presenterImpl = new PresenterImpl(mockedClientFactory, mockedConstants);
+        PresenterImpl presenterImpl = new PresenterImpl(mockedClientFactory);
 
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -82,7 +79,7 @@ public class PresenterImplTest {
 
 
     private void createAndInitializePresenter() {
-        presenterImpl = new PresenterImpl(mockedClientFactory, mockedConstants);
+        presenterImpl = new PresenterImpl(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
 

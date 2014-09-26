@@ -86,6 +86,7 @@ public class LogStoreJdbcAppender extends DBAppenderBase<ILoggingEvent> {
         appendMdcIfAvailable(event, preparedStatement);
     }
 
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     private void appendCallerDataIfAvailable(ILoggingEvent event, PreparedStatement preparedStatement) throws SQLException {
         // Caller data is currently disabled since it makes no sense from a JavaScript
         // developers point of view - we get info from deep inside rhino reflection.

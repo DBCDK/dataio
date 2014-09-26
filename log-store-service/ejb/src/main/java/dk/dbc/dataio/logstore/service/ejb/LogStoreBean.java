@@ -14,8 +14,8 @@ import java.util.List;
  */
  @Stateless
  public class LogStoreBean {
-     private static final String LOG_FORMAT_WITHOUT_STACKTRACE = "%s %s %s:%s %s%n";
-     private static final String LOG_FORMAT_WITH_STACKTRACE = "%s %s %s:%s %s%n%s%n";
+     private static final String LOG_FORMAT_WITHOUT_STACKTRACE = "%s %s %s %s%n";
+     private static final String LOG_FORMAT_WITH_STACKTRACE = "%s %s %s %s%n%s%n";
 
      @PersistenceContext
      EntityManager entityManager;
@@ -52,15 +52,13 @@ import java.util.List;
              return String.format(LOG_FORMAT_WITHOUT_STACKTRACE,
                      logEntryEntity.getTimestamp(),
                      logEntryEntity.getLevelString(),
-                     logEntryEntity.getCallerFilename(),
-                     logEntryEntity.getCallerLine(),
+                     logEntryEntity.getLoggerName(),
                      logEntryEntity.getFormattedMessage());
          } else {
              return String.format(LOG_FORMAT_WITH_STACKTRACE,
                      logEntryEntity.getTimestamp(),
                      logEntryEntity.getLevelString(),
-                     logEntryEntity.getCallerFilename(),
-                     logEntryEntity.getCallerLine(),
+                     logEntryEntity.getLoggerName(),
                      logEntryEntity.getFormattedMessage(),
                      logEntryEntity.getStackTrace());
          }

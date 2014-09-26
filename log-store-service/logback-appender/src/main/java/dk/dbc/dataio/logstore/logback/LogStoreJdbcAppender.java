@@ -87,6 +87,9 @@ public class LogStoreJdbcAppender extends DBAppenderBase<ILoggingEvent> {
     }
 
     private void appendCallerDataIfAvailable(ILoggingEvent event, PreparedStatement preparedStatement) throws SQLException {
+        // Caller data is currently disabled since it makes no sense from a JavaScript
+        // developers point of view - we get info from deep inside rhino reflection.
+        /*
         final StackTraceElement[] callerData = event.getCallerData();
         final StackTraceElement caller;
         if (callerData != null && callerData.length > 0 && callerData[0] != null) {
@@ -94,6 +97,8 @@ public class LogStoreJdbcAppender extends DBAppenderBase<ILoggingEvent> {
         } else {
             caller = EMPTY_CALLER_DATA;
         }
+        */
+        final StackTraceElement caller = EMPTY_CALLER_DATA;
         preparedStatement.setString(LogStoreDbHelper.CALLER_FILENAME, caller.getFileName());
         preparedStatement.setString(LogStoreDbHelper.CALLER_CLASS, caller.getClassName());
         preparedStatement.setString(LogStoreDbHelper.CALLER_METHOD, caller.getMethodName());

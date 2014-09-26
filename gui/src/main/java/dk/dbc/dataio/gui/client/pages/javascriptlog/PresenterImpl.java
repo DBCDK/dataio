@@ -52,7 +52,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     // TODO - dummy method since the proxy does not yet exist
     private void getJavaScriptLogDummyProxy(long failedItemId, GetJavaScriptLogFilteredAsyncCallback getJavaScriptLogFilteredAsyncCallback) {
-
+        this.failedItemId = failedItemId;
         iAmADummyVariable = "2014-09-24 10:10:34.565 INFO JobStoreBean.java:49 log statement number 0\n" +
                 "2014-09-24 10:10:34.587 INFO JobStoreBean.java:51 an error occurred\n" +
                 "2014-09-24 10:10:34.606 ERROR JobStoreBean.java:59 Testing nested exceptions\n" +

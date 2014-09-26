@@ -57,6 +57,7 @@ public interface ClientFactory {
     SubmittersShowView getSubmittersShowView();
     JobsShowView getJobsShowView();
     SinksShowView getSinksShowView();
+    dk.dbc.dataio.gui.client.pages.javascriptlog.View getJavaScriptLogView();
     FlowBindersShowView getFlowBindersShowView();
     dk.dbc.dataio.gui.client.pages.faileditems.View getFaileditemsView();
 

@@ -33,6 +33,10 @@ import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowPlace
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowTexts;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
+import dk.dbc.dataio.gui.client.pages.javascriptlog.PresenterImpl;
+import dk.dbc.dataio.gui.client.pages.javascriptlog.Texts;
+import dk.dbc.dataio.gui.client.pages.javascriptlog.View;
 import dk.dbc.dataio.gui.client.pages.job.show.JobsShowActivity;
 import dk.dbc.dataio.gui.client.pages.job.show.JobsShowPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.JobsShowTexts;
@@ -81,6 +85,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowBindersShowTexts flowBindersShowTexts = GWT.create(FlowBindersShowTexts.class);
     private final static SinksShowTexts sinksShowTexts = GWT.create(SinksShowTexts.class);
     private final static JobsShowTexts jobsShowTexts = GWT.create(JobsShowTexts.class);
+    private final static Texts javaScriptLogShowTexts = GWT.create(Texts.class);
     private final static FlowComponentsShowTexts flowComponentsShowTexts = GWT.create(FlowComponentsShowTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts flowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
     private final static FlowComponentCreateEditTexts flowComponentCreateEditTexts = GWT.create(FlowComponentCreateEditTexts.class);
@@ -120,6 +125,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
     private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
     private final JobsShowView jobsShowView = new JobsShowViewImpl();
+    private final View javaScriptLogView = new View(javaScriptLogShowTexts.menu_JavaScriptLogShow());
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl(submitterModifyTexts.menu_SubmitterCreation(), submitterModifyTexts);
@@ -225,6 +231,9 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof JobsShowPlace) {
             return new JobsShowActivity(this);
         }
+        if (place instanceof JavaScriptLogPlace) {
+            return new PresenterImpl(place, this, javaScriptLogShowTexts);
+        }
         if (place instanceof SinksShowPlace) {
             return new SinksShowActivity(this);
         }
@@ -326,6 +335,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public JobsShowView getJobsShowView() {
         return jobsShowView;
+    }
+
+    @Override
+    public View getJavaScriptLogView() {
+        return javaScriptLogView;
     }
 
     @Override

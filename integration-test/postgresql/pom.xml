@@ -24,30 +24,15 @@
 
   <build>
     <plugins>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <configuration>
-          <executable>wget</executable>
-          <arguments>
-            <argument>${rawrepo.schema.remote}</argument>
-            <argument>--output-document=${rawrepo.schema.local}</argument>
-            <argument>--no-check-certificate</argument>
-          </arguments>
-        </configuration>
-      </plugin>
-
       <plugin>
         <groupId>dk.dbc</groupId>
         <artifactId>postgresql-maven-plugin</artifactId>
         <version>${postgresql-maven-plugin.version}</version>
         <configuration>
           <pgPort>${postgresql.port}</pgPort>
-          <pgDbName>${rawrepo.db.name}</pgDbName>
+          <pgDbName>logstore</pgDbName>
           <pgDbScripts>
-            <param>${rawrepo.schema.local}</param>
+            <param>${basedir}/../../log-store-service/dbhelper/src/main/resources/logstore-schema.sql</param>
           </pgDbScripts>
         </configuration>
       </plugin>

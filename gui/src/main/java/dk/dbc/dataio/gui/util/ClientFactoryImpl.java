@@ -59,6 +59,8 @@ import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.MenuItem;
@@ -110,6 +112,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
     private final SinkServiceProxyAsync sinkServiceProxyAsync = SinkServiceProxy.Factory.getAsyncInstance();
     private final JobStoreProxyAsync jobStoreProxyAsync = JobStoreProxy.Factory.getAsyncInstance();
+    private final LogStoreProxyAsync logStoreProxyAsync = LogStoreProxy.Factory.getAsyncInstance();
 
     // Menu Structure
     private final MenuItem menuStructure;
@@ -268,6 +271,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public JobStoreProxyAsync getJobStoreProxyAsync() {
         return jobStoreProxyAsync;
+    }
+
+    @Override
+    public LogStoreProxyAsync getLogStoreProxyAsync() {
+        return logStoreProxyAsync;
     }
 
     // Menu Structure

@@ -20,6 +20,10 @@
     <servlet-name>JobStoreProxyServlet</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.JobStoreProxyServlet</servlet-class>
   </servlet>
+  <servlet>
+      <servlet-name>LogStoreProxyServlet</servlet-name>
+      <servlet-class>dk.dbc.dataio.gui.server.LogStoreProxyServlet</servlet-class>
+  </servlet>
 
   <servlet-mapping>
     <servlet-name>FlowStoreProxyServlet</servlet-name>
@@ -44,6 +48,10 @@
   <servlet-mapping>
     <servlet-name>JobStoreProxyServlet</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/JobStoreProxy</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>LogStoreProxyServlet</servlet-name>
+    <url-pattern>/dk.dbc.dataio.gui.Main/LogStoreProxy</url-pattern>
   </servlet-mapping>
 
   <session-config>

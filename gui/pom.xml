@@ -21,6 +21,7 @@
     <developmentSinkServiceURLProperty> </developmentSinkServiceURLProperty>
     <developmentDataioGuiSubversionScmEndpointProperty> </developmentDataioGuiSubversionScmEndpointProperty>
     <developmentJobStoreFilesystemProperty> </developmentJobStoreFilesystemProperty>
+    <developmentLogStoreURLProperty> </developmentLogStoreURLProperty>
  </properties>
 
   <profiles>
@@ -32,6 +33,7 @@
         <developmentSinkServiceURLProperty>-DdataioSinkServiceEndpoint=http://localhost:${container.http.port}${sink-service.context}</developmentSinkServiceURLProperty>
         <developmentDataioGuiSubversionScmEndpointProperty>-DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos</developmentDataioGuiSubversionScmEndpointProperty>
         <developmentJobStoreFilesystemProperty>-Durl/dataio/jobstore/filesystem=http://localhost:${container.http.port}${job-store-service.context}</developmentJobStoreFilesystemProperty>
+        <developmentLogStoreURLProperty>-DlogStoreURL=http://localhost:${container.http.port}${log-store-service.context}</developmentLogStoreURLProperty>
       </properties>
 
       <dependencies>
@@ -143,6 +145,12 @@
           <type>ejb</type>
       </dependency>
       <dependency>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dataio-commons-utils-log-store-service-connector</artifactId>
+          <version>${project.version}</version>
+          <type>ejb</type>
+      </dependency>
+      <dependency>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-simple</artifactId>
           <version>${slf4j.version}</version>
@@ -211,7 +219,7 @@
           </execution>
         </executions>
         <configuration>
-	        <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty} ${developmentSinkServiceURLProperty} ${developmentJobStoreURLProperty} ${developmentJobStoreFilesystemProperty}</extraJvmArgs>
+	        <extraJvmArgs>${developmentFlowStoreURLProperty} ${developmentDataioGuiSubversionScmEndpointProperty} ${developmentSinkServiceURLProperty} ${developmentJobStoreURLProperty} ${developmentJobStoreFilesystemProperty} ${developmentLogStoreURLProperty}</extraJvmArgs>
           <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
           <!--localWorkers>1</localWorkers-->
         </configuration>

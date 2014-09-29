@@ -17,6 +17,7 @@ import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.MenuItem;
 
@@ -39,6 +40,7 @@ public interface ClientFactory {
     JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
     SinkServiceProxyAsync getSinkServiceProxyAsync();
     JobStoreProxyAsync getJobStoreProxyAsync();
+    LogStoreProxyAsync getLogStoreProxyAsync();
 
     // Menu Structure
     MenuItem getMenuStructure();

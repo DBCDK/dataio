@@ -2,9 +2,11 @@
 package dk.dbc.dataio.gui.client.pages.faileditems;
 
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +14,7 @@ import org.junit.runner.RunWith;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,10 +74,9 @@ public class PresenterImplTest {
     @Test
     public void failedItemSelected_callFailedItemSelected_showJavaScriptLog() {
         createAndInitializePresenter();
-
+        presenterImpl.placeController = mock(PlaceController.class);
         presenterImpl.failedItemSelected("123");
-
-        verify(mockedView).setErrorText("Selected item id: 123");
+        verify(presenterImpl.placeController).goTo(any(JavaScriptLogPlace.class));
     }
 
 

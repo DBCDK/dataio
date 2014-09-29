@@ -2,8 +2,10 @@ package dk.dbc.dataio.gui.client.pages.faileditems;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.view.client.ListDataProvider;
+import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
@@ -12,11 +14,13 @@ import java.util.List;
 public class PresenterImpl extends AbstractActivity implements Presenter {
     protected ClientFactory clientFactory;
     protected View view;
+    protected PlaceController placeController;
 
     protected ListDataProvider<FailedItemModel> failedItemsDataProvider = new ListDataProvider<FailedItemModel>();
 
     public PresenterImpl(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
+        placeController = clientFactory.getPlaceController();
     }
 
     /**
@@ -49,7 +53,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void failedItemSelected(String failedItemId) {
-        view.setErrorText("Selected item id: " + failedItemId);  // To be changed when the actual implementation of Java Script log is ready
+        placeController.goTo(new JavaScriptLogPlace(failedItemId));
     }
 
 }

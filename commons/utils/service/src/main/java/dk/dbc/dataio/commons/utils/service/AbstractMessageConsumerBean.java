@@ -16,6 +16,7 @@ import javax.jms.TextMessage;
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
+    private static final long EXPONENTIAL_BACKOFF_CUTOFF_POINT_IN_MS = 3600000; // 1 hour
 
     @Resource
     protected MessageDrivenContext messageDrivenContext;
@@ -112,13 +113,17 @@ public abstract class AbstractMessageConsumerBean {
     public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException;
 
     /**
-     * Performs default exponential backoff wait
+     * Performs default exponential backoff wait up to a certain cutoff point
+     * (currently one hour) in which case the wait period is made constant
      * @param deliveryCount number of times message has been re-delivered
      */
     public void backoffBeforeRetry(int deliveryCount) {
         // Calculate the next wait interval, in milliseconds, using an exponential
         // backoff algorithm.
-        final long waitTime = (long) Math.pow(2, deliveryCount) * 100L;
+        long waitTime = (long) Math.pow(2, deliveryCount) * 100L;
+        if (waitTime > EXPONENTIAL_BACKOFF_CUTOFF_POINT_IN_MS) {
+            waitTime = EXPONENTIAL_BACKOFF_CUTOFF_POINT_IN_MS;
+        }
         try {
             Thread.sleep(waitTime);
         } catch (InterruptedException e) {

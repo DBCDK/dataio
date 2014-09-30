@@ -1,10 +1,13 @@
 package dk.dbc.dataio.gui.server;
 
+
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import java.util.List;
 
@@ -16,7 +19,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     @Override
     public void init() throws ServletException {
         super.init();
-        jobStoreProxy = new JobStoreProxyImpl();
+        try {
+            jobStoreProxy = new JobStoreProxyImpl();
+        } catch (NamingException e) {
+            throw new ServletException(e);
+        }
     }
 
     @Override
@@ -27,6 +34,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     @Override
     public List<JobInfo> findAllJobs() throws ProxyException {
         return jobStoreProxy.findAllJobs();
+    }
+
+    @Override
+    public JobCompletionState getJobCompletionState(long jobId) throws ProxyException {
+        return getJobCompletionState(jobId);
     }
 
     @Override

@@ -1,14 +1,20 @@
 package dk.dbc.dataio.gui.server;
 
+
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import org.glassfish.jersey.client.ClientConfig;
 
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
@@ -17,10 +23,22 @@ import java.util.List;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
     Client client = null;
+    final String baseUrl;
+    JobStoreServiceConnector jobStoreServiceConnector;
 
-    public JobStoreProxyImpl() {
+    public JobStoreProxyImpl() throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
+        baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
+        jobStoreServiceConnector = new JobStoreServiceConnector(client, baseUrl);
+    }
+
+    // This constructor is intended for test purpose only with reference to dependency injection.
+    public JobStoreProxyImpl(JobStoreServiceConnector jobStoreServiceConnector) throws NamingException {
+        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
+        client = HttpClient.newClient(clientConfig);
+        baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
+        this.jobStoreServiceConnector = jobStoreServiceConnector;
     }
 
     @Override
@@ -48,6 +66,17 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             response.close();
         }
         return result;
+    }
+
+    @Override
+    public JobCompletionState getJobCompletionState(long jobId) throws ProxyException {
+        final JobCompletionState jobCompletionState;
+        try {
+            jobCompletionState = jobStoreServiceConnector.getJobCompletionState(jobId);
+        } catch (JobStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return jobCompletionState;
     }
 
     public void close() {

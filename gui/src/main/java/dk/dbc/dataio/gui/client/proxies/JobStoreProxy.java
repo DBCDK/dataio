@@ -1,10 +1,13 @@
 package dk.dbc.dataio.gui.client.proxies;
 
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+
 import java.util.List;
 
 @RemoteServiceRelativePath("JobStoreProxy")
@@ -12,6 +15,7 @@ public interface JobStoreProxy extends RemoteService {
 
     String getJobStoreFilesystemUrl() throws ProxyException;
     List<JobInfo> findAllJobs() throws ProxyException;
+    JobCompletionState getJobCompletionState(long jobId) throws ProxyException;
     void close();
 
     class Factory {

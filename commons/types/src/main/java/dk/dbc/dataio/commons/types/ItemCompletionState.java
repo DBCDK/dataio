@@ -1,6 +1,9 @@
 package dk.dbc.dataio.commons.types;
 
-public class ItemCompletionState {
+import java.io.Serializable;
+
+public class ItemCompletionState implements Serializable {
+    private static final long serialVersionUID = -5764793719168906780L;
 
     public enum State {
         SUCCESS,
@@ -11,6 +14,8 @@ public class ItemCompletionState {
 
     private /* final */ long itemId;
     private /* final */ State state;
+
+    private ItemCompletionState() {}
 
     public ItemCompletionState(long itemId, State state) {
         this.itemId = itemId;

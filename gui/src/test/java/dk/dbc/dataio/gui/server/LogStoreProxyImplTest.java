@@ -6,7 +6,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
-import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +20,6 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -49,7 +47,7 @@ public class LogStoreProxyImplTest {
         mockStatic(ServiceUtil.class);
         mockStatic(HttpClient.class);
         when(ServiceUtil.getLogStoreServiceEndpoint()).thenReturn(logStoreServiceUrl);
-        when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
+        when(HttpClient.newClient()).thenReturn(client);
     }
 
     @Test

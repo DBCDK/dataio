@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -9,7 +8,6 @@ import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorException;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
-import org.glassfish.jersey.client.ClientConfig;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
@@ -21,17 +19,15 @@ public class LogStoreProxyImpl implements LogStoreProxy {
     LogStoreServiceConnector logStoreServiceConnector;
 
     public LogStoreProxyImpl() throws NamingException {
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
-        client = HttpClient.newClient(clientConfig);
+        client = HttpClient.newClient();
         baseUrl = ServiceUtil.getLogStoreServiceEndpoint();
         logStoreServiceConnector = new LogStoreServiceConnector(client, baseUrl);
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
     LogStoreProxyImpl(LogStoreServiceConnector logStoreServiceConnector) throws NamingException{
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         this.logStoreServiceConnector = logStoreServiceConnector;
-        client = HttpClient.newClient(clientConfig);
+        client = HttpClient.newClient();
         baseUrl = ServiceUtil.getLogStoreServiceEndpoint();
     }
 

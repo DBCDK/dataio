@@ -22,7 +22,6 @@ public class ServiceUtil {
     private static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
     private static final String JOB_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioJobStoreServiceEndpoint";
     private static final String SINK_SERVICE_ENDPOINT_RESOURCE = "dataioSinkServiceEndpoint";
-    private static final String LOG_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiLogStoreServiceEndpoint";
     private static final String SUBVERSION_SCM_ENDPOINT_RESOURCE = "dataioGuiSubversionScmEndpoint";
 
     private ServiceUtil() { }
@@ -111,9 +110,9 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getLogStoreServiceEndpoint() throws NamingException {
-        String logStoreServiceEndpoint = System.getProperty("logStoreURL");
+        String logStoreServiceEndpoint = System.getProperty(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
         if (logStoreServiceEndpoint == null || logStoreServiceEndpoint.isEmpty()) {
-            logStoreServiceEndpoint = getStringValueFromResource(LOG_STORE_SERVICE_ENDPOINT_RESOURCE);
+            logStoreServiceEndpoint = getStringValueFromResource(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
         }
         return logStoreServiceEndpoint;
     }

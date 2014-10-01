@@ -28,7 +28,7 @@ public class LogStoreJdbcAppenderBenchmark {
 
     private static final int FORKS = 1;
     private static final int ITERATIONS = 20;
-    private static final int BATCH_SIZE = 10;
+    private static final int BATCH_SIZE = 1000;
 
     private static final String LOGBACK_CONFIG = "/logstoreJdbcAppender.logback.xml";
     private static final Exception EXCEPTION = new IllegalStateException("Benchmark exception");

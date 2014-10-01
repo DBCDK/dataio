@@ -5,14 +5,30 @@ import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 
 public class JavaScriptLogPlace extends Place {
-    private Long failedItemId;
+
+    private String combinedUrl;
 
     public JavaScriptLogPlace(String url) {
-        this.failedItemId = Long.valueOf(url);
+        this.combinedUrl = url;
+    }
+    public JavaScriptLogPlace(Long jobId, Long chunkId, Long failedItemId) {
+        this(combineToUrl(jobId, chunkId, failedItemId));
+    }
+
+    public Long getJobId() {
+        return Long.valueOf(combinedUrl.split(":")[0]);
+    }
+
+    public Long getChunkId() {
+        return Long.valueOf(combinedUrl.split(":")[1]);
     }
 
     public Long getFailedItemId() {
-        return failedItemId;
+        return Long.valueOf(combinedUrl.split(":")[2]);
+    }
+
+    private static String combineToUrl(Long jobId, Long chunkId, Long failedItemId) {
+        return jobId + ":" + chunkId + ":" + failedItemId;
     }
 
     @Prefix("JavaScriptLog")

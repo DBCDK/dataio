@@ -53,7 +53,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void failedItemSelected(String failedItemId) {
-        placeController.goTo(new JavaScriptLogPlace(failedItemId));
+        // These dummy values should be replaced when the full implementation of failedItems is ready.
+        // Currently, the call will always fail, as the database tables does not yet exist on
+        // staging.
+        placeController.goTo(new JavaScriptLogPlace(1412060472702L, 1L, Long.valueOf(failedItemId)));
     }
 
 }

@@ -7,6 +7,7 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,7 @@ import org.junit.runner.RunWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,7 +30,7 @@ public class PresenterImplTest {
     private View mockedView;
     private Texts mockedConstants;;
     private AcceptsOneWidget mockedContainerWidget;
-
+    private LogStoreProxyAsync mockedLogStoreProxy;
     private PresenterImpl presenterImpl;
     private JavaScriptLogPlace mockedJavaScriptLogPlace;
     private PresenterImplConcrete presenterConcrete;
@@ -55,7 +57,9 @@ public class PresenterImplTest {
         mockedConstants = mock(Texts.class);
         mockedContainerWidget = mock(AcceptsOneWidget.class);
         mockedView.htmlLabel = mock(HTML.class);
+        mockedLogStoreProxy = mock(LogStoreProxyAsync.class);
         when(mockedClientFactory.getJavaScriptLogView()).thenReturn(mockedView);
+        when(mockedClientFactory.getLogStoreProxyAsync()).thenReturn(mockedLogStoreProxy);
         when(mockedView.asWidget()).thenReturn(mockedWidget);
     }
 
@@ -67,21 +71,25 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void start_instantiateAndCallStart_viewInitializedCorrectly() {
+    public void start_instantiateAndCallStart_javaScriptLogRetrievedFromLogStore() {
         presenterImpl = new PresenterImpl(mockedJavaScriptLogPlace, mockedClientFactory, mockedConstants);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
+        verify(mockedJavaScriptLogPlace).getJobId();
+        verify(mockedJavaScriptLogPlace).getChunkId();
         verify(mockedJavaScriptLogPlace).getFailedItemId();
-
-        // TODO - no proxy call yet to test
-        verify(mockedView.htmlLabel).setHTML(any(String.class));
+        verify(mockedLogStoreProxy).getItemLog(
+                eq(presenterImpl.jobId),
+                eq(presenterImpl.chunkId),
+                eq(presenterImpl.failedItemId),
+                any(PresenterImpl.GetJavaScriptLogFilteredAsyncCallback.class));
     }
 
     @Test
-    public void getJavaScriptLogFilteredAsyncCallback_successfulCallback_stringIsFormattedCorrectly() {
+    public void getJavaScriptLogFilteredAsyncCallback_successfulCallback_viewInitializedCorrectly() {
         presenterConcrete = new PresenterImplConcrete(mockedJavaScriptLogPlace, mockedClientFactory, mockedConstants);
 
         String logFile = "\t" + log + "\n";

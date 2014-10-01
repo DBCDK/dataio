@@ -101,8 +101,9 @@ public class ServiceUtil {
 
     /**
      * Looks up log-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value #LOG_STORE_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
-     * the JNDI lookup can be bypassed by defining a '{@value #LOG_STORE_SERVICE_ENDPOINT_RESOURCE}'
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_LOGSTORE_RS}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_LOGSTORE_RS}'
      * system property.
      *
      * @return log-store service URL as String

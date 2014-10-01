@@ -133,7 +133,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl(submitterModifyTexts.menu_SubmitterCreation(), submitterModifyTexts);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.ViewImpl submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.ViewEditImpl(submitterModifyTexts.menu_SubmitterEdit(), submitterModifyTexts);
-    private final dk.dbc.dataio.gui.client.pages.faileditems.View faileditemsView = new dk.dbc.dataio.gui.client.pages.faileditems.View(failedItemsTexts.label_FailedItems(), failedItemsTexts);
+    private final dk.dbc.dataio.gui.client.pages.faileditems.View faileditemsView = new dk.dbc.dataio.gui.client.pages.faileditems.View(failedItemsTexts.label_JobId(), failedItemsTexts);
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {
@@ -244,7 +244,7 @@ public class ClientFactoryImpl implements ClientFactory {
             return new FlowBindersShowActivity(this);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace) {
-            return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(this);
+            return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(place, this, failedItemsTexts);
         }
 //        if (place instanceof HarvestersShowPlace) {
 //            return new HarvestersShowActivity(this);

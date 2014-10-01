@@ -38,7 +38,7 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
 
     @Override
     public JobCompletionState getJobCompletionState(long jobId) throws ProxyException {
-        return getJobCompletionState(jobId);
+        return jobStoreProxy.getJobCompletionState(jobId);
     }
 
     @Override

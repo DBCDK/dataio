@@ -8,7 +8,7 @@
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>
                 <td valign='top'>
-                    <c:CellTable pageSize='100' ui:field='tableElementCell' />
+                    <c:CellTable pageSize='500' ui:field='cellTable' />
                 </td>
             </tr>
         </table>

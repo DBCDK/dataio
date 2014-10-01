@@ -1,17 +1,21 @@
 package dk.dbc.dataio.gui.client.pages.faileditems;
 
-import com.google.gwt.cell.client.ClickableTextCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.view.client.AbstractDataProvider;
 import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.NoSelectionModel;
+import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.view.client.SelectionModel;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
     private Texts texts;
@@ -24,9 +28,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     private static ViewUiBinder uiBinder = GWT.create(ViewUiBinder.class);
 
-    @UiField CellTable tableElementCell;
+    @UiField CellTable cellTable;
 
-    AbstractDataProvider dataProvider;
+    private ListDataProvider<FailedItemModel> dataProvider;
+    private List<FailedItemModel> failedItemsList;
+
 
     public View(String header, Texts texts) {
         super(header);
@@ -36,32 +42,79 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     private void setupColumns() {
-        tableElementCell.addColumn(constructFailedItemsColumn(), texts.label_FailedItems());
-
-        // Connect the table to the data provider
         dataProvider = new ListDataProvider<FailedItemModel>();
+        failedItemsList = new ArrayList<FailedItemModel>();
+        dataProvider.setList(failedItemsList);
+        dataProvider.addDataDisplay(cellTable);
 
+        cellTable.addColumn(constructJobIdColumn(), texts.label_JobId());
+        cellTable.addColumn(constructChunkIdColumn(), texts.label_ChunkId());
+        cellTable.addColumn(constructItemIdColumn(), texts.label_ItemId());
+        cellTable.addColumn(constructFailureColumn(), texts.label_Failure());
+
+        cellTable.setSelectionModel(constructSelectionModel());
     }
 
-    private Column<FailedItemModel, String> constructFailedItemsColumn() {
-        Column<FailedItemModel, String> failedItemsColumns = new Column<FailedItemModel, String>(new ClickableTextCell()) {
+    private Column constructJobIdColumn() {
+        return new TextColumn<FailedItemModel>() {
             @Override
-            public String getValue(FailedItemModel failedItemModel) {
-                return failedItemModel.getFailedItem();
+            public String getValue(FailedItemModel model) {
+                return model.getJobId();
             }
         };
-        failedItemsColumns.setFieldUpdater(new FieldUpdater<FailedItemModel, String>() {
-            @Override
-            public void update(int index, FailedItemModel object, String value) {
-                presenter.failedItemSelected(object.getId());
-            }
-        });
-        return failedItemsColumns;
     }
 
-    public void setFailedItemsDataProvider(AbstractDataProvider failedItemsDataProvider) {
-        this.dataProvider = failedItemsDataProvider;
-        dataProvider.addDataDisplay(tableElementCell);
+    private Column constructChunkIdColumn() {
+        return new TextColumn<FailedItemModel>() {
+            @Override
+            public String getValue(FailedItemModel model) {
+                return model.getChunkId();
+            }
+        };
+    }
+
+    private Column constructItemIdColumn() {
+        return new TextColumn<FailedItemModel>() {
+            @Override
+            public String getValue(FailedItemModel model) {
+                return model.getItemId();
+            }
+        };
+    }
+
+    private Column constructFailureColumn() {
+        return new TextColumn<FailedItemModel>() {
+            @Override
+            public String getValue(FailedItemModel model) {
+                return model.getFailedItem();
+            }
+        };
+    }
+
+    private SelectionModel constructSelectionModel() {
+        final NoSelectionModel<FailedItemModel> selectionModel = new NoSelectionModel<FailedItemModel>();
+        selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
+            public void onSelectionChange(SelectionChangeEvent event) {
+                FailedItemModel selected = selectionModel.getLastSelectedObject();
+                if (selected != null) {
+                    presenter.failedItemSelected(new FailedItemModel(selected.getJobId(), selected.getChunkId(), selected.getItemId(), selected.getFailedItem()));
+                }
+            }
+        });
+        return selectionModel;
+    }
+
+    /*
+     * Public methods
+     */
+
+    public void clearFailedItemsList() {
+        failedItemsList = new ArrayList<FailedItemModel>();
+    }
+
+    public void addFailedItem(FailedItemModel failedItem) {
+        failedItemsList.add(failedItem);
+        dataProvider.setList(failedItemsList);
     }
 
 }

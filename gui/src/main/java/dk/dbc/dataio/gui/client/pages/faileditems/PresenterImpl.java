@@ -95,7 +95,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected void addJobCompletionStateToView(JobCompletionState jobCompletionState) {
         String jobId = Long.toString(jobCompletionState.getJobId());
         for (ChunkCompletionState chunkCompletionState: jobCompletionState.getChunks()) {
-            String chunkId = Long.toString((chunkCompletionState.getChunkId()));
+            String chunkId = Long.toString(chunkCompletionState.getChunkId());
             for (ItemCompletionState itemCompletionState: chunkCompletionState.getItems()) {
                 String itemId = Long.toString(itemCompletionState.getItemId());
                 ItemCompletionState.State state = itemCompletionState.getState();

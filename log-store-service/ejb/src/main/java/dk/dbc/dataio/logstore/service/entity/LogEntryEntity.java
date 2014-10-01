@@ -8,7 +8,7 @@ import javax.persistence.NamedQuery;
 import java.sql.Timestamp;
 
 @Entity
-@javax.persistence.Table(name = "logentry", schema = "public", catalog = "logstore")
+@javax.persistence.Table(name = "logentry")
 @NamedQueries({
     @NamedQuery(name = LogEntryEntity.QUERY_FIND_ITEM_ENTRIES, query = "SELECT e FROM LogEntryEntity e WHERE e.jobId=:jobId AND e.chunkId=:chunkId AND e.itemId=:itemId ORDER BY e.id ASC")
 })

@@ -85,10 +85,10 @@ public class PresenterImplTest {
                     .addChunk(
                             new ChunkCompletionStateBuilder()
                                     .setChunkId(CHUNK_ID)
-                                    .addItem(new ItemCompletionState(ITEM_SUCCESS, ItemCompletionState.State.SUCCESS))
-                                    .addItem(new ItemCompletionState(ITEM_FAILURE, ItemCompletionState.State.FAILURE))
-                                    .addItem(new ItemCompletionState(ITEM_IGNORED, ItemCompletionState.State.IGNORED))
-                                    .addItem(new ItemCompletionState(ITEM_INCOMPLETE, ItemCompletionState.State.INCOMPLETE))
+                                    .addItem(new ItemCompletionState(ITEM_SUCCESS, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.SUCCESS))
+                                    .addItem(new ItemCompletionState(ITEM_FAILURE, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.FAILURE, ItemCompletionState.State.SUCCESS))
+                                    .addItem(new ItemCompletionState(ITEM_IGNORED, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.IGNORED, ItemCompletionState.State.SUCCESS))
+                                    .addItem(new ItemCompletionState(ITEM_INCOMPLETE, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.INCOMPLETE, ItemCompletionState.State.SUCCESS))
                                     .build())
                     .build();
     final long JOB_ID_EXTRA = 11L;

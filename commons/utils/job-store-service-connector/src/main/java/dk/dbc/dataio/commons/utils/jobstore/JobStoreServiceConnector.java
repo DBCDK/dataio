@@ -155,34 +155,112 @@ public class JobStoreServiceConnector {
 
     public JobCompletionState getJobCompletionState(long jobId) throws JobStoreServiceConnectorException {
         List<ItemCompletionState> itemCompletionStates0 = new ArrayList<>();
-        itemCompletionStates0.add(new ItemCompletionState(0, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(1, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(2, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(3, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(4, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(5, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(6, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(7, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(8, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates0.add(new ItemCompletionState(9, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(0, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(1, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(2, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(3, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(4, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(5, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(6, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(7, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(8, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates0.add(new ItemCompletionState(9, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
         List<ItemCompletionState> itemCompletionStates1 = new ArrayList<>();
-        itemCompletionStates1.add(new ItemCompletionState(0, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates1.add(new ItemCompletionState(1, ItemCompletionState.State.FAILURE));
-        itemCompletionStates1.add(new ItemCompletionState(2, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates1.add(new ItemCompletionState(3, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates1.add(new ItemCompletionState(4, ItemCompletionState.State.FAILURE));
-        itemCompletionStates1.add(new ItemCompletionState(5, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates1.add(new ItemCompletionState(6, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates1.add(new ItemCompletionState(7, ItemCompletionState.State.IGNORED));
-        itemCompletionStates1.add(new ItemCompletionState(8, ItemCompletionState.State.SUCCESS));
-        itemCompletionStates1.add(new ItemCompletionState(9, ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(0, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(1, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.FAILURE));
+        itemCompletionStates1.add(new ItemCompletionState(2, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(3, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(4, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.FAILURE,
+                ItemCompletionState.State.IGNORED));
+        itemCompletionStates1.add(new ItemCompletionState(5, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(6, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(7, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.IGNORED,
+                ItemCompletionState.State.IGNORED));
+        itemCompletionStates1.add(new ItemCompletionState(8, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
+        itemCompletionStates1.add(new ItemCompletionState(9, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS));
         List<ItemCompletionState> itemCompletionStates2 = new ArrayList<>();
-        itemCompletionStates2.add(new ItemCompletionState(0, ItemCompletionState.State.INCOMPLETE));
-        itemCompletionStates2.add(new ItemCompletionState(1, ItemCompletionState.State.INCOMPLETE));
-        itemCompletionStates2.add(new ItemCompletionState(2, ItemCompletionState.State.INCOMPLETE));
-        itemCompletionStates2.add(new ItemCompletionState(3, ItemCompletionState.State.INCOMPLETE));
-        itemCompletionStates2.add(new ItemCompletionState(4, ItemCompletionState.State.INCOMPLETE));
-        itemCompletionStates2.add(new ItemCompletionState(5, ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(0, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(1, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.IGNORED,
+                ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(2, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(3, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.FAILURE,
+                ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(4, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.INCOMPLETE));
+        itemCompletionStates2.add(new ItemCompletionState(5, 
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.SUCCESS,
+                ItemCompletionState.State.INCOMPLETE));
         List<ChunkCompletionState> chunkCompletionStates = new ArrayList<>();
         chunkCompletionStates.add(new ChunkCompletionState(0, itemCompletionStates0));
         chunkCompletionStates.add(new ChunkCompletionState(1, itemCompletionStates1));

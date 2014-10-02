@@ -13,20 +13,45 @@ public class ItemCompletionState implements Serializable {
     }
 
     private /* final */ long itemId;
-    private /* final */ State state;
+    private /* final */ State chunkifyState;
+    private /* final */ State processingState;
+    private /* final */ State deliveryState;
 
     private ItemCompletionState() {}
 
+    @Deprecated
     public ItemCompletionState(long itemId, State state) {
         this.itemId = itemId;
-        this.state = state;
+        this.chunkifyState = state;
+        this.processingState = state;
+        this.deliveryState = state;
+    }
+
+    public ItemCompletionState(long itemId, State chunkifyState, State processingState, State deliveryState) {
+        this.itemId = itemId;
+        this.chunkifyState = chunkifyState;
+        this.processingState = processingState;
+        this.deliveryState = deliveryState;
     }
 
     public long getItemId() {
         return itemId;
     }
 
+    public State getChunkifyState() {
+        return chunkifyState;
+    }
+    
+    public State getProcessingState() {
+        return processingState;
+    }
+    
+    public State getDeliveryState() {
+        return deliveryState;
+    }
+    
+    @Deprecated
     public State getState() {
-        return state;
+        return processingState;
     }
 }

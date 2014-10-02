@@ -63,6 +63,15 @@ public class MarcExchangeCollectionTest {
               "</invalid:record>" +
             "</marcx:collection>";
 
+   private final String marcxCollectionSingleRecordDefaultNamespace =
+            "<collection xmlns=\"info:lc/xmlns/marcxchange-v1\">" +
+              "<record format=\"danMARC2\">" +
+                    "<datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                        "<subfield code=\"a\">title1</subfield>" +
+                    "</datafield>" +
+              "</record>" +
+            "</collection>";
+
     @Test(expected = NullPointerException.class)
     public void constructor_documentBuilderArgIsNull_throws() {
         new MarcExchangeCollection(null, getTransformer());
@@ -137,6 +146,13 @@ public class MarcExchangeCollectionTest {
     public void addMember_memberDataArgIsMarcxCollectionWithSingleRecord_recordIsAddedToCollection() throws HarvesterException {
         final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
         harvesterRecord.addMember(marcxCollectionSingleRecord.getBytes());
+        assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
+    }
+
+    @Test
+    public void addMember_memberDataArgIsMarcxCollectionWithSingleRecordAndDefaultNamespace_recordIsAddedToCollection() throws HarvesterException {
+        final MarcExchangeCollection harvesterRecord = getMarcExchangeCollection();
+        harvesterRecord.addMember(marcxCollectionSingleRecordDefaultNamespace.getBytes());
         assertMarcExchangeCollection(harvesterRecord.asBytes(), 1);
     }
 

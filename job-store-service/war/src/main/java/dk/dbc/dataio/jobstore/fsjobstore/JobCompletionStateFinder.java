@@ -32,7 +32,7 @@ class JobCompletionStateFinder {
         return jobCompletionState;
     }
 
-    public ChunkCompletionState getChunkCompletionState(long jobId, long chunkId) throws JobStoreException {
+    public ChunkCompletionState getChunkCompletionState(long jobId, long chunkId) throws JobStoreException, NoSuchChunkException {
         Chunk chunkifiedChunk = jobStore.getChunk(jobId, chunkId);
         ChunkResult processedChunk = jobStore.getProcessorResult(jobId, chunkId);
         SinkChunkResult deliveredChunk = jobStore.getSinkResult(jobId, chunkId);
@@ -44,7 +44,7 @@ class JobCompletionStateFinder {
         if(chunkifiedChunk == null) {
             String message = String.format("No chunk with id: [%d] found in job: [%d]", chunkId, jobId);
             LOGGER.info(message);
-            throw new JobStoreException(message);
+            throw new NoSuchChunkException(message);
         }
 
         int chunkSize = chunkifiedChunk.getItems().size(); // this size must hold for all chunks!
@@ -140,13 +140,14 @@ class JobCompletionStateFinder {
 
     private List<ChunkCompletionState> getAllChunkCompletionStatesForJob(long jobId) throws JobStoreException {
         long numberOfChunksInJob = jobStore.getNumberOfChunksInJob(jobId);
+        LOGGER.info("NumberOfChunksInJob: job: {}  numChunks: {}", jobId, numberOfChunksInJob);
         List<ChunkCompletionState> chunkCompletionStates = new ArrayList<>((int) numberOfChunksInJob);
         for(long i=0L, chunkId = Constants.CHUNK_ID_LOWER_BOUND+1; i<numberOfChunksInJob; i++, chunkId++) {
             ChunkCompletionState chunkCompletionState;
             try {
                 chunkCompletionState = getChunkCompletionState(jobId, chunkId);
                 chunkCompletionStates.add(chunkCompletionState);
-            } catch(JobStoreException ex) {
+            } catch(NoSuchChunkException ex) {
                 LOGGER.debug("Could not find chunk: {} for job: {}", chunkId, jobId);
             }
         }

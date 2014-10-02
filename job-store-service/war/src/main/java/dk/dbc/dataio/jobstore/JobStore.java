@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
@@ -37,4 +38,6 @@ public interface JobStore {
 
     Sink getSink(long jobId) throws JobStoreException;
     JobState getJobState(long jobId) throws JobStoreException;
+
+    JobCompletionState getJobCompletionState(long jobId) throws JobStoreException;
 }

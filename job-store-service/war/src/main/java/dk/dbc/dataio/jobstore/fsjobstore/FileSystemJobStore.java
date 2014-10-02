@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -377,6 +378,12 @@ public class FileSystemJobStore implements JobStore {
         return chunkFileHandler.getNumberOfChunksInJob(jobId);
     }
 
+    @Override
+    public JobCompletionState getJobCompletionState(long jobId) throws JobStoreException {
+        JobCompletionStateFinder jobCompletionStateFinder = new JobCompletionStateFinder(this);
+        return jobCompletionStateFinder.getJobCompletionState(jobId);
+    }
+    
     private synchronized void updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
         final long processorCount = processorResultFileHandler.getNumberOfChunksInJob(jobId);

@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
@@ -150,6 +151,10 @@ public class JobStoreBean {
             return null;
         }
 
+        @Override
+        public JobCompletionState getJobCompletionState(long jobId) throws JobStoreException {
+            return null;
+        }
         private void setupJob42() throws Exception {
             inMemoryJobStoreChunks.put(42L, buildChunksForJob42());
             inMemorySinks.put(42L, new SinkBuilder().build());

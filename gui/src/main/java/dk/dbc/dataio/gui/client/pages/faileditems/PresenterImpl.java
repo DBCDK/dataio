@@ -98,9 +98,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             String chunkId = Long.toString(chunkCompletionState.getChunkId());
             for (ItemCompletionState itemCompletionState: chunkCompletionState.getItems()) {
                 String itemId = Long.toString(itemCompletionState.getItemId());
-                ItemCompletionState.State state = itemCompletionState.getState();
+                ItemCompletionState.State state = itemCompletionState.getProcessingState();
                 if (state != ItemCompletionState.State.SUCCESS) {
-                    view.addFailedItem(new FailedItemModel(jobId, chunkId, itemId, state2String(itemCompletionState.getState())));
+                    view.addFailedItem(new FailedItemModel(jobId, chunkId, itemId, state2String(state)));
                 }
             }
         }

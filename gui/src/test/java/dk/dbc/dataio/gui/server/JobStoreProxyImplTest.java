@@ -49,7 +49,7 @@ public class JobStoreProxyImplTest {
     private final long ITEM_ID = 737L;
     private final JobCompletionState defaultJobCompletionState = new JobCompletionStateBuilder()
             .addChunk(new ChunkCompletionStateBuilder()
-                    .addItem(new ItemCompletionState(ITEM_ID, ItemCompletionState.State.SUCCESS))
+                    .addItem(new ItemCompletionState(ITEM_ID, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.SUCCESS))
                     .build())
             .build();
 
@@ -143,7 +143,7 @@ public class JobStoreProxyImplTest {
         List<ItemCompletionState> items = chunks.get(0).getItems();
         assertThat(items.size(), is(1));
         assertThat(items.get(0).getItemId(), is(ITEM_ID));
-        assertThat(items.get(0).getState(), is(ItemCompletionState.State.SUCCESS));
+        assertThat(items.get(0).getProcessingState(), is(ItemCompletionState.State.SUCCESS));
     }
 
 }

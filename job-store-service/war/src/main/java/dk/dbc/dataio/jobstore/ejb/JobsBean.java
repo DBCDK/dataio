@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
@@ -215,6 +216,36 @@ public class JobsBean {
             entity = JsonUtil.toJson(jobState);
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling state for job %d", jobId), e);
+        }
+        return Response.ok().entity(entity).build();
+    }
+    
+    /**
+     * Retrieves a jobCompletionState from underlying data store.
+     * 
+     * @param jobId Id of job
+     *   
+     * @return a HTTP 200 OK response with JobState entity as JSON string,
+     *         a HTTP 404 NOT_FOUND if unable to locate job,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     * 
+     * @throws JobStoreException on error reading JobCompletionState from store, or if unable
+     * to marshall retrieved JobState to JSON.
+     */
+    @GET
+    @Path(JobStoreServiceConstants.JOB_COMPLETIONSTATE)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getJobCompletionState(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
+        LOGGER.info("Getting JobCompletionState for job {}", jobId);
+        final JobCompletionState jobCompletionState = jobStoreBean.getJobStore().getJobCompletionState(jobId);
+        if (jobCompletionState == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(jobCompletionState);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling JobCompletionState for job %d", jobId), e);
         }
         return Response.ok().entity(entity).build();
     }

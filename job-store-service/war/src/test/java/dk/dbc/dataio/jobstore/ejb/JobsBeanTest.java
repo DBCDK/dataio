@@ -2,8 +2,10 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkCompletionState;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
@@ -253,6 +255,40 @@ public class JobsBeanTest {
         when(jobStore.getJobState(jobId)).thenReturn(new JobState());
 
         final Response response = getJobsBean().getState(jobId);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+    }
+
+    @Test
+    public void getJobCompletionState_jobStoreReturnsNull_returnsStatusNotFoundResponse() throws JobStoreException {
+        when(jobStore.getJobCompletionState(jobId)).thenReturn(null);
+
+        final Response response = getJobsBean().getState(jobId);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getJobCompletionState_jobStoreThrowsJobStoreException_throws() throws JobStoreException {
+        when(jobStore.getJobCompletionState(jobId)).thenThrow(new JobStoreException("JobStoreException"));
+
+        getJobsBean().getJobCompletionState(jobId);
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getJobCompletionState_stateCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(JobCompletionState.class))).thenThrow(new JsonException("JsonException"));
+        when(jobStore.getJobCompletionState(jobId)).thenReturn(new JobCompletionState(1L, new ArrayList<ChunkCompletionState>()));
+
+        final Response response = getJobsBean().getJobCompletionState(jobId);
+        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+    }
+
+    @Test
+    public void getJobCompletionState_jobStoreReturnsJobCompletionState_returnsStatusOkResponseWithEntity() throws JobStoreException, JsonException {
+        when(jobStore.getJobCompletionState(jobId)).thenReturn(new JobCompletionState(1L, new ArrayList<ChunkCompletionState>()));
+
+        final Response response = getJobsBean().getJobCompletionState(jobId);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
     }

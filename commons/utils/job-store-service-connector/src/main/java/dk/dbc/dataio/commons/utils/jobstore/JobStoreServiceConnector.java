@@ -1,8 +1,6 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.ChunkCompletionState;
-import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
@@ -14,8 +12,6 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;

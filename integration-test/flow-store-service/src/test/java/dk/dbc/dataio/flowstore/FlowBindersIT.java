@@ -1,14 +1,20 @@
 package dk.dbc.dataio.flowstore;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -23,15 +29,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
-import static dk.dbc.dataio.integrationtest.ITUtil.createFlowBinder;
-import static dk.dbc.dataio.integrationtest.ITUtil.createSink;
-import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
-import static dk.dbc.dataio.integrationtest.ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Integration tests for the flow binders collection part of the flow store service
@@ -58,43 +62,42 @@ public class FlowBindersIT {
         clearAllDbTables(dbConnection);
     }
 
-     /**
+    /**
      * Given: a deployed flow-store service with a flow, a sink and a submitter
      * When: valid JSON is POSTed to the flow binders path referencing the flow, sink and submitter
-     * Then: request returns with a CREATED http status code
-     * And: request returns with a Location header pointing to the newly created resource
-     * And: posted data can be found in the underlying database
+     * Then : a flow binder is created and returned
+     * And  : The flow binder created has an id, a version and contains the same information as the flow binder content given as input
+     * And  : assert that only one flow binder can be found in the underlying database
      */
     @Test
-    public void createFlowBinder_ok() throws Exception {
+    public void createFlowBinder_ok() throws Exception{
         // Given...
-        final long flowId = createFlow(restClient, baseUrl,
-                new FlowContentJsonBuilder().build());
-        final long sinkId = createSink(restClient, baseUrl,
-                new SinkContentJsonBuilder().build());
-        final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmitterContentJsonBuilder().build());
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
         // When...
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setFlowId(flowId)
-                .setSinkId(sinkId)
-                .setSubmitterIds(Arrays.asList(submitterId))
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
                 .build();
 
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
-
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
+        FlowBinder flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
 
         // And ...
-        final long id = getResourceIdFromLocationHeaderAndAssertHasValue(response);
+        assertThat(flowBinder, not(nullValue()));
+        assertThat(flowBinder.getContent(), not(nullValue()));
+        assertThat(flowBinder.getId(), not(nullValue()));
+        assertThat(flowBinder.getVersion(), not(nullValue()));
+        assertThat(flowBinder.getContent().getName(), is(flowBinderContent.getName()));
+        assertThat(flowBinder.getContent().getDescription(), is(flowBinderContent.getDescription()));
 
         // And ...
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(dbConnection, ITUtil.FLOW_BINDERS_TABLE_SELECT_CONTENT_STMT, id);
-
-        assertThat(rs.size(), is(1));
-        assertThat((String) rs.get(0).get(0), is(flowBinderContent));
+        final List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+        assertThat(flowBinders.size(), is(1));
     }
 
     /**
@@ -112,254 +115,266 @@ public class FlowBindersIT {
     }
 
     /**
-     * Given: a deployed flow-store service containing flow binder resource
-     * When: adding flow binder with the same name
-     * Then: request returns with a NOT ACCEPTABLE http status code
+     * Given: a deployed flow-store service containing flow binder resource and with a flow, a sink and a submitter
+     * When : adding flow binder with the same name
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT ACCEPTABLE http status code
+     * And  : assert that one flow binder exist in the underlying database
      */
     @Test
-    public void createFlowBinder_duplicateName() throws Exception {
+    public void createFlowBinder_duplicateName_notAcceptable() throws FlowStoreServiceConnectorException {
         // Note that we set different destinations to ensure we don't risk matching search keys.
 
         // Given...
-        final long flowId = createFlow(restClient, baseUrl,
-                new FlowContentJsonBuilder().build());
-        final long sinkId = createSink(restClient, baseUrl,
-                new SinkContentJsonBuilder().build());
-        final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmitterContentJsonBuilder().build());
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
-        final String name = "createFlowBinder_duplicateName";
-        final String firstFlowBinderContent = new FlowBinderContentJsonBuilder()
-                .setName(name)
+        final FlowBinderContent validFlowBinderContent = new FlowBinderContentBuilder()
+                .setName("UniqueName")
                 .setDestination("base1")
-                .setFlowId(flowId)
-                .setSinkId(sinkId)
-                .setSubmitterIds(Arrays.asList(submitterId))
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
                 .build();
-        createFlowBinder(restClient, baseUrl, firstFlowBinderContent);
 
-        // When...
-        final String secondFlowBinderContent = new FlowBinderContentJsonBuilder()
-                .setName(name)
+        final FlowBinderContent duplicateFlowBinderContent = new FlowBinderContentBuilder()
+                .setName("UniqueName")
                 .setDestination("base2")
-                .setFlowId(flowId)
-                .setSinkId(sinkId)
-                .setSubmitterIds(Arrays.asList(submitterId))
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
                 .build();
-
-        final Response response = HttpClient.doPostWithJson(restClient, secondFlowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+        try {
+            flowStoreServiceConnector.createFlowBinder(validFlowBinderContent);
+            // When...
+            flowStoreServiceConnector.createFlowBinder(duplicateFlowBinderContent);
+            fail("Primary key violation was not detected as input to createFlowBinder().");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(406));
+            // And...
+            List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            assertThat(flowBinders.size(), is(1));
+        }
     }
 
     /**
      * Given: a deployed flow-store service
-     * When: adding flow binder which references non-existing submitter
-     * Then: request returns with a PRECONDITION FAILED http status code
+     * When : adding flow binder which references non-existing submitter
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a PRECONDITION FAILED http status code
+     * And  : assert that no flow binder have been created in the underlying database
      */
     @Test
-    public void createFlowBinder_referencedSubmitterNotFound() throws Exception {
-        // When...
-        final long flowId = createFlow(restClient, baseUrl,
-                new FlowContentJsonBuilder().build());
-        final long sinkId = createSink(restClient, baseUrl,
-                new SinkContentJsonBuilder().build());
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setFlowId(flowId)
-                .setSubmitterIds(Arrays.asList(123456789L))
-                .build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
+    public void createFlowBinder_referencedSubmitterNotFound_preconditionFailed() throws Exception {
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
 
+        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(77373736L))
+                .build();
+        try {
+            // When...
+            flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+            fail("Failed pre-condition was not detected as input to createFlowBinder().");
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(412));
+            // And...
+            List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            assertThat(flowBinders.size(), is(0));
+        }
     }
 
     /**
      * Given: a deployed flow-store service
-     * When: adding flow binder which references non-existing flow
-     * Then: request returns with a PRECONDITION FAILED http status code
+     * When : adding flow binder which references non-existing flow
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a PRECONDITION FAILED http status code
+     * And  : assert that no flow binder have been created in the underlying database
      */
     @Test
-    public void createFlowBinder_referencedFlowNotFound() throws Exception {
-        // When...
-        final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmitterContentJsonBuilder().build());
-        final long sinkId = createSink(restClient, baseUrl,
-                new SinkContentJsonBuilder().build());
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setFlowId(987654321L)
-                .setSubmitterIds(Arrays.asList(submitterId))
-                .build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
+    public void createFlowBinder_referencedFlowNotFound_preconditionFailed() throws Exception {
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
+        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(77373736)
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .build();
+        try {
+            // When...
+            flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+            fail("Failed pre-condition was not detected as input to createFlowBinder().");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(412));
+            // And...
+            List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            assertThat(flowBinders.size(), is(0));
+        }
     }
 
     /**
      * Given: a deployed flow-store service
-     * When: adding flow binder which references non-existing sink
-     * Then: request returns with a PRECONDITION FAILED http status code
+     * When : adding flow binder which references non-existing sink
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a PRECONDITION FAILED http status code
+     * And  : assert that no flow binder have been created in the underlying database
      */
     @Test
-    public void createFlowBinder_referencedSinkNotFound() throws Exception {
-        // When...
-        final long flowId = createFlow(restClient, baseUrl,
-                new FlowContentJsonBuilder().build());
-        final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmitterContentJsonBuilder().build());
-        final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setFlowId(flowId)
-                .setSinkId(12121212L)
-                .setSubmitterIds(Arrays.asList(submitterId))
-                .build();
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
+    public void createFlowBinder_referencedSinkNotFound_preconditionFailed() throws Exception {
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.PRECONDITION_FAILED.getStatusCode()));
+        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(flow.getId())
+                .setSinkId(77373736)
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .build();
+        try {
+            // When...
+            flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+            fail("Failed pre-condition was not detected as input to createFlowBinder().");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(412));
+            // And...
+            List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            assertThat(flowBinders.size(), is(0));
+        }
     }
 
     /**
      * Given: a deployed flow-store service containing flow binder resource
      * When: adding flow binder with different name but matching search key
-     * Then: request returns with a NOT ACCEPTABLE http status code
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT ACCEPTABLE http status code
+     * And  : assert that one flow binder exist in the underlying database
      */
     @Test
-    public void createFlowBinder_searchKeyExistsInSearchIndex() throws Exception {
+    public void createFlowBinder_searchKeyExistsInSearchIndex_notAcceptable() throws Exception {
         // Given...
-        final long flowId = createFlow(restClient, baseUrl,
-                new FlowContentJsonBuilder().build());
-        final long sinkId = createSink(restClient, baseUrl,
-                new SinkContentJsonBuilder().build());
-        final long submitterId = createSubmitter(restClient, baseUrl,
-                new SubmitterContentJsonBuilder().build());
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
-        String flowBinderContent = new FlowBinderContentJsonBuilder()
+        FlowBinderContent validFlowBinderContent = new FlowBinderContentBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_1")
-                .setFlowId(flowId)
-                .setSinkId(sinkId)
-                .setSubmitterIds(Arrays.asList(submitterId))
+                .setDestination("matchingSearchKey")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
                 .build();
-        createFlowBinder(restClient, baseUrl, flowBinderContent);
 
-        // When...
-        flowBinderContent = new FlowBinderContentJsonBuilder()
+        FlowBinderContent notAcceptableFlowBinderContent = new FlowBinderContentBuilder()
                 .setName("createFlowBinder_searchKeyExistsInSearchIndex_2")
-                .setFlowId(flowId)
-                .setSinkId(sinkId)
-                .setSubmitterIds(Arrays.asList(submitterId))
+                .setDestination("matchingSearchKey")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
                 .build();
 
-        final Response response = HttpClient.doPostWithJson(restClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
-
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.NOT_ACCEPTABLE.getStatusCode()));
+       try {
+           flowStoreServiceConnector.createFlowBinder(validFlowBinderContent);
+           // When...
+           flowStoreServiceConnector.createFlowBinder(notAcceptableFlowBinderContent);
+           fail("Unique constraint violation was not detected as input to createFlowBinder().");
+           // Then...
+       }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+           // And...
+           assertThat(e.getStatusCode(), is(406));
+           // And...
+           List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+           assertThat(flowBinders.size(), is(1));
+       }
     }
 
     /**
      * Given: a deployed flow-store service containing no flow binders
      * When: GETing flow binders collection
-     * Then: request returns with a OK http status code
-     * And: request returns with empty list as JSON
+     * Then: request returns with empty list
      */
     @Test
     public void findAllFlowBinders_emptyResult() throws Exception {
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-
-        // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(0));
+        assertThat(flowBinders, is(notNullValue()));
+        assertThat(flowBinders.size(), is(0));
     }
 
     /**
      * Given: a deployed flow-store service containing three flow binders
      * When: GETing flow binders collection
-     * Then: request returns with a OK http status code
-     * And: request returns with list as JSON of flow binders sorted alphabetically by name
+     * Then: request returns with 3 flow binders
+     * And: the flow binders are sorted alphabetically by name
      */
     @Test
     public void findAllFlowBinders_Ok() throws Exception {
         // Given...
-        // Create a Flow with name flow1
-        String flowContent = new FlowContentJsonBuilder()
-            .setName("flow1")
-            .build();
-        final long flow1Id = createFlow(restClient, baseUrl, flowContent);
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
-        // Create a Sink with name sink1
-        String sink = new SinkContentJsonBuilder()
-            .setName("sink1")
-            .build();
-        final long sink1Id = createSink(restClient, baseUrl, sink);
+        // Create flow binders with sortable names
+        final FlowBinderContent flowBinderContentA = new FlowBinderContentBuilder()
+                .setName("a-flowbinder")
+                .setDestination("destination2")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .build();
 
-        // Create Submitter with name submitter1
-        String submitter = new SubmitterContentJsonBuilder()
-            .setName("submitter1")
-            .build();
-        final long submitter1Id = createSubmitter(restClient, baseUrl, submitter);
+        final FlowBinderContent flowBinderContentB = new FlowBinderContentBuilder()
+                .setName("b-flowbinder")
+                .setDestination("destination3")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .build();
 
-        // Create Flowbinders with sortable names
-        String flowBinderContent = new FlowBinderContentJsonBuilder()
-            .setName("c-flowbinder")
-            .setCharset("charset1")
-            .setDescription("description1")
-            .setDestination("destination1")
-            .setFormat("format1")
-            .setPackaging("packaging1")
-            .setRecordSplitter("recordsplitter1")
-            .setFlowId(flow1Id)
-            .setSinkId(sink1Id)
-            .setSubmitterIds(Arrays.asList(submitter1Id))
-            .build();
-        final long sortsThird = createFlowBinder(restClient, baseUrl, flowBinderContent);
-        flowBinderContent = new FlowBinderContentJsonBuilder()
-            .setName("a-flowbinder")
-            .setCharset("charset2")
-            .setDescription("description2")
-            .setDestination("destination2")
-            .setFormat("format2")
-            .setPackaging("packaging2")
-            .setRecordSplitter("recordsplitter2")
-            .setFlowId(flow1Id)
-            .setSinkId(sink1Id)
-            .setSubmitterIds(Arrays.asList(submitter1Id))
-            .build();
-        final long sortsFirst = createFlowBinder(restClient, baseUrl, flowBinderContent);
-        flowBinderContent = new FlowBinderContentJsonBuilder()
-            .setName("b-flowbinder")
-            .setCharset("charset3")
-            .setDescription("description3")
-            .setDestination("destination3")
-            .setFormat("format3")
-            .setPackaging("packaging3")
-            .setRecordSplitter("recordsplitter3")
-            .setFlowId(flow1Id)
-            .setSinkId(sink1Id)
-            .setSubmitterIds(Arrays.asList(submitter1Id))
-            .build();
-        final long sortsSecond = createFlowBinder(restClient, baseUrl, flowBinderContent);
+        final FlowBinderContent flowBinderContentC = new FlowBinderContentBuilder()
+                .setName("c-flowbinder")
+                .setDestination("destination1")
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .build();
+
+        FlowBinder flowBinderSortsThird = flowStoreServiceConnector.createFlowBinder(flowBinderContentC);
+        FlowBinder flowBinderSortsFirst = flowStoreServiceConnector.createFlowBinder(flowBinderContentA);
+        FlowBinder flowBinderSortsSecond = flowStoreServiceConnector.createFlowBinder(flowBinderContentB);
 
         // When...
-        final Response response = HttpClient.doGet(restClient, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
+        List<FlowBinder> listOfFlowBinders = flowStoreServiceConnector.findAllFlowBinders();
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
+        assertThat(listOfFlowBinders, not(nullValue()));
+        assertThat(listOfFlowBinders.size(), is(3));
 
         // And...
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.size(), is(3));
-        assertThat(responseContentNode.get(0).get("id").longValue(), is(sortsFirst));
-        assertThat(responseContentNode.get(1).get("id").longValue(), is(sortsSecond));
-        assertThat(responseContentNode.get(2).get("id").longValue(), is(sortsThird));
+        assertThat(listOfFlowBinders.get(0).getContent().getName(), is(flowBinderSortsFirst.getContent().getName()));
+        assertThat(listOfFlowBinders.get(1).getContent().getName(), is(flowBinderSortsSecond.getContent().getName()));
+        assertThat(listOfFlowBinders.get(2).getContent().getName(), is(flowBinderSortsThird.getContent().getName()));
     }
-
 }

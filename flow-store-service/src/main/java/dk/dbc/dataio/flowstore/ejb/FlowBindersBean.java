@@ -6,15 +6,15 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.Sink;
 import dk.dbc.dataio.flowstore.entity.Submitter;
-import dk.dbc.dataio.flowstore.util.ServiceUtil;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -30,24 +30,29 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource exposed
  * by the '/FlowStoreServiceConstants.FLOW_BINDERS' entry point
  */
 @Stateless
-@Path(FlowStoreServiceConstants.FLOW_BINDERS)
+@Path("/")
 public class FlowBindersBean {
 
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
+    private static final String FLOW_BINDER_CONTENT_DISPLAY_TEXT = "flowBinderContent";
 
     @PersistenceContext
     EntityManager entityManager;
 
+
     @GET
-    @Path("/resolve")
+    @Path(FlowStoreServiceConstants.FLOW_BINDER_RESOLVE)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getFlowBinder(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
@@ -71,20 +76,20 @@ public class FlowBindersBean {
         } catch (IllegalArgumentException ex) {
             String errMsg = String.format("Error while setting parameters for database query: %s", ex.getMessage());
             log.warn(errMsg, ex);
-            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(errMsg));
+            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(errMsg));
         }
 
         List<FlowBinder> flowBinders = query.getResultList();
         if (flowBinders.isEmpty()) {
             String msg = getNoFlowFoundMessage(query);
             log.info(msg);
-            return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.NOT_FOUND, dk.dbc.dataio.commons.utils.service.ServiceUtil.asJsonError(msg));
+            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(msg));
         }
         if(flowBinders.size() > 1) {
             String msg = getMoreThanOneFlowFoundMessage(query);
             log.warn(msg);
         }
-        return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinders.get(0)));
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinders.get(0)));
     }
 
     private String getNoFlowFoundMessage(Query query) {
@@ -113,7 +118,7 @@ public class FlowBindersBean {
      * integrity
      *
      * @param uriInfo application and request URI information
-     * @param flowBinderData flow binder data as JSON string
+     * @param flowBinderContent flow binder data as JSON string
      *
      * @return
      * a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
@@ -129,10 +134,12 @@ public class FlowBindersBean {
      * attached flow or submitters
      */
     @POST
+    @Path(FlowStoreServiceConstants.FLOW_BINDERS)
     @Consumes({MediaType.APPLICATION_JSON})
-    public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderData) throws JsonException, ReferencedEntityNotFoundException {
-        log.trace("Called with: '{}'", flowBinderData);
-
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderContent) throws JsonException, ReferencedEntityNotFoundException {
+        log.trace("Called with: '{}'", flowBinderContent);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
         /* ATTENTION:
          Below we rely on the transactional integrity provided by the underlying relational
          database system and Java EE, so that if the persisting of a search index entry fails
@@ -147,11 +154,12 @@ public class FlowBindersBean {
          and persists them in the data store.
          */
 
-        final FlowBinder flowBinder = new FlowBinder();
-        flowBinder.setContent(flowBinderData);
+        FlowBinder flowBinder = new FlowBinder();
+        flowBinder.setContent(flowBinderContent);
         flowBinder.setFlow(resolveFlow(flowBinder.getFlowId()));
         flowBinder.setSink(resolveSink(flowBinder.getSinkId()));
         flowBinder.setSubmitters(resolveSubmitters(flowBinder.getSubmitterIds()));
+
         entityManager.persist(flowBinder);
 
         for (FlowBinderSearchIndexEntry searchIndexEntry : FlowBinder.generateSearchIndexEntries(flowBinder)) {
@@ -160,7 +168,12 @@ public class FlowBindersBean {
 
         entityManager.flush();
 
-        return Response.created(ServiceUtil.getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flowBinder)).build();
+        final String flowBinderJson = JsonUtil.toJson(flowBinder);
+        return Response
+                .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flowBinder))
+                .entity(flowBinderJson)
+                .tag(flowBinder.getVersion().toString())
+                .build();
     }
 
     /**
@@ -230,11 +243,12 @@ public class FlowBindersBean {
      * @throws JsonException on failure to create result list as JSON
      */
     @GET
+    @Path(FlowStoreServiceConstants.FLOW_BINDERS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllFlowBinders() throws JsonException {
         final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
         final List<dk.dbc.dataio.commons.types.FlowBinder> results = query.getResultList();
-        return dk.dbc.dataio.commons.utils.service.ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 
 }

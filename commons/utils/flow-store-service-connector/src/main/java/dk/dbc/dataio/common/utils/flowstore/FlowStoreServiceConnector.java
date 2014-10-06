@@ -1,6 +1,8 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -429,6 +431,45 @@ public class FlowStoreServiceConnector {
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, Flow.class);
+        } finally {
+            response.close();
+        }
+    }
+
+    // ************************************************** FlowBinder **************************************************
+    /**
+     * Creates new flow binder defined by the flow binder content
+     *
+     * @param flowBinderContent flow binder content
+     * @return FlowBinder
+     * @throws NullPointerException                                   if given null-valued argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if flow binder creation failed due to invalid input data
+     * @throws FlowStoreServiceConnectorException                     on general failure to create flow binder
+     */
+    public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
+        InvariantUtil.checkNotNullOrThrow(flowBinderContent, "flowBinderContent");
+        final Response response = doPostWithJson(httpClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            return readResponseEntity(response, FlowBinder.class);
+        }finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves all flow binders from the flow-store
+     *
+     * @return a list containing the flow binders found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flow binders
+     */
+    public List<FlowBinder> findAllFlowBinders()throws ProcessingException, FlowStoreServiceConnectorException{
+        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() { });
         } finally {
             response.close();
         }

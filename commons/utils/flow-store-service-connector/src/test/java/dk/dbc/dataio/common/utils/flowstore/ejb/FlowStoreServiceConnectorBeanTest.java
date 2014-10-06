@@ -3,6 +3,7 @@ package dk.dbc.dataio.common.utils.flowstore.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
@@ -262,6 +263,19 @@ public class FlowStoreServiceConnectorBeanTest {
         try {
             flowStoreServiceConnectorBean.updateFlowComponent(new FlowComponentContentBuilder().build(),1, 1);
             fail("No exception thrown by updateFlowComponent()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
+    @Test
+    public void createFlowBinder_endpointLookupThrowsNamingException_throws() throws NamingException, FlowStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(namingException);
+        final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
+        try {
+            flowStoreServiceConnectorBean.createFlowBinder(new FlowBinderContentBuilder().build());
+            fail("No exception thrown by createFlowBinder()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));
         }

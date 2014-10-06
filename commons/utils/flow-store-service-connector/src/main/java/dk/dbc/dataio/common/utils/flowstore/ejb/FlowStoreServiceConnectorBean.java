@@ -3,6 +3,8 @@ package dk.dbc.dataio.common.utils.flowstore.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -213,6 +215,16 @@ public class FlowStoreServiceConnectorBean {
         try{
             return getFlowStoreServiceConnector().updateFlowComponent(flowComponentContent, id, version);
         }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
+    public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Creating new flow");
+        try {
+            return getFlowStoreServiceConnector().createFlowBinder(flowBinderContent);
+        } catch (NamingException e) {
             throw new EJBException(e);
         }
     }

@@ -301,9 +301,7 @@ public class JobCompletionStateFinderTest {
         jobStore.getJobCompletionState(123456L);
     }
     
-    
-    // TODO: create a NoSuchChunkException for unknown chunkId (where no chunks exists).
-
+   
     private void createChunkifyChunkAndSetItUpInMockito(long jobId, long chunkId, ChunkItem.Status... states) throws JobStoreException {
         List<ChunkItem> chunkItemList = createChunkItemList(states);
         Chunk chunkifiedChunk = new ChunkBuilder().setJobId(jobId).setChunkId(chunkId).setItems(chunkItemList).build();
@@ -407,10 +405,4 @@ public class JobCompletionStateFinderTest {
             return chunkItems;
         }
     }
-
-//    private Chunk defaultChunk(long jobId, long chunkId) {
-//        Flow flow = new FlowBuilder().build();
-//        SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessDataBuilder().build();
-//        return new Chunk(jobId, chunkId, flow, supplementaryProcessData, new ArrayList<ChunkItem>());
-//    }
 }

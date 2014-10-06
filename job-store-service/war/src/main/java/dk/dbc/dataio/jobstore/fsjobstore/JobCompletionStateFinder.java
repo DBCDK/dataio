@@ -17,21 +17,58 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Finds the completion state for each operational state of each item in each
+ * chunk in the job.
+ *
+ * A CompletionState is state-information about items in chunks for the
+ * operational states. Notice, that unlike the item-state, this class can find
+ * an items operational state to be incomplete. This happens if the item has not
+ * yet been processed by the corresponding operation.
+ */
 class JobCompletionStateFinder {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JobCompletionStateFinder.class);
 
     private final JobStore jobStore;
 
+    /**
+     * Simple constructor for setting u the JobCompletionStateFinder.
+     *
+     * @param jobStore
+     */
     public JobCompletionStateFinder(JobStore jobStore) {
         this.jobStore = jobStore;
     }
 
+    /**
+     * Finds the completion state for each operational state of each item in
+     * each chunk in the job.
+     *
+     * @param jobId
+     * @return ChunkCompletionState object reflecting the states of all the
+     * items in all of the chunks in the job.
+     * @throws JobStoreException
+     */
     public JobCompletionState getJobCompletionState(long jobId) throws JobStoreException {
         List<ChunkCompletionState> chunkCompletionStates = getAllChunkCompletionStatesForJob(jobId);
         JobCompletionState jobCompletionState = new JobCompletionState(jobId, chunkCompletionStates);
         return jobCompletionState;
     }
 
+    /**
+     * Finds the completion state for each operational state of each item in the
+     * chunk.
+     *
+     * @param jobId
+     * @param chunkId
+     * @return ChunkCompletionState object reflecting the states of all the
+     * items in the chunk.
+     * @throws IllegalStateException if there is internal inconsistency between
+     * the chunks.
+     * @throws JobStoreException if reading of chunks fails.
+     * @throws NoSuchChunkException if the chunk can not be found.
+     */
     public ChunkCompletionState getChunkCompletionState(long jobId, long chunkId) throws JobStoreException, NoSuchChunkException {
         Chunk chunkifiedChunk = jobStore.getChunk(jobId, chunkId);
         ChunkResult processedChunk = jobStore.getProcessorResult(jobId, chunkId);
@@ -40,8 +77,7 @@ class JobCompletionStateFinder {
         // There must be a chunkifiedChunk in order to detect the size of the chunks
         // It is assumed that all chunks have equal size.
         // If no chunkifiedChunk is found an exception is thrown.
-        // todo: Should it be a NoSuchChunkException?
-        if(chunkifiedChunk == null) {
+        if (chunkifiedChunk == null) {
             String message = String.format("No chunk with id: [%d] found in job: [%d]", chunkId, jobId);
             LOGGER.info(message);
             throw new NoSuchChunkException(message);
@@ -49,26 +85,24 @@ class JobCompletionStateFinder {
 
         int chunkSize = chunkifiedChunk.getItems().size(); // this size must hold for all chunks!
 
-        // if processedChunk is null, throw an exception
-        // - this should not happen, since there is both a
-        // chunkifiedChunk and a deliveredChunk.
-        if(processedChunk == null && deliveredChunk != null) {
+        // There should be a processedChunk IF there is a deliveredChunk.
+        if (processedChunk == null && deliveredChunk != null) {
             // this is wrong
             String message = String.format("No process chunk found for [%d, %d], even though both a chunkified chunk and a sink chunk exists.",
                     jobId, chunkId);
             LOGGER.info(message);
             throw new IllegalStateException(message);
         }
-        
+
         // Check if the processedChunk chunk size differes from the chunkified chunk:
-        if(processedChunk != null && processedChunk.getItems().size() != chunkSize) {
+        if (processedChunk != null && processedChunk.getItems().size() != chunkSize) {
             String message = String.format("The chunkified chunk and the delivered chunk differ in size: [%d / %d] for chunkId [%d] in jobId [%d]",
                     chunkifiedChunk.getItems().size(), deliveredChunk.getItems().size(), chunkId, jobId);
             LOGGER.info(message);
             throw new IllegalStateException(message);
         }
         // Check if the delivered chunk size differes from the chunkified chunk:
-        if(deliveredChunk != null && deliveredChunk.getItems().size() != chunkSize) {
+        if (deliveredChunk != null && deliveredChunk.getItems().size() != chunkSize) {
             String message = String.format("The chunkified chunk and the delivered chunk differ in size: [%d / %d] for chunkId [%d] in jobId [%d]",
                     chunkifiedChunk.getItems().size(), deliveredChunk.getItems().size(), chunkId, jobId);
             LOGGER.info(message);
@@ -76,16 +110,16 @@ class JobCompletionStateFinder {
         }
 
         long[] itemIds = getItemIdsFromChunk(chunkifiedChunk);
-        if(!validateItemIds(itemIds)) {
+        if (!validateItemIds(itemIds)) {
             throw new IllegalStateException("The ItemIds in chunkifiedChunks are not valid");
         }
 
         List<ItemCompletionState> itemCompletionStates = new ArrayList<>();
-        for(long id : itemIds) {
+        for (long id : itemIds) {
             ItemCompletionState.State chunkifiedStatus = convertChunkItemStatusToItemCompletionStatus(getItem(chunkifiedChunk, id).getStatus());
             ItemCompletionState.State processStatus = processedChunk != null ? convertChunkItemStatusToItemCompletionStatus(getItem(processedChunk, id).getStatus()) : ItemCompletionState.State.INCOMPLETE;
             ItemCompletionState.State deliveryStatus = deliveredChunk != null ? convertChunkItemStatusToItemCompletionStatus(getItem(deliveredChunk, id).getStatus()) : ItemCompletionState.State.INCOMPLETE;
-            
+
             itemCompletionStates.add(new ItemCompletionState(id, chunkifiedStatus, processStatus, deliveryStatus));
         }
         return new ChunkCompletionState(chunkId, itemCompletionStates);
@@ -99,11 +133,11 @@ class JobCompletionStateFinder {
         }
         return null;
     }
-    
+
     private long[] getItemIdsFromChunk(AbstractChunk chunk) {
         long[] ids = new long[chunk.getItems().size()];
         int idx = 0;
-        for(ChunkItem item : chunk.getItems()) {
+        for (ChunkItem item : chunk.getItems()) {
             ids[idx++] = item.getId();
         }
         Arrays.sort(ids);
@@ -112,9 +146,10 @@ class JobCompletionStateFinder {
 
     private boolean validateItemIds(long[] ids) {
         long id = ids[0];
-        for(int i=1;i<ids.length;i++) {
-            if(ids[i] != id+1)
+        for (int i = 1; i < ids.length; i++) {
+            if (ids[i] != id + 1) {
                 return false;
+            }
             id++;
         }
         return true;
@@ -122,7 +157,7 @@ class JobCompletionStateFinder {
 
     private ItemCompletionState.State convertChunkItemStatusToItemCompletionStatus(ChunkItem.Status status) throws JobStoreException {
         final ItemCompletionState.State completionState;
-        switch(status) {
+        switch (status) {
             case FAILURE:
                 completionState = ItemCompletionState.State.FAILURE;
                 break;
@@ -142,17 +177,16 @@ class JobCompletionStateFinder {
         long numberOfChunksInJob = jobStore.getNumberOfChunksInJob(jobId);
         LOGGER.info("NumberOfChunksInJob: job: {}  numChunks: {}", jobId, numberOfChunksInJob);
         List<ChunkCompletionState> chunkCompletionStates = new ArrayList<>((int) numberOfChunksInJob);
-        for(long i=0L, chunkId = Constants.CHUNK_ID_LOWER_BOUND+1; i<numberOfChunksInJob; i++, chunkId++) {
+        for (long i = 0L, chunkId = Constants.CHUNK_ID_LOWER_BOUND + 1; i < numberOfChunksInJob; i++, chunkId++) {
             ChunkCompletionState chunkCompletionState;
             try {
                 chunkCompletionState = getChunkCompletionState(jobId, chunkId);
                 chunkCompletionStates.add(chunkCompletionState);
-            } catch(NoSuchChunkException ex) {
+            } catch (NoSuchChunkException ex) {
                 LOGGER.debug("Could not find chunk: {} for job: {}", chunkId, jobId);
             }
         }
         return chunkCompletionStates;
     }
-
 
 }

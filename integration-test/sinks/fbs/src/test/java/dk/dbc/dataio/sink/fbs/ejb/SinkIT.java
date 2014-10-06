@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.naming.Context;
@@ -42,7 +41,6 @@ public class SinkIT {
      * And: the first item has status SUCCESS <br/>
      * And: the second item has status FAILURE <br/>
      */
-    @Ignore("Ignored since FBS endpoint answers with 503 - jda 2014.07.21")
     @Test
     public void fbsPusherBean_endpointResponds() throws NamingException {
         // When...
@@ -55,8 +53,7 @@ public class SinkIT {
         // And...
         assertThat(sinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
         // And...
-        // FixMe: Current version of web-service is proof-of-concept and accepts everything with OK result
-        //assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     @Test(expected = WebServiceException.class)
@@ -82,13 +79,21 @@ public class SinkIT {
     private ChunkResult getChunkResult() {
         final ChunkResult chunkResult = new ChunkResultBuilder().setItems(Collections.<ChunkItem>emptyList()).build();
         chunkResult.addItem(new ChunkItemBuilder().setId(0).setData(Base64Util.base64encode(
-                "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                  "<marcx:record format=\"danMARC2\">" +
-                    "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                      "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
+            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                "<marcx:record format=\"danMARC2\">" +
+                    "<marcx:leader>00000n    2200000   4500</marcx:leader>" +
+                    "<marcx:datafield tag=\"001\" ind1=\"0\" ind2=\"0\">" +
+                        "<marcx:subfield code=\"a\">4 539 593 6</marcx:subfield>" +
+                        "<marcx:subfield code=\"b\">870970</marcx:subfield>" +
+                        "<marcx:subfield code=\"c\">20131114205943</marcx:subfield>" +
+                        "<marcx:subfield code=\"d\">20131114</marcx:subfield>" +
+                        "<marcx:subfield code=\"f\">a</marcx:subfield>" +
                     "</marcx:datafield>" +
-                  "</marcx:record>" +
-                "</marcx:collection>"
+                    "<marcx:datafield tag=\"245\" ind1=\"0\" ind2=\"0\">" +
+                        "<marcx:subfield code=\"a\">&#xC0; la recherche du temps perdu</marcx:subfield>" +
+                    "</marcx:datafield>" +
+                "</marcx:record>" +
+            "</marcx:collection>"
         )).build());
         chunkResult.addItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(
                 "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +

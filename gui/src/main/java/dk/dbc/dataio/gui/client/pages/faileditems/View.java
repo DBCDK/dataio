@@ -110,6 +110,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     public void clearFailedItemsList() {
         failedItemsList = new ArrayList<FailedItemModel>();
+        dataProvider.setList(failedItemsList);
     }
 
     public void addFailedItem(FailedItemModel failedItem) {

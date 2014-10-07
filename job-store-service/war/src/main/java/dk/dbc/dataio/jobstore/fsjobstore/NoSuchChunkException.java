@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
-class NoSuchChunkException extends Exception {
+import dk.dbc.dataio.jobstore.types.JobStoreException;
+
+class NoSuchChunkException extends JobStoreException {
 
     public NoSuchChunkException(String message) {
         super(message);

@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -29,9 +28,7 @@ import dk.dbc.dataio.gui.server.ModelMappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 
 import javax.naming.NamingException;
-import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
@@ -133,19 +130,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
-        final Response response;
+    public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
+        FlowBinder flowBinder;
         try {
-            response = HttpClient.doPostWithJson(client, flowBinderContent,
-                    ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_BINDERS);
-        } catch (ServletException e) {
+            flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        try {
-            assertStatusCode(response, Response.Status.CREATED);
-        } finally {
-            response.close();
-        }
+        return flowBinder;
     }
 
     @Override
@@ -354,18 +348,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     @Override
     public List<FlowBinder> findAllFlowBinders() throws ProxyException {
-        final Response response;
         final List<FlowBinder> result;
         try {
-            response = HttpClient.doGet(client, ServletUtil.getFlowStoreServiceEndpoint(), FlowStoreServiceConstants.FLOW_BINDERS);
-        } catch (ServletException e) {
+            result = flowStoreServiceConnector.findAllFlowBinders();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        try {
-            assertStatusCode(response, Response.Status.OK);
-            result = response.readEntity(new GenericType<List<FlowBinder>>() { });
-        } finally {
-            response.close();
         }
         return result;
     }
@@ -446,6 +435,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                 break;
             case NOT_ACCEPTABLE: errorCode = ProxyError.NOT_ACCEPTABLE;
                 break;
+            case PRECONDITION_FAILED: errorCode = ProxyError.PRECONDITION_FAILED;
+                break;
+            case BAD_REQUEST: errorCode = ProxyError.BAD_REQUEST;
+                break;
             default:
                 errorCode = ProxyError.INTERNAL_SERVER_ERROR;
         }
@@ -454,26 +447,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     public void close() {
         HttpClient.closeClient(client);
-    }
-
-    private void assertStatusCode(Response response, Response.Status expectedStatus) throws ProxyException {
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        if (status != expectedStatus) {
-            final ProxyError errorCode;
-            switch (status) {
-                case BAD_REQUEST: errorCode = ProxyError.BAD_REQUEST;
-                    break;
-                case NOT_ACCEPTABLE: errorCode = ProxyError.NOT_ACCEPTABLE;
-                    break;
-                case PRECONDITION_FAILED: errorCode = ProxyError.ENTITY_NOT_FOUND;
-                    break;
-                case CONFLICT: errorCode = ProxyError.CONFLICT_ERROR;
-                    break;
-                default:
-                    errorCode = ProxyError.INTERNAL_SERVER_ERROR;
-            }
-            throw new ProxyException(errorCode, response.readEntity(String.class));
-        }
     }
 
 }

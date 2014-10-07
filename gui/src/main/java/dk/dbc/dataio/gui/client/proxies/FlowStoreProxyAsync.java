@@ -19,7 +19,7 @@ import java.util.List;
 public interface FlowStoreProxyAsync {
     void createFlow(FlowModel model, AsyncCallback<FlowModel> callback);
     void createFlow(FlowContent flowContent, AsyncCallback<Flow> callback);
-    void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<Void> async);
+    void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<FlowBinder> async);
     void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<FlowComponent> async);
     void createSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
     void createSink(SinkModel model, AsyncCallback<SinkModel> async);

@@ -5,6 +5,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -12,6 +13,7 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -136,13 +138,13 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
         } catch (Exception e) {
             flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
         }
-        flowStoreProxy.createFlowBinder(flowbinderContent, new FilteredAsyncCallback<Void>() {
+        flowStoreProxy.createFlowBinder(flowbinderContent, new FilteredAsyncCallback<FlowBinder>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.setErrorText(constants.error_FlowbinderAlreadyExistsError());
             }
             @Override
-            public void onSuccess(Void result) {
+            public void onSuccess(FlowBinder result) {
                 flowbinderCreateView.setStatusText(constants.status_SaveSuccess());
             }
         });

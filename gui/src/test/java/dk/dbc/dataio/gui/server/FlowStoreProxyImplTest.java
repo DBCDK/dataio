@@ -4,6 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -11,10 +12,10 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -36,7 +37,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -691,34 +691,93 @@ public class FlowStoreProxyImplTest {
         }
     }
 
-
     /*
-     * Test findAllFlowBinders
-     */
+    * Test findAllFlowBinders
+    */
     @Test
     public void findAllFlowBinders_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.FLOW_BINDERS)))
-                .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
-
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findAllFlowBinders()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
             flowStoreProxy.findAllFlowBinders();
-            fail();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlowBinders()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
         }
     }
 
     @Test
-    public void findAllFlowBinders_remoteServiceReturnsHttpStatusOk_returnsListOfSubmitterEntity() throws Exception {
-        final FlowBinder flowBinder = new FlowBinderBuilder().setId(666).build();
-        when(HttpClient.doGet(any(Client.class), eq(flowStoreServiceUrl), eq(FlowStoreServiceConstants.FLOW_BINDERS)))
-                .thenReturn(new MockedHttpClientResponse<List<FlowBinder>>(Response.Status.OK.getStatusCode(), Arrays.asList(flowBinder)));
+    public void findAllFlowBinders_remoteServiceReturnsHttpStatusOk_returnsListOfFlowBinderEntity() throws Exception {
 
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl();
-        final List<FlowBinder> allFlowBinders = flowStoreProxy.findAllFlowBinders();
-        assertThat(allFlowBinders.size(), is(1));
-        assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowBinder flowBinder = new FlowBinderBuilder().setId(1L).build();
+
+        when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Arrays.asList(flowBinder));
+        try {
+            final List<FlowBinder> allFlowBinders  = flowStoreProxy.findAllFlowBinders();
+            assertNotNull(allFlowBinders);
+            assertThat(allFlowBinders.size(), is(1));
+            assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: findAllFlowBinders()");
+        }
+    }
+
+    /*
+    * Test createFlowBinder
+    */
+
+    @Test
+    public void createFlowBinder_remoteServiceReturnsHttpStatusCreated_returnsFlowBinderEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().build();
+        final FlowBinder flowBinder = new FlowBinderBuilder().setContent(flowBinderContent).build();
+
+        when(flowStoreServiceConnector.createFlowBinder(eq(flowBinderContent))).thenReturn(flowBinder);
+
+        try {
+            final FlowBinder createdFlowBinder = flowStoreProxy.createFlowBinder(flowBinderContent);
+            assertNotNull(createdFlowBinder);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createFlowBinder()");
+        }
+    }
+
+    @Test
+    public void createFlowBinder_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        createFlowBinder_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void createFlowBinder_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        createFlowBinder_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void createFlowBinder_remoteServiceReturnsHttpStatusBadRequest_throws() throws Exception {
+        createFlowBinder_genericTestImplForHttpErrors(400, ProxyError.BAD_REQUEST, "BAD_REQUEST");
+    }
+
+    @Test
+    public void createFlowBinder_remoteServiceReturnsHttpStatusPreConditionFailed_throws() throws Exception {
+        createFlowBinder_genericTestImplForHttpErrors(412, ProxyError.PRECONDITION_FAILED, "PRECONDITION_FAILED");
+    }
+
+    private void createFlowBinder_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        when(flowStoreServiceConnector.createFlowBinder(any(FlowBinderContent.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+        try {
+            flowStoreProxy.createFlowBinder(new FlowBinderContentBuilder().build());
+            fail("No " + expectedErrorName + " error was thrown by createFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
     }
 
     /*

@@ -56,8 +56,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public void createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
-        flowStoreProxy.createFlowBinder(flowBinderContent);
+    public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createFlowBinder(flowBinderContent);
     }
 
     @Override

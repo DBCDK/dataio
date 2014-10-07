@@ -10,6 +10,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 class NaiveDependencyGraph {
+
     XLogger LOGGER = XLoggerFactory.getXLogger(NaiveDependencyGraph.class);
 
     private final List<Node> nodes = new ArrayList<>();
@@ -28,15 +29,36 @@ class NaiveDependencyGraph {
     }
 
     /**
-     * Remove all edges for dependent nodes, and deletes the node represented by the ChunkIdentifier.
+     * Method for telling whether a given ChunkIdentifier is at the top/front of
+     * the graph.
+     *
+     * It is in this method assumed that the nodes contained in the
+     * DependencyGraph spans a hierarchy where one ChunkIdentifier is at front
+     * or at the top.
+     *
+     * @param identifier
+     * @return true if the identifier matches the first element in the
+     * DependencyGraph, false otherwise. If the DependencyGraph is empty, then
+     * false will be returned.
+     */
+    public boolean isHead(ChunkIdentifier identifier) {
+        if (!nodes.isEmpty()) {
+            return nodes.get(0).getChunkIdentifier().equals(identifier);
+        }
+        return false;
+    }
+
+    /**
+     * Remove all edges for dependent nodes, and deletes the node represented by
+     * the ChunkIdentifier.
      *
      * @param identifier
      */
     public void deleteAndRelease(ChunkIdentifier identifier) {
         for (Node node : nodes) {
             if (node.getChunkIdentifier().chunkId == identifier.chunkId && node.getChunkIdentifier().jobId == identifier.jobId) {
-                for(Edge edge : node.getEdges()) {
-                    if(edge.getHead() == node) {
+                for (Edge edge : node.getEdges()) {
+                    if (edge.getHead() == node) {
                         edge.getTail().getEdges().remove(edge);
                     } else {
                         edge.getHead().getEdges().remove(edge);
@@ -49,22 +71,22 @@ class NaiveDependencyGraph {
     }
 
     /**
-     * Retrieves all independent chunks which are also inactive.
-     * When returned, the chunks will be changed to active.
+     * Retrieves all independent chunks which are also inactive. When returned,
+     * the chunks will be changed to active.
      * <p>
-     * An independent Chunk, is a in a Node with no outgoing edges.
-     * Incoming edges are allowed since this only indicates that another
-     * node depends on the current node.
+     * An independent Chunk, is a in a Node with no outgoing edges. Incoming
+     * edges are allowed since this only indicates that another node depends on
+     * the current node.
      *
      * @return A list of independent chunks which are now flagged as active.
      */
     public List<ChunkIdentifier> getInactiveIndependentChunksAndActivate() {
         List<ChunkIdentifier> result = new ArrayList<>();
         for (Node node : nodes) {
-            if(node.isActivated()) {
+            if (node.isActivated()) {
                 continue;
             }
-            if(!doesNodeContainOutgoingEdges(node)) {
+            if (!doesNodeContainOutgoingEdges(node)) {
                 result.add(node.getChunkIdentifier());
                 node.activate();
             }
@@ -103,7 +125,6 @@ class NaiveDependencyGraph {
         }
     }
 
-
     private static class Node {
 
         private final ChunkIdentifier chunkIdentifier;
@@ -132,12 +153,14 @@ class NaiveDependencyGraph {
         public long getSinkId() {
             return sinkId;
         }
+
         /**
          * @return the edges
          */
         public List<Edge> getEdges() {
             return edges;
         }
+
         /**
          * @return the keys
          */
@@ -158,7 +181,7 @@ class NaiveDependencyGraph {
 
         @Override
         public String toString() {
-            return "["+getChunkIdentifier() + ", " + getSinkId() + ", " + Arrays.asList(getKeys()) + "]";
+            return "[" + getChunkIdentifier() + ", " + getSinkId() + ", " + Arrays.asList(getKeys()) + "]";
         }
     }
 

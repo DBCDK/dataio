@@ -60,4 +60,16 @@ public interface SequenceAnalyser {
      * @return the number of elements in the internal data structure.
      */
     int size();
+
+    /**
+     * Boolean for telling if a given ChunkIdentifier is the first or the
+     * top-most ChunkIdentifier in the SequenceAnalyser. This i mostly for
+     * monitoring/testing purposes.
+     *
+     * @param chunkIdentifier
+     * @return true if ChunkIdentifier is the first or top-most ChunkIdentifier
+     * in the SequenceAnalyser, false otherwise, and false if there are no
+     * ChunkIdentifiers in the SequenceAnalyser.
+     */
+    boolean isHead(ChunkIdentifier chunkIdentifier);
 }

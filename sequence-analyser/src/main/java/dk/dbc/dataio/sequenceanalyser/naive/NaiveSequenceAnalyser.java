@@ -30,4 +30,9 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
         return dependencyGraph.size();
     }
 
+    @Override
+    public boolean isHead(ChunkIdentifier chunkIdentifier) {
+        return dependencyGraph.isHead(chunkIdentifier);
+    }
+
 }

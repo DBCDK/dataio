@@ -236,6 +236,73 @@ public class NaiveSequenceAnalyserTest {
         assertChunks(sa.getInactiveIndependentChunks(), chunk3);
     }
 
+    @Test
+    public void isHead_emptyDependencyGraph_returnFalse() {
+        ChunkIdentifier cid = new ChunkIdentifier(7L, 9L);
+        assertThat(sa.isHead(cid), is(false));
+    }
+
+    @Test
+    public void isHead_onElementInDependencyGraph_returnTrue() {
+        ChunkIdentifier cid = new ChunkIdentifier(7L, 9L);
+        Chunk chunk = createChunk(7L, 9L, "a");
+        Sink sink = new SinkBuilder().build();
+        sa.addChunk(chunk, sink);
+        assertThat(sa.isHead(cid), is(true));
+    }
+
+    @Test
+    public void isHead_secondElementInDependencyGraph_returnFalse() {
+        Chunk chunk1 = createChunk(7L, 9L, "a");
+        Chunk chunk2 = createChunk(11L, 13L, "b");
+        Sink sink = new SinkBuilder().build();
+        sa.addChunk(chunk1, sink);
+        sa.addChunk(chunk2, sink);
+
+        ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
+        assertThat(sa.isHead(cid), is(false));
+    }
+
+    @Test
+    public void isHead_IndependentChunksHandled_isHeadReturnsCorrectValues() {
+        Chunk chunk1 = createChunk(7L, 9L, "a");
+        Chunk chunk2 = createChunk(11L, 13L, "b");
+        Sink sink = new SinkBuilder().build();
+        sa.addChunk(chunk1, sink);
+        sa.addChunk(chunk2, sink);
+
+        ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
+
+        assertThat(sa.isHead(cid), is(false));
+        assertChunks(sa.getInactiveIndependentChunks(), chunk1, chunk2);
+        assertThat(sa.isHead(cid), is(false));
+        sa.deleteAndReleaseChunk(new ChunkIdentifier(7L, 9L));
+        assertThat(sa.isHead(cid), is(true));
+        sa.deleteAndReleaseChunk(cid);
+        assertThat(sa.isHead(cid), is(false));
+    }
+
+    @Test
+    public void isHead_dependentChunksHandled_isHeadReturnsCorrectValues() {
+        Chunk chunk1 = createChunk(7L, 9L, "a");
+        Chunk chunk2 = createChunk(11L, 13L, "a");
+        Sink sink = new SinkBuilder().build();
+        sa.addChunk(chunk1, sink);
+        sa.addChunk(chunk2, sink);
+
+        ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
+
+        assertThat(sa.isHead(cid), is(false));
+        assertChunks(sa.getInactiveIndependentChunks(), chunk1);
+        assertThat(sa.isHead(cid), is(false));
+        sa.deleteAndReleaseChunk(new ChunkIdentifier(7L, 9L));
+        assertThat(sa.isHead(cid), is(true));
+        assertChunks(sa.getInactiveIndependentChunks(), chunk2);
+        assertThat(sa.isHead(cid), is(true));
+        sa.deleteAndReleaseChunk(cid);
+        assertThat(sa.isHead(cid), is(false));
+    }
+    
     private void assertChunks(List<ChunkIdentifier> inactiveIndependentChunks, Chunk... chunks) {
         assertThat("size of chunks arrays", inactiveIndependentChunks.size(), is(chunks.length));
         for (int i = 0; i < inactiveIndependentChunks.size(); i++) {
@@ -248,4 +315,3 @@ public class NaiveSequenceAnalyserTest {
         return new ChunkBuilder().setJobId(jobId).setChunkId(chunkId).setKeys(new HashSet<String>(Arrays.asList(keys))).build();
     }
 }
-

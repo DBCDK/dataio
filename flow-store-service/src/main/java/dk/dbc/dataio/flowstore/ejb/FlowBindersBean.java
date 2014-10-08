@@ -24,6 +24,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -46,6 +47,7 @@ public class FlowBindersBean {
 
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
     private static final String FLOW_BINDER_CONTENT_DISPLAY_TEXT = "flowBinderContent";
+    private static final String NOT_FOUND_MESSAGE = "resource not found";
 
     @PersistenceContext
     EntityManager entityManager;
@@ -249,6 +251,26 @@ public class FlowBindersBean {
         final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
         final List<dk.dbc.dataio.commons.types.FlowBinder> results = query.getResultList();
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+    }
+
+    /**
+     * Retrieves flow binder from underlying data store
+     *
+     * @param id flow binder identifier
+     *
+     * @return a HTTP 200 response with flow binder as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_BINDER)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id) throws JsonException {
+        final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
+        if (flowBinder == null) {
+            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
+        }
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinder));
     }
 
 }

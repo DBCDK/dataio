@@ -18,6 +18,7 @@ import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -35,6 +36,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -44,6 +46,7 @@ public class FlowBindersIT {
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -55,6 +58,11 @@ public class FlowBindersIT {
     @AfterClass
     public static void tearDownClass() throws SQLException {
         JDBCUtil.closeConnection(dbConnection);
+    }
+
+    @Before
+    public void setUp() {
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
     }
 
     @After
@@ -72,7 +80,6 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_ok() throws Exception{
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
@@ -126,7 +133,6 @@ public class FlowBindersIT {
         // Note that we set different destinations to ensure we don't risk matching search keys.
 
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
@@ -152,7 +158,7 @@ public class FlowBindersIT {
             flowStoreServiceConnector.createFlowBinder(duplicateFlowBinderContent);
             fail("Primary key violation was not detected as input to createFlowBinder().");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...
             assertThat(e.getStatusCode(), is(406));
             // And...
@@ -171,7 +177,6 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_referencedSubmitterNotFound_preconditionFailed() throws Exception {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
 
@@ -185,7 +190,7 @@ public class FlowBindersIT {
             flowStoreServiceConnector.createFlowBinder(flowBinderContent);
             fail("Failed pre-condition was not detected as input to createFlowBinder().");
         // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...
             assertThat(e.getStatusCode(), is(412));
             // And...
@@ -204,7 +209,6 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_referencedFlowNotFound_preconditionFailed() throws Exception {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
@@ -218,7 +222,7 @@ public class FlowBindersIT {
             flowStoreServiceConnector.createFlowBinder(flowBinderContent);
             fail("Failed pre-condition was not detected as input to createFlowBinder().");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...
             assertThat(e.getStatusCode(), is(412));
             // And...
@@ -237,7 +241,6 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_referencedSinkNotFound_preconditionFailed() throws Exception {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
@@ -251,7 +254,7 @@ public class FlowBindersIT {
             flowStoreServiceConnector.createFlowBinder(flowBinderContent);
             fail("Failed pre-condition was not detected as input to createFlowBinder().");
             // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...
             assertThat(e.getStatusCode(), is(412));
             // And...
@@ -270,7 +273,6 @@ public class FlowBindersIT {
     @Test
     public void createFlowBinder_searchKeyExistsInSearchIndex_notAcceptable() throws Exception {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
@@ -297,7 +299,7 @@ public class FlowBindersIT {
            flowStoreServiceConnector.createFlowBinder(notAcceptableFlowBinderContent);
            fail("Unique constraint violation was not detected as input to createFlowBinder().");
            // Then...
-       }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+       } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
            // And...
            assertThat(e.getStatusCode(), is(406));
            // And...
@@ -314,7 +316,6 @@ public class FlowBindersIT {
     @Test
     public void findAllFlowBinders_emptyResult() throws Exception {
         // When...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
 
         // Then...
@@ -331,39 +332,13 @@ public class FlowBindersIT {
     @Test
     public void findAllFlowBinders_Ok() throws Exception {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
-        // Create flow binders with sortable names
-        final FlowBinderContent flowBinderContentA = new FlowBinderContentBuilder()
-                .setName("a-flowbinder")
-                .setDestination("destination2")
-                .setFlowId(flow.getId())
-                .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
-                .build();
-
-        final FlowBinderContent flowBinderContentB = new FlowBinderContentBuilder()
-                .setName("b-flowbinder")
-                .setDestination("destination3")
-                .setFlowId(flow.getId())
-                .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
-                .build();
-
-        final FlowBinderContent flowBinderContentC = new FlowBinderContentBuilder()
-                .setName("c-flowbinder")
-                .setDestination("destination1")
-                .setFlowId(flow.getId())
-                .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
-                .build();
-
-        FlowBinder flowBinderSortsThird = flowStoreServiceConnector.createFlowBinder(flowBinderContentC);
-        FlowBinder flowBinderSortsFirst = flowStoreServiceConnector.createFlowBinder(flowBinderContentA);
-        FlowBinder flowBinderSortsSecond = flowStoreServiceConnector.createFlowBinder(flowBinderContentB);
+        final FlowBinder flowBinderSortsThird = createFlowBinder("c-flowbinder", "destination1", flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
+        final FlowBinder flowBinderSortsFirst = createFlowBinder("a-flowbinder", "destination2", flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
+        final FlowBinder flowBinderSortsSecond = createFlowBinder("b-flowbinder", "destination3", flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
 
         // When...
         List<FlowBinder> listOfFlowBinders = flowStoreServiceConnector.findAllFlowBinders();
@@ -377,4 +352,75 @@ public class FlowBindersIT {
         assertThat(listOfFlowBinders.get(1).getContent().getName(), is(flowBinderSortsSecond.getContent().getName()));
         assertThat(listOfFlowBinders.get(2).getContent().getName(), is(flowBinderSortsThird.getContent().getName()));
     }
+
+    /**
+     * Given: a deployed flow-store service containing one flow binder
+     * When: GETing an existing flow binder
+     * Then: request returns with 1 flow binder (the correct one)
+     */
+    @Test
+    public void getFlowBinder_Ok() throws Exception {
+        // Given...
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
+        final String FLOW_BINDER_NAME = "The Flowbinder";
+        final String FLOW_BINDER_DESTINATION = "The Destination";
+        final FlowBinder originalFlowBinder = createFlowBinder(FLOW_BINDER_NAME, FLOW_BINDER_DESTINATION, flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
+        final long flowBinderId = originalFlowBinder.getId();
+
+        // When...
+        FlowBinder flowBinder = flowStoreServiceConnector.getFlowBinder(flowBinderId);
+
+        // Then...
+        assertThat(flowBinder.getId(), is(flowBinderId));
+        assertThat(flowBinder.getContent().getName(), is(FLOW_BINDER_NAME));
+        assertThat(flowBinder.getContent().getDestination(), is(FLOW_BINDER_DESTINATION));
+        assertThat(flowBinder.getContent().getFlowId(), is(flow.getId()));
+        assertThat(flowBinder.getContent().getSinkId(), is(sink.getId()));
+        assertTrue(flowBinder.getContent().getSubmitterIds().contains(submitter.getId()));
+    }
+
+    /**
+     * Given: a deployed flow-store service containing one flow binder
+     * When: GETing an existing flow binder
+     * Then: request returns with 1 flow binder (the correct one)
+     */
+    @Test
+    public void getFlowBinder_notFound_throws() throws Exception {
+        // Given...
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
+        final String FLOW_BINDER_NAME = "The Flowbinder";
+        final String FLOW_BINDER_DESTINATION = "The Destination";
+        final FlowBinder originalFlowBinder = createFlowBinder(FLOW_BINDER_NAME, FLOW_BINDER_DESTINATION, flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
+        final long flowBinderId = originalFlowBinder.getId();
+
+        try {
+            // When...
+            FlowBinder flowBinder = flowStoreServiceConnector.getFlowBinder(flowBinderId+1);  // Then we don't get the created FlowBinder
+            fail("It seems as if we do get a FlowBinder, though we didn't expect one!");
+            // Then...
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(404));
+        }
+
+    }
+
+
+    // Private methods
+
+    private FlowBinder createFlowBinder(String name, String destination, long flowId, long sinkId, List<Long> submitterIds) throws Exception {
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setName(name)
+                .setDestination(destination)
+                .setFlowId(flowId)
+                .setSinkId(sinkId)
+                .setSubmitterIds(submitterIds)
+                .build();
+        return flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+    }
+
 }

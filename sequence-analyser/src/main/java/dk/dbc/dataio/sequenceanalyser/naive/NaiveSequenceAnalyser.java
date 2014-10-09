@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
+
 import java.util.List;
 
 public class NaiveSequenceAnalyser implements SequenceAnalyser {
@@ -10,8 +10,8 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
     private NaiveDependencyGraph dependencyGraph = new NaiveDependencyGraph();
 
     @Override
-    public void addChunk(Chunk chunk, Sink sink) {
-        dependencyGraph.insert(chunk, sink.getId());
+    public void addChunk(Chunk chunk) {
+        dependencyGraph.insert(chunk);
     }
 
     @Override

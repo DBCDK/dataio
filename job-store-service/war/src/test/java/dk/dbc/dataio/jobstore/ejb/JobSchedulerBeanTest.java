@@ -16,6 +16,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -33,7 +36,7 @@ public class JobSchedulerBeanTest {
 
     @Before
     public void setupExpectations() {
-        doNothing().when(sequenceAnalyser).addChunk(any(Chunk.class), any(Sink.class));
+        doNothing().when(sequenceAnalyser).addChunk(any(Chunk.class));
         when(sequenceAnalyser.getInactiveIndependentChunks()).thenReturn(Collections.<ChunkIdentifier>emptyList());
         when(jobStoreBean.getJobStore()).thenReturn(jobStore);
     }
@@ -51,7 +54,7 @@ public class JobSchedulerBeanTest {
     @Test
     public void scheduleChunk_allArgsAreValid_addsChunkToSequenceAnalysis() {
         getJobSchedulerBean().scheduleChunk(chunk, sink);
-        verify(sequenceAnalyser).addChunk(any(Chunk.class), any(Sink.class));
+        verify(sequenceAnalyser).addChunk(any(Chunk.class));
     }
 
     @Test
@@ -105,8 +108,20 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
+    public void scheduleChunk_givenChunkFromNeverBeforeSeenSink_createsSequenceAnalyserAndMaintainsToSinkMapping() {
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.scheduleChunk(chunk, sink);
+        assertThat(jobSchedulerBean.sequenceAnalysers.size(), is(1));
+        assertThat(jobSchedulerBean.sequenceAnalysers.get(jobSchedulerBean.getLockObject(String.valueOf(sink.getId()))), is(notNullValue()));
+        assertThat(jobSchedulerBean.toSinkMapping.size(), is(1));
+        assertThat(jobSchedulerBean.toSinkMapping.get(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId())), is(sink));
+    }
+
+    @Test
     public void releaseChunk_allArgsAreValid_releasesChunkFromSequenceAnalysis() {
-        getJobSchedulerBean().releaseChunk(chunk.getJobId(), chunk.getChunkId());
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.toSinkMapping.put(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink);
+        jobSchedulerBean.releaseChunk(chunk.getJobId(), chunk.getChunkId());
         verify(sequenceAnalyser).deleteAndReleaseChunk(any(ChunkIdentifier.class));
     }
 
@@ -118,7 +133,9 @@ public class JobSchedulerBeanTest {
         when(jobStore.getChunk(chunk.getJobId(), chunk.getChunkId())).thenReturn(chunk);
         doNothing().when(jobProcessorMessageProducerBean).send(chunk);
 
-        getJobSchedulerBean().releaseChunk(chunk.getJobId(), chunk.getChunkId());
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.toSinkMapping.put(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink);
+        jobSchedulerBean.releaseChunk(chunk.getJobId(), chunk.getChunkId());
         verify(sequenceAnalyser).getInactiveIndependentChunks();
         verify(jobStore, times(identifiers.size())).getChunk(chunk.getJobId(), chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(any(Chunk.class));
@@ -136,7 +153,9 @@ public class JobSchedulerBeanTest {
                 .thenReturn(chunk);
         doNothing().when(jobProcessorMessageProducerBean).send(chunk);
 
-        getJobSchedulerBean().releaseChunk(chunk.getJobId(), chunk.getChunkId());
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.toSinkMapping.put(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink);
+        jobSchedulerBean.releaseChunk(chunk.getJobId(), chunk.getChunkId());
         verify(sequenceAnalyser).getInactiveIndependentChunks();
         verify(jobStore, times(identifiers.size())).getChunk(chunk.getJobId(), chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(identifiers.size()-1)).send(any(Chunk.class));
@@ -154,18 +173,28 @@ public class JobSchedulerBeanTest {
         doNothing().
                 when(jobProcessorMessageProducerBean).send(chunk);
 
-        getJobSchedulerBean().releaseChunk(chunk.getJobId(), chunk.getChunkId());
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.toSinkMapping.put(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink);
+        jobSchedulerBean.releaseChunk(chunk.getJobId(), chunk.getChunkId());
         verify(sequenceAnalyser).getInactiveIndependentChunks();
         verify(jobStore, times(identifiers.size())).getChunk(chunk.getJobId(), chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(any(Chunk.class));
     }
 
+    @Test
+    public void releaseChunk_maintainsToSinkMapping() {
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.scheduleChunk(chunk, sink);
+        assertThat(jobSchedulerBean.toSinkMapping.size(), is(1));
+        jobSchedulerBean.releaseChunk(chunk.getJobId(), chunk.getChunkId());
+        assertThat(jobSchedulerBean.toSinkMapping.size(), is(0));
+    }
+
     private JobSchedulerBean getJobSchedulerBean() {
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
-        jobSchedulerBean.initialise();
         jobSchedulerBean.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
         jobSchedulerBean.jobStoreBean = jobStoreBean;
-        jobSchedulerBean.sequenceAnalyser = sequenceAnalyser;
+        jobSchedulerBean.sequenceAnalysers.put(jobSchedulerBean.getLockObject(String.valueOf(sink.getId())), sequenceAnalyser);
         return jobSchedulerBean;
     }
 }

@@ -1,19 +1,19 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 public class NaiveSequenceAnalyserTest {
 
@@ -42,8 +42,7 @@ public class NaiveSequenceAnalyserTest {
         assertThat(sa.size(), is(0));
         // WHEN:
         Chunk chunk = createChunk(1L, 2L);
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk, sink);
+        sa.addChunk(chunk);
         // THEN:
         // verify that chunk is independent
         assertChunks(sa.getInactiveIndependentChunks(), chunk);
@@ -59,8 +58,7 @@ public class NaiveSequenceAnalyserTest {
     public void deleteAndReleaseOfSingleChunk() {
         // GIVEN:
         Chunk chunk = createChunk(1L, 2L);
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk, sink);
+        sa.addChunk(chunk);
         // WHEN:
         // remove chunk
         sa.deleteAndReleaseChunk(new ChunkIdentifier(1L, 2L));
@@ -72,21 +70,20 @@ public class NaiveSequenceAnalyserTest {
 
     /*
      * Given: An empty sequence.
-     * Given: A sequence analyser with two independent chunks destined to the same sink.
-     * When : Two independent chunks with same sink are inserted
-     * Then : Both chunks must be retreived as inacative and independent.
+     * Given: A sequence analyser with two independent chunks.
+     * When : Two independent chunks are inserted
+     * Then : Both chunks must be retrieved as inactive and independent.
      */
     @Test
-    public void testInsertionAndRetrivalOfTwoIndependentChunks() {
+    public void testInsertionAndRetrievalOfTwoIndependentChunks() {
         // GIVEN:
         assertThat(sa.size(), is(0));
         // WHEN:
         Chunk chunk1 = createChunk(1L, 2L, "horse");
         Chunk chunk2 = createChunk(3L, 4L, "goat");
-        Sink sink = new SinkBuilder().build();
         // add chunk
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
+        sa.addChunk(chunk1);
+        sa.addChunk(chunk2);
         // THEN:
         // verify that chunks are independent and inactive
         assertChunks(sa.getInactiveIndependentChunks(), chunk1, chunk2);
@@ -96,22 +93,21 @@ public class NaiveSequenceAnalyserTest {
 
     /*
      * Given: A sequence analyser with a single chunk
-     * When : A new chunk for the same sink, which depends on the existing chunk, is inserted,
-     * Then : Only the first chunk can be retrived
+     * When : A new chunk which depends on the existing chunk, is inserted,
+     * Then : Only the first chunk can be retrieved
      */
     @Test
     public void insertDependentChunkWhichDependsOnExistingChunk() {
         // GIVEN:
         // add first chunk
         Chunk chunk1 = createChunk(1L, 2L, "animal", "horse");
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk1, sink);
+        sa.addChunk(chunk1);
         // verify that there is one chunk in the sequence analyser
         assertThat(sa.size(), is(1));
         // WHEN
         // add the second chunk
         Chunk chunk2 = createChunk(3L, 4L, "animal", "goat");
-        sa.addChunk(chunk2, sink);
+        sa.addChunk(chunk2);
         // verify that tehere are two chunks in the sequence analyser
         assertThat(sa.size(), is(2));
         // THEN:
@@ -130,9 +126,8 @@ public class NaiveSequenceAnalyserTest {
         // add chunkS
         Chunk chunk1 = createChunk(1L, 2L, "animal", "horse");
         Chunk chunk2 = createChunk(3L, 4L, "animal", "goat");
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
+        sa.addChunk(chunk1);
+        sa.addChunk(chunk2);
         // verify that only the first chunk is independent
         assertChunks(sa.getInactiveIndependentChunks(), chunk1);
         // verify that the seqence analyser contains two chunks
@@ -147,46 +142,20 @@ public class NaiveSequenceAnalyserTest {
         assertChunks(sa.getInactiveIndependentChunks(), chunk2);
     }
 
-    // Test: Two chunks with overlapping keys, but destined for different sinks.
-    //       They should not depend on each other.
-    /*
-     * Given: An empty Seqeuence analyser
-     * When : Two chunk with overlapping keys, but destined for different sinks are inserted
-     * Then : Both chunks must be independent.
-     */
-    @Test
-    public void twoChunksWithOverlappingKeysDestinedDifferentSinksMustBeIndependent() {
-        // GIVEN
-        // verify that sequence analyser is empty
-        assertThat(sa.size(), is(0));
-        // WHEN:
-        Chunk chunk1 = createChunk(1L, 2L, "animal", "horse");
-        Chunk chunk2 = createChunk(3L, 4L, "animal", "goat");
-        Sink sink1 = new SinkBuilder().setId(1L).build();
-        Sink sink2 = new SinkBuilder().setId(2L).build();
-        // add chunks
-        sa.addChunk(chunk1, sink1);
-        sa.addChunk(chunk2, sink2);
-        // THEN
-        // verify that chunks are independent
-        assertChunks(sa.getInactiveIndependentChunks(), chunk1, chunk2);
-    }
-
     /*
      * Given: A sequence analyser with two dependent chunks
      * When : a ChunkIdentifier is retrieved with getInactiveIndependentChunksAndActivate(),
-     * Then : subsequent calls to getInactiveIndependentChunksAndActivate() will not return the same ChunkIdentifer,
-     *        but the size of the internal dependecy graph remains the same.
+     * Then : subsequent calls to getInactiveIndependentChunksAndActivate() will not return the same ChunkIdentifier,
+     *        but the size of the internal dependency graph remains the same.
      */
     @Test
-    public void alreadyRetreivedChunkMustNotReappearAsIndependent() {
+    public void alreadyRetrievedChunkMustNotReappearAsIndependent() {
         // GIVEN
         Chunk chunk1 = createChunk(1L, 2L, "animal", "horse");
         Chunk chunk2 = createChunk(3L, 4L, "animal", "goat");
-        Sink sink = new SinkBuilder().build();
         // add chunks
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
+        sa.addChunk(chunk1);
+        sa.addChunk(chunk2);
         // verify that the Sequenceanalyser contains two elements
         assertThat(sa.size(), is(2));
         // WHEN
@@ -213,11 +182,10 @@ public class NaiveSequenceAnalyserTest {
         Chunk chunk1 = createChunk(1L, 2L, "animal", "bird", "eagle");
         Chunk chunk2 = createChunk(1L, 3L, "animal", "mammal", "goat");
         Chunk chunk3 = createChunk(4L, 5L, "animal", "mammal", "horse");
-        Sink sink = new SinkBuilder().build();
         // add chunks
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
-        sa.addChunk(chunk3, sink);
+        sa.addChunk(chunk1);
+        sa.addChunk(chunk2);
+        sa.addChunk(chunk3);
         // verify that the sequence analyser contains three chunks
         assertThat(sa.size(), is(3));
         // verify that chunks are dependent
@@ -246,8 +214,7 @@ public class NaiveSequenceAnalyserTest {
     public void isHead_onElementInDependencyGraph_returnTrue() {
         ChunkIdentifier cid = new ChunkIdentifier(7L, 9L);
         Chunk chunk = createChunk(7L, 9L, "a");
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk, sink);
+        sa.addChunk(chunk);
         assertThat(sa.isHead(cid), is(true));
     }
 
@@ -255,9 +222,8 @@ public class NaiveSequenceAnalyserTest {
     public void isHead_secondElementInDependencyGraph_returnFalse() {
         Chunk chunk1 = createChunk(7L, 9L, "a");
         Chunk chunk2 = createChunk(11L, 13L, "b");
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
+        sa.addChunk(chunk1);
+        sa.addChunk(chunk2);
 
         ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
         assertThat(sa.isHead(cid), is(false));
@@ -267,9 +233,8 @@ public class NaiveSequenceAnalyserTest {
     public void isHead_IndependentChunksHandled_isHeadReturnsCorrectValues() {
         Chunk chunk1 = createChunk(7L, 9L, "a");
         Chunk chunk2 = createChunk(11L, 13L, "b");
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
+        sa.addChunk(chunk1);
+        sa.addChunk(chunk2);
 
         ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
 
@@ -286,9 +251,8 @@ public class NaiveSequenceAnalyserTest {
     public void isHead_dependentChunksHandled_isHeadReturnsCorrectValues() {
         Chunk chunk1 = createChunk(7L, 9L, "a");
         Chunk chunk2 = createChunk(11L, 13L, "a");
-        Sink sink = new SinkBuilder().build();
-        sa.addChunk(chunk1, sink);
-        sa.addChunk(chunk2, sink);
+        sa.addChunk(chunk1);
+        sa.addChunk(chunk2);
 
         ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
 

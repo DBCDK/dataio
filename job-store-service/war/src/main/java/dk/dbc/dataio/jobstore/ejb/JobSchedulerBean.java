@@ -7,15 +7,17 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.naive.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.naive.NaiveSequenceAnalyser;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This Enterprise Java Bean (EJB) is responsible for chunk scheduling
@@ -28,18 +30,14 @@ import javax.ejb.Startup;
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
-    SequenceAnalyser sequenceAnalyser;
+    ConcurrentHashMap<String, SequenceAnalyser> sequenceAnalysers = new ConcurrentHashMap<>(16, 0.9F, 1);
+    ConcurrentHashMap<ChunkIdentifier, Sink> toSinkMapping = new ConcurrentHashMap<>(16, 0.9F, 1);
 
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
     @EJB
     JobStoreBean jobStoreBean;
-
-    @PostConstruct
-    public void initialise() {
-        sequenceAnalyser = new NaiveSequenceAnalyser();
-    }
 
     /**
      * Passes given chunk and sink on to the sequence analyser and notifies
@@ -51,9 +49,16 @@ public class JobSchedulerBean {
     public void scheduleChunk(Chunk chunk, Sink sink) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
+        final List<ChunkIdentifier> inactiveIndependentChunks;
         LOGGER.info("Scheduling chunk.id {} of job.id {}", chunk.getChunkId(), chunk.getJobId());
-        sequenceAnalyser.addChunk(chunk, sink);
-        notifyWorkloadAvailable();
+        toSinkMapping.put(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sink);
+        final String lockObject = getLockObject(String.valueOf(sink.getId()));
+        synchronized(lockObject) {
+            final SequenceAnalyser sequenceAnalyser = getSequenceAnalyser(lockObject);
+            sequenceAnalyser.addChunk(chunk);
+            inactiveIndependentChunks = sequenceAnalyser.getInactiveIndependentChunks();
+        }
+        notifyJobProcessorOfWorkloadAvailable(inactiveIndependentChunks);
     }
 
     /**
@@ -64,14 +69,32 @@ public class JobSchedulerBean {
      * @param chunkId identifier of chunk in containing job
      */
     public void releaseChunk(long jobId, long chunkId) {
+        final List<ChunkIdentifier> inactiveIndependentChunks;
         LOGGER.info("Releasing chunk.id {} of job.id {}", chunkId, jobId);
         final ChunkIdentifier chunkIdentifier = new ChunkIdentifier(jobId, chunkId);
-        sequenceAnalyser.deleteAndReleaseChunk(chunkIdentifier);
-        notifyWorkloadAvailable();
+        final Sink sink = toSinkMapping.get(chunkIdentifier);
+        if (sink != null) {
+            final String lockObject = getLockObject(String.valueOf(sink.getId()));
+            synchronized (lockObject) {
+                final SequenceAnalyser sequenceAnalyser = getSequenceAnalyser(lockObject);
+                sequenceAnalyser.deleteAndReleaseChunk(chunkIdentifier);
+                inactiveIndependentChunks = sequenceAnalyser.getInactiveIndependentChunks();
+            }
+            notifyJobProcessorOfWorkloadAvailable(inactiveIndependentChunks);
+            toSinkMapping.remove(chunkIdentifier);
+        }
     }
 
-    private void notifyWorkloadAvailable() {
-        for (final ChunkIdentifier chunkIdentifier : sequenceAnalyser.getInactiveIndependentChunks()) {
+    String getLockObject(String id) {
+        // Add namespace to given string to avoid global locking issues.
+        // Use intern() method to get reference from String pool, so
+        // that the returned string can be used as a monitor object in
+        // a synchronized block.
+        return (this.getClass().getName() + "." + id).intern();
+    }
+
+    private void notifyJobProcessorOfWorkloadAvailable(List<ChunkIdentifier> chunkIdentifiers) {
+        for (final ChunkIdentifier chunkIdentifier : chunkIdentifiers) {
             try {
                 final Chunk chunk = jobStoreBean.getJobStore().getChunk(chunkIdentifier.jobId, chunkIdentifier.chunkId);
                 if (chunk == null) {
@@ -90,5 +113,15 @@ public class JobSchedulerBean {
                         chunkIdentifier.chunkId, chunkIdentifier.jobId, e);
             }
         }
+    }
+
+    @SuppressFBWarnings({"AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"})
+    private SequenceAnalyser getSequenceAnalyser(String lockObject) {
+        SequenceAnalyser sequenceAnalyser = sequenceAnalysers.get(lockObject);
+        if (sequenceAnalyser == null) {
+            sequenceAnalyser = new NaiveSequenceAnalyser();
+            sequenceAnalysers.put(lockObject, sequenceAnalyser);
+        }
+        return sequenceAnalyser;
     }
 }

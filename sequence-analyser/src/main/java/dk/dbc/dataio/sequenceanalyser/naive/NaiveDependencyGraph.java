@@ -1,13 +1,14 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 class NaiveDependencyGraph {
 
@@ -16,13 +17,12 @@ class NaiveDependencyGraph {
     private final List<Node> nodes = new ArrayList<>();
 
     /**
-     * Inserts a new Node in the graph, representing the given Chunk and SinkId.
+     * Inserts a new Node in the graph, representing the given Chunk.
      *
      * @param chunk
-     * @param sinkId
      */
-    public void insert(Chunk chunk, long sinkId) {
-        Node node = new Node(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), sinkId, new HashSet<>(chunk.getKeys()));
+    public void insert(Chunk chunk) {
+        Node node = new Node(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), new HashSet<>(chunk.getKeys()));
         LOGGER.info("Created node: {}", node);
         findAndUpdateDependencies(node);
         nodes.add(node);
@@ -116,7 +116,7 @@ class NaiveDependencyGraph {
             // find intersection between keysets (if any)
             Set<String> keyIntersection = new HashSet<>(headNode.getKeys());
             keyIntersection.retainAll(tailNode.getKeys());
-            if (!keyIntersection.isEmpty() && headNode.getSinkId() == tailNode.getSinkId()) {
+            if (!keyIntersection.isEmpty()) {
                 // intersection - create new edge and add it to the two nodes
                 Edge edge = new Edge(headNode, tailNode);
                 tailNode.getEdges().add(edge);
@@ -128,14 +128,12 @@ class NaiveDependencyGraph {
     private static class Node {
 
         private final ChunkIdentifier chunkIdentifier;
-        private final long sinkId;
         private final List<Edge> edges;
         private final Set<String> keys;
         private boolean activated = false;
 
-        public Node(ChunkIdentifier chunkIdentifier, long sinkId, Set<String> keys) {
+        public Node(ChunkIdentifier chunkIdentifier, Set<String> keys) {
             this.chunkIdentifier = chunkIdentifier;
-            this.sinkId = sinkId;
             this.edges = new ArrayList<>();
             this.keys = new HashSet<>(keys);
         }
@@ -145,13 +143,6 @@ class NaiveDependencyGraph {
          */
         public ChunkIdentifier getChunkIdentifier() {
             return chunkIdentifier;
-        }
-
-        /**
-         * @return the sinkId
-         */
-        public long getSinkId() {
-            return sinkId;
         }
 
         /**
@@ -181,7 +172,7 @@ class NaiveDependencyGraph {
 
         @Override
         public String toString() {
-            return "[" + getChunkIdentifier() + ", " + getSinkId() + ", " + Arrays.asList(getKeys()) + "]";
+            return "[" + getChunkIdentifier() + ", " + Arrays.asList(getKeys()) + "]";
         }
     }
 

@@ -70,12 +70,6 @@
   </build>
 
   <dependencies>
-    <!--dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-engine</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <type>jar</type>
-    </dependency-->
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-jslib</artifactId>
@@ -112,6 +106,11 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-service</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+      <version>3.0.0</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

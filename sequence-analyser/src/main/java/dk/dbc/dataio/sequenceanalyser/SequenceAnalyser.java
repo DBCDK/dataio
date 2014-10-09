@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sequenceanalyser;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.sequenceanalyser.naive.ChunkIdentifier;
+
 import java.util.List;
 
 /**
@@ -31,9 +31,8 @@ public interface SequenceAnalyser {
      *
      * @param chunk The chunk containing the id for the chunk, and the keys for
      * exploring dependencies.
-     * @param sink The destination for this chunk.
      */
-    void addChunk(Chunk chunk, Sink sink);
+    void addChunk(Chunk chunk);
 
     /**
      * Releases all chunks the depends on this ChunkIdentifier, and deletes

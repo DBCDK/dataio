@@ -164,6 +164,8 @@ public class ESTaskPackageUtil {
         InvariantUtil.checkNotNullNotEmptyOrThrow(dbname, "dbname");
         InvariantUtil.checkNotNullOrThrow(esWorkload, "esInFlight");
         final String creator = createCreatorString(esWorkload.getSinkChunkResult().getJobId(), esWorkload.getSinkChunkResult().getChunkId());
+        LOGGER.info("Calling ESUtil.insertAddiList with: numberOfRecords: [{}], dbname: [{}], encoding: [{}], creator: [{}], esConn-Object: [{}]",
+                esWorkload.getAddiRecords().size(), dbname, esWorkload.getSinkChunkResult().getEncoding(), creator, esConn);
         final ESUtil.AddiListInsertionResult insertionResult = ESUtil.insertAddiList(esConn, esWorkload.getAddiRecords(), dbname, esWorkload.getSinkChunkResult().getEncoding(), creator);
         validateTaskPackageState(insertionResult, esWorkload);
         return insertionResult.getTargetReference();

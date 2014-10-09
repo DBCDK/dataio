@@ -28,11 +28,21 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public void init() throws ServletException {
         super.init();
-        try{
+        try {
             flowStoreProxy = new FlowStoreProxyImpl();
-        }catch (NamingException e){
+        } catch (NamingException e) {
             throw new ServletException(e);
         }
+    }
+
+
+    /*
+     * Flows
+     */
+
+    @Override
+    public FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createFlow(model);
     }
 
     @Override
@@ -41,38 +51,28 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createFlow(model);
+    public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateFlow(model);
     }
+
+    @Override
+    public List<Flow> findAllFlows() throws ProxyException {
+        return flowStoreProxy.findAllFlows();
+    }
+
+    @Override
+    public FlowModel getFlow(Long id) throws ProxyException {
+        return flowStoreProxy.getFlow(id);
+    }
+
+
+    /*
+     * Flow Components
+     */
 
     @Override
     public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException {
         return flowStoreProxy.createFlowComponent(flowComponentContent);
-    }
-
-    @Override
-    public SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createSubmitter(model);
-    }
-
-    @Override
-    public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createFlowBinder(flowBinderContent);
-    }
-
-    @Override
-    public SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createSink(model);
-    }
-
-    @Override
-    public SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateSink(model);
-    }
-
-    @Override
-    public SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateSubmitter(model);
     }
 
     @Override
@@ -81,18 +81,13 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
-        return flowStoreProxy.refreshFlowComponents(id, version);
-    }
-
-    @Override
     public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
         return flowStoreProxy.refreshFlowComponentsOld(id, version);
     }
 
     @Override
-    public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateFlow(model);
+    public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
+        return flowStoreProxy.refreshFlowComponents(id, version);
     }
 
     @Override
@@ -106,13 +101,63 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public FlowComponent getFlowComponent(Long id) throws ProxyException {
+        return flowStoreProxy.getFlowComponent(id);
+    }
+
+
+    /*
+     * Flows Binders
+     */
+
+    @Override
+    public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createFlowBinder(flowBinderContent);
+    }
+
+    @Override
+    public List<FlowBinder> findAllFlowBinders() throws ProxyException {
+        return flowStoreProxy.findAllFlowBinders();
+    }
+
+
+    /*
+     * Submitters
+     */
+
+    @Override
+    public SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createSubmitter(model);
+    }
+
+    @Override
+    public SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateSubmitter(model);
+    }
+
+    @Override
     public List<Submitter> findAllSubmitters() throws ProxyException {
         return flowStoreProxy.findAllSubmitters();
     }
 
     @Override
-    public List<Flow> findAllFlows() throws ProxyException {
-        return flowStoreProxy.findAllFlows();
+    public SubmitterModel getSubmitter(Long id) throws ProxyException {
+        return flowStoreProxy.getSubmitter(id);
+    }
+
+
+    /*
+     * Sinks
+     */
+
+    @Override
+    public SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createSink(model);
+    }
+
+    @Override
+    public SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateSink(model);
     }
 
     @Override
@@ -121,29 +166,14 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<FlowBinder> findAllFlowBinders() throws ProxyException {
-        return flowStoreProxy.findAllFlowBinders();
-    }
-
-    @Override
     public SinkModel getSink(Long id) throws ProxyException {
         return flowStoreProxy.getSink(id);
     }
 
-    @Override
-    public SubmitterModel getSubmitter(Long id) throws ProxyException {
-        return flowStoreProxy.getSubmitter(id);
-    }
 
-    @Override
-    public FlowComponent getFlowComponent(Long id) throws ProxyException {
-        return flowStoreProxy.getFlowComponent(id);
-    }
-
-    @Override
-    public FlowModel getFlow(Long id) throws ProxyException {
-        return flowStoreProxy.getFlow(id);
-    }
+    /*
+     * Other
+     */
 
     @Override
     public void close() {

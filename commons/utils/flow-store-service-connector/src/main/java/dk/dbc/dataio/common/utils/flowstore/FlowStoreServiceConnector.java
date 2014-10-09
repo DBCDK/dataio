@@ -465,11 +465,31 @@ public class FlowStoreServiceConnector {
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flow binders
      */
-    public List<FlowBinder> findAllFlowBinders()throws ProcessingException, FlowStoreServiceConnectorException{
+    public List<FlowBinder> findAllFlowBinders() throws ProcessingException, FlowStoreServiceConnectorException{
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() { });
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
+     * Retrieves a flow binder from the flow-store
+     *
+     * @param flowBinderId Id of the flow binder
+     * @return the flow binder
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flow binder
+     */
+    public FlowBinder getFlowBinder(long flowBinderId) throws ProcessingException, FlowStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
+                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, flowBinderId);
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, FlowBinder.class);
         } finally {
             response.close();
         }

@@ -131,4 +131,63 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllFlowBinders();
     }
+
+    // *************************************** get flow binder tests **************************************
+    @Test
+    public void getFlowBinder_flowBinderExist_flowBinderReturned() throws FlowStoreServiceConnectorException {
+        final String FLOW_BINDER_NAME = "This one is the correct one";
+        final FlowBinder expectedFlowBinder = createFlowBinder(FLOW_BINDER_NAME);
+        final FlowBinder notExpectedFlowBinder = createFlowBinder("Not this one");
+        final long expectedFlowBinderId = expectedFlowBinder.getId();
+        setupHttpClientForGetFlowBinder(expectedFlowBinderId, Response.Status.OK.getStatusCode(), expectedFlowBinder);
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        final FlowBinder resultingFlowBinder = instance.getFlowBinder(expectedFlowBinderId);
+
+        assertThat(resultingFlowBinder, not(nullValue()));
+        assertThat(resultingFlowBinder.getId(), is(expectedFlowBinderId));
+        assertThat(resultingFlowBinder.getContent().getName(), is(FLOW_BINDER_NAME));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getFlowBinder_nullFlowBinder_throws() throws FlowStoreServiceConnectorException {
+        final String FLOW_BINDER_NAME = "This one is the correct one";
+        final FlowBinder expectedFlowBinder = createFlowBinder(FLOW_BINDER_NAME);
+        final FlowBinder notExpectedFlowBinder = createFlowBinder("Not this one");
+        final long expectedFlowBinderId = expectedFlowBinder.getId();
+        setupHttpClientForGetFlowBinder(expectedFlowBinderId, Response.Status.OK.getStatusCode(), null);
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.getFlowBinder(expectedFlowBinderId);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getFlowBinder_flowBinderDoesNotExist_throws() throws FlowStoreServiceConnectorException {
+        final long flowBinderId = 73L;
+        setupHttpClientForGetFlowBinder(flowBinderId, Response.Status.NOT_FOUND.getStatusCode(), null);
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.getFlowBinder(flowBinderId);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getFlowBinder_internalServerError_throws() throws FlowStoreServiceConnectorException {
+        final long flowBinderId = 73L;
+        setupHttpClientForGetFlowBinder(flowBinderId, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null);
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.getFlowBinder(flowBinderId);
+    }
+
+    // Helper method
+    private FlowBinder createFlowBinder(String name) {
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setName(name).build();
+        return new FlowBinderBuilder().setContent(flowBinderContent).build();
+    }
+
+    private void setupHttpClientForGetFlowBinder(long flowBinderId, int expectedErrorCode, FlowBinder expectedResult) {
+        final String[] url = {FlowStoreServiceConstants.FLOW_BINDER.replaceFirst("/\\{id\\}", ""), String.valueOf(flowBinderId)}; // Eg.: {"binder", "62"}
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, url)).thenReturn(new MockedResponse<>(expectedErrorCode, expectedResult));
+    }
+
 }

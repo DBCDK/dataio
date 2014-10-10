@@ -383,8 +383,8 @@ public class FlowBindersIT {
 
     /**
      * Given: a deployed flow-store service containing one flow binder
-     * When: GETing an existing flow binder
-     * Then: request returns with 1 flow binder (the correct one)
+     * When: GETing a non existing flow binder
+     * Then: an exception is thrown, and the status code is 404
      */
     @Test
     public void getFlowBinder_notFound_throws() throws Exception {

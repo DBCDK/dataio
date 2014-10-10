@@ -52,6 +52,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -210,7 +211,7 @@ public class PerformanceIT {
         long flowId = insertObjectInFlowStore(restClient, flowStorebaseUrl, flowContent, FlowStoreServiceConstants.FLOWS);
 
         // insert sink:
-        SinkContent sinkContent = new SinkContent("perftest-dummy-sink", "jdbc/dataio/dummy");
+        SinkContent sinkContent = new SinkContent("perftest-dummy-sink-" + UUID.randomUUID().toString(), "jdbc/dataio/dummy");
         long sinkId = insertObjectInFlowStore(restClient, flowStorebaseUrl, sinkContent, FlowStoreServiceConstants.SINKS);
 
         // insert flowbinder

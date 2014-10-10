@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -48,7 +49,10 @@ public class JobsBeanIT extends AbstractJobStoreTest {
         final String destination = "database";
         final long submitterNumber = 422442;
         final long flowId = ITUtil.createFlow(restClient, ITUtil.FLOW_STORE_BASE_URL, new FlowContentJsonBuilder().build());
-        final long sinkId = ITUtil.createSink(restClient, ITUtil.FLOW_STORE_BASE_URL, new SinkContentJsonBuilder().build());
+        final long sinkId = ITUtil.createSink(restClient, ITUtil.FLOW_STORE_BASE_URL,
+                new SinkContentJsonBuilder()
+                        .setName(UUID.randomUUID().toString())
+                        .build());
         final long submitterId = ITUtil.createSubmitter(restClient, ITUtil.FLOW_STORE_BASE_URL,
                 new SubmitterContentJsonBuilder()
                         .setNumber(submitterNumber)

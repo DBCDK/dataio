@@ -25,6 +25,9 @@ public class SequenceAnalyserMonitorSample {
     }
 
     public long getHeadOfQueueWaitTimeInMs() {
+        if (queued == 0) {
+            return 0;
+        }
         return new Date().getTime() - headOfQueueMonitoringStartTime;
     }
 }

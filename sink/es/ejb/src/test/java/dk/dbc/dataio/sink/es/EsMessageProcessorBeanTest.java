@@ -154,6 +154,11 @@ public class EsMessageProcessorBeanTest {
                 .setData(Base64Util.base64encode(validAddi))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
+        chunkItems.add(new ChunkItemBuilder()               // processor produces empty addi
+                .setId(6)
+                .setData("")
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
         final ChunkResult chunkResult = new ChunkResultBuilder()
                 .setItems(chunkItems)
                 .build();
@@ -163,7 +168,7 @@ public class EsMessageProcessorBeanTest {
 
         assertThat(esWorkloadFromChunkResult, is(notNullValue()));
         assertThat(esWorkloadFromChunkResult.getAddiRecords().size(), is(2));
-        assertThat(esWorkloadFromChunkResult.getSinkChunkResult().getItems().size(), is(5));
+        assertThat(esWorkloadFromChunkResult.getSinkChunkResult().getItems().size(), is(6));
         assertThat("chunkItem 1 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getId(), is(1L));
         assertThat("chunkItem 1 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem 2 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getId(), is(2L));
@@ -174,6 +179,8 @@ public class EsMessageProcessorBeanTest {
         assertThat("chunkItem 4 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunkItem 5 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getId(), is(5L));
         assertThat("chunkItem 5 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem 6 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(5).getId(), is(6L));
+        assertThat("chunkItem 6 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(5).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

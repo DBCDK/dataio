@@ -135,12 +135,15 @@ public class ESTaskPackageUtil {
      */
     public static AddiRecord getAddiRecordFromChunkItem(ChunkItem chunkItem, Charset encoding)
             throws NullPointerException, IllegalStateException, NumberFormatException, IOException {
+        if(chunkItem.getData().isEmpty()) {
+            throw new IllegalStateException("No data in ChunkItem");
+        }
         final List<AddiRecord> addiRecords = new ArrayList<>();
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(
                 decodeBase64(chunkItem.getData(), encoding).getBytes(encoding)));
         addiRecords.add(addiReader.getNextRecord());
         if (addiReader.getNextRecord() != null) {
-            throw new IllegalStateException(String.format("More than one Addi in record"));
+            throw new IllegalStateException("More than one Addi in record");
         }
         return addiRecords.get(0);
     }
@@ -164,26 +167,11 @@ public class ESTaskPackageUtil {
         InvariantUtil.checkNotNullNotEmptyOrThrow(dbname, "dbname");
         InvariantUtil.checkNotNullOrThrow(esWorkload, "esInFlight");
         final String creator = createCreatorString(esWorkload.getSinkChunkResult().getJobId(), esWorkload.getSinkChunkResult().getChunkId());
-        // Temporary dump of all addis:
-        try {
-        int counter = 0;
-        for(AddiRecord addi : esWorkload.getAddiRecords()) {
-            LOGGER.info("AddiRecord [{}] dump: meta: [{}] content: [{}]", counter, addi.getMetaData() == null ? "null" : "not null", addi.getContentData() == null ? "null" : "not null");
-            LOGGER.info("AddiRecord [{}] metadata: size [{}]", counter, addi.getMetaData().length);
-            LOGGER.info("AddiRecord [{}] content : size [{}]", counter, addi.getContentData().length);
-            LOGGER.info("AddiRecord [{}] metadata: {}", counter, new String(addi.getMetaData()));
-            LOGGER.info("AddiRecord [{}] content : {}", counter, new String(addi.getContentData()));
-            counter++;
-        }
         LOGGER.info("Calling ESUtil.insertAddiList with: numberOfRecords: [{}], dbname: [{}], encoding: [{}], creator: [{}], esConn-Object: [{}]",
                 esWorkload.getAddiRecords().size(), dbname, esWorkload.getSinkChunkResult().getEncoding(), creator, esConn);
         final ESUtil.AddiListInsertionResult insertionResult = ESUtil.insertAddiList(esConn, esWorkload.getAddiRecords(), dbname, esWorkload.getSinkChunkResult().getEncoding(), creator);
         validateTaskPackageState(insertionResult, esWorkload);
         return insertionResult.getTargetReference();
-        } catch(Exception ex) {
-            LOGGER.info("Exception", ex);
-            throw ex;
-        }
     }
 
     private static void validateTaskPackageState(ESUtil.AddiListInsertionResult insertionResult, EsWorkload esWorkload) throws IllegalStateException {

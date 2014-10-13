@@ -18,8 +18,7 @@ import java.util.List;
 
 public interface FlowStoreProxyAsync {
     // Flows
-    void createFlow(FlowModel model, AsyncCallback<FlowModel> callback);
-    void createFlow(FlowContent flowContent, AsyncCallback<Flow> callback);
+    void createFlow(FlowModel model, AsyncCallback<FlowModel> async);
     void updateFlow(FlowModel model, AsyncCallback<FlowModel> async);
     void findAllFlows(AsyncCallback<List<Flow>> async);
     void getFlow(Long id, AsyncCallback<FlowModel> async);

@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -71,19 +70,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
     }
         return FlowModelMapper.toModel(flow);
-    }
-
-    @Override
-    public Flow createFlow(FlowContent flowContent) throws NullPointerException, ProxyException {
-        Flow flow;
-        try {
-            flow = flowStoreServiceConnector.createFlow(flowContent);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return flow;
     }
 
     @Override

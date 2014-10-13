@@ -23,7 +23,6 @@ import java.util.List;
 public interface FlowStoreProxy extends RemoteService {
     // Flows
     FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException;
-    Flow createFlow(FlowContent flowContent) throws NullPointerException, ProxyException;
     FlowModel updateFlow(FlowModel FlowContent) throws NullPointerException, ProxyException;
     List<Flow> findAllFlows() throws ProxyException;
     FlowModel getFlow(Long id) throws ProxyException;

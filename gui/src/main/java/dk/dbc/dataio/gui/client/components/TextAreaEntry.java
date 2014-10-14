@@ -3,10 +3,13 @@ package dk.dbc.dataio.gui.client.components;
 import com.google.gwt.event.dom.client.BlurHandler;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.KeyDownHandler;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.uibinder.client.UiConstructor;
+import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.TextArea;
 
-public class TextAreaEntry extends DataEntry {
+public class TextAreaEntry extends DataEntry implements HasValue<String> {
     public static final int DEFAULT_CHARACTER_WIDTH = 40;
     public static final int DEFAULT_VISIBLE_LINES = 4;
     
@@ -25,7 +28,40 @@ public class TextAreaEntry extends DataEntry {
         textArea.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         add(textArea);
     }
-    
+
+    public @UiConstructor TextAreaEntry(String guiId, String prompt, String maxLength) {
+        this(guiId, prompt);
+        if (!maxLength.isEmpty()) {
+            textArea.getElement().setAttribute("Maxlength", maxLength);
+        }
+    }
+
+    @Override
+    public String getValue() {
+        return textArea.getValue();
+    }
+
+    @Override
+    public void setValue(String value) {
+        textArea.setValue(value, false);
+    }
+
+    @Override
+    public void setValue(String value, boolean fireEvents) {
+        textArea.setValue(value, fireEvents);
+    }
+
+    /**
+     * Adds a {@link ValueChangeEvent} handler.
+     *
+     * @param handler the handler
+     * @return the registration for the event
+     */
+    @Override
+    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler) {
+        return textArea.addValueChangeHandler(handler);
+    }
+
     public void clearText() {
         textArea.setText("");
     }

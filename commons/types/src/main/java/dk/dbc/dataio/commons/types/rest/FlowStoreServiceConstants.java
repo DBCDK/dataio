@@ -23,6 +23,7 @@ public class FlowStoreServiceConstants {
     public static final String SUBMITTER_CONTENT = "submitters/{id}/content";
     public static final String FLOW_COMPONENT_CONTENT = "components/{id}/content";
     public static final String FLOW_CONTENT = "flows/{id}/content";
+    public static final String FLOW_BINDER_CONTENT = "binders/{id}/content";
 
     public static final String QUERY_PARAMETER_REFRESH = "refresh";
 

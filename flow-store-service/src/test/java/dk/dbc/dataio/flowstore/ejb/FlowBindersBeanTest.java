@@ -1,6 +1,8 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -9,27 +11,49 @@ import dk.dbc.dataio.commons.utils.test.json.FlowBinderJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
+import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.Sink;
 import dk.dbc.dataio.flowstore.entity.Submitter;
+import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({
+        JsonUtil.class,
+        ServiceUtil.class})
 public class FlowBindersBeanTest {
+
+    private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
+    private static final Long DEFAULT_TEST_ID = 23L;
+    private static final Long DEFAULT_TEST_VERSION = 4L;
+    private static final String DEFAULT_TEST_ETAG_VALUE = Long.toString(DEFAULT_TEST_VERSION);
 
     @Test(expected = NullPointerException.class)
     public void getFlow_nullPackagingParameter_throws() throws JsonException {
@@ -115,6 +139,7 @@ public class FlowBindersBeanTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void getAllFlowBinders_validParametersAndMatchingFlow_returnsResponseWithFlowAndHTTP200() throws JsonException {
         FlowBindersBean fbb = new FlowBindersBean();
         EntityManager entityManager = mock(EntityManager.class);
@@ -143,6 +168,159 @@ public class FlowBindersBeanTest {
         assertThat(response.getStatus(), is(404));
     }
 
+    @Test(expected = NullPointerException.class)
+    public void updateFlowBinder_nullFlowBinderContent_throws() throws JsonException {
+        newFlowBindersBeanWithMockedEntityManager().updateFlowBinder(null, 1L, 1L);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void updateFlowBinder_emptyFlowBinderContent_throws() throws JsonException {
+        newFlowBindersBeanWithMockedEntityManager().updateFlowBinder("", 1L, 1L);
+    }
+
+    @Test
+    public void updateFlowBinder_flowBinderNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException {
+        final String flowBinderContent = new FlowBinderContentJsonBuilder().setName("UpdateContentName").build();
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(null);
+
+        final Response response = flowBindersBean.updateFlowBinder(flowBinderContent, 1L, 1L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void updateFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() throws JsonException {
+        final String flowBinderContent = new FlowBinderContentJsonBuilder().setName("UpdateContentName").build();
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+        final FlowBinder flowBinder = mock(FlowBinder.class);
+        final Query query = mock(Query.class);
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
+        when(query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FLOWBINDER, flowBinder.getId())).thenThrow(new IllegalArgumentException());
+
+        final Response response = flowBindersBean.updateFlowBinder(flowBinderContent, 1L, 1L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void updateFlowBinder_emptyQueryResult_returnsResponseWithHttpStatusNotFound() throws JsonException {
+        final String flowBinderContent = new FlowBinderContentJsonBuilder().setName("UpdateContentName").build();
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+        final FlowBinder flowBinder = mock(FlowBinder.class);
+        final Query query = mock(Query.class);
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
+        when(query.getResultList()).thenReturn(new ArrayList());
+
+        final Response response = flowBindersBean.updateFlowBinder(flowBinderContent, 1L, 1L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    @SuppressWarnings("unchecked")
+    public void updateFlowBinder_referencedSinkNotFound_throws() throws JsonException {
+
+        final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
+
+        mockStatic(JsonUtil.class);
+        final Query query = mock(Query.class);
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
+        when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
+        when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(null);
+
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
+
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+
+        flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    @SuppressWarnings("unchecked")
+    public void updateFlowBinder_referencedFlowNotFound_throws() throws JsonException {
+
+        final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
+
+        mockStatic(JsonUtil.class);
+        final Query query = mock(Query.class);
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
+        when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(null);
+
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
+
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+
+        flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    @SuppressWarnings("unchecked")
+    public void updateFlowBinder_referencedSubmittersNotFound_throws() throws JsonException{
+
+        final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
+
+        mockStatic(JsonUtil.class);
+        final Query query = mock(Query.class);
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
+        when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
+        when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(new Sink());
+        when(ENTITY_MANAGER.find(eq(Submitter.class), anyLong())).thenReturn(null);
+
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
+
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+
+        flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void updateFlowBinder_flowBinderFound_returnsResponseWithHttpStatusOk_returnsFlowBinder() throws JsonException {
+
+        final Submitter submitter = new Submitter();
+        String submitterContentJson = new SubmitterContentJsonBuilder().build();
+        submitter.setContent(submitterContentJson);
+
+        final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
+
+        mockStatic(JsonUtil.class);
+        final Query query = mock(Query.class);
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
+        when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
+        when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(new Sink());
+        when(ENTITY_MANAGER.find(eq(Submitter.class), anyLong())).thenReturn(submitter);
+
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.fromJson(eq(submitterContentJson), eq(SubmitterContent.class), any(HashMap.class))).thenReturn(new SubmitterContentBuilder().build());
+        when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
+
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+
+        final Response response = flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
+    }
+
     @Test
     public void getFlowBinder_flowBinderFound_returnsResponseWithFlowAndHTTP200() throws JsonException {
         final long FLOW_BINDER_ID = 12L;
@@ -163,6 +341,11 @@ public class FlowBindersBeanTest {
         assertThat(entity.get("content").get("sinkId").asLong(), is((flowBinder.getSinkId())));
     }
 
+    private static FlowBindersBean newFlowBindersBeanWithMockedEntityManager() {
+        final FlowBindersBean flowBindersBean = new FlowBindersBean();
+        flowBindersBean.entityManager = ENTITY_MANAGER;
+        return flowBindersBean;
+    }
 
     final long FLOW_BINDER_VERSION = 1245L;
     private FlowBinder testFlowBinder() throws JsonException {

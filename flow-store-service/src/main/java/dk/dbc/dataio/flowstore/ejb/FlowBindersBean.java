@@ -18,10 +18,12 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -51,7 +53,6 @@ public class FlowBindersBean {
 
     @PersistenceContext
     EntityManager entityManager;
-
 
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER_RESOLVE)
@@ -92,24 +93,6 @@ public class FlowBindersBean {
             log.warn(msg);
         }
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinders.get(0)));
-    }
-
-    private String getNoFlowFoundMessage(Query query) {
-        return getQueryParametersStringify("No flows found for query with parameters", query);
-    }
-
-    private String getMoreThanOneFlowFoundMessage(Query query) {
-        return getQueryParametersStringify("More than one result was found for the query with parameters", query);
-    }
-
-    private String getQueryParametersStringify(String message, Query query) {
-            return String.format("%s: '%s'='%s' '%s'='%s' '%s'='%s' '%s'='%s' '%s'='%s'",
-                    message,
-                    FlowBinder.DB_QUERY_PARAMETER_PACKAGING, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_PACKAGING),
-                    FlowBinder.DB_QUERY_PARAMETER_FORMAT, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_FORMAT),
-                    FlowBinder.DB_QUERY_PARAMETER_CHARSET, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_CHARSET),
-                    FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER),
-                    FlowBinder.DB_QUERY_PARAMETER_DESTINATION, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_DESTINATION));
     }
 
     /**
@@ -179,6 +162,187 @@ public class FlowBindersBean {
     }
 
     /**
+     *
+     * @param flowBinderContent flow binder data as JSON string
+     * @param id identifying the flow binder in the underlying data store
+     * @param version the current version of the persisted flow binder
+     *
+     * @return
+     * a HTTP 200 OK response flow binder content as JSON,
+     * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints,
+     * a HTTP 409 response in case of Concurrent Update error
+     * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JsonException when given invalid (null-valued, empty-valued or
+     * non-json) JSON string, or if JSON object does not comply with model
+     * schema
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    public Response updateFlowBinder(String flowBinderContent,
+                                     @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id,
+                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException{
+
+        log.trace("called with: '{}'", flowBinderContent);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
+
+        // Retrieve the existing flow binder
+        final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
+        if (flowBinderEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+        }
+        // Delete the existing search indexes
+        Response response = findAndDeleteSearchIndexesForFlowBinder(flowBinderEntity.getId());
+        if (response != null) {
+            return response;
+        }
+        // Update the flow binder
+        updateFlowBinderEntity(flowBinderEntity, flowBinderContent, version);
+
+        // Retrieve the updated flow binder
+        final FlowBinder updatedFlowBinderEntity = entityManager.find(FlowBinder.class, id);
+
+        // Create new search indexes for the updated flow binder
+        createSearchIndexesForFlowBinder(updatedFlowBinderEntity);
+
+        // Return the updated flow binder
+        String updatedFlowBinderEntityJson = JsonUtil.toJson(updatedFlowBinderEntity);
+        return Response
+                .ok()
+                .entity(updatedFlowBinderEntityJson)
+                .tag(updatedFlowBinderEntity.getVersion().toString())
+                .build();
+    }
+
+    /**
+     * Returns list of stored flow binders sorted by name in ascending order
+     *
+     * @return a HTTP OK response with result list as JSON
+     *
+     * @throws JsonException on failure to create result list as JSON
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_BINDERS)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllFlowBinders() throws JsonException {
+        final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
+        final List<dk.dbc.dataio.commons.types.FlowBinder> results = query.getResultList();
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+    }
+
+    /**
+     * Retrieves flow binder from underlying data store
+     *
+     * @param id flow binder identifier
+     *
+     * @return a HTTP 200 response with flow binder as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.FLOW_BINDER)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id) throws JsonException {
+        final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
+        if (flowBinder == null) {
+            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
+        }
+        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinder));
+    }
+
+
+     // Private methods
+
+
+    /**
+     * Builds a response with status not found and containing the errorMessage given as input
+     * @param errorMessage the specific error message
+     * @return Response.Status.NOT_FOUND
+     */
+    private Response buildResponseNotFound (String errorMessage) {
+        return Response
+                .status(Response.Status.NOT_FOUND)
+                .entity(ServiceUtil.asJsonError(errorMessage))
+                .build();
+    }
+
+    /**
+     * This method locates and deletes all search indexes for a given flow binder
+     * @param flowBinderId identifying which flowBinderSearchIndexEntries should be deleted
+     * @return response, null if all went well
+     */
+    @SuppressWarnings("unchecked")
+    private Response findAndDeleteSearchIndexesForFlowBinder(Long flowBinderId) {
+        Response response = null;
+
+        // Create named query
+        Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER);
+        try {
+            query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FLOWBINDER, flowBinderId);
+        } catch (IllegalArgumentException e) {
+            String errMsg = String.format("Error while setting parameters for database query: %s", e.getMessage());
+            log.warn(errMsg, e);
+            response = buildResponseNotFound(errMsg);
+        }
+
+        if(query.getResultList().isEmpty()) {
+            String msg = getNoFlowBinderSearchIndexEntryFoundMessage(query);
+            log.info(msg);
+            response = buildResponseNotFound(msg);
+        }
+        // Extract the results
+        List<FlowBinderSearchIndexEntry> existingSearchIndexEntries = query.getResultList();
+
+        // Delete the existing search indexes
+        for(FlowBinderSearchIndexEntry flowBinderSearchIndexEntry : existingSearchIndexEntries) {
+            entityManager.remove(flowBinderSearchIndexEntry);
+        }
+        return response;
+    }
+
+    /**
+     * This method creates new search index entries for the flow binder given as input
+     * @param flowBinderEntity, the flow binder to create new search indexes for
+     *
+     * @throws PersistenceException if a JsonException is thrown while generating the new SearchIndexEntries.
+     * The conversion to an unchecked exception is to ensure that a transaction rollback is performed.
+     */
+    private void createSearchIndexesForFlowBinder (FlowBinder flowBinderEntity) throws PersistenceException {
+        try {
+            for (FlowBinderSearchIndexEntry newSearchIndexEntry : FlowBinder.generateSearchIndexEntries(flowBinderEntity)) {
+                entityManager.persist(newSearchIndexEntry);
+            }
+        } catch (JsonException e) {
+            throw new PersistenceException("flow binder contains invalid JSON content", e.getCause());
+        }
+    }
+
+    /**
+     * Updates the flow binder entity
+     * @param flowBinderEntity the currently persisted flow binder entity
+     * @param flowBinderContentString the new flow binder content as String
+     * @param version the current version of the flow binder
+     * @throws PersistenceException if the objects referenced by the flow binder, could not be resolved
+     */
+    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JsonException, IllegalStateException{
+        try {
+            entityManager.detach(flowBinderEntity);
+            flowBinderEntity.setContent(flowBinderContentString);
+            flowBinderEntity.setVersion(version);
+            flowBinderEntity.setFlow(resolveFlow(flowBinderEntity.getFlowId()));
+            flowBinderEntity.setSink(resolveSink(flowBinderEntity.getSinkId()));
+            flowBinderEntity.setSubmitters(resolveSubmitters(flowBinderEntity.getSubmitterIds()));
+            entityManager.merge(flowBinderEntity);
+            entityManager.flush();
+        } catch (ReferencedEntityNotFoundException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+    }
+
+    /**
      * Resolves each submitter referenced in given set by looking up the
      * corresponding submitter entity in the data store
      *
@@ -237,40 +401,26 @@ public class FlowBindersBean {
         return sink;
     }
 
-    /**
-     * Returns list of stored flow binders sorted by name in ascending order
-     *
-     * @return a HTTP OK response with result list as JSON
-     *
-     * @throws JsonException on failure to create result list as JSON
-     */
-    @GET
-    @Path(FlowStoreServiceConstants.FLOW_BINDERS)
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllFlowBinders() throws JsonException {
-        final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
-        final List<dk.dbc.dataio.commons.types.FlowBinder> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+    private String getNoFlowFoundMessage(Query query) {
+        return getQueryParametersStringify("No flows found for query with parameters", query);
     }
 
-    /**
-     * Retrieves flow binder from underlying data store
-     *
-     * @param id flow binder identifier
-     *
-     * @return a HTTP 200 response with flow binder as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     */
-    @GET
-    @Path(FlowStoreServiceConstants.FLOW_BINDER)
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id) throws JsonException {
-        final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
-        if (flowBinder == null) {
-            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
-        }
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinder));
+    private String getMoreThanOneFlowFoundMessage(Query query) {
+        return getQueryParametersStringify("More than one result was found for the query with parameters", query);
+    }
+
+    private String getNoFlowBinderSearchIndexEntryFoundMessage(Query query) {
+        return getQueryParametersStringify("No flowBinderSearchIndexEntry found for query with parameters", query);
+    }
+
+    private String getQueryParametersStringify(String message, Query query) {
+        return String.format("%s: '%s'='%s' '%s'='%s' '%s'='%s' '%s'='%s' '%s'='%s'",
+                message,
+                FlowBinder.DB_QUERY_PARAMETER_PACKAGING, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_PACKAGING),
+                FlowBinder.DB_QUERY_PARAMETER_FORMAT, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_FORMAT),
+                FlowBinder.DB_QUERY_PARAMETER_CHARSET, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_CHARSET),
+                FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER),
+                FlowBinder.DB_QUERY_PARAMETER_DESTINATION, query.getParameterValue(FlowBinder.DB_QUERY_PARAMETER_DESTINATION));
     }
 
 }

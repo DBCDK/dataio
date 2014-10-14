@@ -1,0 +1,178 @@
+package dk.dbc.dataio.gui.server.ModelMappers;
+
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowBinderModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
+import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
+import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+/**
+ * FlowModelMapper unit tests
+ *
+ * The test methods of this class uses the following naming convention:
+ *
+ *  unitOfWork_stateUnderTest_expectedBehavior
+ */
+public class FlowBinderModelMapperTest {
+
+    private static final long DEFAULT_FLOW_BINDER_ID = 100L;
+    private static final long DEFAULT_FLOW_BINDER_VERSION = 104L;
+    private static final long DEFAULT_FLOW_ID = 101L;
+    private static final long DEFAULT_SUBMITTER_ID = 102L;
+    private static final long DEFAULT_SINK_ID = 103L;
+
+    // Default Flow Binder Content
+    private static final FlowBinderContent defaultFlowBinderContent = new FlowBinderContent(
+            "flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter",
+            DEFAULT_FLOW_ID,
+            Arrays.asList(DEFAULT_SUBMITTER_ID),
+            DEFAULT_SINK_ID);
+    private static final FlowBinder defaultFlowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, 2L, defaultFlowBinderContent);
+
+    // Default Flow Binder Model
+    private static final FlowModel defaultFlowModel = new FlowModel(DEFAULT_FLOW_ID, 4L, "flow name", "flow description", Arrays.asList(new FlowComponentModel()));
+    private static final SubmitterModel defaultSubmitterModel = new SubmitterModel(DEFAULT_SUBMITTER_ID, 6L, "submitter number", "submitter name", "submitter description");
+    private static final SinkModel defaultSinkModel = new SinkModel(DEFAULT_SINK_ID, 7L, "sink name", "sink resource");
+    private static final FlowBinderModel defaultFlowBinderModel = new FlowBinderModel(
+            DEFAULT_FLOW_BINDER_ID,
+            DEFAULT_FLOW_BINDER_VERSION,
+            "flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter",
+            defaultFlowModel,
+            Arrays.asList(defaultSubmitterModel),
+            defaultSinkModel
+            );
+
+
+    // FlowBinderModelMapper.toModel()
+
+    @Test(expected = NullPointerException.class)
+    public void toModel_nullFlowBinderInput_throws() {
+        FlowBinderModelMapper.toModel(null, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toModel_nullFlowInput_throws() {
+        FlowBinderModelMapper.toModel(defaultFlowBinder, null, Arrays.asList(new SubmitterModel()), new SinkModel());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toModel_nullSubmitterInput_throws() {
+        FlowBinderModelMapper.toModel(defaultFlowBinder, new FlowModel(), null, new SinkModel());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toModel_nullSinkInput_throws() {
+        FlowBinderModelMapper.toModel(defaultFlowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toModel_validInputNoFlowIdInFlowBinderContent_throws() {
+        FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", 0L, Arrays.asList(4L), 5L);
+        FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
+
+        FlowBinderModel model = FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toModel_validInputNoSubmitterIdsInFlowBinderContent_throws() {
+        FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", 3L, null, 5L);
+        FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
+
+        FlowBinderModel model = FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toModel_validInputNoSinkIdInFlowBinderContent_throws() {
+        FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", 3L, Arrays.asList(4L), 0L);
+        FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
+
+        FlowBinderModel model = FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+    }
+
+    @Test
+    public void toModel_validInput_returnsValidModel() {
+
+        FlowBinderModel flowBinderModel = FlowBinderModelMapper.toModel(defaultFlowBinder, defaultFlowModel, Arrays.asList(defaultSubmitterModel), defaultSinkModel);
+
+        assertThat(flowBinderModel.getId(), is(DEFAULT_FLOW_BINDER_ID));
+        assertThat(flowBinderModel.getName(), is(defaultFlowBinder.getContent().getName()));
+        assertThat(flowBinderModel.getDescription(), is(defaultFlowBinder.getContent().getDescription()));
+        assertThat(flowBinderModel.getPackaging(), is(defaultFlowBinder.getContent().getPackaging()));
+        assertThat(flowBinderModel.getFormat(), is(defaultFlowBinder.getContent().getFormat()));
+        assertThat(flowBinderModel.getCharset(), is(defaultFlowBinder.getContent().getCharset()));
+        assertThat(flowBinderModel.getDestination(), is(defaultFlowBinder.getContent().getDestination()));
+        assertThat(flowBinderModel.getRecordSplitter(), is(defaultFlowBinder.getContent().getRecordSplitter()));
+        assertThat(flowBinderModel.getFlowModel().getId(), is(DEFAULT_FLOW_ID));
+        assertThat(flowBinderModel.getSubmitterModels().size(), is(1));
+        assertThat(flowBinderModel.getSubmitterModels().get(0).getId(), is(DEFAULT_SUBMITTER_ID));
+        assertThat(flowBinderModel.getSinkModel().getId(), is(DEFAULT_SINK_ID));
+    }
+
+
+    // FlowBinderModelMapper.toFlowBinderContent()
+
+    @Test(expected = NullPointerException.class)
+    public void toFlowBinderContent_nullInput_throwsNullPointerException() {
+        FlowBinderModelMapper.toFlowBinderContent(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toFlowBinderContent_validInputNullFlow_throwsIllegalArgumentException() {
+        FlowBinderModel model = new FlowBinderModel(defaultFlowBinderModel);
+        model.setFlowModel(null);
+
+        FlowBinderModelMapper.toFlowBinderContent(model);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toFlowBinderContent_validInputNullSubmitters_throwsIllegalArgumentException() {
+        FlowBinderModel model = new FlowBinderModel(defaultFlowBinderModel);
+        model.setSubmitterModels(null);
+
+        FlowBinderModelMapper.toFlowBinderContent(model);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toFlowBinderContent_validInputNoSubmitters_throwsIllegalArgumentException() {
+        FlowBinderModel model = new FlowBinderModel(defaultFlowBinderModel);
+        model.setSubmitterModels(new ArrayList<SubmitterModel>());
+
+        FlowBinderModelMapper.toFlowBinderContent(model);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toFlowBinderContent_validInputNullSink_throwsIllegalArgumentException() {
+        FlowBinderModel model = new FlowBinderModel(defaultFlowBinderModel);
+        model.setSinkModel(null);
+
+        FlowBinderModelMapper.toFlowBinderContent(model);
+    }
+
+    @Test
+    public void toFlowBinderContent_validInput_returnsValidFlowBinderContent() {
+
+        FlowBinderContent content = FlowBinderModelMapper.toFlowBinderContent(defaultFlowBinderModel);
+
+        assertThat(content.getName(), is(defaultFlowBinderModel.getName()));
+        assertThat(content.getDescription(), is(defaultFlowBinderModel.getDescription()));
+        assertThat(content.getPackaging(), is(defaultFlowBinderModel.getPackaging()));
+        assertThat(content.getFormat(), is(defaultFlowBinderModel.getFormat()));
+        assertThat(content.getCharset(), is(defaultFlowBinderModel.getCharset()));
+        assertThat(content.getDestination(), is(defaultFlowBinderModel.getDestination()));
+        assertThat(content.getRecordSplitter(), is(defaultFlowBinderModel.getRecordSplitter()));
+        assertThat(content.getFlowId(), is(defaultFlowModel.getId()));
+        assertThat(content.getSubmitterIds().size(), is(1));
+        assertThat(content.getSubmitterIds().get(0), is(defaultSubmitterModel.getId()));
+        assertThat(content.getSinkId(), is(defaultSinkModel.getId()));
+    }
+
+}

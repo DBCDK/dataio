@@ -476,6 +476,32 @@ public class FlowStoreServiceConnector {
     }
 
     /**
+     * Updates an existing flow binder from the flow-store
+     *
+     * @param flowBinderContent the new flow binder content
+     * @param flowBinderId the id of the flow binder to update
+     * @param version the current version of the flow binder
+     * @return the updated flow binder
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to update the flow binder
+     */
+    public FlowBinder updateFlowBinder(FlowBinderContent flowBinderContent, long flowBinderId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
+        InvariantUtil.checkNotNullOrThrow(flowBinderContent, "flowBinderContent");
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
+                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, flowBinderId);
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+        final Response response = doPostWithJson(httpClient, headers, flowBinderContent, baseUrl, path.build());
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, FlowBinder.class);
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
      * Retrieves a flow binder from the flow-store
      *
      * @param flowBinderId Id of the flow binder

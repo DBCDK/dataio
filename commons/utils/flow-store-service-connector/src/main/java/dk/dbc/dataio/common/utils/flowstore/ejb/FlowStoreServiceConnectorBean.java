@@ -229,6 +229,16 @@ public class FlowStoreServiceConnectorBean {
         }
     }
 
+    @Lock(LockType.READ)
+    public FlowBinder updateFlowBinder(FlowBinderContent flowBinderContent, long id, long version) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Updating existing flow binder");
+        try{
+            return getFlowStoreServiceConnector().updateFlowBinder(flowBinderContent, id, version);
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
     private FlowStoreServiceConnector getFlowStoreServiceConnector() throws NamingException{
         final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
         return new FlowStoreServiceConnector(client, baseUrl);

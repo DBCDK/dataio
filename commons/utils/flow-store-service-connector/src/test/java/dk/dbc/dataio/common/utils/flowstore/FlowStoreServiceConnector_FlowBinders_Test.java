@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
@@ -17,10 +18,14 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -177,6 +182,57 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         instance.getFlowBinder(flowBinderId);
+    }
+
+    // **************************************** update flow binder tests ****************************************
+    @Test
+    public void updateFlowBinder_flowBinderIsUpdated_returnsFlowBinder() throws FlowStoreServiceConnectorException, JsonException {
+        final FlowBinder flowBinderToUpdate = new FlowBinderBuilder().build();
+
+        FlowBinder updatedFlowBinder = updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.OK.getStatusCode(),
+                flowBinderToUpdate,
+                flowBinderToUpdate.getId(),
+                flowBinderToUpdate.getVersion());
+
+        assertThat(updatedFlowBinder, not(nullValue()));
+        assertThat(updatedFlowBinder.getContent(), is(notNullValue()));
+        assertThat(updatedFlowBinder.getId(), is(flowBinderToUpdate.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void updateFlowBinder_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlowBinder_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException{
+        updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "", ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlowBinder_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException{
+        updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateFlowBinder_responseWithReferencedObjectNotFound_throws() throws FlowStoreServiceConnectorException{
+        updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.PRECONDITION_FAILED.getStatusCode(), "", ID, VERSION);
+    }
+
+    // Helper method
+    private FlowBinder updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
+                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, Long.toString(id));
+        when(HttpClient.doPostWithJson(CLIENT, headers, flowBinderContent, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.updateFlowBinder(flowBinderContent, id, version);
     }
 
     // Helper method

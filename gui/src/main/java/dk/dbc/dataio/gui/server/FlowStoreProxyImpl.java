@@ -16,10 +16,12 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowBinderModel;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.server.ModelMappers.FlowBinderModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.SinkModelMapper;
@@ -72,7 +74,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return FlowModelMapper.toModel(flow);
     }
 
-    @Override
     public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
         Flow flow;
         List<FlowComponent> flowComponents;
@@ -251,6 +252,27 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return result;
+    }
+
+    @Override
+    public FlowBinderModel getFlowBinder(long id) throws ProxyException {
+        final FlowBinder flowBinder;
+        final FlowModel flowModel;
+        final List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
+        final SinkModel sinkModel;
+        try {
+            flowBinder = flowStoreServiceConnector.getFlowBinder(id);
+            flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
+            for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
+                submitterModels.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(submitterId)));
+            }
+            sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            throw new ProxyException(translateToProxyError(e.getStatusCode()), e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
     }
 
 

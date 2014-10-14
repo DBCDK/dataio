@@ -24,6 +24,7 @@ import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowBinderModel;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
@@ -61,6 +62,22 @@ public class FlowStoreProxyImplTest {
     private final Client client = mock(Client.class);
     private final static long ID = 1L;
 
+    private final long DEFAULT_FLOW_BINDER_ID = 11L;
+    private final long DEFAULT_FLOW_BINDER_VERSION = 2002L;
+    private final long DEFAULT_FLOW_ID = 22L;
+    private final long DEFAULT_SUBMITTER_ID = 33L;
+    private final long DEFAULT_SINK_ID = 44L;
+
+    private Flow defaultFlow = new FlowBuilder().setId(DEFAULT_FLOW_ID).build();
+    private Submitter defaultSubmitter = new SubmitterBuilder().setId(DEFAULT_SUBMITTER_ID).build();
+    private Sink defaultSink = new SinkBuilder().setId(DEFAULT_SINK_ID).build();
+    private FlowBinderContent defaultFlowBinderContent = new FlowBinderContent(
+            "flow binder content", "description", "packaging", "format", "charset", "destination", "record splitter",
+            DEFAULT_FLOW_ID,
+            Arrays.asList(DEFAULT_SUBMITTER_ID),
+            DEFAULT_SINK_ID);
+
+
     @Before
     public void setup() throws Exception {
         mockStatic(ServiceUtil.class);
@@ -70,23 +87,23 @@ public class FlowStoreProxyImplTest {
     }
 
     @Test
-    public void noArgs_flowStoreProxyConstructorFlowStoreService_EndpointCanNotBeLookedUp_throws() throws Exception{
+    public void noArgs_flowStoreProxyConstructorFlowStoreService_EndpointCanNotBeLookedUp_throws() throws Exception {
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
-        try{
+        try {
             new FlowStoreProxyImpl();
             fail();
-        }catch (NamingException e){
+        } catch (NamingException e) {
         }
     }
 
     @Test
-    public void oneArg_flowStoreProxyConstructorFlowStoreService_EndpointCanNotBeLookedUp_throws1() throws Exception{
+    public void oneArg_flowStoreProxyConstructorFlowStoreService_EndpointCanNotBeLookedUp_throws1() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         when(ServiceUtil.getFlowStoreServiceEndpoint()).thenThrow(new NamingException());
-        try{
+        try {
             new FlowStoreProxyImpl(flowStoreServiceConnector);
             fail();
-        }catch (NamingException e){
+        } catch (NamingException e) {
         }
     }
 
@@ -131,7 +148,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createSink(any(SinkContent.class))).thenReturn(sink);
 
         try {
-            final SinkModel createdModel  = flowStoreProxy.createSink(getDefaultSinkModel(0, 0));
+            final SinkModel createdModel = flowStoreProxy.createSink(getDefaultSinkModel(0, 0));
             assertNotNull(createdModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createSink()");
@@ -224,7 +241,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Arrays.asList(sink));
         try {
-            final List<Sink> allSinks  = flowStoreProxy.findAllSinks();
+            final List<Sink> allSinks = flowStoreProxy.findAllSinks();
             assertNotNull(allSinks);
             assertThat(allSinks.size(), is(1));
             assertThat(allSinks.get(0).getId(), is(sink.getId()));
@@ -360,7 +377,7 @@ public class FlowStoreProxyImplTest {
     @Test
     public void updateSubmitter_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        SubmitterModel model = new SubmitterModel(1, 1, "42", "" , "test");
+        SubmitterModel model = new SubmitterModel(1, 1, "42", "", "test");
         updateSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
     }
 
@@ -429,9 +446,9 @@ public class FlowStoreProxyImplTest {
         }
     }
 
-  /*
-   * Test createSubmitter
-   */
+    /*
+     * Test createSubmitter
+     */
     @Test
     public void createSubmitter_remoteServiceReturnsHttpStatusCreated_returnsSubmitterEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
@@ -441,7 +458,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createSubmitter(any(SubmitterContent.class))).thenReturn(submitter);
 
         try {
-            final SubmitterModel createdModel  = flowStoreProxy.createSubmitter(getDefaultSubmitterModel(0, 0));
+            final SubmitterModel createdModel = flowStoreProxy.createSubmitter(getDefaultSubmitterModel(0, 0));
             assertNotNull(createdModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createSubmitter()");
@@ -461,7 +478,7 @@ public class FlowStoreProxyImplTest {
     @Test
     public void createSubmitter_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        SubmitterModel model = new SubmitterModel(1, 1, "42", "" , "test");
+        SubmitterModel model = new SubmitterModel(1, 1, "42", "", "test");
         createSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
     }
 
@@ -533,7 +550,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Arrays.asList(submitter));
         try {
-            final List<Submitter> allSubmitters  = flowStoreProxy.findAllSubmitters();
+            final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmitters();
             assertNotNull(allSubmitters);
             assertThat(allSubmitters.size(), is(1));
             assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
@@ -554,7 +571,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createFlow(any(FlowContent.class))).thenReturn(flow);
 
         try {
-            final FlowModel createdModel  = flowStoreProxy.createFlow(getDefaultFlowModel(0, 0));
+            final FlowModel createdModel = flowStoreProxy.createFlow(getDefaultFlowModel(0, 0));
             assertNotNull(createdModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createFlow()");
@@ -682,7 +699,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllFlows()).thenReturn(Arrays.asList(flow));
         try {
-            final List<Flow> allFlows  = flowStoreProxy.findAllFlows();
+            final List<Flow> allFlows = flowStoreProxy.findAllFlows();
             assertNotNull(allFlows);
             assertThat(allFlows.size(), is(1));
             assertThat(allFlows.get(0).getId(), is(flow.getId()));
@@ -716,13 +733,165 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Arrays.asList(flowBinder));
         try {
-            final List<FlowBinder> allFlowBinders  = flowStoreProxy.findAllFlowBinders();
+            final List<FlowBinder> allFlowBinders = flowStoreProxy.findAllFlowBinders();
             assertNotNull(allFlowBinders);
             assertThat(allFlowBinders.size(), is(1));
             assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: findAllFlowBinders()");
         }
+    }
+
+
+    /*
+     * Test getFlowBinder
+     */
+    @Test(expected = NullPointerException.class)
+    public void getFlowBinder_getFlowBinderReturnsNull_throws() throws Exception {
+        final long FLOW_BINDER_ID = 1L;
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlowBinder(FLOW_BINDER_ID)).thenReturn(null);
+
+        flowStoreProxy.getFlowBinder(FLOW_BINDER_ID);
+    }
+
+    @Test
+    public void getFlowBinder_getFlowBinderReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final long FLOW_BINDER_ID = 1L;
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlowBinder(FLOW_BINDER_ID)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+
+        try {
+            flowStoreProxy.getFlowBinder(FLOW_BINDER_ID);
+            fail("No INTERNAL_SERVER_ERROR was thrown by getFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getFlowBinder_getFlowReturnsNull_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(DEFAULT_FLOW_ID)).thenReturn(null);
+        when(flowStoreServiceConnector.getSubmitter(DEFAULT_SUBMITTER_ID)).thenReturn(defaultSubmitter);
+        when(flowStoreServiceConnector.getSink(DEFAULT_SINK_ID)).thenReturn(defaultSink);
+        FlowBinder flowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, DEFAULT_FLOW_BINDER_VERSION, defaultFlowBinderContent);
+        when(flowStoreServiceConnector.getFlowBinder(DEFAULT_FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        flowStoreProxy.getFlowBinder(DEFAULT_FLOW_BINDER_ID);
+    }
+
+    @Test
+    public void getFlowBinder_getFlowReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(DEFAULT_FLOW_ID)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        when(flowStoreServiceConnector.getSubmitter(DEFAULT_SUBMITTER_ID)).thenReturn(defaultSubmitter);
+        when(flowStoreServiceConnector.getSink(DEFAULT_SINK_ID)).thenReturn(defaultSink);
+        FlowBinder flowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, DEFAULT_FLOW_BINDER_VERSION, defaultFlowBinderContent);
+        when(flowStoreServiceConnector.getFlowBinder(DEFAULT_FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        try {
+            flowStoreProxy.getFlowBinder(DEFAULT_FLOW_BINDER_ID);
+            fail("No INTERNAL_SERVER_ERROR was thrown by getFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getFlowBinder_getSubmitterReturnsNull_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(DEFAULT_FLOW_ID)).thenReturn(defaultFlow);
+        when(flowStoreServiceConnector.getSubmitter(DEFAULT_SUBMITTER_ID)).thenReturn(null);
+        when(flowStoreServiceConnector.getSink(DEFAULT_SINK_ID)).thenReturn(defaultSink);
+        FlowBinder flowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, DEFAULT_FLOW_BINDER_VERSION, defaultFlowBinderContent);
+        when(flowStoreServiceConnector.getFlowBinder(DEFAULT_FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        flowStoreProxy.getFlowBinder(DEFAULT_FLOW_BINDER_ID);
+    }
+
+    @Test
+    public void getFlowBinder_getSubmitterReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(DEFAULT_FLOW_ID)).thenReturn(defaultFlow);
+        when(flowStoreServiceConnector.getSubmitter(DEFAULT_SUBMITTER_ID)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        when(flowStoreServiceConnector.getSink(DEFAULT_SINK_ID)).thenReturn(defaultSink);
+        FlowBinder flowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, DEFAULT_FLOW_BINDER_VERSION, defaultFlowBinderContent);
+        when(flowStoreServiceConnector.getFlowBinder(DEFAULT_FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        try {
+            flowStoreProxy.getFlowBinder(DEFAULT_FLOW_BINDER_ID);
+            fail("No INTERNAL_SERVER_ERROR was thrown by getFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getFlowBinder_getSinkReturnsNull_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(DEFAULT_FLOW_ID)).thenReturn(defaultFlow);
+        when(flowStoreServiceConnector.getSubmitter(DEFAULT_SUBMITTER_ID)).thenReturn(defaultSubmitter);
+        when(flowStoreServiceConnector.getSink(DEFAULT_SINK_ID)).thenReturn(null);
+        FlowBinder flowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, DEFAULT_FLOW_BINDER_VERSION, defaultFlowBinderContent);
+        when(flowStoreServiceConnector.getFlowBinder(DEFAULT_FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        flowStoreProxy.getFlowBinder(DEFAULT_FLOW_BINDER_ID);
+    }
+
+    @Test
+    public void getFlowBinder_getSinkReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(DEFAULT_FLOW_ID)).thenReturn(defaultFlow);
+        when(flowStoreServiceConnector.getSubmitter(DEFAULT_SUBMITTER_ID)).thenReturn(defaultSubmitter);
+        when(flowStoreServiceConnector.getSink(DEFAULT_SINK_ID)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        FlowBinder flowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, DEFAULT_FLOW_BINDER_VERSION, defaultFlowBinderContent);
+        when(flowStoreServiceConnector.getFlowBinder(DEFAULT_FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        try {
+            flowStoreProxy.getFlowBinder(DEFAULT_FLOW_BINDER_ID);
+            fail("No INTERNAL_SERVER_ERROR was thrown by getFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void getFlowBinder_allRemoteServicesReturnsHttpStatusOk_returnsFlowBinderModel() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.getFlow(DEFAULT_FLOW_ID)).thenReturn(defaultFlow);
+        when(flowStoreServiceConnector.getSubmitter(DEFAULT_SUBMITTER_ID)).thenReturn(defaultSubmitter);
+        when(flowStoreServiceConnector.getSink(DEFAULT_SINK_ID)).thenReturn(defaultSink);
+        FlowBinder flowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, DEFAULT_FLOW_BINDER_VERSION, defaultFlowBinderContent);
+        when(flowStoreServiceConnector.getFlowBinder(DEFAULT_FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        FlowBinderModel model = flowStoreProxy.getFlowBinder(DEFAULT_FLOW_BINDER_ID);
+
+        assertThat(model.getId(), is(DEFAULT_FLOW_BINDER_ID));
+        assertThat(model.getVersion(), is(DEFAULT_FLOW_BINDER_VERSION));
+        assertThat(model.getName(), is(defaultFlowBinderContent.getName()));
+        assertThat(model.getDescription(), is(defaultFlowBinderContent.getDescription()));
+        assertThat(model.getPackaging(), is(defaultFlowBinderContent.getPackaging()));
+        assertThat(model.getFormat(), is(defaultFlowBinderContent.getFormat()));
+        assertThat(model.getCharset(), is(defaultFlowBinderContent.getCharset()));
+        assertThat(model.getDestination(), is(defaultFlowBinderContent.getDestination()));
+        assertThat(model.getRecordSplitter(), is(defaultFlowBinderContent.getRecordSplitter()));
+        assertThat(model.getFlowModel().getId(), is(defaultFlow.getId()));
+        assertThat(model.getFlowModel().getFlowName(), is(defaultFlow.getContent().getName()));
+        assertThat(model.getSubmitterModels().size(), is(1));
+        assertThat(model.getSubmitterModels().get(0).getId(), is(DEFAULT_SUBMITTER_ID));
+        assertThat(model.getSubmitterModels().get(0).getName(), is(defaultSubmitter.getContent().getName()));
+        assertThat(model.getSinkModel().getId(), is(DEFAULT_SINK_ID));
+        assertThat(model.getSinkModel().getSinkName(), is(defaultSink.getContent().getName()));
     }
 
     /*
@@ -804,7 +973,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenReturn(flowComponent);
 
         try {
-            final FlowComponent retrievedFlowComponent  = flowStoreProxy.getFlowComponent(flowComponent.getId());
+            final FlowComponent retrievedFlowComponent = flowStoreProxy.getFlowComponent(flowComponent.getId());
             assertNotNull(retrievedFlowComponent);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getFlowComponent()");
@@ -942,7 +1111,7 @@ public class FlowStoreProxyImplTest {
 
     private FlowModel getDefaultFlowModel(Flow flow) {
         List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>();
-        for(FlowComponent flowComponent : flow.getContent().getComponents()) {
+        for (FlowComponent flowComponent : flow.getContent().getComponents()) {
             flowComponentModels.add(FlowComponentModelMapper.toModel(flowComponent));
         }
         return new FlowModel(flow.getId(), flow.getVersion(), flow.getContent().getName(), flow.getContent().getDescription(), flowComponentModels);
@@ -1008,7 +1177,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createFlowComponent(flowComponentContent)).thenReturn(flowComponent);
 
         try {
-            final FlowComponent createdFlowComponent  = flowStoreProxy.createFlowComponent(flowComponentContent);
+            final FlowComponent createdFlowComponent = flowStoreProxy.createFlowComponent(flowComponentContent);
             assertNotNull(createdFlowComponent);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createFlowComponent()");
@@ -1040,7 +1209,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllFlowComponents()).thenReturn(Arrays.asList(flowComponent));
         try {
-            final List<FlowComponentModel> allFlowComponents  = flowStoreProxy.findAllFlowComponents();
+            final List<FlowComponentModel> allFlowComponents = flowStoreProxy.findAllFlowComponents();
             assertNotNull(allFlowComponents);
             assertThat(allFlowComponents.size(), is(1));
             assertThat(allFlowComponents.get(0).getId(), is(flowComponent.getId()));
@@ -1072,7 +1241,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
-        when(flowStoreServiceConnector.updateFlowComponent(eq(flowComponent.getContent()),(eq(flowComponent.getId())),(eq(flowComponent.getVersion()))))
+        when(flowStoreServiceConnector.updateFlowComponent(eq(flowComponent.getContent()), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 409));
         try {
             flowStoreProxy.updateFlowComponent(flowComponent.getContent(), flowComponent.getId(), flowComponent.getVersion());

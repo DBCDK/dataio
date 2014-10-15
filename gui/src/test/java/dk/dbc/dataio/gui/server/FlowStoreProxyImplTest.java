@@ -47,6 +47,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -948,6 +949,113 @@ public class FlowStoreProxyImplTest {
             assertThat(e.getErrorCode(), is(expectedError));
         }
     }
+
+    //****************************
+    @Test
+    public void updateFlowBinder_remoteServiceReturnsHttpStatusOk_returnsFlowBinderModelEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowBinder flowBinder = new FlowBinderBuilder().setId(ID).setVersion(1).build();
+        final Submitter submitter = new SubmitterBuilder().setId(ID).setVersion(1).build();
+        final Flow flow = new FlowBuilder().setId(ID).setVersion(1).build();
+        final Sink sink = new SinkBuilder().setId(ID).setVersion(1).build();
+        FlowBinderModel model = getDefaultFlowBinderModel(flowBinder.getId(), flowBinder.getVersion());
+
+        when(flowStoreServiceConnector.updateFlowBinder(any(FlowBinderContent.class), (eq(flowBinder.getId())), (eq(flowBinder.getVersion()))))
+                .thenReturn(flowBinder);
+        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(submitter);
+        when(flowStoreServiceConnector.getFlow(anyLong())).thenReturn(flow);
+        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
+        try {
+            final FlowBinderModel updatedModel = flowStoreProxy.updateFlowBinder(model);
+            assertNotNull(updatedModel);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: updateFlowBinder()");
+        }
+    }
+
+    @Test
+    public void updateFlowBinder_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        updateFlowBinder_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void updateFlowBinder_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        updateFlowBinder_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void updateFlowBinder_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        updateFlowBinder_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void updateFlowBinder_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        updateFlowBinder_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void updateFlowBinder_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        FlowBinderModel model = getDefaultFlowBinderModel(1, 1);
+        model.setSinkModel(new SinkModel());
+        updateFlowBinder_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+    }
+
+    private FlowBinderModel getDefaultFlowBinderModel(long id, long version) {
+        FlowModel flowModel = getDefaultFlowModel(id, version);
+        SinkModel sinkModel = getDefaultSinkModel(id, version);
+        SubmitterModel submitterModel = getDefaultSubmitterModel(id, version);
+
+        return new FlowBinderModel(
+                1,
+                1,
+                "flowBinderName",
+                "flowBinderDescription",
+                "flowBinderPackaging",
+                "format",
+                "charset",
+                "destination",
+                "recordSplitter",
+                flowModel,
+                Arrays.asList(submitterModel),
+                sinkModel);
+    }
+
+    private void updateFlowBinder_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowBinder flowBinder = new FlowBinderBuilder().setId(ID).setVersion(1).build();
+
+        FlowBinderModel model = getDefaultFlowBinderModel(flowBinder.getId(), flowBinder.getVersion());
+
+        when(flowStoreServiceConnector.updateFlowBinder(any(FlowBinderContent.class), (eq(flowBinder.getId())), (eq(flowBinder.getVersion()))))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+        try {
+            flowStoreProxy.updateFlowBinder(model);
+            fail("No " + expectedErrorName + " error was thrown by updateFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void updateFlowBinder_testForProxyError(FlowBinderModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowBinder flowBinder = new FlowBinderBuilder().setId(ID).setVersion(1).build();
+
+        when(flowStoreServiceConnector.updateFlowBinder(any(FlowBinderContent.class), (eq(flowBinder.getId())), (eq(flowBinder.getVersion()))))
+                .thenThrow(exception);
+
+        try {
+            flowStoreProxy.updateFlowBinder(model);
+            fail("No " + expectedErrorName + " error was thrown by updateFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+    //****************************
+
 
     /*
     * Test getFlowComponent

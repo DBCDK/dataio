@@ -170,6 +170,7 @@ public class FlowBindersBean {
      * @return
      * a HTTP 200 OK response flow binder content as JSON,
      * a HTTP 400 BAD_REQUEST response on invalid json content,
+     * a HTTP 404 NOT_FOUND response if flow binder is not found
      * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints,
      * a HTTP 409 response in case of Concurrent Update error
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.

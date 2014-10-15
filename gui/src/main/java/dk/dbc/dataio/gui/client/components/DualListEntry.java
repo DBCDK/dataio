@@ -2,6 +2,12 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.uibinder.client.UiConstructor;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.ui.HasValue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,12 +15,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class DualListEntry extends DataEntry {
+public class DualListEntry extends DataEntry implements HasValue<Collection<String>> {
 
-    private final DualList dualList = new DualList();
+    @UiField final DualList dualList = new DualList();
 
     
-    public DualListEntry(String guiId, String prompt) {
+    public @UiConstructor DualListEntry(String guiId, String prompt) {
         super(guiId, prompt);
         dualList.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         setEnabled(false);  // When empty, disable dualList box
@@ -81,4 +87,26 @@ public class DualListEntry extends DataEntry {
         dualList.addChangeHandler(handler);
     }
 
+    @Override
+    public Collection<String> getValue() {
+        return getSelectedTexts();
+    }
+
+    @Override
+    public void setValue(Collection<String> value) {
+        dualList.setSelected(value);
+    }
+
+    @Override
+    public void setValue(Collection<String> value, boolean fireEvents) {
+        setValue(value);
+        if(fireEvents) {
+            ValueChangeEvent.fire(this, value);
+        }
+    }
+
+    @Override
+    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Collection<String>> listValueChangeHandler) {
+        return null;
+    }
 }

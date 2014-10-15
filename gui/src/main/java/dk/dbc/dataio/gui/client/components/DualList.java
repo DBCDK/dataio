@@ -37,14 +37,19 @@ public class DualList extends FlowPanel {
     ChangeHandler callbackChangeHandler = null;
 
     private static class SimpleImmutableEntry<K, V> implements Entry<K, V>, java.io.Serializable {
-
         private static final long serialVersionUID = 7138329143949025153L;
+
+        private final K key;
+        private final V value;
+
+        private SimpleImmutableEntry() {
+            key = null;
+            value = null;
+        }
 
         private static boolean eq(Object o1, Object o2) {
             return o1 == null ? o2 == null : o1.equals(o2);
         }
-        private final K key;
-        private final V value;
 
         @SuppressWarnings("unused")
         public SimpleImmutableEntry(Entry<? extends K, ? extends V> entry) {
@@ -274,4 +279,18 @@ public class DualList extends FlowPanel {
             aListBox.addItem(p.getValue(), p.getKey().toString());
         }
     }
+
+    public void setSelected(Collection<String> values) {
+        // First move all selected items to the available box
+        for (int i=0; i<right.getItemCount(); i++) {
+            moveItem(i, right, left);
+        }
+        // Now move the values in the parameter list to the selected box
+        for (int i=0; i<left.getItemCount(); i++) {
+            if (values.contains(left.getItemText(i))) {
+                moveItem(i, left, right);
+            }
+        }
+    }
+
 }

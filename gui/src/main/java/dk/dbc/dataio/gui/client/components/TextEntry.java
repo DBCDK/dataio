@@ -50,7 +50,7 @@ public class TextEntry extends DataEntry implements HasValue<String> {
     }
 
     /**
-     * Adds a {@link ValueChangeEvent} handler.
+     * Adds a {@link ValueChangeHandler<String>} handler.
      *
      * @param handler the handler
      * @return the registration for the event

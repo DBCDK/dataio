@@ -54,15 +54,16 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchSinks() {
-        flowStoreProxy.findAllSinks(new FilteredAsyncCallback<List<Sink>>() {
+        flowStoreProxy.findAllSinksOld(new FilteredAsyncCallback<List<Sink>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
+
             @Override
             public void onSuccess(List<Sink> result) {
                 Map<String, String> sinksToView = new HashMap<String, String>();
-                for (Sink sink: result) {
+                for (Sink sink : result) {
                     String key = Long.toString(sink.getId());
                     try {
                         availableSinks.put(key, sink);
@@ -77,15 +78,16 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchAvailableSubmitters() {
-        flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<Submitter>>() {
+        flowStoreProxy.findAllSubmittersOld(new FilteredAsyncCallback<List<Submitter>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
+
             @Override
             public void onSuccess(List<Submitter> result) {
                 Map<String, String> submittersToView = new LinkedHashMap<String, String>();
-                for (Submitter submitter: result) {
+                for (Submitter submitter : result) {
                     String key = Long.toString(submitter.getId());
                     try {
                         availableSubmitters.put(key, submitter);
@@ -100,15 +102,16 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
     }
 
     private void fetchFlows() {
-        flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<Flow>>() {
+        flowStoreProxy.findAllFlowsOld(new FilteredAsyncCallback<List<Flow>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
+
             @Override
             public void onSuccess(List<Flow> result) {
                 Map<String, String> flowsToView = new HashMap<String, String>();
-                for (Flow flow: result) {
+                for (Flow flow : result) {
                     String key = Long.toString(flow.getId());
                     try {
                         availableFlows.put(key, flow);

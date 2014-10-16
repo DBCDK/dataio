@@ -100,7 +100,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Flow> findAllFlows() throws ProxyException {
+    public List<Flow> findAllFlowsOld() throws ProxyException {
         final List<Flow> result;
         try {
             result = flowStoreServiceConnector.findAllFlows();
@@ -109,6 +109,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
+        return result;
+    }
+
+    @Override
+    public List<FlowModel> findAllFlows() throws ProxyException {
+        final List<Flow> flows;
+        final List<FlowModel> result = new ArrayList<FlowModel>();
+        try {
+            flows = flowStoreServiceConnector.findAllFlows();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+//        for
         return result;
     }
 
@@ -335,10 +350,24 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Submitter> findAllSubmitters() throws ProxyException {
+    public List<Submitter> findAllSubmittersOld() throws ProxyException {
         final List<Submitter> result;
         try {
             result = flowStoreServiceConnector.findAllSubmitters();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<SubmitterModel> findAllSubmitters() throws ProxyException {
+        final List<Submitter> submitters;
+        final List<SubmitterModel> result = new ArrayList<SubmitterModel>();
+        try {
+            submitters = flowStoreServiceConnector.findAllSubmitters();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
@@ -396,10 +425,24 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Sink> findAllSinks() throws ProxyException {
+    public List<Sink> findAllSinksOld() throws ProxyException {
         final List<Sink> result;
         try {
             result = flowStoreServiceConnector.findAllSinks();
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return result;
+    }
+
+    @Override
+    public List<SinkModel> findAllSinks() throws ProxyException {
+        final List<Sink> sinks;
+        final List<SinkModel> result = new ArrayList<SinkModel>();
+        try {
+            sinks = flowStoreServiceConnector.findAllSinks();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {

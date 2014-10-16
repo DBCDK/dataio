@@ -73,7 +73,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
 
     private void fetchFlows() {
         counter.increment();
-        flowStoreProxy.findAllFlows(new AsyncCallback<List<Flow>>() {
+        flowStoreProxy.findAllFlowsOld(new AsyncCallback<List<Flow>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Flow", e);
@@ -88,7 +88,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
 
     private void fetchSinks() {
         counter.increment();
-        flowStoreProxy.findAllSinks(new AsyncCallback<List<Sink>>() {
+        flowStoreProxy.findAllSinksOld(new AsyncCallback<List<Sink>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Sink", e);
@@ -103,7 +103,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
 
     private void fetchSubmitters() {
         counter.increment();
-        flowStoreProxy.findAllSubmitters(new AsyncCallback<List<Submitter>>() {
+        flowStoreProxy.findAllSubmittersOld(new AsyncCallback<List<Submitter>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Submitter", e);

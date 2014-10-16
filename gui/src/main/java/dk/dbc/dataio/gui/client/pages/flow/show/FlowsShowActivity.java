@@ -66,11 +66,12 @@ public class FlowsShowActivity extends AbstractActivity implements FlowsShowPres
 
     // Local methods
     private void fetchFlows() {
-        flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<Flow>>() {
+        flowStoreProxy.findAllFlowsOld(new FilteredAsyncCallback<List<Flow>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowsShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
+
             @Override
             public void onSuccess(List<Flow> flows) {
                 flowsShowView.setFlows(flows);

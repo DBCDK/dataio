@@ -51,7 +51,7 @@ public class SubmittersShowActivity extends AbstractActivity implements Submitte
 
     // Local methods
     private void fetchSubmitters() {
-        flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<Submitter>>() {
+        flowStoreProxy.findAllSubmittersOld(new FilteredAsyncCallback<List<Submitter>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 submittersShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());

@@ -51,7 +51,12 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<Flow> findAllFlows() throws ProxyException {
+    public List<Flow> findAllFlowsOld() throws ProxyException {
+        return flowStoreProxy.findAllFlowsOld();
+    }
+
+    @Override
+    public List<FlowModel> findAllFlows() throws ProxyException {
         return flowStoreProxy.findAllFlows();
     }
 
@@ -141,7 +146,12 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<Submitter> findAllSubmitters() throws ProxyException {
+    public List<Submitter> findAllSubmittersOld() throws ProxyException {
+        return flowStoreProxy.findAllSubmittersOld();
+    }
+
+    @Override
+    public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         return flowStoreProxy.findAllSubmitters();
     }
 
@@ -166,7 +176,12 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<Sink> findAllSinks() throws ProxyException {
+    public List<Sink> findAllSinksOld() throws ProxyException {
+        return flowStoreProxy.findAllSinksOld();
+    }
+
+    @Override
+    public List<SinkModel> findAllSinks() throws ProxyException {
         return flowStoreProxy.findAllSinks();
     }
 

@@ -226,7 +226,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         when(flowStoreServiceConnector.findAllSinks()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.findAllSinks();
+            flowStoreProxy.findAllSinksOld();
             fail("No INTERNAL_SERVER_ERROR was thrown by findAllSinks()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -242,7 +242,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Arrays.asList(sink));
         try {
-            final List<Sink> allSinks = flowStoreProxy.findAllSinks();
+            final List<Sink> allSinks = flowStoreProxy.findAllSinksOld();
             assertNotNull(allSinks);
             assertThat(allSinks.size(), is(1));
             assertThat(allSinks.get(0).getId(), is(sink.getId()));
@@ -535,7 +535,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         when(flowStoreServiceConnector.findAllSubmitters()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.findAllSubmitters();
+            flowStoreProxy.findAllSubmittersOld();
             fail("No INTERNAL_SERVER_ERROR was thrown by findAllSubmitters()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -551,7 +551,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Arrays.asList(submitter));
         try {
-            final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmitters();
+            final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmittersOld();
             assertNotNull(allSubmitters);
             assertThat(allSubmitters.size(), is(1));
             assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
@@ -684,7 +684,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         when(flowStoreServiceConnector.findAllFlows()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.findAllFlows();
+            flowStoreProxy.findAllFlowsOld();
             fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlows()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -700,7 +700,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllFlows()).thenReturn(Arrays.asList(flow));
         try {
-            final List<Flow> allFlows = flowStoreProxy.findAllFlows();
+            final List<Flow> allFlows = flowStoreProxy.findAllFlowsOld();
             assertNotNull(allFlows);
             assertThat(allFlows.size(), is(1));
             assertThat(allFlows.get(0).getId(), is(flow.getId()));

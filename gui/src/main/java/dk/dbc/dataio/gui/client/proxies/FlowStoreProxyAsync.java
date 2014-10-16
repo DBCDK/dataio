@@ -20,7 +20,8 @@ public interface FlowStoreProxyAsync {
     // Flows
     void createFlow(FlowModel model, AsyncCallback<FlowModel> async);
     void updateFlow(FlowModel model, AsyncCallback<FlowModel> async);
-    void findAllFlows(AsyncCallback<List<Flow>> async);
+    void findAllFlowsOld(AsyncCallback<List<Flow>> async);
+    void findAllFlows(AsyncCallback<List<FlowModel>> async);
     void getFlow(Long id, AsyncCallback<FlowModel> async);
 
     // Flow Components
@@ -41,13 +42,15 @@ public interface FlowStoreProxyAsync {
     // Submitters
     void createSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
     void updateSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
-    void findAllSubmitters(AsyncCallback<List<Submitter>> async);
+    void findAllSubmittersOld(AsyncCallback<List<Submitter>> async);
+    void findAllSubmitters(AsyncCallback<List<SubmitterModel>> async);
     void getSubmitter(Long id, AsyncCallback<SubmitterModel> async);
 
     // Sinks
     void createSink(SinkModel model, AsyncCallback<SinkModel> async);
     void updateSink(SinkModel model, AsyncCallback<SinkModel> async);
-    void findAllSinks(AsyncCallback<List<Sink>> async);
+    void findAllSinksOld(AsyncCallback<List<Sink>> async);
+    void findAllSinks(AsyncCallback<List<SinkModel>> async);
     void getSink(Long id, AsyncCallback<SinkModel> async);
 
     // Other

@@ -53,11 +53,12 @@ public class SinksShowActivity extends AbstractActivity implements SinksShowPres
     // Local methods
 
     private void fetchSinks() {
-        flowStoreProxy.findAllSinks(new FilteredAsyncCallback<List<Sink>>() {
+        flowStoreProxy.findAllSinksOld(new FilteredAsyncCallback<List<Sink>>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 sinksShowView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
             }
+
             @Override
             public void onSuccess(List<Sink> result) {
                 sinksShowView.setSinks(result);

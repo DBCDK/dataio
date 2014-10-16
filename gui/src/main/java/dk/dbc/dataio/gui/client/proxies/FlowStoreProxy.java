@@ -24,7 +24,8 @@ public interface FlowStoreProxy extends RemoteService {
     // Flows
     FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException;
     FlowModel updateFlow(FlowModel FlowContent) throws NullPointerException, ProxyException;
-    List<Flow> findAllFlows() throws ProxyException;
+    List<Flow> findAllFlowsOld() throws ProxyException;
+    List<FlowModel> findAllFlows() throws ProxyException;
     FlowModel getFlow(Long id) throws ProxyException;
 
     // Flow Components
@@ -45,13 +46,15 @@ public interface FlowStoreProxy extends RemoteService {
     // Submitters
     SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
     SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
-    List<Submitter> findAllSubmitters() throws ProxyException;
+    List<Submitter> findAllSubmittersOld() throws ProxyException;
+    List<SubmitterModel> findAllSubmitters() throws ProxyException;
     SubmitterModel getSubmitter(Long id) throws ProxyException;
 
     // Sinks
     SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException;
     SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException;
-    List<Sink> findAllSinks() throws ProxyException;
+    List<Sink> findAllSinksOld() throws ProxyException;
+    List<SinkModel> findAllSinks() throws ProxyException;
     SinkModel getSink(Long id) throws ProxyException;
 
     // Other

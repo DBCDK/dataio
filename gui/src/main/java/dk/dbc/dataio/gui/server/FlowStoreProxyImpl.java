@@ -115,7 +115,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<FlowModel> findAllFlows() throws ProxyException {
         final List<Flow> flows;
-        final List<FlowModel> result = new ArrayList<FlowModel>();
         try {
             flows = flowStoreServiceConnector.findAllFlows();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
@@ -123,8 +122,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-//        for
-        return result;
+        return FlowModelMapper.toListOfFlowModels(flows);
     }
 
     @Override
@@ -365,7 +363,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         final List<Submitter> submitters;
-        final List<SubmitterModel> result = new ArrayList<SubmitterModel>();
         try {
             submitters = flowStoreServiceConnector.findAllSubmitters();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
@@ -373,7 +370,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        return result;
+        return SubmitterModelMapper.toListOfSubmitterModels(submitters);
     }
 
     @Override
@@ -440,7 +437,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<SinkModel> findAllSinks() throws ProxyException {
         final List<Sink> sinks;
-        final List<SinkModel> result = new ArrayList<SinkModel>();
         try {
             sinks = flowStoreServiceConnector.findAllSinks();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
@@ -448,7 +444,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        return result;
+        return SinkModelMapper.toListOfSinkModels(sinks);
     }
 
     @Override

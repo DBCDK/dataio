@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class FlowModelMapper {
@@ -46,4 +47,19 @@ public final class FlowModelMapper {
                 flowComponents
         );
     }
+
+    /**
+     * Maps a list of flows to a list of flow models
+     *
+     * @param flows the list of flows
+     * @return flowModels the list of flowModels
+     */
+    public static List<FlowModel> toListOfFlowModels(List<Flow> flows) {
+        List<FlowModel> flowModels = new ArrayList<FlowModel>();
+        for (Flow flow : flows) {
+            flowModels.add(toModel(flow));
+        }
+        return flowModels;
+    }
+
 }

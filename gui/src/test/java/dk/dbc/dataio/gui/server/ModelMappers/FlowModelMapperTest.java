@@ -193,6 +193,44 @@ public class FlowModelMapperTest {
         assertFlowComponentEquals(flowContent.getComponents().get(1), flowComponentModel2, javaScript2.getJavascript());
     }
 
+    @Test(expected = NullPointerException.class)
+    public void toListOfFlowModels_nullInput_throws() {
+        FlowModelMapper.toListOfFlowModels(null);
+    }
+
+    @Test
+    public void toListOfFlowModels_emptyInputList_returnsEmptyList() {
+        List<FlowModel> flowModels = FlowModelMapper.toListOfFlowModels(new ArrayList<Flow>());
+        assertThat(flowModels.size(), is(0));
+    }
+
+    @Test
+    public void toListOfFlowModels_twoValidFlows_twoValidFlowModelsReturned() {
+        List<FlowComponent> components1 = new ArrayList<FlowComponent>();
+        components1.add(new FlowComponent(
+                FLOW_COMPONENT_ID_1, FLOW_COMPONENT_VERSION_1, new FlowComponentContentBuilder().build()));
+        FlowContent flowContent1 = new FlowContent(NAME, DESCRIPTION, components1);
+        Flow flow1 = new Flow(ID, VERSION, flowContent1);
+
+        List<FlowComponent> components2 = new ArrayList<FlowComponent>();
+        components2.add(new FlowComponent(
+                FLOW_COMPONENT_ID_2, FLOW_COMPONENT_VERSION_2, new FlowComponentContentBuilder().build()));
+        FlowContent flowContent2 = new FlowContent(NAME, DESCRIPTION, components1);
+        Flow flow2 = new Flow(ID, VERSION, flowContent2);
+
+        List<Flow> flows = new ArrayList<Flow>(2);
+        flows.add(flow1);
+        flows.add(flow2);
+
+        List<FlowModel> flowModels = FlowModelMapper.toListOfFlowModels(flows);
+
+        assertThat(flowModels.size(), is(2));
+        assertThat(flowModels.get(0).getId(), is(flow1.getId()));
+        assertThat(flowModels.get(1).getId(), is(flow2.getId()));
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
     private void assertFlowComponentEquals(FlowComponent flowComponent, FlowComponentModel flowComponentModel, String javaScript) {
         assertThat(flowComponent.getId(), is(flowComponentModel.getId()));
         assertThat(flowComponent.getVersion(), is(flowComponentModel.getVersion()));

@@ -4,6 +4,9 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class SubmitterModelMapper {
 
     /**
@@ -42,4 +45,19 @@ public final class SubmitterModelMapper {
                 model.getName(),
                 model.getDescription());
     }
+
+    /**
+     * Maps a list of submitters to a list of submitter models
+     *
+     * @param submitters the list of submitters
+     * @return submitterModels the list of submitterModels
+     */
+    public static List<SubmitterModel> toListOfSubmitterModels(List<Submitter> submitters) {
+        List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
+        for (Submitter submitter : submitters) {
+            submitterModels.add(toModel(submitter));
+        }
+        return submitterModels;
+    }
+
 }

@@ -5,6 +5,9 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SinkModelMapper {
     /**
      * Private Constructor prevents instantiation of this static class
@@ -40,4 +43,19 @@ public class SinkModelMapper {
             model.getSinkName(),
             model.getResourceName());
     }
+
+    /**
+     * Maps a list of sinks to a list of sink models
+     *
+     * @param sinks the list of sinks
+     * @return sinkModels the list of sinkModels
+     */
+    public static List<SinkModel> toListOfSinkModels(List<Sink> sinks) {
+        List<SinkModel> sinkModels = new ArrayList<SinkModel>();
+        for (Sink sink : sinks) {
+            sinkModels.add(toModel(sink));
+        }
+        return sinkModels;
+    }
+
 }

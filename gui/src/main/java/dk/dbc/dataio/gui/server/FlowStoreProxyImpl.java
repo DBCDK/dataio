@@ -242,7 +242,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      */
 
     @Override
-    public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
+    public FlowBinder createFlowBinderOld(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
         FlowBinder flowBinder;
         try {
             flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
@@ -252,6 +252,24 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return flowBinder;
+    }
+
+    @Override
+    public FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {
+        FlowBinderModel flowBinderModel;
+        FlowBinder flowBinder;
+        try {
+            flowBinder = flowStoreServiceConnector.createFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model));
+            flowBinderModel = FlowBinderModelMapper.toModel(flowBinder,
+                    getFlowModelLatestVersion(model.getFlowModel()),
+                    getSubmitterModelsLatestVersion(model.getSubmitterModels()),
+                    getSinkModelLatestVersion(model.getSinkModel()));
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return flowBinderModel;
     }
 
     @Override
@@ -312,10 +330,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
     }
 
-
     /*
      * Submitters
      */
+
 
     @Override
     public SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
@@ -386,10 +404,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return SubmitterModelMapper.toModel(submitter);
     }
 
-
     /*
      * Sinks
      */
+
 
     @Override
     public SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException {
@@ -460,19 +478,50 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return SinkModelMapper.toModel(sink);
     }
 
-
     /*
      * Other
      */
+
 
     public void close() {
         HttpClient.closeClient(client);
     }
 
-
     /*
      * Private methods
      */
+
+
+    /**
+     * Fetches the latest Submitter Models given as input
+     * @param submitterModels The current versions of the Submitter Models
+     * @return The latest versions of the Submitter Models
+     */
+    private List<SubmitterModel> getSubmitterModelsLatestVersion(List<SubmitterModel> submitterModels) throws FlowStoreServiceConnectorException {
+        List<SubmitterModel> models = new ArrayList<SubmitterModel>();
+        for (SubmitterModel model: submitterModels) {
+            models.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(model.getId())));
+        }
+        return models;
+    }
+
+    /**
+     * Fetches the latest version of the Flow Model given as input
+     * @param flowModel The current version of the Flow Model
+     * @return The latest version of the Flow Model
+     */
+    private FlowModel getFlowModelLatestVersion(FlowModel flowModel) throws FlowStoreServiceConnectorException {
+        return FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowModel.getId()));
+    }
+
+    /**
+     * Fetches the latest version of the Sink Model given as input
+     * @param sinkModel The current version of the Sink Model
+     * @return The latest version of the Sink Model
+     */
+    private SinkModel getSinkModelLatestVersion(SinkModel sinkModel) throws FlowStoreServiceConnectorException {
+        return SinkModelMapper.toModel(flowStoreServiceConnector.getSink(sinkModel.getId()));
+    }
 
     /**
      * For each flow component model given as input, the method retrieves the latest version of a flow component

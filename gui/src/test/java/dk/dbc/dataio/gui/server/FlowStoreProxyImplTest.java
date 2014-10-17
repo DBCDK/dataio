@@ -905,15 +905,21 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().build();
         final FlowBinder flowBinder = new FlowBinderBuilder().setContent(flowBinderContent).build();
+        final Flow updatedFlow = new FlowBuilder().setId(123L).setVersion(456L).build();
+        final Sink updatedSink = new SinkBuilder().setId(43L).setVersion(876L).build();
+        final Submitter updatedSubmitter = new SubmitterBuilder().setId(8487L).setVersion(848L).build();
 
-        when(flowStoreServiceConnector.createFlowBinder(eq(flowBinderContent))).thenReturn(flowBinder);
+        when(flowStoreServiceConnector.createFlowBinder(any(FlowBinderContent.class))).thenReturn(flowBinder);
+        when(flowStoreServiceConnector.getFlow(anyLong())).thenReturn(updatedFlow);
+        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(updatedSink);
+        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(updatedSubmitter);
 
-        try {
-            final FlowBinder createdFlowBinder = flowStoreProxy.createFlowBinder(flowBinderContent);
-            assertNotNull(createdFlowBinder);
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: createFlowBinder()");
-        }
+        final FlowBinderModel createdFlowBinder = flowStoreProxy.createFlowBinder(getDefaultFlowBinderModel(121L, 212L));
+        assertNotNull(createdFlowBinder);
+        assertThat(createdFlowBinder.getFlowModel().getId(), is(updatedFlow.getId()));
+        assertThat(createdFlowBinder.getSinkModel().getId(), is(updatedSink.getId()));
+        assertThat(createdFlowBinder.getSubmitterModels().size(), is(1));
+        assertThat(createdFlowBinder.getSubmitterModels().get(0).getId(), is(updatedSubmitter.getId()));
     }
 
     @Test
@@ -943,7 +949,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createFlowBinder(any(FlowBinderContent.class)))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
-            flowStoreProxy.createFlowBinder(new FlowBinderContentBuilder().build());
+            flowStoreProxy.createFlowBinder(getDefaultFlowBinderModel(443L, 554L));
             fail("No " + expectedErrorName + " error was thrown by createFlowBinder()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));

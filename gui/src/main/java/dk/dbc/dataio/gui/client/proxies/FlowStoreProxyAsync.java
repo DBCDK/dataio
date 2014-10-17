@@ -34,7 +34,8 @@ public interface FlowStoreProxyAsync {
     void getFlowComponent(Long id, AsyncCallback<FlowComponent> async);
 
     // Flow Binders
-    void createFlowBinder(FlowBinderContent flowBinderContent, AsyncCallback<FlowBinder> async);
+    void createFlowBinderOld(FlowBinderContent flowBinderContent, AsyncCallback<FlowBinder> async);
+    void createFlowBinder(FlowBinderModel model, AsyncCallback<FlowBinderModel> async);
     void updateFlowBinder(FlowBinderModel model, AsyncCallback<FlowBinderModel> async);
     void findAllFlowBinders(AsyncCallback<List<FlowBinder>> async);
     void getFlowBinder(long id, AsyncCallback<FlowBinderModel> async);

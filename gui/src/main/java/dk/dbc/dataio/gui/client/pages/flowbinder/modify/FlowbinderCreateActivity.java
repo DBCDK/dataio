@@ -141,7 +141,7 @@ public class FlowbinderCreateActivity extends AbstractActivity implements Flowbi
         } catch (Exception e) {
             flowbinderCreateView.setErrorText(e.getClass().getName() + " - " + e.getMessage());
         }
-        flowStoreProxy.createFlowBinder(flowbinderContent, new FilteredAsyncCallback<FlowBinder>() {
+        flowStoreProxy.createFlowBinderOld(flowbinderContent, new FilteredAsyncCallback<FlowBinder>() {
             @Override
             public void onFilteredFailure(Throwable e) {
                 flowbinderCreateView.setErrorText(constants.error_FlowbinderAlreadyExistsError());

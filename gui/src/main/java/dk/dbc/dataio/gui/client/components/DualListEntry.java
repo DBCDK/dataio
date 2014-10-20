@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.logical.shared.HasValueChangeHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -15,7 +16,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class DualListEntry extends DataEntry implements HasValue<Collection<String>> {
+public class DualListEntry extends DataEntry implements HasValue<Collection<String>>, HasValueChangeHandlers<Collection<String>> {
+    private boolean valueChangeHandlerInitialized;
 
     @UiField final DualList dualList = new DualList();
 
@@ -100,13 +102,22 @@ public class DualListEntry extends DataEntry implements HasValue<Collection<Stri
     @Override
     public void setValue(Collection<String> value, boolean fireEvents) {
         setValue(value);
-        if(fireEvents) {
+        if (fireEvents) {
             ValueChangeEvent.fire(this, value);
         }
     }
 
     @Override
-    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Collection<String>> listValueChangeHandler) {
-        return null;
+    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Collection<String>> handler) {
+        if (!valueChangeHandlerInitialized) {
+            valueChangeHandlerInitialized = true;
+            addChangeHandler(new ChangeHandler() {
+                public void onChange(ChangeEvent event) {
+                    ValueChangeEvent.fire(DualListEntry.this, getValue());
+                }
+            });
+        }
+        return addHandler(handler, ValueChangeEvent.getType());
     }
+
 }

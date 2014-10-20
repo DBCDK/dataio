@@ -1,0 +1,357 @@
+package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
+
+import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
+import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
+import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.util.ClientFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * This class represents the create flowbinder activity encompassing saving
+ * of flowbinder data in the flow store via RPC proxy
+ */
+public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+    private final static String EMPTY = "";
+    protected final Texts texts;
+    protected FlowStoreProxyAsync flowStoreProxy;
+    protected View view;
+    protected FlowBinderModel model;
+    protected List<SubmitterModel> availableSubmitters = new ArrayList<SubmitterModel>();
+    protected List<FlowModel> availableFlows = new ArrayList<FlowModel>();
+    protected List<SinkModel> availableSinks = new ArrayList<SinkModel>();
+
+
+    /**
+     * Constructor
+     * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
+     * Put code, utilizing view in the start method
+     *
+     * @param clientFactory, clientFactory
+     * @param texts,         the texts for flowbinder modify
+     */
+    public PresenterImpl(ClientFactory clientFactory, Texts texts) {
+        this.texts = texts;
+        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     *
+     * @param containerWidget the widget to use
+     * @param eventBus        the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        view.setPresenter(this);
+        containerWidget.setWidget(view.asWidget());
+        fetchAvailableSubmitters();
+        fetchAvailableFlows();
+        fetchAvailableSinks();
+        initializeModel();
+        model.setRecordSplitter(texts.label_DefaultRecordSplitter());
+        updateAllFieldsAccordingToCurrentState();
+    }
+
+    /**
+     * A signal to the presenter, saying that the name field has been changed
+     *
+     * @param name, the new value
+     */
+    @Override
+    public void nameChanged(String name) {
+        model.setName(name);
+    }
+
+    /**
+     * A signal to the presenter, saying that the description field has been changed
+     *
+     * @param description, the new value
+     */
+    @Override
+    public void descriptionChanged(String description) {
+        model.setDescription(description);
+    }
+
+    /**
+     * A signal to the presenter, saying that the packaging field has been changed
+     *
+     * @param packaging, the new value
+     */
+    @Override
+    public void frameChanged(String packaging) {
+        model.setPackaging(packaging);
+    }
+
+    /**
+     * A signal to the presenter, saying that the format field has been changed
+     *
+     * @param format, the new value
+     */
+    @Override
+    public void formatChanged(String format) {
+        model.setFormat(format);
+    }
+
+    /**
+     * A signal to the presenter, saying that the charset field has been changed
+     *
+     * @param charset, the new value
+     */
+    @Override
+    public void charsetChanged(String charset) {
+        model.setCharset(charset);
+    }
+
+    /**
+     * A signal to the presenter, saying that the destination field has been changed
+     *
+     * @param destination, the new value
+     */
+    @Override
+    public void destinationChanged(String destination) {
+        model.setDestination(destination);
+    }
+
+    /**
+     * A signal to the presenter, saying that the recordsplitter field has been changed
+     *
+     * @param recordsplitter, the new value
+     */
+    @Override
+    public void recordsplitterChanged(String recordsplitter) {
+        model.setRecordSplitter(recordsplitter);
+    }
+
+    /**
+     * A signal to the presenter, saying that the submitters field has been changed
+     *
+     * @param submitters, a map of the selected submitters
+     */
+    @Override
+    public void submittersChanged(Map<String, String> submitters) {
+        List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
+        for (String id : submitters.keySet()) {
+            submitterModels.add(getSubmitterModel(Long.parseLong(id)));
+        }
+        model.setSubmitterModels(submitterModels);
+    }
+
+    /**
+     * A signal to the presenter, saying that the flow field has been changed
+     *
+     * @param flowId, the id for the selected flow
+     */
+    @Override
+    public void flowChanged(String flowId) {
+        model.setFlowModel(getFlowModel(Long.parseLong(flowId)));
+    }
+
+    /**
+     * A signal to the presenter, saying that the sink field has been changed
+     *
+     * @param sinkId, the id for the selected sink
+     */
+    @Override
+    public void sinkChanged(String sinkId) {
+        model.setSinkModel(getSinkModel(Long.parseLong(sinkId)));
+    }
+
+    /**
+     * A signal to the presenter, saying that a key has been pressed in either of the fields
+     */
+    @Override
+    public void keyPressed() {
+        view.status.setText(EMPTY);
+    }
+
+    /**
+     * A signal to the presenter, saying that the save button has been pressed
+     */
+    @Override
+    public void saveButtonPressed() {
+        saveModel();
+    }
+
+
+    /*
+     * Private methods
+     */
+    private String formatSubmitterName(SubmitterModel model) {
+        return model.getNumber() + " (" + model.getName() + ")";
+    }
+
+    private void updateAllFieldsAccordingToCurrentState() {
+        view.name.setText(model.getName());
+        view.description.setText(model.getDescription());
+        view.frame.setText(model.getPackaging());
+        view.format.setText(model.getFormat());
+        view.charset.setText(model.getCharset());
+        view.destination.setText(model.getDestination());
+        view.recordsplitter.setText(model.getRecordSplitter());
+        view.recordsplitter.setEnabled(false);
+        view.submitters.setSelectedItems(getSelectedSubmitters(model));
+        if (model.getFlowModel().getId() != 0) {
+            view.flow.setSelected((int) model.getFlowModel().getId());
+        }
+        if (model.getSinkModel().getId() != 0) {
+            view.sink.setSelected((int) model.getSinkModel().getId());
+        }
+    }
+
+    private Map<String, String> getSelectedSubmitters(FlowBinderModel model) {
+        Map<String, String> submitters = new HashMap<String, String>();
+        for (SubmitterModel submitterModel: model.getSubmitterModels()) {
+            submitters.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
+        }
+        return submitters;
+    }
+
+    private void setAvailableSubmitters(List<SubmitterModel> models) {
+        this.availableSubmitters = models;
+        Map<String, String> submitters = new HashMap<String, String>(models.size());
+        for (SubmitterModel model : models) {
+            submitters.put(String.valueOf(model.getId()), formatSubmitterName(model));
+        }
+        view.submitters.setAvailableItems(submitters);
+        view.submitters.setEnabled(true);
+        view.submitters.fireChangeEvent();
+    }
+
+    private void setAvailableFlows(List<FlowModel> models) {
+        this.availableFlows = models;
+        view.flow.clear();
+        for (FlowModel model : models) {
+            view.flow.setAvailableItem(model.getFlowName(), Long.toString(model.getId()));
+        }
+        view.flow.setEnabled(true);
+        view.flow.fireChangeEvent();
+    }
+
+    private void setAvailableSinks(List<SinkModel> models) {
+        this.availableSinks = models;
+        view.sink.clear();
+        for (SinkModel model : models) {
+            view.sink.setAvailableItem(model.getSinkName(), Long.toString(model.getId()));
+        }
+        view.sink.setEnabled(true);
+        view.sink.fireChangeEvent();
+    }
+
+    private void fetchAvailableSubmitters() {
+        flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<SubmitterModel>>() {
+            @Override
+            public void onFilteredFailure(Throwable e) {
+                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            }
+            @Override
+            public void onSuccess(List<SubmitterModel> submitters) {
+                setAvailableSubmitters(submitters);
+            }
+        });
+    }
+
+    private void fetchAvailableFlows() {
+        flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<FlowModel>>() {
+            @Override
+            public void onFilteredFailure(Throwable e) {
+                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            }
+            @Override
+            public void onSuccess(List<FlowModel> flows) {
+                setAvailableFlows(flows);
+            }
+        });
+    }
+
+    private void fetchAvailableSinks() {
+        flowStoreProxy.findAllSinks(new FilteredAsyncCallback<List<SinkModel>>() {
+            @Override
+            public void onFilteredFailure(Throwable e) {
+                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            }
+            @Override
+            public void onSuccess(List<SinkModel> sinks) {
+                setAvailableSinks(sinks);
+            }
+        });
+    }
+
+    private SubmitterModel getSubmitterModel(long submitterId) {
+        for (SubmitterModel model : availableSubmitters) {
+            if (model.getId() == submitterId) {
+                return model;
+            }
+        }
+        return null;
+    }
+
+    private FlowModel getFlowModel(long flowId) {
+        for (FlowModel model : availableFlows) {
+            if (model.getId() == flowId) {
+                return model;
+            }
+        }
+        return null;
+    }
+
+    private SinkModel getSinkModel(long sinkId) {
+        for (SinkModel model : availableSinks) {
+            if (model.getId() == sinkId) {
+                return model;
+            }
+        }
+        return null;
+    }
+
+    private void setFlowBinderModel(FlowBinderModel model) {
+        this.model = model;
+    }
+
+
+    /*
+     * Local class
+     */
+
+    /**
+     * Local call back class to be instantiated in the call to createFlowBinder or updateFlowBinder in flowstore proxy
+     */
+    class SaveFlowBinderModelFilteredAsyncCallback extends FilteredAsyncCallback<FlowBinderModel> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+        @Override
+        public void onSuccess(FlowBinderModel model) {
+            view.status.setText(texts.status_SaveSuccess());
+            setFlowBinderModel(model);
+        }
+
+    }
+
+
+    /*
+     * Abstract methods
+     */
+
+    /**
+     * getModel
+     */
+    abstract void initializeModel();
+
+    /**
+     * saveModel
+     */
+    abstract void saveModel();
+
+}

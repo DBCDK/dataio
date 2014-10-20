@@ -27,10 +27,13 @@ public class TextEntry extends DataEntry implements HasValue<String> {
         add(textBox);
     }
 
-    public @UiConstructor TextEntry(String guiId, String prompt, String maxLength) {
+    public @UiConstructor TextEntry(String guiId, String prompt, String maxLength, String toolTip) {
         this(guiId, prompt);
         if (!maxLength.isEmpty()) {
             textBox.getElement().setAttribute("Maxlength", maxLength);
+        }
+        if (!toolTip.isEmpty()) {
+            addToolTip(toolTip);
         }
     }
 

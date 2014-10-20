@@ -17,7 +17,6 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.gui.client.components.DataEntry;
 import dk.dbc.dataio.gui.client.components.SaveButton;
-import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowbinderCreateViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;
@@ -38,7 +37,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
-    private static ConstantsProperties texts = new ConstantsProperties("flowbinder/modify/FlowbinderCreateTexts_dk.properties");
+    private static ConstantsProperties texts = new ConstantsProperties("flowbinder/modify/Texts_dk.properties");
 
     private static final long SAVE_TIMEOUT = 4;
 
@@ -142,7 +141,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         populateAllInputFields();
         findNameTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -150,7 +149,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         populateAllInputFields();
         findDescriptionTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -158,7 +157,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         populateAllInputFields();
         findFrameTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -166,7 +165,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         populateAllInputFields();
         findContentFormatTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -174,7 +173,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         populateAllInputFields();
         findCharacterSetTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -182,7 +181,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         populateAllInputFields();
         findDestinationTextElement(webDriver).clear();
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -195,7 +194,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         selectSinkWhenInFlowbinderCreationWidget(sink.getContent().getName());
         selectFlowWhenInFlowbinderCreationWidget(flow.getContent().getName());
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -207,7 +206,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         selectSinkWhenInFlowbinderCreationWidget(sink.getContent().getName());
         selectSubmitterWhenInFlowbinderCreationWidget(createSubmitterDisplayName(submitter));
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -220,7 +219,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
         selectSubmitterWhenInFlowbinderCreationWidget(createSubmitterDisplayName(submitter));
         selectFlowWhenInFlowbinderCreationWidget(flow.getContent().getName());
         findSaveButtonElement(webDriver).click();
-        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is(texts.translate("error_InputFieldValidationError")));
+        assertThat(SeleniumUtil.getAlertStringAndAccept(webDriver), is("Error: " + texts.translate("error_InputFieldValidationError")));
     }
 
     @Test
@@ -394,7 +393,7 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     private void populateAllInputFieldsAndClickSaveAndWaitForSuccess() throws Exception{
         populateAllInputFields();
         findSaveButtonElement(webDriver).click();
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SaveSuccess"));
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, "content-panel", "gwt-Label", texts.translate("status_SaveSuccess"));
     }
 
     private static void navigateToFlowbinderCreationWidget(WebDriver webDriver) {
@@ -406,55 +405,55 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
     }
 
     private static WebElement findFlowbinderCreationWidget(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_WIDGET);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "content-panel");
     }
 
     private static WebElement findNameTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_NAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifynamepanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findDescriptionTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_DESCRIPTION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifydescriptionpanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findFrameTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_FRAME_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifyframepanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findContentFormatTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_CONTENTFORMAT_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifyformatpanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findCharacterSetTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_CHARACTER_SET_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifycharsetpanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findDestinationTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_DESTINATION_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifydestinationpanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findRecordSplitterTextElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_RECORD_SPLITTER_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifyrecordsplitterpanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSubmitterPanelElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SUBMITTERS_SELECTION_PANEL);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifysubmitterspanel");
     }
 
     private static WebElement findFlowListElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_FLOW_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifyflowpanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSinkListElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SINK_PANEL, DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "flowbindermodifysinkpanel", DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
     }
 
     private static WebElement findSaveButtonElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_BUTTON_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "content-panel", "gwt-Button");
     }
 
     private static WebElement findSaveResultLabelElement(WebDriver webDriver) {
-        return SeleniumUtil.findElementInCurrentView(webDriver, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS);
+        return SeleniumUtil.findElementInCurrentView(webDriver, "content-panel", "gwt-Label");
     }
 
     /**
@@ -498,6 +497,6 @@ public class FlowBinderCreationSeleniumIT extends AbstractGuiSeleniumTest {
 
         findSaveButtonElement(webDriver).click();
 
-        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, FlowbinderCreateViewImpl.GUIID_FLOWBINDER_CREATION_SAVE_PANEL, SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SaveSuccess"));
+        SeleniumUtil.waitAndAssert(webDriver, SAVE_TIMEOUT, "content-panel", SaveButton.SAVE_BUTTON_RESULT_LABEL_CLASS, texts.translate("status_SaveSuccess"));
     }
 }

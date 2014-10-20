@@ -12,11 +12,13 @@ import com.google.gwt.user.client.ui.ListBox;
 
 
 public class ListEntry extends DataEntry implements HasValue<String> {
+    private boolean valueChangeHandlerInitialized;
 
     @UiField final ListBox listBox = new ListBox();
 
-    
-    public @UiConstructor ListEntry(String guiId, String prompt) {
+
+    public @UiConstructor
+    ListEntry(String guiId, String prompt) {
         super(guiId, prompt);
         listBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         setEnabled(false);  // When empty, disable list box
@@ -27,11 +29,11 @@ public class ListEntry extends DataEntry implements HasValue<String> {
     public void clear() {
         listBox.clear();
     }
-    
+
     public void setAvailableItem(String text) {
         listBox.addItem(text);
     }
-    
+
     public void setAvailableItem(String text, String key) {
         listBox.addItem(text, key);
     }
@@ -44,7 +46,7 @@ public class ListEntry extends DataEntry implements HasValue<String> {
         // TODO: Lav Exception handling istedet for at returnere null
         return listBox.getItemText(selectedRevisionIndex);
     }
-    
+
     public String getSelectedKey() {
         int selectedRevisionIndex = listBox.getSelectedIndex();
         if (selectedRevisionIndex < 0) {
@@ -61,7 +63,7 @@ public class ListEntry extends DataEntry implements HasValue<String> {
     public void setEnabled(boolean enabled) {
         listBox.setEnabled(enabled);
     }
-  
+
     public void fireChangeEvent() {
         class ListBoxChangedEvent extends ChangeEvent {}
         listBox.fireEvent(new ListBoxChangedEvent());
@@ -89,13 +91,22 @@ public class ListEntry extends DataEntry implements HasValue<String> {
     @Override
     public void setValue(String value, boolean fireEvents) {
         setValue(value);
-        if(fireEvents) {
+        if (fireEvents) {
             ValueChangeEvent.fire(this, value);
         }
     }
 
     @Override
-    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> stringValueChangeHandler) {
-        return null;
+    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler) {
+        if (!valueChangeHandlerInitialized) {
+            valueChangeHandlerInitialized = true;
+            addChangeHandler(new ChangeHandler() {
+                public void onChange(ChangeEvent event) {
+                    ValueChangeEvent.fire(ListEntry.this, getValue());
+                }
+            });
+        }
+        return addHandler(handler, ValueChangeEvent.getType());
     }
+
 }

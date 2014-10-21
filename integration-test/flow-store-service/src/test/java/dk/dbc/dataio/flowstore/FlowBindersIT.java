@@ -436,7 +436,6 @@ public class FlowBindersIT {
     @Test
     public void updateFlowBinder_ok() throws Exception {
         // Given ...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
 
         final Submitter submitterForUpdateA
@@ -505,10 +504,8 @@ public class FlowBindersIT {
      * And  : assert that no flow binder exists in the underlying database
      */
     @Test
-    public void updateFlowBinder_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+    public void updateFlowBinder_wrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
         try{
             // When...
             final FlowBinderContent newFlowBinderContent = new FlowBinderContentBuilder().build();
@@ -619,7 +616,7 @@ public class FlowBindersIT {
      *        updated correctly
      */
     @Test
-    public void updateFlowBinder_WrongVersion_Conflict() throws FlowStoreServiceConnectorException, SQLException {
+    public void updateFlowBinder_wrongVersion_Conflict() throws FlowStoreServiceConnectorException, SQLException {
         // Given...
         final String FLOW_BINDER_NAME_FROM_FIRST_USER = "UpdatedFlowBinderNameFromFirstUser";
         final String FLOW_BINDER_NAME_FROM_SECOND_USER = "UpdatedFlowBinderNameFromSecondUser";
@@ -690,7 +687,7 @@ public class FlowBindersIT {
      *        updated correctly
      */
     @Test
-    public void updateFlowBinder_referencedFlowNotFound_IllegalStateException() throws FlowStoreServiceConnectorException, SQLException {
+    public void updateFlowBinder_referencedFlowNotFound_ReferencedEntityNotFoundException() throws FlowStoreServiceConnectorException, SQLException {
         FlowBinder createdFlowBinder = createFlowBinderWithReferencedObjects();
         FlowBinderContent flowBinderContentForUpdate = getFlowBinderContentForUpdate(
                 NONE_EXISTING_ID,
@@ -712,7 +709,7 @@ public class FlowBindersIT {
      *        updated correctly
      */
     @Test
-    public void updateFlowBinder_referencedSinkNotFound_IllegalStateException() throws FlowStoreServiceConnectorException, SQLException {
+    public void updateFlowBinder_referencedSinkNotFound_ReferencedEntityNotFoundException() throws FlowStoreServiceConnectorException, SQLException {
         FlowBinder createdFlowBinder = createFlowBinderWithReferencedObjects();
         FlowBinderContent flowBinderContentForUpdate = getFlowBinderContentForUpdate(
                 createdFlowBinder.getContent().getFlowId(),
@@ -734,7 +731,7 @@ public class FlowBindersIT {
      *        updated correctly
      */
     @Test
-    public void updateFlowBinder_referencedSubmitterNotFound_IllegalStateException() throws FlowStoreServiceConnectorException, SQLException {
+    public void updateFlowBinder_referencedSubmitterNotFound_ReferencedEntityNotFoundException() throws FlowStoreServiceConnectorException, SQLException {
         // Given...
         FlowBinder createdFlowBinder = createFlowBinderWithReferencedObjects();
         FlowBinderContent flowBinderContentForUpdate = getFlowBinderContentForUpdate(
@@ -744,6 +741,125 @@ public class FlowBindersIT {
 
         // When...
         assertReferencedEntityNotFoundException(flowBinderContentForUpdate, createdFlowBinder);
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the flow binders path with a valid identifier a flow binder is found and returned
+     * Then : assert that the flow binder found has an id, a version and contains the same information as the flow binder created
+     */
+    @Test
+    public void getFlowBinderBySearchIndex_ok() throws Exception{
+        // Given...
+        FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
+
+        Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
+
+        // When...
+        FlowBinder flowBinderToGet = flowStoreServiceConnector.getFlowBinder(
+                flowBinder.getContent().getPackaging(),
+                flowBinder.getContent().getFormat(),
+                flowBinder.getContent().getCharset(),
+                submitter.getContent().getNumber(),
+                flowBinder.getContent().getDestination());
+
+        // Then...
+        assertFlowBinderNotNull(flowBinder);
+        assertFlowBinderContent(flowBinderToGet, flowBinder.getContent());
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a flow binder but with wrong packaging given as input
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getFlowBinder_wrongPackagingNotFound_throws() throws FlowStoreServiceConnectorException{
+        // Given...
+        FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
+        Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
+        assertNotFoundException(
+                "invalidPackaging",
+                flowBinder.getContent().getFormat(),
+                flowBinder.getContent().getCharset(),
+                submitter.getContent().getNumber(),
+                flowBinder.getContent().getDestination());
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a flow binder but with wrong format given as input
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getFlowBinder_wrongFormatNotFound_throws() throws FlowStoreServiceConnectorException{
+        // Given...
+        FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
+        Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
+        assertNotFoundException(
+                flowBinder.getContent().getPackaging(),
+                "invalidFormat",
+                flowBinder.getContent().getCharset(),
+                submitter.getContent().getNumber(),
+                flowBinder.getContent().getDestination());
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a flow binder but with wrong charset given as input
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getFlowBinder_wrongCharsetNotFound_throws() throws FlowStoreServiceConnectorException{
+        // Given...
+        FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
+        Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
+        assertNotFoundException(
+                flowBinder.getContent().getPackaging(),
+                flowBinder.getContent().getFormat(),
+                "invalidCharset",
+                submitter.getContent().getNumber(),
+                flowBinder.getContent().getDestination());
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a flow binder but with an unknown submitter number given as input
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getFlowBinder_wrongSubmitterNumberNotFound_throws() throws FlowStoreServiceConnectorException{
+        // Given...
+        FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
+        assertNotFoundException(
+                flowBinder.getContent().getPackaging(),
+                flowBinder.getContent().getFormat(),
+                flowBinder.getContent().getCharset(),
+                2777,
+                flowBinder.getContent().getDestination());
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a flow binder but with wrong destination given as input
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getFlowBinder_wrongDestinationNotFound_throws() throws FlowStoreServiceConnectorException{
+        // Given...
+        FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
+        Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
+        assertNotFoundException(
+                flowBinder.getContent().getPackaging(),
+                flowBinder.getContent().getFormat(),
+                flowBinder.getContent().getCharset(),
+                submitter.getContent().getNumber(),
+                "invalidDestination");
     }
 
     /*
@@ -789,12 +905,34 @@ public class FlowBindersIT {
     }
 
     /**
+     * This method attempts to retrieve a flow binder through search indexes, but with an invalid argument.
+     *
+     * @param packaging of the flow binder
+     * @param format of the flow binder
+     * @param charset of the flow binder
+     * @param submitterNumber of the submitter referenced by the flow binder
+     * @param destination of the flow binder
+     * @throws FlowStoreServiceConnectorException NOT FOUND
+     */
+    private void assertNotFoundException(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException{
+        try {
+            // When...
+            flowStoreServiceConnector.getFlowBinder(packaging, format, charset, submitterNumber, destination);
+            fail("Invalid request to getFlowBinder() was not detected.");
+            // Then...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            // And...
+            assertThat(e.getStatusCode(), is(404));
+        }
+    }
+
+
+    /**
      * Creates a new flow binder with pre-defined values. The referenced sink, flow and submitter is also created
      * @return the created flow binder
      * @throws FlowStoreServiceConnectorException
      */
     private FlowBinder createFlowBinderWithReferencedObjects() throws FlowStoreServiceConnectorException{
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());

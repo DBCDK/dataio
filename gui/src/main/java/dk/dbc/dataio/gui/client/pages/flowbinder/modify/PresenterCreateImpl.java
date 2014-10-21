@@ -33,11 +33,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        if (model.isInputFieldsEmpty()) {
-            view.setErrorText(texts.error_InputFieldValidationError());
-        } else {
-            flowStoreProxy.createFlowBinder(model, new SaveFlowBinderModelFilteredAsyncCallback());
-        }
+        flowStoreProxy.createFlowBinder(model, new SaveFlowBinderModelFilteredAsyncCallback());
     }
 
 

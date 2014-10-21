@@ -41,7 +41,6 @@ public class PresenterImplTest {
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
     List<FlowComponentModel> selectedFlowComponentModelList;
-    Map<String, String> selectedFlowComponentModelMap;
     List<FlowComponentModel> availableFlowComponentModelList;
 
     private final static long   DEFAULT_ID = 0;
@@ -95,17 +94,18 @@ public class PresenterImplTest {
 
     @Before
     public void setupFlowComponentsLists() {
+        FlowComponentModel flowComponentModel1 = newFlowComponentModel(FLOW_COMPONENT_ID_1, FLOW_COMPONENT_NAME_1);
+        FlowComponentModel flowComponentModel2 = newFlowComponentModel(FLOW_COMPONENT_ID_2, FLOW_COMPONENT_NAME_2);
+        FlowComponentModel flowComponentModel3 = newFlowComponentModel(FLOW_COMPONENT_ID_3, FLOW_COMPONENT_NAME_3);
+        FlowComponentModel flowComponentModel4 = newFlowComponentModel(FLOW_COMPONENT_ID_4, FLOW_COMPONENT_NAME_4);
         selectedFlowComponentModelList = new ArrayList<FlowComponentModel>();  // Selected Flow Components contains elements 1 and 3
-        selectedFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_1, FLOW_COMPONENT_NAME_1));
-        selectedFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_3, FLOW_COMPONENT_NAME_3));
-        selectedFlowComponentModelMap = new HashMap<String, String>();
-        selectedFlowComponentModelMap.put(String.valueOf(FLOW_COMPONENT_ID_1), FLOW_COMPONENT_NAME_1);
-        selectedFlowComponentModelMap.put(String.valueOf(FLOW_COMPONENT_ID_3), FLOW_COMPONENT_NAME_3);
+        selectedFlowComponentModelList.add(flowComponentModel1);
+        selectedFlowComponentModelList.add(flowComponentModel3);
         availableFlowComponentModelList = new ArrayList<FlowComponentModel>();  // Available Flow Components contains elements 1, 2, 3 and 4
-        availableFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_1, FLOW_COMPONENT_NAME_1));
-        availableFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_2, FLOW_COMPONENT_NAME_2));
-        availableFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_3, FLOW_COMPONENT_NAME_3));
-        availableFlowComponentModelList.add(newFlowComponentModel(FLOW_COMPONENT_ID_4, FLOW_COMPONENT_NAME_4));
+        availableFlowComponentModelList.add(flowComponentModel1);
+        availableFlowComponentModelList.add(flowComponentModel2);
+        availableFlowComponentModelList.add(flowComponentModel3);
+        availableFlowComponentModelList.add(flowComponentModel4);
     }
 
     @Before

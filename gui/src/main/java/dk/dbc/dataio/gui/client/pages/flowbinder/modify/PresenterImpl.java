@@ -142,7 +142,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void submittersChanged(Map<String, String> submitters) {
         List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
         for (String id : submitters.keySet()) {
-            submitterModels.add(getSubmitterModel(Long.parseLong(id)));
+            SubmitterModel sModel = getSubmitterModel(Long.parseLong(id));
+            if (sModel != null) {
+                submitterModels.add(sModel);
+            }
         }
         model.setSubmitterModels(submitterModels);
     }
@@ -180,7 +183,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void saveButtonPressed() {
-        saveModel();
+        if (model.isInputFieldsEmpty()) {
+            view.setErrorText(texts.error_InputFieldValidationError());
+        } else {
+            saveModel();
+        }
     }
 
 
@@ -217,7 +224,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return submitters;
     }
 
-    private void setAvailableSubmitters(List<SubmitterModel> models) {
+    protected void setAvailableSubmitters(List<SubmitterModel> models) {
         this.availableSubmitters = models;
         Map<String, String> submitters = new HashMap<String, String>(models.size());
         for (SubmitterModel model : models) {
@@ -228,7 +235,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.submitters.fireChangeEvent();
     }
 
-    private void setAvailableFlows(List<FlowModel> models) {
+    protected void setAvailableFlows(List<FlowModel> models) {
         this.availableFlows = models;
         view.flow.clear();
         for (FlowModel model : models) {
@@ -238,7 +245,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.flow.fireChangeEvent();
     }
 
-    private void setAvailableSinks(List<SinkModel> models) {
+    protected void setAvailableSinks(List<SinkModel> models) {
         this.availableSinks = models;
         view.sink.clear();
         for (SinkModel model : models) {
@@ -249,42 +256,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void fetchAvailableSubmitters() {
-        flowStoreProxy.findAllSubmitters(new FilteredAsyncCallback<List<SubmitterModel>>() {
-            @Override
-            public void onFilteredFailure(Throwable e) {
-                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
-            }
-            @Override
-            public void onSuccess(List<SubmitterModel> submitters) {
-                setAvailableSubmitters(submitters);
-            }
-        });
+        flowStoreProxy.findAllSubmitters(new FetchAvailableSubmittersCallback());
     }
 
     private void fetchAvailableFlows() {
-        flowStoreProxy.findAllFlows(new FilteredAsyncCallback<List<FlowModel>>() {
-            @Override
-            public void onFilteredFailure(Throwable e) {
-                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
-            }
-            @Override
-            public void onSuccess(List<FlowModel> flows) {
-                setAvailableFlows(flows);
-            }
-        });
+        flowStoreProxy.findAllFlows(new FetchAvailableFlowsCallback());
     }
 
     private void fetchAvailableSinks() {
-        flowStoreProxy.findAllSinks(new FilteredAsyncCallback<List<SinkModel>>() {
-            @Override
-            public void onFilteredFailure(Throwable e) {
-                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
-            }
-            @Override
-            public void onSuccess(List<SinkModel> sinks) {
-                setAvailableSinks(sinks);
-            }
-        });
+        flowStoreProxy.findAllSinks(new FetchAvailableSinksCallback());
     }
 
     private SubmitterModel getSubmitterModel(long submitterId) {
@@ -293,7 +273,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 return model;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Submitter not found");
     }
 
     private FlowModel getFlowModel(long flowId) {
@@ -302,7 +282,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 return model;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Flow not found");
     }
 
     private SinkModel getSinkModel(long sinkId) {
@@ -311,17 +291,59 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 return model;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Sink not found");
     }
 
     private void setFlowBinderModel(FlowBinderModel model) {
         this.model = model;
     }
 
-
     /*
      * Local class
      */
+
+
+    /**
+     * Local call back class to be instantiated in the call to findAllSubmitters in flowstore proxy
+     */
+    class FetchAvailableSubmittersCallback extends FilteredAsyncCallback<List<SubmitterModel>> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+        @Override
+        public void onSuccess(List<SubmitterModel> submitters) {
+            setAvailableSubmitters(submitters);
+        }
+    }
+
+    /**
+     * Local call back class to be instantiated in the call to findAllFlows in flowstore proxy
+     */
+    class FetchAvailableFlowsCallback extends FilteredAsyncCallback<List<FlowModel>> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+        @Override
+        public void onSuccess(List<FlowModel> flows) {
+            setAvailableFlows(flows);
+        }
+    }
+
+    /**
+     * Local call back class to be instantiated in the call to findAllSinks in flowstore proxy
+     */
+    class FetchAvailableSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+        @Override
+        public void onSuccess(List<SinkModel> sinks) {
+            setAvailableSinks(sinks);
+        }
+    }
 
     /**
      * Local call back class to be instantiated in the call to createFlowBinder or updateFlowBinder in flowstore proxy

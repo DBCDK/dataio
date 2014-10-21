@@ -54,9 +54,28 @@ public class FlowBindersBean {
     @PersistenceContext
     EntityManager entityManager;
 
+    /**
+     * Retrieves a flow binder from underlying data store through a named query retrieving data
+     * from table: flow_binders_search_index
+     *
+     * @param packaging set for the flow binder
+     * @param format set for the flow binder
+     * @param charset set for the flow binder
+     * @param submitter_number to identify the referenced submitter
+     * @param destination set for the flow binder
+     *
+     * @return
+     * a HTTP 200 OK response flow binder content as JSON,
+     * a HTTP 404 NOT_FOUND response if flow binder is not found
+     * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JsonException when given invalid (null-valued, empty-valued or
+     * non-json) JSON string
+     */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER_RESOLVE)
     @Produces({MediaType.APPLICATION_JSON})
+    @SuppressWarnings("unchecked")
     public Response getFlowBinder(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
@@ -162,6 +181,11 @@ public class FlowBindersBean {
     }
 
     /**
+     * Updates an existing flow binder with data POST'ed as JSON and persists it in the
+     * underlying data store.
+     *
+     * Note: this method updates multiple database tables assuming transactional
+     * integrity
      *
      * @param flowBinderContent flow binder data as JSON string
      * @param id identifying the flow binder in the underlying data store

@@ -33,6 +33,8 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -142,7 +144,6 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     public void getFlowBinder_flowBinderExist_flowBinderReturned() throws FlowStoreServiceConnectorException {
         final String FLOW_BINDER_NAME = "This one is the correct one";
         final FlowBinder expectedFlowBinder = createFlowBinder(FLOW_BINDER_NAME);
-        final FlowBinder notExpectedFlowBinder = createFlowBinder("Not this one");
         final long expectedFlowBinderId = expectedFlowBinder.getId();
         setupHttpClientForGetFlowBinder(expectedFlowBinderId, Response.Status.OK.getStatusCode(), expectedFlowBinder);
 
@@ -158,7 +159,6 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     public void getFlowBinder_nullFlowBinder_throws() throws FlowStoreServiceConnectorException {
         final String FLOW_BINDER_NAME = "This one is the correct one";
         final FlowBinder expectedFlowBinder = createFlowBinder(FLOW_BINDER_NAME);
-        final FlowBinder notExpectedFlowBinder = createFlowBinder("Not this one");
         final long expectedFlowBinderId = expectedFlowBinder.getId();
         setupHttpClientForGetFlowBinder(expectedFlowBinderId, Response.Status.OK.getStatusCode(), null);
 
@@ -219,6 +219,41 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     public void updateFlowBinder_responseWithReferencedObjectNotFound_throws() throws FlowStoreServiceConnectorException{
         updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.PRECONDITION_FAILED.getStatusCode(), "", ID, VERSION);
     }
+
+
+    // **************************************** get flow binder by search index tests ****************************************
+    @Test
+    public void getFlowBinder_flowBinderRetrieved_returnsFlowBinder() throws FlowStoreServiceConnectorException {
+        final FlowBinder expectedFlowBinderResult = new FlowBinderBuilder().build();
+        final FlowBinder flowBinderResult = getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedFlowBinderResult);
+        assertThat(flowBinderResult, is(notNullValue()));
+        assertThat(flowBinderResult.getId(), is(expectedFlowBinderResult.getId()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getFlowBinder_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getFlowBinder_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
+        getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void getFlowBinder_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
+        getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private FlowBinder getFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(eq(CLIENT), anyMap(), eq(FLOW_STORE_URL), eq(FlowStoreServiceConstants.FLOW_BINDER_RESOLVE)))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.getFlowBinder("packaging", "format", "charset", ID, "destination");
+    }
+
 
     // Helper method
     private FlowBinder updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {

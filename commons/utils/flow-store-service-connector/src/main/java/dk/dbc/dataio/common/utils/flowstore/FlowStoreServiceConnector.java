@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
@@ -513,6 +514,24 @@ public class FlowStoreServiceConnector {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
                 .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, flowBinderId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, FlowBinder.class);
+        } finally {
+            response.close();
+        }
+    }
+
+    public FlowBinder getFlowBinder(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException{
+
+        final Map<String, Object> queryParameters = new HashMap<>(5);
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING, packaging);
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_FORMAT, format);
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_CHARSET, charset);
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER, Long.toString(submitterNumber));
+        queryParameters.put(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION, destination);
+
+        final Response response = HttpClient.doGet(httpClient, queryParameters, baseUrl, FlowStoreServiceConstants.FLOW_BINDER_RESOLVE);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, FlowBinder.class);

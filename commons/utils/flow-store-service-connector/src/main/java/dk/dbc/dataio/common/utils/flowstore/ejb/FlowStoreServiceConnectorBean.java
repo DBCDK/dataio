@@ -239,6 +239,17 @@ public class FlowStoreServiceConnectorBean {
         }
     }
 
+
+    @Lock(LockType.READ)
+    public FlowBinder getFlowBinder(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving flow binder by search index");
+        try{
+            return getFlowStoreServiceConnector().getFlowBinder(packaging, format, charset, submitterNumber, destination);
+        }catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
     private FlowStoreServiceConnector getFlowStoreServiceConnector() throws NamingException{
         final String baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
         return new FlowStoreServiceConnector(client, baseUrl);

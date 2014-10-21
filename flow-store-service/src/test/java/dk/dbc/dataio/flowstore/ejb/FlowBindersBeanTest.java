@@ -3,6 +3,7 @@ package dk.dbc.dataio.flowstore.ejb;
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -28,7 +29,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -169,17 +169,17 @@ public class FlowBindersBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void updateFlowBinder_nullFlowBinderContent_throws() throws JsonException {
+    public void updateFlowBinder_nullFlowBinderContent_throws() throws JsonException, ReferencedEntityNotFoundException {
         newFlowBindersBeanWithMockedEntityManager().updateFlowBinder(null, 1L, 1L);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateFlowBinder_emptyFlowBinderContent_throws() throws JsonException {
+    public void updateFlowBinder_emptyFlowBinderContent_throws() throws JsonException, ReferencedEntityNotFoundException {
         newFlowBindersBeanWithMockedEntityManager().updateFlowBinder("", 1L, 1L);
     }
 
     @Test
-    public void updateFlowBinder_flowBinderNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException {
+    public void updateFlowBinder_flowBinderNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
         final String flowBinderContent = new FlowBinderContentJsonBuilder().setName("UpdateContentName").build();
         final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
 
@@ -190,7 +190,7 @@ public class FlowBindersBeanTest {
     }
 
     @Test
-    public void updateFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() throws JsonException {
+    public void updateFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
         final String flowBinderContent = new FlowBinderContentJsonBuilder().setName("UpdateContentName").build();
         final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
         final FlowBinder flowBinder = mock(FlowBinder.class);
@@ -204,24 +204,9 @@ public class FlowBindersBeanTest {
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
-    @Test
-    public void updateFlowBinder_emptyQueryResult_returnsResponseWithHttpStatusNotFound() throws JsonException {
-        final String flowBinderContent = new FlowBinderContentJsonBuilder().setName("UpdateContentName").build();
-        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
-        final FlowBinder flowBinder = mock(FlowBinder.class);
-        final Query query = mock(Query.class);
-
-        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
-        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
-        when(query.getResultList()).thenReturn(new ArrayList());
-
-        final Response response = flowBindersBean.updateFlowBinder(flowBinderContent, 1L, 1L);
-        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
-    }
-
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = ReferencedEntityNotFoundException.class)
     @SuppressWarnings("unchecked")
-    public void updateFlowBinder_referencedSinkNotFound_throws() throws JsonException {
+    public void updateFlowBinder_referencedSinkNotFound_throws() throws JsonException, ReferencedEntityNotFoundException {
 
         final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
 
@@ -242,9 +227,9 @@ public class FlowBindersBeanTest {
         flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = ReferencedEntityNotFoundException.class)
     @SuppressWarnings("unchecked")
-    public void updateFlowBinder_referencedFlowNotFound_throws() throws JsonException {
+    public void updateFlowBinder_referencedFlowNotFound_throws() throws JsonException, ReferencedEntityNotFoundException {
 
         final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
 
@@ -264,9 +249,9 @@ public class FlowBindersBeanTest {
         flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = ReferencedEntityNotFoundException.class)
     @SuppressWarnings("unchecked")
-    public void updateFlowBinder_referencedSubmittersNotFound_throws() throws JsonException{
+    public void updateFlowBinder_referencedSubmittersNotFound_throws() throws JsonException, ReferencedEntityNotFoundException {
 
         final String flowBinderContentJson = new FlowBinderContentJsonBuilder().build();
 
@@ -290,7 +275,7 @@ public class FlowBindersBeanTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void updateFlowBinder_flowBinderFound_returnsResponseWithHttpStatusOk_returnsFlowBinder() throws JsonException {
+    public void updateFlowBinder_flowBinderFound_returnsResponseWithHttpStatusOk_returnsFlowBinder() throws JsonException, ReferencedEntityNotFoundException {
 
         final Submitter submitter = new Submitter();
         String submitterContentJson = new SubmitterContentJsonBuilder().build();

@@ -1,5 +1,8 @@
 package dk.dbc.dataio.commons.types.exceptions;
 
+import javax.ejb.ApplicationException;
+
+@ApplicationException(rollback = true)
 public class ReferencedEntityNotFoundException extends Exception {
     private static final long serialVersionUID = 8207867940250219288L;
 

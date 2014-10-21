@@ -173,6 +173,7 @@ public class FlowBindersBean {
      * a HTTP 404 NOT_FOUND response if flow binder is not found
      * a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints,
      * a HTTP 409 response in case of Concurrent Update error
+     * a HTTP 412 PRECONDITION_FAILED on failure to locate one or more of the referenced objects
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
      * @throws JsonException when given invalid (null-valued, empty-valued or
@@ -185,7 +186,7 @@ public class FlowBindersBean {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response updateFlowBinder(String flowBinderContent,
                                      @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id,
-                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException{
+                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException, ReferencedEntityNotFoundException{
 
         log.trace("called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
@@ -193,7 +194,7 @@ public class FlowBindersBean {
         // Retrieve the existing flow binder
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
         if (flowBinderEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+            return buildResponseNotFound(String.format("Error retrieving existing flow binder with id; %s", id));
         }
         // Delete the existing search indexes
         Response response = findAndDeleteSearchIndexesForFlowBinder(flowBinderEntity.getId());
@@ -290,9 +291,7 @@ public class FlowBindersBean {
         }
 
         if(query.getResultList().isEmpty()) {
-            String msg = getNoFlowBinderSearchIndexEntryFoundMessage(query);
-            log.info(msg);
-            response = buildResponseNotFound(msg);
+            log.warn(getNoFlowBinderSearchIndexEntryFoundMessage(query));
         }
         // Extract the results
         List<FlowBinderSearchIndexEntry> existingSearchIndexEntries = query.getResultList();
@@ -328,8 +327,7 @@ public class FlowBindersBean {
      * @param version the current version of the flow binder
      * @throws PersistenceException if the objects referenced by the flow binder, could not be resolved
      */
-    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JsonException, IllegalStateException{
-        try {
+    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JsonException, ReferencedEntityNotFoundException{
             entityManager.detach(flowBinderEntity);
             flowBinderEntity.setContent(flowBinderContentString);
             flowBinderEntity.setVersion(version);
@@ -338,9 +336,6 @@ public class FlowBindersBean {
             flowBinderEntity.setSubmitters(resolveSubmitters(flowBinderEntity.getSubmitterIds()));
             entityManager.merge(flowBinderEntity);
             entityManager.flush();
-        } catch (ReferencedEntityNotFoundException e) {
-            throw new IllegalStateException(e.getMessage());
-        }
     }
 
     /**

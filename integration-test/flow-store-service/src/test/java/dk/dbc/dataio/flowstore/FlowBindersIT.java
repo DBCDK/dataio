@@ -683,9 +683,11 @@ public class FlowBindersIT {
      * When : valid JSON is POSTed to the flow binders path with an identifier (update) but the referenced
      *        flow could not be located in the underlying database
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
-     * And  : request returns with a INTERNAL SERVER ERROR http status code
+     * And  : request returns with a PRECONDITION FAILED http status code
      * And  : assert that only one flow binder exist in the underlying database
      * And  : assert that only the original data from creation can be found in the underlying database
+     * And  : assert that database tables: flow_binders_search_index and flow_binders_submitters have been
+     *        updated correctly
      */
     @Test
     public void updateFlowBinder_referencedFlowNotFound_IllegalStateException() throws FlowStoreServiceConnectorException, SQLException {
@@ -695,7 +697,7 @@ public class FlowBindersIT {
                 createdFlowBinder.getContent().getSinkId(),
                 Arrays.asList(createdFlowBinder.getContent().getSubmitterIds().get(0)));
 
-        assertIllegalStateException(flowBinderContentForUpdate, createdFlowBinder);
+        assertReferencedEntityNotFoundException(flowBinderContentForUpdate, createdFlowBinder);
     }
 
     /**
@@ -703,9 +705,11 @@ public class FlowBindersIT {
      * When : valid JSON is POSTed to the flow binders path with an identifier (update) but the referenced
      *        sink could not be located in the underlying database
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
-     * And  : request returns with a INTERNAL SERVER ERROR http status code
+     * And  : request returns with a PRECONDITION FAILED http status code
      * And  : assert that only one flow binder exist in the underlying database
      * And  : assert that only the original data from creation can be found in the underlying database
+     * And  : assert that database tables: flow_binders_search_index and flow_binders_submitters have been
+     *        updated correctly
      */
     @Test
     public void updateFlowBinder_referencedSinkNotFound_IllegalStateException() throws FlowStoreServiceConnectorException, SQLException {
@@ -715,7 +719,7 @@ public class FlowBindersIT {
                 NONE_EXISTING_ID,
                 Arrays.asList(createdFlowBinder.getContent().getSubmitterIds().get(0)));
 
-        assertIllegalStateException(flowBinderContentForUpdate, createdFlowBinder);
+        assertReferencedEntityNotFoundException(flowBinderContentForUpdate, createdFlowBinder);
     }
 
     /**
@@ -723,9 +727,11 @@ public class FlowBindersIT {
      * When : valid JSON is POSTed to the flow binders path with an identifier (update) but the referenced
      *        submitter could not be located in the underlying database
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
-     * And  : request returns with a INTERNAL SERVER ERROR http status code
+     * And  : request returns with a PRECONDITION FAILED http status code
      * And  : assert that only one flow binder exist in the underlying database
      * And  : assert that only the original data from creation can be found in the underlying database
+     * And  : assert that database tables: flow_binders_search_index and flow_binders_submitters have been
+     *        updated correctly
      */
     @Test
     public void updateFlowBinder_referencedSubmitterNotFound_IllegalStateException() throws FlowStoreServiceConnectorException, SQLException {
@@ -737,7 +743,7 @@ public class FlowBindersIT {
                 Arrays.asList(NONE_EXISTING_ID));
 
         // When...
-        assertIllegalStateException(flowBinderContentForUpdate, createdFlowBinder);
+        assertReferencedEntityNotFoundException(flowBinderContentForUpdate, createdFlowBinder);
     }
 
     /*
@@ -753,7 +759,7 @@ public class FlowBindersIT {
      * @throws SQLException
      * @throws FlowStoreServiceConnectorException
      */
-    private void assertIllegalStateException(FlowBinderContent flowBinderContentForUpdate, FlowBinder flowBinder) throws SQLException, FlowStoreServiceConnectorException{
+    private void assertReferencedEntityNotFoundException(FlowBinderContent flowBinderContentForUpdate, FlowBinder flowBinder) throws SQLException, FlowStoreServiceConnectorException{
         try {
             flowStoreServiceConnector.updateFlowBinder(flowBinderContentForUpdate, flowBinder.getId(), flowBinder.getVersion());
             fail("None existing reference was not detected as input to updateFlowBinder().");
@@ -761,7 +767,7 @@ public class FlowBindersIT {
             // Then...
         }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...
-            assertThat(e.getStatusCode(), is(500));
+            assertThat(e.getStatusCode(), is(412));
 
             // And...
             final List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
@@ -773,7 +779,12 @@ public class FlowBindersIT {
             assertThat(flowBinders.get(0).getContent().getName(), is(FLOW_BINDER_ORIGINAL_NAME));
             assertThat(flowBinders.get(0).getContent().getDestination(), is(FLOW_BINDER_ORIGINAL_DESTINATION));
 
-            assertSearchIndexAndFlowBindersSubmittersHoldingExpectedValues(flowBinder.getId(), flowBinder.getContent().getSubmitterIds(), 1, flowBinder.getContent().getPackaging());
+            // And... assert that the tables: flow_binder_search_index and flow_binders_submitters have not been updated
+            assertSearchIndexAndFlowBindersSubmittersHoldingExpectedValues(
+                    flowBinder.getId(),
+                    flowBinder.getContent().getSubmitterIds(),
+                    flowBinder.getContent().getSubmitterIds().size(),
+                    flowBinder.getContent().getPackaging());
         }
     }
 

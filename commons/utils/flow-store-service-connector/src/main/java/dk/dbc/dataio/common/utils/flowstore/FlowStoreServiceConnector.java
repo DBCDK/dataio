@@ -522,6 +522,19 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Retrieves a flow binder through search indexes
+     *
+     * @param packaging of the flow binder
+     * @param format of the flow binder
+     * @param charset of the flow binder
+     * @param submitterNumber identifying the referenced submitter
+     * @param destination of the flow binder
+     *
+     * @return the flow binder
+     *
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flow binder
+     */
     public FlowBinder getFlowBinder(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException{
 
         final Map<String, Object> queryParameters = new HashMap<>(5);

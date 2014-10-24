@@ -10,7 +10,6 @@ import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowPlace;
 import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowTexts;
 import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowView;
 import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowActivity;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowPlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowTexts;
@@ -140,7 +139,7 @@ public class ClientFactoryImpl implements ClientFactory {
         MenuItem createFlow = new MenuItem(GUIID_MENU_ITEM_FLOW_CREATE, flowModifyTexts.menu_FlowCreation(), new dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace());
         MenuItem createFlowComponent = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE, flowComponentCreateEditTexts.menu_FlowComponentCreation(), new FlowComponentCreatePlace());
         MenuItem showFlowComponents = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW, flowComponentsShowTexts.menu_FlowComponentsShow(), new FlowComponentsShowPlace());
-        MenuItem createFlowBinder = new MenuItem(GUIID_MENU_ITEM_FLOWBINDER_CREATE, flowBinderModifyTexts.menu_FlowBinderCreation(), new CreatePlace());
+        MenuItem createFlowBinder = new MenuItem(GUIID_MENU_ITEM_FLOWBINDER_CREATE, flowBinderModifyTexts.menu_FlowBinderCreation(), new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace());
         MenuItem showFlowBinders = new MenuItem(GUIID_MENU_ITEM_FLOW_BINDERS_SHOW, flowBindersShowTexts.menu_FlowBindersShow(), new FlowBindersShowPlace());
         MenuItem flowsMenu = new MenuItem(GUIID_MENU_ITEM_FLOWS_SHOW, flowsShowTexts.menu_Flows(), new FlowsShowPlace(),
                                           createFlow,

@@ -22,6 +22,8 @@ import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
         JavaScriptLogPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.sink.show.SinksShowPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowPlace.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace.Tokenizer.class
 })
 

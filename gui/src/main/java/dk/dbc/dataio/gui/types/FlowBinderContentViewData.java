@@ -1,9 +1,11 @@
 
 package dk.dbc.dataio.gui.types;
 
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,17 +15,17 @@ import java.util.List;
  * This class is used in the communication between the Activities and the Views
  *
  */
-public class FlowBinderContentViewData extends FlowBinderContent {
+public class FlowBinderContentViewData extends FlowBinder {
 
     private String flowName;
     private String sinkName;
     private List<SubmitterContent> submitterContents;
 
-    public FlowBinderContentViewData(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter,
+    public FlowBinderContentViewData(long flowBinderId, long flowBinderVersion, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter,
                                     Long flowId, String flowName,
                                     List<Long> submitterIds, List<SubmitterContent> submitterContents,
                                     Long sinkId, String sinkName) {
-        super(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, sinkId);
+        super(flowBinderId, flowBinderVersion, new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, sinkId));
         this.flowName = InvariantUtil.checkNotNullNotEmptyOrThrow(flowName, "flowName");
         this.sinkName = InvariantUtil.checkNotNullNotEmptyOrThrow(sinkName, "sinkName");
         this.submitterContents = new ArrayList<SubmitterContent>(InvariantUtil.checkNotNullOrThrow(submitterContents, "submitterContents"));
@@ -43,5 +45,4 @@ public class FlowBinderContentViewData extends FlowBinderContent {
     public List<SubmitterContent> getSubmitters() {
         return new ArrayList<SubmitterContent>(submitterContents);
     }
-
 }

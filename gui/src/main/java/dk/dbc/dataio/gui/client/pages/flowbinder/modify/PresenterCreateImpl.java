@@ -15,7 +15,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     public PresenterCreateImpl(ClientFactory clientFactory, Texts constants) {
         super(clientFactory, constants);
-        view = clientFactory.getFlowbinderCreateView();
+        view = clientFactory.getFlowBinderCreateView();
     }
 
     /**

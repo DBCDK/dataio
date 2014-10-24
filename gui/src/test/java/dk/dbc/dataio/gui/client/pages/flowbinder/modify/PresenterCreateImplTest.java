@@ -45,7 +45,7 @@ public class PresenterCreateImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowbinderCreateView()).thenReturn(view);
+        when(mockedClientFactory.getFlowBinderCreateView()).thenReturn(view);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
         when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
     }
@@ -64,7 +64,7 @@ public class PresenterCreateImplTest {
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
 
-        verify(mockedClientFactory).getFlowbinderCreateView();
+        verify(mockedClientFactory).getFlowBinderCreateView();
     }
 
     @Test

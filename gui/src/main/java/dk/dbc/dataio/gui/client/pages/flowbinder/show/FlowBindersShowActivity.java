@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.Flow;
@@ -9,9 +10,11 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.types.FlowBinderContentViewData;
 import dk.dbc.dataio.gui.util.ClientFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,12 +22,13 @@ import java.util.Map;
 
 
 /**
- * This class represents the show flowbinders activity
+ * This class represents the show flow binders activity
  */
 public class FlowBindersShowActivity extends AbstractActivity implements FlowBindersShowPresenter {
     private final ClientFactory clientFactory;
     private FlowBindersShowView flowBindersShowView;
     private final FlowStoreProxyAsync flowStoreProxy;
+    private final PlaceController placeController;
 
     private static List<FlowBinder> flowBinders = null;
     private final Map<Long, String> flows = new HashMap<Long, String>();
@@ -35,6 +39,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     public FlowBindersShowActivity(ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+        placeController = clientFactory.getPlaceController();
     }
 
     private void bind() {
@@ -52,6 +57,14 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
         fetchSubmitters();
     }
 
+    /**
+     * Creates a new place
+     * @param flowBinderContentViewData containing information about the flow binder
+     */
+    @Override
+    public void updateFlowBinder(FlowBinderContentViewData flowBinderContentViewData) {
+        placeController.goTo(new EditPlace(flowBinderContentViewData));
+    }
 
 
     // Local methods
@@ -117,7 +130,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
     }
 
     private void setFlowBinders(List<FlowBinder> flowBinders) {
-        this.flowBinders = flowBinders;
+        FlowBindersShowActivity.flowBinders = flowBinders;
         sendDataToView();
     }
 
@@ -147,6 +160,8 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
             List<FlowBinderContentViewData> result = new ArrayList<FlowBinderContentViewData>();
             for (FlowBinder flowBinder: flowBinders) {
                 FlowBinderContentViewData flowBinderContentViewData = new FlowBinderContentViewData(
+                    flowBinder.getId(),
+                    flowBinder.getVersion(),
                     flowBinder.getContent().getName(),
                     flowBinder.getContent().getDescription(),
                     flowBinder.getContent().getPackaging(),

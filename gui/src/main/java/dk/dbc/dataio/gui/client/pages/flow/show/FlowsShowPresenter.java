@@ -5,5 +5,5 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface FlowsShowPresenter extends GenericPresenter {
     void refreshFlowComponents(Flow flow);
-    void updateFlow(Flow sink);
+    void updateFlow(Flow flow);
 }

@@ -7,8 +7,10 @@ public interface Texts extends Constants {
 
     // Menu text
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowbinderCreation();
+    String menu_FlowBinderCreation();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_FlowBinderEdit();
 
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

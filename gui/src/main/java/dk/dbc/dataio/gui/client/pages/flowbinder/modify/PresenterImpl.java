@@ -198,7 +198,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return model.getNumber() + " (" + model.getName() + ")";
     }
 
-    private void updateAllFieldsAccordingToCurrentState() {
+    void updateAllFieldsAccordingToCurrentState() {
         view.name.setText(model.getName());
         view.description.setText(model.getDescription());
         view.frame.setText(model.getPackaging());

@@ -82,12 +82,24 @@ public class ViewImpl extends ContentPanel<Presenter> implements View {
     }
 
     /**
+     * initializeFields initializes and disables all fields in the view
+     */
+    @Override
+    public void initializeFields() {
+        namePanel.clearText();
+        namePanel.setEnabled(false);
+        resourcePanel.clearText();
+        resourcePanel.setEnabled(false);
+    }
+
+    /**
      * setName sets the name field in the form
      * @param name, the name to set
      */
     @Override
     public void setName(String name) {
         namePanel.setText(name);
+        namePanel.setEnabled(true);
     }
 
     /**
@@ -106,6 +118,7 @@ public class ViewImpl extends ContentPanel<Presenter> implements View {
     @Override
     public void setResource(String resource) {
         resourcePanel.setText(resource);
+        resourcePanel.setEnabled(true);
     }
 
     /**

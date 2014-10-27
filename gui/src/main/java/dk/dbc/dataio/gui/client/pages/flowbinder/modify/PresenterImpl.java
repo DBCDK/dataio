@@ -24,7 +24,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected final Texts texts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected View view;
-    protected FlowBinderModel model;
+
+    // Application Models
+    protected FlowBinderModel model = new FlowBinderModel();
     protected List<SubmitterModel> availableSubmitters = new ArrayList<SubmitterModel>();
     protected List<FlowModel> availableFlows = new ArrayList<FlowModel>();
     protected List<SinkModel> availableSinks = new ArrayList<SinkModel>();
@@ -53,6 +55,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        initializeViewFields();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
         fetchAvailableSubmitters();
@@ -61,6 +64,30 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         initializeModel();
         model.setRecordSplitter(texts.label_DefaultRecordSplitter());
         updateAllFieldsAccordingToCurrentState();
+    }
+
+    private void initializeViewFields() {
+        view.name.clearText();
+        view.name.setEnabled(false);
+        view.description.clearText();
+        view.description.setEnabled(false);
+        view.frame.clearText();
+        view.frame.setEnabled(false);
+        view.format.clearText();
+        view.format.setEnabled(false);
+        view.charset.clearText();
+        view.charset.setEnabled(false);
+        view.destination.clearText();
+        view.destination.setEnabled(false);
+//        view.recordsplitter.clearText();
+//        view.recordsplitter.setEnabled(false);
+        view.submitters.clear();
+        view.submitters.setEnabled(false);
+        view.flow.clear();
+        view.flow.setEnabled(false);
+        view.sink.clear();
+        view.sink.setEnabled(false);
+        view.status.setText("");
     }
 
     /**
@@ -200,20 +227,29 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     void updateAllFieldsAccordingToCurrentState() {
         view.name.setText(model.getName());
+        view.name.setEnabled(true);
         view.description.setText(model.getDescription());
+        view.description.setEnabled(true);
         view.frame.setText(model.getPackaging());
+        view.frame.setEnabled(true);
         view.format.setText(model.getFormat());
+        view.format.setEnabled(true);
         view.charset.setText(model.getCharset());
+        view.charset.setEnabled(true);
         view.destination.setText(model.getDestination());
+        view.destination.setEnabled(true);
         view.recordsplitter.setText(model.getRecordSplitter());
         view.recordsplitter.setEnabled(false);
         view.submitters.setSelectedItems(getSelectedSubmitters(model));
+        view.submitters.setEnabled(true);
         if (model.getFlowModel().getId() != 0) {
             view.flow.setSelected((int) model.getFlowModel().getId());
         }
+        view.flow.setEnabled(true);
         if (model.getSinkModel().getId() != 0) {
             view.sink.setSelected((int) model.getSinkModel().getId());
         }
+        view.sink.setEnabled(true);
     }
 
     private Map<String, String> getSelectedSubmitters(FlowBinderModel model) {

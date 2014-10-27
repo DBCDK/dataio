@@ -11,7 +11,6 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -94,7 +93,8 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
         SinkModel model = new SinkModel(4453, 1L, "Name", "Resource");
 
-        assertThat(presenterEditImplConcrete.model, is(nullValue())); // Assert that the model has not yet been initialized
+        assertThat(presenterEditImplConcrete.model, is(notNullValue()));
+        assertThat(presenterEditImplConcrete.model.getSinkName(), is(""));
 
         presenterEditImplConcrete.getSinkCallback.onSuccess(model);  // Emulate a successful callback from flowstore
 

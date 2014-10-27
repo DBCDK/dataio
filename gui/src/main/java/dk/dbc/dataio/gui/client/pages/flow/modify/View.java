@@ -5,6 +5,7 @@ import dk.dbc.dataio.gui.client.views.GenericView;
 import java.util.Map;
 
 public interface View extends GenericView<Presenter> {
+    void initializeFields();
     void setName(String name);
     String getName();
     void setDescription(String description);

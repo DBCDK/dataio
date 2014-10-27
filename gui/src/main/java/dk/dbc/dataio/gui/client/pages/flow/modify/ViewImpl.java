@@ -91,12 +91,26 @@ public class ViewImpl extends ContentPanel<Presenter> implements View {
     }
 
     /**
+     * disableFields disables all fields in the view
+     */
+    @Override
+    public void initializeFields() {
+        flowNamePanel.clearText();
+        flowNamePanel.setEnabled(false);
+        flowDescriptionPanel.clearText();
+        flowDescriptionPanel.setEnabled(false);
+        flowComponentSelectionPanel.clear();
+        flowComponentSelectionPanel.setEnabled(false);
+    }
+
+    /**
      * setName sets the name field in the form
      * @param name, the name to set
      */
     @Override
     public void setName(String name) {
         flowNamePanel.setText(name);
+        flowNamePanel.setEnabled(true);
     }
 
     /**
@@ -115,6 +129,7 @@ public class ViewImpl extends ContentPanel<Presenter> implements View {
     @Override
     public void setDescription(String description) {
         flowDescriptionPanel.setText(description);
+        flowDescriptionPanel.setEnabled(true);
     }
 
     /**

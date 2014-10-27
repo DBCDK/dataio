@@ -1,12 +1,10 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,13 +15,10 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.notNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +71,8 @@ public class PresenterCreateImplTest {
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
-        assertThat(presenterCreateImpl.model, is(nullValue()));
+        assertThat(presenterCreateImpl.model, is(notNullValue()));
+        assertThat(presenterCreateImpl.model.getFlowName(), is(""));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
         assertThat(presenterCreateImpl.model, is(notNullValue()));

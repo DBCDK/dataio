@@ -18,8 +18,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected Texts texts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected View view;
-    protected FlowModel model;
-    protected List<FlowComponentModel> availableFlowComponentModels;
+    protected FlowModel model = new FlowModel();
+    protected List<FlowComponentModel> availableFlowComponentModels = new ArrayList<FlowComponentModel>();
 
     private final static String EMPTY = "";
 
@@ -38,6 +38,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        view.initializeFields();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
         initializeModel();
@@ -154,7 +155,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Method used to set the model after a successful update or a save
-     * @param model
+     * @param model The model to save
      */
     protected void setFlowModel(FlowModel model) {
         this.model = model;

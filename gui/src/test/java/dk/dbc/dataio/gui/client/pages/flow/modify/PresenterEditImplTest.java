@@ -18,7 +18,6 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMap;
 import static org.mockito.Matchers.eq;
@@ -106,7 +105,8 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
         FlowModel model = getValidFlowModel(4, 5);
 
-        assertThat(presenterEditImplConcrete.model, is(nullValue())); // Assert that the model has not yet been initialized
+        assertThat(presenterEditImplConcrete.model, is(notNullValue()));
+        assertThat(presenterEditImplConcrete.model.getFlowName(), is(""));
 
         presenterEditImplConcrete.callback.onSuccess(model);  // Emulate a successful callback from flowstore
 

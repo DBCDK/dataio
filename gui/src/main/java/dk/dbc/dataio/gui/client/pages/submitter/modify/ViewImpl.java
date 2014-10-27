@@ -94,12 +94,26 @@ public class ViewImpl extends ContentPanel<Presenter>  implements View {
     }
 
     /**
+     * initializeFields initializes and disables all fields in the view
+     */
+    @Override
+    public void initializeFields() {
+        numberPanel.clearText();
+        numberPanel.setEnabled(false);
+        namePanel.clearText();
+        namePanel.setEnabled(false);
+        descriptionPanel.clearText();
+        descriptionPanel.setEnabled(false);
+    }
+
+    /**
      * setNumber sets the number field in the form
-     * @param number
+     * @param number The number to set
      */
     @Override
     public void setNumber(String number) {
         numberPanel.setText(number);
+        numberPanel.setEnabled(true);
     }
 
     /**
@@ -113,11 +127,12 @@ public class ViewImpl extends ContentPanel<Presenter>  implements View {
 
     /**
      * setName sets the name field in the form
-     * @param name
+     * @param name The name to set
      */
     @Override
     public void setName(String name) {
         namePanel.setText(name);
+        namePanel.setEnabled(true);
     }
 
     /**
@@ -131,11 +146,12 @@ public class ViewImpl extends ContentPanel<Presenter>  implements View {
 
     /**
      * setDescription sets the description field in the form
-     * @param description
+     * @param description The description to set
      */
     @Override
     public void setDescription(String description) {
         descriptionPanel.setText(description);
+        descriptionPanel.setEnabled(true);
     }
 
     /**

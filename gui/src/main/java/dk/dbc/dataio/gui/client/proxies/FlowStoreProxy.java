@@ -5,7 +5,6 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
@@ -38,7 +37,6 @@ public interface FlowStoreProxy extends RemoteService {
     FlowComponent getFlowComponent(Long id) throws ProxyException;
 
     // Flow Binders
-    FlowBinder createFlowBinderOld(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException;
     FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException;
     List<FlowBinder> findAllFlowBinders() throws ProxyException;
     FlowBinderModel getFlowBinder(long id) throws ProxyException;

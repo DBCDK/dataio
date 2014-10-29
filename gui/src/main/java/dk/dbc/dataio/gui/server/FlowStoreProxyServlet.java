@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
@@ -109,11 +108,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     /*
      * Flows Binders
      */
-
-    @Override
-    public FlowBinder createFlowBinderOld(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createFlowBinderOld(flowBinderContent);
-    }
 
     @Override
     public FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {

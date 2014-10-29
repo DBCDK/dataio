@@ -5,7 +5,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
@@ -240,19 +239,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     /*
      * Flows Binders
      */
-
-    @Override
-    public FlowBinder createFlowBinderOld(FlowBinderContent flowBinderContent) throws NullPointerException, ProxyException {
-        FlowBinder flowBinder;
-        try {
-            flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return flowBinder;
-    }
 
     @Override
     public FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {

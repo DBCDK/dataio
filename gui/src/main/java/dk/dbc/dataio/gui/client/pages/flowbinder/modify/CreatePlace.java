@@ -16,7 +16,7 @@ public class CreatePlace extends Place {
     public CreatePlace() {
     }
 
-    @Prefix("CreateFlowbinder")
+    @Prefix("CreateFlowBinder")
     public static class Tokenizer implements PlaceTokenizer<CreatePlace> {
         @Override
         public String getToken(CreatePlace place) {

@@ -22,12 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 
 /**
  * PresenterImpl unit tests
@@ -153,21 +154,9 @@ public class PresenterImplTest {
         verify(mockedFlowStoreProxy).findAllSinks(any(FilteredAsyncCallback.class));
         assertThat(initializeModelHasBeenCalled, is(true));
         FlowBinderModel model = presenterImpl.model;
-        assertThat(model.getRecordSplitter(), is(DEFAULT_RECORD_SPLITTER));
-        verify(view.name).setText(model.getName());
-        verify(view.description).setText(model.getDescription());
-        verify(view.frame).setText(model.getPackaging());
-        verify(view.format).setText(model.getFormat());
-        verify(view.charset).setText(model.getCharset());
-        verify(view.destination).setText(model.getDestination());
-        verify(view.recordsplitter).setText(model.getRecordSplitter());
-        verify(view.recordsplitter).setEnabled(false);
         Map<String, String> selectedSubmitterModel = new HashMap<String, String>();
         SubmitterModel sModel = model.getSubmitterModels().get(0);
         selectedSubmitterModel.put(String.valueOf(sModel.getId()), sModel.getNumber() + " (" + sModel.getName() + ")");
-        verify(view.submitters).setSelectedItems(selectedSubmitterModel);
-        verify(view.flow).setSelected((int) model.getFlowModel().getId());
-        verify(view.sink).setSelected((int) model.getSinkModel().getId());
     }
 
     @Test

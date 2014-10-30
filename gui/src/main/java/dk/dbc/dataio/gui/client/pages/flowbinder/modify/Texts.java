@@ -12,6 +12,7 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_FlowBinderEdit();
 
+
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_FlowBinderName();
@@ -69,6 +70,9 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_FlowbinderAlreadyExistsError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CannotFetchFlowBinder();
 
 
     // Status messages

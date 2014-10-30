@@ -62,8 +62,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         fetchAvailableFlows();
         fetchAvailableSinks();
         initializeModel();
-        model.setRecordSplitter(texts.label_DefaultRecordSplitter());
-        updateAllFieldsAccordingToCurrentState();
     }
 
     private void initializeViewFields() {
@@ -79,8 +77,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(false);
         view.destination.clearText();
         view.destination.setEnabled(false);
-//        view.recordsplitter.clearText();
-//        view.recordsplitter.setEnabled(false);
+        view.recordsplitter.clearText();
+        view.recordsplitter.setEnabled(false);
         view.submitters.clear();
         view.submitters.setEnabled(false);
         view.flow.clear();
@@ -225,7 +223,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return model.getNumber() + " (" + model.getName() + ")";
     }
 
-    void updateAllFieldsAccordingToCurrentState() {
+    protected void updateAllFieldsAccordingToCurrentState() {
+        model.setRecordSplitter(texts.label_DefaultRecordSplitter());
         view.name.setText(model.getName());
         view.name.setEnabled(true);
         view.description.setText(model.getDescription());
@@ -240,6 +239,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setEnabled(true);
         view.recordsplitter.setText(model.getRecordSplitter());
         view.recordsplitter.setEnabled(false);
+        view.submitters.setAvailableItems(getAvailableSubmitters(model));
         view.submitters.setSelectedItems(getSelectedSubmitters(model));
         view.submitters.setEnabled(true);
         if (model.getFlowModel().getId() != 0) {
@@ -252,12 +252,31 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.sink.setEnabled(true);
     }
 
-    private Map<String, String> getSelectedSubmitters(FlowBinderModel model) {
-        Map<String, String> submitters = new HashMap<String, String>();
-        for (SubmitterModel submitterModel: model.getSubmitterModels()) {
-            submitters.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
+    private Map<String, String> getAvailableSubmitters(FlowBinderModel model) {
+        Map<String, String> availableSubmitterMap = new HashMap<String, String>();
+        for (SubmitterModel submitterModel: this.availableSubmitters) {
+            if (!isSubmitterSelected(submitterModel.getId(), model.getSubmitterModels())) {
+                availableSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
+            }
         }
-        return submitters;
+        return availableSubmitterMap;
+    }
+
+    private boolean isSubmitterSelected(long id, List<SubmitterModel> submitterModels) {
+        for (SubmitterModel model: submitterModels) {
+            if (model.getId() == id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Map<String, String> getSelectedSubmitters(FlowBinderModel model) {
+        Map<String, String> selectedSubmitterMap = new HashMap<String, String>();
+        for (SubmitterModel submitterModel: model.getSubmitterModels()) {
+            selectedSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
+        }
+        return selectedSubmitterMap;
     }
 
     protected void setAvailableSubmitters(List<SubmitterModel> models) {
@@ -330,7 +349,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         throw new IllegalArgumentException("Sink not found");
     }
 
-    private void setFlowBinderModel(FlowBinderModel model) {
+    protected void setFlowBinderModel(FlowBinderModel model) {
         this.model = model;
     }
 

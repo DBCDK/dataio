@@ -25,6 +25,7 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     public void initializeModel() {
         model = new FlowBinderModel();
+        updateAllFieldsAccordingToCurrentState();
     }
 
     /**

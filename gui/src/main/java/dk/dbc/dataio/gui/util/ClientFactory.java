@@ -63,4 +63,5 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.faileditems.View getFaileditemsView();
 
     AppPlaceHistoryMapper getHistoryMapper();
+
 }

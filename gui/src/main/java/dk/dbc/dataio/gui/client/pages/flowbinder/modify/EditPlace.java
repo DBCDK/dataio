@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.gui.types.FlowBinderContentViewData;
+import dk.dbc.dataio.commons.types.FlowBinder;
 
 public class EditPlace extends Place {
     private Long flowBinderId;
@@ -12,11 +12,11 @@ public class EditPlace extends Place {
         this.flowBinderId = Long.valueOf(url);
     }
 
-    public EditPlace(FlowBinderContentViewData flowBinderContentViewData) {
-        this.flowBinderId = flowBinderContentViewData.getId();
+    public EditPlace(FlowBinder flowBinder) {
+        this.flowBinderId = flowBinder.getId();
     }
 
-    public Long getFlowId() {
+    public Long getFlowBinderId() {
         return flowBinderId;
     }
 
@@ -24,7 +24,7 @@ public class EditPlace extends Place {
     public static class Tokenizer implements PlaceTokenizer<EditPlace> {
         @Override
         public String getToken(EditPlace place) {
-            return String.valueOf(place.getFlowId());
+            return String.valueOf(place.getFlowBinderId());
         }
         @Override
         public EditPlace getPlace(String token) {

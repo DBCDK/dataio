@@ -101,6 +101,6 @@ public class SequenceAnalyserMonitorBean {
     }
 
     private ObjectName getObjectName(String localName) throws MalformedObjectNameException {
-        return new ObjectName("dk.dbc.dataio.jobstore.monitoring:type=" + this.getClass().getSimpleName() + "." + localName);
+        return new ObjectName("dk.dbc.dataio.jobstore.monitoring:type=" + this.getClass().getSimpleName() + ",name=" + localName);
     }
 }

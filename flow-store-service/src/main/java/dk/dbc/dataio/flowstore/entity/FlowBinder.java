@@ -7,6 +7,9 @@ import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.flowstore.ejb.FlowBindersBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,6 +47,9 @@ uniqueConstraints = {
     @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER, query = FlowBinder.FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)
 })
 public class FlowBinder extends VersionedEntity {
+
+    private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
+
     public static final String TABLE_NAME = "flow_binders";
     public static final String SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
@@ -120,6 +126,7 @@ public class FlowBinder extends VersionedEntity {
 
     @JsonIgnore
     public Set<Long> getSubmitterIds() {
+        log.info("===> getSubmitterIds(): " + submitterIds);
         return new HashSet<>(submitterIds);
     }
 
@@ -152,6 +159,7 @@ public class FlowBinder extends VersionedEntity {
      */
     @Override
     protected void preProcessContent(String data) throws JsonException {
+        log.info("===> preProcessContent(" + data + ")");
         final FlowBinderContent flowBinderContent = JsonUtil.fromJson(data, FlowBinderContent.class, MixIns.getMixIns());
         nameIndexValue = flowBinderContent.getName();
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
@@ -170,6 +178,7 @@ public class FlowBinder extends VersionedEntity {
      * @throws JsonException if flow binder contains invalid JSON content
      */
     public static List<FlowBinderSearchIndexEntry> generateSearchIndexEntries(final FlowBinder flowBinder) throws JsonException {
+        log.info("===> generateSearchIndexEntries(" + flowBinder.getId() + ")");
         InvariantUtil.checkNotNullOrThrow(flowBinder, "flowBinder");
         final FlowBinderContent flowBinderContent = JsonUtil.fromJson(flowBinder.getContent(), FlowBinderContent.class, MixIns.getMixIns());
         final String packaging = flowBinderContent.getPackaging();

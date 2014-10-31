@@ -1,3 +1,7 @@
+li {
+    list-style-type: none;
+}
+
 #main-panel {
     background-color: #f9f9f7;
 }

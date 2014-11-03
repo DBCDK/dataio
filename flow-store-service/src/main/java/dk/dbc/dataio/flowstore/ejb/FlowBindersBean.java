@@ -81,6 +81,7 @@ public class FlowBindersBean {
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitter_number,
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination) throws JsonException {
+        log.info("===> getFlowBinder() Enter");
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, FlowBinderFlowQuery.REST_PARAMETER_PACKAGING);
         InvariantUtil.checkNotNullNotEmptyOrThrow(format, FlowBinderFlowQuery.REST_PARAMETER_FORMAT);
@@ -111,6 +112,7 @@ public class FlowBindersBean {
             String msg = getMoreThanOneFlowFoundMessage(query);
             log.warn(msg);
         }
+        log.info("===> getFlowBinder() Exit");
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinders.get(0)));
     }
 
@@ -142,6 +144,7 @@ public class FlowBindersBean {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderContent) throws JsonException, ReferencedEntityNotFoundException {
+        log.info("===> createFlowBinder() Enter");
         log.trace("Called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
         /* ATTENTION:
@@ -173,6 +176,7 @@ public class FlowBindersBean {
         entityManager.flush();
 
         final String flowBinderJson = JsonUtil.toJson(flowBinder);
+        log.info("===> createFlowBinder() Exit");
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flowBinder))
                 .entity(flowBinderJson)
@@ -211,31 +215,38 @@ public class FlowBindersBean {
     public Response updateFlowBinder(String flowBinderContent,
                                      @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id,
                                      @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException, ReferencedEntityNotFoundException{
+        log.info("===> updateFlowBinder() Enter");
 
         log.trace("called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
 
         // Retrieve the existing flow binder
+        log.info("===> updateFlowBinder->(" + id + "):before entityManager.find(1/2)");
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, id);
         if (flowBinderEntity == null) {
             return buildResponseNotFound(String.format("Error retrieving existing flow binder with id; %s", id));
         }
         // Delete the existing search indexes
+        log.info("===> updateFlowBinder->(" + id + "):findAndDeleteSearchIndexesForFlowBinder()");
         Response response = findAndDeleteSearchIndexesForFlowBinder(flowBinderEntity.getId());
         if (response != null) {
             return response;
         }
         // Update the flow binder
+        log.info("===> updateFlowBinder->(" + id + "):updateFlowBinderEntity()");
         updateFlowBinderEntity(flowBinderEntity, flowBinderContent, version);
 
         // Retrieve the updated flow binder
+        log.info("===> updateFlowBinder->(" + id + "):before entityManager.find(2/2)");
         final FlowBinder updatedFlowBinderEntity = entityManager.find(FlowBinder.class, id);
 
         // Create new search indexes for the updated flow binder
+        log.info("===> updateFlowBinder->(" + id + "):createSearchIndexesForFlowBinder()");
         createSearchIndexesForFlowBinder(updatedFlowBinderEntity);
 
         // Return the updated flow binder
         String updatedFlowBinderEntityJson = JsonUtil.toJson(updatedFlowBinderEntity);
+        log.info("===> updateFlowBinder() Exit");
         return Response
                 .ok()
                 .entity(updatedFlowBinderEntityJson)
@@ -254,8 +265,10 @@ public class FlowBindersBean {
     @Path(FlowStoreServiceConstants.FLOW_BINDERS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllFlowBinders() throws JsonException {
+        log.info("===> findAllFlowBinders() Enter");
         final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
         final List<dk.dbc.dataio.commons.types.FlowBinder> results = query.getResultList();
+        log.info("===> findAllFlowBinders() Exit");
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
 
@@ -272,10 +285,12 @@ public class FlowBindersBean {
     @Path(FlowStoreServiceConstants.FLOW_BINDER)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id) throws JsonException {
+        log.info("===> getFlowBinderById() Enter");
         final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
         if (flowBinder == null) {
             return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
         }
+        log.info("===> getFlowBinderById() Exit");
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinder));
     }
 

@@ -10,6 +10,7 @@ import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserNoOrderKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,6 @@ public class JobStoreBean {
     // class scoped for easy test injection
     Path jobStorePath;
     JobStore jobStore;
-    SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
 
     @PostConstruct
     public void setupJobStore() {
@@ -56,7 +56,6 @@ public class JobStoreBean {
             LOGGER.error(errMsg, ex);
             throw new RuntimeException(errMsg, ex);
         }
-        sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator();
     }
 
     public JobStore getJobStore() {
@@ -65,9 +64,17 @@ public class JobStoreBean {
 
     public Job createAndScheduleJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         final Job job = jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream,
-                sequenceAnalyserKeyGenerator);
+                getSequenceAnalyserKeyGenerator(flowBinder));
         scheduleJob(job, sink);
         return job;
+    }
+
+    private SequenceAnalyserKeyGenerator getSequenceAnalyserKeyGenerator(FlowBinder flowBinder) {
+        if(flowBinder.getContent().getSequenceAnalysis()) {
+            return new SequenceAnalyserSinkKeyGenerator();
+        } else {
+            return new SequenceAnalyserNoOrderKeyGenerator();
+        }
     }
 
     private void scheduleJob(Job job, Sink sink) throws JobStoreException {

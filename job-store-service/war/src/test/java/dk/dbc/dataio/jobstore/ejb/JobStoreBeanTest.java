@@ -166,7 +166,7 @@ public class JobStoreBeanTest {
 
     @Ignore("Ignored while JobsBean handles the creation of inputstream")
     @Test
-    public void createJob_dataFileDoesNotExist_returnsJobInFailedState() throws JobStoreException, IOException {
+    public void createAndScheduleJob_dataFileDoesNotExist_returnsJobInFailedState() throws JobStoreException, IOException {
         final Path f = Paths.get("no-such-file");
         final Job job;
         try(InputStream is = Files.newInputStream(f)) {
@@ -178,7 +178,7 @@ public class JobStoreBeanTest {
     }
 
     @Test
-    public void createJob_mismatchBetweenSpecifiedAndActualEncoding_returnsJobInFailedState() throws JsonException, JobStoreException, IOException {
+    public void createAndScheduleJob_mismatchBetweenSpecifiedAndActualEncoding_returnsJobInFailedState() throws JsonException, JobStoreException, IOException {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record></data>";
         Files.write(f, someXML.getBytes());
@@ -197,7 +197,7 @@ public class JobStoreBeanTest {
     }
 
     @Test
-    public void createJob_dataFileContainsMultipleRecords_recordCountIsCorrect() throws JsonException, JobStoreException, IOException {
+    public void createAndScheduleJob_dataFileContainsMultipleRecords_recordCountIsCorrect() throws JsonException, JobStoreException, IOException {
         final Path f = tmpFolder.newFile().toPath();
         final String someXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><data><record>Content</record><record>Content</record></data>";
         Files.write(f, someXML.getBytes());

@@ -126,7 +126,6 @@ public class FlowBinder extends VersionedEntity {
 
     @JsonIgnore
     public Set<Long> getSubmitterIds() {
-        log.info("===> getSubmitterIds(): " + submitterIds);
         return new HashSet<>(submitterIds);
     }
 
@@ -159,7 +158,6 @@ public class FlowBinder extends VersionedEntity {
      */
     @Override
     protected void preProcessContent(String data) throws JsonException {
-        log.info("===> preProcessContent(" + data + ")");
         final FlowBinderContent flowBinderContent = JsonUtil.fromJson(data, FlowBinderContent.class, MixIns.getMixIns());
         nameIndexValue = flowBinderContent.getName();
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
@@ -178,7 +176,6 @@ public class FlowBinder extends VersionedEntity {
      * @throws JsonException if flow binder contains invalid JSON content
      */
     public static List<FlowBinderSearchIndexEntry> generateSearchIndexEntries(final FlowBinder flowBinder) throws JsonException {
-        log.info("===> generateSearchIndexEntries(" + flowBinder.getId() + ")");
         InvariantUtil.checkNotNullOrThrow(flowBinder, "flowBinder");
         final FlowBinderContent flowBinderContent = JsonUtil.fromJson(flowBinder.getContent(), FlowBinderContent.class, MixIns.getMixIns());
         final String packaging = flowBinderContent.getPackaging();

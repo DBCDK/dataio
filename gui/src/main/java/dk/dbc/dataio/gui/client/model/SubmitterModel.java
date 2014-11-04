@@ -1,7 +1,5 @@
 package dk.dbc.dataio.gui.client.model;
 
-import dk.dbc.dataio.gui.client.model.GenericBackendModel;
-
 public class SubmitterModel extends GenericBackendModel {
     private String number;
     private String name;
@@ -9,11 +7,11 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Constructor with all parameters
-     * @param id
-     * @param version
-     * @param number
-     * @param name
-     * @param description
+     * @param id Id for the Submitter Model
+     * @param version Version number for the Submitter Model
+     * @param number Submitter number
+     * @param name Submitter name
+     * @param description Submitter description
      */
     public SubmitterModel(long id, long version, String number, String name, String description) {
         super(id, version);
@@ -40,7 +38,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set number
-     * @param number
+     * @param number Submitter number
      */
     public void setNumber(String number) {
         this.number = number;
@@ -55,7 +53,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set name
-     * @param name
+     * @param name Submitter name
      */
     public void setName(String name) {
         this.name = name;
@@ -70,7 +68,7 @@ public class SubmitterModel extends GenericBackendModel {
 
     /**
      * Set description
-     * @param description
+     * @param description Submitter description
      */
     public void setDescription(String description) {
         this.description = description;

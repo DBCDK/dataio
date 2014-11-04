@@ -1,7 +1,5 @@
 package dk.dbc.dataio.gui.client.model;
 
-import dk.dbc.dataio.gui.client.model.GenericBackendModel;
-
 public class SinkModel extends GenericBackendModel {
 
     private String sinkName;
@@ -28,7 +26,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Set resource name
-     * @param resourceName
+     * @param resourceName Resource name
      */
     public void setResourceName(String resourceName) {
         this.resource = resourceName;
@@ -43,7 +41,7 @@ public class SinkModel extends GenericBackendModel {
 
     /**
      * Set sink name
-     * @param sinkName
+     * @param sinkName Sink name
      */
     public void setSinkName(String sinkName) {
         this.sinkName = sinkName;

@@ -1,6 +1,5 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
+package dk.dbc.dataio.gui.client.model;
 
-import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import org.junit.Test;
 
 import java.util.ArrayList;

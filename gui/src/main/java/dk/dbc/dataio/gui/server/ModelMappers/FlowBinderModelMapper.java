@@ -3,10 +3,10 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
-import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowBinderModel;
-import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
-import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 
 import java.util.ArrayList;
 import java.util.List;

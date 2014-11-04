@@ -4,9 +4,10 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
-import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
-import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 

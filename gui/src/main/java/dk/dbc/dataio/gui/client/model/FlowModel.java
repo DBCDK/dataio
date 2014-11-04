@@ -1,7 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flow.modify;
-
-import dk.dbc.dataio.gui.client.model.GenericBackendModel;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
+package dk.dbc.dataio.gui.client.model;
 
 import java.util.ArrayList;
 import java.util.List;

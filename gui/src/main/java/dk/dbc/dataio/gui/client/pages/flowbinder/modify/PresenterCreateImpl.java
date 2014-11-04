@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
 
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**

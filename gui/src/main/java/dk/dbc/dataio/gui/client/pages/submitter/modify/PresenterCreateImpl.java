@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**

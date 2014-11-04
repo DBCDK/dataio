@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.sink.modify;
+package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.gui.client.model.GenericBackendModel;
 

@@ -12,6 +12,7 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.NoSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SelectionModel;
+import dk.dbc.dataio.gui.client.model.FailedItemModel;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.ArrayList;

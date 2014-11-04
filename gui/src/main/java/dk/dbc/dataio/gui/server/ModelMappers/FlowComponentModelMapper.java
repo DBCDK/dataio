@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 
 import java.util.ArrayList;
 import java.util.List;

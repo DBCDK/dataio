@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import org.junit.Test;
 
 import java.util.ArrayList;

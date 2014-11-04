@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import org.junit.Test;
 
 import java.util.ArrayList;

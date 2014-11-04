@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;

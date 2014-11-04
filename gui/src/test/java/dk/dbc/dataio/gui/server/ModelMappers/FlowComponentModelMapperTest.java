@@ -6,7 +6,7 @@ import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import org.junit.Test;
 
 import java.util.ArrayList;

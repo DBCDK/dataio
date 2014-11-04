@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.model.FailedItemModel;
 import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;

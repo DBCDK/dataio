@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;

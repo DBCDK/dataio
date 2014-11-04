@@ -14,6 +14,7 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.utils.test.model.ChunkCompletionStateBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobCompletionStateBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
+import dk.dbc.dataio.gui.client.model.FailedItemModel;
 import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;

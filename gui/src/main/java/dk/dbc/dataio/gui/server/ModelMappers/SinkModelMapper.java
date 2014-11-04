@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 
 import java.util.ArrayList;
 import java.util.List;

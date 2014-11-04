@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

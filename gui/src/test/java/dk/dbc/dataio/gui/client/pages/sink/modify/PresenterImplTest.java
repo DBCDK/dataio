@@ -6,6 +6,7 @@ import com.google.gwt.user.client.ui.IsWidget;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;

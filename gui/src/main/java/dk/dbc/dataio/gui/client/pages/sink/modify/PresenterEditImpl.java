@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**

@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 import dk.dbc.dataio.gui.server.ModelMappers.SinkModelMapper;
 import org.glassfish.jersey.client.ClientConfig;

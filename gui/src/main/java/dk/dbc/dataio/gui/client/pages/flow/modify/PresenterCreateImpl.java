@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
+import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.faileditems;
+package dk.dbc.dataio.gui.client.model;
 
 import java.io.Serializable;
 

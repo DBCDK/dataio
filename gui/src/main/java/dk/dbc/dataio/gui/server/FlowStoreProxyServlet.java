@@ -8,11 +8,11 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.pages.flow.modify.FlowModel;
-import dk.dbc.dataio.gui.client.pages.flowbinder.modify.FlowBinderModel;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentModel;
-import dk.dbc.dataio.gui.client.pages.sink.modify.SinkModel;
-import dk.dbc.dataio.gui.client.pages.submitter.modify.SubmitterModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 
 import javax.naming.NamingException;

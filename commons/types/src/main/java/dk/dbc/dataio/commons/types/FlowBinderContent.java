@@ -22,6 +22,7 @@ public class FlowBinderContent implements Serializable {
     private /* final */ String charset;
     private /* final */ String destination;
     private /* final */ String recordSplitter;
+    private /* final */ boolean sequenceAnalysis;
     private /* final */ long flowId;
     private /* final */ List<Long> submitterIds;
     private /* final */ long sinkId;
@@ -41,13 +42,14 @@ public class FlowBinderContent implements Serializable {
      * @param charset flowbinder character set
      * @param destination flow binder destination
      * @param recordSplitter flow binder record splitter
+     * @param sequenceAnalysis boolean for telling whether sequence analysis is on or off for the flowbinder.
      * @param flowId id of flow attached to this flowbinder
      * @param submitterIds ids of submitters attached to this flowbinder
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String or List argument
      */
-    public FlowBinderContent(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, long flowId, List<Long> submitterIds, long sinkId) {
+    public FlowBinderContent(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, boolean sequenceAnalysis, long flowId, List<Long> submitterIds, long sinkId) {
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
@@ -55,6 +57,7 @@ public class FlowBinderContent implements Serializable {
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
         this.recordSplitter = InvariantUtil.checkNotNullNotEmptyOrThrow(recordSplitter, "recordSplitter");
+        this.sequenceAnalysis = sequenceAnalysis;
         this.flowId = InvariantUtil.checkLowerBoundOrThrow(flowId, "flowId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.submitterIds = new ArrayList<Long>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
         this.sinkId = InvariantUtil.checkLowerBoundOrThrow(sinkId, "sinkId", Constants.PERSISTENCE_ID_LOWER_BOUND);
@@ -93,6 +96,10 @@ public class FlowBinderContent implements Serializable {
 
     public String getRecordSplitter() {
         return recordSplitter;
+    }
+
+    public boolean getSequenceAnalysis() {
+        return sequenceAnalysis;
     }
 
     public long getSinkId() {

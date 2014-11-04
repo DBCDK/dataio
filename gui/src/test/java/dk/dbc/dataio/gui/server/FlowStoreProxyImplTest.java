@@ -73,7 +73,7 @@ public class FlowStoreProxyImplTest {
     private Submitter defaultSubmitter = new SubmitterBuilder().setId(DEFAULT_SUBMITTER_ID).build();
     private Sink defaultSink = new SinkBuilder().setId(DEFAULT_SINK_ID).build();
     private FlowBinderContent defaultFlowBinderContent = new FlowBinderContent(
-            "flow binder content", "description", "packaging", "format", "charset", "destination", "record splitter",
+            "flow binder content", "description", "packaging", "format", "charset", "destination", "record splitter", true,
             DEFAULT_FLOW_ID,
             Arrays.asList(DEFAULT_SUBMITTER_ID),
             DEFAULT_SINK_ID);

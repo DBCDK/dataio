@@ -12,6 +12,7 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
     private String charset = "charset";
     private String description = "description";
     private String recordSplitter = "recordSplitter";
+    private boolean sequenceAnalysis = true;
     private Long flowId = 42L;
     private List<Long> submitterIds = new ArrayList<>(Arrays.asList(43L));
     private Long sinkId = 44L;
@@ -56,6 +57,10 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
+    public FlowBinderContentJsonBuilder setSequenceAnalysis(boolean sequenceAnalysis) {
+        this.sequenceAnalysis = sequenceAnalysis;
+        return this;
+    }
 
     public FlowBinderContentJsonBuilder setSinkId(Long sinkId) {
         this.sinkId = sinkId;
@@ -76,6 +81,7 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("charset", charset)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("destination", destination)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("recordSplitter", recordSplitter)); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asBooleanMember("sequenceAnalysis", sequenceAnalysis)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("flowId", flowId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongArray("submitterIds", submitterIds)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("sinkId", sinkId));

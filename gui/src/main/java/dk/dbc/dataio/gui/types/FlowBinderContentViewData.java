@@ -21,11 +21,13 @@ public class FlowBinderContentViewData extends FlowBinder {
     private String sinkName;
     private List<SubmitterContent> submitterContents;
 
+    private static final boolean CHANGE_ME_I_AM_NOT_THE_CORRECT_SEQUENCE_ANALYSIS_VALUE = true;
+
     public FlowBinderContentViewData(long flowBinderId, long flowBinderVersion, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter,
                                     Long flowId, String flowName,
                                     List<Long> submitterIds, List<SubmitterContent> submitterContents,
                                     Long sinkId, String sinkName) {
-        super(flowBinderId, flowBinderVersion, new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, sinkId));
+        super(flowBinderId, flowBinderVersion, new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, CHANGE_ME_I_AM_NOT_THE_CORRECT_SEQUENCE_ANALYSIS_VALUE, flowId, submitterIds, sinkId));
         this.flowName = InvariantUtil.checkNotNullNotEmptyOrThrow(flowName, "flowName");
         this.sinkName = InvariantUtil.checkNotNullNotEmptyOrThrow(sinkName, "sinkName");
         this.submitterContents = new ArrayList<SubmitterContent>(InvariantUtil.checkNotNullOrThrow(submitterContents, "submitterContents"));

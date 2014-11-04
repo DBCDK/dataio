@@ -215,7 +215,7 @@ public class PerformanceIT {
         long sinkId = insertObjectInFlowStore(restClient, flowStorebaseUrl, sinkContent, FlowStoreServiceConstants.SINKS);
 
         // insert flowbinder
-        FlowBinderContent flowBinderContent = new FlowBinderContent("perftest-flowbinder", "flowbinder for perftest", "xml", "testdata", "utf8", "dummysink", "Default Record Splitter", flowId, Arrays.asList(Long.valueOf(submitterId)), sinkId);
+        FlowBinderContent flowBinderContent = new FlowBinderContent("perftest-flowbinder", "flowbinder for perftest", "xml", "testdata", "utf8", "dummysink", "Default Record Splitter", true, flowId, Arrays.asList(Long.valueOf(submitterId)), sinkId);
         insertObjectInFlowStore(restClient, flowStorebaseUrl, flowBinderContent, FlowStoreServiceConstants.FLOW_BINDERS);
 
         return new JobStoreServiceConnector(restClient, jobStorebaseUrl);

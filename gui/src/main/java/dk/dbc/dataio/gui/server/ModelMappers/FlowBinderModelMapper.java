@@ -68,6 +68,7 @@ public final class FlowBinderModelMapper {
                 model.getCharset(),
                 model.getDestination(),
                 model.getRecordSplitter(),
+                true, // todo - this should be replaced with correct value from model.
                 model.getFlowModel().getId(),
                 getSubmitterIds(model.getSubmitterModels()),
                 model.getSinkModel().getId()

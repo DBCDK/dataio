@@ -12,6 +12,7 @@ public class FlowBinderContentBuilder {
     private String charset = "flowbinder-charset";
     private String destination = "flowbinder-destination";
     private String recordSplitter = "flowbinder-recordsplitter";
+    private boolean sequenceAnalysis = true;
     private long flowId = 47L;
     private List<Long> submitterIds = Arrays.asList(78L);
     private long sinkId = 24L;
@@ -52,6 +53,11 @@ public class FlowBinderContentBuilder {
         return this;
     }
 
+    public FlowBinderContentBuilder setSequneceAnalysis(boolean sequenceAnalysis) {
+        this.sequenceAnalysis = sequenceAnalysis;
+        return this;
+    }
+
     public FlowBinderContentBuilder setFlowId(long flowId) {
         this.flowId = flowId;
         return this;
@@ -68,7 +74,7 @@ public class FlowBinderContentBuilder {
     }
 
     public FlowBinderContent build() {
-        return new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, sinkId);
+        return new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, sequenceAnalysis, flowId, submitterIds, sinkId);
     }
 
 }

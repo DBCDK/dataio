@@ -32,6 +32,12 @@ public abstract class JsonBuilder {
         return String.format("\"%s\": %s", memberName, memberValueAsString);
     }
 
+    protected String asBooleanMember(String memberName, boolean memberValue) {
+        final String memberValueAsString = (memberValue == true) ? "true"
+                : "false";
+        return String.format("\"%s\": %s", memberName, memberValueAsString);
+    }
+
     protected String asTextArray(String memberName, List<String> memberValues) {
         final String memberValuesAsString = (memberValues == null) ? NULL_VALUE
                 : String.format("%s%s%s", START_ARRAY, joinTextValues(",", memberValues), END_ARRAY);

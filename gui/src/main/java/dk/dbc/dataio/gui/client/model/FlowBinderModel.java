@@ -220,7 +220,7 @@ public class FlowBinderModel extends GenericBackendModel {
      *
      * @param sequenceAnalysis The sequence analysis boolean of the Flow Binder
      */
-    public void setRecordSplitter(boolean sequenceAnalysis) {
+    public void setSequenceAnalysis(boolean sequenceAnalysis) {
         this.sequenceAnalysis = sequenceAnalysis;
     }
 

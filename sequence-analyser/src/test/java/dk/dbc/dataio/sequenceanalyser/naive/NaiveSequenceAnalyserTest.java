@@ -70,25 +70,29 @@ public class NaiveSequenceAnalyserTest {
 
     /*
      * Given: An empty sequence.
-     * Given: A sequence analyser with two independent chunks.
-     * When : Two independent chunks are inserted
-     * Then : Both chunks must be retrieved as inactive and independent.
+     * Given: A sequence analyser with four independent chunks.
+     * When : Four independent chunks are inserted
+     * Then : All chunks must be retrieved as inactive and independent.
      */
     @Test
     public void testInsertionAndRetrievalOfTwoIndependentChunks() {
         // GIVEN:
         assertThat(sa.size(), is(0));
         // WHEN:
-        Chunk chunk1 = createChunk(1L, 2L, "horse");
-        Chunk chunk2 = createChunk(3L, 4L, "goat");
+        Chunk chunk1 = createChunk(1L, 1L);
+        Chunk chunk2 = createChunk(2L, 1L, "horse");
+        Chunk chunk3 = createChunk(3L, 1L, "goat");
+        Chunk chunk4 = createChunk(4L, 1L);
         // add chunk
         sa.addChunk(chunk1);
         sa.addChunk(chunk2);
+        sa.addChunk(chunk3);
+        sa.addChunk(chunk4);
         // THEN:
         // verify that chunks are independent and inactive
-        assertChunks(sa.getInactiveIndependentChunks(), chunk1, chunk2);
+        assertChunks(sa.getInactiveIndependentChunks(), chunk1, chunk2, chunk3, chunk4);
         // verify number of elements in Sequenceanalyser
-        assertThat(sa.size(), is(2));
+        assertThat(sa.size(), is(4));
     }
 
     /*

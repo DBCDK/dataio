@@ -48,8 +48,6 @@ uniqueConstraints = {
 })
 public class FlowBinder extends VersionedEntity {
 
-    private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
-
     public static final String TABLE_NAME = "flow_binders";
     public static final String SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";

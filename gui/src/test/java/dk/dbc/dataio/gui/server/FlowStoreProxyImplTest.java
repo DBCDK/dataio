@@ -1023,6 +1023,7 @@ public class FlowStoreProxyImplTest {
                 "charset",
                 "destination",
                 "recordSplitter",
+                true,
                 flowModel,
                 Arrays.asList(submitterModel),
                 sinkModel);

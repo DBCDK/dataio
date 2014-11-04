@@ -24,6 +24,7 @@ public class FlowBinderModelTest {
         assertThat(model.getCharset(), is(""));
         assertThat(model.getDestination(), is(""));
         assertThat(model.getRecordSplitter(), is(""));
+        assertThat(model.getSequenceAnalysis(), is(true));
         assertThat(model.getFlowModel().getFlowName(), is(""));  // FlowModel has been tested, therefore only name is checked
         assertThat(model.getSubmitterModels().size(), is(0));
         assertThat(model.getSinkModel().getSinkName(), is(""));  // FlowModel has been tested, therefore only name is checked
@@ -126,12 +127,22 @@ public class FlowBinderModelTest {
         assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
+    @Test
+    public void isInputFieldsEmpty_allInputFieldsSetAndSequenceAnalysisIsFalse_returnsFalse() {
+        FlowBinderModel model = getTestModel(false);
+        assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
     private FlowBinderModel getTestModel() {
+        return getTestModel(true);
+    }
+
+    private FlowBinderModel getTestModel(boolean sequenceAnalysis) {
         FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Arrays.asList("Script"));
         FlowModel flowModel = new FlowModel(33L, 44L, "Nmm", "Des", Arrays.asList(flowComponentModel));
         SubmitterModel submitterModel = new SubmitterModel(77L, 88L, "Num", "Nim", "Dis");
         SinkModel sinkModel = new SinkModel(99L, 100L, "Snm", "Rsc");
-        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", flowModel, Arrays.asList(submitterModel), sinkModel);
+        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Arrays.asList(submitterModel), sinkModel);
     }
 
 }

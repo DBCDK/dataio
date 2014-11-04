@@ -71,7 +71,7 @@ public class PresenterImplTest {
             super(clientFactory, texts);
             flowStoreProxy = mockedFlowStoreProxy;
             view = PresenterImplTest.this.view;
-            model = new FlowBinderModel(321L, 432L, "name", "desc", "pack", "form", "char", "dest", "recs", flowModel1, Arrays.asList(submitterModel1), sinkModel1);
+            model = new FlowBinderModel(321L, 432L, "name", "desc", "pack", "form", "char", "dest", "recs", true, flowModel1, Arrays.asList(submitterModel1), sinkModel1);
             setAvailableSubmitters(availableSubmitterModelList);
             setAvailableFlows(Arrays.asList(flowModel1, flowModel2, flowModel3));
             setAvailableSinks(Arrays.asList(sinkModel1, sinkModel2, sinkModel3));
@@ -384,7 +384,7 @@ public class PresenterImplTest {
     @Test
     public void saveFlowBinderModelCallback_successfullCallback_statusMessageDisplayed() {
         final String SUCCESS_TEXT = "Check!";
-        FlowBinderModel flowBinderModel = new FlowBinderModel(5555L, 66L, "nx", "dx", "px", "fx", "cx", "dx", "rx", flowModel3, Arrays.asList(submitterModel3), sinkModel3);
+        FlowBinderModel flowBinderModel = new FlowBinderModel(5555L, 66L, "nx", "dx", "px", "fx", "cx", "dx", "rx", true, flowModel3, Arrays.asList(submitterModel3), sinkModel3);
         when(mockedTexts.status_SaveSuccess()).thenReturn(SUCCESS_TEXT);
         initializeAndStartPresenter();
 

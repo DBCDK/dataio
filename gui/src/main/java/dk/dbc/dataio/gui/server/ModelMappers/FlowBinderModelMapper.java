@@ -43,6 +43,7 @@ public final class FlowBinderModelMapper {
                 checkedFlowBinder.getContent().getCharset(),
                 checkedFlowBinder.getContent().getDestination(),
                 checkedFlowBinder.getContent().getRecordSplitter(),
+                checkedFlowBinder.getContent().getSequenceAnalysis(),
                 checkedFlowModel,
                 checkedSubmitterModels,
                 checkedSinkModel
@@ -68,7 +69,7 @@ public final class FlowBinderModelMapper {
                 model.getCharset(),
                 model.getDestination(),
                 model.getRecordSplitter(),
-                true, // todo - this should be replaced with correct value from model.
+                model.getSequenceAnalysis(),
                 model.getFlowModel().getId(),
                 getSubmitterIds(model.getSubmitterModels()),
                 model.getSinkModel().getId()

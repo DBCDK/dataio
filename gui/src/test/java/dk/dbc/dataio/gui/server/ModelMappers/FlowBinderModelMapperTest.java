@@ -45,7 +45,7 @@ public class FlowBinderModelMapperTest {
     private static final FlowBinderModel defaultFlowBinderModel = new FlowBinderModel(
             DEFAULT_FLOW_BINDER_ID,
             DEFAULT_FLOW_BINDER_VERSION,
-            "flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter",
+            "flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true,
             defaultFlowModel,
             Arrays.asList(defaultSubmitterModel),
             defaultSinkModel

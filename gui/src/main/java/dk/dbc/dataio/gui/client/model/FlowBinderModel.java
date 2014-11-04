@@ -11,6 +11,7 @@ public class FlowBinderModel extends GenericBackendModel {
     private String charset;
     private String destination;
     private String recordSplitter;
+    private boolean sequenceAnalysis;
     private FlowModel flowModel;
     private List<SubmitterModel> submitterModels;
     private SinkModel sinkModel;
@@ -25,6 +26,7 @@ public class FlowBinderModel extends GenericBackendModel {
         this.charset = "";
         this.destination = "";
         this.recordSplitter = "";
+        this.sequenceAnalysis = true;
         this.flowModel = new FlowModel();
         this.submitterModels = new ArrayList<SubmitterModel>();
         this.sinkModel = new SinkModel();
@@ -40,11 +42,12 @@ public class FlowBinderModel extends GenericBackendModel {
      * @param charset The charset for the Flow Binder
      * @param destination The destination of the Flow Binder
      * @param recordSplitter The record splitter of the Flow Binder
+     * @param sequenceAnalysis boolean for telling whether sequence analysis is on or off for the flowbinder
      * @param flowModel The flow model of the Flow Binder
      * @param submitterModels The submitter models for the Flow Binder
      * @param sinkModel The sink model of the Flow Binder
      */
-    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel) {
+    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, boolean sequenceAnalysis, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel) {
         super(id, version);
         this.name = name;
         this.description = description;
@@ -53,6 +56,7 @@ public class FlowBinderModel extends GenericBackendModel {
         this.charset = charset;
         this.destination = destination;
         this.recordSplitter = recordSplitter;
+        this.sequenceAnalysis = sequenceAnalysis;
         this.flowModel = flowModel;
         this.submitterModels = submitterModels;
         this.sinkModel = sinkModel;
@@ -70,6 +74,7 @@ public class FlowBinderModel extends GenericBackendModel {
         this.charset = model.getCharset();
         this.destination = model.getDestination();
         this.recordSplitter = model.getRecordSplitter();
+        this.sequenceAnalysis = model.getSequenceAnalysis();
         this.flowModel = model.getFlowModel();  // Please note, that the flow itself is not cloned
         this.submitterModels = model.getSubmitterModels();  // Please note, that the submitters themselves are not cloned
         this.sinkModel = model.getSinkModel();  // Please note, that the sink itself is not cloned
@@ -199,6 +204,24 @@ public class FlowBinderModel extends GenericBackendModel {
      */
     public void setRecordSplitter(String recordSplitter) {
         this.recordSplitter = recordSplitter;
+    }
+
+    /**
+     * Get the sequence analysis boolean of the Flow Binder
+     *
+     * @return The sequence analysis boolean of the Flow Binder
+     */
+    public boolean getSequenceAnalysis() {
+        return sequenceAnalysis;
+    }
+
+    /**
+     * Set the sequence analysis boolean of the Flow Binder
+     *
+     * @param sequenceAnalysis The sequence analysis boolean of the Flow Binder
+     */
+    public void setRecordSplitter(boolean sequenceAnalysis) {
+        this.sequenceAnalysis = sequenceAnalysis;
     }
 
     /**

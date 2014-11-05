@@ -78,8 +78,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(false);
         view.destination.clearText();
         view.destination.setEnabled(false);
-        view.recordsplitter.clearText();
-        view.recordsplitter.setEnabled(false);
+        view.recordSplitter.clearText();
+        view.recordSplitter.setEnabled(false);
+        view.sequenceAnalysis.setEnabled(true);
+        view.recordSplitter.setEnabled(false);
         view.submitters.clear();
         view.submitters.setEnabled(false);
         view.flow.clear();
@@ -150,13 +152,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * A signal to the presenter, saying that the recordsplitter field has been changed
+     * A signal to the presenter, saying that the recordSplitter field has been changed
      *
-     * @param recordsplitter, the new value
+     * @param recordSplitter, the new value
      */
     @Override
-    public void recordsplitterChanged(String recordsplitter) {
-        model.setRecordSplitter(recordsplitter);
+    public void recordSplitterChanged(String recordSplitter) {
+        model.setRecordSplitter(recordSplitter);
+    }
+
+    /**
+     * A signal to the presenter, saying that the sequenceAnalysis field has been changed
+     *
+     * @param sequenceAnalysis, the new value
+     */
+    @Override
+    public void sequenceAnalysisChanged(boolean sequenceAnalysis) {
+        model.setSequenceAnalysis(sequenceAnalysis);
     }
 
     /**
@@ -238,8 +250,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(true);
         view.destination.setText(model.getDestination());
         view.destination.setEnabled(true);
-        view.recordsplitter.setText(model.getRecordSplitter());
-        view.recordsplitter.setEnabled(false);
+        view.recordSplitter.setText(model.getRecordSplitter());
+        view.recordSplitter.setEnabled(false);
+        view.sequenceAnalysis.setValue(model.getSequenceAnalysis());
+        view.sequenceAnalysis.setEnabled(true);
         view.submitters.setAvailableItems(getAvailableSubmitters(model));
         view.submitters.setSelectedItems(getSelectedSubmitters(model));
         view.submitters.setEnabled(true);

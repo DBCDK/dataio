@@ -232,9 +232,18 @@ public class PresenterImplTest {
 
         initializeAndStartPresenter();
 
-        presenterImpl.recordsplitterChanged(CHANGED_RECORDSPLITTER);
+        presenterImpl.recordSplitterChanged(CHANGED_RECORDSPLITTER);
 
         assertThat(presenterImpl.model.getRecordSplitter(), is(CHANGED_RECORDSPLITTER));
+    }
+
+    @Test
+    public void sequenceAnalysisChanged_callSequenceAnalysisChanged_sequenceAnalysisIsChangedAccordingly() {
+        initializeAndStartPresenter();
+
+        presenterImpl.sequenceAnalysisChanged(false);
+
+        assertThat(presenterImpl.model.getSequenceAnalysis(), is(false));
     }
 
     @Test

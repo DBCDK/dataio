@@ -47,6 +47,8 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_DefaultRecordSplitter();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_SequenceAnalysis();
 
     // Tooltips
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

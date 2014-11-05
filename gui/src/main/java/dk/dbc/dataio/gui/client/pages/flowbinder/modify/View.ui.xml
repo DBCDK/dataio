@@ -11,12 +11,13 @@
         <li><dio:TextEntry ui:field="format" guiId="flowbindermodifyformatpanel" prompt="{txt.label_FrameFormat}" maxLength="" toolTip="{txt.tooltip_ContentFormat}"/></li>
         <li><dio:TextEntry ui:field="charset" guiId="flowbindermodifycharsetpanel" prompt="{txt.label_CharacterSet}" maxLength="" toolTip="{txt.tooltip_CharacterSet}"/></li>
         <li><dio:TextEntry ui:field="destination" guiId="flowbindermodifydestinationpanel" prompt="{txt.label_Destination}" maxLength="" toolTip=""/></li>
-        <li><dio:TextEntry ui:field="recordsplitter" guiId="flowbindermodifyrecordsplitterpanel" prompt="{txt.label_RecordSplitter}" maxLength="" toolTip=""/></li>
+        <li><dio:TextEntry ui:field="recordSplitter" guiId="flowbindermodifyrecordsplitterpanel" prompt="{txt.label_RecordSplitter}" maxLength="" toolTip=""/></li>
+        <li><dio:CheckBoxEntry ui:field="sequenceAnalysis" guiId="flowbindermodifysequenceanalysispanel" prompt="{txt.label_SequenceAnalysis}"/></li>
         <li><dio:DualListEntry ui:field="submitters" guiId="flowbindermodifysubmitterspanel" prompt="{txt.label_Submitters}"/></li>
         <li><dio:ListEntry ui:field="flow" guiId="flowbindermodifyflowpanel" prompt="{txt.label_Flow}"/></li>
         <li><dio:ListEntry ui:field="sink" guiId="flowbindermodifysinkpanel" prompt="{txt.label_Sink}"/></li>
         <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
-        <li><g:Label ui:field="status"></g:Label></li>
+        <li><g:Label ui:field="status"/></li>
 
     </g:HTMLPanel>
 

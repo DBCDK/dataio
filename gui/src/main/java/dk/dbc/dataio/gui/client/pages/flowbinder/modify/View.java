@@ -12,6 +12,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.CheckBoxEntry;
 import dk.dbc.dataio.gui.client.components.DualListEntry;
 import dk.dbc.dataio.gui.client.components.ListEntry;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
@@ -39,7 +40,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField TextEntry format;
     @UiField TextEntry charset;
     @UiField TextEntry destination;
-    @UiField TextEntry recordsplitter;
+    @UiField TextEntry recordSplitter;
+    @UiField CheckBoxEntry sequenceAnalysis;
     @UiField DualListEntry submitters;
     @UiField ListEntry flow;
     @UiField ListEntry sink;
@@ -75,9 +77,15 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.destinationChanged(destination.getText());
     }
 
-    @UiHandler("recordsplitter")
-    void recordsplitterChanged(BlurEvent event) {
-        presenter.recordsplitterChanged(recordsplitter.getText());
+    @UiHandler("recordSplitter")
+    void recordSplitterChanged(BlurEvent event) {
+        presenter.recordSplitterChanged(recordSplitter.getText());
+    }
+
+    @UiHandler("sequenceAnalysis")
+    void sequenceAnalysisChanged(ValueChangeEvent<Boolean> event) {
+        presenter.sequenceAnalysisChanged(sequenceAnalysis.getValue());
+        presenter.keyPressed();
     }
 
     @UiHandler("submitters")
@@ -128,7 +136,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
-    @UiHandler("recordsplitter")
+    @UiHandler("recordSplitter")
     void keyPressedInRecordsplitterField(KeyDownEvent event) {
         presenter.keyPressed();
     }

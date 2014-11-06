@@ -12,6 +12,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.types.DataContainer;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
+import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
@@ -19,7 +20,6 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.RawRepoExceptionRecordNotFound;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
@@ -125,7 +125,7 @@ public class HarvesterBean {
                             break;
                     }
                     markAsSuccess(nextQueuedItem);
-                } catch (HarvesterInvalidRecordException e) {
+                } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
                     LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
                     markAsFailure(nextQueuedItem, e.getMessage());
                 }
@@ -158,10 +158,8 @@ public class HarvesterBean {
         final Set<Record> records;
         try {
             records = asSet(rawRepoConnector.fetchRecordCollection(recordId));
-        } catch (RawRepoExceptionRecordNotFound e) {
-            throw new HarvesterInvalidRecordException("Invalid state of rawrepo", e);
         } catch (SQLException | RawRepoException | MarcXMergerException e) {
-            throw new HarvesterException("Unable to fetch record collection for " + recordId.toString(), e);
+            throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
         }
         LOGGER.debug("Fetched rawrepo collection<{}> for {}", records, recordId);
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);

@@ -161,19 +161,37 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsSqlException_throws() throws SQLException, RawRepoException, MarcXMergerException {
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsSqlException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvesterBean harvesterBean = getInitializedBean();
-        try {
-            harvesterBean.harvest();
-            fail("No exception thrown");
-        } catch (HarvesterException e) {
-        }
+        harvesterBean.harvest();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
     }
 
     @Test
-    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsIgnored() throws HarvesterException, SQLException, RawRepoException, MarcXMergerException {
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsRawRepoException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new RawRepoException());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        harvesterBean.harvest();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
+    public void harvest_repoConnectorBeanFetchRecordCollectionThrowsMarcXMergerException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class))).thenThrow(new MarcXMergerException());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        harvesterBean.harvest();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
+    public void harvest_rawrepoRecordHasInvalidXmlContent_recordIsFailed() throws HarvesterException, SQLException, RawRepoException, MarcXMergerException {
         final Record rrRecord = mock(Record.class);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>() {{

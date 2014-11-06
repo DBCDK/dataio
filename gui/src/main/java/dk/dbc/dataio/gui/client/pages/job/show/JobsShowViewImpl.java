@@ -60,6 +60,7 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     private static final int PAGE_SIZE = 20;
 
     private static final Resources RESOURCES = GWT.create(Resources.class);
+    private static JobsShowTexts texts;
 
     // Local variables
     private final static JobsShowTexts constants = GWT.create(JobsShowTexts.class);
@@ -68,9 +69,6 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     private static final int POPUP_PANEL_WIDTH = 265;
     private static final int POPUP_PANEL_LEFT_OFFSET = 36;
     private static final int POPUP_PANEL_TOP_OFFSET = 18;
-    private static final String CHUNKIFYING = "Chunkifying";
-    private static final String PROCESSING = "Processing";
-    private static final String DELIVERING = "Delivering";
     ListDataProvider<JobInfo> dataProvider = new ListDataProvider<JobInfo>();
     TextColumn<JobInfo> jobIdColumn;
     TextColumn<JobInfo> fileNameColumn;
@@ -86,8 +84,9 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
     /**
      * Constructor
      */
-    public JobsShowViewImpl() {
+    public JobsShowViewImpl(JobsShowTexts texts) {
         super(constants.menu_Jobs());
+        this.texts = texts;
     }
 
     /**
@@ -406,9 +405,9 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
 
         if (jobInfo.getJobErrorCode().equals(JobErrorCode.NO_ERROR)) {
-            panel.add(buildDualPanesPanelForChunkCounter(CHUNKIFYING, jobInfo.getChunkifyingChunkCounter()));
-            panel.add(buildDualPanesPanelForChunkCounter(PROCESSING, jobInfo.getProcessingChunkCounter()));
-            panel.add(buildDualPanesPanelForChunkCounter(DELIVERING, jobInfo.getDeliveringChunkCounter()));
+            panel.add(buildDualPanesPanelForChunkCounter(texts.text_chunkifying(), jobInfo.getChunkifyingChunkCounter()));
+            panel.add(buildDualPanesPanelForChunkCounter(texts.text_processing(), jobInfo.getProcessingChunkCounter()));
+            panel.add(buildDualPanesPanelForChunkCounter(texts.text_delivering(), jobInfo.getDeliveringChunkCounter()));
         } else {
             dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(), new Label(jobInfo.getJobErrorCode().toString()));
             panel.add(dualPanesPanel);
@@ -452,14 +451,14 @@ public class JobsShowViewImpl extends ContentPanel<JobsShowPresenter> implements
         DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
 
         if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() == 0) {
-            dualPanesPanel.setDualPanesPanelWidgets(getGreenImageWithId(), new Label(operationalState + " : Done"));
+            dualPanesPanel.setDualPanesPanelWidgets(getGreenImageWithId(), new Label(operationalState + " : " + texts.text_done()));
 
         } else if (chunkCounter != null && chunkCounter.getItemResultCounter() != null && chunkCounter.getItemResultCounter().getFailure() > 0) {
-            String format = chunkCounter.getItemResultCounter().getFailure() == 1 ? " chunk " : " chunks ";
+            String format = chunkCounter.getItemResultCounter().getFailure() == 1 ? " " + texts.text_record() + " " : " " + texts.text_records() + " ";
             dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(),
-                    new Label(operationalState + " : " + chunkCounter.getItemResultCounter().getFailure() + format + "failed"));
+                    new Label(operationalState + " : " + chunkCounter.getItemResultCounter().getFailure() + format + texts.text_failed()));
         } else {
-            dualPanesPanel.setDualPanesPanelWidgets(getGreyImageWithId(), new Label(operationalState + " : Pending..."));
+            dualPanesPanel.setDualPanesPanelWidgets(getGreyImageWithId(), new Label(operationalState + " : " + texts.text_pending()));
         }
         return dualPanesPanel;
     }

@@ -8,7 +8,7 @@
         <li><dio:TextEntry ui:field="name" guiId="flowbindermodifynamepanel" prompt="{txt.label_FlowBinderName}" maxLength="160" toolTip=""/></li>
         <li><dio:TextAreaEntry ui:field="description" guiId="flowbindermodifydescriptionpanel" prompt="{txt.label_FlowBinderDescription}" maxLength="160"/></li>
         <li><dio:TextEntry ui:field="frame" guiId="flowbindermodifyframepanel" prompt="{txt.label_FrameFormat}" maxLength="" toolTip="{txt.tooltip_FrameFormat}"/></li>
-        <li><dio:TextEntry ui:field="format" guiId="flowbindermodifyformatpanel" prompt="{txt.label_FrameFormat}" maxLength="" toolTip="{txt.tooltip_ContentFormat}"/></li>
+        <li><dio:TextEntry ui:field="format" guiId="flowbindermodifyformatpanel" prompt="{txt.label_ContentFormat}" maxLength="" toolTip="{txt.tooltip_ContentFormat}"/></li>
         <li><dio:TextEntry ui:field="charset" guiId="flowbindermodifycharsetpanel" prompt="{txt.label_CharacterSet}" maxLength="" toolTip="{txt.tooltip_CharacterSet}"/></li>
         <li><dio:TextEntry ui:field="destination" guiId="flowbindermodifydestinationpanel" prompt="{txt.label_Destination}" maxLength="" toolTip=""/></li>
         <li><dio:TextEntry ui:field="recordSplitter" guiId="flowbindermodifyrecordsplitterpanel" prompt="{txt.label_RecordSplitter}" maxLength="" toolTip=""/></li>

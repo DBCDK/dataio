@@ -174,25 +174,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     @Override
     public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
-        List<JavaScript> javaScripts;
         FlowComponent flowComponent;
         try {
-            javaScripts = javaScriptProjectFetcher.fetchRequiredJavaScript(
-                    model.getSvnProject(),
-                    Long.valueOf(model.getSvnRevision()),
-                    model.getInvocationJavascript(),
-                    model.getInvocationMethod());
-
-            FlowComponentContent flowComponentContent
-                    = new FlowComponentContent(
-                    model.getName(),
-                    model.getSvnProject(),
-                    Long.valueOf(model.getSvnRevision()),
-                    model.getInvocationJavascript(),
-                    javaScripts,
-                    model.getInvocationMethod());
-
-            flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+            List<JavaScript> javaScripts = fetchRequiredJavaScripts(model);
+            flowComponent = flowStoreServiceConnector.createFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, javaScripts));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
@@ -220,26 +205,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     @Override
     public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
-
-        List<JavaScript> javaScripts;
         FlowComponent flowComponent;
         try {
-            javaScripts = javaScriptProjectFetcher.fetchRequiredJavaScript(
-                    model.getSvnProject(),
-                    Long.valueOf(model.getSvnRevision()),
-                    model.getInvocationJavascript(),
-                    model.getInvocationMethod());
+            List<JavaScript> javaScripts = fetchRequiredJavaScripts(model);
+            flowComponent = flowStoreServiceConnector.updateFlowComponent(
+                    FlowComponentModelMapper.toFlowComponentContent(model, javaScripts), model.getId(), model.getVersion());
 
-            FlowComponentContent flowComponentContent
-                    = new FlowComponentContent(
-                    model.getName(),
-                    model.getSvnProject(),
-                    Long.valueOf(model.getSvnRevision()),
-                    model.getInvocationJavascript(),
-                    javaScripts,
-                    model.getInvocationMethod());
-
-            flowComponent = flowStoreServiceConnector.updateFlowComponent(flowComponentContent, model.getId(), model.getVersion());
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
@@ -664,6 +635,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return flowComponents;
     }
 
+    private List<JavaScript> fetchRequiredJavaScripts(FlowComponentModel model) throws JavaScriptProjectFetcherException {
+        return javaScriptProjectFetcher.fetchRequiredJavaScript(
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod());
+    }
 
     private ProxyError translateToProxyError(int statusCode)throws ProxyException {
         final Response.Status status = Response.Status.fromStatusCode(statusCode);

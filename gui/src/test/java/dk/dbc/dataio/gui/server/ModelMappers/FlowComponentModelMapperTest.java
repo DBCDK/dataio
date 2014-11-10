@@ -139,6 +139,46 @@ public class FlowComponentModelMapperTest {
         assertFlowComponentModelEquals(flowComponents.get(1), flowComponentModules.get(1));
     }
 
+    @Test(expected = NullPointerException.class)
+    public void toFlowComponentContent_nullInput_throwsNullPointerException() {
+        FlowComponentModelMapper.toFlowComponentContent(null, Arrays.asList(new JavaScriptBuilder().build()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toFlowComponentContent_listOfJavaScriptsAreNull_throwsIllegalArgumentException() {
+        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModelMapper.toFlowComponentContent(model, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toFlowComponentContent_listOfJavaScriptsAreEmpty_throwsIllegalArgumentException() {
+        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModelMapper.toFlowComponentContent(model, new ArrayList<JavaScript>());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toFlowComponentContent_validInputEmptyField_throwsIllegalArgumentException() {
+        FlowComponentModel model = getDefaultFlowComponentModel();
+        model.setName("");
+        FlowComponentModelMapper.toFlowComponentContent(model, Arrays.asList(new JavaScriptBuilder().build()));
+    }
+
+    @Test
+    public void toFlowComponentContent_validInput_returnsValidFlowComponentContent() {
+        JavaScript javaScript = new JavaScriptBuilder().build();
+        FlowComponentModel flowComponentModel = getDefaultFlowComponentModel();
+        FlowComponentContent content = FlowComponentModelMapper.toFlowComponentContent(flowComponentModel, Arrays.asList(javaScript));
+
+        assertThat(content.getName(), is(flowComponentModel.getName()));
+        assertThat(content.getSvnProjectForInvocationJavascript(), is(flowComponentModel.getSvnProject()));
+        assertThat(content.getSvnRevision(), is(Long.valueOf(flowComponentModel.getSvnRevision())));
+        assertThat(content.getInvocationJavascriptName(), is(flowComponentModel.getInvocationJavascript()));
+        assertThat(content.getInvocationMethod(), is(flowComponentModel.getInvocationMethod()));
+        assertThat(content.getJavascripts().size(), is(1));
+        assertThat(content.getJavascripts().get(0).getModuleName(), is(javaScript.getModuleName()));
+        assertThat(content.getJavascripts().get(0).getJavascript(), is(javaScript.getJavascript()));
+    }
+
     private void assertFlowComponentModelEquals(FlowComponent flowComponent, FlowComponentModel flowComponentModel) {
         assertThat(flowComponent.getId(), is(flowComponentModel.getId()));
         assertThat(flowComponent.getVersion(), is(flowComponentModel.getVersion()));
@@ -159,6 +199,19 @@ public class FlowComponentModelMapperTest {
         for(int i = 0; i < javaScripts.size(); i++) {
             assertThat(javaScripts.get(i).getModuleName(), is(javaScriptModules.get(i)));
         }
+    }
+
+    private FlowComponentModel getDefaultFlowComponentModel() {
+       return new FlowComponentModel(
+               1,
+               1,
+               "name",
+               "project",
+               "3244",
+               "javaScriptName",
+               "invocationMethod",
+               Arrays.asList("javascript"));
+
     }
 
 }

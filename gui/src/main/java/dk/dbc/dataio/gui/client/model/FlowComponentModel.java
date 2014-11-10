@@ -134,4 +134,12 @@ public class FlowComponentModel extends GenericBackendModel {
                 javascriptModules.isEmpty();
     }
 
+    public boolean isInputFieldsEmptyModulesExcluded() {
+        return name.isEmpty() ||
+                svnProject.isEmpty() ||
+                svnRevision.isEmpty() ||
+                invocationJavascript.isEmpty() ||
+                invocationMethod.isEmpty();
+    }
+
 }

@@ -78,7 +78,6 @@ public class FlowStoreProxyImplTest {
             Arrays.asList(DEFAULT_SUBMITTER_ID),
             DEFAULT_SINK_ID);
 
-
     @Before
     public void setup() throws Exception {
         mockStatic(ServiceUtil.class);
@@ -1286,23 +1285,20 @@ public class FlowStoreProxyImplTest {
     }
 
     @Test
-    public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowModelEntity() throws Exception {
+    public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowComponentModelEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
         final FlowComponent flowComponent = new FlowComponentBuilder().build();
-        final FlowComponentModel flowComponentModel = getDefaultFlowComponentModel();
-        List<JavaScript> javaScripts = new ArrayList<JavaScript>();
-        javaScripts.add(new JavaScript("javascript1", "javaScriptName1"));
-        javaScripts.add(new JavaScript("javascript2", "javaScriptName2"));
+        final FlowComponentModel model = getDefaultFlowComponentModel();
 
         when(flowStoreServiceConnector.createFlowComponent(any(FlowComponentContent.class))).thenReturn(flowComponent);
         when(javaScriptProjectFetcher.fetchRequiredJavaScript(
-                flowComponentModel.getName(),
-                Long.valueOf(flowComponentModel.getSvnRevision()),
-                flowComponentModel.getInvocationJavascript(),
-                flowComponentModel.getInvocationMethod()))
-                .thenReturn(javaScripts);
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod()))
+                .thenReturn(getDefaultJavaScripts());
         try {
             final FlowComponentModel createdModel = flowStoreProxy.createFlowComponent(getDefaultFlowComponentModel());
             assertNotNull(createdModel);
@@ -1333,6 +1329,14 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+
+        FlowComponentModel model = getDefaultFlowComponentModel();
+        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod()))
+                .thenReturn(getDefaultJavaScripts());
 
         when(flowStoreServiceConnector.createFlowComponent(any(FlowComponentContent.class)))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
@@ -1426,6 +1430,12 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.getFlowComponent(any(Long.class))).thenReturn(flowComponent);
         when(flowStoreServiceConnector.updateFlowComponent(any(FlowComponentContent.class), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
                 .thenReturn(flowComponent);
+        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod()))
+                .thenReturn(getDefaultJavaScripts());
         try {
             final FlowComponentModel updatedModel = flowStoreProxy.updateFlowComponent(model);
             assertNotNull(updatedModel);
@@ -1462,9 +1472,16 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
-
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
+
         FlowComponentModel model = getDefaultFlowComponentModel();
+        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod()))
+                .thenReturn(getDefaultJavaScripts());
+
         when(flowStoreServiceConnector.getFlowComponent(any(Long.class))).thenReturn(flowComponent);
         when(flowStoreServiceConnector.updateFlowComponent(any(FlowComponentContent.class), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
@@ -1494,12 +1511,18 @@ public class FlowStoreProxyImplTest {
         }
     }
 
+    private List<JavaScript> getDefaultJavaScripts() {
+        List<JavaScript> javaScripts = new ArrayList<JavaScript>(2);
+        javaScripts.add(new JavaScript("javascript1", "javaScriptName1"));
+        javaScripts.add(new JavaScript("javascript2", "javaScriptName2"));
+        return javaScripts;
+    }
+
     private FlowComponentModel getDefaultFlowComponentModel() {
         List<String> javaScriptModules = new ArrayList<String>();
         javaScriptModules.add("javaScriptName1");
         javaScriptModules.add("javaScriptName2");
 
         return new FlowComponentModel(ID, 1, "name", "project", "45", "invocationJavaScript", "invocationMethod", javaScriptModules);
-
     }
 }

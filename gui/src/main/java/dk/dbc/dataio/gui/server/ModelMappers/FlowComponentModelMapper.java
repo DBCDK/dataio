@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 
@@ -53,6 +54,27 @@ public final class FlowComponentModelMapper {
             flowComponentModels.add(toModel(flowComponent));
         }
         return flowComponentModels;
+    }
+
+    /**
+     * Maps a model to a flow component content, containing the java scripts given as input
+     * @param model
+     * @return flowComponentContent
+     */
+    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, List<JavaScript> javaScripts) throws IllegalArgumentException{
+        if (model.isInputFieldsEmptyModulesExcluded()) {
+            throw new IllegalArgumentException("The fields in the Flow Component Model cannot be empty");
+        }
+        if (javaScripts == null || javaScripts.isEmpty()) {
+            throw new IllegalArgumentException("The list of java scripts cannot be null or empty");
+        }
+        return new FlowComponentContent(
+                model.getName(),
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                javaScripts,
+                model.getInvocationMethod());
     }
 
 }

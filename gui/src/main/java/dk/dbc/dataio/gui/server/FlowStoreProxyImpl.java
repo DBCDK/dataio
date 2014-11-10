@@ -7,11 +7,13 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -20,6 +22,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.server.ModelMappers.FlowBinderModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.FlowModelMapper;
@@ -36,21 +39,35 @@ import java.util.List;
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     final Client client;
     final String baseUrl;
+    final String subversionScmEndpoint;
     FlowStoreServiceConnector flowStoreServiceConnector;
+    JavaScriptProjectFetcher javaScriptProjectFetcher;
 
     public FlowStoreProxyImpl() throws NamingException{
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
+        javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl(subversionScmEndpoint);
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
     FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) throws NamingException{
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;
+        subversionScmEndpoint = null;
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+    }
+    //This constructor is intended for test purpose only with reference to dependency injection.
+    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptProjectFetcherImpl javaScriptProjectFetcher) throws NamingException{
+        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
+        this.flowStoreServiceConnector = flowStoreServiceConnector;
+        this.javaScriptProjectFetcher = javaScriptProjectFetcher;
+        client = HttpClient.newClient(clientConfig);
+        baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        this.subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
     }
 
     /*
@@ -156,6 +173,39 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
+        List<JavaScript> javaScripts;
+        FlowComponent flowComponent;
+        try {
+            javaScripts = javaScriptProjectFetcher.fetchRequiredJavaScript(
+                    model.getSvnProject(),
+                    Long.valueOf(model.getSvnRevision()),
+                    model.getInvocationJavascript(),
+                    model.getInvocationMethod());
+
+            FlowComponentContent flowComponentContent
+                    = new FlowComponentContent(
+                    model.getName(),
+                    model.getSvnProject(),
+                    Long.valueOf(model.getSvnRevision()),
+                    model.getInvocationJavascript(),
+                    javaScripts,
+                    model.getInvocationMethod());
+
+            flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e){
+            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+        } catch (JavaScriptProjectFetcherException e) {
+            throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
+        }
+        return FlowComponentModelMapper.toModel(flowComponent);
+    }
+
+    @Override
     public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
         try {
@@ -168,6 +218,39 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return flowComponent;
     }
 
+    @Override
+    public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
+
+        List<JavaScript> javaScripts;
+        FlowComponent flowComponent;
+        try {
+            javaScripts = javaScriptProjectFetcher.fetchRequiredJavaScript(
+                    model.getSvnProject(),
+                    Long.valueOf(model.getSvnRevision()),
+                    model.getInvocationJavascript(),
+                    model.getInvocationMethod());
+
+            FlowComponentContent flowComponentContent
+                    = new FlowComponentContent(
+                    model.getName(),
+                    model.getSvnProject(),
+                    Long.valueOf(model.getSvnRevision()),
+                    model.getInvocationJavascript(),
+                    javaScripts,
+                    model.getInvocationMethod());
+
+            flowComponent = flowStoreServiceConnector.updateFlowComponent(flowComponentContent, model.getId(), model.getVersion());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e){
+            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+        } catch (JavaScriptProjectFetcherException e) {
+            throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
+        }
+        return FlowComponentModelMapper.toModel(flowComponent);
+    }
 
     @Override
     public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
@@ -233,6 +316,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return result;
+    }
+
+    @Override
+    public FlowComponentModel getFlowComponentModel(Long id) throws ProxyException {
+        final FlowComponent result;
+        try {
+            result = flowStoreServiceConnector.getFlowComponent(id);
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return FlowComponentModelMapper.toModel(result);
     }
 
 

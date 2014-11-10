@@ -75,9 +75,20 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createFlowComponent(model);
+    }
+
+    @Override
     public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException {
         return flowStoreProxy.updateFlowComponent(flowComponentContent, id, version);
     }
+
+    @Override
+    public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateFlowComponent(model);
+    }
+
 
     @Override
     public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
@@ -104,6 +115,10 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
         return flowStoreProxy.getFlowComponent(id);
     }
 
+    @Override
+    public FlowComponentModel getFlowComponentModel(Long id) throws ProxyException {
+        return flowStoreProxy.getFlowComponentModel(id);
+    }
 
     /*
      * Flows Binders

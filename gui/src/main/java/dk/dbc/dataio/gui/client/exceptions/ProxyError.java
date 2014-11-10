@@ -8,5 +8,6 @@ public enum ProxyError {
     CONFLICT_ERROR,             // Concurrent Update Error
     INTERNAL_SERVER_ERROR,
     MODEL_MAPPER_EMPTY_FIELDS,
-    PRECONDITION_FAILED         // Referenced objects could not be located
+    PRECONDITION_FAILED,        // Referenced objects could not be located
+    SUBVERSION_LOOKUP_FAILED    // Error retrieving java scripts
 }

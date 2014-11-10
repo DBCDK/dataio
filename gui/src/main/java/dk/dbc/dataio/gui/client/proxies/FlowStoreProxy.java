@@ -29,12 +29,15 @@ public interface FlowStoreProxy extends RemoteService {
 
     // Flow Components
     FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
+    FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;
     FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException;
+    FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;
     Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException;
     FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException;
     List<FlowComponent> findAllFlowComponentsOld() throws ProxyException;
     List<FlowComponentModel> findAllFlowComponents() throws ProxyException;
     FlowComponent getFlowComponent(Long id) throws ProxyException;
+    FlowComponentModel getFlowComponentModel(Long id) throws ProxyException;
 
     // Flow Binders
     FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException;

@@ -8,7 +8,7 @@
 
         <li><dio:TextEntry ui:field="name" guiId="flowcomponentnamepanel" prompt="{txt.label_ComponentName}" maxLength="160" toolTip=""/></li>
         <li><dio:TextEntry ui:field="project" guiId="flowcomponentprojectpanel" prompt="{txt.label_SvnProject}" maxLength="160" toolTip=""/></li>
-        <li><dio:ListEntry ui:field="revision" guiId="flowcomponentprojectpanel" prompt="{txt.label_SvnRevision}"/></li>
+        <li><dio:ListEntry ui:field="revision" guiId="flowcomponentrevisionpanel" prompt="{txt.label_SvnRevision}"/></li>
         <li><dio:ListEntry ui:field="script" guiId="flowcomponentscriptnamepanel" prompt="{txt.label_ScriptName}"/></li>
         <li><dio:ListEntry ui:field="method" guiId="flowcomponentinvocationmethodpanel" prompt="{txt.label_InvocationMethod}"/></li>
         <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>

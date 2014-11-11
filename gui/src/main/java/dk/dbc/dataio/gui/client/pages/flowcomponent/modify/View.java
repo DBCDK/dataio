@@ -16,8 +16,8 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
 
-    interface FlowComponent extends UiBinder<HTMLPanel, View> {}
-    private static FlowComponent uiBinder = GWT.create(FlowComponent.class);
+    interface FlowComponentBinder extends UiBinder<HTMLPanel, View> {}
+    private static FlowComponentBinder uiBinder = GWT.create(FlowComponentBinder.class);
 
     public View(String header) {
         super(header);
@@ -43,7 +43,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("name")
     void nameChanged(ValueChangeEvent<String> event) {
         presenter.nameChanged(name.getText());
-        presenter.keyPressed();
     }
 
     @UiHandler("project")
@@ -54,7 +53,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("project")
     void projectChanged(ValueChangeEvent<String> event) {
         presenter.projectChanged(project.getText());
-        presenter.keyPressed();
     }
 
     @UiHandler("revision")

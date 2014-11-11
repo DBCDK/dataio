@@ -10,6 +10,8 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.ListBox;
 
+import java.util.List;
+
 
 public class ListEntry extends DataEntry implements HasValue<String> {
     private boolean valueChangeHandlerInitialized;
@@ -36,6 +38,15 @@ public class ListEntry extends DataEntry implements HasValue<String> {
 
     public void setAvailableItem(String text, String key) {
         listBox.addItem(text, key);
+    }
+
+    public void setAvailableItems(List<String> items, String selectedItem) {
+        for(String item : items) {
+            setAvailableItem(item);
+            if (item.equals(selectedItem)){
+                listBox.setSelectedIndex(items.indexOf(item));
+            }
+        }
     }
 
     public String getSelectedText() {

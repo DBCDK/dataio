@@ -24,7 +24,6 @@ public interface FlowStoreProxyAsync {
     void getFlow(Long id, AsyncCallback<FlowModel> async);
 
     // Flow Components
-    //void createFlowComponent(FlowComponentContent flowComponentContent, AsyncCallback<FlowComponent> async);
     void createFlowComponent(FlowComponentModel model, AsyncCallback<FlowComponentModel> async);
     void updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version, AsyncCallback<FlowComponent> async);
     void updateFlowComponent(FlowComponentModel model, AsyncCallback<FlowComponentModel> async);

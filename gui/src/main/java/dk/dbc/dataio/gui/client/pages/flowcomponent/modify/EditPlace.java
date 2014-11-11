@@ -5,19 +5,14 @@ import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import dk.dbc.dataio.commons.types.FlowComponent;
 
-/**
-* FlowComponentEditPlace
-*
-* @author sma
-*/
-public class FlowComponentEditPlace extends Place {
+public class EditPlace extends Place {
     private Long flowComponentId;
 
-    public FlowComponentEditPlace(String url) {
+    public EditPlace(String url) {
         this.flowComponentId = Long.valueOf(url);
     }
 
-    public FlowComponentEditPlace(FlowComponent flowComponent) {
+    public EditPlace(FlowComponent flowComponent) {
         this.flowComponentId = flowComponent.getId();
     }
 
@@ -26,16 +21,14 @@ public class FlowComponentEditPlace extends Place {
     }
 
     @Prefix("EditFlowComponent")
-    public static class Tokenizer implements PlaceTokenizer<FlowComponentEditPlace> {
+    public static class Tokenizer implements PlaceTokenizer<EditPlace> {
         @Override
-        public String getToken(FlowComponentEditPlace place) {
+        public String getToken(EditPlace place) {
             return String.valueOf(place.getFlowComponentId());
         }
         @Override
-        public FlowComponentEditPlace getPlace(String token) {
-            return new FlowComponentEditPlace(token);
+        public EditPlace getPlace(String token) {
+            return new EditPlace(token);
         }
     }
-
 }
-

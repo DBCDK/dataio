@@ -6,7 +6,7 @@ import com.google.gwt.place.shared.WithTokenizers;
 @WithTokenizers({
         dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace.Tokenizer.class,
-        dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentEditPlace.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace.Tokenizer.class,

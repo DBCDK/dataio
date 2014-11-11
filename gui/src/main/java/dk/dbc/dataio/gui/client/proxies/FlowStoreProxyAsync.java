@@ -4,7 +4,6 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -25,14 +24,12 @@ public interface FlowStoreProxyAsync {
 
     // Flow Components
     void createFlowComponent(FlowComponentModel model, AsyncCallback<FlowComponentModel> async);
-    void updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version, AsyncCallback<FlowComponent> async);
     void updateFlowComponent(FlowComponentModel model, AsyncCallback<FlowComponentModel> async);
     void refreshFlowComponentsOld(Long id, Long version, AsyncCallback<Flow> async);
     void refreshFlowComponents(Long id, Long version, AsyncCallback<FlowModel> async);
     void findAllFlowComponentsOld(AsyncCallback<List<FlowComponent>> async);
     void findAllFlowComponents(AsyncCallback<List<FlowComponentModel>> async);
-    void getFlowComponent(Long id, AsyncCallback<FlowComponent> async);
-    void getFlowComponentModel(Long id, AsyncCallback<FlowComponentModel> async);
+    void getFlowComponent(Long id, AsyncCallback<FlowComponentModel> async);
 
     // Flow Binders
     void createFlowBinder(FlowBinderModel model, AsyncCallback<FlowBinderModel> async);

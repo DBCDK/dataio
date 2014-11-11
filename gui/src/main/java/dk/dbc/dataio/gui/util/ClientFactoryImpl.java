@@ -15,10 +15,6 @@ import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowPlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowTexts;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowView;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentCreateEditView;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentCreateEditViewImpl;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentEditActivity;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentEditPlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowActivity;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowPlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowTexts;
@@ -109,8 +105,8 @@ public class ClientFactoryImpl implements ClientFactory {
     // Views
     private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowCreateView = new dk.dbc.dataio.gui.client.pages.flow.modify.ViewImpl(flowModifyTexts.menu_FlowCreation(), flowModifyTexts);
     private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowEditView = new dk.dbc.dataio.gui.client.pages.flow.modify.ViewImpl(flowModifyTexts.menu_FlowEdit(), flowModifyTexts);
-    private final FlowComponentCreateEditView flowComponentCreateEditView = new FlowComponentCreateEditViewImpl();
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View flowComponentCreateView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View(flowComponentModifyTexts.menu_FlowComponentCreation());
+    private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View flowComponentEditView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View(flowComponentModifyTexts.menu_FlowComponentEdit());
     private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.View flowBinderCreateView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.View(flowBinderModifyTexts.menu_FlowBinderCreation());
     private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.View flowBinderEditView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.View(flowBinderModifyTexts.menu_FlowBinderEdit());
     private final dk.dbc.dataio.gui.client.pages.sink.modify.View sinkCreateView = new dk.dbc.dataio.gui.client.pages.sink.modify.ViewImpl(sinkModifyTexts.menu_SinkCreation(), sinkModifyTexts);
@@ -195,6 +191,9 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.PresenterCreateImpl(this, flowComponentModifyTexts);
         }
+        if (place instanceof dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace) {
+            return new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.PresenterEditImpl(place, this, flowComponentModifyTexts);
+        }
         if (place instanceof dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.submitter.modify.PresenterCreateImpl(this, submitterModifyTexts);
         }
@@ -206,9 +205,6 @@ public class ClientFactoryImpl implements ClientFactory {
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace) {
             return new dk.dbc.dataio.gui.client.pages.flowbinder.modify.PresenterEditImpl(place, this, flowBinderModifyTexts);
-        }
-        if (place instanceof FlowComponentEditPlace) {
-            return new FlowComponentEditActivity(place,this);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.sink.modify.PresenterCreateImpl(this, sinkModifyTexts);
@@ -290,13 +286,13 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public FlowComponentCreateEditView getFlowComponentCreateEditView() {
-        return flowComponentCreateEditView;
+    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentCreateView() {
+        return flowComponentCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentCreateView() {
-        return flowComponentCreateView;
+    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentEditView() {
+        return flowComponentEditView;
     }
 
     @Override

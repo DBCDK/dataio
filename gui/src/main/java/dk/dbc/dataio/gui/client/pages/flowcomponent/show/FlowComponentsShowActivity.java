@@ -6,7 +6,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.FlowComponentEditPlace;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -46,7 +46,7 @@ public class FlowComponentsShowActivity extends AbstractActivity implements Flow
      */
     @Override
     public void editFlowComponent(FlowComponent flowComponent) {
-        placeController.goTo(new FlowComponentEditPlace(flowComponent));
+        placeController.goTo(new EditPlace(flowComponent));
     }
 
     // Local methods

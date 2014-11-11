@@ -1060,27 +1060,10 @@ public class FlowStoreProxyImplTest {
             assertThat(e.getErrorCode(), is(expectedError));
         }
     }
-    //****************************
-
 
     /*
     * Test getFlowComponent
     */
-
-    @Test
-    public void getFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentEntity() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).build();
-        when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenReturn(flowComponent);
-
-        try {
-            final FlowComponent retrievedFlowComponent = flowStoreProxy.getFlowComponent(flowComponent.getId());
-            assertNotNull(retrievedFlowComponent);
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: getFlowComponent()");
-        }
-    }
 
     @Test
     public void getFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentModelEntity() throws Exception {
@@ -1091,7 +1074,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenReturn(flowComponent);
 
         try {
-            final FlowComponentModel retrievedModel = flowStoreProxy.getFlowComponentModel(flowComponent.getId());
+            final FlowComponentModel retrievedModel = flowStoreProxy.getFlowComponent(flowComponent.getId());
             assertNotNull(retrievedModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getFlowComponentModel()");
@@ -1384,22 +1367,6 @@ public class FlowStoreProxyImplTest {
     /*
      * Test updateFlowComponent
      */
-
-    @Test
-    public void updateFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentEntity() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
-        when(flowStoreServiceConnector.updateFlowComponent(eq(flowComponent.getContent()), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
-                .thenReturn(flowComponent);
-
-        try {
-            final FlowComponent updatedFlowComponent = flowStoreProxy.updateFlowComponent(flowComponent.getContent(), flowComponent.getId(), flowComponent.getVersion());
-            assertNotNull(updatedFlowComponent);
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: updateFlowComponent()");
-        }
-    }
 
     @Test
     public void updateFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentModelEntity() throws Exception {

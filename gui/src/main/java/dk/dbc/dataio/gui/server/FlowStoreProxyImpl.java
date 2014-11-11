@@ -6,7 +6,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -16,9 +15,9 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
@@ -178,19 +177,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException {
-        FlowComponent flowComponent;
-        try {
-            flowComponent = flowStoreServiceConnector.updateFlowComponent(flowComponentContent, id, version);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return flowComponent;
-    }
-
-    @Override
     public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
         try {
@@ -264,20 +250,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public FlowComponent getFlowComponent(Long id) throws ProxyException {
-        final FlowComponent result;
-        try {
-            result = flowStoreServiceConnector.getFlowComponent(id);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return result;
-    }
-
-    @Override
-    public FlowComponentModel getFlowComponentModel(Long id) throws ProxyException {
+    public FlowComponentModel getFlowComponent(Long id) throws ProxyException {
         final FlowComponent result;
         try {
             result = flowStoreServiceConnector.getFlowComponent(id);

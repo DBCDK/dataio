@@ -4,13 +4,12 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
@@ -75,15 +74,9 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateFlowComponent(flowComponentContent, id, version);
-    }
-
-    @Override
     public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         return flowStoreProxy.updateFlowComponent(model);
     }
-
 
     @Override
     public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
@@ -106,13 +99,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public FlowComponent getFlowComponent(Long id) throws ProxyException {
+    public FlowComponentModel getFlowComponent(Long id) throws ProxyException {
         return flowStoreProxy.getFlowComponent(id);
-    }
-
-    @Override
-    public FlowComponentModel getFlowComponentModel(Long id) throws ProxyException {
-        return flowStoreProxy.getFlowComponentModel(id);
     }
 
     /*

@@ -28,7 +28,6 @@ public interface FlowStoreProxy extends RemoteService {
     FlowModel getFlow(Long id) throws ProxyException;
 
     // Flow Components
-    FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException;
     FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;
     FlowComponent updateFlowComponent(FlowComponentContent flowComponentContent, Long id, Long version) throws NullPointerException, ProxyException;
     FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;

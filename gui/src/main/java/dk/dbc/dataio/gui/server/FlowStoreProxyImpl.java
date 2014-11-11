@@ -160,19 +160,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      */
 
     @Override
-    public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException {
-        FlowComponent flowComponent;
-        try {
-            flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return flowComponent;
-    }
-
-    @Override
     public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
         try {

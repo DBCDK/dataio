@@ -70,11 +70,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
      */
 
     @Override
-    public FlowComponent createFlowComponent(FlowComponentContent flowComponentContent) throws NullPointerException, ProxyException {
-        return flowStoreProxy.createFlowComponent(flowComponentContent);
-    }
-
-    @Override
     public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         return flowStoreProxy.createFlowComponent(model);
     }

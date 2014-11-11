@@ -19,7 +19,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -1267,22 +1266,6 @@ public class FlowStoreProxyImplTest {
     /*
      * Test createFlowComponent
      */
-
-    @Test
-    public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowComponentEntity() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
-        final FlowComponent flowComponent = new FlowComponentBuilder().build();
-        when(flowStoreServiceConnector.createFlowComponent(flowComponentContent)).thenReturn(flowComponent);
-
-        try {
-            final FlowComponent createdFlowComponent = flowStoreProxy.createFlowComponent(flowComponentContent);
-            assertNotNull(createdFlowComponent);
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: createFlowComponent()");
-        }
-    }
 
     @Test
     public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowComponentModelEntity() throws Exception {

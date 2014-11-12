@@ -32,6 +32,7 @@ import java.util.List;
 @Stateless
 @LocalBean
 public class ChunkProcessorBean {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
 
     /**
@@ -42,38 +43,91 @@ public class ChunkProcessorBean {
      * @return result of processing
      */
     public ChunkResult process(Chunk chunk) {
+        final StopWatch stopWatchForChunk = new StopWatch();
         LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
         final Flow flow = chunk.getFlow();
-        final List<ChunkItem> processedItems = new ArrayList<>();
-        for (ChunkItem item : chunk.getItems()) {
+        List<ChunkItem> processedItems = new ArrayList<>();
+
+        if (chunk.getItems().size() > 0) {
             try {
-                MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY,
-                        LogStoreTrackingId.create(String.valueOf(chunk.getJobId()), chunk.getChunkId(), item.getId()).toString());
-
-                ChunkItem processedItem;
-                try {
-                    final String processedRecord = invokeJavaScript(flow, Base64Util.base64decode(item.getData()), chunk.getSupplementaryProcessData());
-                    LOGGER.info("JavaScript processing result:\n{}", processedRecord);
-                    processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(processedRecord), ChunkItem.Status.SUCCESS);
-                } catch (Throwable ex) {
-                    LOGGER.error("Exception caught during JavaScript processing", ex);
-                    final String failureMsg = getFailureMessage(ex);
-                    processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(failureMsg), ChunkItem.Status.FAILURE);
-                }
-                processedItems.add(processedItem);
-
-            } finally {
-                MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
+                JSWrapperSingleScript scriptWrapper = setupJavaScriptEnvironment(flow);
+                processedItems = processItemsWithLogStoreLogging(chunk, flow, scriptWrapper);
+            } catch (Throwable ex) {
+                // Since we cannot have a failed chunk, we have to fail all items in the chunk
+                // with the Throwable from the javascript-enviroment failure.
+                processedItems = failItemsWithThrowable(chunk, ex);
             }
         }
-        // todo: Change Chunk to get actual Charset
-        return new ChunkResult(chunk.getJobId(), chunk.getChunkId(), Charset.defaultCharset(), processedItems);
+
+        ChunkResult chunkResult = new ChunkResult(chunk.getJobId(), chunk.getChunkId(), Charset.defaultCharset(), processedItems);// todo: Change Chunk to get actual Charset
+        LOGGER.debug("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds", chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
+        return chunkResult;
+    }
+
+    private JSWrapperSingleScript setupJavaScriptEnvironment(Flow flow) {
+        LOGGER.info("Setting up Javascript environment");
+        final StopWatch stopWatch = new StopWatch();
+
+        final List<JavaScript> javaScriptsBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts();
+        final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>();
+        for (JavaScript javascriptBase64 : javaScriptsBase64) {
+            javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), Base64Util.base64decode(javascriptBase64.getJavascript())));
+        }
+        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javaScripts);
+
+        LOGGER.debug("Javascript environment creation took {} milliseconds", stopWatch.getElapsedTime());
+        return scriptWrapper;
+    }
+
+    private List<ChunkItem> processItemsWithLogStoreLogging(Chunk chunk, Flow flow, JSWrapperSingleScript scriptWrapper) {
+        List<ChunkItem> processedItems = new ArrayList<>();
+        for (ChunkItem item : chunk.getItems()) {
+            final StopWatch stopWatchForItem = new StopWatch();
+            ChunkItem processedItem = setupLogStoreLoggingAndProcessItem(flow, scriptWrapper, item, chunk);
+            processedItems.add(processedItem);
+            LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
+                    chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
+        }
+        return processedItems;
+    }
+
+    private ChunkItem setupLogStoreLoggingAndProcessItem(Flow flow, JSWrapperSingleScript scriptWrapper, ChunkItem inputItem, Chunk chunk) {
+        ChunkItem processedItem;
+        try {
+            MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY,
+                    LogStoreTrackingId.create(String.valueOf(chunk.getJobId()), chunk.getChunkId(), inputItem.getId()).toString());
+            processedItem = processItem(flow, scriptWrapper, inputItem, chunk.getSupplementaryProcessData());
+        } finally {
+            MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
+        }
+        return processedItem;
+    }
+
+    private ChunkItem processItem(final Flow flow, JSWrapperSingleScript scriptWrapper, ChunkItem inputItem, SupplementaryProcessData supplementaryProcessData) {
+        ChunkItem processedItem;
+        try {
+            final String processedRecord = invokeJavaScript(flow, scriptWrapper, Base64Util.base64decode(inputItem.getData()), supplementaryProcessData);
+            LOGGER.info("JavaScript processing result:\n{}", processedRecord);
+            processedItem = new ChunkItem(inputItem.getId(), Base64Util.base64encode(processedRecord), ChunkItem.Status.SUCCESS);
+        } catch (Throwable ex) {
+            LOGGER.error("Exception caught during JavaScript processing", ex);
+            final String failureMsg = getFailureMessage(ex);
+            processedItem = new ChunkItem(inputItem.getId(), Base64Util.base64encode(failureMsg), ChunkItem.Status.FAILURE);
+        }
+        return processedItem;
+    }
+
+    private String invokeJavaScript(Flow flow, JSWrapperSingleScript scriptWrapper, String record, SupplementaryProcessData supplementaryProcessData) throws JsonException {
+        Object supProcDataJson = convertSupplementaryProcessDataToJsJsonObject(scriptWrapper, supplementaryProcessData);
+        LOGGER.trace("Starting javascript with invocation method: [{}]", flow.getContent().getComponents().get(0).getContent().getInvocationMethod());
+        final Object result = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record, supProcDataJson});
+        return (String) result;
     }
 
     private String getFailureMessage(Throwable ex) {
         String failureMsg;
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
+                PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
             ex.printStackTrace(ps);
             failureMsg = baos.toString("UTF-8");
         } catch (IOException e) {
@@ -82,25 +136,19 @@ public class ChunkProcessorBean {
         return failureMsg;
     }
 
-    private String invokeJavaScript(Flow flow, String record, SupplementaryProcessData supplementaryProcessData) throws JsonException {
-        final List<JavaScript> javaScriptsBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts();
-        final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>();
-        for (JavaScript javascriptBase64 : javaScriptsBase64) {
-            javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), Base64Util.base64decode(javascriptBase64.getJavascript())));
-        }
-        final JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javaScripts);
-
-        Object supProcDataJson = convertSupplementaryProcessDataToJsJsonObject(scriptWrapper, supplementaryProcessData);
-        LOGGER.trace("Starting javascript with invocation method: [{}]", flow.getContent().getComponents().get(0).getContent().getInvocationMethod());
-        final Object result = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record, supProcDataJson});
-        return (String) result;
-    }
-
     private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws JsonException {
         // Something about why you need parantheses in the string around the json
         // when trying to evalute the json in javascript (rhino):
         // http://rayfd.me/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
         String jsonStr = "(" + JsonUtil.toJson(supplementaryProcessData) + ")"; // notice the parantheses!
         return scriptWrapper.eval(jsonStr);
+    }
+
+    private List<ChunkItem> failItemsWithThrowable(Chunk chunk, Throwable ex) {
+        List<ChunkItem> failedItems = new ArrayList<>();
+        for (ChunkItem item : chunk.getItems()) {
+            failedItems.add(new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE));
+        }
+        return failedItems;
     }
 }

@@ -195,7 +195,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void flowChanged(String flowId) {
-        model.setFlowModel(getFlowModel(Long.parseLong(flowId)));
+        if (flowId != null) {
+            model.setFlowModel(getFlowModel(Long.parseLong(flowId)));
+        }
     }
 
     /**
@@ -205,7 +207,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void sinkChanged(String sinkId) {
-        model.setSinkModel(getSinkModel(Long.parseLong(sinkId)));
+        if (sinkId != null) {
+            model.setSinkModel(getSinkModel(Long.parseLong(sinkId)));
+        }
     }
 
     /**
@@ -257,13 +261,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.submitters.setAvailableItems(getAvailableSubmitters(model));
         view.submitters.setSelectedItems(getSelectedSubmitters(model));
         view.submitters.setEnabled(true);
-        if (model.getFlowModel().getId() != 0) {
-            view.flow.setSelected((int) model.getFlowModel().getId());
-        }
+        view.flow.setSelectedItem(model.getFlowModel().getFlowName());
         view.flow.setEnabled(true);
-        if (model.getSinkModel().getId() != 0) {
-            view.sink.setSelected((int) model.getSinkModel().getId());
-        }
+        view.sink.setSelectedItem(model.getSinkModel().getSinkName());
         view.sink.setEnabled(true);
     }
 
@@ -302,7 +302,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         view.submitters.setAvailableItems(submitters);
         view.submitters.setEnabled(true);
-        view.submitters.fireChangeEvent();
     }
 
     protected void setAvailableFlows(List<FlowModel> models) {
@@ -312,7 +311,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.flow.addAvailableItem(model.getFlowName(), Long.toString(model.getId()));
         }
         view.flow.setEnabled(true);
-        view.flow.fireChangeEvent();
     }
 
     protected void setAvailableSinks(List<SinkModel> models) {
@@ -322,7 +320,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
         }
         view.sink.setEnabled(true);
-        view.sink.fireChangeEvent();
     }
 
     private void fetchAvailableSubmitters() {
@@ -384,6 +381,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(List<SubmitterModel> submitters) {
             setAvailableSubmitters(submitters);
+            updateAllFieldsAccordingToCurrentState();
         }
     }
 
@@ -398,6 +396,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(List<FlowModel> flows) {
             setAvailableFlows(flows);
+            updateAllFieldsAccordingToCurrentState();
         }
     }
 
@@ -412,6 +411,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(List<SinkModel> sinks) {
             setAvailableSinks(sinks);
+            updateAllFieldsAccordingToCurrentState();
         }
     }
 
@@ -427,6 +427,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onSuccess(FlowBinderModel model) {
             view.status.setText(texts.status_SaveSuccess());
             setFlowBinderModel(model);
+            updateAllFieldsAccordingToCurrentState();
         }
 
     }

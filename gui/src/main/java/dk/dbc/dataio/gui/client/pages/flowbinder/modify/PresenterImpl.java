@@ -309,7 +309,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.availableFlows = models;
         view.flow.clear();
         for (FlowModel model : models) {
-            view.flow.setAvailableItem(model.getFlowName(), Long.toString(model.getId()));
+            view.flow.addAvailableItem(model.getFlowName(), Long.toString(model.getId()));
         }
         view.flow.setEnabled(true);
         view.flow.fireChangeEvent();
@@ -319,7 +319,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.availableSinks = models;
         view.sink.clear();
         for (SinkModel model : models) {
-            view.sink.setAvailableItem(model.getSinkName(), Long.toString(model.getId()));
+            view.sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
         }
         view.sink.setEnabled(true);
         view.sink.fireChangeEvent();

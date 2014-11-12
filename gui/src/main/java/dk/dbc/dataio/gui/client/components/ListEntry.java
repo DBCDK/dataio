@@ -32,20 +32,18 @@ public class ListEntry extends DataEntry implements HasValue<String> {
         listBox.clear();
     }
 
-    public void setAvailableItem(String text) {
+    public void addAvailableItem(String text) {
         listBox.addItem(text);
     }
 
-    public void setAvailableItem(String text, String key) {
+    public void addAvailableItem(String text, String key) {
         listBox.addItem(text, key);
     }
 
-    public void setAvailableItems(List<String> items, String selectedItem) {
+    public void setAvailableItems(List<String> items) {
+        listBox.clear();
         for(String item : items) {
-            setAvailableItem(item);
-            if (item.equals(selectedItem)){
-                listBox.setSelectedIndex(items.indexOf(item));
-            }
+            addAvailableItem(item);
         }
     }
 
@@ -75,6 +73,15 @@ public class ListEntry extends DataEntry implements HasValue<String> {
         listBox.setEnabled(enabled);
     }
 
+    public void setSelectedItem(String value) {
+        for (int i=0; i<listBox.getItemCount(); i++) {
+            if (value.equals(listBox.getItemText(i))) {
+                listBox.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
+
     public void fireChangeEvent() {
         class ListBoxChangedEvent extends ChangeEvent {}
         listBox.fireEvent(new ListBoxChangedEvent());
@@ -91,17 +98,12 @@ public class ListEntry extends DataEntry implements HasValue<String> {
 
     @Override
     public void setValue(String value) {
-        for (int i=0; i<listBox.getItemCount(); i++) {
-            if (value == listBox.getItemText(i)) {
-                listBox.setSelectedIndex(i);
-                break;
-            }
-        }
+        setSelectedItem(value);
     }
 
     @Override
     public void setValue(String value, boolean fireEvents) {
-        setValue(value);
+        setSelectedItem(value);
         if (fireEvents) {
             ValueChangeEvent.fire(this, value);
         }

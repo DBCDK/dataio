@@ -165,6 +165,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onFilteredFailure(Throwable e) {
             onFailureSendExceptionToView(e);
+            view.revision.setEnabled(true);
+            view.script.setEnabled(true);
+            setAvailableScripts(new ArrayList<String>());
+            setAvailableInvocationMethods(new ArrayList<String>());
+            model.setInvocationJavascript("");
+            model.setInvocationMethod("");
         }
         @Override
         public void onSuccess(List<String> scriptNames) {
@@ -179,6 +185,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onFilteredFailure(Throwable e) {
             onFailureSendExceptionToView(e);
+            view.revision.setEnabled(true);
+            view.script.setEnabled(true);
+            view.method.setEnabled(true);
+            setAvailableInvocationMethods(new ArrayList<String>());
+            model.setInvocationMethod("");
         }
         @Override
         public void onSuccess(List<String> invocationMethods) {
@@ -237,8 +248,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for(RevisionInfo revisionInfo : revisionInfoList) {
             availableRevisions.add(Long.toString(revisionInfo.getRevision()));
         }
-        view.revision.clear();
-        view.revision.setAvailableItems(availableRevisions, model.getSvnRevision());
+        view.revision.setAvailableItems(availableRevisions);
+        view.revision.setSelectedItem(model.getSvnRevision());
         view.revision.fireChangeEvent();
     }
 
@@ -248,8 +259,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     protected void setAvailableScripts(List<String> scriptNames) {
         availableScripts = scriptNames;
-        view.script.clear();
-        view.script.setAvailableItems(scriptNames, model.getInvocationJavascript());
+        view.script.setAvailableItems(scriptNames);
+        view.script.setSelectedItem(model.getInvocationJavascript());
         view.script.fireChangeEvent();
     }
 
@@ -259,8 +270,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     protected void setAvailableInvocationMethods(List<String> invocationMethods) {
         availableInvocationMethods = invocationMethods;
-        view.method.clear();
-        view.method.setAvailableItems(invocationMethods, model.getInvocationMethod());
+        view.method.setAvailableItems(invocationMethods);
+        view.method.setSelectedItem(model.getInvocationMethod());
         view.method.fireChangeEvent();
         view.revision.setEnabled(true);
         view.script.setEnabled(true);

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobprocessor.ejb;
+package dk.dbc.dataio.commons.time;
 
 public class StopWatch {
     /* Stores the start time when an object of the StopWatch class is initialized. */

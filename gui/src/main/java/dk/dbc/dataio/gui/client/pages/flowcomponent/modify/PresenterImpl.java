@@ -90,7 +90,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void revisionChanged(String selectedRevision) {
-        model.setSvnRevision(selectedRevision);
+        model.setSvnRevision(selectedRevision == null ? "" : selectedRevision);
         view.busy.setVisible(true);
         view.script.setEnabled(false);
         view.method.setEnabled(false);
@@ -103,7 +103,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void scriptNameChanged(String selectedScript) {
-        model.setInvocationJavascript(selectedScript);
+        model.setInvocationJavascript(selectedScript == null ? "" : selectedScript);
         view.busy.setVisible(true);
         view.method.setEnabled(false);
         fetchAvailableInvocationMethods(model.getSvnProject(), Long.valueOf(model.getSvnRevision()), model.getInvocationJavascript());
@@ -115,7 +115,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void invocationMethodChanged(String selectedInvocationMethod) {
-        model.setInvocationMethod(selectedInvocationMethod);
+        model.setInvocationMethod(selectedInvocationMethod == null ? "" : selectedInvocationMethod);
     }
 
     /**

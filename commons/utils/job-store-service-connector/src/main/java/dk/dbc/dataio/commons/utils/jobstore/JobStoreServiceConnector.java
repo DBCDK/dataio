@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobErrorCode;
@@ -12,6 +13,8 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -28,6 +31,8 @@ import javax.ws.rs.core.Response;
  * </p>
  */
 public class JobStoreServiceConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreServiceConnector.class);
+
     private final Client httpClient;
     private final String baseUrl;
 
@@ -53,19 +58,24 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to create job
      */
     public JobInfo createJob(JobSpecification jobSpecification) throws NullPointerException, ProcessingException, JobStoreServiceConnectorException {
-        InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
-        final Response response = HttpClient.doPostWithJson(httpClient, jobSpecification, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
+        final StopWatch stopWatch = new StopWatch();
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
-            final JobInfo jobInfo = readResponseEntity(response, JobInfo.class);
-            if (jobInfo.getJobErrorCode() != JobErrorCode.NO_ERROR) {
-                throw new JobStoreServiceConnectorJobCreationFailedException(
-                        String.format("job-store service was unable to finish creation of job<%s> due to %s", jobInfo.getJobId(), jobInfo.getJobErrorCode()),
-                        jobInfo.getJobErrorCode());
+            InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
+            final Response response = HttpClient.doPostWithJson(httpClient, jobSpecification, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+                final JobInfo jobInfo = readResponseEntity(response, JobInfo.class);
+                if (jobInfo.getJobErrorCode() != JobErrorCode.NO_ERROR) {
+                    throw new JobStoreServiceConnectorJobCreationFailedException(
+                            String.format("job-store service was unable to finish creation of job<%s> due to %s", jobInfo.getJobId(), jobInfo.getJobErrorCode()),
+                            jobInfo.getJobErrorCode());
+                }
+                return jobInfo;
+            } finally {
+                response.close();
             }
-            return jobInfo;
         } finally {
-            response.close();
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -77,14 +87,19 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on failure to retrieve sink
      */
     public Sink getSink(long jobId) throws ProcessingException, JobStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_SINK)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        final StopWatch stopWatch = new StopWatch();
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseEntity(response, Sink.class);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_SINK)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, Sink.class);
+            } finally {
+                response.close();
+            }
         } finally {
-            response.close();
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -96,14 +111,19 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on failure to retrieve state
      */
     public JobState getState(long jobId) throws ProcessingException, JobStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_STATE)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        final StopWatch stopWatch = new StopWatch();
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseEntity(response, JobState.class);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_STATE)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, JobState.class);
+            } finally {
+                response.close();
+            }
         } finally {
-            response.close();
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -116,15 +136,21 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on failure to retrieve chunk
      */
     public Chunk getChunk(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CHUNK)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
-                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        final StopWatch stopWatch = new StopWatch();
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseEntity(response, Chunk.class);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CHUNK)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                    .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, Chunk.class);
+            } finally {
+                response.close();
+                LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            }
         } finally {
-            response.close();
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -137,15 +163,20 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on failure to retrieve sink chunk result
      */
     public SinkChunkResult getSinkChunkResult(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_DELIVERED)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
-                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        final StopWatch stopWatch = new StopWatch();
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseEntity(response, SinkChunkResult.class);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_DELIVERED)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                    .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, SinkChunkResult.class);
+            } finally {
+                response.close();
+            }
         } finally {
-            response.close();
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -157,14 +188,19 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on failure to retrieve JobCompletionState
      */
     public JobCompletionState getJobCompletionState(long jobId) throws ProcessingException, JobStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_COMPLETIONSTATE)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        final StopWatch stopWatch = new StopWatch();
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseEntity(response, JobCompletionState.class);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_COMPLETIONSTATE)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, JobCompletionState.class);
+            } finally {
+                response.close();
+            }
         } finally {
-            response.close();
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

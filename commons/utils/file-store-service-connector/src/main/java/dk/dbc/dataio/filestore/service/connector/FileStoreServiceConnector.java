@@ -1,9 +1,12 @@
 package dk.dbc.dataio.filestore.service.connector;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -30,6 +33,8 @@ import java.util.List;
  * </p>
  */
 public class FileStoreServiceConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileStoreServiceConnector.class);
+
     private final Client httpClient;
     private final String baseUrl;
 
@@ -56,18 +61,23 @@ public class FileStoreServiceConnector {
      */
     public String addFile(final InputStream is)
             throws NullPointerException, ProcessingException, FileStoreServiceConnectorException {
-        InvariantUtil.checkNotNullOrThrow(is, "is");
-        final Entity<InputStream> entity = Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM);
-        final Response response = HttpClient.doPost(httpClient, entity, baseUrl, FileStoreServiceConstants.FILES_COLLECTION);
+        final StopWatch stopWatch = new StopWatch();
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
-            final String fileId = getfileIdFromLocationHeader(response);
-            if (fileId == null) {
-                throw new FileStoreServiceConnectorException("Unable to extract file ID from Location header");
+            InvariantUtil.checkNotNullOrThrow(is, "is");
+            final Entity<InputStream> entity = Entity.entity(is, MediaType.APPLICATION_OCTET_STREAM);
+            final Response response = HttpClient.doPost(httpClient, entity, baseUrl, FileStoreServiceConstants.FILES_COLLECTION);
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+                final String fileId = getfileIdFromLocationHeader(response);
+                if (fileId == null) {
+                    throw new FileStoreServiceConnectorException("Unable to extract file ID from Location header");
+                }
+                return fileId;
+            } finally {
+                response.close();
             }
-            return fileId;
         } finally {
-            response.close();
+            LOGGER.debug("FileStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -87,13 +97,18 @@ public class FileStoreServiceConnector {
      */
     public InputStream getFile(final String fileId)
             throws NullPointerException, IllegalArgumentException, ProcessingException, FileStoreServiceConnectorException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
-        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
-                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+            final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                    .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
 
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
-        verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-        return readResponseInputStream(response);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseInputStream(response);
+        } finally {
+            LOGGER.debug("FileStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
     }
 
     public Client getHttpClient() {

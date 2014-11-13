@@ -74,10 +74,12 @@ public class ListEntry extends DataEntry implements HasValue<String> {
     }
 
     public void setSelectedItem(String value) {
-        for (int i=0; i<listBox.getItemCount(); i++) {
-            if (value.equals(listBox.getItemText(i))) {
-                listBox.setSelectedIndex(i);
-                break;
+        if(value != null) {
+            for (int i = 0; i < listBox.getItemCount(); i++) {
+                if (value.equals(listBox.getItemText(i))) {
+                    listBox.setSelectedIndex(i);
+                    break;
+                }
             }
         }
     }

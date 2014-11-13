@@ -94,7 +94,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.busy.setVisible(true);
         view.script.setEnabled(false);
         view.method.setEnabled(false);
-        fetchAvailableScripts(model.getSvnProject(), Long.valueOf(selectedRevision));
+        fetchAvailableScripts(model.getSvnProject(), Long.valueOf(model.getSvnRevision()));
     }
 
     /**
@@ -106,7 +106,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         model.setInvocationJavascript(selectedScript);
         view.busy.setVisible(true);
         view.method.setEnabled(false);
-        fetchAvailableInvocationMethods(model.getSvnProject(), Long.valueOf(model.getSvnRevision()), selectedScript);
+        fetchAvailableInvocationMethods(model.getSvnProject(), Long.valueOf(model.getSvnRevision()), model.getInvocationJavascript());
     }
 
     /**

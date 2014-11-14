@@ -3,105 +3,95 @@ package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * PresenterImpl unit tests
- *
- * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
- */
+* PresenterImpl unit tests
+*
+* The test methods of this class uses the following naming convention:
+*
+*  unitOfWork_stateUnderTest_expectedBehavior
+*/
+@RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest {
-    private ClientFactory mockedClientFactory;
-    private FlowStoreProxyAsync mockedFlowStoreProxy;
-    private Texts mockedConstants;
-    private AcceptsOneWidget mockedContainerWidget;
-    private EventBus mockedEventBus;
-    private View mockedCreateView;
+    @Mock private ClientFactory mockedClientFactory;
+    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock private Texts mockedTexts;
+    @Mock private AcceptsOneWidget mockedContainerWidget;
+    @Mock private EventBus mockedEventBus;
+    @Mock private Exception mockedException;
+    private View view;
 
     private PresenterCreateImpl presenterCreateImpl;
-
-    private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
-    private final static String NUMBER_INPUT_FIELD_VALIDATION_ERROR = "NumberInputFieldValidationError";
-    private final static String PROXY_DATA_VALIDATION_ERROR = "ProxyDataValidationError";
-    private final static String PROXY_KEY_VIOLATION_ERROR = "ProxyKeyViolationError";
-
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
     public void setupMockedObjects() {
-        mockedClientFactory = mock(ClientFactory.class);
-        mockedFlowStoreProxy = mock(FlowStoreProxyAsync.class);
-        mockedConstants = mock(Texts.class);
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        mockedContainerWidget = mock(AcceptsOneWidget.class);
-        mockedEventBus = mock(EventBus.class);
-        mockedCreateView = mock(View.class);
-        when(mockedClientFactory.getSubmitterCreateView()).thenReturn(mockedCreateView);
-        when(mockedConstants.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
-        when(mockedConstants.error_NumberInputFieldValidationError()).thenReturn(NUMBER_INPUT_FIELD_VALIDATION_ERROR);
-        when(mockedConstants.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR);
-        when(mockedConstants.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR);
+        when(mockedClientFactory.getSubmitterCreateView()).thenReturn(view);
     }
 
+    @Before
+    public void setupView() {
+        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+    }
     //------------------------------------------------------------------------------------------------------------------
-
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
+        verify(mockedClientFactory).getSubmitterCreateView();
     }
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        assertThat(presenterCreateImpl.model, is(notNullValue()));
+        assertThat(presenterCreateImpl.model.getName(), is(""));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
-        // initializeModel has the responsibility to setup the model in the presenter correctly
-        // In this case, we expect the model to be initialized to an empty model - and this is exactly what we would like to verify
-        verify(mockedCreateView, times(1)).setNumber("");
-        verify(mockedCreateView, times(1)).setName("");
-        verify(mockedCreateView, times(1)).setDescription("");
-    }
 
-    @Test
-    public void saveModel_modelValidationError_errorTextIsDisplayedOnView() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
-        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-
-        presenterCreateImpl.numberChanged("a");                 // Number must be a valid number
-        presenterCreateImpl.nameChanged("name");                // Name is ok
-        presenterCreateImpl.descriptionChanged("description");  // Description is ok
-        presenterCreateImpl.saveModel();
-
-        verify(mockedCreateView, times(1)).setErrorText(NUMBER_INPUT_FIELD_VALIDATION_ERROR);
+        assertThat(presenterCreateImpl.model, is(notNullValue()));
+        assertThat(presenterCreateImpl.model.getNumber(), is(""));
+        assertThat(presenterCreateImpl.model.getName(), is(""));
+        assertThat(presenterCreateImpl.model.getDescription(), is(""));
     }
 
     @Test
     public void saveModel_submitterContentOk_createSubmitterCalled() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedConstants);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-
-        presenterCreateImpl.numberChanged("1");                 // Number is ok
-        presenterCreateImpl.nameChanged("a");                   // Name is ok
-        presenterCreateImpl.descriptionChanged("description");  // Description is ok
-
+        presenterCreateImpl.model = new SubmitterModel(1, 1, "34343", "name", "description");
         presenterCreateImpl.saveModel();
+        verify(mockedFlowStoreProxy).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
+    }
 
-        verify(mockedFlowStoreProxy, times(1)).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
+    @Test
+    public void saveModel_submitterContentInvalidNumber_createSubmitterNotCalled() {
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterCreateImpl.model = new SubmitterModel(1, 1, "notANumber", "name", "description");
+        presenterCreateImpl.saveModel();
+        assertThat(presenterCreateImpl.model.isNumberValid(), is(false));
+        verify(mockedFlowStoreProxy, times(0)).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
     }
 
 }

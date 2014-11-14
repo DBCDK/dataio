@@ -14,10 +14,10 @@ public class PresenterEditImpl extends PresenterImpl {
     /**
      * Constructor
      * @param clientFactory
-     * @param constants
+     * @param texts
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory, Texts constants) {
-        super(clientFactory, constants);
+    public PresenterEditImpl(Place place, ClientFactory clientFactory, Texts texts) {
+        super(clientFactory, texts);
         view = clientFactory.getSubmitterEditView();
         EditPlace editPlace = (EditPlace) place;
         id = editPlace.getSubmitterId();
@@ -41,7 +41,7 @@ public class PresenterEditImpl extends PresenterImpl {
     @Override
     void saveModel() {
         if (!model.isNumberValid()) {
-            view.setErrorText(constants.error_NumberInputFieldValidationError());
+            view.setErrorText(texts.error_NumberInputFieldValidationError());
         } else {
             flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
         }
@@ -58,7 +58,7 @@ public class PresenterEditImpl extends PresenterImpl {
     class GetSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
         @Override
         public void onFilteredFailure(Throwable caught) {
-            view.setErrorText(constants.error_CannotFetchSubmitter());
+            view.setErrorText(texts.error_CannotFetchSubmitter());
         }
 
         @Override

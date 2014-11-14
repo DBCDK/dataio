@@ -1,13 +1,56 @@
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
-import dk.dbc.dataio.gui.client.views.GenericView;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.TextAreaEntry;
+import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 
-public interface View extends GenericView<Presenter> {
-    void initializeFields();
-    void setNumber(String number);
-    String getNumber();
-    void setName(String name);
-    String getName();
-    void setDescription(String description);
-    String getDescription();
+public class View extends ContentPanel<Presenter> implements IsWidget {
+
+    interface SubmitterBinder extends UiBinder<HTMLPanel, View> {}
+    private static SubmitterBinder uiBinder = GWT.create(SubmitterBinder.class);
+
+    public View(String header) {
+        super(header);
+        add(uiBinder.createAndBindUi(this));
+    }
+
+    @Override
+    public void init() {}
+
+    @UiField TextEntry number;
+    @UiField TextEntry name;
+    @UiField TextAreaEntry description;
+    @UiField Label status;
+
+    @UiHandler("number")
+    void numberChanged(ValueChangeEvent<String> event) {
+        presenter.numberChanged(number.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("name")
+    void nameChanged(ValueChangeEvent<String> event) {
+        presenter.nameChanged(name.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("description")
+    void descriptionChanged(ValueChangeEvent<String> event) {
+        presenter.descriptionChanged(description.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("saveButton")
+    void saveButtonPressed(ClickEvent event) {
+        presenter.saveButtonPressed();
+    }
 }

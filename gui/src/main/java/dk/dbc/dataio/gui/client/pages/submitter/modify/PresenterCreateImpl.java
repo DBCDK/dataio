@@ -11,10 +11,10 @@ public class PresenterCreateImpl extends PresenterImpl {
     /**
      * Constructor
      * @param clientFactory, clientFactory
-     * @param constants, the constants for submitter modify
+     * @param texts, the texts for submitter modify
      */
-    public PresenterCreateImpl(ClientFactory clientFactory, Texts constants) {
-        super(clientFactory, constants);
+    public PresenterCreateImpl(ClientFactory clientFactory, Texts texts) {
+        super(clientFactory, texts);
         view = clientFactory.getSubmitterCreateView();
     }
 
@@ -35,7 +35,7 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     void saveModel() {
         if (!model.isNumberValid()) {
-            view.setErrorText(constants.error_NumberInputFieldValidationError());
+            view.setErrorText(texts.error_NumberInputFieldValidationError());
         } else {
             flowStoreProxy.createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
         }

@@ -14,14 +14,12 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    protected Texts constants;
+    protected Texts texts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected View view;
 
     // Application Models
     protected SubmitterModel model = new SubmitterModel();
-
-    private final static String EMPTY = "";
 
 
     /**
@@ -30,10 +28,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Put code, utilizing view in the start method
      *
      * @param clientFactory, clientFactory
-     * @param constants, the constants for submitter modify
+     * @param texts, the constants for submitter modify
      */
-    public PresenterImpl(ClientFactory clientFactory, Texts constants) {
-        this.constants = constants;
+    public PresenterImpl(ClientFactory clientFactory, Texts texts) {
+        this.texts = texts;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
@@ -47,7 +45,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view.initializeFields();
+        initializeViewFields();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
         initializeModel();
@@ -59,6 +57,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void numberChanged(String number) {
         model.setNumber(number);
+        view.number.setText(number);
+        view.number.setEnabled(true);
     }
 
     /**
@@ -67,6 +67,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void nameChanged(String name) {
         model.setName(name);
+        view.name.setText(name);
+        view.name.setEnabled(true);
     }
 
     /**
@@ -75,13 +77,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void descriptionChanged(String description) {
         model.setDescription(description);
+        view.description.setText(description);
+        view.description.setEnabled(true);
     }
 
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
-        view.setStatusText(EMPTY);
+        view.status.setText("");
     }
 
     /**
@@ -91,20 +95,32 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         saveModel();
     }
 
-
-
     /*
      * Private methods
      */
 
+    public void initializeViewFields() {
+        view.number.clearText();
+        view.number.setEnabled(false);
+        view.name.clearText();
+        view.name.setEnabled(false);
+        view.description.clearText();
+        view.description.setEnabled(false);
+    }
     /**
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
-        view.setNumber(model.getNumber());
-        view.setName(model.getName());
-        view.setDescription(model.getDescription());
-        view.setStatusText(EMPTY);
+        if(model.getId() == 0) {
+            view.number.setEnabled(true);
+        }
+        view.number.setText(model.getNumber());
+        //view.number.setEnabled(true);
+        view.name.setText(model.getName());
+        view.name.setEnabled(true);
+        view.description.setText(model.getDescription());
+        view.description.setEnabled(true);
+        view.status.setText("");
     }
 
 
@@ -135,9 +151,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             errorMessage = e.getMessage();
         } else {
             switch (errorCode) {
-                case NOT_ACCEPTABLE: errorMessage = constants.error_ProxyKeyViolationError();
+                case NOT_ACCEPTABLE: errorMessage = texts.error_ProxyKeyViolationError();
                     break;
-                case BAD_REQUEST: errorMessage = constants.error_ProxyDataValidationError();
+                case BAD_REQUEST: errorMessage = texts.error_ProxyDataValidationError();
                     break;
                 default: errorMessage = e.getMessage();
                     break;
@@ -162,7 +178,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onSuccess(SubmitterModel model) {
-            view.setStatusText(constants.status_SubmitterSuccessfullySaved());
+            view.status.setText(texts.status_SubmitterSuccessfullySaved());
             setSubmitterModel(model);
         }
     }

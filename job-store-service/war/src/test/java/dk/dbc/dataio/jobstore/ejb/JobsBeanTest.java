@@ -23,6 +23,7 @@ import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
@@ -365,6 +366,40 @@ public class JobsBeanTest {
         assertThat(response.hasEntity(), is(true));
         final JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
         assertThat(entityNode.get("jobId").longValue(), is(sinkResult.getJobId()));
+    }
+
+    @Test
+    public void getFlow_jobStoreReturnsNull_returnsStatusNotFoundResponse() throws JobStoreException {
+        when(jobStore.getFlow(jobId)).thenReturn(null);
+
+        final Response response = getJobsBean().getFlow(jobId);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getFlow_jobStoreThrowsJobStoreException_throws() throws JobStoreException {
+        when(jobStore.getFlow(jobId)).thenThrow(new JobStoreException("JobStoreException"));
+
+        getJobsBean().getFlow(jobId);
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getFlow_flowCanNotBeMarshalledToJson_throws() throws JobStoreException, JsonException {
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(any(Flow.class))).thenThrow(new JsonException("JsonException"));
+        when(jobStore.getFlow(jobId)).thenReturn(new FlowBuilder().build());
+
+        final Response response = getJobsBean().getFlow(jobId);
+        assertThat(response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+    }
+
+    @Test
+    public void getFlow_jobStoreReturnsFlow_returnsStatusOkResponseWithEntity() throws JobStoreException, JsonException {
+        when(jobStore.getFlow(jobId)).thenReturn(new FlowBuilder().build());
+
+        final Response response = getJobsBean().getFlow(jobId);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
     }
 
     @Test

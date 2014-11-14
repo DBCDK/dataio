@@ -390,7 +390,7 @@ public class FileSystemJobStore implements JobStore {
 
     @Override
     public Flow getFlow(long jobId) throws JobStoreException {
-        final Path flowPath = getSinkPath(jobId);
+        final Path flowPath = getFlowPath(jobId);
         if (Files.exists(flowPath)) {
             return JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).readObjectFromFile(flowPath, Flow.class);
         } else {

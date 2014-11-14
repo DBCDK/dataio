@@ -11,17 +11,21 @@ public class FailedItemModel implements Serializable {
     private String jobId;
     private String chunkId;
     private String itemId;
-    private String failedItem;
+    private String chunkifyState;
+    private String processingState;
+    private String deliveryState;
 
-    public FailedItemModel(String jobId, String chunkId, String itemId, String failedItem) {
+    public FailedItemModel(String jobId, String chunkId, String itemId, String chunkifyState, String processingState, String deliveryState) {
         this.jobId = jobId;
         this.chunkId = chunkId;
         this.itemId = itemId;
-        this.failedItem = failedItem;
+        this.chunkifyState = chunkifyState;
+        this.processingState = processingState;
+        this.deliveryState = deliveryState;
     }
 
     public FailedItemModel() {
-        this("", "", "", "");
+        this("", "", "", "", "", "");
     }
 
     public String getJobId() {
@@ -48,11 +52,27 @@ public class FailedItemModel implements Serializable {
         this.itemId = itemId;
     }
 
-    public String getFailedItem() {
-        return failedItem;
+    public String getChunkifyState() {
+        return chunkifyState;
     }
 
-    public void setFailedItem(String failedItem) {
-        this.failedItem = failedItem;
+    public void setChunkifyState(String chunkifyState) {
+        this.chunkifyState = chunkifyState;
+    }
+
+    public String getProcessingState() {
+        return processingState;
+    }
+
+    public void setProcessingState(String processingState) {
+        this.processingState = processingState;
+    }
+
+    public String getDeliveryState() {
+        return deliveryState;
+    }
+
+    public void setDeliveryState(String deliveryState) {
+        this.deliveryState = deliveryState;
     }
 }

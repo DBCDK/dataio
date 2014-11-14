@@ -17,7 +17,13 @@ public interface Texts extends Constants {
     String label_ItemId();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String label_Failure();
+    String label_Chunkify();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Processing();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Delivery();
 
 
     // Status

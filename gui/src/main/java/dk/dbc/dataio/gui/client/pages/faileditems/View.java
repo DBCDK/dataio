@@ -51,7 +51,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         cellTable.addColumn(constructJobIdColumn(), texts.label_JobId());
         cellTable.addColumn(constructChunkIdColumn(), texts.label_ChunkId());
         cellTable.addColumn(constructItemIdColumn(), texts.label_ItemId());
-        cellTable.addColumn(constructFailureColumn(), texts.label_Failure());
+        cellTable.addColumn(constructChunkifyColumn(), texts.label_Chunkify());
+        cellTable.addColumn(constructProcessingColumn(), texts.label_Processing());
+        cellTable.addColumn(constructDeliveryColumn(), texts.label_Delivery());
 
         cellTable.setSelectionModel(constructSelectionModel());
     }
@@ -83,11 +85,29 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         };
     }
 
-    private Column constructFailureColumn() {
+    private Column constructChunkifyColumn() {
         return new TextColumn<FailedItemModel>() {
             @Override
             public String getValue(FailedItemModel model) {
-                return model.getFailedItem();
+                return model.getChunkifyState();
+            }
+        };
+    }
+
+    private Column constructProcessingColumn() {
+        return new TextColumn<FailedItemModel>() {
+            @Override
+            public String getValue(FailedItemModel model) {
+                return model.getProcessingState();
+            }
+        };
+    }
+
+    private Column constructDeliveryColumn() {
+        return new TextColumn<FailedItemModel>() {
+            @Override
+            public String getValue(FailedItemModel model) {
+                return model.getDeliveryState();
             }
         };
     }
@@ -98,7 +118,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
             public void onSelectionChange(SelectionChangeEvent event) {
                 FailedItemModel selected = selectionModel.getLastSelectedObject();
                 if (selected != null) {
-                    presenter.failedItemSelected(new FailedItemModel(selected.getJobId(), selected.getChunkId(), selected.getItemId(), selected.getFailedItem()));
+                    presenter.failedItemSelected(new FailedItemModel(selected.getJobId(), selected.getChunkId(), selected.getItemId(),
+                            selected.getChunkifyState(), selected.getProcessingState(), selected.getDeliveryState()));
                 }
             }
         });

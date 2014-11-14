@@ -73,13 +73,12 @@ public class PresenterImplTest {
     private final long ITEM_FAILURE = 222L;
     private final long ITEM_IGNORED = 333L;
     private final long ITEM_INCOMPLETE = 444L;
-    private final String FAILED_ITEM = "Failed Item";
     private FailedItemModel defaultFailedItemModel =
             new FailedItemModel(
                     Long.toString(JOB_ID),
                     Long.toString(CHUNK_ID),
                     Long.toString(ITEM_ID),
-                    FAILED_ITEM);
+                    "Chunkify Status", "Processing Status", "Delivery Status");
     private final JobCompletionState jobCompletionState =
             new JobCompletionStateBuilder()
                     .setJobId(JOB_ID)
@@ -199,34 +198,50 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void addJobCompletionStateToView_calladdJobCompletionStateToView_viewAddFailedItemCalled() {
+    public void addJobCompletionStateToView_callAddJobCompletionStateToView_viewAddFailedItemCalled() {
         createAndInitializePresenter();
 
         presenterImpl.addJobCompletionStateToView(jobCompletionState);
 
         ArgumentCaptor<FailedItemModel> argument = ArgumentCaptor.forClass(FailedItemModel.class);
-        verify(mockedView, times(3)).addFailedItem(argument.capture());
+        verify(mockedView, times(4)).addFailedItem(argument.capture());
         // We don't know the order of the captured arguments - therefore copy them into a map
-        Map<String, FailedItemModel> modelMap = new HashMap<String, FailedItemModel>(3);
+        Map<String, FailedItemModel> modelMap = new HashMap<String, FailedItemModel>(4);
         for (FailedItemModel model: argument.getAllValues()) {
-            modelMap.put(model.getFailedItem(), model);
+            modelMap.put(model.getItemId(), model);
         }
-        assertThat(modelMap.size(), is(3));
-        FailedItemModel ignoredModel = modelMap.get(STATUS_IGNORED);
+        assertThat(modelMap.size(), is(4));
+        FailedItemModel successModel = modelMap.get(String.valueOf(ITEM_SUCCESS));
+        assertThat(successModel.getJobId(), is(Long.toString(JOB_ID)));
+        assertThat(successModel.getChunkId(), is(Long.toString(CHUNK_ID)));
+        assertThat(successModel.getItemId(), is(Long.toString(ITEM_SUCCESS)));
+        assertThat(successModel.getChunkifyState(), is(STATUS_SUCCESS));
+        assertThat(successModel.getProcessingState(), is(STATUS_SUCCESS));
+        assertThat(successModel.getDeliveryState(), is(STATUS_SUCCESS));
+
+        FailedItemModel ignoredModel = modelMap.get(String.valueOf(ITEM_FAILURE));
         assertThat(ignoredModel.getJobId(), is(Long.toString(JOB_ID)));
         assertThat(ignoredModel.getChunkId(), is(Long.toString(CHUNK_ID)));
-        assertThat(ignoredModel.getItemId(), is(Long.toString(ITEM_IGNORED)));
-        assertThat(ignoredModel.getFailedItem(), is(STATUS_IGNORED));
-        FailedItemModel failedModel = modelMap.get(STATUS_FAILURE);
+        assertThat(ignoredModel.getItemId(), is(Long.toString(ITEM_FAILURE)));
+        assertThat(ignoredModel.getChunkifyState(), is(STATUS_SUCCESS));
+        assertThat(ignoredModel.getProcessingState(), is(STATUS_FAILURE));
+        assertThat(ignoredModel.getDeliveryState(), is(STATUS_SUCCESS));
+
+        FailedItemModel failedModel = modelMap.get(String.valueOf(ITEM_IGNORED));
         assertThat(failedModel.getJobId(), is(Long.toString(JOB_ID)));
         assertThat(failedModel.getChunkId(), is(Long.toString(CHUNK_ID)));
-        assertThat(failedModel.getItemId(), is(Long.toString(ITEM_FAILURE)));
-        assertThat(failedModel.getFailedItem(), is(STATUS_FAILURE));
-        FailedItemModel incompletedModel = modelMap.get(STATUS_INCOMPLETE);
+        assertThat(failedModel.getItemId(), is(Long.toString(ITEM_IGNORED)));
+        assertThat(failedModel.getChunkifyState(), is(STATUS_SUCCESS));
+        assertThat(failedModel.getProcessingState(), is(STATUS_IGNORED));
+        assertThat(failedModel.getDeliveryState(), is(STATUS_SUCCESS));
+
+        FailedItemModel incompletedModel = modelMap.get(String.valueOf(ITEM_INCOMPLETE));
         assertThat(incompletedModel.getJobId(), is(Long.toString(JOB_ID)));
         assertThat(incompletedModel.getChunkId(), is(Long.toString(CHUNK_ID)));
         assertThat(incompletedModel.getItemId(), is(Long.toString(ITEM_INCOMPLETE)));
-        assertThat(incompletedModel.getFailedItem(), is(STATUS_INCOMPLETE));
+        assertThat(incompletedModel.getChunkifyState(), is(STATUS_SUCCESS));
+        assertThat(incompletedModel.getProcessingState(), is(STATUS_INCOMPLETE));
+        assertThat(incompletedModel.getDeliveryState(), is(STATUS_SUCCESS));
     }
 
     @Test
@@ -263,7 +278,7 @@ public class PresenterImplTest {
 
         presenterImpl.getJobCompletionStatusCallback.onSuccess(jobCompletionState);
 
-        verify(mockedView, times(3)).addFailedItem(isA(FailedItemModel.class));  // In fact a call to addJobCompletionStateToView, that has already been tested
+        verify(mockedView, times(4)).addFailedItem(isA(FailedItemModel.class));  // In fact a call to addJobCompletionStateToView, that has already been tested
     }
 
 

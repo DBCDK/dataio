@@ -289,6 +289,10 @@ public class FileSystemJobStore implements JobStore {
         return Paths.get(getJobPath(jobId).toString(), SINK_FILE);
     }
 
+    private Path getFlowPath(long jobId) {
+        return Paths.get(getJobPath(jobId).toString(), FLOW_FILE);
+    }
+
     private static List<Path> getDirectories(final Path dir) throws JobStoreException {
         List<Path> directories = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir)) {
@@ -383,7 +387,17 @@ public class FileSystemJobStore implements JobStore {
         JobCompletionStateFinder jobCompletionStateFinder = new JobCompletionStateFinder(this);
         return jobCompletionStateFinder.getJobCompletionState(jobId);
     }
-    
+
+    @Override
+    public Flow getFlow(long jobId) throws JobStoreException {
+        final Path flowPath = getSinkPath(jobId);
+        if (Files.exists(flowPath)) {
+            return JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).readObjectFromFile(flowPath, Flow.class);
+        } else {
+            return null;
+        }
+    }
+
     private synchronized void updateJobState(long jobId) throws JobStoreException {
         final long chunkCount = getNumberOfChunksInJob(jobId);
         final long processorCount = processorResultFileHandler.getNumberOfChunksInJob(jobId);

@@ -155,6 +155,12 @@ public class JobStoreBean {
         public JobCompletionState getJobCompletionState(long jobId) throws JobStoreException {
             return null;
         }
+
+        @Override
+        public Flow getFlow(long jobId) throws JobStoreException {
+            return null;
+        }
+
         private void setupJob42() throws Exception {
             inMemoryJobStoreChunks.put(42L, buildChunksForJob42());
             inMemorySinks.put(42L, new SinkBuilder().build());

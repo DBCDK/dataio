@@ -40,4 +40,6 @@ public interface JobStore {
     JobState getJobState(long jobId) throws JobStoreException;
 
     JobCompletionState getJobCompletionState(long jobId) throws JobStoreException;
+
+    Flow getFlow(long jobId) throws JobStoreException;
 }

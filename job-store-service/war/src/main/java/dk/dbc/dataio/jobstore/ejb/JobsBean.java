@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
@@ -93,6 +94,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response createJob(@Context UriInfo uriInfo, String jobSpecData)
             throws NullPointerException, IllegalArgumentException, EJBException, JsonException, ReferencedEntityNotFoundException {
+        final StopWatch stopwatch = new StopWatch();
         // Todo: This code should be refactored into JobStoreBean.createAndScheduleJob.
         // Notice that JobStoreBean then probably will get another interface than the JobStore interface.
         // The argument for moving this code into the JobStoreBean is to keep the actual code of the webservice as simple as possible.
@@ -110,7 +112,7 @@ public class JobsBean {
         } catch (JobStoreException | JsonException e) {
             throw new EJBException(e);
         }
-
+        LOGGER.debug("createJob for job [{}] took (ms): {}", job.getId(), stopwatch.getElapsedTime());
         return Response.created(uriInfo.getAbsolutePath()).entity(jobInfoJson).build();
     }
 
@@ -146,6 +148,7 @@ public class JobsBean {
     public Response getChunk(
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting chunk {} for job {}", chunkId, jobId);
         final Chunk chunk = jobStoreBean.getJobStore().getChunk(jobId, chunkId);
         if (chunk == null) {
@@ -157,6 +160,7 @@ public class JobsBean {
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling chunk %d for job %d", chunkId, jobId), e);
         }
+        LOGGER.debug("getChunk for job/chunk [{}/{}] took (ms): {}", jobId, chunkId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
 
@@ -176,6 +180,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_SINK)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getSink(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting sink for job {}", jobId);
         final Sink sink = jobStoreBean.getJobStore().getSink(jobId);
         if (sink == null) {
@@ -187,6 +192,7 @@ public class JobsBean {
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling sink for job %d", jobId), e);
         }
+        LOGGER.debug("getSink for job [{}] took (ms): {}", jobId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
 
@@ -206,6 +212,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_STATE)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getState(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting state for job {}", jobId);
         final JobState jobState = jobStoreBean.getJobStore().getJobState(jobId);
         if (jobState == null) {
@@ -217,18 +224,19 @@ public class JobsBean {
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling state for job %d", jobId), e);
         }
+        LOGGER.debug("getState for job [{}] took (ms): {}", jobId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
-    
+
     /**
      * Retrieves a jobCompletionState from underlying data store.
-     * 
+     *
      * @param jobId Id of job
-     *   
+     *
      * @return a HTTP 200 OK response with JobState entity as JSON string,
      *         a HTTP 404 NOT_FOUND if unable to locate job,
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
-     * 
+     *
      * @throws JobStoreException on error reading JobCompletionState from store, or if unable
      * to marshall retrieved JobState to JSON.
      */
@@ -236,6 +244,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COMPLETIONSTATE)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getJobCompletionState(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting JobCompletionState for job {}", jobId);
         final JobCompletionState jobCompletionState = jobStoreBean.getJobStore().getJobCompletionState(jobId);
         if (jobCompletionState == null) {
@@ -247,6 +256,7 @@ public class JobsBean {
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling JobCompletionState for job %d", jobId), e);
         }
+        LOGGER.debug("getJobCompletionState for job [{}] took (ms): {}", jobId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
 
@@ -269,6 +279,7 @@ public class JobsBean {
     public Response getProcessorResult(
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting processor result for chunk {} in job {}", chunkId, jobId);
         final ChunkResult processorResult = jobStoreBean.getJobStore().getProcessorResult(jobId, chunkId);
         if (processorResult == null) {
@@ -280,6 +291,7 @@ public class JobsBean {
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling processor result %d for job %d", chunkId, jobId), e);
         }
+        LOGGER.debug("getProcessorResult for job/chunk [{}/{}] took (ms): {}", jobId, chunkId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
 
@@ -302,6 +314,7 @@ public class JobsBean {
     public Response getSinkResult(
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting sink result for chunk {} in job {}", chunkId, jobId);
         final SinkChunkResult sinkResult = jobStoreBean.getJobStore().getSinkResult(jobId, chunkId);
         if (sinkResult == null) {
@@ -313,6 +326,7 @@ public class JobsBean {
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling sink result %d for job %d", chunkId, jobId), e);
         }
+        LOGGER.debug("getSinkResult for job/chunk [{}/{}] took (ms): {}", jobId, chunkId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
 
@@ -329,6 +343,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COLLECTION)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getJobs() throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting Jobs list");
         final List<JobInfo> jobInfo = jobStoreBean.getJobStore().getAllJobInfos();
         if (jobInfo == null) {
@@ -340,6 +355,39 @@ public class JobsBean {
         } catch (JsonException e) {
             throw new JobStoreException(String.format("Error marshalling job list"), e);
         }
+        LOGGER.debug("getJobs containing [{}] jobs, took (ms): {}", jobInfo.size(), stopwatch.getElapsedTime());
+        return Response.ok().entity(entity).build();
+    }
+
+    /**
+     * Retrieves a flow from underlying data store.
+     *
+     * @param jobId Id of job
+     *
+     * @return a HTTP 200 OK response with Flow entity as JSON string,
+     *         a HTTP 404 NOT_FOUND if unable to locate job,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading the flow from store, or if unable
+     * to marshall retrieved Flow to JSON.
+     */
+    @GET
+    @Path(JobStoreServiceConstants.JOB_FLOW)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getFlow(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
+        LOGGER.info("Getting Flow for job {}", jobId);
+        final Flow flow = jobStoreBean.getJobStore().getFlow(jobId);
+        if (flow == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(flow);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling flow for job %d", jobId), e);
+        }
+        LOGGER.debug("getFlow for job [{}] took (ms): {}", jobId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
 

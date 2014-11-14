@@ -5,6 +5,7 @@ public class JobStoreServiceConstants {
     public static final String CHUNK_ID_VARIABLE = "chunkId";
 
     public static final String JOB_COLLECTION      = "jobs";
+    public static final String JOB_FLOW            = "jobs/{jobId}/flow";
     public static final String JOB_SINK            = "jobs/{jobId}/sink";
     public static final String JOB_STATE           = "jobs/{jobId}/state";
     public static final String JOB_COMPLETIONSTATE = "jobs/{jobId}/completionstate";

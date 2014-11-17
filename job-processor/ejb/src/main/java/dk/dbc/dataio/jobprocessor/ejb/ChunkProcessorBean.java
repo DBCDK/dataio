@@ -40,13 +40,14 @@ public class ChunkProcessorBean {
      * Processes given chunk
      *
      * @param chunk chunk
+     * @param flow flow
      *
      * @return result of processing
      */
-    public ChunkResult process(Chunk chunk) {
+    public ChunkResult process(Chunk chunk, Flow flow) {
         final StopWatch stopWatchForChunk = new StopWatch();
         LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
-        final Flow flow = chunk.getFlow();
+        // final Flow flow = chunk.getFlow();
         List<ChunkItem> processedItems = new ArrayList<>();
 
         if (chunk.getItems().size() > 0) {

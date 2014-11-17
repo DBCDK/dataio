@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobprocessor.ejb;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
@@ -58,7 +59,8 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
 
     private void process(Chunk chunk) throws JobProcessorException {
         final Sink sink = getSink(chunk);
-        final ChunkResult processorResult = chunkProcessor.process(chunk);
+        final Flow flow = getFlow(chunk);
+        final ChunkResult processorResult = chunkProcessor.process(chunk, flow);
         jobStoreMessageProducer.send(processorResult);
         sinkMessageProducer.send(processorResult, sink);
     }
@@ -69,6 +71,15 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         } catch (JobStoreServiceConnectorException e) {
             throw new JobProcessorException(String.format(
                     "Exception caught while fetching sink for job %s", chunk.getJobId()), e);
+        }
+    }
+
+    private Flow getFlow(Chunk chunk) throws JobProcessorException {
+        try {
+            return jobStoreServiceConnector.getFlow(chunk.getJobId());
+        } catch (JobStoreServiceConnectorException e) {
+            throw new JobProcessorException(String.format(
+                    "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
         }
     }
 }

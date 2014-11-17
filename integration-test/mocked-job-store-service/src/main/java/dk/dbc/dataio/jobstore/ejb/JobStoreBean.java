@@ -92,6 +92,9 @@ public class JobStoreBean {
         // <jobId, Sink>
         private final Map<Long, Sink> inMemorySinks = new HashMap<>();
 
+        // <jobId, Sink>
+        private final Map<Long, Flow> inMemoryFlows = new HashMap<>();
+
         @Override
         public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException {
             final long jobId = jobIdSequence.incrementAndGet();
@@ -158,12 +161,13 @@ public class JobStoreBean {
 
         @Override
         public Flow getFlow(long jobId) throws JobStoreException {
-            return null;
+            return inMemoryFlows.get(jobId);
         }
 
         private void setupJob42() throws Exception {
             inMemoryJobStoreChunks.put(42L, buildChunksForJob42());
             inMemorySinks.put(42L, new SinkBuilder().build());
+            inMemoryFlows.put(42L, buildToUpperFlow());
         }
 
         private Map<Long, Chunk> buildChunksForJob42() throws Exception {

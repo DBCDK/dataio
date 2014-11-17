@@ -41,14 +41,15 @@ public class ChunkProcessorBeanTest {
     private final String useModuleResource = "/Use.json";
 
     @Test
-    public void process_emptyChunk_returnsEmptyResult() {
+    public void process_emptyChunk_returnsEmptyResult() throws Exception {
         final Chunk emptyChunk = new ChunkBuilder()
                 .setJobId(jobId)
                 .setItems(new ArrayList<ChunkItem>(0))
                 .build();
+        final Flow flow = getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction()));
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(emptyChunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(emptyChunk, flow);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(emptyChunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(0));
@@ -64,14 +65,15 @@ public class ChunkProcessorBeanTest {
         final ChunkItem item2 = new ChunkItemBuilder()
                 .setData(Base64Util.base64encode(record2))
                 .build();
+        final Flow flow = getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction()));
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
-                .setFlow(getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction())))
+                .setFlow(flow)
                 .setItems(Arrays.asList(item1, item2))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(2));
@@ -91,15 +93,16 @@ public class ChunkProcessorBeanTest {
                 .build();
         final long submitter = 456456L;
         final String format = "DasFormat";
+        final Flow flow = getFlow(javaScriptConcatenateInvocationMethod, getJavaScript(getJavaScriptConcatenateProcessDataFunction()));
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
-                .setFlow(getFlow(javaScriptConcatenateInvocationMethod, getJavaScript(getJavaScriptConcatenateProcessDataFunction())))
+                .setFlow(flow)
                 .setSupplementaryProcessData(new SupplementaryProcessData(submitter, format))
                 .setItems(Arrays.asList(item1, item2))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(2));
@@ -112,14 +115,15 @@ public class ChunkProcessorBeanTest {
         final ChunkItem item1 = new ChunkItemBuilder()
                 .setData(Base64Util.base64encode("throw"))
                 .build();
+        final Flow flow = getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException()));
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
-                .setFlow(getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException())))
+                .setFlow(flow)
                 .setItems(Arrays.asList(item1))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(1));
@@ -137,14 +141,15 @@ public class ChunkProcessorBeanTest {
         final ChunkItem item2 = new ChunkItemBuilder()
                 .setData(Base64Util.base64encode("two"))
                 .build();
+        final Flow flow = getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException()));
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
-                .setFlow(getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException())))
+                .setFlow(flow)
                 .setItems(Arrays.asList(item0, item1, item2))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(3));
@@ -161,14 +166,15 @@ public class ChunkProcessorBeanTest {
         final ChunkItem item1 = new ChunkItemBuilder()
                 .setData(Base64Util.base64encode("two"))
                 .build();
+        final Flow flow = getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript("This is not a legal javascript!"));
         final Chunk chunk = new ChunkBuilder()
                 .setJobId(jobId)
-                .setFlow(getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript("This is not a legal javascript!")))
+                .setFlow(flow)
                 .setItems(Arrays.asList(item0, item1))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk);
+        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow);
         assertThat(chunkResult.getJobId(), is(jobId));
         assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(chunkResult.getItems().size(), is(2));

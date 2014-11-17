@@ -21,6 +21,10 @@ public class SubmitterModel extends GenericBackendModel {
         this.description = description;
     }
 
+    /**
+     * Default constructor.
+     * Note that: Other classes depend upon the default value for id being exactly 0
+     */
     public SubmitterModel() {
         super(0L, 0L);
         this.number = "";

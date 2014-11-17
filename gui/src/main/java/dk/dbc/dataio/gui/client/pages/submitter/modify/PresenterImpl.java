@@ -57,8 +57,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void numberChanged(String number) {
         model.setNumber(number);
-        view.number.setText(number);
-        view.number.setEnabled(true);
     }
 
     /**
@@ -67,8 +65,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void nameChanged(String name) {
         model.setName(name);
-        view.name.setText(name);
-        view.name.setEnabled(true);
     }
 
     /**
@@ -77,8 +73,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void descriptionChanged(String description) {
         model.setDescription(description);
-        view.description.setText(description);
-        view.description.setEnabled(true);
     }
 
     /**
@@ -115,7 +109,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.number.setEnabled(true);
         }
         view.number.setText(model.getNumber());
-        //view.number.setEnabled(true);
         view.name.setText(model.getName());
         view.name.setEnabled(true);
         view.description.setText(model.getDescription());

@@ -315,16 +315,6 @@ public class ClientFactoryImpl implements ClientFactory {
         return flowBinderEditView;
     }
 
-//    @Override
-//    public ViewOld getSinkCreateView() {
-//        return sinkCreateView;
-//    }
-//
-//    @Override
-//    public ViewOld getSinkEditView() {
-//        return sinkEditView;
-//    }
-
     @Override
     public dk.dbc.dataio.gui.client.pages.sink.modify.View getSinkCreateView() {
         return sinkCreateView;

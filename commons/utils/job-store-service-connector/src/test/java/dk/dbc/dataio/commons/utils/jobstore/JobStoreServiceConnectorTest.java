@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -12,6 +13,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -278,5 +280,41 @@ public class JobStoreServiceConnectorTest {
 
     private static JobStoreServiceConnector newJobStoreServiceConnector() {
         return new JobStoreServiceConnector(CLIENT, JOB_STORE_URL);
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getFlow_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_FLOW)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getFlow(JOB_ID);
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getFlow_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_FLOW)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        instance.getFlow(JOB_ID);
+    }
+
+    @Test
+    public void getFlow_flowRetrieved_returnsFlow() throws JobStoreServiceConnectorException {
+        final Flow expectedFlow = new FlowBuilder().build();
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_FLOW)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedFlow));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        final Flow flow = instance.getFlow(JOB_ID);
+        assertThat(flow, is(notNullValue()));
+        assertThat(flow, is(expectedFlow));
     }
 }

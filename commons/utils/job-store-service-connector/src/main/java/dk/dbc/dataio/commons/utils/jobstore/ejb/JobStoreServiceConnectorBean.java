@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -109,6 +110,18 @@ public class JobStoreServiceConnectorBean {
             final String baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
             final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(client, baseUrl);
             return jobStoreServiceConnector.getSinkChunkResult(jobId, chunkId);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    public Flow getFlow(long jobId) throws JobStoreServiceConnectorException {
+        LOGGER.debug("Retrieving flow for job[{}]", jobId);
+        try {
+            // performance: consider JNDI lookup cache or service-locator pattern
+            final String baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
+            final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(client, baseUrl);
+            return jobStoreServiceConnector.getFlow(jobId);
         } catch (NamingException e) {
             throw new EJBException(e);
         }

@@ -93,6 +93,19 @@ public class JobStoreServiceConnectorBeanTest {
         }
     }
 
+    @Test
+    public void getFlow_endpointLookupThrowsNamingException_throws() throws NamingException, JobStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(namingException);
+        final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
+        try {
+            jobStoreServiceConnectorBean.getFlow(jobId);
+            fail("No exception thrown by getFlow()");
+        } catch (EJBException e) {
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
     private JobStoreServiceConnectorBean getInitializedBean() {
         return new JobStoreServiceConnectorBean();
     }

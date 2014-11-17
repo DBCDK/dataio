@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
@@ -196,6 +197,30 @@ public class JobStoreServiceConnector {
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
                 return readResponseEntity(response, JobCompletionState.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves flow associated with job from job-store
+     * @param jobId Id of job
+     * @return flow
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on failure to retrieve flow
+     */
+    public Flow getFlow(long jobId) throws ProcessingException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_FLOW)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, Flow.class);
             } finally {
                 response.close();
             }

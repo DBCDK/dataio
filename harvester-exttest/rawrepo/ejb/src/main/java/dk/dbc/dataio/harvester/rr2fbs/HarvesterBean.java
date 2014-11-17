@@ -24,8 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
+import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -56,6 +58,7 @@ public class HarvesterBean {
             new JobSpecification("xml", "katalog", "utf8", "fbs-exttest", 42, "placeholder", "placeholder", "placeholder", "placeholder");
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
+    static final int HARVEST_BATCH_SIZE = 10000;
 
     @EJB
     RawRepoConnectorBean rawRepoConnector;
@@ -68,6 +71,9 @@ public class HarvesterBean {
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnector;
+
+    @Resource
+    SessionContext sessionContext;
 
     private DocumentBuilder documentBuilder;
     private Transformer transformer;
@@ -90,14 +96,27 @@ public class HarvesterBean {
     }
 
     /**
-     * Executes harvest operation (in its own transactional scope to avoid
-     * tearing down any controlling timers) creating the corresponding jobs
-     * in the job-store if data is retrieved.
+     * Executes harvest operation in batches (each batch in its own transactional
+     * scope to avoid tearing down any controlling timers) creating the
+     * corresponding jobs in the job-store if data is retrieved.
+     * @throws IllegalStateException on low-level binary file operation failure
+     * @throws HarvesterException on failure to complete harvest operation
+     */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public void harvest() throws IllegalStateException, HarvesterException {
+        while (sessionContext.getBusinessObject(HarvesterBean.class).harvestBatch() == HARVEST_BATCH_SIZE)
+            continue;
+    }
+
+    /**
+     * Executes harvest batch operation
+     * @return number of items harvested
      * @throws IllegalStateException on low-level binary file operation failure
      * @throws HarvesterException on failure to complete harvest operation
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void harvest() throws IllegalStateException, HarvesterException {
+    public int harvestBatch() throws IllegalStateException, HarvesterException {
+        int itemsHarvested = 0;
         try (
             final HarvesterJobBuilder harvesterJobBuilder = new HarvesterJobBuilder(JOB_SPECIFICATION_TEMPLATE);
         ) {
@@ -113,12 +132,18 @@ public class HarvesterBean {
                     LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
                     markAsFailure(nextQueuedItem, e.getMessage());
                 }
-                nextQueuedItem = getNextQueuedItem();
+
+                if (++itemsHarvested == HARVEST_BATCH_SIZE) {
+                    nextQueuedItem = null;
+                } else {
+                    nextQueuedItem = getNextQueuedItem();
+                }
             }
             harvesterJobBuilder.build();
 
             LOGGER.info("Harvested {} records from {} queue", harvesterJobBuilder.recordsAdded, RAW_REPO_CONSUMER_ID);
         }
+        return itemsHarvested;
     }
 
     /* Returns next rawrepo queue item (or null if queue is empty)

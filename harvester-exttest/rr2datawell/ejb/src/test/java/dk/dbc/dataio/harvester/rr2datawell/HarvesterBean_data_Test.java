@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.xml.sax.SAXException;
 
+import javax.ejb.SessionContext;
 import javax.naming.Context;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.when;
 public class HarvesterBean_data_Test {
     private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
     private final static RawRepoConnectorBean RAW_REPO_CONNECTOR_BEAN = mock(RawRepoConnectorBean.class);
+    private final static SessionContext SESSION_CONTEXT = mock(SessionContext.class);
 
     private final static RecordId FIRST_RECORD_ID = new RecordId("first",
             (int) HarvesterBean.COMMUNITY_RECORDS_JOB_SPECIFICATION_TEMPLATE.getSubmitterId());
@@ -225,6 +227,8 @@ public class HarvesterBean_data_Test {
         harvesterBean.fileStoreServiceConnector = mockedFileStoreServiceConnectorBean;
         harvesterBean.jobStoreServiceConnector = mockedJobStoreServiceConnectorBean;
         harvesterBean.rawRepoConnector = RAW_REPO_CONNECTOR_BEAN;
+        harvesterBean.sessionContext = SESSION_CONTEXT;
+        when(SESSION_CONTEXT.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);
         return harvesterBean;
     }
 

@@ -132,7 +132,12 @@ public class HarvesterBean {
                     LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
                     markAsFailure(nextQueuedItem, e.getMessage());
                 }
-                nextQueuedItem = getNextQueuedItem();
+
+                if (++itemsHarvested == HARVEST_BATCH_SIZE) {
+                    nextQueuedItem = null;
+                } else {
+                    nextQueuedItem = getNextQueuedItem();
+                }
             }
             harvesterJobBuilder.build();
 

@@ -24,8 +24,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     // Application Models
     protected SinkModel model = new SinkModel();
 
-    private final static String EMPTY = "";
-
     public PresenterImpl(ClientFactory clientFactory, Texts texts) {
         this.texts = texts;
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
@@ -41,7 +39,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view.initializeFields();
+        initializeViewFields();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
         initializeModel();
@@ -68,7 +66,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
-        view.setStatusText(EMPTY);
+        view.status.setText("");
     }
 
     /**
@@ -120,6 +118,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Private methods
      */
 
+    public void initializeViewFields() {
+        view.name.clearText();
+        view.name.setEnabled(false);
+        view.resource.clearText();
+        view.resource.setEnabled(false);
+    }
+
     private void doPingAndSaveSink() {
         sinkServiceProxy.ping(model, new PingSinkServiceFilteredAsyncCallback());
     }
@@ -128,9 +133,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
-        view.setName(model.getSinkName());
-        view.setResource(model.getResourceName());
-        view.setStatusText(EMPTY);
+        view.name.setText(model.getSinkName());
+        view.name.setEnabled(true);
+        view.resource.setText(model.getResourceName());
+        view.resource.setEnabled(true);
+        view.status.setText("");
     }
 
     /*
@@ -148,7 +155,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onSuccess(SinkModel model) {
-            view.setStatusText(texts.status_SinkSuccessfullySaved());
+            view.status.setText(texts.status_SinkSuccessfullySaved());
             setSinkModel(model);
         }
     }

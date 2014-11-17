@@ -17,7 +17,7 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
  * The implementation of the Sink Modify View
  *
  */
-public class ViewImpl extends ContentPanel<Presenter> implements View {
+public class ViewImpl extends ContentPanel<Presenter> implements ViewOld {
 
     public static final String GUIID_SINK_MODIFY_WIDGET = "sinkmodifywidget";
     public static final String GUIID_SINK_MODIFY_SINK_NAME_PANEL = "sinkmodifysinknamepanel";

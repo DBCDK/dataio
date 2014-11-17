@@ -2,15 +2,20 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,36 +26,28 @@ import static org.mockito.Mockito.when;
  *
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
+@RunWith(GwtMockitoTestRunner.class)
 public class PresenterCreateImplTest {
-    private ClientFactory mockedClientFactory;
-    private FlowStoreProxyAsync mockedFlowStoreProxy;
-    private Texts mockedTexts;
-    private AcceptsOneWidget mockedContainerWidget;
-    private EventBus mockedEventBus;
-    private View mockedCreateView;
+    @Mock private ClientFactory mockedClientFactory;
+    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock private Texts mockedTexts;
+    @Mock private AcceptsOneWidget mockedContainerWidget;
+    @Mock private EventBus mockedEventBus;
 
+    private View view;
     private PresenterCreateImpl presenterCreateImpl;
-
-    private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
-    private final static String PROXY_DATA_VALIDATION_ERROR = "ProxyDataValidationError";
-    private final static String PROXY_KEY_VIOLATION_ERROR = "ProxyKeyViolationError";
-
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
     public void setupMockedObjects() {
-        mockedClientFactory = mock(ClientFactory.class);
-        mockedFlowStoreProxy = mock(FlowStoreProxyAsync.class);
-        mockedTexts = mock(Texts.class);
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        mockedContainerWidget = mock(AcceptsOneWidget.class);
-        mockedEventBus = mock(EventBus.class);
-        mockedCreateView = mock(View.class);
-        when(mockedClientFactory.getSinkCreateView()).thenReturn(mockedCreateView);
-        when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
-        when(mockedTexts.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR);
-        when(mockedTexts.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR);
+        when(mockedClientFactory.getSinkCreateView()).thenReturn(view);
+    }
+
+    @Before
+    public void setupView() {
+        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -61,29 +58,26 @@ public class PresenterCreateImplTest {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
+        verify(mockedClientFactory).getSinkCreateView();
     }
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        assertThat(presenterCreateImpl.model, is(notNullValue()));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
-        // initializeModel has the responsibility to setup the model in the presenter correctly
-        // In this case, we expect the model to be initialized to an empty model - and this is exactly what we would like to verify
-        verify(mockedCreateView, times(1)).setName("");
-        verify(mockedCreateView, times(1)).setResource("");
+
+        assertThat(presenterCreateImpl.model.getSinkName(), is(""));
+        assertThat(presenterCreateImpl.model.getResourceName(), is(""));
     }
 
     @Test
     public void saveModel_sinkContentOk_createSinkCalled() {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-
-        presenterCreateImpl.nameChanged("a");                   // Name is ok
-        presenterCreateImpl.resourceChanged("resource");        // Resource is ok
-
+        presenterCreateImpl.model = new SinkModel(1, 1, "Sink Name", "Sink Resource Name");
         presenterCreateImpl.saveModel();
-
-        verify(mockedFlowStoreProxy, times(1)).createSink(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
+        verify(mockedFlowStoreProxy).createSink(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
     }
 
 }

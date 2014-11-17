@@ -3,15 +3,20 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mock;
 
 import java.util.Arrays;
 
@@ -20,7 +25,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,34 +35,34 @@ import static org.mockito.Mockito.when;
  *
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
+@RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    private ClientFactory mockedClientFactory;
-    private FlowStoreProxyAsync mockedFlowStoreProxy;
-    private SinkServiceProxyAsync mockedSinkServiceProxy;
-    private Texts mockedTexts;
-    private AcceptsOneWidget mockedContainerWidget;
-    private EventBus mockedEventBus;
-    private View mockedView;
+    @Mock private ClientFactory mockedClientFactory;
+    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock private SinkServiceProxyAsync mockedSinkServiceProxy;
+    @Mock private Texts mockedTexts;
+    @Mock private AcceptsOneWidget mockedContainerWidget;
+    @Mock private EventBus mockedEventBus;
+    @Mock private Exception mockedException;
+
+    private View view;
 
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
+    private static boolean initializeModelHasBeenCalled;
 
-    private final static long DEFAULT_ID = 0;
-    private final static long DEFAULT_VERSION = 0;
-    private final static String DEFAULT_NAME = "SinkName";
-    private final static String DEFAULT_RESOURCE = "SinkResource";
-    private final static String FAILURE_TEXT = "FailureText";
-    private final static String SUCCESS_TEXT = "SuccessText";
+    private final SinkModel sinkModel = new SinkModel(23, 4, "sinkName", "SinkResourceName");
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory, Texts texts) {
             super(clientFactory, texts);
-            view = mockedView;
+            view = PresenterImplTest.this.view;
+            model = sinkModel;
         }
 
         @Override
         void initializeModel() {
-            model = new SinkModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NAME, DEFAULT_RESOURCE);
+            initializeModelHasBeenCalled = true;
         }
 
         @Override
@@ -66,8 +70,8 @@ public class PresenterImplTest {
             saveModelHasBeenCalled = true;
         }
 
-        public SaveSinkModelFilteredAsyncCallback saveSinkCallback = new SaveSinkModelFilteredAsyncCallback();
-        public PingSinkServiceFilteredAsyncCallback pingSinkCallback = new PingSinkServiceFilteredAsyncCallback();
+        public SaveSinkModelFilteredAsyncCallback saveSinkModelFilteredAsyncCallback = new SaveSinkModelFilteredAsyncCallback();
+        public PingSinkServiceFilteredAsyncCallback pingSinkServiceFilteredAsyncCallback = new PingSinkServiceFilteredAsyncCallback();
 
         // Test method for reading flowStoreProxy
         public FlowStoreProxyAsync getFlowStoreProxy() {
@@ -89,19 +93,18 @@ public class PresenterImplTest {
 
     @Before
     public void setupMockedObjects() {
-        mockedClientFactory = mock(ClientFactory.class);
-        mockedFlowStoreProxy = mock(FlowStoreProxyAsync.class);
-        mockedSinkServiceProxy = mock(SinkServiceProxyAsync.class);
-        mockedTexts = mock(Texts.class);
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSinkServiceProxyAsync()).thenReturn(mockedSinkServiceProxy);
-        mockedContainerWidget = mock(AcceptsOneWidget.class);
-        mockedEventBus = mock(EventBus.class);
-        mockedView = mock(View.class);
+        mock(ContentPanel.class);
+
+    }
+
+    @Before
+    public void setupView() {
+        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
-
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
@@ -113,55 +116,45 @@ public class PresenterImplTest {
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        createAndInitializePresenterImpl();
-
-        verify(mockedView, times(1)).setPresenter(presenterImpl);
-        verify(mockedView, times(1)).asWidget();
-        verify(mockedContainerWidget, times(1)).setWidget(any(IsWidget.class));
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        verify(mockedContainerWidget).setWidget(Matchers.any(IsWidget.class));
+        assertThat(initializeModelHasBeenCalled, is(true));
     }
 
     @Test
     public void nameChanged_callName_nameIsChangedAccordingly() {
         final String CHANGED_NAME = "UpdatedName";
-
-        createAndInitializePresenterImpl();
-
+        initializeAndStartPresenter();
         presenterImpl.nameChanged(CHANGED_NAME);
-
         assertThat(presenterImpl.model.getSinkName(), is(CHANGED_NAME));
     }
 
     @Test
     public void resourceChanged_callResourceChanged_recourceIsChangedAccordingly() {
         final String CHANGED_RESOURCE = "UpdatedResource";
-
-        createAndInitializePresenterImpl();
-
+        initializeAndStartPresenter();
         presenterImpl.resourceChanged(CHANGED_RESOURCE);
-
         assertThat(presenterImpl.model.getResourceName(), is(CHANGED_RESOURCE));
     }
 
     @Test
     public void keyPressed_callKeyPressed_statusFieldIsCleared() {
-        createAndInitializePresenterImpl();
-
+        initializeAndStartPresenter();
         presenterImpl.keyPressed();
-
-        verify(mockedView, times(1)).setStatusText("");
+        verify(view.status).setText("");
     }
 
     @Test
     public void saveButtonPressed_callSaveButtonPressed_pingIsCalled() {
-        createAndInitializePresenterImpl();
+        initializeAndStartPresenter();
         presenterImpl.saveButtonPressed();
-        verify(mockedSinkServiceProxy, times(1)).ping(any(SinkModel.class), any(PresenterImpl.PingSinkServiceFilteredAsyncCallback.class));
+        verify(mockedSinkServiceProxy).ping(any(SinkModel.class), any(PresenterImpl.PingSinkServiceFilteredAsyncCallback.class));
     }
 
     @Test(expected = NullPointerException.class)
     public void getErrorText_callGetErrorTextWithNullException_throwsNullPointerException() {
-        createAndInitializePresenterImpl();
-
+        initializeAndStartPresenter();
         presenterImpl.getErrorText(null);
     }
 
@@ -170,7 +163,7 @@ public class PresenterImplTest {
         final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
         final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
 
-        createAndInitializePresenterImpl();
+        initializeAndStartPresenter();
 
         when(mockedTexts.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
         when(mockedTexts.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
@@ -203,7 +196,7 @@ public class PresenterImplTest {
         final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
         final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
 
-        createAndInitializePresenterImpl();
+        initializeAndStartPresenter();
 
         when(mockedTexts.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
         when(mockedTexts.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
@@ -220,55 +213,57 @@ public class PresenterImplTest {
     @Test
     public void getErrorText_callGetErrorTextWithNonProxyException_returnsExceptionErrorText() {
         final String EXCEPTION_ERROR_TEXT = "Exception Error Text";
-        createAndInitializePresenterImpl();
-
+        initializeAndStartPresenter();
         assertThat(presenterImpl.getErrorText(new IllegalArgumentException(EXCEPTION_ERROR_TEXT)), is(EXCEPTION_ERROR_TEXT));
     }
 
     @Test
     public void pingSinkServiceFilteredAsyncCallback_successfulCallbackStatusOk_saveModelIsCalled() {
-        createAndInitializePresenterImpl();
+        initializeAndStartPresenter();
         saveModelHasBeenCalled = false;
-        presenterImpl.pingSinkCallback.onSuccess(new PingResponse(PingResponse.Status.OK, Arrays.asList("log")));
+        presenterImpl.pingSinkServiceFilteredAsyncCallback.onSuccess(new PingResponse(PingResponse.Status.OK, Arrays.asList("log")));
         assertThat(saveModelHasBeenCalled, is(true));
     }
 
     @Test
-    public void pingSinkServiceFilteredAsyncCallback_successfulCallbackStatusFailed_setStatusTextCalledInView() {
-        createAndInitializePresenterImpl();
-        when(mockedTexts.error_ResourceNameNotValid()).thenReturn(FAILURE_TEXT);
-        presenterImpl.pingSinkCallback.onSuccess(new PingResponse(PingResponse.Status.FAILED, Arrays.asList("log")));
-        verify(mockedView, times(1)).setErrorText(FAILURE_TEXT);
+    public void pingSinkServiceFilteredAsyncCallback_successfulCallbackStatusFailed_saveModelNotCalled() {
+        initializeAndStartPresenter();
+        saveModelHasBeenCalled = false;
+        presenterImpl.pingSinkServiceFilteredAsyncCallback.onSuccess(new PingResponse(PingResponse.Status.FAILED, Arrays.asList("log")));
+        assertThat(saveModelHasBeenCalled, is(false));
     }
 
     @Test
     public void pingSinkServiceFilteredAsyncCallback_unsuccessfulCallback_setStatusTextCalledInView() {
-        createAndInitializePresenterImpl();
-        when(mockedTexts.error_PingCommunicationError()).thenReturn(FAILURE_TEXT);
-        presenterImpl.pingSinkCallback.onFilteredFailure(new Throwable(FAILURE_TEXT));
-        verify(mockedView, times(1)).setErrorText(FAILURE_TEXT);
+        initializeAndStartPresenter();
+        presenterImpl.saveSinkModelFilteredAsyncCallback.onFailure(mockedException); // Emulate an unsuccessful callback from flowstore
+        verify(mockedException).getMessage();  // Is called before calling view.setErrorText, which we cannot verify, since view is not mocked
     }
 
     @Test
     public void saveSinkModelFilteredAsyncCallback_successfulCallback_setStatusTextCalledInView() {
-        createAndInitializePresenterImpl();
+        final String SUCCESS_TEXT = "SuccessText";
+        initializeAndStartPresenter();
         when(mockedTexts.status_SinkSuccessfullySaved()).thenReturn(SUCCESS_TEXT);
-        presenterImpl.saveSinkCallback.onSuccess(new SinkModel());
-        verify(mockedView, times(1)).setStatusText(SUCCESS_TEXT);
+
+        presenterImpl.saveSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
+        verify(view.status).setText(SUCCESS_TEXT);  // Expect the status text to be set in View
+        assertThat(presenterImpl.model, is(sinkModel));
+
     }
 
     @Test
     public void sinkModelFilteredAsyncCallback_unsuccessfulCallback_setErrorTextCalledInView() {
-        createAndInitializePresenterImpl();
-        presenterImpl.saveSinkCallback.onFailure(new Throwable(FAILURE_TEXT));
-        verify(mockedView, times(1)).setErrorText(FAILURE_TEXT);
+        initializeAndStartPresenter();
+        presenterImpl.saveSinkModelFilteredAsyncCallback.onFailure(mockedException); // Emulate an unsuccessful callback from flowstore
+        verify(mockedException).getMessage();
     }
 
 
     /*
      * Private methods
      */
-    private void createAndInitializePresenterImpl() {
+    private void initializeAndStartPresenter() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }

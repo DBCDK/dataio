@@ -150,9 +150,13 @@ public class JobsBean {
             @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JobStoreException {
         final StopWatch stopwatch = new StopWatch();
         LOGGER.info("Getting chunk {} for job {}", chunkId, jobId);
-        final Chunk chunk = jobStoreBean.getJobStore().getChunk(jobId, chunkId);
+        Chunk chunk = jobStoreBean.getJobStore().getChunk(jobId, chunkId);
         if (chunk == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        if (chunk.getFlow() == null) {
+        final Flow flow = jobStoreBean.getJobStore().getFlow(jobId);
+            chunk = new Chunk(jobId, chunkId, flow, chunk.getSupplementaryProcessData(), chunk.getItems());
         }
         final String entity;
         try {

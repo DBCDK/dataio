@@ -33,7 +33,7 @@ public class Chunk extends AbstractChunk implements Serializable {
     public Chunk(long jobId, long chunkId, Flow flow, SupplementaryProcessData supplementaryProcessData, List<ChunkItem> records) throws NullPointerException, IllegalArgumentException {
         this.jobId = InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
         this.chunkId = InvariantUtil.checkLowerBoundOrThrow(chunkId, "chunkId", Constants.CHUNK_ID_LOWER_BOUND);
-        this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");
+        this.flow = flow; // InvariantUtil.checkNotNullOrThrow(flow, "flow");
         this.supplementaryProcessData = InvariantUtil.checkNotNullOrThrow(supplementaryProcessData, "supplementaryProcessData");
         this.items = InvariantUtil.checkNotNullOrThrow(records, "records");
         if (this.items.size() > Constants.CHUNK_RECORD_COUNT_UPPER_BOUND) {

@@ -31,10 +31,10 @@ public class ChunkTest {
         new Chunk(JOB_ID, Constants.CHUNK_ID_LOWER_BOUND - 1, FLOW, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor5arg_flowArgIsNull_throws() {
-        new Chunk(JOB_ID, CHUNK_ID, null, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
-    }
+//    @Test(expected = NullPointerException.class)
+//    public void constructor5arg_flowArgIsNull_throws() {
+//        new Chunk(JOB_ID, CHUNK_ID, null, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
+//    }
 
     @Test(expected = NullPointerException.class)
     public void constructor5arg_supplementaryProcessDataArgIsNull_throws() {
@@ -70,10 +70,10 @@ public class ChunkTest {
         new Chunk(JOB_ID, Constants.CHUNK_ID_LOWER_BOUND - 1, FLOW, SUPPLEMENTARY_PROCESS_DATA);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor4arg_flowArgIsNull_throws() {
-        new Chunk(JOB_ID, CHUNK_ID, null, SUPPLEMENTARY_PROCESS_DATA);
-    }
+//    @Test(expected = NullPointerException.class)
+//    public void constructor4arg_flowArgIsNull_throws() {
+//        new Chunk(JOB_ID, CHUNK_ID, null, SUPPLEMENTARY_PROCESS_DATA);
+//    }
 
     @Test(expected = NullPointerException.class)
     public void constructor4arg_supplementaryProcessDataArgIsNull_throws() {

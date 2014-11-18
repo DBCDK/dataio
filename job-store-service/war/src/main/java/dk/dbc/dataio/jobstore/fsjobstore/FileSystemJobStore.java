@@ -429,7 +429,7 @@ public class FileSystemJobStore implements JobStore {
         long recordCount = 0;
         long counter = 0;
         SupplementaryProcessData supplementaryProcessData = createSupplementaryProcessData(job);
-        Chunk chunk = new Chunk(jobId, chunkId, job.getFlow(), supplementaryProcessData);
+        Chunk chunk = new Chunk(jobId, chunkId, null, supplementaryProcessData);
         for (String record : recordSplitter) {
             recordCount++;
             LOGGER.trace("======> Before [" + record + "]");
@@ -440,7 +440,7 @@ public class FileSystemJobStore implements JobStore {
             } else {
                 counter = 1;
                 addChunk(chunk, sequenceAnalyserKeyGenerator, sink);
-                chunk = new Chunk(jobId, ++chunkId, job.getFlow(), supplementaryProcessData);
+                chunk = new Chunk(jobId, ++chunkId, null, supplementaryProcessData);
                 chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             }
         }

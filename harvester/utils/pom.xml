@@ -16,6 +16,7 @@
 
   <modules>
     <module>datafile-verifier</module>
+    <module>job-builder</module>
     <module>rawrepo-connector</module>
   </modules>
 

@@ -1,4 +1,6 @@
-package dk.dbc.dataio.filestore.service.connector.ejb;
+package dk.dbc.dataio.filestore.service.connector;
+
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,14 +10,15 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 /**
- * Mocked FileStoreServiceConnectorBean implementation able to intercept
+ * Mocked FileStoreServiceConnector implementation able to intercept
  * calls to addFile() writing file content to local destinations instead
  */
-public class MockedFileStoreServiceConnectorBean extends FileStoreServiceConnectorBean {
+public class MockedFileStoreServiceConnector extends FileStoreServiceConnector {
     public static final String FILE_ID = "42";
     public final Queue<Path> destinations;
 
-    public MockedFileStoreServiceConnectorBean() {
+    public MockedFileStoreServiceConnector() {
+        super(HttpClient.newClient(), "baseurl");
         this.destinations = new LinkedList<>();
     }
 

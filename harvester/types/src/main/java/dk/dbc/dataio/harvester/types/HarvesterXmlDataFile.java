@@ -44,7 +44,7 @@ public class HarvesterXmlDataFile implements AutoCloseable {
      * @param record record representation whose data content will be written to the output stream
      * @throws NullPointerException if given null-valued record argument
      * @throws HarvesterInvalidRecordException if charset of given record does not match charset
-     * of data file or if record is invalid
+     * of data file
      * @throws HarvesterException if unable to write record data to the output stream
      */
     public void addRecord(HarvesterXmlRecord record) throws NullPointerException, HarvesterException {

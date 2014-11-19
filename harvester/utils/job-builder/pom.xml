@@ -5,13 +5,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-harvester-rawrepo</artifactId>
+    <artifactId>dataio-harvester-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-harvester-rawrepo-ejb</artifactId>
-  <name>dataio-harvester-rawrepo-ejb</name>
+  <artifactId>dataio-harvester-utils-job-builder</artifactId>
+  <name>dataio-harvester-utils-job-builder</name>
+  <version>1.0-SNAPSHOT</version>
   <packaging>ejb</packaging>
 
   <dependencies>
@@ -40,6 +41,11 @@
       <type>ejb</type>
       <scope>provided</scope>
     </dependency>
+   <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-invariant</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
@@ -49,38 +55,8 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-invariant</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-harvester-types</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-harvester-utils-rawrepo-connector</artifactId>
-      <version>${project.version}</version>
-      <type>ejb</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-harvester-utils-job-builder</artifactId>
-      <version>${project.version}</version>
-      <type>ejb</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>rawrepo-access</artifactId>
-      <version>${rawrepo.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -103,5 +79,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

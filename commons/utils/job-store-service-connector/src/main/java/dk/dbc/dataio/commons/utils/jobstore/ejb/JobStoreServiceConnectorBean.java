@@ -127,6 +127,15 @@ public class JobStoreServiceConnectorBean {
         }
     }
 
+    public JobStoreServiceConnector getConnector() {
+        try {
+            final String baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
+            return new JobStoreServiceConnector(client, baseUrl);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
     @PreDestroy
     public void tearDownConnector() {
         HttpClient.closeClient(client);

@@ -1,19 +1,12 @@
 package dk.dbc.dataio.harvester.rr2fbs;
 
-import dk.dbc.dataio.bfs.api.BinaryFile;
-import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
-import dk.dbc.dataio.commons.types.FileStoreUrn;
-import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder;
+import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;
@@ -37,16 +30,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * This stateless Enterprise Java Bean (EJB) handles an actual RawRepo-to-FBS harvest
@@ -64,13 +50,7 @@ public class HarvesterBean {
     RawRepoConnectorBean rawRepoConnector;
 
     @EJB
-    BinaryFileStoreBean binaryFileStore;
-
-    @EJB
-    FileStoreServiceConnectorBean fileStoreServiceConnector;
-
-    @EJB
-    JobStoreServiceConnectorBean jobStoreServiceConnector;
+    HarvesterJobBuilderFactoryBean harvesterJobBuilderFactoryBean;
 
     @Resource
     SessionContext sessionContext;
@@ -118,7 +98,8 @@ public class HarvesterBean {
     public int harvestBatch() throws IllegalStateException, HarvesterException {
         int itemsHarvested = 0;
         try (
-            final HarvesterJobBuilder harvesterJobBuilder = new HarvesterJobBuilder(JOB_SPECIFICATION_TEMPLATE);
+            final HarvesterJobBuilder harvesterJobBuilder =
+                    harvesterJobBuilderFactoryBean.newHarvesterJobBuilder(JOB_SPECIFICATION_TEMPLATE)
         ) {
             QueueJob nextQueuedItem = getNextQueuedItem();
             while (nextQueuedItem != null) {
@@ -141,7 +122,7 @@ public class HarvesterBean {
             }
             harvesterJobBuilder.build();
 
-            LOGGER.info("Harvested {} records from {} queue", harvesterJobBuilder.recordsAdded, RAW_REPO_CONSUMER_ID);
+            LOGGER.info("Harvested {} records from {} queue", harvesterJobBuilder.getRecordsAdded(), RAW_REPO_CONSUMER_ID);
         }
         return itemsHarvested;
     }
@@ -208,145 +189,6 @@ public class HarvesterBean {
             rawRepoConnector.queueFail(queuedItem, errorMessage);
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as failure", e);
-        }
-    }
-
-    /**
-     * Helper class for job-store job creation
-     */
-    public class HarvesterJobBuilder implements AutoCloseable {
-        private final BinaryFile tmpFile;
-        private final OutputStream tmpFileOutputStream;
-        private final HarvesterXmlDataFile dataFile;
-        private final JobSpecification jobSpecificationTemplate;
-        private int recordsAdded = 0;
-
-        /**
-         * Class constructor
-         * @param jobSpecificationTemplate job specification template
-         * @throws HarvesterException on failure to create harvester data file
-         * backed by temporary binary file
-         */
-        public HarvesterJobBuilder(JobSpecification jobSpecificationTemplate) throws HarvesterException {
-            this.tmpFile = getTmpFile();
-            this.tmpFileOutputStream = tmpFile.openOutputStream();
-            this.dataFile = new HarvesterXmlDataFile(StandardCharsets.UTF_8, tmpFileOutputStream);
-            this.jobSpecificationTemplate = jobSpecificationTemplate;
-        }
-
-        /**
-         * Adds given MarcExchangeCollection to harvester data file provided that
-         * the collection in question contains record members
-         * @param marcExchangeCollection harvester record as MarcExchangeCollection
-         * @throws HarvesterException if unable to add harvester record
-         */
-        public void addHarvesterRecord(MarcExchangeCollection marcExchangeCollection) throws HarvesterException {
-            dataFile.addRecord(marcExchangeCollection);
-            recordsAdded++;
-        }
-
-        /**
-         * Uploads harvester data file, as long as the data file contains
-         * any records, to the file-store and creates job in the job-store
-         * referencing the uploaded file
-         * @return job info for created job, or null if no job was created
-         * @throws HarvesterException on failure to upload to file-store or on
-         * failure to create job in job-store
-         */
-        public JobInfo build() throws HarvesterException {
-            dataFile.close();
-            try {
-                closeTmpFileOutputStream();
-            } catch (IllegalStateException e) {
-                throw new HarvesterException(e);
-            }
-            if (recordsAdded > 0) {
-                final String fileId = uploadToFileStore();
-                if (fileId != null) {
-                    return createJobInJobStore(fileId);
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Closes associated file resources and deletes temporary file
-         * @throws IllegalStateException if unable to close temporary file output stream
-         */
-        @Override
-        public void close() throws IllegalStateException {
-            closeTmpFileOutputStream();
-            deleteTmpFile();
-        }
-
-        private void closeTmpFileOutputStream() throws IllegalStateException {
-            try {
-                tmpFileOutputStream.close();
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
-            }
-        }
-
-        private void deleteTmpFile() {
-            try {
-                tmpFile.delete();
-            } catch (IllegalStateException e) {
-                // We don't want to rollback the entire transaction, just
-                // because we can't remove the temporary file.
-                LOGGER.warn("Unable to delete temporary file {}", tmpFile.getPath(), e);
-            }
-        }
-
-        /* Returns temporary binary file for harvested data
-        */
-        private BinaryFile getTmpFile() {
-            return binaryFileStore.getBinaryFile(Paths.get(UUID.randomUUID().toString()));
-        }
-
-        /* Uploads harvester data file to the file-store
-         */
-        private String uploadToFileStore() throws HarvesterException {
-            String fileId = null;
-            try (final InputStream is = tmpFile.openInputStream()) {
-                fileId = fileStoreServiceConnector.addFile(is);
-                LOGGER.info("Added file with ID {} to file-store", fileId);
-            } catch (FileStoreServiceConnectorException e) {
-                throw new HarvesterException("Unable to add file to file-store", e);
-            } catch (IOException e) {
-                LOGGER.warn("Unable to close tmp file InputStream");
-            }
-            return fileId;
-        }
-
-        /* Creates new job in the job-store
-        */
-        private JobInfo createJobInJobStore(String fileId) throws HarvesterException {
-            final JobSpecification jobSpecification = createJobSpecification(fileId);
-            try {
-                final JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpecification);
-                LOGGER.info("Created job in job-store with ID {}", jobInfo.getJobId());
-                return jobInfo;
-            } catch (JobStoreServiceConnectorException e) {
-                throw new HarvesterException("Unable to create job in job-store", e);
-            }
-        }
-
-        /* Returns job specification for given file ID
-        */
-        private JobSpecification createJobSpecification(String fileId) throws HarvesterException {
-            final FileStoreUrn fileStoreUrn;
-            try {
-                fileStoreUrn = FileStoreUrn.create(fileId);
-            } catch (URISyntaxException e) {
-                throw new HarvesterException("Unable to create FileStoreUrn", e);
-            }
-            return new JobSpecification(
-                    jobSpecificationTemplate.getPackaging(),
-                    jobSpecificationTemplate.getFormat(),
-                    jobSpecificationTemplate.getCharset(),
-                    jobSpecificationTemplate.getDestination(),
-                    jobSpecificationTemplate.getSubmitterId(),
-                    "", "", "", fileStoreUrn.toString());
         }
     }
 }

@@ -92,6 +92,15 @@ public class FileStoreServiceConnectorBean {
 
     }
 
+    public FileStoreServiceConnector getConnector() {
+        try {
+            final String baseUrl = ServiceUtil.getFileStoreServiceEndpoint();
+            return new FileStoreServiceConnector(client, baseUrl);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
     @PreDestroy
     public void tearDownConnector() {
         HttpClient.closeClient(client);

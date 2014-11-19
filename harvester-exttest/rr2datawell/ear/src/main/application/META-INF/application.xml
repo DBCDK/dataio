@@ -12,6 +12,9 @@
     <ejb>dataio-commons-utils-job-store-service-connector-${project.version}.jar</ejb>
   </module>
   <module>
+    <ejb>dataio-harvester-utils-job-builder-${project.version}.jar</ejb>
+  </module>
+  <module>
     <ejb>dataio-harvester-exttest-utils-rawrepo-connector-${project.version}.jar</ejb>
   </module>
   <module>

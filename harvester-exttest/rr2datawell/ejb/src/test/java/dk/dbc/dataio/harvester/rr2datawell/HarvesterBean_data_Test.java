@@ -3,16 +3,19 @@ package dk.dbc.dataio.harvester.rr2datawell;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.MockedJobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
-import dk.dbc.dataio.filestore.service.connector.ejb.MockedFileStoreServiceConnectorBean;
+import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataFileExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
+import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
@@ -86,8 +89,10 @@ public class HarvesterBean_data_Test {
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
 
-    private MockedJobStoreServiceConnectorBean mockedJobStoreServiceConnectorBean;
-    private MockedFileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean;
+    private FileStoreServiceConnectorBean fileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
+    private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+    private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
+    private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
     private File harvesterDataFileWithCommunityRecords;
     private File harvesterDataFileWithLocalRecords;
     private List<DataFileExpectation> harvesterDataFileWithCommunityRecordsExpectations;
@@ -118,14 +123,16 @@ public class HarvesterBean_data_Test {
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterDataFileWithCommunityRecords = tmpFolder.newFile();
         harvesterDataFileWithLocalRecords = tmpFolder.newFile();
-        mockedFileStoreServiceConnectorBean = new MockedFileStoreServiceConnectorBean();
-        mockedFileStoreServiceConnectorBean.destinations.add(harvesterDataFileWithCommunityRecords.toPath());
-        mockedFileStoreServiceConnectorBean.destinations.add(harvesterDataFileWithLocalRecords.toPath());
+        mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
+        mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWithCommunityRecords.toPath());
+        mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWithLocalRecords.toPath());
+        when(fileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
 
         // Intercept harvester job specifications with mocked JobStoreServiceConnectorBean
-        mockedJobStoreServiceConnectorBean = new MockedJobStoreServiceConnectorBean();
-        mockedJobStoreServiceConnectorBean.jobInfos.add(new JobInfoBuilder().build());
-        mockedJobStoreServiceConnectorBean.jobInfos.add(new JobInfoBuilder().build());
+        mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
+        mockedJobStoreServiceConnector.jobInfos.add(new JobInfoBuilder().build());
+        mockedJobStoreServiceConnector.jobInfos.add(new JobInfoBuilder().build());
+        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(mockedJobStoreServiceConnector);
 
         harvesterDataFileWithCommunityRecordsExpectations = new ArrayList<>();
         harvesterDataFileWithLocalRecordsExpectations = new ArrayList<>();
@@ -221,11 +228,13 @@ public class HarvesterBean_data_Test {
     }
 
     private HarvesterBean getHarvesterBean() {
+        final HarvesterJobBuilderFactoryBean harvesterJobBuilderFactoryBean = new HarvesterJobBuilderFactoryBean();
+        harvesterJobBuilderFactoryBean.binaryFileStore = BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME);
+        harvesterJobBuilderFactoryBean.fileStoreServiceConnectorBean = fileStoreServiceConnectorBean;
+        harvesterJobBuilderFactoryBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         final HarvesterBean harvesterBean = new HarvesterBean();
         harvesterBean.init();
-        harvesterBean.binaryFileStore = BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME);
-        harvesterBean.fileStoreServiceConnector = mockedFileStoreServiceConnectorBean;
-        harvesterBean.jobStoreServiceConnector = mockedJobStoreServiceConnectorBean;
+        harvesterBean.harvesterJobBuilderFactoryBean = harvesterJobBuilderFactoryBean;
         harvesterBean.rawRepoConnector = RAW_REPO_CONNECTOR_BEAN;
         harvesterBean.sessionContext = SESSION_CONTEXT;
         when(SESSION_CONTEXT.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);
@@ -239,9 +248,9 @@ public class HarvesterBean_data_Test {
     }
 
     private void verifyJobSpecifications() {
-        verifyJobSpecification(mockedJobStoreServiceConnectorBean.jobSpecifications.remove(),
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobSpecifications.remove(),
                 HarvesterBean.COMMUNITY_RECORDS_JOB_SPECIFICATION_TEMPLATE);
-        verifyJobSpecification(mockedJobStoreServiceConnectorBean.jobSpecifications.remove(),
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobSpecifications.remove(),
                 HarvesterBean.LOCAL_RECORDS_JOB_SPECIFICATION_TEMPLATE);
     }
 

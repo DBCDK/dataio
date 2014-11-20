@@ -37,7 +37,7 @@ function createMavenPackageInstallString() {
 }
 
 function getIntegrationTestsInCommaSeparatedString() {
-    INTEGRATION_TEST_POMS=`find integration-test/ |grep pom.xml | egrep -v "\.svn|glassfish" | awk -vORS=, '{ print $1 }' | sed 's/,$/\n/' | sed 's/\/pom.xml//g'`
+    INTEGRATION_TEST_POMS=`find integration-test/ |grep pom.xml | egrep -v "\.svn|glassfish|postgresql" | awk -vORS=, '{ print $1 }' | sed 's/,$/\n/' | sed 's/\/pom.xml//g'`
 }
 
 # Function for creating a String for running only integration-tests in offline mode

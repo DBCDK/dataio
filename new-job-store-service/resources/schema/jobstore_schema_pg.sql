@@ -14,6 +14,8 @@ CREATE TABLE sinkcache (
 
 CREATE TABLE job (
     id                      SERIAL,
+    EOJ                     BOOLEAN NOT NULL DEFAULT TRUE,
+    partNumber              INTEGER NOT NULL DEFAULT 0,
     numberOfChunks          INTEGER NOT NULL DEFAULT 0,
     numberOfItems           INTEGER NOT NULL DEFAULT 0,
     timeOfCreation          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -33,6 +35,7 @@ CREATE INDEX job_timeOfLastModification_index ON job(timeOfLastModification);
 CREATE TABLE chunk (
     id                      INTEGER NOT NULL,
     jobId                   INTEGER NOT NULL,
+    dataFileId              TEXT NOT NULL,
     numberOfItems           INTEGER NOT NULL DEFAULT 10,
     timeOfCreation          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     timeOfCompletion        TIMESTAMP,
@@ -50,8 +53,10 @@ CREATE TABLE item (
     timeOfCreation          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     timeOfCompletion        TIMESTAMP,
     timeOfLastModification  TIMESTAMP DEFAULT timeofday()::TIMESTAMP,
-    contents                JSON NOT NULL,
     state                   JSON NOT NULL,
+    partitioningOutcome     JSON,
+    processingOutcome       JSON,
+    deliveringOutcome       JSON,
     PRIMARY KEY (jobId, chunkId, id)
 );
 CREATE INDEX item_stateFailed_index ON item(jobId, chunkId, id) WHERE

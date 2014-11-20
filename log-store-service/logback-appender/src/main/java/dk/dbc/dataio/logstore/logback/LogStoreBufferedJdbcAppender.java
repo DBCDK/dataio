@@ -209,6 +209,7 @@ public class LogStoreBufferedJdbcAppender extends DBAppenderBase<ILoggingEvent> 
         // Use intern() method to get reference from String pool, so
         // that the returned string can be used as a monitor object in
         // a synchronized block.
-        return (this.getClass().getName() + "." + id).intern();
+        final String lock = this.getClass().getName() + "." + id;
+        return lock.intern();
     }
 }

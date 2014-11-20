@@ -74,7 +74,9 @@ public class LogStoreJdbcAppenderBenchmark {
         LOGGER.info("After warning");
         LOGGER.info("Before error");
         LOGGER.error("You are in error", EXCEPTION);
+        MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
         LOGGER.info("After error");
+        MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
     }
 }
 

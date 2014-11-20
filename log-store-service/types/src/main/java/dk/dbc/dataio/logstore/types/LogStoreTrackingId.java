@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
  */
 public class LogStoreTrackingId {
     public static final String LOG_STORE_TRACKING_ID_MDC_KEY = "logStoreTrackingId";
+    public static final String LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY = "logStoreTrackingIdCommit";
 
     private final String trackingId;
     private final String jobId;

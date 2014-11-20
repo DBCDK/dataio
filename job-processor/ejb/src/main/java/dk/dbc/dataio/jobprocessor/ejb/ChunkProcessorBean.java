@@ -100,6 +100,9 @@ public class ChunkProcessorBean {
                     LogStoreTrackingId.create(String.valueOf(chunk.getJobId()), chunk.getChunkId(), inputItem.getId()).toString());
             processedItem = processItem(flow, scriptWrapper, inputItem, chunk.getSupplementaryProcessData());
         } finally {
+            MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
+            LOGGER.info("Done");
+            MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
         }
         return processedItem;

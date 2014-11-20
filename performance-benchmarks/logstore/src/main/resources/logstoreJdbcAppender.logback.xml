@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration debug="true" scan="false">
-  <appender name="LOGSTORE" class="dk.dbc.dataio.logstore.logback.LogStoreJdbcAppender">
+  <appender name="LOGSTORE" class="dk.dbc.dataio.logstore.logback.LogStoreBufferedJdbcAppender">
     <filter class="dk.dbc.dataio.logstore.logback.MdcKeyExistsFilter">
       <MDCKey>logStoreTrackingId</MDCKey>
       <OnMatch>ACCEPT</OnMatch>

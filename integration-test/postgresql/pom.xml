@@ -5,7 +5,7 @@
   <!--
   Start postgresql server from the command line with:
 
-    %> mvn dk.dbc:postgresql-maven-plugin::start
+    %> mvn pre-integration-test
 
   Stop postgresql server from the command line with:
 
@@ -30,11 +30,35 @@
         <version>${postgresql-maven-plugin.version}</version>
         <configuration>
           <pgPort>${postgresql.port}</pgPort>
-          <pgDbName>logstore</pgDbName>
-          <pgDbScripts>
-            <param>${basedir}/../../log-store-service/dbhelper/src/main/resources/logstore-schema.sql</param>
-          </pgDbScripts>
         </configuration>
+        <executions>
+          <execution>
+            <id>jobstore</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <configuration>
+              <pgDbName>jobstore</pgDbName>
+              <pgDbScripts>
+                <param>${basedir}/../../new-job-store-service/resources/schema/jobstore_schema_pg.sql</param>
+              </pgDbScripts>
+            </configuration>
+          </execution>
+          <execution>
+            <id>logstore</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <configuration>
+              <pgDbName>logstore</pgDbName>
+              <pgDbScripts>
+                <param>${basedir}/../../log-store-service/dbhelper/src/main/resources/logstore-schema.sql</param>
+              </pgDbScripts>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>

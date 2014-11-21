@@ -23,33 +23,63 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ESTaskPackageUtil {
-
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(ESTaskPackageUtil.class);
     private static final String ES_TASKPACKAGE_CREATOR_FIELD_PREFIX = "dataio: ";
+    // non-private/non-final to overwrite during integration tests
+    static int MAX_WHERE_IN_SIZE = 1000;
 
+    /**
+     * Chops a list up into sublists of length sublistSize
+     * @param list list to be chopped up
+     * @param sublistSize maximum size of sublists
+     * @return list of sublists
+     * @throws NullPointerException if given null-valued list
+     * @throws IllegalArgumentException if given sublistSize less than or equal to zero
+     */
+    public static <T> List<List<T>> chopUp(List<T> list, int sublistSize)
+            throws NullPointerException, IllegalArgumentException {
+        if (list == null)
+            throw new NullPointerException("list can not be null");
+        if (!(sublistSize > 0))
+            throw new IllegalArgumentException("sublistSize must be larger than zero");
+
+        final List<List<T>> parts = new ArrayList<>();
+        final int listSize = list.size();
+        for (int i = 0; i < listSize; i += sublistSize) {
+            parts.add(new ArrayList<>(
+                list.subList(i, Math.min(listSize, i + sublistSize))));
+        }
+        return parts;
+    }
+
+    // Tested through integrationtests
     public static List<TaskStatus> findCompletionStatusForTaskpackages(Connection conn, List<Integer> targetreferences) throws SQLException {
         LOGGER.entry();
         try {
-            // Tested through integrationtests
-            final String retrieveStatement = "select targetreference, taskstatus from taskpackage where targetreference in ("
-                    + commaSeparatedQuestionMarks(targetreferences.size()) + ")";
             List<TaskStatus> taskStatusList = new ArrayList<>();
-            PreparedStatement ps = null;
-            ResultSet rs = null;
-            try {
-                ps = JDBCUtil.query(conn, retrieveStatement, targetreferences.toArray());
-                rs = ps.getResultSet();
-                while (rs.next()) {
-                    int targetreference = rs.getInt(1);
-                    int statusCode = rs.getInt(2);
-                    taskStatusList.add(new TaskStatus(statusCode, targetreference));
+            // Since the 'SELECT ... WHERE targetreference IN' construct used to get completion status
+            // has an upper bound of 1000 members of the IN condition we split into multiple
+            // iterations if necessary
+            for (List<Integer> trefs : chopUp(targetreferences, MAX_WHERE_IN_SIZE)) {
+                final String retrieveStatement = "select targetreference, taskstatus from taskpackage where targetreference in ("
+                        + commaSeparatedQuestionMarks(trefs.size()) + ")";
+                PreparedStatement ps = null;
+                ResultSet rs = null;
+                try {
+                    ps = JDBCUtil.query(conn, retrieveStatement, trefs.toArray());
+                    rs = ps.getResultSet();
+                    while (rs.next()) {
+                        int targetreference = rs.getInt(1);
+                        int statusCode = rs.getInt(2);
+                        taskStatusList.add(new TaskStatus(statusCode, targetreference));
+                    }
+                } catch (SQLException ex) {
+                    LOGGER.warn("SQLException caught while trying to find completion status for taskpackages with retrieve statement: {}", retrieveStatement, ex);
+                    throw ex;
+                } finally {
+                    JDBCUtil.closeResultSet(rs);
+                    JDBCUtil.closeStatement(ps);
                 }
-            } catch (SQLException ex) {
-                LOGGER.warn("SQLException caught while trying to find completion status for taskpackages with retrieve statement: {}", retrieveStatement, ex);
-                throw ex;
-            } finally {
-                JDBCUtil.closeResultSet(rs);
-                JDBCUtil.closeStatement(ps);
             }
             return taskStatusList;
         } finally {
@@ -62,12 +92,17 @@ public class ESTaskPackageUtil {
         LOGGER.entry();
         try {
             if (!targetReferences.isEmpty()) {
-                String deleteStatement = "delete from taskpackage where targetreference in ("
-                        + commaSeparatedQuestionMarks(targetReferences.size()) + ")";
-                LOGGER.info(deleteStatement);
-                LOGGER.info("targetRefs to delete: {}", Arrays.toString(targetReferences.toArray()));
-                int deleted = JDBCUtil.update(conn, deleteStatement, targetReferences.toArray());
-                LOGGER.info("Deleted {} rows", deleted);
+                // Since the 'DELETE ... WHERE targetreference IN' construct used to delete task packages
+                // has an upper bound of 1000 members of the IN condition we split into multiple
+                // iterations if necessary
+                for (List<Integer> trefs : chopUp(targetReferences, MAX_WHERE_IN_SIZE)) {
+                    String deleteStatement = "delete from taskpackage where targetreference in ("
+                            + commaSeparatedQuestionMarks(trefs.size()) + ")";
+                    LOGGER.info(deleteStatement);
+                    LOGGER.info("targetRefs to delete: {}", Arrays.toString(trefs.toArray()));
+                    int deleted = JDBCUtil.update(conn, deleteStatement, trefs.toArray());
+                    LOGGER.info("Deleted {} rows", deleted);
+                }
             }
         } catch (SQLException ex) {
             LOGGER.warn("SQLException caught while deleting taskpackages: ", ex);

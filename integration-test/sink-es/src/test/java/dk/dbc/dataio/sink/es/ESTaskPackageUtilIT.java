@@ -12,7 +12,6 @@ import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-@Ignore("25092014 - ES server unstable (jbn)")
 public class ESTaskPackageUtilIT {
     private static Logger LOGGER = LoggerFactory.getLogger(ESTaskPackageUtilIT.class);
 
@@ -172,6 +171,52 @@ public class ESTaskPackageUtilIT {
         assertThat(ci6.getId(), is(6L));
         assertThat(ci6.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat(ci6.getData(), is(pid3));
+    }
+
+    @Test
+    public void findCompletionStatusForTaskpackages_MAX_WHERE_IN_SIZE_exeeded_allTaskPackagesFound()
+            throws SQLException, ClassNotFoundException, IOException {
+        ESTaskPackageUtil.MAX_WHERE_IN_SIZE = 6;
+
+        final String pidFormat = "PID:%d";
+        List<Integer> targetReferences = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            targetReferences.add(new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
+                    .addAddiRecordWithSuccess(ADDI_OK, String.format(pidFormat, i))
+                    .createInsertAndSetStatus());
+        }
+
+        final List<ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
+                ESTaskPackageUtil.findCompletionStatusForTaskpackages(ITUtil.getEsConnection(), targetReferences);
+
+        assertThat(completionStatusForTaskpackages, is(notNullValue()));
+        assertThat(completionStatusForTaskpackages.size(), is(targetReferences.size()));
+        for (int i = 0; i < targetReferences.size(); i++) {
+            assertThat(completionStatusForTaskpackages.get(i).getTargetReference(), is(targetReferences.get(i)));
+            assertThat(completionStatusForTaskpackages.get(i).getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.PENDING));
+        }
+    }
+
+    @Test
+    public void deleteTaskpackages_MAX_WHERE_IN_SIZE_exeeded_allTaskPackagesDeleted()
+            throws SQLException, ClassNotFoundException, IOException {
+        ESTaskPackageUtil.MAX_WHERE_IN_SIZE = 6;
+
+        final String pidFormat = "PID:%d";
+        List<Integer> targetReferences = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            targetReferences.add(new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
+                    .addAddiRecordWithSuccess(ADDI_OK, String.format(pidFormat, i))
+                    .createInsertAndSetStatus());
+        }
+
+        ESTaskPackageUtil.deleteTaskpackages(ITUtil.getEsConnection(), targetReferences);
+
+        final List<ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
+                ESTaskPackageUtil.findCompletionStatusForTaskpackages(ITUtil.getEsConnection(), targetReferences);
+
+        assertThat(completionStatusForTaskpackages, is(notNullValue()));
+        assertThat(completionStatusForTaskpackages.size(), is(0));
     }
 
     private static class TPCreator {

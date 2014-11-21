@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -226,6 +227,62 @@ public class ESTaskPackageUtilTest {
         new ESTaskPackageUtil.TaskStatus(5, targetReference);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void chopUp_listArgIsNull_throws() {
+        ESTaskPackageUtil.chopUp(null, 42);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void chopUp_sublistSizeArgIsZero_throws() {
+        ESTaskPackageUtil.chopUp(Collections.emptyList(), 0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void chopUp_sublistSizeArgIsLessThanZero_throws() {
+        ESTaskPackageUtil.chopUp(Collections.emptyList(), -1);
+    }
+
+    @Test
+    public void chopUp_listArgIsEmpty_returnEmptyList() {
+        final List<List<Object>> lists = ESTaskPackageUtil.chopUp(Collections.emptyList(), 42);
+        assertThat(lists, is(notNullValue()));
+        assertThat(lists.isEmpty(), is(true));
+    }
+
+    @Test
+    public void chopUp_sublistSizeArgIsLargerThanActualListSize_returnsSinglePart() {
+        final List<Integer> integers = Arrays.asList(1, 2, 3);
+        final List<List<Integer>> lists = ESTaskPackageUtil.chopUp(integers, 42);
+        assertThat(lists, is(notNullValue()));
+        assertThat(lists.size(), is(1));
+        assertThat(lists.get(0), is(integers));
+    }
+
+    @Test
+    public void chopUp_sublistSizeArgEqualsActualListSize_returnsSinglePart() {
+        final List<Integer> integers = Arrays.asList(1, 2, 3);
+        final List<List<Integer>> lists = ESTaskPackageUtil.chopUp(integers, integers.size());
+        assertThat(lists, is(notNullValue()));
+        assertThat(lists.size(), is(1));
+        assertThat(lists.get(0), is(integers));
+    }
+
+    @Test
+    public void chopUp_sublistSizeArgIsLessThatActualListSize_returnsMultipleParts() {
+        final List<Integer> integers = Arrays.asList(1, 2, 3, 4);
+
+        List<List<Integer>> lists = ESTaskPackageUtil.chopUp(integers, 2);
+        assertThat(lists, is(notNullValue()));
+        assertThat(lists.size(), is(2));
+        assertThat(lists.get(0), is(integers.subList(0, 2)));
+        assertThat(lists.get(1), is(integers.subList(2, 4)));
+
+        lists = ESTaskPackageUtil.chopUp(integers, 3);
+        assertThat(lists, is(notNullValue()));
+        assertThat(lists.size(), is(2));
+        assertThat(lists.get(0), is(integers.subList(0, 3)));
+        assertThat(lists.get(1), is(integers.subList(3, 4)));
+    }
 
     private EsWorkload newEsWorkload(String record) throws IOException {
         return new EsWorkload(new SinkChunkResultBuilder().build(),

@@ -5,11 +5,11 @@
   <!--
   Start postgresql server from the command line with:
 
-    %> mvn pre-integration-test
+    %> mvn -Pit pre-integration-test
 
   Stop postgresql server from the command line with:
 
-    %> mvn dk.dbc:postgresql-maven-plugin::shutdown
+    %> mvn -Pit dk.dbc:postgresql-maven-plugin::shutdown
   -->
 
   <parent>
@@ -22,61 +22,66 @@
   <name>dataio-integration-test-postgresql</name>
   <packaging>pom</packaging>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>dk.dbc</groupId>
-        <artifactId>postgresql-maven-plugin</artifactId>
-        <version>${postgresql-maven-plugin.version}</version>
-        <configuration>
-          <pgPort>${postgresql.port}</pgPort>
-        </configuration>
-        <executions>
-          <execution>
-            <id>jobstore</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
+  <profiles>
+    <profile>
+      <id>it</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>dk.dbc</groupId>
+            <artifactId>postgresql-maven-plugin</artifactId>
+            <version>${postgresql-maven-plugin.version}</version>
             <configuration>
-              <pgDbName>jobstore</pgDbName>
-              <pgDbScripts>
-                <param>${basedir}/../../new-job-store-service/resources/schema/jobstore_schema_pg.sql</param>
-              </pgDbScripts>
+              <pgPort>${postgresql.port}</pgPort>
             </configuration>
-          </execution>
-          <execution>
-            <id>logstore</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
+            <executions>
+              <execution>
+                <id>jobstore</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <pgDbName>jobstore</pgDbName>
+                  <pgDbScripts>
+                    <param>${basedir}/../../new-job-store-service/resources/schema/jobstore_schema_pg.sql</param>
+                  </pgDbScripts>
+                </configuration>
+              </execution>
+              <execution>
+                <id>logstore</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <pgDbName>logstore</pgDbName>
+                  <pgDbScripts>
+                    <param>${basedir}/../../log-store-service/dbhelper/src/main/resources/logstore-schema.sql</param>
+                  </pgDbScripts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-clean-plugin</artifactId>
+            <version>2.5</version>
             <configuration>
-              <pgDbName>logstore</pgDbName>
-              <pgDbScripts>
-                <param>${basedir}/../../log-store-service/dbhelper/src/main/resources/logstore-schema.sql</param>
-              </pgDbScripts>
+              <excludeDefaultDirectories>true</excludeDefaultDirectories>
+              <filesets>
+                <fileset>
+                  <directory>${project.build.directory}</directory>
+                  <excludes>
+                    <exclude>postgresql-cluster/**</exclude>
+                  </excludes>
+                </fileset>
+              </filesets>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
+          </plugin>
 
-      <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <excludeDefaultDirectories>true</excludeDefaultDirectories>
-          <filesets>
-            <fileset>
-              <directory>${project.build.directory}</directory>
-              <excludes>
-                <exclude>postgresql-cluster/**</exclude>
-              </excludes>
-            </fileset>
-          </filesets>
-        </configuration>
-      </plugin>
-
-    </plugins>
-  </build>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

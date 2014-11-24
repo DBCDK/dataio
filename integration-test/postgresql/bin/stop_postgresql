@@ -1,4 +1,4 @@
 #!/bin/sh
 
 BASEDIR=$(cd "$(dirname "$0")"; pwd)/..
-mvn -f $BASEDIR/pom.xml dk.dbc:postgresql-maven-plugin::shutdown
+mvn -f $BASEDIR/pom.xml -Pit dk.dbc:postgresql-maven-plugin::shutdown

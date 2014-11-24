@@ -7,4 +7,4 @@ fi
 rm -rf $BASEDIR/target
 mkdir $BASEDIR/target
 
-mvn -f $BASEDIR/pom.xml pre-integration-test
+mvn -f $BASEDIR/pom.xml -Pit pre-integration-test

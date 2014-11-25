@@ -17,6 +17,7 @@ import java.util.List;
  *
  */
 public final class Format {
+    private final static String LONG_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Private constructor to avoid instantiation
     private Format() {
@@ -44,8 +45,8 @@ public final class Format {
     /**
      * Pair two Strings in the form: 'mainString (inBracketsString)'
      *
-     * @param mainString
-     * @param inBracketsString
+     * @param mainString The Main string
+     * @param inBracketsString The InBracket string
      * @return A String Pair in the form: 'mainString (inBracketsString)'
      */
     public static String inBracketsPairString(String mainString, String inBracketsString) {
@@ -53,12 +54,34 @@ public final class Format {
     }
 
     /**
-     *
-     * @param time long value, the date that should be converted into longDateString format
+     * Formats a long date value to a text String
+     * @param date long value, the date that should be converted into longDateString format
      * @return A string representation of date
      */
-    public static String getLongDateTimeFormat(long time){
-        DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat("yyyy-MM-dd HH:mm:ss");
-        return dateTimeFormat.format(new Date(time));
+    public static String getLongDateTimeFormat(long date){
+        return formatDate(date, LONG_DATE_TIME_FORMAT);
+    }
+
+    /**
+     *
+     * @param date A textual representation of the date
+     * @return A long representation of date
+     */
+    public static long parseLongDate(String date){
+        return parseDate(date, LONG_DATE_TIME_FORMAT);
+    }
+
+
+    /*
+     * Private methods
+     */
+    private static String formatDate(long date, String format) {
+        DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat(format);
+        return dateTimeFormat.format(new Date(date));
+    }
+
+    private static long parseDate(String date, String format) {
+        DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat(format);
+        return dateTimeFormat.parse(date).getTime();
     }
 }

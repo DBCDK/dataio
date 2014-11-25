@@ -11,7 +11,9 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
+import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 
 import javax.naming.NamingException;
@@ -19,6 +21,7 @@ import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
@@ -66,6 +69,28 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             response.close();
         }
         return result;
+    }
+
+    @Override
+    public List<JobModel> findAllJobsNew() throws ProxyException {
+        final Response response;
+        final List<JobModel> jobModels = new ArrayList<JobModel>();
+        final List<JobInfo> jobInfos;
+        try {
+            response = HttpClient.doGet(client, ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceConstants.JOB_COLLECTION);
+        } catch (ServletException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        try {
+            assertStatusCode(response, Response.Status.OK);
+            jobInfos = response.readEntity(new GenericType<List<JobInfo>>() { });
+            for (JobInfo jobInfo: jobInfos) {
+                jobModels.add(JobModelMapper.toModel(jobInfo));
+            }
+        } finally {
+            response.close();
+        }
+        return jobModels;
     }
 
     @Override

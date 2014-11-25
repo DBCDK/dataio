@@ -14,6 +14,8 @@ import dk.dbc.dataio.commons.utils.test.model.JobCompletionStateBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.util.Format;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +41,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
     HttpClient.class,
-    ServiceUtil.class
+    ServiceUtil.class,
+    Format.class
 })
 public class JobStoreProxyImplTest {
     private final String jobStoreServiceUrl = "http://dataio/job-service";
@@ -58,6 +61,7 @@ public class JobStoreProxyImplTest {
     public void setup() throws Exception {
         mockStatic(ServiceUtil.class);
         mockStatic(HttpClient.class);
+        mockStatic(Format.class);
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
         when(ServiceUtil.getJobStoreFilesystemUrl()).thenReturn(jobStoreFilesystemUrl);
         when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
@@ -91,7 +95,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test
-    public void findAllJobs_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+    public void findAllJobsOld_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceConstants.JOB_COLLECTION)))
                 .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
@@ -105,7 +109,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test
-    public void findAllJobs_remoteServiceReturnsHttpStatusOk_returnsListOfJobEntity() throws Exception {
+    public void findAllJobsOld_remoteServiceReturnsHttpStatusOk_returnsListOfJobEntity() throws Exception {
         final JobInfo job = new JobInfoBuilder().setJobId(666L).build();
         when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceConstants.JOB_COLLECTION)))
                 .thenReturn(new MockedHttpClientResponse<List<JobInfo>>(Response.Status.OK.getStatusCode(), Arrays.asList(job)));
@@ -114,6 +118,32 @@ public class JobStoreProxyImplTest {
         final List<JobInfo> allJobs = jobStoreProxy.findAllJobs();
         assertThat(allJobs.size(), is(1));
         assertThat(allJobs.get(0).getJobId(), is(job.getJobId()));
+    }
+
+    @Test
+    public void findAllJobs_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceConstants.JOB_COLLECTION)))
+                .thenReturn(new MockedHttpClientResponse<String>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
+        try {
+            jobStoreProxy.findAllJobsNew();
+            fail("The call to jobStoreProxy.findAllJobs() succeeded, where a ProxyException(INTERNAL_SERVER_ERROR) was expected");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllJobs_remoteServiceReturnsHttpStatusOk_returnsListOfJobEntity() throws Exception {
+        final JobInfo job = new JobInfoBuilder().setJobId(666L).build();
+        when(HttpClient.doGet(any(Client.class), eq(jobStoreServiceUrl), eq(JobStoreServiceConstants.JOB_COLLECTION)))
+                .thenReturn(new MockedHttpClientResponse<List<JobInfo>>(Response.Status.OK.getStatusCode(), Arrays.asList(job)));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
+        final List<JobModel> allJobs = jobStoreProxy.findAllJobsNew();
+        assertThat(allJobs.size(), is(1));
+        assertThat(allJobs.get(0).getJobId(), is(String.valueOf(job.getJobId())));
     }
 
     @Test(expected = ProxyException.class)

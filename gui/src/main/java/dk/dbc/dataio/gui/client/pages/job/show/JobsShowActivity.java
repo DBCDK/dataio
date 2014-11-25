@@ -4,7 +4,9 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
+import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -44,7 +46,8 @@ public class JobsShowActivity extends AbstractActivity implements JobsShowPresen
 
     @Override
     public void showFailedItems(long jobId) {
-        placeController.goTo(new ShowPlace(jobId));
+        // TODO - dummy variables
+        placeController.goTo(new ShowPlace(jobId, null, null));
     }
 
     // Local methods

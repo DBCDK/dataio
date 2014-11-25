@@ -117,7 +117,7 @@ public class PresenterImplTest {
         mockedPlaceController = mock(PlaceController.class);
         mockedJobStoreProxy = mock(JobStoreProxyAsync.class);
         mockedWidget = mock(Widget.class);
-        when(mockedPlace.getjobId()).thenReturn(JOB_ID);
+        when(mockedPlace.getJobId()).thenReturn(JOB_ID);
         when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
         when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
         when(mockedClientFactory.getFaileditemsView()).thenReturn(mockedView);

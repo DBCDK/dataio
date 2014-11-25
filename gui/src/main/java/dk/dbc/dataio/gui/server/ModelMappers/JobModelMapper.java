@@ -10,19 +10,19 @@ public final class JobModelMapper {
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private JobModelMapper(){}
+    private JobModelMapper() {
+    }
 
     /**
      * Maps a Job to a Model
+     *
      * @param jobInfo The Job as a JobInfo class
      * @return model The Job as a JobModel class
      */
     public static JobModel toModel(JobInfo jobInfo) {
-        boolean jobNotDone = (
-                jobInfo.getChunkifyingChunkCounter() == null ||
-                        jobInfo.getProcessingChunkCounter() == null ||
-                        jobInfo.getDeliveringChunkCounter() == null
-        );
+        boolean jobNotDone = jobInfo.getChunkifyingChunkCounter() == null ||
+                jobInfo.getProcessingChunkCounter() == null ||
+                jobInfo.getDeliveringChunkCounter() == null;
         return new JobModel(
                 Format.getLongDateTimeFormat(jobInfo.getJobCreationTime()),
                 String.valueOf(jobInfo.getJobId()),
@@ -38,6 +38,7 @@ public final class JobModelMapper {
 
     /**
      * Maps a Model to a Job
+     *
      * @param model The model as a JobModel class
      * @return The Job as a JobInfo class
      * @throws IllegalArgumentException

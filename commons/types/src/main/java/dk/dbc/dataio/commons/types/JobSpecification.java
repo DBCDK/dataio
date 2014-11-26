@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -46,10 +47,15 @@ public class JobSpecification implements Serializable {
      * @throws IllegalArgumentException if given empty valued String argument
      * or if value of submitterId is <= 0
      */
-    public JobSpecification(String packaging, String format, String charset, String destination, long submitterId,
-            String mailForNotificationAboutVerification, String mailForNotificationAboutProcessing, String resultmailInitials,
-            String dataFile)
-            throws NullPointerException, IllegalArgumentException {
+    public JobSpecification(@JsonProperty("packaging") String packaging,
+                            @JsonProperty("format") String format,
+                            @JsonProperty("charset") String charset,
+                            @JsonProperty("destination") String destination,
+                            @JsonProperty("submitterId") long submitterId,
+                            @JsonProperty("mailForNotificationAboutVerification") String mailForNotificationAboutVerification,
+                            @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
+                            @JsonProperty("resultmailInitials") String resultmailInitials,
+                            @JsonProperty("dataFile") String dataFile) throws NullPointerException, IllegalArgumentException {
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");

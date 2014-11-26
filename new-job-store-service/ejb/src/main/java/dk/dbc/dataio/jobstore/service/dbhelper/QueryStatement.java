@@ -5,9 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * This abstract class constitutes a specialised wrapper for a java.sql.PreparedStatement
- * whose execution will result in a java.sql.ResultSet making is possible to utilise named
- * binding variables (on the form :name) in SQL statements.
+ * This abstract class constitutes a wrapper for a java.sql.PreparedStatement
+ * whose execution will result in a java.sql.ResultSet.
  */
 public abstract class QueryStatement extends WrappedStatement implements AutoCloseable {
     public interface QueryResult {}

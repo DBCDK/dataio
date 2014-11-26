@@ -7,9 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This abstract class constitutes a specialised wrapper for a java.sql.PreparedStatement
- * making is possible to utilise named binding variables (on the form :name)
- * in SQL statements.
+ * This abstract class constitutes a wrapper for a java.sql.PreparedStatement
+ * enabling use of named parameters in specialised sub classes.
  */
 public abstract class WrappedStatement {
     final Set<BindVariable> variables = new HashSet<>();
@@ -24,17 +23,11 @@ public abstract class WrappedStatement {
         return this;
     }
 
-    /* Creates PreparedStatement using sqlTemplate substituting
-       all named parameters on the form :name with '?' and sets
-       parameter values.
+    /* Creates PreparedStatement using sqlTemplate and sets parameter values.
      */
     void createStatement() throws SQLException {
         close();
-        String sql = sqlTemplate;
-        for (BindVariable bindVariable : variables) {
-            sql = sql.replaceAll(String.format(":%s", bindVariable.getName()), "?");
-        }
-        statement = connection.prepareStatement(sql);
+        statement = connection.prepareStatement(sqlTemplate);
         for (BindVariable bindVariable : variables) {
             statement.setObject(bindVariable.getParameterIndex(), bindVariable.getValue());
         }
@@ -46,6 +39,13 @@ public abstract class WrappedStatement {
         }
     }
 
+    /**
+     * BindVariable abstraction.
+     * <p>
+     * Be advised that only the name field is used in hashcode() and
+     * equals() methods.
+     * </p>
+     */
     public static class BindVariable {
         private final String name;
         private final int parameterIndex;
@@ -80,13 +80,7 @@ public abstract class WrappedStatement {
 
             BindVariable that = (BindVariable) o;
 
-            if (parameterIndex != that.parameterIndex) {
-                return false;
-            }
             if (!name.equals(that.name)) {
-                return false;
-            }
-            if (!value.equals(that.value)) {
                 return false;
             }
 
@@ -95,10 +89,7 @@ public abstract class WrappedStatement {
 
         @Override
         public int hashCode() {
-            int result = name.hashCode();
-            result = 31 * result + parameterIndex;
-            result = 31 * result + value.hashCode();
-            return result;
+            return name.hashCode();
         }
     }
 }

@@ -12,7 +12,7 @@ import java.sql.SQLException;
  * </p>
  */
 public class AddEntityStatement extends QueryStatement {
-    private static final String ADD_ENTITY_STATEMENT = "SELECT * FROM set_entitycache(:checksum, :entity)";
+    private static final String ADD_ENTITY_STATEMENT = "SELECT * FROM set_entitycache(?, ?)";  // (checksum, entity)
 
     public AddEntityStatement(Connection connection) {
         super(connection, ADD_ENTITY_STATEMENT);

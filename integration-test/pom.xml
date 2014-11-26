@@ -28,6 +28,7 @@
 	<module>sinks</module>
 	<module>job-processor</module>
 	<module>job-store</module>
+	<module>new-job-store-service</module>
 	<module>mocked-job-store-service</module>
 	<module>jms-queue-service</module>
 	<module>glassfish</module>

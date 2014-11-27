@@ -2,6 +2,6 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
-public interface JobsShowPresenter extends GenericPresenter {
-    void showFailedItems(long jobId);
+public interface Presenter extends GenericPresenter {
+    void showFailedItems(String jobId);
 }

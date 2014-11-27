@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.places;
 
 import com.google.gwt.place.shared.PlaceHistoryMapper;
 import com.google.gwt.place.shared.WithTokenizers;
+import dk.dbc.dataio.gui.client.pages.job.show.Place;
 
 @WithTokenizers({
         dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace.Tokenizer.class,
@@ -17,7 +18,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowPlace.Tokenizer.class,
-        dk.dbc.dataio.gui.client.pages.job.show.JobsShowPlace.Tokenizer.class,
+        Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.sink.show.SinksShowPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowPlace.Tokenizer.class,

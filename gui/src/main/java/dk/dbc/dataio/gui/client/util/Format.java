@@ -17,7 +17,7 @@ import java.util.List;
  *
  */
 public final class Format {
-    private final static String LONG_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public final static String LONG_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // Private constructor to avoid instantiation
     private Format() {

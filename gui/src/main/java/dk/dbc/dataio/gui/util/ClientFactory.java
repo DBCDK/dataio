@@ -7,7 +7,6 @@ import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowView;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowView;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowView;
-import dk.dbc.dataio.gui.client.pages.job.show.JobsShowView;
 import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView;
 import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowView;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
@@ -56,7 +55,7 @@ public interface ClientFactory {
     FlowComponentsShowView getFlowComponentsShowView();
     FlowsShowView getFlowsShowView();
     SubmittersShowView getSubmittersShowView();
-    JobsShowView getJobsShowView();
+    dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();
     SinksShowView getSinksShowView();
     dk.dbc.dataio.gui.client.pages.javascriptlog.View getJavaScriptLogView();
     FlowBindersShowView getFlowBindersShowView();

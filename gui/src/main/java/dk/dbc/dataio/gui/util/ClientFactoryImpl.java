@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.util;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
@@ -21,12 +20,9 @@ import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowTexts
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowViewImpl;
 import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
-import dk.dbc.dataio.gui.client.pages.javascriptlog.PresenterImpl;
-import dk.dbc.dataio.gui.client.pages.job.show.JobsShowActivity;
-import dk.dbc.dataio.gui.client.pages.job.show.JobsShowPlace;
-import dk.dbc.dataio.gui.client.pages.job.show.JobsShowTexts;
-import dk.dbc.dataio.gui.client.pages.job.show.JobsShowView;
-import dk.dbc.dataio.gui.client.pages.job.show.JobsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.job.show.PresenterImpl;
+import dk.dbc.dataio.gui.client.pages.job.show.Place;
+import dk.dbc.dataio.gui.client.pages.job.show.Texts;
 import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowActivity;
 import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowPlace;
 import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowTexts;
@@ -71,7 +67,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static FlowsShowTexts flowsShowTexts = GWT.create(FlowsShowTexts.class);
     private final static FlowBindersShowTexts flowBindersShowTexts = GWT.create(FlowBindersShowTexts.class);
     private final static SinksShowTexts sinksShowTexts = GWT.create(SinksShowTexts.class);
-    private final static JobsShowTexts jobsShowTexts = GWT.create(JobsShowTexts.class);
+    private final static Texts jobsShowTexts = GWT.create(Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.javascriptlog.Texts javaScriptLogShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.javascriptlog.Texts.class);
     private final static FlowComponentsShowTexts flowComponentsShowTexts = GWT.create(FlowComponentsShowTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts flowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
@@ -87,7 +83,7 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Place Controller
     private final PlaceController placeController = new PlaceController(eventBus);
-    public final static Place NOWHERE = null;
+    public final static com.google.gwt.place.shared.Place NOWHERE = null;
 
     // History Mapper
     private final AppPlaceHistoryMapper historyMapper = GWT.create(AppPlaceHistoryMapper.class);
@@ -114,7 +110,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
     private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
     private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
-    private final JobsShowView jobsShowView = new JobsShowViewImpl(jobsShowTexts);
+    private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(jobsShowTexts.menu_Jobs(), jobsShowTexts);
     private final dk.dbc.dataio.gui.client.pages.javascriptlog.View javaScriptLogView = new dk.dbc.dataio.gui.client.pages.javascriptlog.View(javaScriptLogShowTexts.menu_JavaScriptLogShow());
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();
@@ -147,7 +143,7 @@ public class ClientFactoryImpl implements ClientFactory {
                 createSink);
 
         // Jobs Main Menu
-        MenuItem jobsMenu = new MenuItem(GUIID_MENU_ITEM_JOBS_SHOW, jobsShowTexts.menu_Jobs(), new JobsShowPlace());
+        MenuItem jobsMenu = new MenuItem(GUIID_MENU_ITEM_JOBS_SHOW, jobsShowTexts.menu_Jobs(), new Place());
 
         // Harvesters Main Menu
         //MenuItem harvestersMenu = new MenuItem(GUIID_MENU_ITEM_HARVESTERS_SHOW, harvestersShowTexts.menu_Harvesters(), new HarvestersShowPlace());
@@ -181,7 +177,7 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // getPresenter
     @Override
-    public com.google.gwt.activity.shared.Activity getPresenter(Place place) {
+    public com.google.gwt.activity.shared.Activity getPresenter(com.google.gwt.place.shared.Place place) {
         if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this, flowModifyTexts);
         }
@@ -221,11 +217,11 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof SubmittersShowPlace) {
             return new SubmittersShowActivity(this);
         }
-        if (place instanceof JobsShowPlace) {
-            return new JobsShowActivity(this);
+        if (place instanceof Place) {
+            return new PresenterImpl(this);
         }
         if (place instanceof JavaScriptLogPlace) {
-            return new PresenterImpl(place, this, javaScriptLogShowTexts);
+            return new dk.dbc.dataio.gui.client.pages.javascriptlog.PresenterImpl(place, this, javaScriptLogShowTexts);
         }
         if (place instanceof SinksShowPlace) {
             return new SinksShowActivity(this);
@@ -341,7 +337,7 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public JobsShowView getJobsShowView() {
+    public dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView() {
         return jobsShowView;
     }
 

@@ -11,7 +11,6 @@ public class JobInputStream {
     private final JobSpecification jobSpecification;
     private final boolean isEndOfJob;
     private final int partNumber;
-    private final long PART_NUMBER_LOWER_BOUND = 0L;
 
     /**
      * Class constructor
@@ -19,7 +18,7 @@ public class JobInputStream {
      * @param isEndOfJob
      * @param partNumber
      * @throws NullPointerException if given null-valued argument
-     * @throws IllegalArgumentException if value of partNumber is <= 0
+     * @throws IllegalArgumentException if value of partNumber is < 0
      */
     @JsonCreator
     public JobInputStream (@JsonProperty ("jobSpecification") JobSpecification jobSpecification,
@@ -28,7 +27,7 @@ public class JobInputStream {
 
         this.jobSpecification = InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
         this.isEndOfJob = isEndOfJob;
-        this.partNumber = Long.valueOf(InvariantUtil.checkLowerBoundOrThrow(partNumber, "partNumber", PART_NUMBER_LOWER_BOUND)).intValue();
+        this.partNumber = (int)InvariantUtil.checkLowerBoundOrThrow(partNumber, "partNumber", 0);
     }
     public JobSpecification getJobSpecification() {
         return jobSpecification;

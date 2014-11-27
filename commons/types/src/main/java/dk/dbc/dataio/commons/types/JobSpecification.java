@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
@@ -47,6 +48,7 @@ public class JobSpecification implements Serializable {
      * @throws IllegalArgumentException if given empty valued String argument
      * or if value of submitterId is <= 0
      */
+    @JsonCreator
     public JobSpecification(@JsonProperty("packaging") String packaging,
                             @JsonProperty("format") String format,
                             @JsonProperty("charset") String charset,

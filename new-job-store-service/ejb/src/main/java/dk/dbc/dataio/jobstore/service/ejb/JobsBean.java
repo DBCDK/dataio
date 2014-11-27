@@ -3,11 +3,12 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -29,8 +30,10 @@ import java.net.URI;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-    private static final JSONBContext jsonbContext = new JSONBContext();
     private static final String DUMMY_JOB_ID = "42";
+
+    @EJB
+    JSONBBean jsonbBean;
 
     @GET
     public Response iOnlyExistForSanityTest() {
@@ -44,16 +47,11 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JsonException, JSONBException {
         LOGGER.trace("JobInputStream: {}", jobInputStreamData);
-        JobInputStream jobInputStream = helloWorldDummyMethod(jobInputStreamData);
+        JobInputStream jobInputStream = jsonbBean.getContext().unmarshall(jobInputStreamData, JobInputStream.class);
 
         return Response.created(getUri(uriInfo, DUMMY_JOB_ID))
-                .entity(jsonbContext.marshall(jobInputStream))
+                .entity(jsonbBean.getContext().marshall(jobInputStream))
                 .build();
-    }
-
-    private JobInputStream helloWorldDummyMethod(String jobInputStreamJson) throws JSONBException {
-        // This method is clearly doing something amazing!
-        return jsonbContext.unmarshall(jobInputStreamJson, JobInputStream.class);
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {

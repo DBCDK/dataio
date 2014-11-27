@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 public class JobInputStreamTest {
 
-    private static final long PART_NUMBER = 12345678;
+    private static final int PART_NUMBER = 12345678;
 
     @Test(expected = NullPointerException.class)
     public void constructor_jobSpecificationArgIsNull_throws() {
@@ -19,9 +19,8 @@ public class JobInputStreamTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_jobSpecificationContainsEmptyField_throws() {
-        JobSpecification jobSpecification = new JobSpecificationBuilder().setFormat("").build();
-        new JobInputStream(jobSpecification, false, PART_NUMBER);
+    public void constructor_partNumberLessThanZero_throws() {
+        new JobInputStream(new JobSpecificationBuilder().build(), false, -1);
     }
 
     @Test

@@ -1,5 +1,8 @@
 package dk.dbc.dataio.jobstore.service.dbhelper;
 
+import dk.dbc.dataio.jsonb.JSONBContext;
+import org.postgresql.util.PGobject;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -13,6 +16,7 @@ import java.util.Set;
 public abstract class WrappedStatement {
     final Set<BindVariable> variables = new HashSet<>();
     Connection connection = null;
+    JSONBContext jsonbContext;
     PreparedStatement statement = null;
     String sqlTemplate = null;
 
@@ -37,6 +41,13 @@ public abstract class WrappedStatement {
         if (statement != null) {
             statement.close();
         }
+    }
+
+    PGobject asJsonPgObject(String json) throws SQLException {
+        final PGobject jsonObject = new PGobject();
+        jsonObject.setType("json");
+        jsonObject.setValue(json);
+        return jsonObject;
     }
 
     /**

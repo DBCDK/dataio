@@ -1,7 +1,10 @@
 package dk.dbc.dataio.jobstore.service.dbhelper;
 
-import org.postgresql.util.PGobject;
+import dk.dbc.dataio.jobstore.service.digest.Md5;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -14,22 +17,27 @@ import java.sql.SQLException;
 public class AddEntityStatement extends QueryStatement {
     private static final String ADD_ENTITY_STATEMENT = "SELECT * FROM set_entitycache(?, ?)";  // (checksum, entity)
 
-    public AddEntityStatement(Connection connection) {
-        super(connection, ADD_ENTITY_STATEMENT);
+    public AddEntityStatement(Connection connection, JSONBContext jsonbContext) {
+        super(connection, jsonbContext, ADD_ENTITY_STATEMENT);
     }
 
     /**
      * Sets binding value for entity checksum
      */
-    public AddEntityStatement setChecksum(String checksum) {
+    private AddEntityStatement setChecksum(String checksum) {
         return (AddEntityStatement) bind("checksum", checksum, 1);
     }
 
     /**
-     * Sets binding value for entity object
+     * Sets binding and checksum values for entity object
+     * @throws IllegalStateException if unable to create checksum digest
+     * @throws JSONBException on failure to marshall entity
      */
-    public AddEntityStatement setEntity(PGobject entity) {
-        return (AddEntityStatement) bind("entity", entity, 2);
+    public AddEntityStatement setEntity(Object entity)
+            throws IllegalStateException, JSONBException, SQLException {
+        final String jsonEntity = jsonbContext.marshall(entity);
+        setChecksum(Md5.asHex(jsonEntity.getBytes(StandardCharsets.UTF_8)));
+        return (AddEntityStatement) bind("entity", asJsonPgObject(jsonEntity), 2);
     }
 
     /**

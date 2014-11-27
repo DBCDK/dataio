@@ -4,11 +4,9 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.dbhelper.AddEntityStatement;
-import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
-import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +14,6 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.sql.DataSource;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -47,12 +44,10 @@ public class PgJobStore {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(entity, "entity");
-            final String jsonEntity = jsonbBean.getContext().marshall(entity);
             try (final Connection connection = dataSource.getConnection();
-                 final AddEntityStatement addEntityStatement = new AddEntityStatement(connection)) {
+                 final AddEntityStatement addEntityStatement = new AddEntityStatement(connection, jsonbBean.getContext())) {
                 return addEntityStatement
-                        .setChecksum(Md5.asHex(jsonEntity.getBytes(StandardCharsets.UTF_8)))
-                        .setEntity(getJsonPgObject(jsonEntity))
+                        .setEntity(entity)
                         .execute()
                         .getId();
             }
@@ -61,12 +56,5 @@ public class PgJobStore {
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
-    }
-
-    private PGobject getJsonPgObject(String json) throws SQLException {
-        final PGobject jsonObject = new PGobject();
-        jsonObject.setType("json");
-        jsonObject.setValue(json);
-        return jsonObject;
     }
 }

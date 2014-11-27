@@ -1,5 +1,7 @@
 package dk.dbc.dataio.jobstore.service.dbhelper;
 
+import dk.dbc.dataio.jsonb.JSONBContext;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,11 +23,12 @@ public abstract class QueryStatement extends WrappedStatement implements AutoClo
     /**
      * Constructor
      * @param connection active database connection (session)
-     * @param sqlTemplate SQL statement template with possible use
-     * of named binding parameters on the for :name
+     * @param jsonbContext JSON binding context
+     * @param sqlTemplate SQL statement template
      */
-    public QueryStatement(Connection connection, String sqlTemplate) {
+    public QueryStatement(Connection connection, JSONBContext jsonbContext, String sqlTemplate) {
         this.connection = connection;
+        this.jsonbContext = jsonbContext;
         this.sqlTemplate = sqlTemplate;
     }
 

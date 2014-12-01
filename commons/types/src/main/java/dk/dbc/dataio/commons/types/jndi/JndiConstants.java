@@ -7,6 +7,7 @@ public class JndiConstants {
     public static final String URL_RESOURCE_FILESTORE_RS = "url/dataio/filestore/rs";
     public static final String URL_RESOURCE_LOGSTORE_RS = "url/dataio/logstore/rs";
     public static final String URL_RESOURCE_JOBSTORE_FILESYSTEM = "url/dataio/jobstore/filesystem";
+    public static final String URL_RESOURCE_JOBSTORE_RS = "url/dataio/jobstore/rs";
 
     private JndiConstants() { }
 }

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd"
+             version="2.1">
+  <persistence-unit name="jobstorePU" transaction-type="JTA">
+    <jta-data-source>jdbc/dataio/jobstore</jta-data-source>
+    <class>dk.dbc.dataio.jobstore.service.entity.FlowConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.JobSpecificationConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.SinkConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.StateConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
+    <properties>
+      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+    </properties>
+  </persistence-unit>
+  <persistence-unit name="jobstoreIT" transaction-type="RESOURCE_LOCAL">
+    <class>dk.dbc.dataio.jobstore.service.entity.FlowConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.JobSpecificationConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.SinkConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.StateConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
+    <properties>
+      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+    </properties>
+  </persistence-unit>
+</persistence>

@@ -1,21 +1,22 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
-import org.junit.Before;
 import org.junit.Test;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreTest {
@@ -23,75 +24,73 @@ public class PgJobStoreTest {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
     }
 
-    final DataSource dataSource = mock(DataSource.class);
-    final Connection connection = mock(Connection.class);
-    final PreparedStatement preparedStatement = mock(PreparedStatement.class);
-    final ResultSet resultSet = mock(ResultSet.class);
-
-    @Before
-    public void setUpMocks() throws SQLException {
-        when(dataSource.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
-    }
+    final EntityManager entityManager = mock(EntityManager.class);
 
     @Test
-    public void addEntity_entityArgIsNull_throws() throws JobStoreException {
+    public void cacheFlow_flowArgIsNull_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
-            pgJobStore.addEntity(null);
+            pgJobStore.cacheFlow(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void addEntity_entityArgCanNotBeMarshalled_throws() throws JobStoreException {
+    public void cacheFlow_flowArgIsCached_returnsFlowCacheEntityInstance() throws JobStoreException {
+        final FlowCacheEntity expectedFlowCacheEntity = new FlowCacheEntity();
+        final Query storeProcedure = mock(Query.class);
+        when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(storeProcedure);
+        when(storeProcedure.getSingleResult()).thenReturn(expectedFlowCacheEntity);
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final FlowCacheEntity flowCacheEntity = pgJobStore.cacheFlow(new FlowBuilder().build());
+
+        assertThat(flowCacheEntity, is(expectedFlowCacheEntity));
+    }
+
+    @Test
+    public void cacheSink_sinkArgIsNull_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
-            pgJobStore.addEntity(new Object());
+            pgJobStore.cacheSink(null);
             fail("No exception thrown");
-        } catch (JobStoreException e) {
+        } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void addEntity_onDatabaseAccessError_throws() throws JobStoreException, SQLException {
-        when(dataSource.getConnection()).thenThrow(new SQLException());
+    public void cacheSink_sinkArgIsCached_returnsSinkCacheEntityInstance() throws JobStoreException {
+        final SinkCacheEntity expectedSinkCacheEntity = new SinkCacheEntity();
+        final Query storeProcedure = mock(Query.class);
+        when(entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(storeProcedure);
+        when(storeProcedure.getSingleResult()).thenReturn(expectedSinkCacheEntity);
 
         final PgJobStore pgJobStore = newPgJobStore();
+        final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(new SinkBuilder().build());
+
+        assertThat(sinkCacheEntity, is(expectedSinkCacheEntity));
+    }
+
+    @Test
+    public void addJob_jobArgIsNull_throws() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
         try {
-            pgJobStore.addEntity(new Object());
+            pgJobStore.addJob(null);
             fail("No exception thrown");
-        } catch (JobStoreException e) {
+        } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void addEntity_databaseReturnsMultipleRows_throws() throws JobStoreException, SQLException {
-        when(resultSet.next()).thenReturn(true);
-        when(resultSet.isLast()).thenReturn(false);
-
+    public void addJob_jobArgIsValid_jobIsPersistedAndManagedEntityIsRefreshed() {
+        final JobEntity job = new JobEntity();
         final PgJobStore pgJobStore = newPgJobStore();
-        try {
-            pgJobStore.addEntity(new Object());
-            fail("No exception thrown");
-        } catch (JobStoreException e) {
-        }
-    }
+        final JobEntity jobEntity = pgJobStore.addJob(job);
 
-    @Test
-    public void addEntity_databaseReturnsSingleRow_returnsValueOfRowColumn() throws JobStoreException, SQLException {
-        final int id = 42;
-        when(resultSet.next()).thenReturn(true);
-        when(resultSet.isLast()).thenReturn(true);
-        when(resultSet.getInt(1)).thenReturn(id);
-
-        final SimpleBean simpleBean = new SimpleBean();
-        simpleBean.setValue("myValue");
-
-        final PgJobStore pgJobStore = newPgJobStore();
-        assertThat(pgJobStore.addEntity(simpleBean), is(id));
+        assertThat(jobEntity, is(job));
+        verify(entityManager).persist(job);
+        verify(entityManager).refresh(job);
     }
 
     private PgJobStore newPgJobStore() {
@@ -100,18 +99,7 @@ public class PgJobStoreTest {
 
         final PgJobStore pgJobStore = new PgJobStore();
         pgJobStore.jsonbBean = jsonbBean;
-        pgJobStore.dataSource = dataSource;
-
+        pgJobStore.entityManager = entityManager;
         return pgJobStore;
-    }
-
-    private static class SimpleBean {
-        String value;
-        public String getValue() {
-            return value;
-        }
-        public void setValue(String value) {
-            this.value = value;
-        }
     }
 }

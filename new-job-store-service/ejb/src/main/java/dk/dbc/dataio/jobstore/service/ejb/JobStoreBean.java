@@ -11,11 +11,15 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
-import javax.ejb.EJB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+
+@Stateless
 public class JobStoreBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
 
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
@@ -26,8 +30,6 @@ public class JobStoreBean {
     @EJB
     PgJobStore jobStore;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreBean.class);
-
     public void addAndScheduleJob(String jobSpecificationData) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         LOGGER.trace("JobSpec: {}", jobSpecificationData);
@@ -37,10 +39,10 @@ public class JobStoreBean {
         Flow flow = getFlowOrThrow(flowBinder.getId());
         Sink sink = getSinkOrThrow(flowBinder.getId());
 
-        int flowId = jobStore.addEntity(flow);
-        int sinkId = jobStore.addEntity(sink);
+        /*int flowId = jobStore.addEntity(flow);
+        int sinkId = jobStore.addEntity(sink);*/
 
-        LOGGER.debug("THIS SHOULD NOT BE LOGGED - CURRENTLY LOGS TO AVOID PMD-WARNINGS!: {} {}", flowId, sinkId);
+        LOGGER.debug("THIS SHOULD NOT BE LOGGED - CURRENTLY LOGS TO AVOID PMD-WARNINGS!: {} {}", flow.getId(), sink.getId());
 
         LOGGER.debug("addAndScheduleJob for job [{}] took (ms): {}", "", stopWatch.getElapsedTime());
     }

@@ -72,7 +72,7 @@ public class RawRepoConnectorBean {
         InvariantUtil.checkNotNullOrThrow(queueJob, "queueJob");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
-            RawRepoDAO.newInstance(connection).queueSuccess(queueJob);
+            // RawRepoDAO.newInstance(connection).queueSuccess(queueJob);
             LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }

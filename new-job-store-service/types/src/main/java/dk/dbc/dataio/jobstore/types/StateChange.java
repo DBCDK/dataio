@@ -149,11 +149,4 @@ public class StateChange {
     public void setOperationalState(JobState.OperationalState operationalState) {
         this.operationalState = operationalState;
     }
-
-    /*
-     * Private methods
-     */
-    private int validateStatus(int number, String parameterName) {
-        return (int)InvariantUtil.checkLowerBoundOrThrow(number, parameterName, 0);
-    }
 }

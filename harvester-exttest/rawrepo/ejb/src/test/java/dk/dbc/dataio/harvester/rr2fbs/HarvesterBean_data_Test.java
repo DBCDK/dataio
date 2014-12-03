@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataFileExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
@@ -36,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -139,17 +141,27 @@ public class HarvesterBean_data_Test {
                 }});
 
         // Setup harvester datafile content expectations
+
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(asMarcExchangeRecord(FIRST_RECORD_ID));
-        harvesterDataFileExpectations.add(marcExchangeCollectionExpectation1);
+        final DataContainerExpectation dataContainerExpectation1 = new DataContainerExpectation();
+        dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
+        dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        harvesterDataFileExpectations.add(dataContainerExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(asMarcExchangeRecord(SECOND_RECORD_ID));
-        harvesterDataFileExpectations.add(marcExchangeCollectionExpectation2);
+        final DataContainerExpectation dataContainerExpectation2 = new DataContainerExpectation();
+        dataContainerExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
+        dataContainerExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
+        harvesterDataFileExpectations.add(dataContainerExpectation2);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(asMarcExchangeRecord(THIRD_RECORD_ID));
-        harvesterDataFileExpectations.add(marcExchangeCollectionExpectation3);
+        final DataContainerExpectation dataContainerExpectation3 = new DataContainerExpectation();
+        dataContainerExpectation3.dataExpectation = marcExchangeCollectionExpectation3;
+        dataContainerExpectation3.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
+        harvesterDataFileExpectations.add(dataContainerExpectation3);
 
         // Execute harvest
         getHarvesterBean().harvest();
@@ -179,11 +191,17 @@ public class HarvesterBean_data_Test {
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(asMarcExchangeRecord(FIRST_RECORD_ID));
-        harvesterDataFileExpectations.add(marcExchangeCollectionExpectation1);
+        final DataContainerExpectation dataContainerExpectation1 = new DataContainerExpectation();
+        dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
+        dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        harvesterDataFileExpectations.add(dataContainerExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(asMarcExchangeRecord(THIRD_RECORD_ID));
-        harvesterDataFileExpectations.add(marcExchangeCollectionExpectation2);
+        final DataContainerExpectation dataContainerExpectation2 = new DataContainerExpectation();
+        dataContainerExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
+        dataContainerExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
+        harvesterDataFileExpectations.add(dataContainerExpectation2);
 
         // Execute harvest
         getHarvesterBean().harvest();
@@ -226,5 +244,9 @@ public class HarvesterBean_data_Test {
 
     private MarcExchangeRecord asMarcExchangeRecord(RecordId recordId) {
         return new MarcExchangeRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
+    }
+
+    private String getRecordCreationDate(Record record) {
+        return new SimpleDateFormat("YYYYMMdd").format(record.getCreated());
     }
 }

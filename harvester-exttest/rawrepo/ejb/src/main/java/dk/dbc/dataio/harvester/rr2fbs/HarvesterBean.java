@@ -1,9 +1,11 @@
 package dk.dbc.dataio.harvester.rr2fbs;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.harvester.types.DataContainer;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
+import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
@@ -31,6 +33,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -106,7 +109,7 @@ public class HarvesterBean {
                 LOGGER.info("{} ready for harvesting", nextQueuedItem);
                 try {
                     final RecordId queuedRecordId = nextQueuedItem.getJob();
-                    final MarcExchangeCollection harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
+                    final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
                     harvesterJobBuilder.addHarvesterRecord(harvesterRecord);
                     markAsSuccess(nextQueuedItem);
                 } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
@@ -139,9 +142,10 @@ public class HarvesterBean {
 
     /* Fetches rawrepo record associated with given record ID and adds
        its content to a new MARC exchange collection.
-       Returns harvester record.
+       Returns data container harvester record containing MARC exchange collection as data
+       and record creation date as supplementary data.
      */
-    private MarcExchangeCollection getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
+    private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
         final Map<RecordId, Record> records;
         try {
             records = asMap(rawRepoConnector.fetchRecordCollection(recordId));
@@ -149,9 +153,13 @@ public class HarvesterBean {
             throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
         }
         LOGGER.debug("Fetched rawrepo collection<{}> for {}", records.values(), recordId);
-        final MarcExchangeCollection harvesterRecord = new MarcExchangeCollection(documentBuilder, transformer);
-        harvesterRecord.addMember(getRecordContent(recordId, records));
-        return harvesterRecord;
+        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
+        marcExchangeCollection.addMember(getRecordContent(recordId, records));
+
+        final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
+        dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
+        dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
+        return dataContainer;
     }
 
     private Map<RecordId, Record> asMap(Map<String, Record> recordMap) {
@@ -174,6 +182,14 @@ public class HarvesterBean {
         } catch (NullPointerException e) {
              throw new HarvesterInvalidRecordException("Record content is null");
         }
+    }
+
+    private Date getRecordCreationDate(RecordId recordId, Map<RecordId, Record> records) throws HarvesterInvalidRecordException {
+        if (!records.containsKey(recordId)) {
+            throw new HarvesterInvalidRecordException(String.format(
+                    "Record %s was not found in returned collection", recordId.toString()));
+        }
+        return records.get(recordId).getCreated();
     }
 
     private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {

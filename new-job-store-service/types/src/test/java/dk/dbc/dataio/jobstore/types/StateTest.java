@@ -367,7 +367,7 @@ public class StateTest {
 
     private StateChange getStateChangeWithEndDate(JobState.OperationalState operationalState) {
         StateChange stateChange = new StateChange();
-        stateChange.setEndDate(new Date(System.currentTimeMillis() + random.nextInt((100000 - 10000) + 1) + 1000));
+        stateChange.setEndDate(new Date(System.currentTimeMillis() + random.nextInt((100000 - 10000) + 1) + 10000));
         stateChange.setSucceeded(10);
         stateChange.setOperationalState(operationalState);
         return stateChange;
@@ -375,7 +375,7 @@ public class StateTest {
 
     private StateChange getStateChangeWithStartDate(JobState.OperationalState operationalState) {
         StateChange stateChange = new StateChange();
-        stateChange.setBeginDate(new Date(System.currentTimeMillis() + random.nextInt((100000 - 10000) + 1) + 1000));
+        stateChange.setBeginDate(new Date(System.currentTimeMillis() + random.nextInt((100000 - 10000) + 1) + 10000));
         stateChange.setSucceeded(10);
         stateChange.setOperationalState(operationalState);
         return stateChange;
@@ -401,23 +401,22 @@ public class StateTest {
     private List<StateChange> getStateChangeList(JobState.OperationalState operationalState) {
         StateChange stateChangeA = new StateChange();
         stateChangeA.setBeginDate(BEGIN_DATE);
-        stateChangeA.setSucceeded(10);
-        stateChangeA.setPending(35);
-        stateChangeA.setActive(15);
+        stateChangeA.setSucceeded(1);
+        stateChangeA.setPending(8);
+        stateChangeA.setActive(3);
         stateChangeA.setOperationalState(operationalState);
 
         StateChange stateChangeB = new StateChange();
-        stateChangeB.setSucceeded(10);
-        stateChangeB.setPending(-10);
-        stateChangeB.setActive(-10);
+        stateChangeB.setSucceeded(5);
+        stateChangeB.setPending(-4);
+        stateChangeB.setActive(-1);
         stateChangeB.setOperationalState(operationalState);
 
         StateChange stateChangeC = new StateChange();
         stateChangeC.setEndDate(END_DATE);
-        stateChangeC.setSucceeded(34);
+        stateChangeC.setSucceeded(9);
         stateChangeC.setIgnored(1);
-        stateChangeC.setPending(-25);
-        stateChangeC.setActive(-5);
+        stateChangeC.setPending(-4);
         stateChangeC.setOperationalState(operationalState);
 
         List<StateChange> stateChangeList = new ArrayList<>();

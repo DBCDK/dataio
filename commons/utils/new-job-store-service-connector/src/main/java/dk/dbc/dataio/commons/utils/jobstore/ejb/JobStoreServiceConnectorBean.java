@@ -21,12 +21,11 @@ public class JobStoreServiceConnectorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreServiceConnectorBean.class);
 
     JobStoreServiceConnector jobStoreServiceConnector;
-    Client client;
 
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
-        client = HttpClient.newClient();
+        Client client = HttpClient.newClient();
         try {
             final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
             jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
@@ -41,6 +40,6 @@ public class JobStoreServiceConnectorBean {
 
     @PreDestroy
     public void tearDownConnector() {
-        HttpClient.closeClient(client);
+        HttpClient.closeClient(jobStoreServiceConnector.getHttpClient());
     }
 }

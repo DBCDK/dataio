@@ -6,7 +6,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -16,18 +15,15 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.ui.Anchor;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.JobErrorCode;
-import dk.dbc.dataio.gui.client.components.DualPanesPanel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopup;
 import dk.dbc.dataio.gui.client.resource.Resources;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -49,8 +45,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     private static final int POPUP_PANEL_WIDTH = 265;
     private static final int POPUP_PANEL_LEFT_OFFSET = 36;
     private static final int POPUP_PANEL_TOP_OFFSET = 18;
-
-    public static final String GUIID_JOBS_STATUS_DUAL_PANES_PANEL = "jobsstatusdualpanespanel";
 
     private Texts texts;
     private static final Resources RESOURCES = GWT.create(Resources.class);
@@ -95,6 +89,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
 
+
+    /*
+     * Ui Handlers
+     */
+
     /**
      * UI Handler for the More Button
      * @param event The event, triggered by a push on the More Button
@@ -105,14 +104,26 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
 
+
+    /*
+     * Overrides
+     */
+
     /**
      * This method is triggered, when the view is being unloaded, and causes the popup window to disappear
      */
     @Override
     protected void onUnload() {
-        popupPanel.hide();
+        if (popupPanel != null) {
+            popupPanel.hide();
+        }
     }
 
+
+
+    /*
+     * Public methods
+     */
 
     /**
      * This method is called by the presenter, to inject the jobStoreFilesystemUrl to be used by the view
@@ -125,10 +136,32 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         }
     }
 
+    /**
+     * This method is used to put data into the view
+     * @param jobs The list of jobs to put into the view
+     */
+    public void setJobs(List<JobModel> jobs) {
+        dataProvider.getList().clear();
+        dataProvider.getList().addAll(jobs);
+
+        // Do sort by job creation time
+        ColumnSortList columnSortList = jobsTable.getColumnSortList();
+        columnSortList.clear();  // Clear the Sort List
+        columnSortList.push(jobCreationTimeColumn);  // Default sorting is by job creation time
+        ColumnSortEvent.fire(jobsTable, columnSortList);  // Do sort right now
+
+        // Set page size parameters
+        currentPageSize = PAGE_SIZE;
+        jobsTable.setPageSize(currentPageSize);
+        jobsTable.setRowCount(jobs.size());
+    }
+
+
 
     /**
      * Private methods
      */
+
 
     /**
      * This method sets up all columns in the view
@@ -154,7 +187,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
     }
-
 
     /**
      * This method constructs the JobCreationTime column
@@ -249,142 +281,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
                 return events;
             }
         };
-        return new Column<JobModel, ImageResource>(statusCell) {
-            @Override
-            public void onBrowserEvent(Cell.Context context, Element elem,
-                                       JobModel model, NativeEvent event) {
-                super.onBrowserEvent(context, elem, model, event);
-                if ("click".equals(event.getType())) {
-
-                    // Create a basic popup widget
-                    popupPanel = new PopupPanel(true);
-                    int left = elem.getAbsoluteRight() - POPUP_PANEL_WIDTH - POPUP_PANEL_LEFT_OFFSET;
-                    int top = elem.getAbsoluteTop() + POPUP_PANEL_TOP_OFFSET;
-                    popupPanel.setPopupPosition(left, top);
-                    popupPanel.setWidth(POPUP_PANEL_WIDTH + "px");
-                    popupPanel.setWidget(buildFlowPanelForPopupPanel(model));
-                    popupPanel.show();
-                }
-            }
-            public String getCellStyleNames(Cell.Context context, JobModel model) {
-                switch (getJobStatus(model)) {
-                    case NOT_DONE:
-                        return GUICLASS_GRAY;
-                    case DONE_WITH_ERROR:
-                        return GUICLASS_RED;
-                    default:
-                        return GUICLASS_GREEN;
-                }
-            }
-            @Override
-            public ImageResource getValue(JobModel model) {
-                switch (getJobStatus(model)) {
-                    case NOT_DONE:
-                        return RESOURCES.gray();
-                    case DONE_WITH_ERROR:
-                        return RESOURCES.red();
-                    default:
-                        return RESOURCES.green();
-                }
-            }
-        };
-    }
-
-
-    /**
-     * This method builds a new panel, holding the Popup, to be triggered, when pushing the Status Icon
-     * @param model The model associated with the Popup panel
-     * @return The Popup Panel
-     */
-    private FlowPanel buildFlowPanelForPopupPanel(final JobModel model) {
-        FlowPanel panel = new FlowPanel();
-        DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
-
-        if (model.getJobErrorCode().equals(JobErrorCode.NO_ERROR)) {
-            panel.add(buildDualPanesPanelForChunkCounter(texts.text_chunkifying(), model.getChunkifyingFailureCounter()));
-            panel.add(buildDualPanesPanelForChunkCounter(texts.text_processing(), model.getProcessingFailureCounter()));
-            panel.add(buildDualPanesPanelForChunkCounter(texts.text_delivering(), model.getDeliveringFailureCounter()));
-        } else {
-            dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(), new Label(model.getJobErrorCode().toString()));
-            panel.add(dualPanesPanel);
-        }
-        panel.add(new Anchor(texts.link_MoreInfo(), getJobstoreLink(model.getJobId()), "_blank"));
-        panel.add(new FlowPanel());  // Line break
-        panel.add(getFailedItemsAnchor(model));
-        return panel;
-    }
-
-
-    /**
-     * This method builds a single panel, containing info about an operational state
-     * @param operationalState The operational state to show info for
-     * @param failureCounter Number of fails for the operational state
-     * @return The pane, containing the info
-     */
-    private DualPanesPanel buildDualPanesPanelForChunkCounter(String operationalState, long failureCounter) {
-        DualPanesPanel dualPanesPanel = new DualPanesPanel(GUIID_JOBS_STATUS_DUAL_PANES_PANEL);
-
-        if (failureCounter == 0) {
-            dualPanesPanel.setDualPanesPanelWidgets(getGreenImageWithId(), new Label(operationalState + " : " + texts.text_done()));
-
-        } else if (failureCounter > 0) {
-            String format = failureCounter == 1 ? " " + texts.text_record() + " " : " " + texts.text_records() + " ";
-            dualPanesPanel.setDualPanesPanelWidgets(getRedImageWithId(),
-                    new Label(operationalState + " : " + failureCounter + format + texts.text_failed()));
-        } else {
-            dualPanesPanel.setDualPanesPanelWidgets(getGreyImageWithId(), new Label(operationalState + " : " + texts.text_pending()));
-        }
-        return dualPanesPanel;
-    }
-
-
-    /**
-     * This method constructs an anchor, that points to the Failed Items list for the model, passed as a parameter
-     * @param model The model, to construct an anchor for
-     * @return The anchor, pointing to the Failed Items list
-     */
-    private Anchor getFailedItemsAnchor(final JobModel model) {
-        Anchor failedItemsAnchor = new Anchor(texts.link_FailedItems());
-        failedItemsAnchor.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent clickEvent) {
-                presenter.showFailedItems(model.getJobId());
-            }
-        });
-        return failedItemsAnchor;
-    }
-
-
-    /**
-     * This method gets a grey Image object
-     * @return The grey Image object
-     */
-    private Image getGreyImageWithId() {
-        Image image = new Image(RESOURCES.gray());
-        image.getElement().setId(GUICLASS_GRAY);
-        return image;
-    }
-
-
-    /**
-     * This method gets a red Image object
-     * @return The red Image object
-     */
-    private Image getRedImageWithId() {
-        Image image = new Image(RESOURCES.red());
-        image.getElement().setId(GUICLASS_RED);
-        return image;
-    }
-
-
-    /**
-     * This method gets a green Image object
-     * @return The green Image object
-     */
-    private Image getGreenImageWithId() {
-        Image image = new Image(RESOURCES.green());
-        image.getElement().setId(GUICLASS_GREEN);
-        return image;
+        return new StatusColumn(statusCell);
     }
 
 
@@ -408,7 +305,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return o1 != null && o2 != null;
     }
 
-
     /**
      * Compares two strings as the numbers they represent
      * @param s1 String containing first number
@@ -420,6 +316,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         long l2 = Long.parseLong(s2);
         return (l1 == l2) ? 0 : (l1 < l2) ? -1 : 1;
     }
+
 
     /**
      * Compares two strings as an alphanumeric ordering
@@ -486,28 +383,96 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
 
     /*
-     * Public methods
+     * Private classes
      */
 
     /**
-     * This method is used to put data into the view
-      * @param jobs The list of jobs to put into the view
+     * This class is a specialization of the Column class
+     * It contains knowledge about the Status Popup window to be triggered by a click on the cell
      */
-    public void setJobs(List<JobModel> jobs) {
-        dataProvider.getList().clear();
-        dataProvider.getList().addAll(jobs);
+    class StatusColumn extends Column<JobModel, ImageResource> {
+        /**
+         * Default constructor
+         * @param cell The Image to put into the status column cell
+         */
+        public StatusColumn(Cell<ImageResource> cell) {
+            super(cell);
+        }
 
-        // Do sort by job creation time
-        ColumnSortList columnSortList = jobsTable.getColumnSortList();
-        columnSortList.clear();  // Clear the Sort List
-        columnSortList.push(jobCreationTimeColumn);  // Default sorting is by job creation time
-        ColumnSortEvent.fire(jobsTable, columnSortList);  // Do sort right now
+        /**
+         * Event handler for handling browser events
+         * @param context The Cell.Context in which the event originates
+         * @param elem The element in which the event originates
+         * @param model The JobModel for the actual event
+         * @param event The event
+         */
+        @Override
+        public void onBrowserEvent(Cell.Context context, Element elem, JobModel model, NativeEvent event) {
+            super.onBrowserEvent(context, elem, model, event);
+            if ("click".equals(event.getType())) {
 
-        // Set page size parameters
-        currentPageSize = PAGE_SIZE;
-        jobsTable.setPageSize(currentPageSize);
-        jobsTable.setRowCount(jobs.size());
+                // Create a basic popup widget
+                popupPanel = new PopupPanel(true);
+                int left = elem.getAbsoluteRight() - POPUP_PANEL_WIDTH - POPUP_PANEL_LEFT_OFFSET;
+                int top = elem.getAbsoluteTop() + POPUP_PANEL_TOP_OFFSET;
+                popupPanel.setPopupPosition(left, top);
+                popupPanel.setWidth(POPUP_PANEL_WIDTH + "px");
+                StatusPopup spop = new StatusPopup();
+                popupPanel.setWidget(spop);
+                spop.totalFailed.setText(spop.totalFailed.getText() + " " + String.valueOf(model.getChunkifyingTotalCounter()));
+                spop.chunkifyingSuccess.setText(String.valueOf(model.getChunkifyingSuccessCounter()));
+                spop.chunkifyingFailed.setText(String.valueOf(model.getChunkifyingFailureCounter()));
+                spop.chunkifyingIgnored.setText(String.valueOf(model.getChunkifyingIgnoredCounter()));
+                spop.processingSuccess.setText(String.valueOf(model.getProcessingSuccessCounter()));
+                spop.processingFailed.setText(String.valueOf(model.getProcessingFailureCounter()));
+                spop.processingIgnored.setText(String.valueOf(model.getProcessingIgnoredCounter()));
+                spop.deliveringSuccess.setText(String.valueOf(model.getDeliveringSuccessCounter()));
+                spop.deliveringFailed.setText(String.valueOf(model.getDeliveringFailureCounter()));
+                spop.deliveringIgnored.setText(String.valueOf(model.getDeliveringIgnoredCounter()));
+                // vvvv HACK: To be changed to use UiHandlers in StatusPopup instead ...
+                spop.totalFailed.setHref(Window.Location.createUrlBuilder().setHash("FailedItems:" + model.getJobId()).buildString());
+                spop.moreInfo.setHref(getJobstoreLink(model.getJobId()));
+                spop.moreInfo.setTarget("_blank");
+                // ^^^^ HACK: To be changed to use UiHandlers in StatusPopup instead ...
+                popupPanel.show();
+            }
+        }
+
+        /**
+         * This method gets a style name, depending on a model
+         * @param context The Cell.Context in which the event originates
+         * @param model The model
+         * @return The style name as a String
+         */
+        public String getCellStyleNames(Cell.Context context, JobModel model) {
+            switch (getJobStatus(model)) {
+                case NOT_DONE:
+                    return GUICLASS_GRAY;
+                case DONE_WITH_ERROR:
+                    return GUICLASS_RED;
+                default:
+                    return GUICLASS_GREEN;
+            }
+        }
+
+        /**
+         * This method gets an image for a given model
+         * @param model The model
+         * @return The image for the given model
+         */
+        @Override
+        public ImageResource getValue(JobModel model) {
+            switch (getJobStatus(model)) {
+                case NOT_DONE:
+                    return RESOURCES.gray();
+                case DONE_WITH_ERROR:
+                    return RESOURCES.red();
+                default:
+                    return RESOURCES.green();
+            }
+        }
     }
+
 
 
 }

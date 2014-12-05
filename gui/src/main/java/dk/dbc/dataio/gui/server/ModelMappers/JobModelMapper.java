@@ -1,11 +1,9 @@
 package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.Format;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -35,26 +33,18 @@ public final class JobModelMapper {
                 Long.toString(jobInfo.getJobSpecification().getSubmitterId()),
                 !jobNotDone,
                 jobInfo.getJobErrorCode(),
+                jobNotDone ? 0 : jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getTotal(),
+                jobNotDone ? 0 : jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getSuccess(),
                 jobNotDone ? 0 : jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getFailure(),
+                jobNotDone ? 0 : jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getIgnore(),
+                jobNotDone ? 0 : jobInfo.getProcessingChunkCounter().getItemResultCounter().getTotal(),
+                jobNotDone ? 0 : jobInfo.getProcessingChunkCounter().getItemResultCounter().getSuccess(),
                 jobNotDone ? 0 : jobInfo.getProcessingChunkCounter().getItemResultCounter().getFailure(),
-                jobNotDone ? 0 : jobInfo.getDeliveringChunkCounter().getItemResultCounter().getFailure()
-        );
-    }
-
-    /**
-     * Maps a Model to a Job
-     *
-     * @param model The model as a JobModel class
-     * @return The Job as a JobInfo class
-     * @throws IllegalArgumentException
-     * @throws ParseException
-     */
-    public static JobInfo toJobInfo(JobModel model) throws ParseException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
-        return new JobInfo(
-                Long.valueOf(model.getJobId()),
-                new JobSpecification("", "", "", "", 0L, "", "", "", ""),
-                simpleDateFormat.parse(model.getJobCreationTime()).getTime()
+                jobNotDone ? 0 : jobInfo.getProcessingChunkCounter().getItemResultCounter().getIgnore(),
+                jobNotDone ? 0 : jobInfo.getDeliveringChunkCounter().getItemResultCounter().getTotal(),
+                jobNotDone ? 0 : jobInfo.getDeliveringChunkCounter().getItemResultCounter().getSuccess(),
+                jobNotDone ? 0 : jobInfo.getDeliveringChunkCounter().getItemResultCounter().getFailure(),
+                jobNotDone ? 0 : jobInfo.getDeliveringChunkCounter().getItemResultCounter().getIgnore()
         );
     }
 

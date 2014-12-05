@@ -16,30 +16,59 @@ public class JobModel implements Serializable {
     private String submitterNumber;
     private boolean jobDone;
     private JobErrorCode jobErrorCode;
+    private long chunkifyingTotalCounter;
+    private long chunkifyingSuccessCounter;
     private long chunkifyingFailureCounter;
+    private long chunkifyingIgnoredCounter;
+    private long processingTotalCounter;
+    private long processingSuccessCounter;
     private long processingFailureCounter;
+    private long processingIgnoredCounter;
+    private long deliveringTotalCounter;
+    private long deliveringSuccessCounter;
     private long deliveringFailureCounter;
+    private long deliveringIgnoredCounter;
 
 
 
     public JobModel(String jobCreationTime, String jobId, String fileName, String submitterNumber,
                     boolean jobDone, JobErrorCode jobErrorCode,
-                    long chunkifyingFailureCounter, long processingFailureCounter, long deliveringFailureCounter) {
+                    long chunkifyingTotalCounter,
+                    long chunkifyingSuccessCounter,
+                    long chunkifyingFailureCounter,
+                    long chunkifyingIgnoredCounter,
+                    long processingTotalCounter,
+                    long processingSuccessCounter,
+                    long processingFailureCounter,
+                    long processingIgnoredCounter,
+                    long deliveringTotalCounter,
+                    long deliveringSuccessCounter,
+                    long deliveringFailureCounter,
+                    long deliveringIgnoredCounter ) {
         this.jobCreationTime = jobCreationTime;
         this.jobId = jobId;
         this.fileName = fileName;
         this.submitterNumber = submitterNumber;
         this.jobDone = jobDone;
         this.jobErrorCode = jobErrorCode;
+        this.chunkifyingTotalCounter = chunkifyingTotalCounter;
+        this.chunkifyingSuccessCounter = chunkifyingSuccessCounter;
         this.chunkifyingFailureCounter = chunkifyingFailureCounter;
+        this.chunkifyingIgnoredCounter = chunkifyingIgnoredCounter;
+        this.processingTotalCounter = processingTotalCounter;
+        this.processingSuccessCounter = processingSuccessCounter;
         this.processingFailureCounter = processingFailureCounter;
+        this.processingIgnoredCounter = processingIgnoredCounter;
+        this.deliveringTotalCounter = deliveringTotalCounter;
+        this.deliveringSuccessCounter = deliveringSuccessCounter;
         this.deliveringFailureCounter = deliveringFailureCounter;
+        this.deliveringIgnoredCounter = deliveringIgnoredCounter;
     }
 
     public JobModel() {
         this("", "", "", "",
                 false, JobErrorCode.NO_ERROR,
-                0, 0, 0);
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     public String getJobCreationTime() {
@@ -90,12 +119,52 @@ public class JobModel implements Serializable {
         this.jobErrorCode = jobErrorCode;
     }
 
+    public long getChunkifyingTotalCounter() {
+        return chunkifyingTotalCounter;
+    }
+
+    public void setChunkifyingTotalCounter(long chunkifyingTotalCounter) {
+        this.chunkifyingTotalCounter = chunkifyingTotalCounter;
+    }
+
+    public long getChunkifyingSuccessCounter() {
+        return chunkifyingSuccessCounter;
+    }
+
+    public void setChunkifyingSuccessCounter(long chunkifyingSuccessCounter) {
+        this.chunkifyingSuccessCounter = chunkifyingSuccessCounter;
+    }
+
     public long getChunkifyingFailureCounter() {
         return chunkifyingFailureCounter;
     }
 
     public void setChunkifyingFailureCounter(long chunkifyingFailureCounter) {
         this.chunkifyingFailureCounter = chunkifyingFailureCounter;
+    }
+
+    public long getChunkifyingIgnoredCounter() {
+        return chunkifyingIgnoredCounter;
+    }
+
+    public void setChunkifyingIgnoredCounter(long chunkifyingIgnoredCounter) {
+        this.chunkifyingIgnoredCounter = chunkifyingIgnoredCounter;
+    }
+
+    public long getProcessingTotalCounter() {
+        return processingTotalCounter;
+    }
+
+    public void setProcessingTotalCounter(long processingTotalCounter) {
+        this.processingTotalCounter = processingTotalCounter;
+    }
+
+    public long getProcessingSuccessCounter() {
+        return processingSuccessCounter;
+    }
+
+    public void setProcessingSuccessCounter(long processingSuccessCounter) {
+        this.processingSuccessCounter = processingSuccessCounter;
     }
 
     public long getProcessingFailureCounter() {
@@ -106,11 +175,43 @@ public class JobModel implements Serializable {
         this.processingFailureCounter = processingFailureCounter;
     }
 
+    public long getProcessingIgnoredCounter() {
+        return processingIgnoredCounter;
+    }
+
+    public void setProcessingIgnoredCounter(long processingIgnoredCounter) {
+        this.processingIgnoredCounter = processingIgnoredCounter;
+    }
+
+    public long getDeliveringTotalCounter() {
+        return deliveringTotalCounter;
+    }
+
+    public void setDeliveringTotalCounter(long deliveringTotalCounter) {
+        this.deliveringTotalCounter = deliveringTotalCounter;
+    }
+
+    public long getDeliveringSuccessCounter() {
+        return deliveringSuccessCounter;
+    }
+
+    public void setDeliveringSuccessCounter(long deliveringSuccessCounter) {
+        this.deliveringSuccessCounter = deliveringSuccessCounter;
+    }
+
     public long getDeliveringFailureCounter() {
         return deliveringFailureCounter;
     }
 
     public void setDeliveringFailureCounter(long deliveringFailureCounter) {
         this.deliveringFailureCounter = deliveringFailureCounter;
+    }
+
+    public long getDeliveringIgnoredCounter() {
+        return deliveringIgnoredCounter;
+    }
+
+    public void setDeliveringIgnoredCounter(long deliveringIgnoredCounter) {
+        this.deliveringIgnoredCounter = deliveringIgnoredCounter;
     }
 }

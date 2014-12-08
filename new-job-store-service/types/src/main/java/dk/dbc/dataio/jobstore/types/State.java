@@ -1,40 +1,33 @@
 package dk.dbc.dataio.jobstore.types;
 
-import dk.dbc.dataio.commons.types.JobState;
+
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class State {
-    private final StateElement partitioning;
-    private final StateElement processing;
-    private final StateElement delivering;
+
+    @JsonProperty
+    private final Map<Phase, StateElement> states;
+
+    public enum Phase { PARTITIONING, PROCESSING, DELIVERING }
 
     public State() {
-
-        this.partitioning = new StateElement();
-        this.processing = new StateElement();
-        this.delivering = new StateElement();
+        states = new HashMap<>(Phase.values().length);
+        for (Phase phase : Phase.values()) {
+            states.put(phase, new StateElement());
+        }
     }
 
     /**
-     * @return state element partitioning
+     * @param phase (Partitioning, processing, delivering)
+     * @return the state element for the specified phase
      */
-    public StateElement getPartitioning() {
-        return partitioning;
-    }
-
-    /**
-     * @return state element processing
-     */
-    public StateElement getProcessing() {
-        return processing;
-    }
-
-    /**
-     * @return state element delivering
-     */
-    public StateElement getDelivering() {
-        return delivering;
+    public StateElement getPhase(Phase phase) {
+        return states.get(phase);
     }
 
     /**
@@ -45,20 +38,11 @@ public class State {
         if(stateChange == null) {
             throw new NullPointerException("State Change input cannot be null");
         }
-        if(stateChange.getOperationalState() == null) {
-            throw new IllegalStateException("Operational State (Partitioning, Processing, Delivering) must be provided as input");
+        else if(stateChange.getPhase() == null) {
+            throw new IllegalStateException("Phase: (Partitioning, Processing, Delivering) must be provided as input");
         }
-
-        switch(stateChange.getOperationalState()) {
-            case CHUNKIFYING :
-                updateStateElement(partitioning, stateChange);
-                break;
-            case PROCESSING:
-                updateStateElement(processing, stateChange);
-                break;
-            case DELIVERING:
-                updateStateElement(delivering, stateChange);
-                break;
+        else {
+            updateStateElement(states.get(stateChange.getPhase()), stateChange);
         }
     }
 
@@ -73,10 +57,12 @@ public class State {
      * @param stateChange holding the values used for update
      */
     private void updateStateElement(StateElement stateElement, StateChange stateChange) {
-        setBeginDate(stateElement, stateChange);
-        updateStateElementStatusCounters(stateElement, stateChange);
-        updateStateElementLifeCycleCounters(stateElement, stateChange);
-        setEndDate(stateElement, stateChange);
+        if(stateElement.getEndDate() == null) {
+            setBeginDate(stateElement, stateChange);
+            updateStateElementStatusCounters(stateElement, stateChange);
+            updateStateElementLifeCycleCounters(stateElement, stateChange);
+            setEndDate(stateElement, stateChange);
+        }
     }
 
     /**
@@ -135,23 +121,20 @@ public class State {
      * @throws IllegalStateException if attempting to set an end date on either processing or delivering before
      *         partitioning is done
      */
-    private void setEndDate(StateElement stateElement, StateChange stateChange) throws IllegalStateException{
-        if(stateChange.getOperationalState() == JobState.OperationalState.PROCESSING
-                || stateChange.getOperationalState() == JobState.OperationalState.DELIVERING) {
-
-            if (partitioning.getEndDate() == null && stateChange.getEndDate() != null) {
-                throw new IllegalStateException("Partitioning must be completed before "
-                                + stateChange.getOperationalState().toString()
-                                + " can complete.");
-            }
-            else if (stateElement.getEndDate() == null && stateChange.getEndDate() != null) {
+    private void setEndDate(StateElement stateElement, StateChange stateChange) throws IllegalStateException {
+        if (stateChange.getPhase() == Phase.PARTITIONING) {
                 stateElement.setEndDate(stateChange.getEndDate());
+        } else {
+            StateElement partitioning = getPhase(Phase.PARTITIONING);
+            if (partitioning.getEndDate() != null && stateChange.getEndDate() != null) {
+                stateElement.setEndDate(stateChange.getEndDate());
+            } else if (stateChange.getEndDate() == null && stateElement.getDone() == partitioning.getDone()) {
+                stateElement.setEndDate(getDateWithCurrentTime());
+            } else if (partitioning.getEndDate() == null && stateChange.getEndDate() != null) {
+                throw new IllegalStateException("Partitioning must be completed before "
+                        + stateChange.getPhase().toString()
+                        + " can complete.");
             }
-            else if (stateElement.getDone() == partitioning.getDone() && stateChange.getEndDate() == null) {
-                 stateElement.setEndDate(getDateWithCurrentTime());
-            }
-        } else if(stateElement.getEndDate() == null && stateChange.getEndDate() != null) {
-            stateElement.setEndDate(stateChange.getEndDate());
         }
     }
 

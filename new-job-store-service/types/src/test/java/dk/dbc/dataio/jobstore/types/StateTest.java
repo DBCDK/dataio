@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.types;
 
-import dk.dbc.dataio.commons.types.JobState;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -18,18 +17,18 @@ public class StateTest {
 
     private static final Date BEGIN_DATE = new Date(System.currentTimeMillis());
     private static final Date END_DATE = new Date(System.currentTimeMillis() + 1000000);
-    private static final JobState.OperationalState PARTITIONING = JobState.OperationalState.CHUNKIFYING;
-    private static final JobState.OperationalState PROCESSING = JobState.OperationalState.PROCESSING;
-    private static final JobState.OperationalState DELIVERING = JobState.OperationalState.DELIVERING;
+    private static final State.Phase PARTITIONING = State.Phase.PARTITIONING;
+    private static final State.Phase PROCESSING = State.Phase.PROCESSING;
+    private static final State.Phase DELIVERING = State.Phase.DELIVERING;
     private static final Random random = new Random();
 
     @Test
     public void constructor_noArgs_returnsNewInstanceWithInitializedStateElements() {
         State state = new State();
         assertState(state);
-        assertNewStateElement(state.getPartitioning());
-        assertNewStateElement(state.getProcessing());
-        assertNewStateElement(state.getDelivering());
+        assertNewStateElement(state.getPhase(State.Phase.PARTITIONING));
+        assertNewStateElement(state.getPhase(State.Phase.PROCESSING));
+        assertNewStateElement(state.getPhase(State.Phase.DELIVERING));
     }
 
     @Test(expected = NullPointerException.class)
@@ -39,7 +38,7 @@ public class StateTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void updateState_operationalStateIsNull_throws() {
+    public void updateState_PhaseIsNull_throws() {
         State state = new State();
         StateChange stateChange = new StateChange();
         state.updateState(stateChange);
@@ -54,13 +53,13 @@ public class StateTest {
         state.updateState(stateChange);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPartitioning(), Arrays.asList(stateChange));
+        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChange));
 
         // Assert that the begin date has been set
-        assertThat(state.getPartitioning().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
 
         // Assert that the end date has been set
-        assertThat(state.getPartitioning().getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(PARTITIONING).getEndDate(), not(nullValue()));
     }
 
     @Test
@@ -71,13 +70,13 @@ public class StateTest {
         state.updateState(stateChange);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPartitioning(), Arrays.asList(stateChange));
+        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChange));
 
         // Assert that the begin date has been set
-        assertThat(state.getPartitioning().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
 
         // Assert that the end date has not been set
-        assertThat(state.getPartitioning().getEndDate(), is(nullValue()));
+        assertThat(state.getPhase(PARTITIONING).getEndDate(), is(nullValue()));
     }
 
     @Test
@@ -90,13 +89,13 @@ public class StateTest {
         state.updateState(stateChangeB);
 
         // Assert that the begin date has been set
-        assertThat(state.getPartitioning().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
 
         // Assert that the two beginDates are different
         assertThat(stateChangeA.getBeginDate(), not(stateChangeB.getBeginDate()));
 
         // Assert that the beginDate on the state element object is the first beginDate
-        assertThat(state.getPartitioning().getBeginDate(), is(stateChangeA.getBeginDate()));
+        assertThat(state.getPhase(PARTITIONING).getBeginDate(), is(stateChangeA.getBeginDate()));
     }
 
     @Test
@@ -109,13 +108,13 @@ public class StateTest {
         state.updateState(stateChangeB);
 
         // Assert that the begin date has been set
-        assertThat(state.getPartitioning().getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(PARTITIONING).getEndDate(), not(nullValue()));
 
         // Assert that the two endDates are different
         assertThat(stateChangeA.getEndDate(), not(stateChangeB.getEndDate()));
 
         // Assert that the endDate on the state element object is the first endDate
-        assertThat(state.getPartitioning().getEndDate(), is(stateChangeA.getEndDate()));
+        assertThat(state.getPhase(PARTITIONING).getEndDate(), is(stateChangeA.getEndDate()));
     }
 
     @Test
@@ -126,7 +125,7 @@ public class StateTest {
         updateState(state, stateChangeList);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPartitioning(), stateChangeList);
+        assertStateAfterChange(state.getPhase(PARTITIONING), stateChangeList);
     }
 
     //******************************************* PROCESSING ******************************************
@@ -149,13 +148,13 @@ public class StateTest {
         state.updateState(stateChangeProcessing);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getProcessing(), Arrays.asList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
 
         // Assert that the begin date has been set
-        assertThat(state.getProcessing().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
 
         // Assert that the end date has not been set
-        assertThat(state.getProcessing().getEndDate(), is(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getEndDate(), is(nullValue()));
     }
 
     @Test
@@ -168,13 +167,13 @@ public class StateTest {
         state.updateState(stateChangeProcessing);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getProcessing(), Arrays.asList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
 
         // Assert that the begin date has been set
-        assertThat(state.getProcessing().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
 
         // Assert that the end date has been set
-        assertThat(state.getProcessing().getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getEndDate(), not(nullValue()));
     }
 
     @Test
@@ -187,13 +186,13 @@ public class StateTest {
         state.updateState(stateChangeProcessing);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getProcessing(), Arrays.asList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
 
         // Assert that the begin date has been set
-        assertThat(state.getProcessing().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
 
         // Assert that the end date has been set
-        assertThat(state.getProcessing().getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getEndDate(), not(nullValue()));
     }
 
     @Test
@@ -208,13 +207,13 @@ public class StateTest {
         state.updateState(stateChangeB);
 
         // Assert that the begin date has been set
-        assertThat(state.getProcessing().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
 
         // Assert that the two beginDates are different
         assertThat(stateChangeA.getBeginDate(), not(stateChangeB.getBeginDate()));
 
         // Assert that the beginDate on the state element object is the first beginDate
-        assertThat(state.getProcessing().getBeginDate(), is(stateChangeA.getBeginDate()));
+        assertThat(state.getPhase(PROCESSING).getBeginDate(), is(stateChangeA.getBeginDate()));
     }
 
     @Test
@@ -229,13 +228,13 @@ public class StateTest {
         state.updateState(stateChangeB);
 
         // Assert that the begin date has been set
-        assertThat(state.getProcessing().getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getEndDate(), not(nullValue()));
 
         // Assert that the two endDates are different
         assertThat(stateChangeA.getEndDate(), not(stateChangeB.getEndDate()));
 
         // Assert that the endDate on the state element object is the first endDate
-        assertThat(state.getProcessing().getEndDate(), is(stateChangeA.getEndDate()));
+        assertThat(state.getPhase(PROCESSING).getEndDate(), is(stateChangeA.getEndDate()));
     }
 
     @Test
@@ -248,7 +247,7 @@ public class StateTest {
         updateState(state, stateChangeList);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getProcessing(), stateChangeList);
+        assertStateAfterChange(state.getPhase(PROCESSING), stateChangeList);
     }
 
     //******************************************* DELIVERING ******************************************
@@ -271,13 +270,13 @@ public class StateTest {
         state.updateState(stateChangeDelivering);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getDelivering(), Arrays.asList(stateChangeDelivering));
+        assertStateAfterChange(state.getPhase(DELIVERING), Arrays.asList(stateChangeDelivering));
 
         // Assert that the begin date has been set
-        assertThat(state.getDelivering().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(DELIVERING).getBeginDate(), not(nullValue()));
 
         // Assert that the end date has not been set
-        assertThat(state.getDelivering().getEndDate(), is(nullValue()));
+        assertThat(state.getPhase(DELIVERING).getEndDate(), is(nullValue()));
     }
 
     @Test
@@ -290,7 +289,7 @@ public class StateTest {
         updateState(state, stateChangeList);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getDelivering(), stateChangeList);
+        assertStateAfterChange(state.getPhase(DELIVERING), stateChangeList);
     }
 
     @Test
@@ -303,15 +302,14 @@ public class StateTest {
         state.updateState(stateChangeDelivering);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getDelivering(), Arrays.asList(stateChangeDelivering));
+        assertStateAfterChange(state.getPhase(DELIVERING), Arrays.asList(stateChangeDelivering));
 
         // Assert that the begin date has been set
-        assertThat(state.getDelivering().getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(DELIVERING).getBeginDate(), not(nullValue()));
 
         // Assert that the end date has been set
-        assertThat(state.getDelivering().getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(DELIVERING).getEndDate(), not(nullValue()));
     }
-
 
     /*
      * Private methods
@@ -349,9 +347,9 @@ public class StateTest {
     }
 
     private void assertState(State state) {
-        assertThat(state.getPartitioning(), not(nullValue()));
-        assertThat(state.getProcessing(), not(nullValue()));
-        assertThat(state.getDelivering(), not(nullValue()));
+        assertThat(state.getPhase(State.Phase.PARTITIONING), not(nullValue()));
+        assertThat(state.getPhase(State.Phase.PROCESSING), not(nullValue()));
+        assertThat(state.getPhase(State.Phase.DELIVERING), not(nullValue()));
     }
 
     private void assertNewStateElement(StateElement stateElement) {
@@ -365,59 +363,59 @@ public class StateTest {
         assertThat(stateElement.getIgnored(), is(0));
     }
 
-    private StateChange getStateChangeWithEndDate(JobState.OperationalState operationalState) {
+    private StateChange getStateChangeWithEndDate(State.Phase phase) {
         StateChange stateChange = new StateChange();
         stateChange.setEndDate(new Date(System.currentTimeMillis() + random.nextInt((100000 - 10000) + 1) + 10000));
         stateChange.setSucceeded(10);
-        stateChange.setOperationalState(operationalState);
+        stateChange.setPhase(phase);
         return stateChange;
     }
 
-    private StateChange getStateChangeWithStartDate(JobState.OperationalState operationalState) {
+    private StateChange getStateChangeWithStartDate(State.Phase phase) {
         StateChange stateChange = new StateChange();
         stateChange.setBeginDate(new Date(System.currentTimeMillis() + random.nextInt((100000 - 10000) + 1) + 10000));
         stateChange.setSucceeded(10);
-        stateChange.setOperationalState(operationalState);
+        stateChange.setPhase(phase);
         return stateChange;
     }
 
-    private StateChange getStateChangeWithStartAndEndDate(JobState.OperationalState operationalState) {
+    private StateChange getStateChangeWithStartAndEndDate(State.Phase phase) {
         StateChange stateChange = new StateChange();
         stateChange.setBeginDate(BEGIN_DATE);
         stateChange.setEndDate(END_DATE);
         stateChange.setSucceeded(9);
         stateChange.setIgnored(1);
-        stateChange.setOperationalState(operationalState);
+        stateChange.setPhase(phase);
         return stateChange;
     }
 
-    private StateChange getStateChangeWithoutDates(JobState.OperationalState operationalState) {
+    private StateChange getStateChangeWithoutDates(State.Phase phase) {
         StateChange stateChange = new StateChange();
         stateChange.setSucceeded(8);
-        stateChange.setOperationalState(operationalState);
+        stateChange.setPhase(phase);
         return stateChange;
     }
 
-    private List<StateChange> getStateChangeList(JobState.OperationalState operationalState) {
+    private List<StateChange> getStateChangeList(State.Phase phase) {
         StateChange stateChangeA = new StateChange();
         stateChangeA.setBeginDate(BEGIN_DATE);
         stateChangeA.setSucceeded(1);
         stateChangeA.setPending(8);
         stateChangeA.setActive(3);
-        stateChangeA.setOperationalState(operationalState);
+        stateChangeA.setPhase(phase);
 
         StateChange stateChangeB = new StateChange();
         stateChangeB.setSucceeded(5);
         stateChangeB.setPending(-4);
         stateChangeB.setActive(-1);
-        stateChangeB.setOperationalState(operationalState);
+        stateChangeB.setPhase(phase);
 
         StateChange stateChangeC = new StateChange();
         stateChangeC.setEndDate(END_DATE);
         stateChangeC.setSucceeded(9);
         stateChangeC.setIgnored(1);
         stateChangeC.setPending(-4);
-        stateChangeC.setOperationalState(operationalState);
+        stateChangeC.setPhase(phase);
 
         List<StateChange> stateChangeList = new ArrayList<>();
         stateChangeList.add(stateChangeA);

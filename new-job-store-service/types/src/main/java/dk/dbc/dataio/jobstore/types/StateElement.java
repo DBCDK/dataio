@@ -24,11 +24,11 @@ public class StateElement {
     }
 
     public Date getBeginDate() {
-        return beginDate;
+        return this.beginDate == null ? null : new Date(this.beginDate.getTime());
     }
 
     public Date getEndDate() {
-        return endDate;
+        return this.endDate == null ? null : new Date(this.endDate.getTime());
     }
 
     public int getPending() {
@@ -56,11 +56,11 @@ public class StateElement {
     }
 
     public void setBeginDate(Date beginDate) {
-        this.beginDate = beginDate;
+        this.beginDate = beginDate == null? null : new Date(beginDate.getTime());
     }
 
     public void setEndDate(Date endDate) {
-        this.endDate = endDate;
+        this.endDate = endDate == null? null : new Date(endDate.getTime());
     }
 
     public void setPending(int pending) {

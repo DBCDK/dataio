@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.types;
 
-import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.Date;
@@ -13,7 +12,7 @@ public class StateChange {
     private int ignored;
     private int pending;
     private int active;
-    private JobState.OperationalState operationalState;
+    private State.Phase phase;
 
     public StateChange() {
         this.beginDate = null;
@@ -23,7 +22,7 @@ public class StateChange {
         this.ignored = 0;
         this.pending = 0;
         this.active = 0;
-        this.operationalState = null;
+        this.phase = null;
     }
 
     /**
@@ -135,18 +134,18 @@ public class StateChange {
     }
 
     /**
-     * @return the operationalState (chunkifying, processing, delivering)
+     * @return the phase (partitioning, processing, delivering)
      */
-    public JobState.OperationalState getOperationalState() {
-        return operationalState;
+    public State.Phase getPhase() {
+        return phase;
     }
 
     /**
      * /**
-     * Sets the operational state
-     * @param operationalState (Chunkifying, processing, ignored)
+     * Sets the phase
+     * @param phase (partitioning, processing, delivering)
      */
-    public void setOperationalState(JobState.OperationalState operationalState) {
-        this.operationalState = operationalState;
+    public void setPhase(State.Phase phase) {
+        this.phase = phase;
     }
 }

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.types;
 
-import dk.dbc.dataio.commons.types.JobState;
 import org.junit.Test;
 
 import java.util.Date;
@@ -46,7 +45,7 @@ public class StateChangeTest {
         stateChange.setIgnored(3);
         stateChange.setPending(-5);
         stateChange.setActive(-4);
-        stateChange.setOperationalState(JobState.OperationalState.PROCESSING);
+        stateChange.setPhase(State.Phase.PROCESSING);
 
         assertThat(stateChange.getBeginDate(), is(DATE));
         assertThat(stateChange.getEndDate(), is(DATE));
@@ -55,7 +54,7 @@ public class StateChangeTest {
         assertThat(stateChange.getIgnored(), is(3));
         assertThat(stateChange.getPending(), is(-5));
         assertThat(stateChange.getActive(), is(-4));
-        assertThat(stateChange.getOperationalState(), is(JobState.OperationalState.PROCESSING));
+        assertThat(stateChange.getPhase(), is(State.Phase.PROCESSING));
     }
 
     /*
@@ -70,6 +69,6 @@ public class StateChangeTest {
         assertThat(stateChange.getSucceeded(), is(0));
         assertThat(stateChange.getFailed(), is(0));
         assertThat(stateChange.getIgnored(), is(0));
-        assertThat(stateChange.getOperationalState(), is(nullValue()));
+        assertThat(stateChange.getPhase(), is(nullValue()));
     }
 }

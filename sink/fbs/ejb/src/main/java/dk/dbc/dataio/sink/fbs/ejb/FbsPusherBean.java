@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.fbs.ejb;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
@@ -32,6 +33,7 @@ public class FbsPusherBean {
      * UPDATE_FAILED_PLEASE_RESEND_LATER status.
      */
     public SinkChunkResult push(ChunkResult chunkResult) throws WebServiceException {
+        final StopWatch stopWatch = new StopWatch();
         LOGGER.info("Examining ChunkResult {} for job {}", chunkResult.getChunkId(), chunkResult.getJobId());
         final SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(),
                 chunkResult.getChunkId(), chunkResult.getEncoding(), new ArrayList<ChunkItem>());
@@ -46,8 +48,8 @@ public class FbsPusherBean {
                         String.format("Processor item status was: %s", chunkItem.getStatus())));
             }
         }
-        LOGGER.info("Pushed {} items from ChunkResult {} for job {}",
-                itemsPushed, chunkResult.getChunkId(), chunkResult.getJobId());
+        LOGGER.info("Pushed {} items from ChunkResult {} for job {} in {} ms",
+                itemsPushed, chunkResult.getChunkId(), chunkResult.getJobId(), stopWatch.getElapsedTime());
 
         return sinkChunkResult;
     }

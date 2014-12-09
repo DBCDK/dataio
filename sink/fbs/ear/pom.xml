@@ -14,7 +14,19 @@
   <name>dataio-sink-fbs-ear</name>
   <packaging>ear</packaging>
 
+  <properties>
+    <logback.staging.directory>${project.build.directory}/logback</logback.staging.directory>
+    <logback.jndi.resource>${jndi.url.sink.fbs.logback}</logback.jndi.resource>
+  </properties>
+
   <build>
+    <resources>
+      <resource>
+        <directory>${logback.staging.directory}</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -24,6 +36,42 @@
           <version>6</version>
           <defaultLibBundleDir>lib</defaultLibBundleDir>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>truezip-maven-plugin</artifactId>
+        <version>${truezip-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>extract</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <fileset>
+                <directory>${basedir}/../../../commons/utils/logback/target/dataio-commons-utils-logback-${project.version}.jar</directory>
+                <outputDirectory>${logback.staging.directory}</outputDirectory>
+              </fileset>
+            </configuration>
+          </execution>
+          <execution>
+            <id>replace</id>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <files>
+                <file>
+                  <source>${project.build.directory}/classes/logback.xml</source>
+                  <outputDirectory>${project.build.directory}/dataio-sink-fbs-ear-${project.version}.ear/lib/dataio-commons-utils-logback-${project.version}.jar</outputDirectory>
+                </file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -42,9 +90,9 @@
           <skip>true</skip>
         </configuration>
       </plugin>
-
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -59,10 +107,9 @@
       <type>ejb</type>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-logback</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
-
 </project>

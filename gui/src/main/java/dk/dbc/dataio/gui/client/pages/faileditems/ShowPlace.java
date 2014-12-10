@@ -17,10 +17,10 @@ public class ShowPlace extends Place {
     private static String combinedUrl;
 
     public ShowPlace(String url) {
-        this.combinedUrl = url;
+        combinedUrl = url;
     }
 
-    public ShowPlace(long jobId, JobState.OperationalState operationalState, ItemCompletionState.State state) {
+    public ShowPlace(String jobId, JobState.OperationalState operationalState, ItemCompletionState.State state) {
         this(combineToUrl(jobId, operationalState, state));
     }
 
@@ -48,7 +48,7 @@ public class ShowPlace extends Place {
         }
     }
 
-    private static String combineToUrl(Long jobId, JobState.OperationalState operationalState, ItemCompletionState.State state) {
+    private static String combineToUrl(String jobId, JobState.OperationalState operationalState, ItemCompletionState.State state) {
         return jobId + ":" + operationalState + ":" + state;
     }
 

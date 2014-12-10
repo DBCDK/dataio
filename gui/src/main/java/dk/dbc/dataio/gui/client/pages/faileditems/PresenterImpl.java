@@ -27,6 +27,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected long jobId;
     protected JobState.OperationalState operationalState;
     protected ItemCompletionState.State itemState;
+
     protected JobInfo jobInfo;
 
     public PresenterImpl(Place place, ClientFactory clientFactory, Texts texts) {
@@ -44,8 +45,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * start method
      * Is called by PlaceManager, whenever the Place is being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -61,9 +63,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void failedItemSelected(FailedItemModel model) {
         placeController.goTo(new JavaScriptLogPlace(
-                Long.parseLong(model.getJobId()),
-                Long.parseLong(model.getChunkId()),
-                Long.parseLong(model.getItemId()))
+                        Long.parseLong(model.getJobId()),
+                        Long.parseLong(model.getChunkId()),
+                        Long.parseLong(model.getItemId()))
         );
     }
 
@@ -73,10 +75,19 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      *
      */
 
+    /**
+     * This method fetches all failed items from the job store
+     */
     protected void getAllFailedItems() {
         jobStoreProxy.findAllJobs(new GetAllFailedItemsCallback());
     }
 
+    /**
+     * This method constructs a Place for the Java Script Log
+     *
+     * @param model The FailedItemModel for which a Place is to be constructed
+     * @return The Place
+     */
     protected JavaScriptLogPlace constructJavaScriptLogPlace(FailedItemModel model) {
         return new JavaScriptLogPlace(
                 Long.parseLong(model.getJobId()),
@@ -85,9 +96,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         );
     }
 
+    /**
+     * This method requests all JobCompletionStatus'es to be fetched from the job store
+     *
+     * @param jobInfos The jobs to fetch status for
+     */
     protected void getAllJobCompletionStatus(List<JobInfo> jobInfos) {
         view.clearFailedItemsList();
-        for (JobInfo jobInfo: jobInfos) {
+        for (JobInfo jobInfo : jobInfos) {
             if (this.jobId == jobInfo.getJobId()) {
                 getJobCompletionStatus(jobInfo.getJobId());
                 this.jobInfo = jobInfo;
@@ -95,11 +111,20 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
     }
 
+    /**
+     * This method requests a JobCompletionStatus to be fetched from the Job Store
+     *
+     * @param jobId The Job ID
+     */
     protected void getJobCompletionStatus(final long jobId) {
         jobStoreProxy.getJobCompletionState(jobId, new GetJobCompletionStatusCallback());
     }
 
-
+    /**
+     * This method adds a JobCompletionState to be added to the View
+     *
+     * @param jobCompletionState The Job Completion State
+     */
     protected void addJobCompletionStateToView(JobCompletionState jobCompletionState) {
         for (ChunkCompletionState chunkCompletionState : jobCompletionState.getChunks()) {
             String chunkId = Long.toString(chunkCompletionState.getChunkId());
@@ -114,14 +139,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     *
     */
 
-   /**
+    /**
      * Method deciphering which failed items to display in the view.
      *
-     * @param chunkId identifying the chunk
+     * @param chunkId             identifying the chunk
      * @param itemCompletionState containing information regarding item completion state for each operational state
      */
 
-    private void filterFailedItems (String chunkId, ItemCompletionState itemCompletionState) {
+    private void filterFailedItems(String chunkId, ItemCompletionState itemCompletionState) {
         if (operationalState == null) {
             filterFailedItemsOperationalStateExcluded(chunkId, itemCompletionState);
         } else {
@@ -132,7 +157,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * Method filtering failed items when an operational state has NOT been specified.
      *
-     * @param chunkId identifying the chunk
+     * @param chunkId             identifying the chunk
      * @param itemCompletionState containing information regarding item completion state for each operational state
      */
     private void filterFailedItemsOperationalStateExcluded(String chunkId, ItemCompletionState itemCompletionState) {
@@ -153,7 +178,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * Method filtering failed items when an operational state has been specified.
      *
-     * @param chunkId identifying the chunk
+     * @param chunkId             identifying the chunk
      * @param itemCompletionState containing information regarding item completion state for each operational state
      */
     private void filterFailedItemsOperationalStateIncluded(String chunkId, ItemCompletionState itemCompletionState) {
@@ -191,6 +216,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
     }
 
+    /**
+     * This method builds a FailedItemModel with given input
+     *
+     * @param itemCompletionState The ItemCompletionState
+     * @param chunkId             The Chunk ID
+     * @return FailedItemModel
+     */
     private FailedItemModel buildFailedItemModel(ItemCompletionState itemCompletionState, String chunkId) {
         FailedItemModel failedItemModel = new FailedItemModel();
         failedItemModel.setJobId(Long.toString(jobId));
@@ -202,14 +234,24 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         return failedItemModel;
     }
 
-
+    /**
+     * This method converts an ItemCompletionState to a String text
+     *
+     * @param state The ItemCompletionState
+     * @return The ItemCompletionState as a string
+     */
     protected String state2String(ItemCompletionState.State state) {
         switch (state) {
-            case IGNORED: return texts.status_ignored();
-            case SUCCESS: return texts.status_success();
-            case FAILURE: return texts.status_failure();
-            case INCOMPLETE: return texts.status_incomplete();
-            default: return "";
+            case IGNORED:
+                return texts.status_ignored();
+            case SUCCESS:
+                return texts.status_success();
+            case FAILURE:
+                return texts.status_failure();
+            case INCOMPLETE:
+                return texts.status_incomplete();
+            default:
+                return "";
         }
     }
 
@@ -223,6 +265,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFilteredFailure(Throwable caught) {
             view.setErrorText(texts.error_CouldNotFetchJobs());
         }
+
         @Override
         public void onSuccess(List<JobInfo> jobInfos) {
             getAllJobCompletionStatus(jobInfos);
@@ -234,6 +277,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onFilteredFailure(Throwable caught) {
             view.setErrorText(texts.error_CouldNotFetchJobCompletionStatusFor() + Long.toString(jobId));
         }
+
         @Override
         public void onSuccess(JobCompletionState jobCompletionState) {
             addJobCompletionStateToView(jobCompletionState);

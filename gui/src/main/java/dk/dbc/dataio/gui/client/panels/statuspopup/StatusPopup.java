@@ -1,93 +1,54 @@
 package dk.dbc.dataio.gui.client.panels.statuspopup;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.uibinder.client.UiBinder;
-import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Anchor;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HTMLPanel;
-
+import com.google.gwt.dom.client.Element;
+import com.google.web.bindery.event.shared.EventBus;
+import dk.dbc.dataio.gui.client.model.JobModel;
 
 /**
- * Status Popup panel
+ * Status Popup Panel
  */
-public class StatusPopup extends FlowPanel {
-    interface StatusPopupUiBinder extends UiBinder<HTMLPanel, StatusPopup> {}
-    private static StatusPopupUiBinder uiBinder = GWT.create(StatusPopupUiBinder.class);
+public class StatusPopup extends StatusPopupWidget {
+    private static final int POPUP_PANEL_WIDTH = 265;
+    private static final int POPUP_PANEL_LEFT_OFFSET = 36;
+    private static final int POPUP_PANEL_TOP_OFFSET = 18;
 
-    public StatusPopup() {
-        super();
-        add(uiBinder.createAndBindUi(this));
+
+
+    /**
+     * Constructor for the Status Popup Panel
+     *
+     * @param parent The future parent for the Status Popup Panel
+     * @param model The Model containing job data
+     */
+    public StatusPopup(EventBus eventBus, Element parent, JobModel model) {
+        super(eventBus, model.getJobId());
+        setAutoHideOnHistoryEventsEnabled(true);
+        setAnimationEnabled(true);
+        int left = parent.getAbsoluteRight() - POPUP_PANEL_WIDTH - POPUP_PANEL_LEFT_OFFSET;
+        int top = parent.getAbsoluteTop() + POPUP_PANEL_TOP_OFFSET;
+        setPopupPosition(left, top);
+        setWidth(POPUP_PANEL_WIDTH + "px");
+        setPopupPanelContent(model);
+
+        show();
     }
 
-    @UiField public Anchor totalFailed;
-    @UiField public Anchor chunkifyingSuccess;
-    @UiField public Anchor chunkifyingFailed;
-    @UiField public Anchor chunkifyingIgnored;
-    @UiField public Anchor processingSuccess;
-    @UiField public Anchor processingFailed;
-    @UiField public Anchor processingIgnored;
-    @UiField public Anchor deliveringSuccess;
-    @UiField public Anchor deliveringFailed;
-    @UiField public Anchor deliveringIgnored;
-    @UiField public Anchor moreInfo;
-
-//    @UiHandler("totalFailed")
-//    public void handleTotalFailedEvent(ClickEvent event) {
-//        Window.alert("totalFailed");
-//    }
-
-    @UiHandler("chunkifyingSuccess")
-    public void handleChunkifyingSuccessEvent(ClickEvent event) {
-        Window.alert("chunkifyingSuccess");
+    /**
+     * This method sets the data fields of the Popup Panel.
+     * The data is fetched from the model parameter
+     *
+     * @param model The Job Model that holds the Status Popup Panel data to display
+     */
+    private void setPopupPanelContent(JobModel model) {
+        totalFailed.setText(totalFailed.getText() + " " + String.valueOf(model.getChunkifyingTotalCounter()));
+        chunkifyingSuccess.setText(String.valueOf(model.getChunkifyingSuccessCounter()));
+        chunkifyingFailed.setText(String.valueOf(model.getChunkifyingFailureCounter()));
+        chunkifyingIgnored.setText(String.valueOf(model.getChunkifyingIgnoredCounter()));
+        processingSuccess.setText(String.valueOf(model.getProcessingSuccessCounter()));
+        processingFailed.setText(String.valueOf(model.getProcessingFailureCounter()));
+        processingIgnored.setText(String.valueOf(model.getProcessingIgnoredCounter()));
+        deliveringSuccess.setText(String.valueOf(model.getDeliveringSuccessCounter()));
+        deliveringFailed.setText(String.valueOf(model.getDeliveringFailureCounter()));
+        deliveringIgnored.setText(String.valueOf(model.getDeliveringIgnoredCounter()));
     }
-
-    @UiHandler("chunkifyingFailed")
-    public void handleChunkifyingFailedEvent(ClickEvent event) {
-        Window.alert("chunkifyingFailed");
-    }
-
-    @UiHandler("chunkifyingIgnored")
-    public void handleChunkifyingIgnoredEvent(ClickEvent event) {
-        Window.alert("chunkifyingIgnored");
-    }
-
-    @UiHandler("processingSuccess")
-    public void handleProcessingSuccessEvent(ClickEvent event) {
-        Window.alert("processingSuccess");
-    }
-
-    @UiHandler("processingFailed")
-    public void handleProcessingFailedEvent(ClickEvent event) {
-        Window.alert("processingFailed");
-    }
-
-    @UiHandler("processingIgnored")
-    public void handleProcessingIgnoredEvent(ClickEvent event) {
-        Window.alert("processingIgnored");
-    }
-
-    @UiHandler("deliveringSuccess")
-    public void handleDeliveringSuccessEvent(ClickEvent event) {
-        Window.alert("deliveringSuccess");
-    }
-
-    @UiHandler("deliveringFailed")
-    public void handleDeliveringFailedEvent(ClickEvent event) {
-        Window.alert("deliveringFailed");
-    }
-
-    @UiHandler("deliveringIgnored")
-    public void handleDeliveringIgnoredEvent(ClickEvent event) {
-        Window.alert("deliveringIgnored");
-    }
-
-//    @UiHandler("moreInfo")
-//    public void handleMoreInfo(ClickEvent event) {
-//        Window.alert("More Information");
-//    }
-
 }

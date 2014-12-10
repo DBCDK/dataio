@@ -18,12 +18,16 @@ import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
+import com.google.web.bindery.event.shared.EventBus;
+import com.google.web.bindery.event.shared.SimpleEventBus;
+import com.google.web.bindery.event.shared.binder.EventBinder;
+import com.google.web.bindery.event.shared.binder.EventHandler;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopup;
+import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopupEvent;
 import dk.dbc.dataio.gui.client.resource.Resources;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -39,41 +43,46 @@ import java.util.Set;
  * This class is the View class for the Jobs Show View
  */
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    private static final String GUICLASS_GRAY = "gray-lamp";
-    private static final String GUICLASS_GREEN = "green-lamp";
-    private static final String GUICLASS_RED = "red-lamp";
-    private static final int POPUP_PANEL_WIDTH = 265;
-    private static final int POPUP_PANEL_LEFT_OFFSET = 36;
-    private static final int POPUP_PANEL_TOP_OFFSET = 18;
+
+    // Instantiate UI Binder
+    interface MyUiBinder extends UiBinder<Widget, View> {}
+    private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
+
+    // Instantiate Event Binder for the Status Popup Panel
+    interface MyEventBinder extends EventBinder<View> {}
+    private final MyEventBinder statusPopupEventBinder = GWT.create(MyEventBinder.class);
+    private final static EventBus statusPopupEventBus = new SimpleEventBus();
 
     private Texts texts;
     private static final Resources RESOURCES = GWT.create(Resources.class);
-    String jobStoreFilesystemUrl = "";
-    private int currentPageSize = PAGE_SIZE;
-    ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
 
-    // Configuration constants
+    private String jobStoreFilesystemUrl = "";
+    private int currentPageSize = PAGE_SIZE;
+    private ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
+    private Column jobCreationTimeColumn;
+    private ListDataProvider<JobModel> dataProvider;
+    private StatusPopup statusPopupPanel;
+
+    // Constants
     private static final int PAGE_SIZE = 20;
+    private static final String GUICLASS_GRAY = "gray-lamp";
+    private static final String GUICLASS_GREEN = "green-lamp";
+    private static final String GUICLASS_RED = "red-lamp";
 
     // Enums
     private enum JobStatus {NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR}
+
 
     // UI Fields
     @UiField CellTable jobsTable;
     @UiField Button moreButton;
 
-    private Column jobCreationTimeColumn;
 
-    PopupPanel popupPanel;
-
-
+    /**
+     * This method initalizes the view
+     */
     @Override
     public void init() {}
-
-    interface ViewUiBinder extends UiBinder<Widget, View> {}
-    private static ViewUiBinder uiBinder = GWT.create(ViewUiBinder.class);
-
-    private ListDataProvider<JobModel> dataProvider;
 
 
     /**
@@ -85,6 +94,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         super(header);
         this.texts = texts;
         add(uiBinder.createAndBindUi(this));
+        statusPopupEventBinder.bindEventHandlers(this, statusPopupEventBus);
         setupColumns();
     }
 
@@ -103,22 +113,23 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         increasePageSize();
     }
 
-
-
-    /*
-     * Overrides
-     */
-
     /**
-     * This method is triggered, when the view is being unloaded, and causes the popup window to disappear
+     * Event Handler for events from the Status Popup Panel
      */
-    @Override
-    protected void onUnload() {
-        if (popupPanel != null) {
-            popupPanel.hide();
+    @EventHandler
+    void statusPopupEvent(StatusPopupEvent event) {
+        switch (event.getStatusPopupEventType()) {
+            case TOTAL_STATUS_INFO:
+                presenter.showFailedItems(String.valueOf(event.getJobId()), null, null);
+                break;
+            case MORE_INFORMATION_REQUESTED:
+                Window.open(getJobstoreLink(String.valueOf(event.getJobId())), "_blank", "");
+                break;
+            case DETAILED_STATUS:
+                presenter.showFailedItems(String.valueOf(event.getJobId()), event.getOperationalState(), event.getCompletionState());
+                break;
         }
     }
-
 
 
     /*
@@ -402,39 +413,15 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         /**
          * Event handler for handling browser events
          * @param context The Cell.Context in which the event originates
-         * @param elem The element in which the event originates
+         * @param parent The element in which the event originates
          * @param model The JobModel for the actual event
          * @param event The event
          */
         @Override
-        public void onBrowserEvent(Cell.Context context, Element elem, JobModel model, NativeEvent event) {
-            super.onBrowserEvent(context, elem, model, event);
+        public void onBrowserEvent(Cell.Context context, Element parent, JobModel model, NativeEvent event) {
+            super.onBrowserEvent(context, parent, model, event);
             if ("click".equals(event.getType())) {
-
-                // Create a basic popup widget
-                popupPanel = new PopupPanel(true);
-                int left = elem.getAbsoluteRight() - POPUP_PANEL_WIDTH - POPUP_PANEL_LEFT_OFFSET;
-                int top = elem.getAbsoluteTop() + POPUP_PANEL_TOP_OFFSET;
-                popupPanel.setPopupPosition(left, top);
-                popupPanel.setWidth(POPUP_PANEL_WIDTH + "px");
-                StatusPopup spop = new StatusPopup();
-                popupPanel.setWidget(spop);
-                spop.totalFailed.setText(spop.totalFailed.getText() + " " + String.valueOf(model.getChunkifyingTotalCounter()));
-                spop.chunkifyingSuccess.setText(String.valueOf(model.getChunkifyingSuccessCounter()));
-                spop.chunkifyingFailed.setText(String.valueOf(model.getChunkifyingFailureCounter()));
-                spop.chunkifyingIgnored.setText(String.valueOf(model.getChunkifyingIgnoredCounter()));
-                spop.processingSuccess.setText(String.valueOf(model.getProcessingSuccessCounter()));
-                spop.processingFailed.setText(String.valueOf(model.getProcessingFailureCounter()));
-                spop.processingIgnored.setText(String.valueOf(model.getProcessingIgnoredCounter()));
-                spop.deliveringSuccess.setText(String.valueOf(model.getDeliveringSuccessCounter()));
-                spop.deliveringFailed.setText(String.valueOf(model.getDeliveringFailureCounter()));
-                spop.deliveringIgnored.setText(String.valueOf(model.getDeliveringIgnoredCounter()));
-                // vvvv HACK: To be changed to use UiHandlers in StatusPopup instead ...
-                spop.totalFailed.setHref(Window.Location.createUrlBuilder().setHash("FailedItems:" + model.getJobId()).buildString());
-                spop.moreInfo.setHref(getJobstoreLink(model.getJobId()));
-                spop.moreInfo.setTarget("_blank");
-                // ^^^^ HACK: To be changed to use UiHandlers in StatusPopup instead ...
-                popupPanel.show();
+                statusPopupPanel = new StatusPopup(statusPopupEventBus, parent, model);
             }
         }
 

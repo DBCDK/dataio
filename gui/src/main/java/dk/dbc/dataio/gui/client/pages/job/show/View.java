@@ -61,7 +61,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     private ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
     private Column jobCreationTimeColumn;
     private ListDataProvider<JobModel> dataProvider;
-    private StatusPopup statusPopupPanel;
 
     // Constants
     private static final int PAGE_SIZE = 20;
@@ -421,7 +420,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         public void onBrowserEvent(Cell.Context context, Element parent, JobModel model, NativeEvent event) {
             super.onBrowserEvent(context, parent, model, event);
             if ("click".equals(event.getType())) {
-                statusPopupPanel = new StatusPopup(statusPopupEventBus, parent, model);
+                new StatusPopup(statusPopupEventBus, parent, model);
             }
         }
 

@@ -12,6 +12,7 @@ import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.activities.AppActivityMapper;
 import dk.dbc.dataio.gui.client.exceptions.DioUncaughtExceptionHandler;
+import dk.dbc.dataio.gui.client.pages.job.show.Place;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowPlace;
 import dk.dbc.dataio.gui.client.views.MainPanel;
@@ -64,7 +65,7 @@ public class MainEntryPoint implements EntryPoint {
         // Start PlaceHistoryHandler with our PlaceHistoryMapper
         AppPlaceHistoryMapper historyMapper = clientFactory.getHistoryMapper();
         PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
-        historyHandler.register(placeController, eventBus, new SubmittersShowPlace());
+        historyHandler.register(placeController, eventBus, new Place());
         historyHandler.handleCurrentHistory();
 
         // Show the root panel

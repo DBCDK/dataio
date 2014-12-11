@@ -150,11 +150,11 @@ public class ClientFactoryImpl implements ClientFactory {
 
         // Toplevel Main Menu Container
         menuStructure = new MenuItem("toplevelmainmenu", "Toplevel Main Menu", NOWHERE,
+                                     jobsMenu,
                                      submittersMenu,
                                      flowsMenu,
-                                     sinksMenu,
-                                     jobsMenu/*,
-                                     harvestersMenu*/);
+                                     sinksMenu
+                                     /*harvestersMenu*/);
     }
 
     // Event Bus

@@ -14,7 +14,6 @@ import dk.dbc.dataio.gui.client.activities.AppActivityMapper;
 import dk.dbc.dataio.gui.client.exceptions.DioUncaughtExceptionHandler;
 import dk.dbc.dataio.gui.client.pages.job.show.Place;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
-import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowPlace;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 

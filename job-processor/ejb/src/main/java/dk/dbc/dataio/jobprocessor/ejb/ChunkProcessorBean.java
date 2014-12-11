@@ -101,9 +101,12 @@ public class ChunkProcessorBean {
             processedItem = processItem(flow, scriptWrapper, inputItem, chunk.getSupplementaryProcessData());
         } finally {
             MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
+            // This timing assumes the use of LogStoreBufferedJdbcAppender to be meaningful
+            final StopWatch stopWatchForLogStoreBatch = new StopWatch();
             LOGGER.info("Done");
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
+            LOGGER.info("LogStore batch insert took {} milliseconds", stopWatchForLogStoreBatch.getElapsedTime());
         }
         return processedItem;
     }

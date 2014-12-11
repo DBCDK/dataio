@@ -62,7 +62,7 @@ public class ChunkProcessorBean {
         }
 
         ChunkResult chunkResult = new ChunkResult(chunk.getJobId(), chunk.getChunkId(), Charset.defaultCharset(), processedItems);// todo: Change Chunk to get actual Charset
-        LOGGER.debug("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds", chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
+        LOGGER.info("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds", chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
         return chunkResult;
     }
 
@@ -106,7 +106,8 @@ public class ChunkProcessorBean {
             LOGGER.info("Done");
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
-            LOGGER.info("LogStore batch insert took {} milliseconds", stopWatchForLogStoreBatch.getElapsedTime());
+            LOGGER.info("LogStore batch insert for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
+                    chunk.getJobId(), chunk.getChunkId(), inputItem.getId(), stopWatchForLogStoreBatch.getElapsedTime());
         }
         return processedItem;
     }

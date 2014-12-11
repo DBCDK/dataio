@@ -1,13 +1,14 @@
 package dk.dbc.dataio.jobstore.types;
 
-
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class representing the current state of a job.
+ */
 public class State {
 
     @JsonProperty
@@ -23,7 +24,7 @@ public class State {
     }
 
     /**
-     * @param phase (Partitioning, processing, delivering)
+     * @param phase (partitioning, processing, delivering)
      * @return the state element for the specified phase
      */
     public StateElement getPhase(Phase phase) {
@@ -51,7 +52,7 @@ public class State {
      */
 
     /**
-     * Method updating all counters for chunk and lifecycle as well as the 2 timestamps (begin and end)
+     * Method updating used to update a state element
      *
      * @param stateElement to update
      * @param stateChange holding the values used for update
@@ -67,7 +68,7 @@ public class State {
 
     /**
      * Method setting the begin date.
-     * The beginDate from state element is used if set. If not set the current time is used as beginDate
+     * The begin date from state element is used if set. If not set the current time is used as beginDate
      *
      * @param stateElement to update
      * @param stateChange holding the values used for update
@@ -81,8 +82,8 @@ public class State {
     }
 
     /**
-     * Method updates the chunk counter for the the state element.
-     * The incrementation provided through the state change object cannot be a negative number.
+     * Method updates the status counter for the the state element (succeeded, failed, ignored).
+     * The incrementation number, provided through the state change object, CANNOT be a negative number.
      *
      * @param stateElement to update
      * @param stateChange holding the values used for update
@@ -94,8 +95,8 @@ public class State {
     }
 
     /**
-     * Method updating the lifecycle counters for the state element.
-     * The incrementation provided through the state change object can be a negative number
+     * Method updating the lifecycle counters for the state element (pending, active, done).
+     * The incrementation number, provided through the state change object, CAN be a negative number
      *
      * @param stateElement to update
      * @param stateChange holding the values used for update
@@ -107,12 +108,12 @@ public class State {
     }
 
     /**
-     * Method used to determine if an end date should be set on the stateElement object
+     * Method used to determine if an end date should be set on the state element object
      * partitioning must be complete before either processing or delivering can complete.
      *
      * Note: regarding asynchronous returns:
-     * We are assuming its possible for delivering to "finish" before processing
-     * due to asynchronous returns.
+     * We are assuming its possible for delivering to be marked as "finished" before processing
+     * is makes as "finished" due to asynchronous returns.
      * -> Our current requirements might need polishing later on.
      *
      * @param stateElement partitioning, processing or delivering

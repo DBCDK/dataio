@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobState;
@@ -23,10 +24,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     private View view;
     private JobStoreProxyAsync jobStoreProxy;
     private final PlaceController placeController;
+    private String jobStoreFilesystemUrl = "";
 
 
     /**
      * Default constructor
+     *
      * @param clientFactory The client factory to be used
      */
     public PresenterImpl(ClientFactory clientFactory) {
@@ -40,8 +43,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * start method
      * Is called by PlaceManager, whenever the Place is being invoked
      * This method is the start signal for the presenter
+     *
      * @param containerWidget the widget to use
-     * @param eventBus the eventBus to use
+     * @param eventBus        the eventBus to use
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
@@ -55,11 +59,24 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method is called to go to the Failed Items list for the specified job
-     * @param jobId The identifier for the job
+     *
+     * @param jobId            The identifier for the job
+     * @param operationalState The Operational State for the job
+     * @param completionState  The Completion State for the job
      */
     @Override
     public void showFailedItems(String jobId, JobState.OperationalState operationalState, ItemCompletionState.State completionState) {
         placeController.goTo(new ShowPlace(jobId, operationalState, completionState));
+    }
+
+    /**
+     * This method is called to go to the Failed Items list for the specified job
+     *
+     * @param jobId The identifier for the job
+     */
+    @Override
+    public void showMoreInformation(String jobId) {
+        Window.open(getJobstoreLink(jobId), "_blank", "");
     }
 
 
@@ -67,6 +84,16 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /*
      * Local methods
      */
+
+    /**
+     * This method gets the link to the Job Store for a given id
+     *
+     * @param id The identification of the data
+     * @return The link (as a string url) to the given Job Store
+     */
+    private String getJobstoreLink(String id) {
+        return jobStoreFilesystemUrl.concat("/").concat(id);
+    }
 
     /**
      * This method fetches all jobs, and sends them to the view
@@ -97,7 +124,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
             @Override
             public void onSuccess(String result) {
-                view.setJobStoreFilesystemUrl(result);
+                jobStoreFilesystemUrl = result;
             }
         });
     }

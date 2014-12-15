@@ -7,18 +7,11 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.resources.client.ImageResource;
-import com.google.gwt.uibinder.client.UiBinder;
-import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
@@ -30,7 +23,6 @@ import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopup;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopupEvent;
 import dk.dbc.dataio.gui.client.resource.Resources;
 import dk.dbc.dataio.gui.client.util.Format;
-import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,21 +34,17 @@ import java.util.Set;
 /**
  * This class is the View class for the Jobs Show View
  */
-public class View extends ContentPanel<Presenter> implements IsWidget {
-
-    // Instantiate UI Binder
-    interface MyUiBinder extends UiBinder<Widget, View> {}
-    private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
+public class View extends ViewWidget {
 
     // Instantiate Event Binder for the Status Popup Panel
-    interface MyEventBinder extends EventBinder<View> {}
+    interface MyEventBinder extends EventBinder<View> {
+    }
+
     private final MyEventBinder statusPopupEventBinder = GWT.create(MyEventBinder.class);
     private final static EventBus statusPopupEventBus = new SimpleEventBus();
 
-    private Texts texts;
     private static final Resources RESOURCES = GWT.create(Resources.class);
 
-    private String jobStoreFilesystemUrl = "";
     private int currentPageSize = PAGE_SIZE;
     private ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
     private Column jobCreationTimeColumn;
@@ -69,30 +57,19 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     private static final String GUICLASS_RED = "red-lamp";
 
     // Enums
-    private enum JobStatus {NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR}
-
-
-    // UI Fields
-    @UiField CellTable jobsTable;
-    @UiField Button moreButton;
-
-
-    /**
-     * This method initalizes the view
-     */
-    @Override
-    public void init() {}
+    private enum JobStatus {
+        NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR
+    }
 
 
     /**
      * Default constructor
+     *
      * @param header The header text for the View
-     * @param texts The I8n texts for this view
+     * @param texts  The I8n texts for this view
      */
     public View(String header, Texts texts) {
-        super(header);
-        this.texts = texts;
-        add(uiBinder.createAndBindUi(this));
+        super(header, texts);
         statusPopupEventBinder.bindEventHandlers(this, statusPopupEventBus);
         setupColumns();
     }
@@ -100,11 +77,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
 
     /*
-     * Ui Handlers
+     * Event Handlers
      */
 
     /**
      * UI Handler for the More Button
+     *
      * @param event The event, triggered by a push on the More Button
      */
     @UiHandler("moreButton")
@@ -122,7 +100,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
                 presenter.showFailedItems(String.valueOf(event.getJobId()), null, null);
                 break;
             case MORE_INFORMATION_REQUESTED:
-                Window.open(getJobstoreLink(String.valueOf(event.getJobId())), "_blank", "");
+                presenter.showMoreInformation(event.getJobId());
                 break;
             case DETAILED_STATUS:
                 presenter.showFailedItems(String.valueOf(event.getJobId()), event.getOperationalState(), event.getCompletionState());
@@ -136,18 +114,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
      */
 
     /**
-     * This method is called by the presenter, to inject the jobStoreFilesystemUrl to be used by the view
-     *
-     * @param jobStoreFilesystemUrl JobStore FileSystem Url to be used by the View
-     */
-    public void setJobStoreFilesystemUrl(String jobStoreFilesystemUrl) {
-        if (jobStoreFilesystemUrl != null) {
-            this.jobStoreFilesystemUrl = jobStoreFilesystemUrl;
-        }
-    }
-
-    /**
      * This method is used to put data into the view
+     *
      * @param jobs The list of jobs to put into the view
      */
     public void setJobs(List<JobModel> jobs) {
@@ -165,7 +133,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         jobsTable.setPageSize(currentPageSize);
         jobsTable.setRowCount(jobs.size());
     }
-
 
 
     /**
@@ -200,6 +167,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method constructs the JobCreationTime column
+     *
      * @return the constructed JobCreationTime column
      */
     private Column constructJobCreationTimeColumn() {
@@ -221,6 +189,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method constructs the JobId column
+     *
      * @return the constructed JobId column
      */
     private Column constructJobIdColumn() {
@@ -241,6 +210,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method constructs the FileName column
+     *
      * @return the constructed FileName column
      */
     private Column constructFileNameColumn() {
@@ -261,6 +231,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method constructs the SubmitterNumber column
+     *
      * @return the constructed SubmitterNumber column
      */
     private Column constructSubmitterNumberColumn() {
@@ -281,6 +252,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * This method constructs the JobState column
+     *
      * @return the constructed JobState column
      */
     private Column constructJobStateColumn() {
@@ -296,17 +268,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
 
     /**
-     * This method gets the link to the Job Store for a given id
-     * @param id The identification of the data
-     * @return The link (as a string url) to the given Job Store
-     */
-    private String getJobstoreLink(String id) {
-        return jobStoreFilesystemUrl.concat("/").concat(id);
-    }
-
-
-    /**
      * Validates two objects. If any of the two objects are null pointers, the method returns false
+     *
      * @param o1 The first object
      * @param o2 The second object
      * @return True if none of the two objects are null, false otherwise
@@ -317,6 +280,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Compares two strings as the numbers they represent
+     *
      * @param s1 String containing first number
      * @param s2 String containing second number
      * @return 0 if equal, -1 if s1 is smaller than s2, +1 if s1 is greater than s2
@@ -330,6 +294,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Compares two strings as an alphanumeric ordering
+     *
      * @param s1 String containing first string
      * @param s2 String containing second string
      * @return 0 if equal, -1 if s1 is smaller than s2, +1 if s1 is greater than s2
@@ -341,6 +306,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Compares two dates (represented in strings)
+     *
      * @param s1 String containing first date
      * @param s2 String containing second date
      * @return 0 if equal, -1 if s1 is smaller than s2, +1 if s1 is greater than s2
@@ -403,6 +369,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     class StatusColumn extends Column<JobModel, ImageResource> {
         /**
          * Default constructor
+         *
          * @param cell The Image to put into the status column cell
          */
         public StatusColumn(Cell<ImageResource> cell) {
@@ -411,10 +378,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
         /**
          * Event handler for handling browser events
+         *
          * @param context The Cell.Context in which the event originates
-         * @param parent The element in which the event originates
-         * @param model The JobModel for the actual event
-         * @param event The event
+         * @param parent  The element in which the event originates
+         * @param model   The JobModel for the actual event
+         * @param event   The event
          */
         @Override
         public void onBrowserEvent(Cell.Context context, Element parent, JobModel model, NativeEvent event) {
@@ -426,8 +394,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
         /**
          * This method gets a style name, depending on a model
+         *
          * @param context The Cell.Context in which the event originates
-         * @param model The model
+         * @param model   The model
          * @return The style name as a String
          */
         public String getCellStyleNames(Cell.Context context, JobModel model) {
@@ -443,6 +412,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
         /**
          * This method gets an image for a given model
+         *
          * @param model The model
          * @return The image for the given model
          */
@@ -458,7 +428,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
             }
         }
     }
-
 
 
 }

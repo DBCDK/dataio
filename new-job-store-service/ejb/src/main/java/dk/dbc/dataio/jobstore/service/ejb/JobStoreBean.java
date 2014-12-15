@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -25,17 +26,15 @@ public class JobStoreBean {
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     @EJB
-    JSONBBean jsonbb;
+    JSONBBean jsonbBean;
 
     @EJB
     PgJobStore jobStore;
 
-    public void addAndScheduleJob(String jobSpecificationData) throws JobStoreException {
+    public void addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
-        LOGGER.trace("JobSpec: {}", jobSpecificationData);
-        JobSpecification jobSpec = unmarshallJobSpecDataOrThrow(jobSpecificationData);
-
-        FlowBinder flowBinder = getFlowBinderOrThrow(jobSpec);
+        LOGGER.trace("JobSpec: {}", jobInputStream.getJobSpecification());
+        FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
         Flow flow = getFlowOrThrow(flowBinder.getId());
         Sink sink = getSinkOrThrow(flowBinder.getId());
 
@@ -50,7 +49,7 @@ public class JobStoreBean {
     // Method is package-private for unittesting purposes
     JobSpecification unmarshallJobSpecDataOrThrow(String jobSpecificationData) throws JobStoreException {
         try {
-            JSONBContext context = jsonbb.getContext();
+            JSONBContext context = jsonbBean.getContext();
             return context.unmarshall(jobSpecificationData, JobSpecification.class);
         } catch(JSONBException ex) {
             LOGGER.warn("Could note create a JobSpecification from data: {}", jobSpecificationData);

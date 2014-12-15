@@ -1,8 +1,10 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
@@ -35,6 +37,9 @@ public class JobsBean {
     @EJB
     JSONBBean jsonbBean;
 
+    @EJB
+    JobStoreBean jobStoreBean;
+
     @GET
     public Response iOnlyExistForSanityTest() {
         LOGGER.debug("some debug information");
@@ -45,17 +50,27 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COLLECTION)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JsonException, JSONBException {
+    public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JsonException, JobStoreException, JSONBException {
         LOGGER.trace("JobInputStream: {}", jobInputStreamData);
-        JobInputStream jobInputStream = jsonbBean.getContext().unmarshall(jobInputStreamData, JobInputStream.class);
 
-        return Response.created(getUri(uriInfo, DUMMY_JOB_ID))
-                .entity(jsonbBean.getContext().marshall(jobInputStream))
-                .build();
+        try {
+            JobInputStream jobInputStream = jsonbBean.getContext().unmarshall(jobInputStreamData, JobInputStream.class);
+            jobStoreBean.addAndScheduleJob(jobInputStream);
+            return Response.created(getUri(uriInfo, DUMMY_JOB_ID))
+                    .entity(jsonbBean.getContext().marshall(jobInputStream))
+                    .build();
+
+        } catch (JSONBException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(jsonbBean.getContext().marshall(new ServiceError(e.getMessage())))
+                    .build();
+        }
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {
         final UriBuilder absolutePathBuilder = uriInfo.getAbsolutePathBuilder();
         return absolutePathBuilder.path(jobId).build();
     }
+
+
 }

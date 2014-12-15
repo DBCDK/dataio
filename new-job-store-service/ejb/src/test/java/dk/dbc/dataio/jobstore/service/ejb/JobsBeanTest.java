@@ -1,9 +1,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import java.net.URI;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,52 +27,76 @@ public class JobsBeanTest {
     private final static int PART_NUMBER = 2535678;
     private static UriInfo mockedUriInfo;
     private static UriBuilder mockedUriBuilder;
-    private static JSONBContext jsonbContext;
     private static JobsBean jobsBean;
+    private static JSONBContext mockedJsonbContext;
+    private static JSONBContext jsonbContext;
+
 
     @Before
     public void setup() {
+        jobsBean = new JobsBean();
         jsonbContext = new JSONBContext();
-        jobsBean = newJobsBean();
+
         mockedUriInfo = mock(UriInfo.class);
         mockedUriBuilder = mock(UriBuilder.class);
+        jobsBean.jobStoreBean = mock(JobStoreBean.class);
+        jobsBean.jsonbBean = mock(JSONBBean.class);
+        mockedJsonbContext = mock(JSONBContext.class);
+
+        when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(mockedUriBuilder);
+        when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
+        when(jobsBean.jsonbBean.getContext()).thenReturn(mockedJsonbContext);
     }
 
     @Test
     public void addJob_returnsResponseWithHttpStatusCreated_returnsJobInputStreamEntity() throws Exception {
-        URI uri = new URI(LOCATION);
-        JobSpecification jobSpecification = new JobSpecificationBuilder().build();
-        JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+        final URI uri = new URI(LOCATION);
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+        final String jobInputStreamJson = jsonbContext.marshall(jobInputStream);
 
-        when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(mockedUriBuilder);
-        when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
         when(mockedUriBuilder.build()).thenReturn(uri);
+        when(mockedJsonbContext.unmarshall(jobInputStreamJson, JobInputStream.class)).thenReturn(jobInputStream);
+        when(mockedJsonbContext.marshall(eq(jobInputStream))).thenReturn(jsonbContext.marshall(jobInputStream));
 
-        final Response response = jobsBean.addJob(mockedUriInfo, jsonbContext.marshall(jobInputStream));
+        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
 
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         assertThat(response.getLocation().toString(), is(LOCATION));
-
         assertThat(response.hasEntity(), is(true));
+
         JobInputStream returnedJobInputStreamEntity
-                = jsonbContext.unmarshall((String)response.getEntity(), JobInputStream.class);
+                = jsonbContext.unmarshall((String) response.getEntity(), JobInputStream.class);
 
         assertJobInputStreamEquals(returnedJobInputStreamEntity, jobInputStream);
+    }
+
+    @Test
+    public void addJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception{
+        final String ERROR_MSG = "Exception caught when trying to marshall object to JSON";
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+        final String jobInputStreamJsonString = jsonbContext.marshall(jobInputStream);
+        final JSONBException jsonbException = new JSONBException(String.format(ERROR_MSG, jobInputStream.getClass().getName()));
+        final String serviceErrorJson = jsonbContext.marshall(new ServiceError(jsonbException.getMessage()));
+
+        when(mockedJsonbContext.unmarshall(eq(jobInputStreamJsonString), eq(JobInputStream.class))).thenThrow(jsonbException);
+        when(mockedJsonbContext.marshall(new ServiceError(anyString()))).thenReturn(serviceErrorJson);
+
+        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJsonString);
+
+        assertThat(response.hasEntity(), is(true));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+
+        ServiceError serviceErrorEntity
+                = jsonbContext.unmarshall((String) response.getEntity(), ServiceError.class);
+
+        assertThat(serviceErrorEntity.getMessage(), is(ERROR_MSG));
     }
 
     /*
      Private methods
     */
-
-    private JobsBean newJobsBean() {
-        final JSONBBean jsonbBean = new JSONBBean();
-        jsonbBean.initialiseContext();
-
-        final JobsBean jobsBean = new JobsBean();
-        jobsBean.jsonbBean = jsonbBean;
-
-        return jobsBean;
-    }
 
     private void assertJobInputStreamEquals(JobInputStream jobInputStream1, JobInputStream jobInputStream2) {
         assertThat(jobInputStream1.getIsEndOfJob(), is(jobInputStream2.getIsEndOfJob()));

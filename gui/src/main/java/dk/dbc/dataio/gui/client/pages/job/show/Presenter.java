@@ -5,6 +5,6 @@ import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
-    public void showFailedItems(String jobId, JobState.OperationalState operationalState, ItemCompletionState.State completionState);
-    public void showMoreInformation(String jobId);
+    void showFailedItems(String jobId, JobState.OperationalState operationalState, ItemCompletionState.State completionState);
+    void showMoreInformation(String jobId);
 }

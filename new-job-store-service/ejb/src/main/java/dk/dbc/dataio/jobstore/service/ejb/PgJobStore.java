@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -79,6 +80,29 @@ public class PgJobStore {
             return (FlowCacheEntity) storedProcedure.getSingleResult();
         } catch (JSONBException e) {
             throw new JobStoreException("Exception caught during job-store operation", e);
+        } finally {
+            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Adds chunk to job-store
+     * <p>
+     * Note that the id, timeOfCreation and timeOfLastModification fields will be set
+     * automatically by the underlying database.
+     * </p>
+     * @param chunk ChunkEntity instance to be persisted
+     * @return managed ChunkEntity instance
+     * @throws NullPointerException if given null-valued chunk
+     */
+    public ChunkEntity addChunk(ChunkEntity chunk) {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
+            entityManager.persist(chunk);
+            entityManager.flush();
+            entityManager.refresh(chunk);
+            return chunk;
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

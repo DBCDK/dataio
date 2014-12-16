@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -92,6 +93,28 @@ public class PgJobStoreTest {
         verify(entityManager).persist(job);
         verify(entityManager).refresh(job);
     }
+
+    @Test(expected = NullPointerException.class)
+    public void addChunk_chunkArgIsNull_throws() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+            pgJobStore.addChunk(null);
+            fail("No exception thrown");
+    }
+
+    @Test
+    public void addChunk_chunkArgIsValid_chunkIsPersistedAndManagedEntityIsRefreshed() {
+        final ChunkEntity chunk = new ChunkEntity();
+        final PgJobStore pgJobStore = newPgJobStore();
+        final ChunkEntity chunkEntity = pgJobStore.addChunk(chunk);
+
+        assertThat(chunkEntity, is(chunk));
+        verify(entityManager).persist(chunk);
+        verify(entityManager).refresh(chunk);
+    }
+
+    /*
+     * Private methods
+     */
 
     private PgJobStore newPgJobStore() {
         final JSONBBean jsonbBean = new JSONBBean();

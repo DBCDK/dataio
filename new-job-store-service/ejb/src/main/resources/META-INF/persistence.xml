@@ -12,6 +12,8 @@
     <class>dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>
@@ -24,6 +26,8 @@
     <class>dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.JobEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.ChunkEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.SequenceAnalysisDataConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>

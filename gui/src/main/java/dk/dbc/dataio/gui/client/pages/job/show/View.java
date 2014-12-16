@@ -7,7 +7,6 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.resources.client.ImageResource;
-import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
@@ -81,12 +80,11 @@ public class View extends ViewWidget {
      */
 
     /**
-     * UI Handler for the More Button
+     * Concrete implementation of abstract Event Handler for the More Button
      *
      * @param event The event, triggered by a push on the More Button
      */
-    @UiHandler("moreButton")
-    void saveButtonPressed(ClickEvent event) {
+    void saveButtonPressedEvent(ClickEvent event) {
         increasePageSize();
     }
 

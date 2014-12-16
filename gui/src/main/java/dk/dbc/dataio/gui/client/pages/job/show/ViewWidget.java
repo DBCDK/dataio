@@ -1,15 +1,17 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
-public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
+public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     // Instantiate UI Binder
     interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
@@ -40,8 +42,25 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     public void init() {}
 
 
+    /*
+     * UI Handlers
+     */
 
+    /**
+     * UI Handler for the More Button
+     *
+     * @param event The event, triggered by a push on the More Button
+     */
+    @UiHandler("moreButton")
+    void saveButtonPressed(ClickEvent event) {
+        saveButtonPressedEvent(event);
+    }
 
-
+    /**
+     * Abstract event handler for the More Button
+     *
+     * @param event The event, triggered by a push on the More Button
+     */
+    abstract void saveButtonPressedEvent(ClickEvent event);
 
 }

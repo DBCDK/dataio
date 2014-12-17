@@ -11,7 +11,7 @@ import java.util.List;
 @Converter
 public class SequenceAnalysisDataConverter implements AttributeConverter<List<String>, PGobject> {
     @Override
-    public PGobject convertToDatabaseColumn(List sequenceAnalysisData) throws IllegalStateException {
+    public PGobject convertToDatabaseColumn(List<String> sequenceAnalysisData) throws IllegalStateException {
         final PGobject pgObject = new PGobject();
         pgObject.setType("json");
         try {
@@ -23,7 +23,7 @@ public class SequenceAnalysisDataConverter implements AttributeConverter<List<St
     }
 
     @Override
-    public List convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
+    public List<String> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
             return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), List.class);
         } catch (JSONBException e) {

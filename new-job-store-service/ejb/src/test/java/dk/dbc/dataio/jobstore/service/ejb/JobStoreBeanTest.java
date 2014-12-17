@@ -1,85 +1,143 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
+import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JobStoreBeanTest {
+    private JobStoreBean jobStoreBean;
+    private FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean;
+    private FlowStoreServiceConnectorException flowStoreServiceConnectorException;
+
+    @Before
+    public void setup() {
+        mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+        flowStoreServiceConnectorException = new FlowStoreServiceConnectorException("msg");
+        initializeBean();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void addAndScheduleJob_nullArgument_throws() throws JobStoreException {
+        jobStoreBean.addAndScheduleJob(null);
+        fail("No NullPointerException Thrown");
+    }
 
     @Test
-    public void unmarshallJobSpecDataOrThrow_nullArgument_throws() throws JobStoreException {
-        JobStoreBean jobStoreBean = new JobStoreBean();
-        jobStoreBean.jsonbBean = new JSONBBean();
-        jobStoreBean.jsonbBean.initialiseContext();
+    public void addAndScheduleJob_flowBinderNotFound_throws() throws FlowStoreServiceConnectorException {
+        JobInputStream jobInputStream = getJobInputStream();
+
+            when(mockedFlowStoreServiceConnectorBean.getFlowBinder(
+                    jobInputStream.getJobSpecification().getPackaging(),
+                    jobInputStream.getJobSpecification().getFormat(),
+                    jobInputStream.getJobSpecification().getCharset(),
+                    jobInputStream.getJobSpecification().getSubmitterId(),
+                    jobInputStream.getJobSpecification().getDestination())).thenThrow(flowStoreServiceConnectorException);
         try {
-            jobStoreBean.unmarshallJobSpecDataOrThrow(null);
-            fail("No NullPointerException Thrown");
-        } catch (NullPointerException ex) {
-            // all is good
+            jobStoreBean.addAndScheduleJob(jobInputStream);
+            fail("No exception thrown by addAndScheduleJob()");
+        } catch (Exception e) {
+            assertTrue(e instanceof JobStoreException);
+            assertTrue(e.getMessage().contains("Could not retrieve FlowBinder"));
         }
     }
 
     @Test
-    public void unmarshallJobSpecDataOrThrow_emptyArgument_throws() {
-        JobStoreBean jobStoreBean = new JobStoreBean();
-        jobStoreBean.jsonbBean = new JSONBBean();
-        jobStoreBean.jsonbBean.initialiseContext();
+    public void addAndScheduleJob_flowNotFound_throws() throws FlowStoreServiceConnectorException{
+        JobInputStream jobInputStream = getJobInputStream();
+        FlowBinder flowBinder = new FlowBinderBuilder().build();
+
+            when(mockedFlowStoreServiceConnectorBean.getFlowBinder(
+                    jobInputStream.getJobSpecification().getPackaging(),
+                    jobInputStream.getJobSpecification().getFormat(),
+                    jobInputStream.getJobSpecification().getCharset(),
+                    jobInputStream.getJobSpecification().getSubmitterId(),
+                    jobInputStream.getJobSpecification().getDestination())).thenReturn(flowBinder);
+
+            when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getId())).thenThrow(flowStoreServiceConnectorException);
         try {
-            jobStoreBean.unmarshallJobSpecDataOrThrow("");
-            fail("No JobStoreException Thrown");
-        } catch (JobStoreException ex) {
-            // all is good
+            jobStoreBean.addAndScheduleJob(jobInputStream);
+            fail("No exception thrown by addAndScheduleJob()");
+        } catch(Exception e) {
+            assertTrue(e instanceof JobStoreException);
+            assertTrue(e.getMessage().contains("Could not retrieve Flow"));
         }
     }
 
     @Test
-    public void unmarshallJobSpecDataOrThrow_illegalStringArgument_throws() {
-        JobStoreBean jobStoreBean = new JobStoreBean();
-        jobStoreBean.jsonbBean = new JSONBBean();
-        jobStoreBean.jsonbBean.initialiseContext();
+    public void addAndScheduleJob_sinkNotFound_throws() throws FlowStoreServiceConnectorException{
+        JobInputStream jobInputStream = getJobInputStream();
+        FlowBinder flowBinder = new FlowBinderBuilder().build();
+
+            when(mockedFlowStoreServiceConnectorBean.getFlowBinder(
+                    jobInputStream.getJobSpecification().getPackaging(),
+                    jobInputStream.getJobSpecification().getFormat(),
+                    jobInputStream.getJobSpecification().getCharset(),
+                    jobInputStream.getJobSpecification().getSubmitterId(),
+                    jobInputStream.getJobSpecification().getDestination())).thenReturn(flowBinder);
+
+            when(mockedFlowStoreServiceConnectorBean.getSink(flowBinder.getId())).thenThrow(flowStoreServiceConnectorException);
         try {
-            jobStoreBean.unmarshallJobSpecDataOrThrow("This is not Json");
-            fail("No JobStoreException Thrown");
-        } catch (JobStoreException ex) {
-            // all is good
+            jobStoreBean.addAndScheduleJob(jobInputStream);
+            fail("No exception thrown by addAndScheduleJob()");
+        } catch(Exception e) {
+            assertTrue(e instanceof JobStoreException);
+            assertTrue(e.getMessage().contains("Could not retrieve Sink"));
         }
     }
 
     @Test
-    public void unmarshallJobSpecDataOrThrow_wrongJsonStringArgument_throws() {
-        JobStoreBean jobStoreBean = new JobStoreBean();
-        jobStoreBean.jsonbBean = new JSONBBean();
-        jobStoreBean.jsonbBean.initialiseContext();
+    public void addAndScheduleJob_validInput_jobIsAdded() throws FlowStoreServiceConnectorException{
+        JobInputStream jobInputStream = getJobInputStream();
+        FlowBinder flowBinder = new FlowBinderBuilder().build();
+        Flow flow = new FlowBuilder().build();
+        Sink sink = new SinkBuilder().build();
+
+            when(mockedFlowStoreServiceConnectorBean.getFlowBinder(
+                    jobInputStream.getJobSpecification().getPackaging(),
+                    jobInputStream.getJobSpecification().getFormat(),
+                    jobInputStream.getJobSpecification().getCharset(),
+                    jobInputStream.getJobSpecification().getSubmitterId(),
+                    jobInputStream.getJobSpecification().getDestination())).thenReturn(flowBinder);
+
+            when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getId())).thenReturn(flow);
+            when(mockedFlowStoreServiceConnectorBean.getSink(flowBinder.getId())).thenReturn(sink);
         try {
-            jobStoreBean.unmarshallJobSpecDataOrThrow("{ \"something\":\"other\" }");
-            fail("No JobStoreException Thrown");
-        } catch (JobStoreException ex) {
-            // all is good
+            jobStoreBean.addAndScheduleJob(jobInputStream);
+        } catch (Exception e) {
+            fail("Unexpected exception thrown by AddAndScheduleJob()");
         }
     }
 
-    @Test
-    public void unmarshallJobSpecDataOrThrow_incompleteJsonStringArgument_throws() {
-        JobStoreBean jobStoreBean = new JobStoreBean();
+    /*
+     * Private methods
+     */
+
+    private void initializeBean(){
+        jobStoreBean = new JobStoreBean();
         jobStoreBean.jsonbBean = new JSONBBean();
         jobStoreBean.jsonbBean.initialiseContext();
-        try {
-            JobSpecification jobSpec = jobStoreBean.unmarshallJobSpecDataOrThrow("{ \"packaging\":\"a\" }");
-            fail("No JobStoreException Thrown");
-        } catch (JobStoreException ex) {
-            // all is good
-        }
+        jobStoreBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
     }
 
-    @Test
-    public void unmarshallJobSpecDataOrThrow_validJsonStringArgument_success() throws JobStoreException {
-        JobStoreBean jobStoreBean = new JobStoreBean();
-        jobStoreBean.jsonbBean = new JSONBBean();
-        jobStoreBean.jsonbBean.initialiseContext();
-        jobStoreBean.unmarshallJobSpecDataOrThrow(new JobSpecificationJsonBuilder().build());
+    private JobInputStream getJobInputStream() {
+        JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        return new JobInputStream(jobSpecification, false, 3);
     }
-
 }

@@ -75,6 +75,12 @@
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
     <build>

@@ -9,8 +9,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,17 +42,6 @@ public class JobStoreBean {
         LOGGER.debug("THIS SHOULD NOT BE LOGGED - CURRENTLY LOGS TO AVOID PMD-WARNINGS!: {} {}", flow.getId(), sink.getId());
 
         LOGGER.debug("addAndScheduleJob for job [{}] took (ms): {}", "", stopWatch.getElapsedTime());
-    }
-
-    // Method is package-private for unittesting purposes
-    JobSpecification unmarshallJobSpecDataOrThrow(String jobSpecificationData) throws JobStoreException {
-        try {
-            JSONBContext context = jsonbBean.getContext();
-            return context.unmarshall(jobSpecificationData, JobSpecification.class);
-        } catch(JSONBException ex) {
-            LOGGER.warn("Could note create a JobSpecification from data: {}", jobSpecificationData);
-            throw new JobStoreException("Could not create JobSpecefication from data", ex);
-        }
     }
 
     // Method is package-private for unittesting purposes

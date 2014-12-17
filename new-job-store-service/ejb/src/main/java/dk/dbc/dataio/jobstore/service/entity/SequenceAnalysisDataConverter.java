@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Converter
-public class SequenceAnalysisDataConverter implements AttributeConverter<List, PGobject> {
+public class SequenceAnalysisDataConverter implements AttributeConverter<List<String>, PGobject> {
     @Override
     public PGobject convertToDatabaseColumn(List sequenceAnalysisData) throws IllegalStateException {
         final PGobject pgObject = new PGobject();

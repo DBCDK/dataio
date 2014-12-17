@@ -119,18 +119,26 @@ public class ChunkEntity {
             return jobId;
         }
 
-        public boolean equals(Object object) {
-            if (object instanceof Key) {
-                Key pk = (Key)object;
-                return id == pk.id && jobId == pk.jobId;
-            } else {
-                return false;
-            }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Key)) return false;
+
+            Key key = (Key) o;
+
+            if (id != key.id) return false;
+            if (jobId != key.jobId) return false;
+
+            return true;
         }
 
+        @Override
         public int hashCode() {
-            return id + jobId;
+            int result = id;
+            result = 31 * result + jobId;
+            return result;
         }
+
     }
 }
 

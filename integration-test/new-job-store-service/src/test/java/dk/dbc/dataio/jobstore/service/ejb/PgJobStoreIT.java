@@ -20,7 +20,6 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.persistence.PersistenceUnitUtil;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -36,7 +35,6 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class PgJobStoreIT {
     public static String DATABASE_NAME = "jobstore";
@@ -182,7 +180,6 @@ public class PgJobStoreIT {
      * When : a chunk is added
      * Then : the chunk is persisted
      * And  : the auto generated fields are set in the resulting chunk entity
-     * And  : the primary key contains the correct id's for job and chunk
      *
      * @throws JobStoreException
      * @throws SQLException
@@ -191,15 +188,13 @@ public class PgJobStoreIT {
     public void addChunk_newChunkIsPersisted() throws JobStoreException, SQLException {
         final int CHUNK_ID = 3;
         final int JOB_ID = 43;
-        final int NUMBER_OF_ITEMS = 4;
-        final String DATA_FILE_ID = "datafileID";
-        final String SEQUENCE_ANALYSIS_DATA = "sequence analysis data";
+
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final ChunkEntity chunk = new ChunkEntity();
-        chunk.setNumberOfItems(NUMBER_OF_ITEMS);
-        chunk.setDataFileId(DATA_FILE_ID);
-        chunk.setSequenceAnalysisData(Arrays.asList(SEQUENCE_ANALYSIS_DATA));
+        chunk.setNumberOfItems(4);
+        chunk.setDataFileId("datafileID");
+        chunk.setSequenceAnalysisData(Arrays.asList("sequence analysis data"));
         chunk.setState(new State());
         chunk.setKey(new ChunkEntity.Key(CHUNK_ID, JOB_ID));
 
@@ -214,19 +209,7 @@ public class PgJobStoreIT {
         assertThat("entity", addedChunk, is(notNullValue()));
         assertThat("entity.timeOfCreation", addedChunk.getTimeOfCreation(), is(notNullValue()));
         assertThat("entity.timeOfLastModification", addedChunk.getTimeOfLastModification(), is(notNullValue()));
-        assertThat("entity.numberOfItems", addedChunk.getNumberOfItems(), is(NUMBER_OF_ITEMS));
-        assertThat("entity.dataFileId", addedChunk.getDataFileId(), is(DATA_FILE_ID));
-        assertThat("entity.sequenceAnalysisData", addedChunk.getSequenceAnalysisData().get(0), is(SEQUENCE_ANALYSIS_DATA));
-
-        // And...
-        PersistenceUnitUtil util = entityManager.getEntityManagerFactory().getPersistenceUnitUtil();
-        Object object = util.getIdentifier(addedChunk);
-        assertTrue(object instanceof ChunkEntity.Key);
-        ChunkEntity.Key key = ((ChunkEntity.Key) object);
-        assertThat("entity.id", key.getId(), is(CHUNK_ID));
-        assertThat("entity.jobId", key.getJobId(), is(JOB_ID));
     }
-
 
 
     @Before

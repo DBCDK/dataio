@@ -94,11 +94,14 @@ public class PgJobStoreTest {
         verify(entityManager).refresh(job);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void addChunk_chunkArgIsNull_throws() throws JobStoreException {
+    @Test
+    public void addChunk_chunkArgIsNull_throws() {
         final PgJobStore pgJobStore = newPgJobStore();
+        try {
             pgJobStore.addChunk(null);
             fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
     }
 
     @Test

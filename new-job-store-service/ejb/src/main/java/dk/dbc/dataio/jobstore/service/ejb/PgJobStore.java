@@ -47,7 +47,7 @@ public class PgJobStore {
      * @throws JobStoreException on failure to marshall
      * entity object to JSON
      */
-    public SinkCacheEntity cacheSink(Sink sink) throws NullPointerException, IllegalStateException, JobStoreException {
+    SinkCacheEntity cacheSink(Sink sink) throws NullPointerException, IllegalStateException, JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(sink, "sink");
@@ -71,7 +71,7 @@ public class PgJobStore {
      * @throws JobStoreException on failure to marshall
      * entity object to JSON
      */
-    public FlowCacheEntity cacheFlow(Flow flow) throws NullPointerException, IllegalStateException, JobStoreException {
+    FlowCacheEntity cacheFlow(Flow flow) throws NullPointerException, IllegalStateException, JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(flow, "flow");
@@ -87,7 +87,7 @@ public class PgJobStore {
     }
 
     /**
-     * Adds item to job-store
+     * Persist an item in the job-store
      * <p>
      * Note that the timeOfCreation and timeOfLastModification fields will be set
      * automatically by the underlying database.
@@ -96,7 +96,7 @@ public class PgJobStore {
      * @return managed JobEntity instance
      * @throws NullPointerException if given null-valued item
      */
-    public ItemEntity addItem(ItemEntity item) {
+    ItemEntity persistItem(ItemEntity item) {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(item, "item");
@@ -110,7 +110,7 @@ public class PgJobStore {
     }
 
     /**
-     * Adds chunk to job-store
+     * Persists a chunk in the job-store
      * <p>
      * Note that the timeOfCreation and timeOfLastModification fields will be set
      * automatically by the underlying database.
@@ -119,7 +119,7 @@ public class PgJobStore {
      * @return managed ChunkEntity instance
      * @throws NullPointerException if given null-valued chunk
      */
-    public ChunkEntity addChunk(ChunkEntity chunk) {
+    ChunkEntity persistChunk(ChunkEntity chunk) {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
@@ -133,7 +133,7 @@ public class PgJobStore {
     }
 
     /**
-     * Adds job to job-store
+     * Persists a job in the job-store
      * <p>
      * Note that the id, timeOfCreation and timeOfLastModification fields will be set
      * automatically by the underlying database.
@@ -142,7 +142,7 @@ public class PgJobStore {
      * @return managed JobEntity instance
      * @throws NullPointerException if given null-valued job
      */
-    public JobEntity addJob(JobEntity job) {
+    JobEntity persistJob(JobEntity job) {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(job, "job");

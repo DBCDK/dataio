@@ -104,7 +104,8 @@ public class ChunkEntity {
         @Column(name = "jobid")
         private int jobId;
 
-        public Key(){}
+        /* Private constructor in order to keep class static */
+        private Key(){}
 
         public Key(int id, int jobId) {
             this.id = id;

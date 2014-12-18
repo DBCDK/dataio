@@ -75,20 +75,20 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void addJob_jobArgIsNull_throws() throws JobStoreException {
+    public void persistJob_jobArgIsNull_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
-            pgJobStore.addJob(null);
+            pgJobStore.persistJob(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void addJob_jobArgIsValid_jobIsPersistedAndManagedEntityIsRefreshed() {
+    public void persistJob_jobArgIsValid_jobIsPersistedAndManagedEntityIsRefreshed() {
         final JobEntity job = new JobEntity();
         final PgJobStore pgJobStore = newPgJobStore();
-        final JobEntity jobEntity = pgJobStore.addJob(job);
+        final JobEntity jobEntity = pgJobStore.persistJob(job);
 
         assertThat(jobEntity, is(job));
         verify(entityManager).persist(job);
@@ -96,20 +96,20 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void addChunk_chunkArgIsNull_throws() {
+    public void persistChunk_chunkArgIsNull_throws() {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
-            pgJobStore.addChunk(null);
+            pgJobStore.persistChunk(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void addChunk_chunkArgIsValid_chunkIsPersistedAndManagedEntityIsRefreshed() {
+    public void persistChunk_chunkArgIsValid_chunkIsPersistedAndManagedEntityIsRefreshed() {
         final ChunkEntity chunk = new ChunkEntity();
         final PgJobStore pgJobStore = newPgJobStore();
-        final ChunkEntity chunkEntity = pgJobStore.addChunk(chunk);
+        final ChunkEntity chunkEntity = pgJobStore.persistChunk(chunk);
 
         assertThat(chunkEntity, is(chunk));
         verify(entityManager).persist(chunk);
@@ -117,20 +117,20 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void addItem_itemArgIsNull_throws() {
+    public void persistItem_itemArgIsNull_throws() {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
-            pgJobStore.addItem(null);
+            pgJobStore.persistItem(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void addItem_itemArgIsValid_itemIsPersistedAndManagedEntityIsRefreshed() {
+    public void persistItem_itemArgIsValid_itemIsPersistedAndManagedEntityIsRefreshed() {
         final ItemEntity item = new ItemEntity();
         final PgJobStore pgJobStore = newPgJobStore();
-        final ItemEntity itemEntity = pgJobStore.addItem(item);
+        final ItemEntity itemEntity = pgJobStore.persistItem(item);
 
         assertThat(itemEntity, is(item));
         verify(entityManager).persist(item);

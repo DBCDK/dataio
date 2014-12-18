@@ -139,14 +139,14 @@ public class PgJobStoreIT {
     }
 
     /**
-     * Given: a jobstore without jobs
-     * When : a job is added
+     * Given: a job store without jobs
+     * When : a job is given as input to pgJobStore.persistJob()
      * Then : the job is persisted
      * And  : the auto generated fields are set in the resulting job entity
      * And  : more to come...
      */
     @Test
-    public void addJob_newJobIsPersisted() throws JobStoreException, SQLException {
+    public void persistJob_newJobIsPersisted() throws JobStoreException, SQLException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final Flow flow = new FlowBuilder().build();
@@ -165,7 +165,7 @@ public class PgJobStoreIT {
         job.setCachedSink(sinkCacheEntity);
 
         entityManager.getTransaction().begin();
-        final JobEntity addedJob = pgJobStore.addJob(job);
+        final JobEntity addedJob = pgJobStore.persistJob(job);
         entityManager.getTransaction().commit();
 
         // Then...
@@ -179,8 +179,8 @@ public class PgJobStoreIT {
     }
 
     /**
-     * Given: a jobstore without chunks
-     * When : a chunk is added
+     * Given: a job store without chunks
+     * When : a chunk is given as input to pgJobStore.persistChunk()
      * Then : the chunk is persisted
      * And  : the auto generated fields are set in the resulting chunk entity
      *
@@ -188,7 +188,7 @@ public class PgJobStoreIT {
      * @throws SQLException
      */
     @Test
-    public void addChunk_newChunkIsPersisted() throws JobStoreException, SQLException {
+    public void persistChunk_newChunkIsPersisted() throws JobStoreException, SQLException {
         final int CHUNK_ID = 3;
         final int JOB_ID = 43;
 
@@ -202,7 +202,7 @@ public class PgJobStoreIT {
         chunk.setKey(new ChunkEntity.Key(CHUNK_ID, JOB_ID));
 
         entityManager.getTransaction().begin();
-        final ChunkEntity addedChunk = pgJobStore.addChunk(chunk);
+        final ChunkEntity addedChunk = pgJobStore.persistChunk(chunk);
         entityManager.getTransaction().commit();
 
         // Then...
@@ -215,8 +215,8 @@ public class PgJobStoreIT {
     }
 
     /**
-     * Given: a jobstore without items
-     * When : an item is added
+     * Given: a job store without items
+     * When : an item is given as input to pgJobStore.persistItem()
      * Then : the item is persisted
      * And  : the auto generated fields are set in the resulting item entity
      *
@@ -224,7 +224,7 @@ public class PgJobStoreIT {
      * @throws SQLException
      */
     @Test
-    public void addItem_newItemIsPersisted() throws JobStoreException, SQLException {
+    public void persistItem_newItemIsPersisted() throws JobStoreException, SQLException {
         final short ITEM_ID = 62;
         final int JOB_ID = 43;
         final int CHUNK_ID = 3;
@@ -237,7 +237,7 @@ public class PgJobStoreIT {
         item.setState(new State());
 
         entityManager.getTransaction().begin();
-        final ItemEntity addedItem = pgJobStore.addItem(item);
+        final ItemEntity addedItem = pgJobStore.persistItem(item);
         entityManager.getTransaction().commit();
 
         // Then...

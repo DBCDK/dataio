@@ -109,9 +109,8 @@ public class ItemEntity {
         @Column(name = "jobid")
         private int jobId;
 
-
-
-        public Key(){}
+        /* Private constructor in order to keep class static */
+        private Key(){}
 
         public Key(int jobId, int chunkId, short id) {
             this.id = id;

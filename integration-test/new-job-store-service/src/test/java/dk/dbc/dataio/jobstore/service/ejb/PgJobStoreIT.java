@@ -8,8 +8,10 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
@@ -20,6 +22,7 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -209,6 +212,41 @@ public class PgJobStoreIT {
         assertThat("entity", addedChunk, is(notNullValue()));
         assertThat("entity.timeOfCreation", addedChunk.getTimeOfCreation(), is(notNullValue()));
         assertThat("entity.timeOfLastModification", addedChunk.getTimeOfLastModification(), is(notNullValue()));
+    }
+
+    /**
+     * Given: a jobstore without items
+     * When : an item is added
+     * Then : the item is persisted
+     * And  : the auto generated fields are set in the resulting item entity
+     *
+     * @throws JobStoreException
+     * @throws SQLException
+     */
+    @Test
+    public void addItem_newItemIsPersisted() throws JobStoreException, SQLException {
+        final short ITEM_ID = 62;
+        final int JOB_ID = 43;
+        final int CHUNK_ID = 3;
+
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final ItemEntity item = new ItemEntity();
+        item.setKey(new ItemEntity.Key(JOB_ID, CHUNK_ID, ITEM_ID));
+        item.setPartitioningOutcome(new ItemData("partitioning data", StandardCharsets.UTF_8));
+        item.setState(new State());
+
+        entityManager.getTransaction().begin();
+        final ItemEntity addedItem = pgJobStore.addItem(item);
+        entityManager.getTransaction().commit();
+
+        // Then...
+        assertThat("table size", getSizeOfTable(ITEM_TABLE_NAME), is(1L));
+
+        // And...
+        assertThat("entity", addedItem, is(notNullValue()));
+        assertThat("entity.timeOfCreation", addedItem.getTimeOfCreation(), is(notNullValue()));
+        assertThat("entity.timeOfLastModification", addedItem.getTimeOfLastModification(), is(notNullValue()));
     }
 
 

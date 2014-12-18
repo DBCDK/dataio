@@ -8,6 +8,7 @@ import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
@@ -86,9 +87,32 @@ public class PgJobStore {
     }
 
     /**
+     * Adds item to job-store
+     * <p>
+     * Note that the timeOfCreation and timeOfLastModification fields will be set
+     * automatically by the underlying database.
+     * </p>
+     * @param item ItemEntity instance to be persisted
+     * @return managed JobEntity instance
+     * @throws NullPointerException if given null-valued item
+     */
+    public ItemEntity addItem(ItemEntity item) {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(item, "item");
+            entityManager.persist(item);
+            entityManager.flush();
+            entityManager.refresh(item);
+            return item;
+        } finally {
+            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Adds chunk to job-store
      * <p>
-     * Note that the id, timeOfCreation and timeOfLastModification fields will be set
+     * Note that the timeOfCreation and timeOfLastModification fields will be set
      * automatically by the underlying database.
      * </p>
      * @param chunk ChunkEntity instance to be persisted

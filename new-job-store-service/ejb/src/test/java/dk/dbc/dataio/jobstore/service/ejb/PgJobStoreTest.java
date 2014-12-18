@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -113,6 +114,27 @@ public class PgJobStoreTest {
         assertThat(chunkEntity, is(chunk));
         verify(entityManager).persist(chunk);
         verify(entityManager).refresh(chunk);
+    }
+
+    @Test
+    public void addItem_itemArgIsNull_throws() {
+        final PgJobStore pgJobStore = newPgJobStore();
+        try {
+            pgJobStore.addItem(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void addItem_itemArgIsValid_itemIsPersistedAndManagedEntityIsRefreshed() {
+        final ItemEntity item = new ItemEntity();
+        final PgJobStore pgJobStore = newPgJobStore();
+        final ItemEntity itemEntity = pgJobStore.addItem(item);
+
+        assertThat(itemEntity, is(item));
+        verify(entityManager).persist(item);
+        verify(entityManager).refresh(item);
     }
 
     /*

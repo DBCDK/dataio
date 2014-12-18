@@ -32,11 +32,11 @@ public class ChunkEntity {
 
     private Timestamp timeOfCompletion;
 
-    @Column(columnDefinition = "json")
+    @Column(columnDefinition = "json", nullable = false)
     @Convert(converter = SequenceAnalysisDataConverter.class)
     private List<String> sequenceAnalysisData;
 
-    @Column(columnDefinition = "json")
+    @Column(columnDefinition = "json", nullable = false)
     @Convert(converter = StateConverter.class)
     private State state;
 

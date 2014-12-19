@@ -24,7 +24,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     private View view;
     private JobStoreProxyAsync jobStoreProxy;
     private final PlaceController placeController;
-    private String jobStoreFilesystemUrl = "";
+    String jobStoreFilesystemUrl = "";  // This string should have been private, but for testing purposes, it is made package-private
 
 
     /**
@@ -87,11 +87,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method gets the link to the Job Store for a given id
+     * This method should have been private, but for testing purposes, it is package-private
      *
      * @param id The identification of the data
      * @return The link (as a string url) to the given Job Store
      */
-    private String getJobstoreLink(String id) {
+     String getJobstoreLink(String id) {
         return jobStoreFilesystemUrl.concat("/").concat(id);
     }
 
@@ -99,34 +100,48 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all jobs, and sends them to the view
      */
     private void fetchJobs() {
-        jobStoreProxy.findAllJobsNew(new FilteredAsyncCallback<List<JobModel>>() {
-            @Override
-            public void onFilteredFailure(Throwable e) {
-                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
-            }
-
-            @Override
-            public void onSuccess(List<JobModel> models) {
-                view.setJobs(models);
-            }
-        });
+        jobStoreProxy.findAllJobsNew(new FetchJobsCallback());
     }
 
     /**
      * This method fetches the File System URL for the Job Store, and sends it the the view
      */
     private void fetchJobStoreFilesystemUrl() {
-        jobStoreProxy.getJobStoreFilesystemUrl(new FilteredAsyncCallback<String>() {
-            @Override
-            public void onFilteredFailure(Throwable e) {
-                view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
-            }
-
-            @Override
-            public void onSuccess(String result) {
-                jobStoreFilesystemUrl = result;
-            }
-        });
+        jobStoreProxy.getJobStoreFilesystemUrl(new GetJobstoreLinkCallback());
     }
 
+
+    /*
+     * Private classes
+     */
+
+    /**
+     * This class is the callback class for the findAllJobsNew method in the Job Store
+     */
+    protected class FetchJobsCallback extends FilteredAsyncCallback<List<JobModel>> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+
+        @Override
+        public void onSuccess(List<JobModel> models) {
+            view.setJobs(models);
+        }
+    }
+
+    /**
+     * This class is the callback class for the getJobStoreFilesystemUrl method in the Job Store
+     */
+    protected class GetJobstoreLinkCallback extends FilteredAsyncCallback<String> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+
+        @Override
+        public void onSuccess(String result) {
+            jobStoreFilesystemUrl = result;
+        }
+    }
 }

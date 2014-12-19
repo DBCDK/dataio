@@ -1,12 +1,9 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
-import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ImageResourceCell;
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
-import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMock;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
@@ -47,10 +44,9 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
     @GwtMock View.MyEventBinder mockedStatusPopupEventBinder;
-    @Mock Cell.Context mockedContext;
-    @Mock Element mockedElement;
     @Mock Presenter presenter;
     @Mock ImageResources mockedImageResources;
+    @Mock static ClickEvent mockedClickEvent;
 
 
     // Test Data
@@ -112,16 +108,6 @@ public class ViewTest {
         when(mockedTexts.text_records()).thenReturn(MOCKED_TEXT_RECORDS);
         when(mockedTexts.text_failed()).thenReturn(MOCKED_TEXT_FAILED);
         when(mockedTexts.text_pending()).thenReturn(MOCKED_TEXT_PENDING);
-    }
-
-    // Mocked Events
-    @Mock static Event mockedBrowserClickEvent;
-    @Mock static Event mockedNonBrowserClickEvent;
-    @Mock static ClickEvent mockedClickEvent;
-    @Before
-    public void setupMockedEvents() {
-        when(mockedBrowserClickEvent.getType()).thenReturn("click");
-        when(mockedNonBrowserClickEvent.getType()).thenReturn("non-click");
     }
 
 
@@ -263,18 +249,6 @@ public class ViewTest {
         assertThat(events.contains((Object) "click"), is(true));
     }
 
-
-    @Test
-    public void statusColumnClass_onBrowserEvent_instantiateStatusPopup() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
-        StatusColumn statusColumn = (StatusColumn) view.constructJobStateColumn();
-
-        // Subject Under Test
-        statusColumn.onBrowserEvent(mockedContext, mockedElement, testModel1, mockedBrowserClickEvent);
-
-        // Here we know, that the StatusPopupPanel is opened, but there is currently no way that we can detect that
-        // However, we do test, that an exception is not thrown
-    }
 
     /*
      * Testing Event Handlers

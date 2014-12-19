@@ -17,11 +17,6 @@ import dk.dbc.dataio.gui.client.resource.ImageResources;
  * and what to do, when clicking on the Icon (display the Status Popup Panel)
  */
 class StatusColumn extends Column<JobModel, ImageResource> {
-    // Constants
-    private static final String GUICLASS_GRAY = "gray-lamp";
-    private static final String GUICLASS_GREEN = "green-lamp";
-    private static final String GUICLASS_RED = "red-lamp";
-
     // Attributes
     private final EventBus eventBus;
     private final ImageResources resources;
@@ -53,24 +48,6 @@ class StatusColumn extends Column<JobModel, ImageResource> {
         super.onBrowserEvent(context, parent, model, event);
         if ("click".equals(event.getType())) {
             new StatusPopup(eventBus, parent, model);
-        }
-    }
-
-    /**
-     * This method gets a style name, depending on a model
-     *
-     * @param context The Cell.Context in which the event originates
-     * @param model   The model
-     * @return The style name as a String
-     */
-    public String getCellStyleNames(Cell.Context context, JobModel model) {
-        switch (getJobStatus(model)) {
-            case NOT_DONE:
-                return GUICLASS_GRAY;
-            case DONE_WITH_ERROR:
-                return GUICLASS_RED;
-            default:
-                return GUICLASS_GREEN;
         }
     }
 

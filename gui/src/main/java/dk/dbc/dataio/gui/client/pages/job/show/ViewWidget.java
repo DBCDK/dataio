@@ -52,8 +52,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
      * @param event The event, triggered by a push on the More Button
      */
     @UiHandler("moreButton")
-    void saveButtonPressed(ClickEvent event) {
-        saveButtonPressedEvent(event);
+    void moreInfoButtonPressed(ClickEvent event) {
+        moreInfoButtonPressedEvent(event);
     }
 
     /**
@@ -61,6 +61,6 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
      *
      * @param event The event, triggered by a push on the More Button
      */
-    abstract void saveButtonPressedEvent(ClickEvent event);
+    abstract void moreInfoButtonPressedEvent(ClickEvent event);
 
 }

@@ -44,6 +44,7 @@ import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
+import dk.dbc.dataio.gui.client.resource.ImageResources;
 import dk.dbc.dataio.gui.client.views.MenuItem;
 
 public class ClientFactoryImpl implements ClientFactory {
@@ -78,6 +79,9 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static dk.dbc.dataio.gui.client.pages.faileditems.Texts failedItemsTexts = GWT.create(dk.dbc.dataio.gui.client.pages.faileditems.Texts.class);
     //private final static HarvestersShowTexts harvestersShowTexts = GWT.create(HarvestersShowTexts.class);
 
+    // Image Resources
+    private final static ImageResources imageResources = GWT.create(ImageResources.class);
+
     // Event Bus
     private final EventBus eventBus = new SimpleEventBus();
 
@@ -110,7 +114,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final FlowComponentsShowView flowComponentsShowView = new FlowComponentsShowViewImpl();
     private final FlowsShowView flowsShowView = new FlowsShowViewImpl();
     private final SubmittersShowView submittersShowView = new SubmittersShowViewImpl();
-    private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(jobsShowTexts.menu_Jobs(), jobsShowTexts);
+    private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(jobsShowTexts.menu_Jobs(), jobsShowTexts, imageResources);
     private final dk.dbc.dataio.gui.client.pages.javascriptlog.View javaScriptLogView = new dk.dbc.dataio.gui.client.pages.javascriptlog.View(javaScriptLogShowTexts.menu_JavaScriptLogShow());
     private final SinksShowView sinksShowView = new SinksShowViewImpl();
     private final FlowBindersShowView flowBindersShowView = new FlowBindersShowViewImpl();

@@ -59,12 +59,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-test</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
       <version>${jersey.version}</version>
@@ -74,6 +68,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -83,35 +78,35 @@
     </dependency>
   </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-ejb-plugin</artifactId>
-                <version>${maven.ejb.plugin.version}</version>
-                <configuration>
-                    <ejbVersion>${ejb.version}</ejbVersion>
-                    <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
-                </configuration>
-            </plugin>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-ejb-plugin</artifactId>
+        <version>${maven.ejb.plugin.version}</version>
+        <configuration>
+          <ejbVersion>${ejb.version}</ejbVersion>
+          <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
+        </configuration>
+      </plugin>
 
-            <plugin>
-                <!-- Move to dev-profile -->
-                <groupId>org.codehaus.cargo</groupId>
-                <artifactId>cargo-maven2-plugin</artifactId>
-                <version>${cargo.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.glassfish.main.deployment</groupId>
-                        <artifactId>deployment-client</artifactId>
-                        <version>${glassfish.version}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+      <plugin>
+        <!-- Move to dev-profile -->
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven2-plugin</artifactId>
+        <version>${cargo.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.glassfish.main.deployment</groupId>
+            <artifactId>deployment-client</artifactId>
+            <version>${glassfish.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

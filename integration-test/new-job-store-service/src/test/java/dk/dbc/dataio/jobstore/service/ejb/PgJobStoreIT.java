@@ -13,6 +13,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.After;
@@ -28,6 +29,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -197,7 +199,7 @@ public class PgJobStoreIT {
         final ChunkEntity chunk = new ChunkEntity();
         chunk.setNumberOfItems(4);
         chunk.setDataFileId("datafileID");
-        chunk.setSequenceAnalysisData(Arrays.asList("sequence analysis data"));
+        chunk.setSequenceAnalysisData(new SequenceAnalysisData(new HashSet(Arrays.asList("sequence analysis data"))));
         chunk.setState(new State());
         chunk.setKey(new ChunkEntity.Key(CHUNK_ID, JOB_ID));
 

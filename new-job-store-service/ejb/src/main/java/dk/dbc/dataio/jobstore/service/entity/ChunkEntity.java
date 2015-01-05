@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 
 import javax.persistence.Column;
@@ -9,7 +10,7 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "chunk")
@@ -34,7 +35,7 @@ public class ChunkEntity {
 
     @Column(columnDefinition = "json", nullable = false)
     @Convert(converter = SequenceAnalysisDataConverter.class)
-    private List<String> sequenceAnalysisData;
+    private SequenceAnalysisData sequenceAnalysisData;
 
     @Column(columnDefinition = "json", nullable = false)
     @Convert(converter = StateConverter.class)
@@ -80,11 +81,11 @@ public class ChunkEntity {
         this.timeOfCompletion = timeOfCompletion;
     }
 
-    public List<String> getSequenceAnalysisData() {
+    public SequenceAnalysisData getSequenceAnalysisData() {
         return sequenceAnalysisData;
     }
 
-    public void setSequenceAnalysisData(List<String> sequenceAnalysisData) {
+    public void setSequenceAnalysisData(SequenceAnalysisData sequenceAnalysisData) {
         this.sequenceAnalysisData = sequenceAnalysisData;
     }
 

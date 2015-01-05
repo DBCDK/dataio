@@ -1,17 +1,17 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.postgresql.util.PGobject;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.sql.SQLException;
-import java.util.List;
 
 @Converter
-public class SequenceAnalysisDataConverter implements AttributeConverter<List<String>, PGobject> {
+public class SequenceAnalysisDataConverter implements AttributeConverter<SequenceAnalysisData, PGobject> {
     @Override
-    public PGobject convertToDatabaseColumn(List<String> sequenceAnalysisData) throws IllegalStateException {
+    public PGobject convertToDatabaseColumn(SequenceAnalysisData sequenceAnalysisData) throws IllegalStateException {
         final PGobject pgObject = new PGobject();
         pgObject.setType("json");
         try {
@@ -23,9 +23,9 @@ public class SequenceAnalysisDataConverter implements AttributeConverter<List<St
     }
 
     @Override
-    public List<String> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
+    public SequenceAnalysisData convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
-            return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), List.class);
+            return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), SequenceAnalysisData.class);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

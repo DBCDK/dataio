@@ -135,6 +135,7 @@ public class View extends ViewWidget {
      * This method sets up all columns in the view
      * It is called before data has been applied to the view - data is being applied in the setJobs method
      */
+    @SuppressWarnings("unchecked")
     private void setupColumns() {
         dataProvider = new ListDataProvider<JobModel>();
         dataProvider.addDataDisplay(jobsTable);
@@ -153,6 +154,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructFileNameColumn(), texts.columnHeader_FileName());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
+        jobsTable.addColumn(constructChunkCountColumn(), texts.columnHeader_TotalChunkCount());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
     }
 
@@ -244,6 +246,29 @@ public class View extends ViewWidget {
         });
         return column;
     }
+
+    /**
+     * This method constructs the ChunkCount column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed ChunkCount column
+     */
+    Column constructChunkCountColumn() {
+        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+            @Override
+            public String getValue(JobModel model) {
+                return String.valueOf(model.getChunkifyingTotalCounter());
+            }
+        };
+        column.setSortable(true);
+        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
+            public int compare(JobModel o1, JobModel o2) {
+                return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareLongs(o1.getChunkifyingTotalCounter(), o2.getChunkifyingTotalCounter()) : 1;
+            }
+        });
+        return column;
+    }
+
 
     /**
      * This method constructs the JobState column

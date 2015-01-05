@@ -240,6 +240,30 @@ public class ViewTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    public void constructChunkCountColumn_call_correctlySetup() {
+        view = new View("Header Text", mockedTexts, mockedImageResources);
+
+        // Subject Under Test
+        Column column = view.constructChunkCountColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getChunkifyingTotalCounter())));
+
+        // Test that column is set to sortable
+        assertThat(column.isSortable(), is(true));
+
+        // Test that correct comparator has been setup
+        // ChunkifyingTotalCounter for testModel1 (15) is larger than testModel2 (6)
+        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
+        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), greaterThan(0));
+        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), lessThan(0));
+
+        // Test that column is set to ascending sorting
+        assertThat(column.isDefaultSortAscending(), is(true));
+    }
+
+    @Test
     public void constructJobStateColumn_call_correctlySetup() {
         view = new View("Header Text", mockedTexts, mockedImageResources);
 

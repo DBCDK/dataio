@@ -22,12 +22,12 @@ public class ViewHelper {
      *
      * @param s1 String containing first number
      * @param s2 String containing second number
-     * @return 0 if equal, -1 if s1 is smaller than s2, +1 if s1 is greater than s2
+     * @return 0 if equal, negative if s1 is smaller than s2, positive if s1 is greater than s2
      */
     public static int compareStringsAsLongs(String s1, String s2) {
-        long l1 = Long.parseLong(s1);
-        long l2 = Long.parseLong(s2);
-        return (l1 == l2) ? 0 : (l1 < l2) ? -1 : 1;
+        Long l1 = Long.parseLong(s1);
+        Long l2 = Long.parseLong(s2);
+        return l1.compareTo(l2);
     }
 
     /**
@@ -35,7 +35,7 @@ public class ViewHelper {
      *
      * @param s1 String containing first string
      * @param s2 String containing second string
-     * @return 0 if equal, -1 if s1 is smaller than s2, +1 if s1 is greater than s2
+     * @return 0 if equal, negative if s1 is smaller than s2, positive if s1 is greater than s2
      */
     public static int compareStrings(String s1, String s2) {
         return s1.compareTo(s2);
@@ -46,12 +46,23 @@ public class ViewHelper {
      *
      * @param s1 String containing first date
      * @param s2 String containing second date
-     * @return 0 if equal, -1 if s1 is smaller than s2, +1 if s1 is greater than s2
+     * @return 0 if equal, negative if s1 is smaller than s2, positive if s1 is greater than s2
      */
     public static int compareLongDates(String s1, String s2) {
         Long l1 = Format.parseLongDate(s1);
         Long l2 = Format.parseLongDate(s2);
         return l1.equals(l2) ? 0 : (l1 < l2) ? -1 : 1;
+    }
+
+    /**
+     * Compares two longs
+     *
+     * @param l1 The first long
+     * @param l2 The second long
+     * @return 0 if equal, negative if s1 is smaller than s2, positive if s1 is greater than s2
+     */
+    public static int compareLongs(long l1, long l2) {
+        return new Long(l1).compareTo(l2);
     }
 
 }

@@ -115,6 +115,7 @@ public class ViewTest {
      * Testing starts here...
      */
     @Test
+    @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
         view = new View("Header Text", mockedTexts, mockedImageResources);
@@ -143,6 +144,7 @@ public class ViewTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void constructJobCreationTimeColumn_call_correctlySetup() {
         view = new View("Header Text", mockedTexts, mockedImageResources);
 
@@ -166,6 +168,7 @@ public class ViewTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void constructJobIdColumn_call_correctlySetup() {
         view = new View("Header Text", mockedTexts, mockedImageResources);
 
@@ -189,6 +192,7 @@ public class ViewTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void constructFileNameColumn_call_correctlySetup() {
         view = new View("Header Text", mockedTexts, mockedImageResources);
 
@@ -212,6 +216,7 @@ public class ViewTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void constructSubmitterNumberColumn_call_correctlySetup() {
         view = new View("Header Text", mockedTexts, mockedImageResources);
 
@@ -246,7 +251,7 @@ public class ViewTest {
         Set<String> events = cell.getConsumedEvents();
         assertThat(events, notNullValue());
         assertThat(events.size(), is(1));
-        assertThat(events.contains((Object) "click"), is(true));
+        assertThat(events.contains("click"), is(true));
     }
 
 

@@ -23,6 +23,13 @@ public class State {
         }
     }
 
+    public State(State state) {
+        states = new HashMap<>(state.states);
+        for (Map.Entry<Phase, StateElement> entry : state.states.entrySet()) {
+            states.put(entry.getKey(), new StateElement(entry.getValue()));
+        }
+    }
+
     /**
      * @param phase (partitioning, processing, delivering)
      * @return the state element for the specified phase

@@ -23,6 +23,17 @@ public class StateElement {
         this.ignored = 0;
     }
 
+    public StateElement(StateElement stateElement) {
+        this.beginDate = stateElement.getBeginDate();
+        this.endDate = stateElement.getEndDate();
+        this.pending = stateElement.getPending();
+        this.active = stateElement.getActive();
+        this.done = stateElement.getDone();
+        this.succeeded = stateElement.getSucceeded();
+        this.failed = stateElement.getFailed();
+        this.ignored = stateElement.getIgnored();
+    }
+
     public Date getBeginDate() {
         return this.beginDate == null ? null : new Date(this.beginDate.getTime());
     }

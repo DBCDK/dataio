@@ -31,6 +31,38 @@ public class StateTest {
         assertNewStateElement(state.getPhase(State.Phase.DELIVERING));
     }
 
+    @Test
+    public void deepCopyConstructor_stateArg_returnsNewInstanceWithCopiedValues() {
+        StateChange stateChange = getStateChangeWithStartAndEndDate(PARTITIONING);
+        State state = new State();
+        state.updateState(stateChange);
+
+        // Assert that State has been updated correctly
+        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChange));
+
+        // Assert that the begin date has been set
+        assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
+
+        // Assert that the end date has been set
+        assertThat(state.getPhase(PARTITIONING).getEndDate(), not(nullValue()));
+
+        // Call deep copy constructor
+        State deepCopyState = new State(state);
+
+        // Assert that a new state instance has been created
+        assertThat(deepCopyState, not(state));
+
+        // Assert that the state elements contained within the state are new instances
+        assertStateElementNotEquals(deepCopyState, state);
+
+        // Assert that the values from the state instance, given as input to the deep copy constructor,
+        // has been copied correctly to the new state instance.
+        assertStateElementValuesEquals(deepCopyState.getPhase(PARTITIONING), state.getPhase(PARTITIONING));
+        assertStateElementValuesEquals(deepCopyState.getPhase(PROCESSING), state.getPhase(PROCESSING));
+        assertStateElementValuesEquals(deepCopyState.getPhase(DELIVERING), state.getPhase(DELIVERING));
+    }
+
+
     @Test(expected = NullPointerException.class)
     public void updateState_changeStateIsNull_throws() {
         State state = new State();
@@ -319,6 +351,23 @@ public class StateTest {
         for(StateChange stateChange : stateChangeList) {
             state.updateState(stateChange);
         }
+    }
+
+    private void assertStateElementNotEquals(State state1, State state2) {
+        assertThat(state1.getPhase(PARTITIONING), not(state2.getPhase(PARTITIONING)));
+        assertThat(state1.getPhase(PROCESSING), not(state2.getPhase(PROCESSING)));
+        assertThat(state1.getPhase(DELIVERING), not(state2.getPhase(DELIVERING)));
+    }
+
+    private void assertStateElementValuesEquals(StateElement stateElement1, StateElement stateElement2) {
+        assertThat(stateElement1.getBeginDate(), is(stateElement2.getBeginDate()));
+        assertThat(stateElement1.getEndDate(), is(stateElement2.getEndDate()));
+        assertThat(stateElement1.getPending(), is(stateElement2.getPending()));
+        assertThat(stateElement1.getActive(), is(stateElement2.getActive()));
+        assertThat(stateElement1.getDone(), is(stateElement2.getDone()));
+        assertThat(stateElement1.getSucceeded(), is(stateElement2.getSucceeded()));
+        assertThat(stateElement1.getFailed(), is(stateElement2.getFailed()));
+        assertThat(stateElement1.getIgnored(), is(stateElement2.getIgnored()));
     }
 
     private void assertStateAfterChange(StateElement stateElement, List<StateChange> stateChangeList) {

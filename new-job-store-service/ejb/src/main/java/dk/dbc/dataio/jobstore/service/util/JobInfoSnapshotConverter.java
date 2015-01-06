@@ -1,8 +1,5 @@
 package dk.dbc.dataio.jobstore.service.util;
 
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-
 public final class JobInfoSnapshotConverter {
 
     /**
@@ -17,6 +14,7 @@ public final class JobInfoSnapshotConverter {
      * @param jobEntity the job entity
      * @return jobInfoSnapshot containing information about the job from one exact moment in time (now)
      */
+    /* TODO - temporarily commented out as not in use yet
     private static JobInfoSnapshot toJobInfoSnapshot(JobEntity jobEntity) {
         JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot();
         jobInfoSnapshot.setJobId(jobEntity.getId());
@@ -33,4 +31,5 @@ public final class JobInfoSnapshotConverter {
         jobInfoSnapshot.setState(jobEntity.getState());
         return jobInfoSnapshot;
     }
+    */
 }

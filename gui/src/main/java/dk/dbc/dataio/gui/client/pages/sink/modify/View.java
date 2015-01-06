@@ -30,18 +30,21 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Label status;
 
     @UiHandler("name")
+    @SuppressWarnings("unused")
     void nameChanged(ValueChangeEvent<String> event) {
         presenter.nameChanged(name.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("resource")
+    @SuppressWarnings("unused")
     void resourceChanged(ValueChangeEvent<String> event) {
         presenter.resourceChanged(resource.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("saveButton")
+    @SuppressWarnings("unused")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
     }

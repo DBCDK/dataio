@@ -1,0 +1,132 @@
+package dk.dbc.dataio.gui.client.pages.submitter.show;
+
+
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.view.client.ListDataProvider;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
+
+import java.util.List;
+
+/**
+ * This class is the View class for the Submitters Show View
+ */
+public class View extends ViewWidget {
+    ListDataProvider<SubmitterModel> dataProvider;
+
+    /**
+     * Default constructor
+     *
+     * @param header The header text for the View
+     * @param texts  The I8n texts for this view
+     */
+    public View(String header, Texts texts) {
+        super(header, texts);
+        setupColumns();
+    }
+
+
+    /**
+     * This method is used to put data into the view
+     *
+     * @param submitterModels The list of submitters to put into the view
+     */
+    public void setSubmitters(List<SubmitterModel> submitterModels) {
+        dataProvider.getList().clear();
+        dataProvider.getList().addAll(submitterModels);
+    }
+
+
+    /**
+     * Private methods
+     */
+
+
+    /**
+     * This method sets up all columns in the view
+     * It is called before data has been applied to the view - data is being applied in the setSubmitters method
+     */
+    @SuppressWarnings("unchecked")
+    private void setupColumns() {
+        dataProvider = new ListDataProvider<SubmitterModel>();
+        dataProvider.addDataDisplay(submittersTable);
+
+        submittersTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_Number());
+        submittersTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
+        submittersTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
+        submittersTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
+    }
+
+    /**
+     * This method constructs the SubmitterNumber column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed SubmitterNumber column
+     */
+    Column constructSubmitterNumberColumn() {
+        return new TextColumn<SubmitterModel>() {
+            @Override
+            public String getValue(SubmitterModel model) {
+                return model.getNumber();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Name column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Name column
+     */
+    Column constructNameColumn() {
+        return new TextColumn<SubmitterModel>() {
+            @Override
+            public String getValue(SubmitterModel model) {
+                return model.getName();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Description column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Description column
+     */
+    Column constructDescriptionColumn() {
+        return new TextColumn<SubmitterModel>() {
+            @Override
+            public String getValue(SubmitterModel model) {
+                return model.getDescription();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Action column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Action column
+     */
+    @SuppressWarnings("unchecked")
+    Column constructActionColumn() {
+        Column column = new Column<SubmitterModel, String>(new ButtonCell()) {
+            @Override
+            public String getValue(SubmitterModel model) {
+                // The value to display in the button.
+                return texts.button_Edit();
+            }
+        };
+
+        column.setFieldUpdater(new FieldUpdater<SubmitterModel, String>() {
+            @Override
+            public void update(int index, SubmitterModel model, String buttonText) {
+                presenter.editSubmitter(model);
+            }
+        });
+    return column;
+    }
+
+}

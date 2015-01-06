@@ -7,7 +7,7 @@ package dk.dbc.dataio.gui.client.pages.submitter.modify;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 
 
 /**
@@ -20,8 +20,8 @@ public class EditPlace extends Place {
         this.submitterId = Long.valueOf(url);
     }
 
-    public EditPlace(Submitter submitter) {
-        this.submitterId = submitter.getId();
+    public EditPlace(SubmitterModel model) {
+        this.submitterId = model.getId();
     }
 
     public Long getSubmitterId() {

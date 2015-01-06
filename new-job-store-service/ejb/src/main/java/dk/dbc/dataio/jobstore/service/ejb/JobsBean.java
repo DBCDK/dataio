@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -51,7 +52,8 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JobStoreException, JSONBException {
         LOGGER.trace("JobInputStream: {}", jobInputStreamData);
-        JobInputStream jobInputStream;
+        final JobInputStream jobInputStream;
+
         try {
             jobInputStream = jsonbBean.getContext().unmarshall(jobInputStreamData, JobInputStream.class);
 
@@ -61,9 +63,10 @@ public class JobsBean {
                     .build();
         }
 
-        jobStoreBean.addAndScheduleJob(jobInputStream);
+        final JobInfoSnapshot jobInfoSnapshot = jobStoreBean.addAndScheduleJob(jobInputStream);
+
         return Response.created(getUri(uriInfo, DUMMY_JOB_ID))
-                .entity(jsonbBean.getContext().marshall(jobInputStream))
+                .entity(jsonbBean.getContext().marshall(jobInfoSnapshot))
                 .build();
     }
 

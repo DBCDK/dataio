@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,21 +43,22 @@ public class JobStoreServiceConnector {
 
     /**
      * Creates new job defined by given job specification in the job-store
-     * @param jobInputStream containing the job specification, part number and information regarding
-     *                       whether or not the job has finished
+     *
+     * @param jobInputStream containing the job specification
+     * @return JobInfoSnapshot displaying job information from one exact moment in time.
      *
      * @throws NullPointerException if given null-valued argument
      * @throws ProcessingException on general communication error
      * @throws JobStoreServiceConnectorException on general failure to create job
      */
-    public void addJob(JobInputStream jobInputStream) throws NullPointerException, ProcessingException, JobStoreServiceConnectorException {
+    public JobInfoSnapshot addJob(JobInputStream jobInputStream) throws NullPointerException, ProcessingException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
             final Response response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
-                readResponseEntity(response, JobInputStream.class);
+                return readResponseEntity(response, JobInfoSnapshot.class);
             } finally {
                 response.close();
             }

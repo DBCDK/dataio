@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,8 +80,12 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addJob_jobIsCreated() throws JobStoreServiceConnectorException {
-        addJob_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), getNewJobInputStream());
+        addJob_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), getJobInfoSnapshot());
     }
+
+    /*
+     * Private methods
+     */
 
     // Helper method
     private void addJob_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
@@ -91,13 +96,17 @@ public class JobStoreServiceConnectorTest {
         instance.addJob(jobInputStream);
     }
 
-    /*
-     * Private methods
-     */
-
     private static JobInputStream getNewJobInputStream() {
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         return new JobInputStream(jobSpecification, false, PART_NUMBER);
+    }
+
+    private static JobInfoSnapshot getJobInfoSnapshot() {
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot();
+        jobInfoSnapshot.setSinkName("SinkName");
+        jobInfoSnapshot.setFlowName("FlowName");
+        jobInfoSnapshot.setSpecification(new JobSpecificationBuilder().build());
+        return jobInfoSnapshot;
     }
 
     private static JobStoreServiceConnector newJobStoreServiceConnector() {

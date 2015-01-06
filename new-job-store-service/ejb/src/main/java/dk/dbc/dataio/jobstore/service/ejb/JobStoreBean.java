@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
@@ -29,19 +30,22 @@ public class JobStoreBean {
     @EJB
     PgJobStore jobStore;
 
-    public void addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
+    public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         LOGGER.trace("JobSpec: {}", jobInputStream.getJobSpecification());
         FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
         Flow flow = getFlowOrThrow(flowBinder.getId());
         Sink sink = getSinkOrThrow(flowBinder.getId());
 
-        /*int flowId = jobStore.addEntity(flow);
-        int sinkId = jobStore.addEntity(sink);*/
-
+        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot();
+        jobInfoSnapshot.setSinkName(sink.getContent().getName());
+        jobInfoSnapshot.setFlowName(flow.getContent().getName());
+        jobInfoSnapshot.setSpecification(jobInputStream.getJobSpecification());
         LOGGER.debug("THIS SHOULD NOT BE LOGGED - CURRENTLY LOGS TO AVOID PMD-WARNINGS!: {} {}", flow.getId(), sink.getId());
 
         LOGGER.debug("addAndScheduleJob for job [{}] took (ms): {}", "", stopWatch.getElapsedTime());
+
+        return jobInfoSnapshot;
     }
 
     // Method is package-private for unittesting purposes

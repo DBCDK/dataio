@@ -113,7 +113,7 @@ public class State {
      *
      * Note: regarding asynchronous returns:
      * We are assuming its possible for delivering to be marked as "finished" before processing
-     * is makes as "finished" due to asynchronous returns.
+     * is marked as "finished" due to asynchronous returns.
      * -> Our current requirements might need polishing later on.
      *
      * @param stateElement partitioning, processing or delivering

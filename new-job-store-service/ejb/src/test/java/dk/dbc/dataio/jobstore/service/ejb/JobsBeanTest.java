@@ -2,7 +2,9 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
@@ -14,7 +16,10 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,25 +46,17 @@ public class JobsBeanTest {
         when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
     }
 
-    @Test
-    public void addJob_returnsResponseWithHttpStatusCreated_returnsJobInputStreamEntity() throws Exception {
+    @Test(expected = JobStoreException.class)
+    public void addJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception{
         final URI uri = new URI(LOCATION);
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
         final String jobInputStreamJson = jsonbContext.marshall(jobInputStream);
 
         when(mockedUriBuilder.build()).thenReturn(uri);
+        when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenThrow(new JobStoreException("Error"));
 
-        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
-
-        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-        assertThat(response.getLocation().toString(), is(LOCATION));
-        assertThat(response.hasEntity(), is(true));
-
-        JobInputStream returnedJobInputStreamEntity
-                = jsonbContext.unmarshall((String) response.getEntity(), JobInputStream.class);
-
-        assertJobInputStreamEquals(returnedJobInputStreamEntity, jobInputStream);
+        jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
     }
 
     @Test
@@ -71,15 +68,31 @@ public class JobsBeanTest {
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 
+    @Test
+    public void addJob_returnsResponseWithHttpStatusCreated_returnsJobOverview() throws Exception {
+        final URI uri = new URI(LOCATION);
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+        final String jobInputStreamJson = jsonbContext.marshall(jobInputStream);
+        final JobInfoSnapshot jobInfoSnapshot = getJobOverview();
+
+        when(mockedUriBuilder.build()).thenReturn(uri);
+        when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
+
+        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
+
+        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        assertThat(response.getLocation().toString(), is(LOCATION));
+        assertThat(response.hasEntity(), is(true));
+
+        JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
+        assertThat(returnedJobInfoSnapshot, not(nullValue()));
+        assertJobSpecificationEquals(returnedJobInfoSnapshot.getSpecification(), jobSpecification);
+    }
+
     /*
      Private methods
     */
-
-    private void assertJobInputStreamEquals(JobInputStream jobInputStream1, JobInputStream jobInputStream2) {
-        assertThat(jobInputStream1.getIsEndOfJob(), is(jobInputStream2.getIsEndOfJob()));
-        assertThat(jobInputStream1.getPartNumber(), is(jobInputStream2.getPartNumber()));
-        assertJobSpecificationEquals(jobInputStream1.getJobSpecification(), jobInputStream2.getJobSpecification());
-    }
 
     private void assertJobSpecificationEquals(JobSpecification jobSpecification1, JobSpecification jobSpecification2) {
         assertThat(jobSpecification1.getFormat(), is(jobSpecification2.getFormat()));
@@ -97,6 +110,14 @@ public class JobsBeanTest {
         jobsBean = new JobsBean();
         jobsBean.jsonbBean = new JSONBBean();
         jobsBean.jsonbBean.initialiseContext();
+    }
+
+    private JobInfoSnapshot getJobOverview() {
+        JobInfoSnapshot jobOverview = new JobInfoSnapshot();
+        jobOverview.setSinkName("sinkName");
+        jobOverview.setFlowName("flowName");
+        jobOverview.setSpecification(new JobSpecificationBuilder().build());
+        return jobOverview;
     }
 
 }

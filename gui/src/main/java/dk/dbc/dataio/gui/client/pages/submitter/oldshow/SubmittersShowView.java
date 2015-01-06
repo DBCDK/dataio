@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.submitter.show;
+package dk.dbc.dataio.gui.client.pages.submitter.oldshow;
 
 import com.google.gwt.user.client.ui.IsWidget;
 import dk.dbc.dataio.commons.types.Submitter;

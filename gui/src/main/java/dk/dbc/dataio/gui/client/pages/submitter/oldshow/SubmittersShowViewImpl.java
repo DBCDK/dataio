@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.submitter.show;
+package dk.dbc.dataio.gui.client.pages.submitter.oldshow;
 
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;

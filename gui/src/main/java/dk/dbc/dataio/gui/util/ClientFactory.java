@@ -8,7 +8,7 @@ import dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowView;
 import dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowView;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowView;
 import dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView;
-import dk.dbc.dataio.gui.client.pages.submitter.show.SubmittersShowView;
+import dk.dbc.dataio.gui.client.pages.submitter.oldshow.SubmittersShowView;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;

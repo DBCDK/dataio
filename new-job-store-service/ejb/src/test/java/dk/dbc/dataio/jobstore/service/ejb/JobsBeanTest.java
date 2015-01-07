@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
@@ -14,6 +15,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -74,7 +76,7 @@ public class JobsBeanTest {
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
         final String jobInputStreamJson = jsonbContext.marshall(jobInputStream);
-        final JobInfoSnapshot jobInfoSnapshot = getJobOverview();
+        final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot();
 
         when(mockedUriBuilder.build()).thenReturn(uri);
         when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
@@ -112,12 +114,20 @@ public class JobsBeanTest {
         jobsBean.jsonbBean.initialiseContext();
     }
 
-    private JobInfoSnapshot getJobOverview() {
-        JobInfoSnapshot jobOverview = new JobInfoSnapshot();
-        jobOverview.setSinkName("sinkName");
-        jobOverview.setFlowName("flowName");
-        jobOverview.setSpecification(new JobSpecificationBuilder().build());
-        return jobOverview;
+    private JobInfoSnapshot getJobInfoSnapshot() {
+        return new JobInfoSnapshot(
+                1,
+                false,
+                2344,
+                10,
+                10,
+                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis()),
+                null,
+                new JobSpecificationBuilder().build(),
+                new State(),
+                "FlowName",
+                "SinkName");
     }
 
 }

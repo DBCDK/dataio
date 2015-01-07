@@ -15,6 +15,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFacto
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 @Stateless
 public class JobStoreBean {
@@ -69,15 +71,24 @@ public class JobStoreBean {
         Flow flow = getFlowOrThrow(flowBinder.getId());
         Sink sink = getSinkOrThrow(flowBinder.getId());
 
-        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot();
-        jobInfoSnapshot.setSinkName(sink.getContent().getName());
-        jobInfoSnapshot.setFlowName(flow.getContent().getName());
-        jobInfoSnapshot.setSpecification(jobInputStream.getJobSpecification());
         LOGGER.debug("THIS SHOULD NOT BE LOGGED - CURRENTLY LOGS TO AVOID PMD-WARNINGS!: {} {}", flow.getId(), sink.getId());
 
         LOGGER.debug("addAndScheduleJob for job [{}] took (ms): {}", "", stopWatch.getElapsedTime());
 
-        return jobInfoSnapshot;
+        //TODO - this is a dummy return and should be replaced
+        return new JobInfoSnapshot(
+                1,
+                false,
+                2344,
+                10,
+                10,
+                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis()),
+                null,
+                jobInputStream.getJobSpecification(),
+                new State(),
+                flow.getContent().getName(),
+                sink.getContent().getName());
     }
 
     // Method is package-private for unittesting purposes

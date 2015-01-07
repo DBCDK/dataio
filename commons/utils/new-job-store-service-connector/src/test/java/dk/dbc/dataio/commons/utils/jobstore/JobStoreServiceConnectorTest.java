@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +16,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -102,11 +104,19 @@ public class JobStoreServiceConnectorTest {
     }
 
     private static JobInfoSnapshot getJobInfoSnapshot() {
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshot();
-        jobInfoSnapshot.setSinkName("SinkName");
-        jobInfoSnapshot.setFlowName("FlowName");
-        jobInfoSnapshot.setSpecification(new JobSpecificationBuilder().build());
-        return jobInfoSnapshot;
+        return new JobInfoSnapshot(
+                42,
+                false,
+                2344,
+                10,
+                10,
+                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis()),
+                null,
+                new JobSpecificationBuilder().build(),
+                new State(),
+                "FlowName",
+                "SinkName");
     }
 
     private static JobStoreServiceConnector newJobStoreServiceConnector() {

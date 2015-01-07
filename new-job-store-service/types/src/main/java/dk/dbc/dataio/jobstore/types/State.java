@@ -153,4 +153,21 @@ public class State {
     private Date getDateWithCurrentTime() {
         return new Date(System.currentTimeMillis());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof State)) return false;
+
+        State state = (State) o;
+
+        if (!states.equals(state.states)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return states.hashCode();
+    }
 }

@@ -97,4 +97,36 @@ public class StateElement {
     public void setIgnored(int ignored) {
         this.ignored = ignored;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StateElement)) return false;
+
+        StateElement that = (StateElement) o;
+
+        if (active != that.active) return false;
+        if (done != that.done) return false;
+        if (failed != that.failed) return false;
+        if (ignored != that.ignored) return false;
+        if (pending != that.pending) return false;
+        if (succeeded != that.succeeded) return false;
+        if (beginDate != null ? !beginDate.equals(that.beginDate) : that.beginDate != null) return false;
+        if (endDate != null ? !endDate.equals(that.endDate) : that.endDate != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = beginDate != null ? beginDate.hashCode() : 0;
+        result = 31 * result + (endDate != null ? endDate.hashCode() : 0);
+        result = 31 * result + pending;
+        result = 31 * result + active;
+        result = 31 * result + done;
+        result = 31 * result + succeeded;
+        result = 31 * result + failed;
+        result = 31 * result + ignored;
+        return result;
+    }
 }

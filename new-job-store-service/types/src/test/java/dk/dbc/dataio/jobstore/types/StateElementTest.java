@@ -18,7 +18,7 @@ public class StateElementTest {
     public void deepCopyConstructor_stateElementArg_returnsNewInstanceWithCopiedValues() {
         StateElement stateElement = getStateElement();
         StateElement stateElementDeepCopy = new StateElement(stateElement);
-        assertStateElementEquals(stateElementDeepCopy, stateElement);
+        assertThat(stateElementDeepCopy, is(stateElement));
     }
 
     /*
@@ -34,17 +34,6 @@ public class StateElementTest {
         assertThat(stateElement.getSucceeded(), is(0));
         assertThat(stateElement.getFailed(), is(0));
         assertThat(stateElement.getIgnored(), is(0));
-    }
-
-    private void assertStateElementEquals(StateElement stateElement1, StateElement stateElement2) {
-        assertThat(stateElement1.getBeginDate(), is(stateElement2.getBeginDate()));
-        assertThat(stateElement1.getEndDate(), is(stateElement2.getEndDate()));
-        assertThat(stateElement1.getPending(), is(stateElement2.getPending()));
-        assertThat(stateElement1.getActive(), is(stateElement2.getActive()));
-        assertThat(stateElement1.getDone(), is(stateElement2.getDone()));
-        assertThat(stateElement1.getSucceeded(), is(stateElement2.getSucceeded()));
-        assertThat(stateElement1.getFailed(), is(stateElement2.getFailed()));
-        assertThat(stateElement1.getIgnored(), is(stateElement2.getIgnored()));
     }
 
     private StateElement getStateElement() {

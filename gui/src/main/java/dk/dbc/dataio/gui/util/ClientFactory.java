@@ -53,7 +53,7 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();
     dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView getSinksShowView();
     dk.dbc.dataio.gui.client.pages.javascriptlog.View getJavaScriptLogView();
-    dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowView getFlowBindersShowView();
+    dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowView getFlowBindersShowView();
     dk.dbc.dataio.gui.client.pages.faileditems.View getFaileditemsView();
 
     AppPlaceHistoryMapper getHistoryMapper();

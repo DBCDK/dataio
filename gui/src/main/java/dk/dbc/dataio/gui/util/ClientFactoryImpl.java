@@ -37,7 +37,7 @@ public class ClientFactoryImpl implements ClientFactory {
     // Menu texts constants declarations
     private final static dk.dbc.dataio.gui.client.pages.submitter.show.Texts submittersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.submitter.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowTexts flowsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowTexts.class);
-    private final static dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowTexts flowBindersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowTexts.class);
+    private final static dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowTexts flowBindersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.sink.show.SinksShowTexts sinksShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.show.SinksShowTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.job.show.Texts jobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.javascriptlog.Texts javaScriptLogShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.javascriptlog.Texts.class);
@@ -88,7 +88,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(jobsShowTexts.menu_Jobs(), jobsShowTexts, imageResources);
     private final dk.dbc.dataio.gui.client.pages.javascriptlog.View javaScriptLogView = new dk.dbc.dataio.gui.client.pages.javascriptlog.View(javaScriptLogShowTexts.menu_JavaScriptLogShow());
     private final dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView sinksShowView = new dk.dbc.dataio.gui.client.pages.sink.show.SinksShowViewImpl();
-    private final dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowView flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowViewImpl();
+    private final dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowView flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowViewImpl();
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(submitterModifyTexts.menu_SubmitterCreation());
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(submitterModifyTexts.menu_SubmitterEdit());
     private final dk.dbc.dataio.gui.client.pages.faileditems.View faileditemsView = new dk.dbc.dataio.gui.client.pages.faileditems.View(failedItemsTexts.label_JobId(), failedItemsTexts);
@@ -105,7 +105,7 @@ public class ClientFactoryImpl implements ClientFactory {
         MenuItem createFlowComponent = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENT_CREATE, flowComponentModifyTexts.menu_FlowComponentCreation(), new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace());
         MenuItem showFlowComponents = new MenuItem(GUIID_MENU_ITEM_FLOW_COMPONENTS_SHOW, flowComponentsShowTexts.menu_FlowComponentsShow(), new dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowPlace());
         MenuItem createFlowBinder = new MenuItem(GUIID_MENU_ITEM_FLOWBINDER_CREATE, flowBinderModifyTexts.menu_FlowBinderCreation(), new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace());
-        MenuItem showFlowBinders = new MenuItem(GUIID_MENU_ITEM_FLOW_BINDERS_SHOW, flowBindersShowTexts.menu_FlowBindersShow(), new dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowPlace());
+        MenuItem showFlowBinders = new MenuItem(GUIID_MENU_ITEM_FLOW_BINDERS_SHOW, flowBindersShowTexts.menu_FlowBindersShow(), new dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowPlace());
         MenuItem flowsMenu = new MenuItem(GUIID_MENU_ITEM_FLOWS_SHOW, flowsShowTexts.menu_Flows(), new dk.dbc.dataio.gui.client.pages.flow.show.FlowsShowPlace(),
                                           createFlow,
                                           createFlowComponent,
@@ -201,8 +201,8 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof dk.dbc.dataio.gui.client.pages.sink.show.SinksShowPlace) {
             return new dk.dbc.dataio.gui.client.pages.sink.show.SinksShowActivity(this);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowPlace) {
-            return new dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowActivity(this);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowPlace) {
+            return new dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowActivity(this);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace) {
             return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(place, this, failedItemsTexts);
@@ -327,7 +327,7 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.show.FlowBindersShowView getFlowBindersShowView() {
+    public dk.dbc.dataio.gui.client.pages.flowbinder.oldshow.FlowBindersShowView getFlowBindersShowView() {
         return flowBindersShowView;
     }
 

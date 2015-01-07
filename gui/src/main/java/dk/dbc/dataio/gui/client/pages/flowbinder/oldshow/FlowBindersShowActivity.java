@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowbinder.show;
+package dk.dbc.dataio.gui.client.pages.flowbinder.oldshow;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;

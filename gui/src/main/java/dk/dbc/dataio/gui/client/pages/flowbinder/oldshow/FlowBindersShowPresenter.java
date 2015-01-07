@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowbinder.show;
+package dk.dbc.dataio.gui.client.pages.flowbinder.oldshow;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 import dk.dbc.dataio.gui.types.FlowBinderContentViewData;

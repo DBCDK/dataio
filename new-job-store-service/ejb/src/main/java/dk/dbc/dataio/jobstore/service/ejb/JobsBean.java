@@ -41,8 +41,9 @@ public class JobsBean {
     JobStoreBean jobStoreBean;
 
     @GET
-    public Response iOnlyExistForSanityTest() {
+    public Response iOnlyExistForSanityTest() throws JobStoreException {
         LOGGER.debug("some debug information");
+        jobStoreBean.testAddJob();
         return Response.ok().build();
     }
 

@@ -22,7 +22,10 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -117,6 +120,9 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
         private XMLEventReader xmlReader;
         private List<XMLEvent> preRecordEvents;
 
+        private Charset canonicalEncoding;
+        private Iterator<String> iterator;
+
         public DefaultXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
             this.inputStream = inputStream;
             this.expectedEncoding = expectedEncoding;
@@ -126,77 +132,94 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
         }
 
         @Override
-        public Iterator<String> iterator() throws DataException {
+        public Charset getEncoding() throws InvalidEncodingException {
             try {
-                xmlReader = XMLInputFactory.newFactory().createXMLEventReader(inputStream);
-                findPreRecordEvents();
-                findRootTagFromPreRecordEvents();
-                validateEncoding();
-            } catch (XMLStreamException e) {
-                throw new InvalidDataException(e);
+                if (canonicalEncoding == null) {
+                    canonicalEncoding = Charset.forName(expectedEncoding);
+                }
+                return canonicalEncoding;
+            } catch (IllegalCharsetNameException | UnsupportedCharsetException e) {
+                throw new InvalidEncodingException(String.format(
+                        "Invalid encoding specified '%s'", expectedEncoding), e);
             }
+        }
 
-            return new Iterator<String>() {
-                /**
-                 * @inheritDoc
-                 */
-                @Override
-                public boolean hasNext() throws DataException {
-                    try {
-                        return hasNextRecord();
-                    } catch (XMLStreamException e) {
-                        throw new DataException(e);
-                    }
+        @Override
+        public Iterator<String> iterator() throws DataException {
+            if (iterator == null) {
+                try {
+                    xmlReader = XMLInputFactory.newFactory().createXMLEventReader(inputStream);
+                    findPreRecordEvents();
+                    findRootTagFromPreRecordEvents();
+                    validateEncoding();
+                } catch (XMLStreamException e) {
+                    throw new InvalidDataException(e);
                 }
 
-                /**
-                 * @inheritDoc
-                 */
-                @Override
-                public String next() throws DataException {
-                    try {
-                        // A note about optimization:
-                        // It seems possible to move ByteArrayOutputStream,
-                        // OutputStreamWriter and BufferedWriter out as private members
-                        // of DefaultXMLRecordSplitter, and at each iteration call baos.reset();
-                        // I'm not sure if the XMLEventWriter is reusable - look into it
-                        // if you want to optimize.
-                        //
-                        // Another optimization point may be writing directly to the XMLEventWriter
-                        // instead of storing the XMLEVents in a List for later writing.
-                        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        final Writer writer = new BufferedWriter(new OutputStreamWriter(baos, encoding));
-                        final XMLEventWriter xmlWriter = xmlOutputFactory.createXMLEventWriter(writer);
-
-                        for (XMLEvent e : preRecordEvents) {
-                            xmlWriter.add(e);
+                iterator = new Iterator<String>() {
+                    /**
+                     * @inheritDoc
+                     */
+                    @Override
+                    public boolean hasNext() throws DataException {
+                        try {
+                            return hasNextRecord();
+                        } catch (XMLStreamException e) {
+                            throw new DataException(e);
                         }
-
-                        final List<XMLEvent> recordEvents = findRecordEvents();
-                        for (XMLEvent e : recordEvents) {
-                            xmlWriter.add(e);
-                        }
-                        xmlWriter.add(xmlEventFactory.createEndElement("", null, rootTag));
-                        xmlWriter.add(xmlEventFactory.createEndDocument());
-                        xmlWriter.close();
-
-                        return baos.toString(encoding);
-                    } catch (XMLStreamException | UnsupportedEncodingException e) {
-                        LOGGER.error("Exception caught", e);
-                        throw new InvalidDataException(e);
                     }
-                }
 
-                /**
-                 * @inheritDoc This method does not do anything.
-                 */
-                @Override
-                public void remove() {
-                }
-            };
+                    /**
+                     * @inheritDoc
+                     */
+                    @Override
+                    public String next() throws DataException {
+                        try {
+                            // A note about optimization:
+                            // It seems possible to move ByteArrayOutputStream,
+                            // OutputStreamWriter and BufferedWriter out as private members
+                            // of DefaultXMLRecordSplitter, and at each iteration call baos.reset();
+                            // I'm not sure if the XMLEventWriter is reusable - look into it
+                            // if you want to optimize.
+                            //
+                            // Another optimization point may be writing directly to the XMLEventWriter
+                            // instead of storing the XMLEVents in a List for later writing.
+                            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            final Writer writer = new BufferedWriter(new OutputStreamWriter(baos, encoding));
+                            final XMLEventWriter xmlWriter = xmlOutputFactory.createXMLEventWriter(writer);
+
+                            for (XMLEvent e : preRecordEvents) {
+                                xmlWriter.add(e);
+                            }
+
+                            final List<XMLEvent> recordEvents = findRecordEvents();
+                            for (XMLEvent e : recordEvents) {
+                                xmlWriter.add(e);
+                            }
+                            xmlWriter.add(xmlEventFactory.createEndElement("", null, rootTag));
+                            xmlWriter.add(xmlEventFactory.createEndDocument());
+                            xmlWriter.close();
+
+                            return baos.toString(encoding);
+                        } catch (XMLStreamException | UnsupportedEncodingException e) {
+                            LOGGER.error("Exception caught", e);
+                            throw new InvalidDataException(e);
+                        }
+                    }
+
+                    /**
+                     * @inheritDoc This method does not do anything.
+                     */
+                    @Override
+                    public void remove() {
+                    }
+                };
+            }
+            return iterator;
         }
 
         private void validateEncoding() throws InvalidEncodingException {
+            getEncoding();
             if (!EncodingsUtil.isEquivalent(encoding, expectedEncoding)) {
                 throw new InvalidEncodingException(String.format(
                         "Actual encoding '%s' differs from expected '%s' encoding", encoding, expectedEncoding));

@@ -220,7 +220,7 @@ public class PgJobStoreIT {
      * Given: a job store without items
      * When : an item is given as input to pgJobStore.persistItem()
      * Then : the item is persisted
-     * And  : the auto generated fields are set in the resulting item entity
+     * And  : the auto generated fields are set in the resulting item entity after manual refresh
      *
      * @throws JobStoreException
      * @throws SQLException
@@ -241,6 +241,7 @@ public class PgJobStoreIT {
         entityManager.getTransaction().begin();
         final ItemEntity addedItem = pgJobStore.persistItem(item);
         entityManager.getTransaction().commit();
+        entityManager.refresh(addedItem);
 
         // Then...
         assertThat("table size", getSizeOfTable(ITEM_TABLE_NAME), is(1L));

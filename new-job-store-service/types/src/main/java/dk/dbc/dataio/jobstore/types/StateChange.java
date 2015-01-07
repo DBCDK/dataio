@@ -29,30 +29,32 @@ public class StateChange {
      * @return the date marking the begin time stamp
      */
     public Date getBeginDate() {
-        return beginDate;
+        return beginDate != null ? new Date(beginDate.getTime()) : null;
     }
 
     /**
      * Sets the begin date
      * @param beginDate marking the start time
      */
-    public void setBeginDate(Date beginDate) {
-        this.beginDate = beginDate;
+    public StateChange setBeginDate(Date beginDate) {
+        this.beginDate = new Date(beginDate.getTime());
+        return this;
     }
 
     /**
      * @return the date marking the end time stamp (null if end is not reached)
      */
     public Date getEndDate() {
-        return endDate;
+        return endDate != null ? new Date(endDate.getTime()) : null;
     }
 
     /**
      * Sets the end date
      * @param endDate marking the end time
      */
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
+    public StateChange setEndDate(Date endDate) {
+        this.endDate = new Date(endDate.getTime());
+        return this;
     }
 
     /**
@@ -67,8 +69,9 @@ public class StateChange {
      * (must be equal or larger than 0)
      * @param succeeded number
      */
-    public void setSucceeded(int succeeded) {
+    public StateChange setSucceeded(int succeeded) {
         this.succeeded = (int)InvariantUtil.checkLowerBoundOrThrow(succeeded, "succeeded", 0);
+        return this;
     }
 
     /**
@@ -83,8 +86,9 @@ public class StateChange {
      * (must be equal or larger than 0)
      * @param failed number
      */
-    public void setFailed(int failed) {
+    public StateChange setFailed(int failed) {
         this.failed = (int)InvariantUtil.checkLowerBoundOrThrow(failed, "failed", 0);
+        return this;
     }
 
     /**
@@ -99,8 +103,9 @@ public class StateChange {
      * (must be equal or larger than 0)
      * @param ignored number
      */
-    public void setIgnored(int ignored) {
+    public StateChange setIgnored(int ignored) {
         this.ignored = (int)InvariantUtil.checkLowerBoundOrThrow(ignored, "ignored", 0);
+        return this;
     }
 
     /**
@@ -114,8 +119,9 @@ public class StateChange {
      * Sets the number which the lifecycle pending is to be incremented with
      * @param pending number
      */
-    public void setPending(int pending) {
+    public StateChange setPending(int pending) {
         this.pending = pending;
+        return this;
     }
 
     /**
@@ -129,8 +135,9 @@ public class StateChange {
      * Sets the number which the lifecycle active is to be incremented with
      * @param active number
      */
-    public void setActive(int active) {
+    public StateChange setActive(int active) {
         this.active = active;
+        return this;
     }
 
     /**
@@ -145,7 +152,8 @@ public class StateChange {
      * Sets the phase
      * @param phase (partitioning, processing, delivering)
      */
-    public void setPhase(State.Phase phase) {
+    public StateChange setPhase(State.Phase phase) {
         this.phase = phase;
+        return this;
     }
 }

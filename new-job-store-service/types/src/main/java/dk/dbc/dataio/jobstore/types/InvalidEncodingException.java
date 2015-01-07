@@ -6,4 +6,8 @@ public class InvalidEncodingException extends DataException {
     public InvalidEncodingException(String message) {
         super(message);
     }
+
+    public InvalidEncodingException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

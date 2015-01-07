@@ -654,6 +654,57 @@ public class DefaultXmlDataPartitionerTest {
         }
     }
 
+    @Test
+    public void getEncoding_returnsCanonicalEncoding() {
+        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+                .createDataPartitioner(asInputStream("<test/>"), "utf8");
+        assertThat(dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void getEncoding_illegalCharsetNameException_throws() {
+        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+                .createDataPartitioner(asInputStream("<test/>"), "[ILLEGAL_CHARSET_NAME]");
+        try {
+            dataPartitioner.getEncoding();
+            fail("No exception thrown");
+        } catch (InvalidEncodingException e) {
+        }
+    }
+
+    @Test
+    public void getEncoding_UnsupportedCharsetException_throws() {
+        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+                .createDataPartitioner(asInputStream("<test/>"), "UNKNOWN_CHARSET_NAME");
+        try {
+            dataPartitioner.getEncoding();
+            fail("No exception thrown");
+        } catch (InvalidEncodingException e) {
+        }
+    }
+
+    @Test
+    public void iterator_illegalCharsetNameException_throws() {
+        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+                .createDataPartitioner(asInputStream("<test/>"), "[ILLEGAL_CHARSET_NAME]");
+        try {
+            dataPartitioner.iterator();
+            fail("No exception thrown");
+        } catch (InvalidEncodingException e) {
+        }
+    }
+
+    @Test
+    public void iterator_UnsupportedCharsetException_throws() {
+        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+                .createDataPartitioner(asInputStream("<test/>"), "UNKNOWN_CHARSET_NAME");
+        try {
+            dataPartitioner.iterator();
+            fail("No exception thrown");
+        } catch (InvalidEncodingException e) {
+        }
+    }
+
     private InputStream asInputStream(String xml, Charset encoding) {
         return new ByteArrayInputStream(xml.getBytes(encoding));
     }

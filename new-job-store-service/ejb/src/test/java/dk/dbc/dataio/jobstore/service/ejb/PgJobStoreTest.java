@@ -134,7 +134,7 @@ public class PgJobStoreTest {
 
         assertThat(itemEntity, is(item));
         verify(entityManager).persist(item);
-        verify(entityManager).refresh(item);
+        //verify(entityManager).refresh(item);
     }
 
     /*

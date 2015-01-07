@@ -97,5 +97,4 @@ public class StateElement {
     public void setIgnored(int ignored) {
         this.ignored = ignored;
     }
-
 }

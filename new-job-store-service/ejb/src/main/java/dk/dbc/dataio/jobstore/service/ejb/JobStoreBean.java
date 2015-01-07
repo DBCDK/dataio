@@ -7,6 +7,11 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -16,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 @Stateless
 public class JobStoreBean {
@@ -29,6 +36,31 @@ public class JobStoreBean {
 
     @EJB
     PgJobStore jobStore;
+
+    public void testAddJob() throws JobStoreException {
+        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                + "<records>"
+                + "<record>first</record>"
+                + "<record>second</record>"
+                + "<record>third</record>"
+                + "<record>fourth</record>"
+                + "<record>fifth</record>"
+                + "<record>sixth</record>"
+                + "<record>seventh</record>"
+                + "<record>eighth</record>"
+                + "<record>ninth</record>"
+                + "<record>tenth</record>"
+                + "<record>eleventh</record>"
+                + "</records>";
+
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+        final JobInputStream jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), true, 0);
+        final DataPartitionerFactory.DataPartitioner dataPartitioner =
+                new DefaultXmlDataPartitionerFactory().createDataPartitioner(
+                        new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
+        jobStore.addJob(jobInputStream, dataPartitioner, null, flow, sink);
+    }
 
     public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();

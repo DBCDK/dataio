@@ -14,6 +14,11 @@ import java.sql.Timestamp;
 @Entity
 @Table(name = "chunk")
 public class ChunkEntity {
+    /* Be advised that updating the internal state of a 'json' column
+       will not mark the field as dirty and therefore not result in a
+       database update. The only way to achieve an update is to replace
+       the field value with a new instance (long live copy constructors).
+     */
 
     @EmbeddedId
     private Key key;

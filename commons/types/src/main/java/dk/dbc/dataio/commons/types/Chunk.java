@@ -65,4 +65,12 @@ public class Chunk extends AbstractChunk implements Serializable {
     public Set<String> getKeys() {
         return new HashSet<>(keys);
     }
+
+    public static ExternalChunk convertToExternalChunk(Chunk chunk) {
+        ExternalChunk nChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PARTITIONED);
+        for(ChunkItem item : chunk.getItems()) {
+            nChunk.insertItem(item);
+        }
+        return nChunk;
+    }
 }

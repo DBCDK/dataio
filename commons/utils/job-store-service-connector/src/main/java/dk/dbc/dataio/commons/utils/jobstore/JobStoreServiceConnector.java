@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
@@ -228,6 +229,31 @@ public class JobStoreServiceConnector {
             LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
+
+    /**
+     * Retrieves the SupplementaryProcessData associated with job from job-store
+     * @param jobId Id of job
+     * @return SupplementaryProcessData
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on failure to retrieve SupplementaryProcessData
+     */
+    public SupplementaryProcessData getSupplementaryProcessData(long jobId) throws ProcessingException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_SUPPLEMENTARYPROCESSDATA)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, SupplementaryProcessData.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
 
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws JobStoreServiceConnectorException {
         if (actualStatus != expectedStatus) {

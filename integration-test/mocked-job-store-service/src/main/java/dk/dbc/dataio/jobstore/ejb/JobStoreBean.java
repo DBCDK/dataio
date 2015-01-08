@@ -15,6 +15,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -92,8 +93,11 @@ public class JobStoreBean {
         // <jobId, Sink>
         private final Map<Long, Sink> inMemorySinks = new HashMap<>();
 
-        // <jobId, Sink>
+        // <jobId, Flow>
         private final Map<Long, Flow> inMemoryFlows = new HashMap<>();
+
+        // <jobId, SupplementaryProcessData>
+        private final Map<Long, SupplementaryProcessData> inMemorySupplementaryProcessData = new HashMap<>();
 
         @Override
         public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException {
@@ -163,11 +167,18 @@ public class JobStoreBean {
         public Flow getFlow(long jobId) throws JobStoreException {
             return inMemoryFlows.get(jobId);
         }
+        
+        @Override
+        public SupplementaryProcessData getSupplementaryProcessData(long jobId) throws JobStoreException {
+            LOGGER.info("HELLEDUSSEDA: requesting jobId: " + jobId);
+            return inMemorySupplementaryProcessData.get(jobId);
+        }
 
         private void setupJob42() throws Exception {
             inMemoryJobStoreChunks.put(42L, buildChunksForJob42());
             inMemorySinks.put(42L, new SinkBuilder().build());
             inMemoryFlows.put(42L, buildToUpperFlow());
+            inMemorySupplementaryProcessData.put(42L, new SupplementaryProcessData(424242L, "something"));
         }
 
         private Map<Long, Chunk> buildChunksForJob42() throws Exception {

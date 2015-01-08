@@ -12,6 +12,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
@@ -392,6 +393,38 @@ public class JobsBean {
             throw new JobStoreException(String.format("Error marshalling flow for job %d", jobId), e);
         }
         LOGGER.debug("getFlow for job [{}] took (ms): {}", jobId, stopwatch.getElapsedTime());
+        return Response.ok().entity(entity).build();
+    }
+
+    /**
+     * Retrieves supplementaryProcessData for a job from underlying data store.
+     *
+     * @param jobId Id of job
+     *
+     * @return a HTTP 200 OK response with SupplementaryProcessData as JSON string,
+     *         a HTTP 404 NOT_FOUND if unable to locate job,
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws JobStoreException on error reading the supplementaryProcessData from store, or if unable
+     * to marshall retrieved SupplementaryProcessData to JSON.
+     */
+    @GET
+    @Path(JobStoreServiceConstants.JOB_SUPPLEMENTARYPROCESSDATA)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getSupplementaryProcessData(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId) throws JobStoreException {
+        final StopWatch stopwatch = new StopWatch();
+        LOGGER.info("Getting SupplementaryProcessData for job {}", jobId);
+        final SupplementaryProcessData supplementaryProcessData = jobStoreBean.getJobStore().getSupplementaryProcessData(jobId);
+        if (supplementaryProcessData == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        final String entity;
+        try {
+            entity = JsonUtil.toJson(supplementaryProcessData);
+        } catch (JsonException e) {
+            throw new JobStoreException(String.format("Error marshalling supplementaryProcessData for job %d", jobId), e);
+        }
+        LOGGER.debug("getSupplementaryProcessData for job [{}] took (ms): {}", jobId, stopwatch.getElapsedTime());
         return Response.ok().entity(entity).build();
     }
 

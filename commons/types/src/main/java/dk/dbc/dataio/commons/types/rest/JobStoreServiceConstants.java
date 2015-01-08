@@ -12,6 +12,7 @@ public class JobStoreServiceConstants {
     public static final String JOB_CHUNK           = "jobs/{jobId}/chunks/{chunkId}";
     public static final String JOB_PROCESSED       = "jobs/{jobId}/processed/{chunkId}";
     public static final String JOB_DELIVERED       = "jobs/{jobId}/delivered/{chunkId}";
+    public static final String JOB_SUPPLEMENTARYPROCESSDATA = "jobs/{jobId}/supplementaryprocessdata";
 
     private JobStoreServiceConstants() { }
 }

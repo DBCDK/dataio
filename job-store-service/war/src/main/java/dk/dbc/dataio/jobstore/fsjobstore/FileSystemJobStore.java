@@ -180,6 +180,17 @@ public class FileSystemJobStore implements JobStore {
     }
 
     @Override
+    public SupplementaryProcessData getSupplementaryProcessData(long jobId) throws JobStoreException {
+        final Path jobSpecificationPath = getJobSpecificationPath(jobId);
+        if (Files.exists(jobSpecificationPath)) {
+            JobSpecification jobSpecification = JsonFileUtil.getJsonFileUtil(LOCAL_CHARSET).readObjectFromFile(jobSpecificationPath, JobSpecification.class);
+            return createSupplementaryProcessData(jobSpecification);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public synchronized JobState getJobState(long jobId) throws JobStoreException {
         final Path jobStatePath = getJobStatePath(jobId);
         if (Files.exists(jobStatePath)) {
@@ -283,6 +294,10 @@ public class FileSystemJobStore implements JobStore {
 
     private Path getJobStatePath(long jobId) {
         return Paths.get(getJobPath(jobId).toString(), JOBSTATE_FILE);
+    }
+
+    private Path getJobSpecificationPath(long jobId) {
+        return Paths.get(getJobPath(jobId).toString(), JOBSPECIFICATION_FILE);
     }
 
     private Path getSinkPath(long jobId) {
@@ -471,6 +486,10 @@ public class FileSystemJobStore implements JobStore {
     }
 
     private SupplementaryProcessData createSupplementaryProcessData(Job job) {
-        return new SupplementaryProcessData(job.getJobInfo().getJobSpecification().getSubmitterId(), job.getJobInfo().getJobSpecification().getFormat());
+        return createSupplementaryProcessData(job.getJobInfo().getJobSpecification());
+    }
+
+    private SupplementaryProcessData createSupplementaryProcessData(JobSpecification jobSpecification) {
+        return new SupplementaryProcessData(jobSpecification.getSubmitterId(), jobSpecification.getFormat());
     }
 }

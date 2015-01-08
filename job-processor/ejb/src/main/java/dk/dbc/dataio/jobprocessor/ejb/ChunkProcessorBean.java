@@ -1,9 +1,9 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
@@ -44,16 +44,16 @@ public class ChunkProcessorBean {
      *
      * @return result of processing
      */
-    public ChunkResult process(Chunk chunk, Flow flow) {
+    public ChunkResult process(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
         final StopWatch stopWatchForChunk = new StopWatch();
         LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
         // final Flow flow = chunk.getFlow();
         List<ChunkItem> processedItems = new ArrayList<>();
 
-        if (chunk.getItems().size() > 0) {
+        if (chunk.size() > 0) {
             try {
                 JSWrapperSingleScript scriptWrapper = setupJavaScriptEnvironment(flow);
-                processedItems = processItemsWithLogStoreLogging(chunk, flow, scriptWrapper);
+                processedItems = processItemsWithLogStoreLogging(chunk, flow, supplementaryProcessData, scriptWrapper);
             } catch (Throwable ex) {
                 // Since we cannot have a failed chunk, we have to fail all items in the chunk
                 // with the Throwable from the javascript-enviroment failure.
@@ -81,11 +81,11 @@ public class ChunkProcessorBean {
         return scriptWrapper;
     }
 
-    private List<ChunkItem> processItemsWithLogStoreLogging(Chunk chunk, Flow flow, JSWrapperSingleScript scriptWrapper) {
+    private List<ChunkItem> processItemsWithLogStoreLogging(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData, JSWrapperSingleScript scriptWrapper) {
         List<ChunkItem> processedItems = new ArrayList<>();
-        for (ChunkItem item : chunk.getItems()) {
+        for (ChunkItem item : chunk) {
             final StopWatch stopWatchForItem = new StopWatch();
-            ChunkItem processedItem = setupLogStoreLoggingAndProcessItem(flow, scriptWrapper, item, chunk);
+            ChunkItem processedItem = setupLogStoreLoggingAndProcessItem(flow, supplementaryProcessData, scriptWrapper, item, chunk);
             processedItems.add(processedItem);
             LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
                     chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
@@ -93,12 +93,12 @@ public class ChunkProcessorBean {
         return processedItems;
     }
 
-    private ChunkItem setupLogStoreLoggingAndProcessItem(Flow flow, JSWrapperSingleScript scriptWrapper, ChunkItem inputItem, Chunk chunk) {
+    private ChunkItem setupLogStoreLoggingAndProcessItem(Flow flow, SupplementaryProcessData supplementaryProcessData, JSWrapperSingleScript scriptWrapper, ChunkItem inputItem, ExternalChunk chunk) {
         ChunkItem processedItem;
         try {
             MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY,
                     LogStoreTrackingId.create(String.valueOf(chunk.getJobId()), chunk.getChunkId(), inputItem.getId()).toString());
-            processedItem = processItem(flow, scriptWrapper, inputItem, chunk.getSupplementaryProcessData());
+            processedItem = processItem(flow, scriptWrapper, inputItem, supplementaryProcessData);
         } finally {
             MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
             // This timing assumes the use of LogStoreBufferedJdbcAppender to be meaningful
@@ -153,9 +153,9 @@ public class ChunkProcessorBean {
         return scriptWrapper.eval(jsonStr);
     }
 
-    private List<ChunkItem> failItemsWithThrowable(Chunk chunk, Throwable ex) {
+    private List<ChunkItem> failItemsWithThrowable(ExternalChunk chunk, Throwable ex) {
         List<ChunkItem> failedItems = new ArrayList<>();
-        for (ChunkItem item : chunk.getItems()) {
+        for (ChunkItem item : chunk) {
             failedItems.add(new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE));
         }
         return failedItems;

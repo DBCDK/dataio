@@ -79,6 +79,10 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         return type;
     }
 
+    public int size() {
+        return items.size();
+    }
+
     /**
      * Inserting ChunkItems into the Chunk.
      *

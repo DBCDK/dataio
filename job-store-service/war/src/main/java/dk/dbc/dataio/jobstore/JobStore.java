@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 
@@ -40,6 +41,8 @@ public interface JobStore {
     JobState getJobState(long jobId) throws JobStoreException;
 
     JobCompletionState getJobCompletionState(long jobId) throws JobStoreException;
+
+    SupplementaryProcessData getSupplementaryProcessData(long jobId) throws JobStoreException;
 
     Flow getFlow(long jobId) throws JobStoreException;
 }

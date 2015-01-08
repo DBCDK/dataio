@@ -62,7 +62,10 @@ public class JobStoreMessageConsumerBeanIT {
 
     @Test
     public void jobStoreMessageConsumerBean_invalidChunkOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, JsonException {
-        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(new ChunkBuilder().build());
+        final ChunkItem item = new ChunkItemBuilder().setId(0L).build();
+        final Chunk chunk = new ChunkBuilder().setItems(Arrays.asList(item)).build();
+        final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(chunk);
+        
         jobStoreMessage.setText("invalid");
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
@@ -77,6 +80,7 @@ public class JobStoreMessageConsumerBeanIT {
         final String itemData = "data";
 
         final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setId(0L)
                 .setData(Base64Util.base64encode(itemData))
                 .build();
 

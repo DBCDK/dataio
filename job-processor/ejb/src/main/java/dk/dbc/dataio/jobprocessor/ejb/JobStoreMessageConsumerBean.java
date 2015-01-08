@@ -3,8 +3,10 @@ package dk.dbc.dataio.jobprocessor.ejb;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -48,7 +50,8 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
      */
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final Chunk chunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), Chunk.class, MixIns.getMixIns());
+            final Chunk oldChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), Chunk.class, MixIns.getMixIns());
+            final ExternalChunk chunk = Chunk.convertToExternalChunk(oldChunk);
             LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
             process(chunk);
         } catch (JsonException e) {
@@ -57,15 +60,16 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         }
     }
 
-    private void process(Chunk chunk) throws JobProcessorException {
+    private void process(ExternalChunk chunk) throws JobProcessorException {
         final Sink sink = getSink(chunk);
         final Flow flow = getFlow(chunk);
-        final ChunkResult processorResult = chunkProcessor.process(chunk, flow);
+        final SupplementaryProcessData supplementaryProcessData = getSupplementaryProcessData(chunk);
+        final ChunkResult processorResult = chunkProcessor.process(chunk, flow, supplementaryProcessData);
         jobStoreMessageProducer.send(processorResult);
         sinkMessageProducer.send(processorResult, sink);
     }
 
-    private Sink getSink(Chunk chunk) throws JobProcessorException {
+    private Sink getSink(ExternalChunk chunk) throws JobProcessorException {
         try {
             return jobStoreServiceConnector.getSink(chunk.getJobId());
         } catch (JobStoreServiceConnectorException e) {
@@ -74,12 +78,21 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         }
     }
 
-    private Flow getFlow(Chunk chunk) throws JobProcessorException {
+    private Flow getFlow(ExternalChunk chunk) throws JobProcessorException {
         try {
             return jobStoreServiceConnector.getFlow(chunk.getJobId());
         } catch (JobStoreServiceConnectorException e) {
             throw new JobProcessorException(String.format(
                     "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
+        }
+    }
+
+    private SupplementaryProcessData getSupplementaryProcessData(ExternalChunk chunk) throws JobProcessorException {
+        try {
+            return jobStoreServiceConnector.getSupplementaryProcessData(chunk.getJobId());
+        } catch (JobStoreServiceConnectorException e) {
+            throw new JobProcessorException(String.format(
+                    "Exception caught while fetching supplementaryProcessData for job %s", chunk.getJobId()), e);
         }
     }
 }

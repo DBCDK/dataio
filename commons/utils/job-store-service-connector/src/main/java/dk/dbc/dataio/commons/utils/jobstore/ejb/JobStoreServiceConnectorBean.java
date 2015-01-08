@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -126,6 +127,20 @@ public class JobStoreServiceConnectorBean {
             throw new EJBException(e);
         }
     }
+
+    public SupplementaryProcessData getSupplementaryProcessData(long jobId) throws JobStoreServiceConnectorException {
+        LOGGER.debug("Retrieving jobSpecification for job[{}]", jobId);
+        try {
+            // performance: consider JNDI lookup cache or service-locator pattern
+            final String baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
+            final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(client, baseUrl);
+            return jobStoreServiceConnector.getSupplementaryProcessData(jobId);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+
 
     public JobStoreServiceConnector getConnector() {
         try {

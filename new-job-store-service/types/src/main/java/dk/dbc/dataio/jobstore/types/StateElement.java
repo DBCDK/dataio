@@ -5,9 +5,6 @@ import java.util.Date;
 public class StateElement {
     private Date beginDate;
     private Date endDate;
-    private int pending;
-    private int active;
-    private int done;
     private int succeeded;
     private int failed;
     private int ignored;
@@ -15,9 +12,6 @@ public class StateElement {
     public StateElement() {
         this.beginDate = null;
         this.endDate = null;
-        this.pending = 0;
-        this.active = 0;
-        this.done = 0;
         this.succeeded = 0;
         this.failed = 0;
         this.ignored = 0;
@@ -26,9 +20,6 @@ public class StateElement {
     public StateElement(StateElement stateElement) {
         this.beginDate = stateElement.getBeginDate();
         this.endDate = stateElement.getEndDate();
-        this.pending = stateElement.getPending();
-        this.active = stateElement.getActive();
-        this.done = stateElement.getDone();
         this.succeeded = stateElement.getSucceeded();
         this.failed = stateElement.getFailed();
         this.ignored = stateElement.getIgnored();
@@ -40,18 +31,6 @@ public class StateElement {
 
     public Date getEndDate() {
         return this.endDate == null ? null : new Date(this.endDate.getTime());
-    }
-
-    public int getPending() {
-        return pending;
-    }
-
-    public int getActive() {
-        return active;
-    }
-
-    public int getDone() {
-        return done;
     }
 
     public int getSucceeded() {
@@ -74,18 +53,6 @@ public class StateElement {
         this.endDate = endDate == null? null : new Date(endDate.getTime());
     }
 
-    public void setPending(int pending) {
-        this.pending = pending;
-    }
-
-    public void setActive(int active) {
-        this.active = active;
-    }
-
-    public void setDone(int done) {
-        this.done = done;
-    }
-
     public void setSucceeded(int succeeded) {
         this.succeeded = succeeded;
     }
@@ -105,11 +72,8 @@ public class StateElement {
 
         StateElement that = (StateElement) o;
 
-        if (active != that.active) return false;
-        if (done != that.done) return false;
         if (failed != that.failed) return false;
         if (ignored != that.ignored) return false;
-        if (pending != that.pending) return false;
         if (succeeded != that.succeeded) return false;
         if (beginDate != null ? !beginDate.equals(that.beginDate) : that.beginDate != null) return false;
         if (endDate != null ? !endDate.equals(that.endDate) : that.endDate != null) return false;
@@ -121,9 +85,6 @@ public class StateElement {
     public int hashCode() {
         int result = beginDate != null ? beginDate.hashCode() : 0;
         result = 31 * result + (endDate != null ? endDate.hashCode() : 0);
-        result = 31 * result + pending;
-        result = 31 * result + active;
-        result = 31 * result + done;
         result = 31 * result + succeeded;
         result = 31 * result + failed;
         result = 31 * result + ignored;

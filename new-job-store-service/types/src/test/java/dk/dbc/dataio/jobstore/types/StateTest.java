@@ -51,6 +51,10 @@ public class StateTest {
 
         // Assert that the values have been copied correctly by the deep copy constructor
         assertThat(deepCopyState, is(state));
+
+        // Assert that partitioning is done, that processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, false, false);
     }
 
 
@@ -83,6 +87,10 @@ public class StateTest {
 
         // Assert that the end date has been set
         assertThat(state.getPhase(PARTITIONING).getEndDate(), not(nullValue()));
+
+        // Assert that partitioning is done, that processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, false, false);
     }
 
     @Test
@@ -100,6 +108,10 @@ public class StateTest {
 
         // Assert that the end date has not been set
         assertThat(state.getPhase(PARTITIONING).getEndDate(), is(nullValue()));
+
+        // Assert that partitioning processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, false, false, false, false);
     }
 
     @Test
@@ -119,6 +131,10 @@ public class StateTest {
 
         // Assert that the beginDate on the state element object is the first beginDate
         assertThat(state.getPhase(PARTITIONING).getBeginDate(), is(stateChangeA.getBeginDate()));
+
+        // Assert that partitioning processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, false, false, false, false);
     }
 
     @Test
@@ -138,6 +154,10 @@ public class StateTest {
 
         // Assert that the endDate on the state element object is the first endDate
         assertThat(state.getPhase(PARTITIONING).getEndDate(), is(stateChangeA.getEndDate()));
+
+        // Assert that partitioning is done, that processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, false, false);
     }
 
     @Test
@@ -149,6 +169,10 @@ public class StateTest {
 
         // Assert that State has been updated correctly
         assertStateAfterChange(state.getPhase(PARTITIONING), stateChangeList);
+
+        // Assert that partitioning is done, that processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, false, false);
     }
 
     //******************************************* PROCESSING ******************************************
@@ -178,6 +202,10 @@ public class StateTest {
 
         // Assert that the end date has not been set
         assertThat(state.getPhase(PROCESSING).getEndDate(), is(nullValue()));
+
+        // Assert that partitioning is done, that processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, false, false);
     }
 
     @Test
@@ -197,6 +225,10 @@ public class StateTest {
 
         // Assert that the end date has been set
         assertThat(state.getPhase(PROCESSING).getEndDate(), not(nullValue()));
+
+        // Assert that partitioning and processing are done, that delivering is not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, true, false, false);
     }
 
     @Test
@@ -216,6 +248,10 @@ public class StateTest {
 
         // Assert that the end date has been set
         assertThat(state.getPhase(PROCESSING).getEndDate(), not(nullValue()));
+
+        // Assert that partitioning and processing are done, that delivering is not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, true, false, false);
     }
 
     @Test
@@ -237,6 +273,10 @@ public class StateTest {
 
         // Assert that the beginDate on the state element object is the first beginDate
         assertThat(state.getPhase(PROCESSING).getBeginDate(), is(stateChangeA.getBeginDate()));
+
+        // Assert that partitioning and processing are done, that delivering is not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, true, false, false);
     }
 
     @Test
@@ -258,6 +298,10 @@ public class StateTest {
 
         // Assert that the endDate on the state element object is the first endDate
         assertThat(state.getPhase(PROCESSING).getEndDate(), is(stateChangeA.getEndDate()));
+
+        // Assert that partitioning and processing are done, that delivering is not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, true, false, false);
     }
 
     @Test
@@ -271,6 +315,10 @@ public class StateTest {
 
         // Assert that State has been updated correctly
         assertStateAfterChange(state.getPhase(PROCESSING), stateChangeList);
+
+        // Assert that partitioning and processing are done, that delivering is not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, true, false, false);
     }
 
     //******************************************* DELIVERING ******************************************
@@ -300,6 +348,10 @@ public class StateTest {
 
         // Assert that the end date has not been set
         assertThat(state.getPhase(DELIVERING).getEndDate(), is(nullValue()));
+
+        // Assert that partitioning is done, that processing and delivering are not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, false, false);
     }
 
     @Test
@@ -313,6 +365,10 @@ public class StateTest {
 
         // Assert that State has been updated correctly
         assertStateAfterChange(state.getPhase(DELIVERING), stateChangeList);
+
+        // Assert that partitioning and delivering are done, that processing is not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, true, false);
     }
 
     @Test
@@ -332,6 +388,41 @@ public class StateTest {
 
         // Assert that the end date has been set
         assertThat(state.getPhase(DELIVERING).getEndDate(), not(nullValue()));
+
+        // Assert that partitioning and delivering are done, that processing is not done and
+        // therefore: Assert that all phases are not done
+        assertPhaseCompletion(state, true, false, true, false);
+    }
+
+    @Test
+    public void updateAllPhases_allPhasesAreUpdatedWithEndDate_areAllPhasesDoneReturnsTrue() {
+        State state = new State();
+        StateChange stateChangePartitioning = getStateChangeWithStartAndEndDate(PARTITIONING);
+        StateChange stateChangeProcessing = getStateChangeWithStartDate(PROCESSING);
+        StateChange stateChangeDelivering = getStateChangeWithStartDate(DELIVERING);
+
+        state.updateState(stateChangePartitioning);
+        state.updateState(stateChangeProcessing);
+        state.updateState(stateChangeDelivering);
+
+        // Assert that State has been updated correctly
+        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChangePartitioning));
+        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(DELIVERING), Arrays.asList(stateChangeDelivering));
+
+        // Assert all begin dates have been set
+        assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
+        assertThat(state.getPhase(DELIVERING).getBeginDate(), not(nullValue()));
+
+        // Assert all end dates have been set
+        assertThat(state.getPhase(PARTITIONING).getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(PROCESSING).getEndDate(), not(nullValue()));
+        assertThat(state.getPhase(DELIVERING).getEndDate(), not(nullValue()));
+
+        // Assert that partitioning processing and delivering are done and
+        // therefore: Assert that all phases are done
+        assertPhaseCompletion(state, true, true, true, true);
     }
 
     /*
@@ -342,6 +433,13 @@ public class StateTest {
         for(StateChange stateChange : stateChangeList) {
             state.updateState(stateChange);
         }
+    }
+
+    private void assertPhaseCompletion(State state, boolean isPartitioningDone, boolean isProcessingDone, boolean isDeliveringDone, boolean areAllPhasesDone) {
+        assertThat(state.phaseIsDone(PARTITIONING), is(isPartitioningDone));
+        assertThat(state.phaseIsDone(PROCESSING), is(isProcessingDone));
+        assertThat(state.phaseIsDone(DELIVERING), is(isDeliveringDone));
+        assertThat(state.allPhasesAreDone(), is(areAllPhasesDone));
     }
 
     private void assertStateAfterChange(StateElement stateElement, List<StateChange> stateChangeList) {
@@ -364,9 +462,6 @@ public class StateTest {
         assertThat(stateElement.getSucceeded(), is(succeeded));
         assertThat(stateElement.getFailed(), is(failed));
         assertThat(stateElement.getIgnored(), is(ignored));
-        assertThat(stateElement.getPending(), is(pending));
-        assertThat(stateElement.getActive(), is(active));
-        assertThat(stateElement.getDone(), is(done));
     }
 
     private void assertState(State state) {
@@ -378,9 +473,6 @@ public class StateTest {
     private void assertNewStateElement(StateElement stateElement) {
         assertThat(stateElement.getBeginDate(), is(nullValue()));
         assertThat(stateElement.getEndDate(), is(nullValue()));
-        assertThat(stateElement.getPending(), is(0));
-        assertThat(stateElement.getActive(), is(0));
-        assertThat(stateElement.getDone(), is(0));
         assertThat(stateElement.getSucceeded(), is(0));
         assertThat(stateElement.getFailed(), is(0));
         assertThat(stateElement.getIgnored(), is(0));

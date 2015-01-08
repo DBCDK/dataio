@@ -28,9 +28,6 @@ public class StateElementTest {
     private void assertStateElement(StateElement stateElement) {
         assertThat(stateElement.getBeginDate(), is(nullValue()));
         assertThat(stateElement.getEndDate(), is(nullValue()));
-        assertThat(stateElement.getPending(), is(0));
-        assertThat(stateElement.getActive(), is(0));
-        assertThat(stateElement.getDone(), is(0));
         assertThat(stateElement.getSucceeded(), is(0));
         assertThat(stateElement.getFailed(), is(0));
         assertThat(stateElement.getIgnored(), is(0));
@@ -38,9 +35,6 @@ public class StateElementTest {
 
     private StateElement getStateElement() {
         StateElement stateElement = new StateElement();
-        stateElement.setDone(10);
-        stateElement.setActive(5);
-        stateElement.setPending(5);
         stateElement.setSucceeded(9);
         stateElement.setIgnored(1);
         return stateElement;

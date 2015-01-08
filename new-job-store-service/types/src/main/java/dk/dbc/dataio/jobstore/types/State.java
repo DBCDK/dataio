@@ -31,12 +31,15 @@ public class State {
     }
 
     /**
+     * Retrieves the specified stateElement from states
+     *
      * @param phase (partitioning, processing, delivering)
      * @return the state element for the specified phase
      */
     public StateElement getPhase(Phase phase) {
         return states.get(phase);
     }
+
 
     /**
      * Method used to update the state object through the state elements: partitioning, processing, delivering
@@ -54,6 +57,29 @@ public class State {
         }
     }
 
+    /**
+     * Checks if a given phase is done (end date is set)
+     *
+     * @param phase, the phase to check
+     * @return true if the given phase is done, otherwise false
+     */
+    public boolean phaseIsDone(Phase phase) {
+        return getPhase(phase).getEndDate() != null;
+    }
+
+    /**
+     * Checks if all phases are done (end dates are set on all phases)
+     * @return true if all phases have completed, otherwise false
+     */
+    public boolean allPhasesAreDone() {
+        for (Map.Entry<Phase, StateElement> entry : states.entrySet()) {
+            if (entry.getValue().getEndDate() == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /*
      * Private methods
      */
@@ -68,7 +94,6 @@ public class State {
         if(stateElement.getEndDate() == null) {
             setBeginDate(stateElement, stateChange);
             updateStateElementStatusCounters(stateElement, stateChange);
-            updateStateElementLifeCycleCounters(stateElement, stateChange);
             setEndDate(stateElement, stateChange);
         }
     }
@@ -102,19 +127,6 @@ public class State {
     }
 
     /**
-     * Method updating the lifecycle counters for the state element (pending, active, done).
-     * The incrementation number, provided through the state change object, CAN be a negative number
-     *
-     * @param stateElement to update
-     * @param stateChange holding the values used for update
-     */
-    private void updateStateElementLifeCycleCounters(StateElement stateElement, StateChange stateChange) {
-        stateElement.setPending(stateElement.getPending() + stateChange.getPending());
-        stateElement.setActive(stateElement.getActive() + stateChange.getActive());
-        stateElement.setDone(stateElement.getFailed() + stateElement.getSucceeded() + stateElement.getIgnored());
-    }
-
-    /**
      * Method used to determine if an end date should be set on the state element object
      * partitioning must be complete before either processing or delivering can complete.
      *
@@ -136,7 +148,7 @@ public class State {
             StateElement partitioning = getPhase(Phase.PARTITIONING);
             if (partitioning.getEndDate() != null && stateChange.getEndDate() != null) {
                 stateElement.setEndDate(stateChange.getEndDate());
-            } else if (stateChange.getEndDate() == null && stateElement.getDone() == partitioning.getDone()) {
+            } else if (stateChange.getEndDate() == null && phaseDone(partitioning, stateElement)) {
                 stateElement.setEndDate(getDateWithCurrentTime());
             } else if (partitioning.getEndDate() == null && stateChange.getEndDate() != null) {
                 throw new IllegalStateException("Partitioning must be completed before "
@@ -144,6 +156,25 @@ public class State {
                         + " can complete.");
             }
         }
+    }
+
+    /**
+     * Method used to determine if an end date should be added to the stateElement.
+     *
+     * Returns true if:
+     * The end date is set on partitioning and:
+     * The sum of (succeeded, failed, ignored) on partitioning equals the sum of
+     * (succeeded, failed, ignored) on the state element.
+     *
+     * @param partitioning stateElement
+     * @param stateElement on which to determined if end date should be set.
+     * @return true if end date is set on partitioning and if the sum of partitioning
+     * counters equals the sum of all stateElement counters, otherwise false
+     */
+    private boolean phaseDone(StateElement partitioning, StateElement stateElement) {
+        return stateElement.getSucceeded() + stateElement.getIgnored() + stateElement.getFailed()
+                == partitioning.getSucceeded() + partitioning.getIgnored() + partitioning.getFailed()
+                && partitioning.getEndDate() != null;
     }
 
     /**

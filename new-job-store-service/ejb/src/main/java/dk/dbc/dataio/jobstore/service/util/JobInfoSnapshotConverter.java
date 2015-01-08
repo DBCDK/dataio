@@ -40,9 +40,14 @@ public final class JobInfoSnapshotConverter {
      * Converts a java.sql.Timestamp to a java.util.Date
      *
      * @param timestamp to convert
-     * @return new Date representation of the timestamp
+     * @return new Date representation of the timestamp, null if the timestamp is null
      */
     private static Date toDate(Timestamp timestamp) {
-        return new Date(timestamp.getTime() + timestamp.getNanos() / 1000000);
+        if (timestamp != null) {
+            return new Date(timestamp.getTime() + timestamp.getNanos() / 1000000);
+
+        } else {
+            return null;
+        }
     }
 }

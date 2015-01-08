@@ -24,11 +24,6 @@ public class JobInfoSnapshotConverterTest {
 
         assertThat(jobInfoSnapshot, not(nullValue()));
         assertJobInfoSnapshotEquals(jobInfoSnapshot, jobEntity);
-
-        // It is not possible to compare the date and the timestamp directly since Date
-        // does not operate with factional seconds - Hence the full comparison below.
-        assertThat(jobInfoSnapshot.getTimeOfCompletion().getTime(),
-                is(jobEntity.getTimeOfCompletion().getTime() + jobEntity.getTimeOfCompletion().getNanos() / 1000000));
     }
 
     /*

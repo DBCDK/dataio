@@ -273,6 +273,7 @@ public class PgJobStore {
                 LOGGER.warn("Exception caught during job partitioning", e);
                 final ItemData itemData;
                 try {
+                    // Todo: Since we do not store enough type information to unmarshall the DataException we need to introduce a JobError data structure instead.
                     itemData = new ItemData(Base64Util.base64encode(jsonbBean.getContext().marshall(e)), StandardCharsets.UTF_8);
                 } catch (JSONBException ex) {
                     throw new JobStoreException("Exception caught during error handling", ex);
@@ -440,7 +441,7 @@ public class PgJobStore {
 
     /* Chunk item entities compound class
      */
-    private static class ChunkItemEntities {
+    static class ChunkItemEntities {
         private final List<ItemEntity> entities;
         private boolean isFailed = false;
 

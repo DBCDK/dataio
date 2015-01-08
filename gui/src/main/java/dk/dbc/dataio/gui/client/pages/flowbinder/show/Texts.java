@@ -1,10 +1,10 @@
-package dk.dbc.dataio.gui.client.pages.flowbinder.oldshow;
+package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
-public interface FlowBindersShowTexts extends Constants {
+public interface Texts extends Constants {
 
     // Menu text
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -48,10 +48,10 @@ public interface FlowBindersShowTexts extends Constants {
     String columnHeader_Sink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Action_Update();
+    String columnHeader_Action();
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Update();
+    String button_Edit();
 
 }

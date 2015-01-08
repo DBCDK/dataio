@@ -113,18 +113,23 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<FlowBinder> findAllFlowBinders() throws ProxyException {
+    public FlowBinderModel updateFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {
+        return flowStoreProxy.updateFlowBinder(model);
+    }
+
+    @Override
+    public List<FlowBinder> findAllFlowBindersOld() throws ProxyException {
+        return flowStoreProxy.findAllFlowBindersOld();
+    }
+
+    @Override
+    public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
         return flowStoreProxy.findAllFlowBinders();
     }
 
     @Override
     public FlowBinderModel getFlowBinder(long id) throws ProxyException {
         return flowStoreProxy.getFlowBinder(id);
-    }
-
-    @Override
-    public FlowBinderModel updateFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {
-        return flowStoreProxy.updateFlowBinder(model);
     }
 
 

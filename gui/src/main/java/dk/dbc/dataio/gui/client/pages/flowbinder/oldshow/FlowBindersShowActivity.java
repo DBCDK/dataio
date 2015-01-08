@@ -71,7 +71,7 @@ public class FlowBindersShowActivity extends AbstractActivity implements FlowBin
 
     private void fetchFlowBinders() {
         counter.increment();
-        flowStoreProxy.findAllFlowBinders(new AsyncCallback<List<FlowBinder>>() {
+        flowStoreProxy.findAllFlowBindersOld(new AsyncCallback<List<FlowBinder>>() {
             @Override
             public void onFailure(Throwable e) {
                 displayErrorMessage("Could not fetch Flowbinder", e);

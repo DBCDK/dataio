@@ -709,6 +709,41 @@ public class FlowStoreProxyImplTest {
     }
 
     /*
+    * Test findAllFlowBindersOld
+    */
+    @Test
+    public void findAllFlowBindersOld_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findAllFlowBinders()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.findAllFlowBindersOld();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlowBinders()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllFlowBindersOld_remoteServiceReturnsHttpStatusOk_returnsListOfFlowBinderEntity() throws Exception {
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final FlowBinder flowBinder = new FlowBinderBuilder().setId(1L).build();
+
+        when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Arrays.asList(flowBinder));
+        try {
+            final List<FlowBinder> allFlowBinders = flowStoreProxy.findAllFlowBindersOld();
+            assertNotNull(allFlowBinders);
+            assertThat(allFlowBinders.size(), is(1));
+            assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: findAllFlowBinders()");
+        }
+    }
+
+
+    /*
     * Test findAllFlowBinders
     */
     @Test
@@ -732,11 +767,19 @@ public class FlowStoreProxyImplTest {
         final FlowBinder flowBinder = new FlowBinderBuilder().setId(1L).build();
 
         when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Arrays.asList(flowBinder));
+        when(flowStoreServiceConnector.getFlow(anyLong())).thenReturn(defaultFlow);
+        when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(defaultSubmitter);
+        when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(defaultSink);
         try {
-            final List<FlowBinder> allFlowBinders = flowStoreProxy.findAllFlowBinders();
-            assertNotNull(allFlowBinders);
-            assertThat(allFlowBinders.size(), is(1));
-            assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
+            final List<FlowBinderModel> allFlowBinderModels = flowStoreProxy.findAllFlowBinders();
+            assertNotNull(allFlowBinderModels);
+            assertThat(allFlowBinderModels.size(), is(1));
+            FlowBinderModel model = allFlowBinderModels.get(0);
+            assertThat(model.getId(), is(flowBinder.getId()));
+            assertThat(model.getName(), is(flowBinder.getContent().getName()));
+            assertThat(model.getFlowModel().getId(), is(DEFAULT_FLOW_ID));
+            assertThat(model.getSubmitterModels().get(0).getId(), is(DEFAULT_SUBMITTER_ID));
+            assertThat(model.getSinkModel().getId(), is(DEFAULT_SINK_ID));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: findAllFlowBinders()");
         }

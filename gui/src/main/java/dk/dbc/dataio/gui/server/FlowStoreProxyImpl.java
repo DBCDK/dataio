@@ -286,7 +286,31 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<FlowBinder> findAllFlowBinders() throws ProxyException {
+    public FlowBinderModel updateFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {
+        FlowBinder flowBinder;
+        List<SubmitterModel> submitterModels;
+        FlowModel flowModel;
+        SinkModel sinkModel;
+        try {
+            flowBinder = flowStoreServiceConnector.updateFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model), model.getId(), model.getVersion());
+            submitterModels = new ArrayList<SubmitterModel>(flowBinder.getContent().getSubmitterIds().size());
+            for(Long submitterId : flowBinder.getContent().getSubmitterIds()) {
+                submitterModels.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(submitterId)));
+            }
+            flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
+            sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e){
+            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+        }
+        return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
+    }
+
+    @Override
+    public List<FlowBinder> findAllFlowBindersOld() throws ProxyException {
         final List<FlowBinder> result;
         try {
             result = flowStoreServiceConnector.findAllFlowBinders();
@@ -296,6 +320,35 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return result;
+    }
+
+    @Override
+    public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
+        final List<FlowBinder> flowBinders;
+        final List<FlowBinderModel> flowBinderModels = new ArrayList<FlowBinderModel>();
+        List<SubmitterModel> submitterModels;
+        try {
+            flowBinders = flowStoreServiceConnector.findAllFlowBinders();
+            for (FlowBinder flowBinder: flowBinders) {
+                submitterModels = new ArrayList<SubmitterModel>(flowBinder.getContent().getSubmitterIds().size());
+                for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
+                    submitterModels.add(getSubmitter(submitterId));
+                }
+                flowBinderModels.add(
+                        FlowBinderModelMapper.toModel(
+                                flowBinder,
+                                getFlow(flowBinder.getContent().getFlowId()),
+                                submitterModels,
+                                getSink(flowBinder.getContent().getSinkId())
+                                )
+                );
+            }
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return flowBinderModels;
     }
 
     @Override
@@ -316,30 +369,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
-        return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
-    }
-
-    @Override
-    public FlowBinderModel updateFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {
-        FlowBinder flowBinder;
-        List<SubmitterModel> submitterModels;
-        FlowModel flowModel;
-        SinkModel sinkModel;
-        try {
-            flowBinder = flowStoreServiceConnector.updateFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model), model.getId(), model.getVersion());
-            submitterModels = new ArrayList<SubmitterModel>(flowBinder.getContent().getSubmitterIds().size());
-            for(Long submitterId : flowBinder.getContent().getSubmitterIds()) {
-                submitterModels.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(submitterId)));
-            }
-            flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
-            sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
-    }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
     }
 

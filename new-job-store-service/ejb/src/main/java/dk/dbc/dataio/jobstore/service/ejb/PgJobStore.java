@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
@@ -17,6 +18,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DataException;
 import dk.dbc.dataio.jobstore.types.ItemData;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -273,8 +275,10 @@ public class PgJobStore {
                 LOGGER.warn("Exception caught during job partitioning", e);
                 final ItemData itemData;
                 try {
-                    // Todo: Since we do not store enough type information to unmarshall the DataException we need to introduce a JobError data structure instead.
-                    itemData = new ItemData(Base64Util.base64encode(jsonbBean.getContext().marshall(e)), StandardCharsets.UTF_8);
+                    final JobError jobError = new JobError(
+                            JobError.Code.INVALID_DATA, e.getMessage(), ServiceUtil.stackTraceToString(e));
+                    itemData = new ItemData(
+                            Base64Util.base64encode(jsonbBean.getContext().marshall(jobError)), StandardCharsets.UTF_8);
                 } catch (JSONBException ex) {
                     throw new JobStoreException("Exception caught during error handling", ex);
                 }

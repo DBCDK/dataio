@@ -165,7 +165,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                         try {
                             return hasNextRecord();
                         } catch (XMLStreamException e) {
-                            throw new DataException(e);
+                            throw new InvalidDataException(e);
                         }
                     }
 

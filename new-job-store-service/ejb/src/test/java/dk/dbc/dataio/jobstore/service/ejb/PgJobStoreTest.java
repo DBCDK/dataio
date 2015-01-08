@@ -14,10 +14,13 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.ItemData;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.junit.Before;
@@ -182,7 +185,7 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void createChunkItemEntities_dataPartitionerThrowsDataException_failedItemIsCreated() throws JobStoreException {
+    public void createChunkItemEntities_dataPartitionerThrowsDataException_failedItemIsCreated() throws JobStoreException, JSONBException {
         final PgJobStore pgJobStore = newPgJobStore();
         final Params params = new Params();
         final String invalidXml =
@@ -202,9 +205,11 @@ public class PgJobStoreTest {
         assertThat("First item: succeeded", chunkItemEntities.getEntities().get(0).getState().getPhase(State.Phase.PARTITIONING).getSucceeded(), is(1));
         assertThat("Second item: failed", chunkItemEntities.getEntities().get(1).getState().getPhase(State.Phase.PARTITIONING).getFailed(), is(1));
 
-        // This fails - We do not have enough type information to unmarshall the entire exception hierarchy.
-        // Will be replaced when ToDo in PgJobStore class is fixed.
-        //assertThat(new JSONBContext().unmarshall(Base64Util.base64decode(chunkItemEntities.getEntities().get(1).getPartitioningOutcome().getData()), DataException.class), is(notNullValue()));
+        final JobError jobError = new JSONBContext().unmarshall(Base64Util.base64decode(
+                chunkItemEntities.getEntities().get(1).getPartitioningOutcome().getData()), JobError.class);
+        assertThat(jobError.getCode(), is(JobError.Code.INVALID_DATA));
+        assertThat(jobError.getDescription().isEmpty(), is(false));
+        assertThat(jobError.getStacktrace().isEmpty(), is(false));
     }
 
     @Test

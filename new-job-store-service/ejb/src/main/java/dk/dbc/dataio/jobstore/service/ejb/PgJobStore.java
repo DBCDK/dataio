@@ -114,7 +114,7 @@ public class PgJobStore {
 
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
-            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -327,7 +327,7 @@ public class PgJobStore {
             itemEntity.setPartitioningOutcome(data);
             return persistItem(itemEntity);
         } finally {
-            LOGGER.trace("Operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -398,7 +398,7 @@ public class PgJobStore {
             //entityManager.refresh(item);
             return item;
         } finally {
-            LOGGER.trace("Operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

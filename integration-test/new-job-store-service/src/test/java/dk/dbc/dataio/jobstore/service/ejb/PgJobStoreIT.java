@@ -4,17 +4,10 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
-import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
-import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.After;
 import org.junit.Before;
@@ -23,13 +16,11 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -139,119 +130,6 @@ public class PgJobStoreIT {
         assertThat("entity.sink", sinkCacheEntity.getSink(), is(existingSinkCacheEntity.getSink()));
         assertThat("table size", getSizeOfTable(SINK_CACHE_TABLE_NAME), is(1L));
     }
-
-    /**
-     * Given: a job store without jobs
-     * When : a job is given as input to pgJobStore.persistJob()
-     * Then : the job is persisted
-     * And  : the auto generated fields are set in the resulting job entity
-     * And  : more to come...
-     */
-    @Test
-    public void persistJob_newJobIsPersisted() throws JobStoreException, SQLException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final Flow flow = new FlowBuilder().build();
-        final FlowCacheEntity flowCacheEntity = pgJobStore.cacheFlow(flow);
-        final Sink sink = new SinkBuilder().build();
-        final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(sink);
-
-        // When...
-        final JobEntity job = new JobEntity();
-        job.setEoj(true);
-        job.setSpecification(new JobSpecificationBuilder().build());
-        job.setState(new State());
-        job.setFlowName(flow.getContent().getName());
-        job.setSinkName(sink.getContent().getName());
-        job.setCachedFlow(flowCacheEntity);
-        job.setCachedSink(sinkCacheEntity);
-
-        entityManager.getTransaction().begin();
-        final JobEntity addedJob = pgJobStore.persistJob(job);
-        entityManager.getTransaction().commit();
-
-        // Then...
-        assertThat("table size", getSizeOfTable(JOB_TABLE_NAME), is(1L));
-
-        // And...
-        assertThat("entity", addedJob, is(notNullValue()));
-        assertThat("entity.id", addedJob.getId() > 0, is(true));
-        assertThat("entity.timeOfCreation", addedJob.getTimeOfCreation(), is(notNullValue()));
-        assertThat("entity.timeOfLastModification", addedJob.getTimeOfLastModification(), is(notNullValue()));
-    }
-
-    /**
-     * Given: a job store without chunks
-     * When : a chunk is given as input to pgJobStore.persistChunk()
-     * Then : the chunk is persisted
-     * And  : the auto generated fields are set in the resulting chunk entity
-     *
-     * @throws JobStoreException
-     * @throws SQLException
-     */
-    @Test
-    public void persistChunk_newChunkIsPersisted() throws JobStoreException, SQLException {
-        final int CHUNK_ID = 3;
-        final int JOB_ID = 43;
-
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final ChunkEntity chunk = new ChunkEntity();
-        chunk.setNumberOfItems((short) 4);
-        chunk.setDataFileId("datafileID");
-        chunk.setSequenceAnalysisData(new SequenceAnalysisData(new HashSet(Arrays.asList("sequence analysis data"))));
-        chunk.setState(new State());
-        chunk.setKey(new ChunkEntity.Key(CHUNK_ID, JOB_ID));
-
-        entityManager.getTransaction().begin();
-        final ChunkEntity addedChunk = pgJobStore.persistChunk(chunk);
-        entityManager.getTransaction().commit();
-
-        // Then...
-        assertThat("table size", getSizeOfTable(CHUNK_TABLE_NAME), is(1L));
-
-        // And...
-        assertThat("entity", addedChunk, is(notNullValue()));
-        assertThat("entity.timeOfCreation", addedChunk.getTimeOfCreation(), is(notNullValue()));
-        assertThat("entity.timeOfLastModification", addedChunk.getTimeOfLastModification(), is(notNullValue()));
-    }
-
-    /**
-     * Given: a job store without items
-     * When : an item is given as input to pgJobStore.persistItem()
-     * Then : the item is persisted
-     * And  : the auto generated fields are set in the resulting item entity after manual refresh
-     *
-     * @throws JobStoreException
-     * @throws SQLException
-     */
-    @Test
-    public void persistItem_newItemIsPersisted() throws JobStoreException, SQLException {
-        final short ITEM_ID = 62;
-        final int JOB_ID = 43;
-        final int CHUNK_ID = 3;
-
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final ItemEntity item = new ItemEntity();
-        item.setKey(new ItemEntity.Key(JOB_ID, CHUNK_ID, ITEM_ID));
-        item.setPartitioningOutcome(new ItemData("partitioning data", StandardCharsets.UTF_8));
-        item.setState(new State());
-
-        entityManager.getTransaction().begin();
-        final ItemEntity addedItem = pgJobStore.persistItem(item);
-        entityManager.getTransaction().commit();
-        entityManager.refresh(addedItem);
-
-        // Then...
-        assertThat("table size", getSizeOfTable(ITEM_TABLE_NAME), is(1L));
-
-        // And...
-        assertThat("entity", addedItem, is(notNullValue()));
-        assertThat("entity.timeOfCreation", addedItem.getTimeOfCreation(), is(notNullValue()));
-        assertThat("entity.timeOfLastModification", addedItem.getTimeOfLastModification(), is(notNullValue()));
-    }
-
 
     @Before
     public void initialiseEntityManager() {

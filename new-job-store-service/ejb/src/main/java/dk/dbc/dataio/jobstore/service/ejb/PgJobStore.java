@@ -148,7 +148,10 @@ public class PgJobStore {
             jobEntity.setCachedSink(sinkCacheEntity);
             jobEntity.setFlowName(flow.getContent().getName());
             jobEntity.setSinkName(sink.getContent().getName());
-            return persistJob(jobEntity);
+            entityManager.persist(jobEntity);
+            entityManager.flush();
+            entityManager.refresh(jobEntity);
+            return jobEntity;
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -209,7 +212,9 @@ public class PgJobStore {
                 chunkEntity.setDataFileId(dataFileId);
                 chunkEntity.setSequenceAnalysisData(sequenceAnalysisData);
                 chunkEntity.setState(chunkState);
-                persistChunk(chunkEntity);
+                entityManager.persist(chunkEntity);
+                entityManager.flush();
+                entityManager.refresh(chunkEntity);
 
                 // update job (with exclusive lock)
 
@@ -325,7 +330,8 @@ public class PgJobStore {
             itemEntity.setKey(new ItemEntity.Key(jobId, chunkId, itemId));
             itemEntity.setState(state);
             itemEntity.setPartitioningOutcome(data);
-            return persistItem(itemEntity);
+            entityManager.persist(itemEntity);
+            return itemEntity;
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -374,75 +380,6 @@ public class PgJobStore {
             return (FlowCacheEntity) storedProcedure.getSingleResult();
         } catch (JSONBException e) {
             throw new JobStoreException("Exception caught during job-store operation", e);
-        } finally {
-            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
-    /**
-     * Persist an item in the job-store
-     * <p>
-     * Note that the timeOfCreation and timeOfLastModification fields will be set
-     * automatically by the underlying database.
-     * </p>
-     * @param item ItemEntity instance to be persisted
-     * @return managed JobEntity instance
-     * @throws NullPointerException if given null-valued item
-     */
-    ItemEntity persistItem(ItemEntity item) {
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            InvariantUtil.checkNotNullOrThrow(item, "item");
-            entityManager.persist(item);
-            //entityManager.flush();
-            //entityManager.refresh(item);
-            return item;
-        } finally {
-            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
-    /**
-     * Persists a chunk in the job-store
-     * <p>
-     * Note that the timeOfCreation and timeOfLastModification fields will be set
-     * automatically by the underlying database.
-     * </p>
-     * @param chunk ChunkEntity instance to be persisted
-     * @return managed ChunkEntity instance
-     * @throws NullPointerException if given null-valued chunk
-     */
-    ChunkEntity persistChunk(ChunkEntity chunk) {
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
-            entityManager.persist(chunk);
-            entityManager.flush();
-            entityManager.refresh(chunk);
-            return chunk;
-        } finally {
-            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
-    /**
-     * Persists a job in the job-store
-     * <p>
-     * Note that the id, timeOfCreation and timeOfLastModification fields will be set
-     * automatically by the underlying database.
-     * </p>
-     * @param job JobEntity instance to be persisted
-     * @return managed JobEntity instance
-     * @throws NullPointerException if given null-valued job
-     */
-    JobEntity persistJob(JobEntity job) {
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            InvariantUtil.checkNotNullOrThrow(job, "job");
-            entityManager.persist(job);
-            entityManager.flush();
-            entityManager.refresh(job);
-            return job;
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

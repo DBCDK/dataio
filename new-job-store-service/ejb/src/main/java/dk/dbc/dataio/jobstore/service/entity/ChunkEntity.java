@@ -27,7 +27,7 @@ public class ChunkEntity {
     private String dataFileId;
 
     @Column(nullable = false)
-    private int numberOfItems;
+    private short numberOfItems;
 
     @Column(insertable = false, updatable = false)
     private Timestamp timeOfCreation;
@@ -61,11 +61,11 @@ public class ChunkEntity {
         this.dataFileId = dataFileId;
     }
 
-    public int getNumberOfItems() {
+    public short getNumberOfItems() {
         return numberOfItems;
     }
 
-    public void setNumberOfItems(int numberOfItems) {
+    public void setNumberOfItems(short numberOfItems) {
         this.numberOfItems = numberOfItems;
     }
 

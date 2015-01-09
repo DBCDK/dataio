@@ -40,7 +40,7 @@ CREATE TABLE chunk (
     id                      INTEGER NOT NULL,
     jobId                   INTEGER NOT NULL,
     dataFileId              TEXT NOT NULL,
-    numberOfItems           INTEGER NOT NULL DEFAULT 10,
+    numberOfItems           SMALLINT NOT NULL DEFAULT 10,
     timeOfCreation          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     timeOfCompletion        TIMESTAMP,
     timeOfLastModification  TIMESTAMP DEFAULT timeofday()::TIMESTAMP,
@@ -64,9 +64,9 @@ CREATE TABLE item (
     PRIMARY KEY (jobId, chunkId, id)
 );
 CREATE INDEX item_stateFailed_index ON item(jobId, chunkId, id) WHERE
-       state->>'partitioning' = 'failed'
-    OR state->>'processing' = 'failed'
-    OR state->>'delivering' = 'failed';
+       state->'states'->'PARTITIONING'->>'failed' != '0'
+    OR state->'states'->'PROCESSING'->>'failed' != '0'
+    OR state->'states'->'DELIVERING'->>'failed' != '0';
 
 CREATE OR REPLACE FUNCTION set_flowcache(the_checksum TEXT, the_flow JSON)
     RETURNS flow_cacheline AS

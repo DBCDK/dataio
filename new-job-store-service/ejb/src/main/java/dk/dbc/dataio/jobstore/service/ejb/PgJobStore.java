@@ -86,12 +86,13 @@ public class PgJobStore {
 
             LOGGER.info("Adding job");
             final PgJobStore businessObject = sessionContext.getBusinessObject(PgJobStore.class);
-            final short maxChunkSize = 10;
-            int chunkId = 0;
-            ChunkEntity chunkEntity;
 
             // Creates job entity in its own transactional scope to enable external visibility
             JobEntity jobEntity = businessObject.createJobEntity(jobInputStream, flow, sink);
+
+            final short maxChunkSize = 10;
+            int chunkId = 0;
+            ChunkEntity chunkEntity;
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
@@ -134,13 +135,15 @@ public class PgJobStore {
     public JobEntity createJobEntity(JobInputStream jobInputStream, Flow flow, Sink sink) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
+            final State jobState = new State();
+            jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
             final FlowCacheEntity flowCacheEntity = cacheFlow(flow);
             final SinkCacheEntity sinkCacheEntity = cacheSink(sink);
             final JobEntity jobEntity = new JobEntity();
             jobEntity.setEoj(jobInputStream.getIsEndOfJob());
             jobEntity.setPartNumber(jobInputStream.getPartNumber());
             jobEntity.setSpecification(jobInputStream.getJobSpecification());
-            jobEntity.setState(new State());
+            jobEntity.setState(jobState);
             jobEntity.setCachedFlow(flowCacheEntity);
             jobEntity.setCachedSink(sinkCacheEntity);
             jobEntity.setFlowName(flow.getContent().getName());
@@ -480,8 +483,8 @@ public class PgJobStore {
             this.isFailed = isFailed;
         }
 
-        public int size() {
-            return entities.size();
+        public short size() {
+            return (short) entities.size();
         }
     }
 }

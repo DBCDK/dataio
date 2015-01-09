@@ -221,7 +221,7 @@ public class PgJobStoreTest {
         ChunkEntity chunkEntity = pgJobStore.createChunkEntity(
                 1, 0, params.maxChunkSize, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.dataFileId);
         assertThat("First chunk", chunkEntity, is(notNullValue()));
-        assertThat("First chunk: number of items", (short) chunkEntity.getNumberOfItems(), is(params.maxChunkSize));
+        assertThat("First chunk: number of items", chunkEntity.getNumberOfItems(), is(params.maxChunkSize));
         assertThat("First chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("First chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(1));
         assertThat("First chunk: seq keys", chunkEntity.getSequenceAnalysisData().getData().contains(params.sink.getContent().getName()), is(true));
@@ -232,7 +232,7 @@ public class PgJobStoreTest {
         chunkEntity = pgJobStore.createChunkEntity(
                 1, 1, params.maxChunkSize, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.dataFileId);
         assertThat("Second chunk", chunkEntity, is(notNullValue()));
-        assertThat("Second chunk: number of items", chunkEntity.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS - params.maxChunkSize));
+        assertThat("Second chunk: number of items", chunkEntity.getNumberOfItems(), is((short) (EXPECTED_NUMBER_OF_ITEMS - params.maxChunkSize)));
         assertThat("Second chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("Second chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(1));
         assertThat("Second chunk: seq keys", chunkEntity.getSequenceAnalysisData().getData().contains(params.sink.getContent().getName()), is(true));

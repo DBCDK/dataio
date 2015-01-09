@@ -450,14 +450,15 @@ public class FileSystemJobStore implements JobStore {
             LOGGER.trace("======> Before [" + record + "]");
             final String recordBase64 = base64encode(record);
             LOGGER.trace("======> After  [" + recordBase64 + "]");
-            if (counter++ < Constants.CHUNK_RECORD_COUNT_UPPER_BOUND) {
+            if (counter < Constants.CHUNK_RECORD_COUNT_UPPER_BOUND) {
                 chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             } else {
-                counter = 1;
+                counter = 0;
                 addChunk(chunk, sequenceAnalyserKeyGenerator, sink);
                 chunk = new Chunk(jobId, ++chunkId, null, supplementaryProcessData);
                 chunk.addItem(new ChunkItem(counter, recordBase64, ChunkItem.Status.SUCCESS));
             }
+            counter++;
         }
         if (counter != 0) {
             addChunk(chunk, sequenceAnalyserKeyGenerator, sink);

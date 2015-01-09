@@ -197,7 +197,7 @@ public class PgJobStoreIT {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final ChunkEntity chunk = new ChunkEntity();
-        chunk.setNumberOfItems(4);
+        chunk.setNumberOfItems((short) 4);
         chunk.setDataFileId("datafileID");
         chunk.setSequenceAnalysisData(new SequenceAnalysisData(new HashSet(Arrays.asList("sequence analysis data"))));
         chunk.setState(new State());

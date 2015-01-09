@@ -80,7 +80,7 @@ public class PgJobStore {
         try {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
             InvariantUtil.checkNotNullOrThrow(dataPartitioner, "dataPartitioner");
-            //InvariantUtil.checkNotNullOrThrow(sequenceAnalyserKeyGenerator, "sequenceAnalyserKeyGenerator");
+            InvariantUtil.checkNotNullOrThrow(sequenceAnalyserKeyGenerator, "sequenceAnalyserKeyGenerator");
             InvariantUtil.checkNotNullOrThrow(flow, "flow");
             InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
@@ -177,8 +177,7 @@ public class PgJobStore {
 
             // create items
 
-            final ChunkItemEntities chunkItemEntities = createChunkItemEntities(jobId, chunkId, maxChunkSize,
-                    dataPartitioner, sequenceAnalyserKeyGenerator);
+            final ChunkItemEntities chunkItemEntities = createChunkItemEntities(jobId, chunkId, maxChunkSize, dataPartitioner);
 
             if (chunkItemEntities.size() > 0) {
                 // Items were created, so now create the chunk to which they belong
@@ -186,10 +185,15 @@ public class PgJobStore {
                 final StateChange chunkStateChange = new StateChange()
                     .setPhase(State.Phase.PARTITIONING)
                     .setBeginDate(chunkBegin);
+
+                SequenceAnalysisData sequenceAnalysisData;
                 if (chunkItemEntities.isFailed()) {
                     chunkStateChange.setSucceeded(chunkItemEntities.size() - 1).setFailed(1);
+                    sequenceAnalysisData = new SequenceAnalysisData(Collections.<String>emptySet());
                 } else {
                     chunkStateChange.setSucceeded(chunkItemEntities.size());
+                    sequenceAnalysisData = new SequenceAnalysisData(
+                        sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.getRecords()));
                 }
                 chunkStateChange.setEndDate(new Date());
 
@@ -200,7 +204,7 @@ public class PgJobStore {
                 chunkEntity.setKey(new ChunkEntity.Key(chunkId, jobId));
                 chunkEntity.setNumberOfItems(chunkItemEntities.size());
                 chunkEntity.setDataFileId(dataFileId);
-                chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.<String>emptySet()));
+                chunkEntity.setSequenceAnalysisData(sequenceAnalysisData);
                 chunkEntity.setState(chunkState);
                 persistChunk(chunkEntity);
 
@@ -235,12 +239,11 @@ public class PgJobStore {
      * @param chunkId id of chunk for which items are to be created
      * @param maxChunkSize maximum number of items to be associated to the chunk
      * @param dataPartitioner data partitioner used for item data extraction
-     * @param sequenceAnalyserKeyGenerator sequence analyser key generator
      * @return item entities compound object
      * @throws JobStoreException on failure to create item data
      */
-    ChunkItemEntities createChunkItemEntities(int jobId, int chunkId, short maxChunkSize, DataPartitionerFactory.DataPartitioner dataPartitioner,
-                                              SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException {
+    ChunkItemEntities createChunkItemEntities(int jobId, int chunkId, short maxChunkSize,
+                                              DataPartitionerFactory.DataPartitioner dataPartitioner) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
             Date nextItemBegin = new Date();
@@ -249,10 +252,10 @@ public class PgJobStore {
             try {
                 /* For each data entry extracted create the containing item entity.
                    In case a DataException is thrown by the extraction process a item entity
-                   is still created but with a serialized version of the DataException as
-                   payload instead.
+                   is still created but with a serialized JobError as payload instead.
                  */
 
+                final List<String> records = new ArrayList<>(maxChunkSize);
                 for (String record : dataPartitioner) {
                     final ItemData itemData = new ItemData(Base64Util.base64encode(record), dataPartitioner.getEncoding());
 
@@ -265,12 +268,15 @@ public class PgJobStore {
                     itemState.updateState(stateChange);
 
                     chunkItemEntities.getEntities().add(createItem(jobId, chunkId, itemCounter++, itemState, itemData));
+                    records.add(record);
 
                     if (itemCounter == maxChunkSize) {
                         break;
                     }
                     nextItemBegin = new Date();
                 }
+                chunkItemEntities.setRecords(records);
+
             } catch (DataException e) {
                 LOGGER.warn("Exception caught during job partitioning", e);
                 final ItemData itemData;
@@ -447,6 +453,7 @@ public class PgJobStore {
      */
     static class ChunkItemEntities {
         private final List<ItemEntity> entities;
+        private List<String> records;
         private boolean isFailed = false;
 
         public ChunkItemEntities() {
@@ -455,6 +462,14 @@ public class PgJobStore {
 
         public List<ItemEntity> getEntities() {
             return entities;
+        }
+
+        public List<String> getRecords() {
+            return records;
+        }
+
+        public void setRecords(List<String> records) {
+            this.records = records;
         }
 
         public boolean isFailed() {

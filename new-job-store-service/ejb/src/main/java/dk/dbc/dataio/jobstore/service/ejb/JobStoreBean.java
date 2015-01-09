@@ -17,6 +17,9 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserNoOrderKeyGenerator;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,34 +64,34 @@ public class JobStoreBean {
         final DataPartitionerFactory.DataPartitioner dataPartitioner =
                 new DefaultXmlDataPartitionerFactory().createDataPartitioner(
                         new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
-        jobStore.addJob(jobInputStream, dataPartitioner, null, flow, sink);
+        final SequenceAnalyserSinkKeyGenerator keyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
+        jobStore.addJob(jobInputStream, dataPartitioner, keyGenerator, flow, sink);
     }
 
     public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
-        LOGGER.trace("JobSpec: {}", jobInputStream.getJobSpecification());
-        FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
-        Flow flow = getFlowOrThrow(flowBinder.getId());
-        Sink sink = getSinkOrThrow(flowBinder.getId());
+        try {
+            final FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
+            final Flow flow = getFlowOrThrow(flowBinder.getId());
+            final Sink sink = getSinkOrThrow(flowBinder.getId());
 
-        LOGGER.debug("THIS SHOULD NOT BE LOGGED - CURRENTLY LOGS TO AVOID PMD-WARNINGS!: {} {}", flow.getId(), sink.getId());
-
-        LOGGER.debug("addAndScheduleJob for job [{}] took (ms): {}", "", stopWatch.getElapsedTime());
-
-        //TODO - this is a dummy return and should be replaced
-        return new JobInfoSnapshot(
-                1,
-                false,
-                2344,
-                10,
-                10,
-                new Date(System.currentTimeMillis()),
-                new Date(System.currentTimeMillis()),
-                null,
-                jobInputStream.getJobSpecification(),
-                new State(),
-                flow.getContent().getName(),
-                sink.getContent().getName());
+            //TODO - this is a dummy return and should be replaced
+            return new JobInfoSnapshot(
+                    1,
+                    false,
+                    2344,
+                    10,
+                    10,
+                    new Date(System.currentTimeMillis()),
+                    new Date(System.currentTimeMillis()),
+                    null,
+                    jobInputStream.getJobSpecification(),
+                    new State(),
+                    flow.getContent().getName(),
+                    sink.getContent().getName());
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
     }
 
     // Method is package-private for unittesting purposes
@@ -118,6 +121,15 @@ public class JobStoreBean {
         } catch(FlowStoreServiceConnectorException ex) {
             LOGGER.warn("Could not retrieve Sink for FlowBinder with id: {}", id);
             throw new JobStoreException("Could not retrieve Sink", ex);
+        }
+    }
+
+    // Method is package-private for unittesting purposes
+    SequenceAnalyserKeyGenerator getSequenceAnalyserKeyGenerator(FlowBinder flowBinder, Sink sink) {
+        if(flowBinder.getContent().getSequenceAnalysis()) {
+            return new SequenceAnalyserSinkKeyGenerator(sink);
+        } else {
+            return new SequenceAnalyserNoOrderKeyGenerator();
         }
     }
 }

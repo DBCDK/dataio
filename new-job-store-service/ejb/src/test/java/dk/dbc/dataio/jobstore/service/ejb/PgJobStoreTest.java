@@ -23,8 +23,8 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ejb.SessionContext;
@@ -106,7 +106,6 @@ public class PgJobStoreTest {
         }
     }
 
-    @Ignore("until sequence analysis functionality is integrated")
     @Test
     public void addJob_sequenceAnalyserKeyGeneratorArgIsNull_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
@@ -163,22 +162,20 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         final Params params = new Params();
 
-        PgJobStore.ChunkItemEntities chunkItemEntities = pgJobStore.createChunkItemEntities(
-                1, 0, params.maxChunkSize, params.dataPartitioner, params.sequenceAnalyserKeyGenerator);
+        PgJobStore.ChunkItemEntities chunkItemEntities =
+                pgJobStore.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
         assertThat("First chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("First chunk: number of items", chunkItemEntities.getEntities().size(), is(10));
         assertThat("First chunk: failed flag", chunkItemEntities.isFailed(), is(false));
         assertChunkItemEntities(chunkItemEntities, State.Phase.PARTITIONING, EXPECTED_DATA_ENTRIES.subList(0,10), StandardCharsets.UTF_8);
 
-        chunkItemEntities = pgJobStore.createChunkItemEntities(
-                1, 1, params.maxChunkSize, params.dataPartitioner, params.sequenceAnalyserKeyGenerator);
+        chunkItemEntities = pgJobStore.createChunkItemEntities(1, 1, params.maxChunkSize, params.dataPartitioner);
         assertThat("Second chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Second chunk: number of items", chunkItemEntities.getEntities().size(), is(1));
         assertThat("Second chunk: failed flag", chunkItemEntities.isFailed(), is(false));
         assertChunkItemEntities(chunkItemEntities, State.Phase.PARTITIONING, EXPECTED_DATA_ENTRIES.subList(10, 11), StandardCharsets.UTF_8);
 
-        chunkItemEntities = pgJobStore.createChunkItemEntities(
-                1, 2, params.maxChunkSize, params.dataPartitioner, params.sequenceAnalyserKeyGenerator);
+        chunkItemEntities = pgJobStore.createChunkItemEntities(1, 2, params.maxChunkSize, params.dataPartitioner);
         assertThat("Third chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Third chunk: number of items", chunkItemEntities.getEntities().size(), is(0));
         assertThat("Third chunk: failed flag", chunkItemEntities.isFailed(), is(false));
@@ -197,8 +194,8 @@ public class PgJobStoreTest {
         params.dataPartitioner =  new DefaultXmlDataPartitionerFactory().createDataPartitioner(
                     new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
 
-        final PgJobStore.ChunkItemEntities chunkItemEntities = pgJobStore.createChunkItemEntities(
-                1, 0, params.maxChunkSize, params.dataPartitioner, params.sequenceAnalyserKeyGenerator);
+        final PgJobStore.ChunkItemEntities chunkItemEntities =
+                pgJobStore.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Chunk: number of items", chunkItemEntities.getEntities().size(), is(2));
         assertThat("Chunk: failed flag", chunkItemEntities.isFailed(), is(true));
@@ -226,6 +223,8 @@ public class PgJobStoreTest {
         assertThat("First chunk", chunkEntity, is(notNullValue()));
         assertThat("First chunk: number of items", (short) chunkEntity.getNumberOfItems(), is(params.maxChunkSize));
         assertThat("First chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
+        assertThat("First chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(1));
+        assertThat("First chunk: seq keys", chunkEntity.getSequenceAnalysisData().getData().contains(params.sink.getContent().getName()), is(true));
         assertThat("Job: number of chunks after first chunk", jobEntity.getNumberOfChunks(), is(1));
         assertThat("Job: number of items after first chunk", jobEntity.getNumberOfItems(), is((int) params.maxChunkSize));
         assertThat("Job: partitioning phase endDate not set after first chunk", jobEntity.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(nullValue()));
@@ -235,6 +234,8 @@ public class PgJobStoreTest {
         assertThat("Second chunk", chunkEntity, is(notNullValue()));
         assertThat("Second chunk: number of items", chunkEntity.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS - params.maxChunkSize));
         assertThat("Second chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
+        assertThat("Second chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(1));
+        assertThat("Second chunk: seq keys", chunkEntity.getSequenceAnalysisData().getData().contains(params.sink.getContent().getName()), is(true));
         assertThat("Job: number of chunks after second chunk", jobEntity.getNumberOfChunks(), is(2));
         assertThat("Job: number of items after second chunk", jobEntity.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
         assertThat("Job: partitioning phase endDate not set after second chunk", jobEntity.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(nullValue()));
@@ -417,6 +418,7 @@ public class PgJobStoreTest {
                     new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
+            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
             maxChunkSize = 10;
             dataFileId = "datafile";
         }

@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -27,6 +28,13 @@ public class SequenceAnalyserNoOrderKeyGeneratorTest {
     public void generateKeys_sinkArgIsNotNull_returnsEmptyKeySet() {
         final Sink sink = new SinkBuilder().build();
         final Set<String> keys = keyGenerator.generateKeys(null, sink);
+        assertThat(keys, is(notNullValue()));
+        assertThat(keys.size(), is(0));
+    }
+
+    @Test
+    public void generateKeys_returnsEmptyKeySet() {
+        final Set<String> keys = keyGenerator.generateKeys(Arrays.asList("data1", "data2"));
         assertThat(keys, is(notNullValue()));
         assertThat(keys.size(), is(0));
     }

@@ -1,11 +1,13 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.Rule;
@@ -72,7 +74,7 @@ public class JobProcessorMessageProducerBeanTest {
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JsonException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ChunkBuilder().build());
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build());
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.JOB_STORE_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
     }

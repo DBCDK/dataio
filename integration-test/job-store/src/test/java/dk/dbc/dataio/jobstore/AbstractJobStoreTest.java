@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobState;
@@ -63,9 +64,9 @@ public abstract class AbstractJobStoreTest {
         }
     }
 
-    static Chunk assertChunkMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {
+    static ExternalChunk assertChunkMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
-        return JsonUtil.fromJson(message.getText(), Chunk.class, MixIns.getMixIns());
+        return JsonUtil.fromJson(message.getText(), ExternalChunk.class, MixIns.getMixIns());
     }
 
     static JobInfo createJob(Client restClient, JobSpecification jobSpecification) throws URISyntaxException, JobStoreServiceConnectorException {

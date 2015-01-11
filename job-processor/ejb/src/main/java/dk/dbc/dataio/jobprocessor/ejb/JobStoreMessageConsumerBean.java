@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
@@ -50,8 +49,9 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
      */
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final Chunk oldChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), Chunk.class, MixIns.getMixIns());
-            final ExternalChunk chunk = Chunk.convertToExternalChunk(oldChunk);
+            //final Chunk oldChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), Chunk.class, MixIns.getMixIns());
+            //final ExternalChunk chunk = Chunk.convertToExternalChunk(oldChunk);
+            final ExternalChunk chunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class, MixIns.getMixIns());
             LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
             process(chunk);
         } catch (JsonException e) {

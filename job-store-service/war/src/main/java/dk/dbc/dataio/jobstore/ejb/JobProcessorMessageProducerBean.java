@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -33,13 +34,14 @@ public class JobProcessorMessageProducerBean {
     /**
      * Sends given Chunk instance as JMS message with JSON payload to processor queue destination
      *
-     * @param chunk Chunk instance to be inserted as message payload
+     * @param oldChunk Chunk instance to be inserted as message payload
      *
      * @throws NullPointerException when given null-valued argument
      * @throws JobStoreException when unable to send given Chunk to destination
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void send(Chunk chunk) throws NullPointerException, JobStoreException {
+    public void send(Chunk oldChunk) throws NullPointerException, JobStoreException {
+        ExternalChunk chunk = Chunk.convertToExternalChunk(oldChunk);
         LOGGER.info("Sending Chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, chunk);
@@ -66,7 +68,7 @@ public class JobProcessorMessageProducerBean {
      * @throws JsonException when unable to marshall Chunk instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, Chunk chunk) throws JsonException, JMSException {
+    public TextMessage createMessage(JMSContext context, ExternalChunk chunk) throws JsonException, JMSException {
         final TextMessage message = context.createTextMessage(JsonUtil.toJson(chunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);

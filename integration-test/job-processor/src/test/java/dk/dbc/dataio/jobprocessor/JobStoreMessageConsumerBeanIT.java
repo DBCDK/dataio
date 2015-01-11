@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobprocessor;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -14,8 +14,8 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -63,7 +63,7 @@ public class JobStoreMessageConsumerBeanIT {
     @Test
     public void jobStoreMessageConsumerBean_invalidChunkOnProcessorQueue_eventuallyRemovedFromProcessorQueue() throws JMSException, JsonException {
         final ChunkItem item = new ChunkItemBuilder().setId(0L).build();
-        final Chunk chunk = new ChunkBuilder().setItems(Arrays.asList(item)).build();
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).setItems(Arrays.asList(item)).build();
         final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(chunk);
         
         jobStoreMessage.setText("invalid");
@@ -84,10 +84,9 @@ public class JobStoreMessageConsumerBeanIT {
                 .setData(Base64Util.base64encode(itemData))
                 .build();
 
-        final Chunk chunk = new ChunkBuilder()
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
                 .setItems(Arrays.asList(chunkItem))
-                .setFlow(buildToUpperFlow())
                 .build();
 
         final MockedJmsTextMessage jobStoreMessage = newJobStoreMessageForJobProcessor(chunk);
@@ -122,7 +121,7 @@ public class JobStoreMessageConsumerBeanIT {
         return chunkResult;
     }
 
-    private MockedJmsTextMessage newJobStoreMessageForJobProcessor(Chunk chunk) throws JMSException, JsonException {
+    private MockedJmsTextMessage newJobStoreMessageForJobProcessor(ExternalChunk chunk) throws JMSException, JsonException {
         final MockedJmsTextMessage message = (MockedJmsTextMessage) new JobProcessorMessageProducerBean()
                 .createMessage(jmsContext, chunk);
         message.setText(JsonUtil.toJson(chunk));

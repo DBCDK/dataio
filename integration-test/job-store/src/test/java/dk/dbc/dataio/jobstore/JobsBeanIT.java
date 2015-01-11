@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -37,7 +37,7 @@ public class JobsBeanIT extends AbstractJobStoreTest {
 
         final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
         assertThat(processorQueue.size(), is(1));
-        final Chunk chunk1 = assertChunkMessageForProcessor(processorQueue.get(0));
+        final ExternalChunk chunk1 = assertChunkMessageForProcessor(processorQueue.get(0));
         assertThat(chunk1.getJobId(), is(jobInfo.getJobId()));
         assertThat(JmsQueueConnector.getQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME), is(1));
     }

@@ -3,7 +3,7 @@ package dk.dbc.dataio.commons.utils.test.model;
 import dk.dbc.dataio.commons.types.ChunkItem;
 
 public class ChunkItemBuilder {
-    private long id = 1L;
+    private long id = 0L;
     private String data = "data";
     private ChunkItem.Status status = ChunkItem.Status.SUCCESS;
 

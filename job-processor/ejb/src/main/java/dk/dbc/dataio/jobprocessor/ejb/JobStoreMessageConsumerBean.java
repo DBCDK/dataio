@@ -49,10 +49,10 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
      */
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            //final Chunk oldChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), Chunk.class, MixIns.getMixIns());
-            //final ExternalChunk chunk = Chunk.convertToExternalChunk(oldChunk);
-            final ExternalChunk chunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class, MixIns.getMixIns());
+            // final ExternalChunk chunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class, MixIns.getMixIns());
+            final ExternalChunk chunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class);
             LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
+            confirmLegalChunkTypeOrThrow(chunk);
             process(chunk);
         } catch (JsonException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
@@ -93,6 +93,16 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         } catch (JobStoreServiceConnectorException e) {
             throw new JobProcessorException(String.format(
                     "Exception caught while fetching supplementaryProcessData for job %s", chunk.getJobId()), e);
+        }
+    }
+
+    private void confirmLegalChunkTypeOrThrow(ExternalChunk chunk) throws InvalidMessageException {
+        ExternalChunk.Type legalChunkType = ExternalChunk.Type.PARTITIONED;
+        if(chunk.getType() != legalChunkType) {
+            String errMsg = String.format("The chunk with id (jobId/chunkId) : [%d/%d] is of illegal type [%s] when [%s] was expected.",
+                    chunk.getJobId(), chunk.getChunkId(), chunk.getType(), legalChunkType);
+            LOGGER.warn(errMsg);
+            throw new InvalidMessageException(errMsg);
         }
     }
 }

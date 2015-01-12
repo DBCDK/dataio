@@ -97,7 +97,7 @@ public abstract class AbstractMessageConsumerBean {
             // Ensure that this container-managed transaction can never commit
             // and therefore that this message subsequently will be re-delivered.
             messageDrivenContext.setRollbackOnly();
-            LOGGER.error("Exception caught while processing message<{}>: {}", messageId, t);
+            LOGGER.error("Exception caught while processing message<{}>", messageId, t);
             backoffBeforeRetry(messageDeliveryCount);
         }
     }

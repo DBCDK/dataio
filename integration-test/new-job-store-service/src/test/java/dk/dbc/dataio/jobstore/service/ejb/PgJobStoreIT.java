@@ -4,18 +4,33 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -29,16 +44,20 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASS
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PgJobStoreIT {
-    public static String DATABASE_NAME = "jobstore";
-    public static String JOB_TABLE_NAME = "job";
-    public static String CHUNK_TABLE_NAME = "chunk";
-    public static String ITEM_TABLE_NAME = "item";
-    public static String FLOW_CACHE_TABLE_NAME = "flowcache";
-    public static String SINK_CACHE_TABLE_NAME = "sinkcache";
+    public static final String DATABASE_NAME = "jobstore";
+    public static final String JOB_TABLE_NAME = "job";
+    public static final String CHUNK_TABLE_NAME = "chunk";
+    public static final String ITEM_TABLE_NAME = "item";
+    public static final String FLOW_CACHE_TABLE_NAME = "flowcache";
+    public static final String SINK_CACHE_TABLE_NAME = "sinkcache";
+    private static final SessionContext SESSION_CONTEXT = mock(SessionContext.class);
     private EntityManager entityManager;
 
     /**
@@ -131,6 +150,74 @@ public class PgJobStoreIT {
         assertThat("table size", getSizeOfTable(SINK_CACHE_TABLE_NAME), is(1L));
     }
 
+    /**
+     * Given: an empty jobstore
+     * When : a job is added
+     * Then : a new job entity is created
+     * And  : a flow cache entity is created
+     * And  : a sink cache entity is created
+     * And  : the required number of chunk and item entities are created
+     */
+    @Test
+    public void addJob() throws JobStoreException, SQLException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Params params = new Params();
+        final int expectedNumberOfChunks = 2;
+        final int expectedNumberOfItems = 11;
+
+        // When...
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
+                params.sequenceAnalyserKeyGenerator, params.flow, params.sink);
+        transaction.commit();
+
+        // Then...
+        assertThat("Job table size", getSizeOfTable(JOB_TABLE_NAME), is(1L));
+        assertThat("Chunk table size", getSizeOfTable(CHUNK_TABLE_NAME), is((long) expectedNumberOfChunks));
+        assertThat("Item table size", getSizeOfTable(ITEM_TABLE_NAME), is((long) expectedNumberOfItems));
+
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        assertThat("JobEntity", jobEntity, is(notNullValue()));
+        assertThat("JobEntity: number of chunks created", jobEntity.getNumberOfChunks(), is(expectedNumberOfChunks));
+        assertThat("JobEntity: number of items created", jobEntity.getNumberOfItems(), is(expectedNumberOfItems));
+        assertThat("JobEntity: partitioning phase done", jobEntity.getState().phaseIsDone(State.Phase.PARTITIONING), is(true));
+        assertThat("JobEntity: time of creation", jobEntity.getTimeOfCreation(), is(notNullValue()));
+        assertThat("JobEntity: time of last modification", jobEntity.getTimeOfLastModification(), is(notNullValue()));
+
+        // And...
+        assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(notNullValue()));
+
+        // And...
+        assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(notNullValue()));
+
+        // And...
+        for (int chunkId = 0; chunkId < expectedNumberOfChunks; chunkId++) {
+            final String chunkLabel = String.format("ChunkEntity[%d]:", chunkId);
+            final short expectedNumberOfChunkItems = expectedNumberOfItems / ((chunkId + 1) * params.maxChunkSize) > 0 ? params.maxChunkSize
+                    : (short) (expectedNumberOfItems - (chunkId * params.maxChunkSize));
+            final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobEntity.getId()));
+            assertThat(String.format("%s", chunkLabel), chunkEntity, is(notNullValue()));
+            assertThat(String.format("%s number of items", chunkLabel), chunkEntity.getNumberOfItems(), is(expectedNumberOfChunkItems));
+            assertThat(String.format("%s partitioning phase done", chunkLabel), chunkEntity.getState().phaseIsDone(State.Phase.PARTITIONING), is(true));
+            assertThat(String.format("%s time of creation", chunkLabel), chunkEntity.getTimeOfCreation(), is(notNullValue()));
+            assertThat(String.format("%s time of last modification", chunkLabel), chunkEntity.getTimeOfLastModification(), is(notNullValue()));
+            assertThat(String.format("%s sequence analysis data", chunkLabel), chunkEntity.getSequenceAnalysisData().getData().isEmpty(), is(not(true)));
+
+            for (short itemId = 0; itemId < expectedNumberOfChunkItems; itemId++) {
+                final String itemLabel = String.format("ItemEntity[%d,%d]:", chunkId, itemId);
+                final ItemEntity itemEntity = entityManager.find(ItemEntity.class, new ItemEntity.Key(jobEntity.getId(), chunkId, itemId));
+                entityManager.refresh(itemEntity);
+                assertThat(String.format("%s", itemLabel), itemEntity, is(notNullValue()));
+                assertThat(String.format("%s partitioning phase done", itemLabel), itemEntity.getState().phaseIsDone(State.Phase.PARTITIONING), is(true));
+                assertThat(String.format("%s time of creation", itemLabel), itemEntity.getTimeOfCreation(), is(notNullValue()));
+                assertThat(String.format("%s time of last modification", itemLabel), itemEntity.getTimeOfLastModification(), is(notNullValue()));
+                assertThat(String.format("%s partitioning data", itemEntity), itemEntity.getPartitioningOutcome(), is(notNullValue()));
+            }
+        }
+    }
+
     @Before
     public void initialiseEntityManager() {
         final Map<String, String> properties = new HashMap<>();
@@ -167,6 +254,10 @@ public class PgJobStoreIT {
         final PgJobStore pgJobStore = new PgJobStore();
         pgJobStore.entityManager = entityManager;
         pgJobStore.jsonbBean = jsonbBean;
+        pgJobStore.sessionContext = SESSION_CONTEXT;
+
+        when(SESSION_CONTEXT.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
+
         return pgJobStore;
     }
 
@@ -189,6 +280,44 @@ public class PgJobStoreIT {
             final List<List<Object>> rs = JDBCUtil.queryForRowLists(connection,
                     String.format("SELECT COUNT(*) FROM %s", tableName));
             return ((long) rs.get(0).get(0));
+        }
+    }
+
+    /* Helper class for parameter values (with defaults)
+     */
+    private static class Params {
+        final String xml =
+                  "<records>"
+                + "<record>first</record>"
+                + "<record>second</record>"
+                + "<record>third</record>"
+                + "<record>fourth</record>"
+                + "<record>fifth</record>"
+                + "<record>sixth</record>"
+                + "<record>seventh</record>"
+                + "<record>eighth</record>"
+                + "<record>ninth</record>"
+                + "<record>tenth</record>"
+                + "<record>eleventh</record>"
+                + "</records>";
+
+        public JobInputStream jobInputStream;
+        public DataPartitionerFactory.DataPartitioner dataPartitioner;
+        public SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
+        public Flow flow;
+        public Sink sink;
+        public String dataFileId;
+        public short maxChunkSize;
+
+        public Params() {
+            jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), true, 0);
+            dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(
+                    new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
+            flow = new FlowBuilder().build();
+            sink = new SinkBuilder().build();
+            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
+            maxChunkSize = 10;
+            dataFileId = "datafile";
         }
     }
 }

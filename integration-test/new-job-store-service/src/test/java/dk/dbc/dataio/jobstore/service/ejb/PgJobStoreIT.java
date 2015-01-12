@@ -179,12 +179,8 @@ public class PgJobStoreIT {
         assertThat("Item table size", getSizeOfTable(ITEM_TABLE_NAME), is((long) expectedNumberOfItems));
 
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
-        assertThat("JobEntity", jobEntity, is(notNullValue()));
-        assertThat("JobEntity: number of chunks created", jobEntity.getNumberOfChunks(), is(expectedNumberOfChunks));
-        assertThat("JobEntity: number of items created", jobEntity.getNumberOfItems(), is(expectedNumberOfItems));
-        assertThat("JobEntity: partitioning phase done", jobEntity.getState().phaseIsDone(State.Phase.PARTITIONING), is(true));
-        assertThat("JobEntity: time of creation", jobEntity.getTimeOfCreation(), is(notNullValue()));
-        assertThat("JobEntity: time of last modification", jobEntity.getTimeOfLastModification(), is(notNullValue()));
+        assertJobEntity(jobEntity, jobInfoSnapshot.getJobId(), expectedNumberOfChunks, expectedNumberOfItems,
+                Arrays.asList(State.Phase.PARTITIONING));
 
         // And...
         assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(notNullValue()));
@@ -194,26 +190,17 @@ public class PgJobStoreIT {
 
         // And...
         for (int chunkId = 0; chunkId < expectedNumberOfChunks; chunkId++) {
-            final String chunkLabel = String.format("ChunkEntity[%d]:", chunkId);
             final short expectedNumberOfChunkItems = expectedNumberOfItems / ((chunkId + 1) * params.maxChunkSize) > 0 ? params.maxChunkSize
                     : (short) (expectedNumberOfItems - (chunkId * params.maxChunkSize));
-            final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(chunkId, jobEntity.getId()));
-            assertThat(String.format("%s", chunkLabel), chunkEntity, is(notNullValue()));
-            assertThat(String.format("%s number of items", chunkLabel), chunkEntity.getNumberOfItems(), is(expectedNumberOfChunkItems));
-            assertThat(String.format("%s partitioning phase done", chunkLabel), chunkEntity.getState().phaseIsDone(State.Phase.PARTITIONING), is(true));
-            assertThat(String.format("%s time of creation", chunkLabel), chunkEntity.getTimeOfCreation(), is(notNullValue()));
-            assertThat(String.format("%s time of last modification", chunkLabel), chunkEntity.getTimeOfLastModification(), is(notNullValue()));
-            assertThat(String.format("%s sequence analysis data", chunkLabel), chunkEntity.getSequenceAnalysisData().getData().isEmpty(), is(not(true)));
+            final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobEntity.getId());
+            final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
+            assertChunkEntity(chunkEntity, chunkKey, expectedNumberOfChunkItems, Arrays.asList(State.Phase.PARTITIONING));
 
             for (short itemId = 0; itemId < expectedNumberOfChunkItems; itemId++) {
-                final String itemLabel = String.format("ItemEntity[%d,%d]:", chunkId, itemId);
+                final ItemEntity.Key itemKey = new ItemEntity.Key(jobEntity.getId(), chunkId, itemId);
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, new ItemEntity.Key(jobEntity.getId(), chunkId, itemId));
                 entityManager.refresh(itemEntity);
-                assertThat(String.format("%s", itemLabel), itemEntity, is(notNullValue()));
-                assertThat(String.format("%s partitioning phase done", itemLabel), itemEntity.getState().phaseIsDone(State.Phase.PARTITIONING), is(true));
-                assertThat(String.format("%s time of creation", itemLabel), itemEntity.getTimeOfCreation(), is(notNullValue()));
-                assertThat(String.format("%s time of last modification", itemLabel), itemEntity.getTimeOfLastModification(), is(notNullValue()));
-                assertThat(String.format("%s partitioning data", itemEntity), itemEntity.getPartitioningOutcome(), is(notNullValue()));
+                assertItemEntity(itemEntity, itemKey, Arrays.asList(State.Phase.PARTITIONING));
             }
         }
     }
@@ -280,6 +267,51 @@ public class PgJobStoreIT {
             final List<List<Object>> rs = JDBCUtil.queryForRowLists(connection,
                     String.format("SELECT COUNT(*) FROM %s", tableName));
             return ((long) rs.get(0).get(0));
+        }
+    }
+
+    private void assertJobEntity(JobEntity jobEntity, int jobId, int numberOfChunks, int numberOfItems, List<State.Phase> phasesDone) {
+        final String jobLabel = String.format("JobEntity[%d]:", jobEntity.getId());
+        assertThat(String.format("%s", jobLabel), jobEntity, is(notNullValue()));
+        assertThat(String.format("%s number of chunks created", jobLabel), jobEntity.getNumberOfChunks(), is(numberOfChunks));
+        assertThat(String.format("%s number of items created", jobLabel), jobEntity.getNumberOfItems(), is(numberOfItems));
+        assertThat(String.format("%s time of creation", jobLabel), jobEntity.getTimeOfCreation(), is(notNullValue()));
+        assertThat(String.format("%s time of last modification", jobLabel), jobEntity.getTimeOfLastModification(), is(notNullValue()));
+        for (State.Phase phase : phasesDone) {
+            assertThat(String.format("%s %s phase done", jobLabel, phase), jobEntity.getState().phaseIsDone(phase), is(true));
+        }
+    }
+
+    private void assertChunkEntity(ChunkEntity chunkEntity, ChunkEntity.Key key, short numberOfItems, List<State.Phase> phasesDone) {
+        final String chunkLabel = String.format("ChunkEntity[%d,%d]:", key.getJobId(), key.getId());
+        assertThat(String.format("%s", chunkLabel), chunkEntity, is(notNullValue()));
+        assertThat(String.format("%s number of items", chunkLabel), chunkEntity.getNumberOfItems(), is(numberOfItems));
+        assertThat(String.format("%s time of creation", chunkLabel), chunkEntity.getTimeOfCreation(), is(notNullValue()));
+        assertThat(String.format("%s time of last modification", chunkLabel), chunkEntity.getTimeOfLastModification(), is(notNullValue()));
+        assertThat(String.format("%s sequence analysis data", chunkLabel), chunkEntity.getSequenceAnalysisData().getData().isEmpty(), is(not(true)));
+        for (State.Phase phase : phasesDone) {
+            assertThat(String.format("%s %s phase done", chunkLabel, phase), chunkEntity.getState().phaseIsDone(phase), is(true));
+        }
+    }
+
+    private void assertItemEntity(ItemEntity itemEntity, ItemEntity.Key key, List<State.Phase> phasesDone) {
+        final String itemLabel = String.format("ItemEntity[%d,%d,%d]:", key.getJobId(), key.getChunkId(), key.getId());
+        assertThat(String.format("%s", itemLabel), itemEntity, is(notNullValue()));
+        assertThat(String.format("%s time of creation", itemLabel), itemEntity.getTimeOfCreation(), is(notNullValue()));
+        assertThat(String.format("%s time of last modification", itemLabel), itemEntity.getTimeOfLastModification(), is(notNullValue()));
+        for (State.Phase phase : phasesDone) {
+            assertThat(String.format("%s %s phase done", itemLabel, phase), itemEntity.getState().phaseIsDone(phase), is(true));
+            switch (phase) {
+                case PARTITIONING:
+                    assertThat(String.format("%s %s data", itemLabel, phase), itemEntity.getPartitioningOutcome(), is(notNullValue()));
+                    break;
+                case PROCESSING:
+                    assertThat(String.format("%s %s data", itemLabel, phase), itemEntity.getProcessingOutcome(), is(notNullValue()));
+                    break;
+                case DELIVERING:
+                    assertThat(String.format("%s %S data", itemLabel, phase), itemEntity.getDeliveringOutcome(), is(notNullValue()));
+                    break;
+            }
         }
     }
 

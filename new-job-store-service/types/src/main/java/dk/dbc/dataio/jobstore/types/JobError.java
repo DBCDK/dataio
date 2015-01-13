@@ -10,6 +10,10 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 public class JobError {
     public static enum Code {
         INVALID_DATA,
+        INVALID_DATAFILE,
+        INVALID_FLOW_BINDER_IDENTIFIER,
+        INVALID_URI_SYNTAX
+
     }
 
     private final Code code;

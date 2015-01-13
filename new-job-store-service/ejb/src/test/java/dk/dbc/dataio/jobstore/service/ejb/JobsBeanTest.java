@@ -2,6 +2,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -68,6 +70,27 @@ public class JobsBeanTest {
 
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void addJob_invalidInput_throwsInvalidInputException() throws Exception{
+        JobError jobError = new JobError(JobError.Code.INVALID_DATAFILE, "datafile is invalid", "stack trace");
+        InvalidInputException invalidInputException = new InvalidInputException("error message", jobError);
+        final URI uri = new URI(LOCATION);
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
+        final String jobInputStreamJson = jsonbContext.marshall(jobInputStream);
+
+        when(mockedUriBuilder.build()).thenReturn(uri);
+        when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenThrow(invalidInputException);
+
+        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
+        assertThat(response.hasEntity(), is(true));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+
+        JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat(jobErrorReturned, not(nullValue()));
+        assertThat(jobErrorReturned.getCode(), is(jobError.getCode()));
     }
 
     @Test

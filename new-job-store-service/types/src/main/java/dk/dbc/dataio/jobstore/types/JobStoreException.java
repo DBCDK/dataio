@@ -36,4 +36,5 @@ public class JobStoreException extends Exception {
     public JobStoreException(String message, Exception cause) {
         super(message, cause);
     }
+
 }

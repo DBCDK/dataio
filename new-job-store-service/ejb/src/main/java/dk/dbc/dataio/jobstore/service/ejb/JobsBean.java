@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
+import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -51,24 +53,27 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COLLECTION)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JobStoreException, JSONBException {
+    public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException, URISyntaxException {
         LOGGER.trace("JobInputStream: {}", jobInputStreamData);
         final JobInputStream jobInputStream;
+        JobInfoSnapshot jobInfoSnapshot;
 
         try {
             jobInputStream = jsonbBean.getContext().unmarshall(jobInputStreamData, JobInputStream.class);
+            jobInfoSnapshot = jobStoreBean.addAndScheduleJob(jobInputStream);
+            return Response.created(getUri(uriInfo, DUMMY_JOB_ID))
+                    .entity(jsonbBean.getContext().marshall(jobInfoSnapshot))
+                    .build();
 
         } catch (JSONBException e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(jsonbBean.getContext().marshall(new ServiceError(e.getMessage())))
                     .build();
+        } catch(InvalidInputException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(jsonbBean.getContext().marshall(e.getJobError()))
+                    .build();
         }
-
-        final JobInfoSnapshot jobInfoSnapshot = jobStoreBean.addAndScheduleJob(jobInputStream);
-
-        return Response.created(getUri(uriInfo, DUMMY_JOB_ID))
-                .entity(jsonbBean.getContext().marshall(jobInfoSnapshot))
-                .build();
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {

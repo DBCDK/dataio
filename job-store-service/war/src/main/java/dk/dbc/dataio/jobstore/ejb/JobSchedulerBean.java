@@ -9,6 +9,7 @@ import dk.dbc.dataio.jobstore.types.monitoring.SequenceAnalyserMonitorMXBean;
 import dk.dbc.dataio.jobstore.types.monitoring.SequenceAnalyserMonitorSample;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.naive.NaiveSequenceAnalyser;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
@@ -66,7 +67,9 @@ public class JobSchedulerBean {
         final String lockObject = getLockObject(String.valueOf(sink.getId()));
         synchronized(lockObject) {
             final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
-            sac.sequenceAnalyser.addChunk(chunk);
+            final CollisionDetectionElement element = 
+                    new CollisionDetectionElement(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), chunk.getKeys());
+            sac.sequenceAnalyser.addChunk(element);
             updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
             inactiveIndependentChunks = sac.sequenceAnalyser.getInactiveIndependentChunks();
         }

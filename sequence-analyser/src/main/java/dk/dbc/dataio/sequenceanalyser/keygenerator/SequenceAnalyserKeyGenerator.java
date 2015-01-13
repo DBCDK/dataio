@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sequenceanalyser.keygenerator;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 import java.util.List;
 import java.util.Set;
@@ -16,7 +16,7 @@ public interface SequenceAnalyserKeyGenerator {
      * @param sink Chunk destination
      * @return set of keys
      */
-    Set<String> generateKeys(Chunk chunk, Sink sink);
+    Set<String> generateKeys(CollisionDetectionElement element, Sink sink);
 
     /**
      * Generates keys determining chunk ordering during sequence analysis

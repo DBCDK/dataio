@@ -9,6 +9,14 @@ public class ChunkIdentifier {
         this.chunkId = chunkId;
     }
 
+    public long getJobId() {
+        return jobId;
+    }
+
+    public long getChunkId() {
+        return chunkId;
+    }
+
     @Override
     public String toString() {
         return "["+jobId+", "+chunkId+ "]";

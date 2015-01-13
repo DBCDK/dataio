@@ -11,6 +11,7 @@ import dk.dbc.dataio.jobstore.types.monitoring.SequenceAnalyserMonitorMXBean;
 import dk.dbc.dataio.jobstore.types.monitoring.SequenceAnalyserMonitorSample;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,7 +65,7 @@ public class JobSchedulerBeanTest {
 
     @Before
     public void setupExpectations() {
-        doNothing().when(sequenceAnalyser).addChunk(any(Chunk.class));
+        doNothing().when(sequenceAnalyser).addChunk(any(CollisionDetectionElement.class));
         when(sequenceAnalyser.getInactiveIndependentChunks()).thenReturn(Collections.<ChunkIdentifier>emptyList());
         when(jobStoreBean.getJobStore()).thenReturn(jobStore);
         when(sequenceAnalyserMonitorBean.getMBeans()).thenReturn(mBeans);
@@ -85,7 +86,7 @@ public class JobSchedulerBeanTest {
         JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         jobSchedulerBean = injectSequenceAnalyserComposite(jobSchedulerBean);
         jobSchedulerBean.scheduleChunk(chunk, sink);
-        verify(sequenceAnalyser).addChunk(any(Chunk.class));
+        verify(sequenceAnalyser).addChunk(any(CollisionDetectionElement.class));
     }
 
     @Test

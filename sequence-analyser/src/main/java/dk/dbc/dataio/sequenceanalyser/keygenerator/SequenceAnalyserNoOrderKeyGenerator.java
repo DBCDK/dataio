@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sequenceanalyser.keygenerator;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.Set;
  */
 public class SequenceAnalyserNoOrderKeyGenerator implements SequenceAnalyserKeyGenerator {
     @Override
-    public Set<String> generateKeys(Chunk chunk, Sink sink) {
+    public Set<String> generateKeys(CollisionDetectionElement element, Sink sink) {
         return Collections.emptySet();
     }
 

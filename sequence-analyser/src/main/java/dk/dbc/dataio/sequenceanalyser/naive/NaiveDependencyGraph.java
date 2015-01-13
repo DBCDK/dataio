@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
 import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -20,10 +20,10 @@ class NaiveDependencyGraph {
     /**
      * Inserts a new Node in the graph, representing the given Chunk.
      *
-     * @param chunk
+     * @param element
      */
-    public void insert(Chunk chunk) {
-        Node node = new Node(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), new HashSet<>(chunk.getKeys()));
+    public void insert(CollisionDetectionElement element) {
+        Node node = new Node(element.getIdentifier(), element.getKeys());
         LOGGER.info("Created node: {}", node);
         findAndUpdateDependencies(node);
         nodes.add(node);

@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
 import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 import java.util.List;
 
@@ -11,8 +11,8 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
     private NaiveDependencyGraph dependencyGraph = new NaiveDependencyGraph();
 
     @Override
-    public void addChunk(Chunk chunk) {
-        dependencyGraph.insert(chunk);
+    public void addChunk(CollisionDetectionElement element) {
+        dependencyGraph.insert(element);
     }
 
     @Override

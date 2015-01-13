@@ -1,12 +1,13 @@
 package dk.dbc.dataio.sequenceanalyser.keygenerator;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -15,12 +16,12 @@ import static org.junit.Assert.assertThat;
 
 public class SequenceAnalyserSinkKeyGeneratorTest {
     private final SequenceAnalyserKeyGenerator keyGenerator = new SequenceAnalyserSinkKeyGenerator();
-    private final Chunk chunk = new ChunkBuilder().build();
+    private final CollisionDetectionElement element = new CollisionDetectionElement(new ChunkIdentifier(5L, 1L), new HashSet<String>());
     private final Sink sink = new SinkBuilder().build();
 
     @Test(expected = NullPointerException.class)
     public void generateKeys_sinkArgIsNull_throws() {
-        keyGenerator.generateKeys(chunk, null);
+        keyGenerator.generateKeys(element, null);
     }
 
     @Test

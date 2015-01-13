@@ -40,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
+import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 public class FileSystemJobStore implements JobStore {
 
@@ -337,7 +339,9 @@ public class FileSystemJobStore implements JobStore {
 
     private void generateChunkKeys(Chunk chunk, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Sink sink) {
         LOGGER.info("Generating chunk keys for chunk.id {} in job.id {}", chunk.getChunkId(), chunk.getJobId());
-        for (final String key : sequenceAnalyserKeyGenerator.generateKeys(chunk, sink)) {
+        final CollisionDetectionElement element = 
+                new CollisionDetectionElement(new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId()), chunk.getKeys());
+        for (final String key : sequenceAnalyserKeyGenerator.generateKeys(element, sink)) {
             chunk.addKey(key);
         }
     }

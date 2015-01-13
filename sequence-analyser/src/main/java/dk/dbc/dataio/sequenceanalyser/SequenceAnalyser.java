@@ -1,7 +1,5 @@
 package dk.dbc.dataio.sequenceanalyser;
 
-import dk.dbc.dataio.commons.types.Chunk;
-
 import java.util.List;
 
 /**
@@ -28,10 +26,10 @@ public interface SequenceAnalyser {
      * chunk<it>.
      * <p>
      *
-     * @param chunk The chunk containing the id for the chunk, and the keys for
-     * exploring dependencies.
+     * @param element A CollisionDetectionElement containing chunk identification 
+     * and keys for comparison.
      */
-    void addChunk(Chunk chunk);
+    void addChunk(CollisionDetectionElement element);
 
     /**
      * Releases all chunks the depends on this ChunkIdentifier, and deletes

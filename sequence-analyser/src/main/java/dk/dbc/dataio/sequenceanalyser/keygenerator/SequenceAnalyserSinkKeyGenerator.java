@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sequenceanalyser.keygenerator;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,7 +30,7 @@ public class SequenceAnalyserSinkKeyGenerator implements SequenceAnalyserKeyGene
      * @throws NullPointerException if given null-valued sink
      */
     @Override
-    public Set<String> generateKeys(Chunk chunk, Sink sink) throws NullPointerException {
+    public Set<String> generateKeys(CollisionDetectionElement element, Sink sink) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
         final HashSet<String> keys = new HashSet<>(1);
         keys.add(sink.getContent().getName());

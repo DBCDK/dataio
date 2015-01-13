@@ -145,6 +145,13 @@ public class ChunkEntity {
             return result;
         }
 
+        @Override
+        public String toString() {
+            return "Key{" +
+                    "chunkId=" + id +
+                    ", jobId=" + jobId +
+                    '}';
+        }
     }
 }
 

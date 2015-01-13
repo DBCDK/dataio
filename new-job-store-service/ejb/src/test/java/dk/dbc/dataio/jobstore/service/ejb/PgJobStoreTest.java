@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.Flow;
+ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -164,20 +164,20 @@ public class PgJobStoreTest {
         PgJobStore.ChunkItemEntities chunkItemEntities =
                 pgJobStore.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
         assertThat("First chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("First chunk: number of items", chunkItemEntities.getEntities().size(), is(10));
-        assertThat("First chunk: failed flag", chunkItemEntities.isFailed(), is(false));
+        assertThat("First chunk: number of items", chunkItemEntities.size(), is((short) 10));
+        assertThat("First chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
         assertChunkItemEntities(chunkItemEntities, State.Phase.PARTITIONING, EXPECTED_DATA_ENTRIES.subList(0,10), StandardCharsets.UTF_8);
 
         chunkItemEntities = pgJobStore.createChunkItemEntities(1, 1, params.maxChunkSize, params.dataPartitioner);
         assertThat("Second chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Second chunk: number of items", chunkItemEntities.getEntities().size(), is(1));
-        assertThat("Second chunk: failed flag", chunkItemEntities.isFailed(), is(false));
+        assertThat("Second chunk: number of items", chunkItemEntities.size(), is((short) 1));
+        assertThat("Second chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
         assertChunkItemEntities(chunkItemEntities, State.Phase.PARTITIONING, EXPECTED_DATA_ENTRIES.subList(10, 11), StandardCharsets.UTF_8);
 
         chunkItemEntities = pgJobStore.createChunkItemEntities(1, 2, params.maxChunkSize, params.dataPartitioner);
         assertThat("Third chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Third chunk: number of items", chunkItemEntities.getEntities().size(), is(0));
-        assertThat("Third chunk: failed flag", chunkItemEntities.isFailed(), is(false));
+        assertThat("Third chunk: number of items", chunkItemEntities.size(), is((short) 0));
+        assertThat("Third chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
     }
 
     @Test
@@ -196,13 +196,13 @@ public class PgJobStoreTest {
         final PgJobStore.ChunkItemEntities chunkItemEntities =
                 pgJobStore.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Chunk: number of items", chunkItemEntities.getEntities().size(), is(2));
-        assertThat("Chunk: failed flag", chunkItemEntities.isFailed(), is(true));
-        assertThat("First item: succeeded", chunkItemEntities.getEntities().get(0).getState().getPhase(State.Phase.PARTITIONING).getSucceeded(), is(1));
-        assertThat("Second item: failed", chunkItemEntities.getEntities().get(1).getState().getPhase(State.Phase.PARTITIONING).getFailed(), is(1));
+        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 2));
+        assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
+        assertThat("First item: succeeded", chunkItemEntities.entities.get(0).getState().getPhase(State.Phase.PARTITIONING).getSucceeded(), is(1));
+        assertThat("Second item: failed", chunkItemEntities.entities.get(1).getState().getPhase(State.Phase.PARTITIONING).getFailed(), is(1));
 
         final JobError jobError = new JSONBContext().unmarshall(Base64Util.base64decode(
-                chunkItemEntities.getEntities().get(1).getPartitioningOutcome().getData()), JobError.class);
+                chunkItemEntities.entities.get(1).getPartitioningOutcome().getData()), JobError.class);
         assertThat(jobError.getCode(), is(JobError.Code.INVALID_DATA));
         assertThat(jobError.getDescription().isEmpty(), is(false));
         assertThat(jobError.getStacktrace().isEmpty(), is(false));
@@ -296,10 +296,10 @@ public class PgJobStoreTest {
         return pgJobStore;
     }
 
-    private void assertChunkItemEntities(PgJobStore.ChunkItemEntities entities, State.Phase phase, List<String> dataEntries, Charset dataEncoding) {
+    private void assertChunkItemEntities(PgJobStore.ChunkItemEntities chunkItemEntities, State.Phase phase, List<String> dataEntries, Charset dataEncoding) {
         final LinkedList<String> expectedData = new LinkedList<>(dataEntries);
 
-        for (ItemEntity itemEntity : entities.getEntities()) {
+        for (ItemEntity itemEntity : chunkItemEntities.entities) {
             final String itemEntityKey = String.format("Item{jobId,chunkId,itemId}[%d,%d,%d]",
                     itemEntity.getKey().getJobId(), itemEntity.getKey().getChunkId(), itemEntity.getKey().getId());
 

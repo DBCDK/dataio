@@ -446,17 +446,11 @@ public class StateTest {
         int succeeded = 0;
         int failed = 0;
         int ignored = 0;
-        int pending = 0;
-        int active = 0;
-        int done = 0;
 
         for (StateChange stateChange : stateChangeList) {
             succeeded = succeeded + stateChange.getSucceeded();
             failed = failed + stateChange.getFailed();
             ignored = ignored + stateChange.getIgnored();
-            pending = pending + stateChange.getPending();
-            active = active + stateChange.getActive();
-            done = done + stateChange.getSucceeded() + stateChange.getFailed() + stateChange.getIgnored();
         }
 
         assertThat(stateElement.getSucceeded(), is(succeeded));
@@ -515,21 +509,16 @@ public class StateTest {
         StateChange stateChangeA = new StateChange();
         stateChangeA.setBeginDate(BEGIN_DATE);
         stateChangeA.setSucceeded(1);
-        stateChangeA.setPending(8);
-        stateChangeA.setActive(3);
         stateChangeA.setPhase(phase);
 
         StateChange stateChangeB = new StateChange();
         stateChangeB.setSucceeded(5);
-        stateChangeB.setPending(-4);
-        stateChangeB.setActive(-1);
         stateChangeB.setPhase(phase);
 
         StateChange stateChangeC = new StateChange();
         stateChangeC.setEndDate(END_DATE);
         stateChangeC.setSucceeded(9);
         stateChangeC.setIgnored(1);
-        stateChangeC.setPending(-4);
         stateChangeC.setPhase(phase);
 
         List<StateChange> stateChangeList = new ArrayList<>();

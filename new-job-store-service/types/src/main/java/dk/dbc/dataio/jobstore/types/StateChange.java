@@ -10,8 +10,6 @@ public class StateChange {
     private int succeeded;
     private int failed;
     private int ignored;
-    private int pending;
-    private int active;
     private State.Phase phase;
 
     public StateChange() {
@@ -20,8 +18,6 @@ public class StateChange {
         this.succeeded = 0;
         this.failed = 0;
         this.ignored = 0;
-        this.pending = 0;
-        this.active = 0;
         this.phase = null;
     }
 
@@ -37,7 +33,7 @@ public class StateChange {
      * @param beginDate marking the start time
      */
     public StateChange setBeginDate(Date beginDate) {
-        this.beginDate = new Date(beginDate.getTime());
+        this.beginDate = beginDate == null ? null : new Date(beginDate.getTime());
         return this;
     }
 
@@ -53,90 +49,82 @@ public class StateChange {
      * @param endDate marking the end time
      */
     public StateChange setEndDate(Date endDate) {
-        this.endDate = new Date(endDate.getTime());
+        this.endDate = endDate == null ? null : new Date(endDate.getTime());
         return this;
     }
 
     /**
-     * @return the increment of chunks marked as succeeded
+     * @return the succeeded count
      */
     public int getSucceeded() {
         return succeeded;
     }
 
     /**
-     * Sets the number which status succeeded is to be incremented with
-     * (must be equal or larger than 0)
-     * @param succeeded number
+     * Sets succeeded count
+     * @param succeeded number (must be equal or larger than 0)
      */
-    public StateChange setSucceeded(int succeeded) {
-        this.succeeded = (int)InvariantUtil.checkLowerBoundOrThrow(succeeded, "succeeded", 0);
+    public StateChange setSucceeded(int succeeded) throws IllegalArgumentException {
+        this.succeeded = InvariantUtil.checkIntLowerBoundOrThrow(succeeded, "succeeded", 0);
         return this;
     }
 
     /**
-     * @return the increment of chunks marked as failed
+     * Increments succeeded count
+     * @param delta increment (must be equal or larger than 0)
+     */
+    public StateChange incSucceeded(int delta) throws IllegalArgumentException {
+        succeeded += InvariantUtil.checkIntLowerBoundOrThrow(delta, "delta", 0);
+        return this;
+    }
+
+    /**
+     * @return the failed count
      */
     public int getFailed() {
         return failed;
     }
 
     /**
-     * Sets the number which status failed is to be incremented with
-     * (must be equal or larger than 0)
-     * @param failed number
+     * Sets failed count
+     * @param failed number (must be equal or larger than 0)
      */
-    public StateChange setFailed(int failed) {
-        this.failed = (int)InvariantUtil.checkLowerBoundOrThrow(failed, "failed", 0);
+    public StateChange setFailed(int failed) throws IllegalArgumentException {
+        this.failed = InvariantUtil.checkIntLowerBoundOrThrow(failed, "failed", 0);
         return this;
     }
 
     /**
-     * @return the increment of chunks marked as ignored
+     * Increments failed count
+     * @param delta increment (must be equal or larger than 0)
+     */
+    public StateChange incFailed(int delta) throws IllegalArgumentException {
+        failed += InvariantUtil.checkIntLowerBoundOrThrow(delta, "delta", 0);
+        return this;
+    }
+
+    /**
+     * @return the ignored count
      */
     public int getIgnored() {
         return ignored;
     }
 
     /**
-     * Sets the number which status ignored is to be incremented with
-     * (must be equal or larger than 0)
-     * @param ignored number
+     * Sets ignored count
+     * @param ignored number (must be equal or larger than 0)
      */
-    public StateChange setIgnored(int ignored) {
-        this.ignored = (int)InvariantUtil.checkLowerBoundOrThrow(ignored, "ignored", 0);
+    public StateChange setIgnored(int ignored) throws IllegalArgumentException {
+        this.ignored = InvariantUtil.checkIntLowerBoundOrThrow(ignored, "ignored", 0);
         return this;
     }
 
     /**
-     * @return the increment of chunks with status pending
+     * Increments ignored count
+     * @param delta increment (must be equal or larger than 0)
      */
-    public int getPending() {
-        return pending;
-    }
-
-    /**
-     * Sets the number which the lifecycle pending is to be incremented with
-     * @param pending number
-     */
-    public StateChange setPending(int pending) {
-        this.pending = pending;
-        return this;
-    }
-
-    /**
-     * @return the increment of chunks with status active
-     */
-    public int getActive() {
-        return active;
-    }
-
-    /**
-     * Sets the number which the lifecycle active is to be incremented with
-     * @param active number
-     */
-    public StateChange setActive(int active) {
-        this.active = active;
+    public StateChange incIgnored(int delta) throws IllegalArgumentException {
+        ignored += InvariantUtil.checkIntLowerBoundOrThrow(delta ,"delta", 0);
         return this;
     }
 

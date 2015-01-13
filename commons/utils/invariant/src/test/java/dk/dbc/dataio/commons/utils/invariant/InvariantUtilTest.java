@@ -60,4 +60,21 @@ public class InvariantUtilTest {
         final long expectedValue = 42L;
         assertThat(InvariantUtil.checkLowerBoundOrThrow(expectedValue, parameterName, lower_bound), is(expectedValue));
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void checkIntLowerBoundOrThrow_valueArgIsLessThan_throws() {
+        InvariantUtil.checkIntLowerBoundOrThrow(-42, parameterName, 0);
+    }
+
+    @Test
+    public void checkIntLowerBoundOrThrow_valueArgEqualsBound_returnsValue() {
+        final int expectedValue = 0;
+        assertThat(InvariantUtil.checkIntLowerBoundOrThrow(expectedValue, parameterName, expectedValue), is(expectedValue));
+    }
+
+    @Test
+    public void checkIntLowerBoundOrThrow_valueArgIsAboveBound_returnsValue() {
+        final int expectedValue = 42;
+        assertThat(InvariantUtil.checkIntLowerBoundOrThrow(expectedValue, parameterName, 0), is(expectedValue));
+    }
 }

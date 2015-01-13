@@ -156,5 +156,14 @@ public class ItemEntity {
             result = 31 * result + jobId;
             return result;
         }
+
+        @Override
+        public String toString() {
+            return "Key{" +
+                    "jobId=" + jobId +
+                    ", chunkId=" + chunkId +
+                    ", itemId=" + id +
+                    '}';
+        }
     }
 }

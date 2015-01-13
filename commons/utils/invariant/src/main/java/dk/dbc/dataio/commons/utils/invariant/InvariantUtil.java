@@ -69,4 +69,22 @@ public class InvariantUtil {
         }
         return value;
     }
+
+    /**
+     * Simple convenience method to check that a given int is larger than or equal to given bound.
+     * If the below the bound then an IllegalArgumentException is thrown, otherwise
+     * the value is returned as is.
+     * @param value value to test against lower bound
+     * @param parameterName name of the tested parameter. This name is used in the exception message.
+     * @param bound lower bound
+     * @throws IllegalArgumentException if {@code value} is less than {@code bound}
+     */
+    public static int checkIntLowerBoundOrThrow(int value, String parameterName, int bound)
+            throws IllegalArgumentException {
+        if (value < bound) {
+            final String message = "Value of parameter '" + parameterName + "' must be larger than or equal to " + bound;
+            throw new IllegalArgumentException(message);
+        }
+        return value;
+    }
 }

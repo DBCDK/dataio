@@ -34,6 +34,51 @@ public class StateChangeTest {
         stateChange.setIgnored(-1);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void incSucceeded_lessThanZeroNotAllowed_throws() {
+        StateChange stateChange = new StateChange();
+        stateChange.incSucceeded(-1);
+    }
+
+    @Test
+    public void incSucceeded_increments() {
+        StateChange stateChange = new StateChange();
+        stateChange.incSucceeded(1);
+        assertThat(stateChange.getSucceeded(), is(1));
+        stateChange.incSucceeded(9);
+        assertThat(stateChange.getSucceeded(), is(10));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void incFailed_lessThanZeroNotAllowed_throws() {
+        StateChange stateChange = new StateChange();
+        stateChange.incFailed(-1);
+    }
+
+    @Test
+    public void incFailed_increments() {
+        StateChange stateChange = new StateChange();
+        stateChange.incFailed(1);
+        assertThat(stateChange.getFailed(), is(1));
+        stateChange.incFailed(9);
+        assertThat(stateChange.getFailed(), is(10));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void incIgnored_lessThanZeroNotAllowed_throws() {
+        StateChange stateChange = new StateChange();
+        stateChange.incIgnored(-1);
+    }
+
+    @Test
+    public void incIgnored_increments() {
+        StateChange stateChange = new StateChange();
+        stateChange.incIgnored(1);
+        assertThat(stateChange.getIgnored(), is(1));
+        stateChange.incIgnored(9);
+        assertThat(stateChange.getIgnored(), is(10));
+    }
+
     @Test
     public void setAllValues_allValuesAreSet_valuesAreCorrect() {
         final Date DATE = new Date(System.currentTimeMillis());
@@ -43,8 +88,6 @@ public class StateChangeTest {
         stateChange.setSucceeded(10);
         stateChange.setFailed(2);
         stateChange.setIgnored(3);
-        stateChange.setPending(-5);
-        stateChange.setActive(-4);
         stateChange.setPhase(State.Phase.PROCESSING);
 
         assertThat(stateChange.getBeginDate(), is(DATE));
@@ -52,8 +95,6 @@ public class StateChangeTest {
         assertThat(stateChange.getSucceeded(), is(10));
         assertThat(stateChange.getFailed(), is(2));
         assertThat(stateChange.getIgnored(), is(3));
-        assertThat(stateChange.getPending(), is(-5));
-        assertThat(stateChange.getActive(), is(-4));
         assertThat(stateChange.getPhase(), is(State.Phase.PROCESSING));
     }
 
@@ -64,8 +105,6 @@ public class StateChangeTest {
     private void assertNewStateChange(StateChange stateChange) {
         assertThat(stateChange.getBeginDate(), is(nullValue()));
         assertThat(stateChange.getEndDate(), is(nullValue()));
-        assertThat(stateChange.getPending(), is(0));
-        assertThat(stateChange.getActive(), is(0));
         assertThat(stateChange.getSucceeded(), is(0));
         assertThat(stateChange.getFailed(), is(0));
         assertThat(stateChange.getIgnored(), is(0));

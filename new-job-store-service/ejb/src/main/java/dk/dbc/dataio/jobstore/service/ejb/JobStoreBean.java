@@ -82,6 +82,13 @@ public class JobStoreBean {
         jobStore.addJob(jobInputStream, dataPartitioner, keyGenerator, flow, sink);
     }
 
+    /**
+     * Adds new job in the underlying data store from given job input stream.
+     *
+     * @param jobInputStream, containing information needed to create job, chunk and item entities
+     * @return information snapshot of added job
+     * @throws JobStoreException on failure to add job
+     */
     public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
 
@@ -124,7 +131,7 @@ public class JobStoreBean {
                 throw new JobStoreException("Error retrieving FlowBinder", e);
             }
         } catch (FlowStoreServiceConnectorException e) {
-            throw new JobStoreException("flow-store service returned with null-valued FlowBinder", e);
+            throw new JobStoreException("Error in flow-store service communication", e);
         }
     }
 
@@ -157,6 +164,13 @@ public class JobStoreBean {
         }
     }
 
+    /**
+     * Method retrieving job data file
+     *
+     * @param jobSpecification job specification
+     * @return input stream
+     * @throws JobStoreException on failure on retrieving job data file
+     */
     private InputStream getInputStream (JobSpecification jobSpecification) throws JobStoreException {
         String jobDataFile = jobSpecification.getDataFile();
         boolean isLocalFile = Files.exists(Paths.get(jobDataFile));

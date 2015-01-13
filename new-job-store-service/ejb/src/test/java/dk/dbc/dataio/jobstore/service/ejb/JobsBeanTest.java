@@ -70,6 +70,9 @@ public class JobsBeanTest {
 
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat(jobErrorReturned, not(nullValue()));
+        assertThat(jobErrorReturned.getCode(), is(JobError.Code.INVALID_JSON));
     }
 
     @Test
@@ -94,7 +97,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addJob_returnsResponseWithHttpStatusCreated_returnsJobOverview() throws Exception {
+    public void addJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
         final URI uri = new URI(LOCATION);
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
@@ -112,6 +115,7 @@ public class JobsBeanTest {
 
         JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
         assertThat(returnedJobInfoSnapshot, not(nullValue()));
+        assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
         assertJobSpecificationEquals(returnedJobInfoSnapshot.getSpecification(), jobSpecification);
     }
 

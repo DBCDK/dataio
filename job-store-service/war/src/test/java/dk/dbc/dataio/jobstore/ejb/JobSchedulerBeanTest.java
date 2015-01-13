@@ -10,7 +10,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.monitoring.SequenceAnalyserMonitorMXBean;
 import dk.dbc.dataio.jobstore.types.monitoring.SequenceAnalyserMonitorSample;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
-import dk.dbc.dataio.sequenceanalyser.naive.ChunkIdentifier;
+import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
 import org.junit.Before;
 import org.junit.Test;
 

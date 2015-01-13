@@ -1,7 +1,6 @@
 package dk.dbc.dataio.sequenceanalyser;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.sequenceanalyser.naive.ChunkIdentifier;
 
 import java.util.List;
 

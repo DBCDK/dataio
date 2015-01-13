@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
+import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
+import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.commons.types.Chunk;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;

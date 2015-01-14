@@ -134,7 +134,7 @@ public class PgJobStore {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
-            LOGGER.info("Adding chunk {} to job {}", chunk.getJobId(), chunk.getChunkId());
+            LOGGER.info("Adding chunk[{},{}]", chunk.getJobId(), chunk.getChunkId());
 
             // update items
 
@@ -174,10 +174,11 @@ public class PgJobStore {
                         .setEndDate(null));
                 jobEntity.setState(jobState);
                 entityManager.flush();
+                entityManager.refresh(jobEntity);
 
                 return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
             } else {
-                final String errMsg = String.format("Chunk[%d,%d] contains illegal number of items %d expected %d",
+                final String errMsg = String.format("Chunk[%d,%d] contains illegal number of items %d when %d expected",
                         chunk.getJobId(), chunk.getChunkId(), chunk.size(), chunkEntity.getNumberOfItems());
                 final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, errMsg, null);
                 throw new InvalidInputException(errMsg, jobError);
@@ -388,7 +389,10 @@ public class PgJobStore {
         try {
             Date nextItemBegin = new Date();
 
+            final State.Phase phase = chunkTypeToStatePhase(chunk.getType());
             final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
+            chunkItemEntities.chunkStateChange.setPhase(phase);
+
             for (ChunkItem ci : chunk) {
                 final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) ci.getId());
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
@@ -400,7 +404,6 @@ public class PgJobStore {
 
                 chunkItemEntities.entities.add(itemEntity);
 
-                final State.Phase phase = chunkTypeToStatePhase(chunk.getType());
                 if (itemEntity.getState().phaseIsDone(phase)) {
                     LOGGER.warn("Aborted attempt to add item {} to already finished {} phase", itemEntity.getKey(), phase);
                     break;

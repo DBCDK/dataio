@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flow.show;
+package dk.dbc.dataio.gui.client.pages.flow.oldshow;
 
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;

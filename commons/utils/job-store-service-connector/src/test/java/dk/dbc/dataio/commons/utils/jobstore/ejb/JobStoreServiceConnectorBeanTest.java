@@ -1,5 +1,6 @@
 package dk.dbc.dataio.commons.utils.jobstore.ejb;
 
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -73,7 +74,7 @@ public class JobStoreServiceConnectorBeanTest {
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(namingException);
         final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
         try {
-            jobStoreServiceConnectorBean.getChunk(jobId, jobId);
+            jobStoreServiceConnectorBean.getChunk(jobId, jobId, ExternalChunk.Type.PARTITIONED);
             fail("No exception thrown by getChunk()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));
@@ -86,7 +87,7 @@ public class JobStoreServiceConnectorBeanTest {
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(namingException);
         final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = getInitializedBean();
         try {
-            jobStoreServiceConnectorBean.getSinkChunkResult(jobId, jobId);
+            jobStoreServiceConnectorBean.getChunk(jobId, jobId, ExternalChunk.Type.DELIVERED);
             fail("No exception thrown by getSinkChunkResult()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));

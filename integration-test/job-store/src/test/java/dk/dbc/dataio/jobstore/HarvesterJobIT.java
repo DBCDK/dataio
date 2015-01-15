@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
@@ -63,10 +64,10 @@ public class HarvesterJobIT extends AbstractJobStoreTest {
 
         // And...
 
-        final Chunk chunk1 = getChunk(restClient, jobInfo.getJobId(), 1L);
-        assertThat(chunk1.getItems().size(), is(Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
-        final Chunk chunk2 = getChunk(restClient, jobInfo.getJobId(), 2L);
-        assertThat(chunk2.getItems().size(), is(recordCount - Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
+        final ExternalChunk chunk1 = getChunk(restClient, jobInfo.getJobId(), 1L);
+        assertThat(chunk1.size(), is(Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
+        final ExternalChunk chunk2 = getChunk(restClient, jobInfo.getJobId(), 2L);
+        assertThat(chunk2.size(), is(recordCount - Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
     }
 
     private static String createMarcExchangeHarvesterDataFile(Client client, File datafile, int numberOfRecords)

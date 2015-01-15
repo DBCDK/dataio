@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobErrorCode;
@@ -133,11 +134,37 @@ public class JobStoreServiceConnector {
      * Retrieves chunk from job-store
      * @param jobId Id of job containing chunk
      * @param chunkId Id of chunk
+     * @param type The chunk-type
      * @return chunk
      * @throws ProcessingException on general communication error
      * @throws JobStoreServiceConnectorException on failure to retrieve chunk
      */
-    public Chunk getChunk(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
+    public ExternalChunk getChunk(long jobId, long chunkId, ExternalChunk.Type type) throws ProcessingException, JobStoreServiceConnectorException {
+        
+        switch(type) {
+            case PARTITIONED:
+                return Chunk.convertToExternalChunk(getChunk(jobId, chunkId));
+            case PROCESSED:
+                break;
+            case DELIVERED:
+                return SinkChunkResult.convertToExternalChunk(getSinkChunkResult(jobId, chunkId));
+            default:
+                   
+        }
+        String errMsg = String.format("Unknown type requested for getChunk: %s", type);
+        LOGGER.warn(errMsg);
+        throw new JobStoreServiceConnectorException(errMsg);
+    }
+
+    /**
+     * Retrieves chunk from job-store
+     * @param jobId Id of job containing chunk
+     * @param chunkId Id of chunk
+     * @return chunk
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on failure to retrieve chunk
+     */
+    private Chunk getChunk(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_CHUNK)
@@ -164,7 +191,7 @@ public class JobStoreServiceConnector {
      * @throws ProcessingException on general communication error
      * @throws JobStoreServiceConnectorException on failure to retrieve sink chunk result
      */
-    public SinkChunkResult getSinkChunkResult(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
+    private SinkChunkResult getSinkChunkResult(long jobId, long chunkId) throws ProcessingException, JobStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_DELIVERED)

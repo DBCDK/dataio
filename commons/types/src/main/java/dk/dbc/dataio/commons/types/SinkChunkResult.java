@@ -35,4 +35,12 @@ public class SinkChunkResult extends AbstractChunk implements Serializable {
     public Charset getEncoding() {
         return Charset.forName(encoding);
     }
+
+    public static ExternalChunk convertToExternalChunk(SinkChunkResult chunk) {
+        ExternalChunk nChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PARTITIONED);
+        for(ChunkItem item : chunk.getItems()) {
+            nChunk.insertItem(item);
+        }
+        return nChunk;
+    }
 }

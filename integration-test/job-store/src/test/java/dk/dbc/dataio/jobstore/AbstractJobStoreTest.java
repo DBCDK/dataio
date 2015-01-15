@@ -74,9 +74,9 @@ public abstract class AbstractJobStoreTest {
         return jobStoreServiceConnector.createJob(jobSpecification);
     }
 
-    static Chunk getChunk(Client restClient, long jobId, long chunkId) throws JobStoreServiceConnectorException {
+    static ExternalChunk getChunk(Client restClient, long jobId, long chunkId) throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
-        return jobStoreServiceConnector.getChunk(jobId, chunkId);
+        return jobStoreServiceConnector.getChunk(jobId, chunkId, ExternalChunk.Type.PARTITIONED);
     }
 
     static JobState getState(Client restClient, long jobId) throws JobStoreServiceConnectorException {
@@ -90,8 +90,8 @@ public abstract class AbstractJobStoreTest {
         return JsonUtil.fromJson(response.readEntity(String.class), ChunkResult.class, MixIns.getMixIns());
     }
 
-    static SinkChunkResult getSinkResult(Client restClient, long jobId, long chunkId) throws JobStoreServiceConnectorException {
+    static ExternalChunk getSinkResult(Client restClient, long jobId, long chunkId) throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = new JobStoreServiceConnector(restClient, ITUtil.JOB_STORE_BASE_URL);
-        return jobStoreServiceConnector.getSinkChunkResult(jobId, chunkId);
+        return jobStoreServiceConnector.getChunk(jobId, chunkId, ExternalChunk.Type.DELIVERED);
     }
 }

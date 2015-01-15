@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobInfo;
@@ -209,7 +210,7 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        instance.getChunk(JOB_ID, CHUNK_ID);
+        instance.getChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.PARTITIONED);
     }
 
     @Test(expected = JobStoreServiceConnectorException.class)
@@ -221,7 +222,7 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        instance.getChunk(JOB_ID, CHUNK_ID);
+        instance.getChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.PARTITIONED);
     }
 
     @Test
@@ -234,7 +235,7 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedChunk));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        final Chunk chunk = instance.getChunk(JOB_ID, CHUNK_ID);
+        final ExternalChunk chunk = instance.getChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.PARTITIONED);
         assertThat(chunk, is(notNullValue()));
         assertThat(chunk.getJobId(), is(expectedChunk.getJobId()));
     }
@@ -248,7 +249,7 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        instance.getSinkChunkResult(JOB_ID, CHUNK_ID);
+        instance.getChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.DELIVERED);
     }
 
     @Test(expected = JobStoreServiceConnectorException.class)
@@ -260,7 +261,7 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        instance.getSinkChunkResult(JOB_ID, CHUNK_ID);
+        instance.getChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.DELIVERED);
     }
 
     @Test
@@ -273,9 +274,9 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), expectedSinkChunkResult));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        final SinkChunkResult sinkChunkResult = instance.getSinkChunkResult(JOB_ID, CHUNK_ID);
-        assertThat(sinkChunkResult, is(notNullValue()));
-        assertThat(sinkChunkResult.getJobId(), is(expectedSinkChunkResult.getJobId()));
+        final ExternalChunk chunk = instance.getChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.DELIVERED);
+        assertThat(chunk, is(notNullValue()));
+        assertThat(chunk.getJobId(), is(expectedSinkChunkResult.getJobId()));
     }
 
     private static JobStoreServiceConnector newJobStoreServiceConnector() {

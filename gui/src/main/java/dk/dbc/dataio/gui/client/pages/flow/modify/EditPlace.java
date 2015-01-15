@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.gui.client.model.FlowModel;
 
 public class EditPlace extends Place {
     private Long flowId;
@@ -12,8 +12,8 @@ public class EditPlace extends Place {
         this.flowId = Long.valueOf(url);
     }
 
-    public EditPlace(Flow flow) {
-        this.flowId = flow.getId();
+    public EditPlace(FlowModel model) {
+        this.flowId = model.getId();
     }
 
     public Long getFlowId() {

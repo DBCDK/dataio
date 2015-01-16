@@ -59,8 +59,8 @@ public class View extends ViewWidget {
         flowsTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
         flowsTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         flowsTable.addColumn(constructFlowComponentsColumn(), texts.columnHeader_FlowComponents());
-        flowsTable.addColumn(constructRefreshActionColumn(), texts.columnHeader_Action());
-        flowsTable.addColumn(constructEditActionColumn(), texts.columnHeader_Action());
+        flowsTable.addColumn(constructRefreshActionColumn(), texts.columnHeader_Action_Refresh());
+        flowsTable.addColumn(constructEditActionColumn(), texts.columnHeader_Action_Edit());
     }
 
     /**
@@ -145,7 +145,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowModel model) {
                 // The value to display in the button.
-                return texts.button_Update();
+                return texts.button_Edit();
             }
         };
 
@@ -180,9 +180,7 @@ public class View extends ViewWidget {
      * @return The formatted SVN Revision number
      */
     private String formatSvnRevision(FlowComponentModel flowComponentModel){
-        StringBuilder result = new StringBuilder();
-        result.append("SVN Rev. ").append(flowComponentModel.getSvnRevision());
-        return result.toString();
+        return "SVN Rev. " + flowComponentModel.getSvnRevision();
     }
 
 }

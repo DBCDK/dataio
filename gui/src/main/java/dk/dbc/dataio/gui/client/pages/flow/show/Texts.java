@@ -30,13 +30,13 @@ public interface Texts extends Constants {
     String columnHeader_Action_Refresh();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Action();
+    String columnHeader_Action_Edit();
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Refresh();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Update();
+    String button_Edit();
 
 }

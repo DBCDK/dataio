@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.gui.client.model.SinkModel;
 
 public class EditPlace extends Place {
     private Long sinkId;
@@ -12,7 +12,7 @@ public class EditPlace extends Place {
         this.sinkId = Long.valueOf(url);
     }
 
-    public EditPlace(Sink sink) {
+    public EditPlace(SinkModel sink) {
         this.sinkId = sink.getId();
     }
 

@@ -38,7 +38,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static dk.dbc.dataio.gui.client.pages.submitter.show.Texts submittersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.submitter.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.show.Texts flowsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts flowBindersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.sink.show.SinksShowTexts sinksShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.show.SinksShowTexts.class);
+    private final static dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowTexts sinksShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.job.show.Texts jobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.javascriptlog.Texts javaScriptLogShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.javascriptlog.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowTexts flowComponentsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowTexts.class);
@@ -87,7 +87,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.submitter.show.View submittersShowView = new dk.dbc.dataio.gui.client.pages.submitter.show.View(submittersShowTexts.menu_Submitters(), submittersShowTexts);
     private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(jobsShowTexts.menu_Jobs(), jobsShowTexts, imageResources);
     private final dk.dbc.dataio.gui.client.pages.javascriptlog.View javaScriptLogView = new dk.dbc.dataio.gui.client.pages.javascriptlog.View(javaScriptLogShowTexts.menu_JavaScriptLogShow());
-    private final dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView sinksShowView = new dk.dbc.dataio.gui.client.pages.sink.show.SinksShowViewImpl();
+    private final dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowView sinksShowView = new dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowViewImpl();
     private final dk.dbc.dataio.gui.client.pages.flowbinder.show.View flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.show.View(flowBindersShowTexts.menu_FlowBindersShow(), flowBindersShowTexts);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(submitterModifyTexts.menu_SubmitterCreation());
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(submitterModifyTexts.menu_SubmitterEdit());
@@ -114,7 +114,7 @@ public class ClientFactoryImpl implements ClientFactory {
                                           showFlowBinders);
 
         MenuItem createSink = new MenuItem(GUIID_MENU_ITEM_SINK_CREATE, sinkModifyTexts.menu_SinkCreation(), new dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace());
-        MenuItem sinksMenu = new MenuItem(GUIID_MENU_ITEM_SINKS_SHOW, sinksShowTexts.menu_Sinks(), new dk.dbc.dataio.gui.client.pages.sink.show.SinksShowPlace(),
+        MenuItem sinksMenu = new MenuItem(GUIID_MENU_ITEM_SINKS_SHOW, sinksShowTexts.menu_Sinks(), new dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowPlace(),
                 createSink);
 
         // Jobs Main Menu
@@ -198,8 +198,8 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace) {
             return new dk.dbc.dataio.gui.client.pages.javascriptlog.PresenterImpl(place, this, javaScriptLogShowTexts);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.show.SinksShowPlace) {
-            return new dk.dbc.dataio.gui.client.pages.sink.show.SinksShowActivity(this);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowPlace) {
+            return new dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowActivity(this);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.show.Place) {
             return new dk.dbc.dataio.gui.client.pages.flowbinder.show.PresenterImpl(this);
@@ -322,7 +322,7 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.sink.show.SinksShowView getSinksShowView() {
+    public dk.dbc.dataio.gui.client.pages.sink.oldshow.SinksShowView getSinksShowView() {
         return sinksShowView;
     }
 

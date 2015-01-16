@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.sink.show;
+package dk.dbc.dataio.gui.client.pages.sink.oldshow;
 
 import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;

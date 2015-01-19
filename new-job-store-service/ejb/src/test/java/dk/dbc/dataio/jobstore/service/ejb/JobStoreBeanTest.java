@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 
 public class JobStoreBeanTest {
     private static final String FILE_STORE_URN_STRING = "urn:dataio-fs:67";
+    private static final int JOB_ID = 3;
 
     private static FlowStoreServiceConnectorException flowStoreException;
     private static FlowStoreServiceConnectorUnexpectedStatusCodeException flowBinderNotFound;
@@ -357,7 +358,7 @@ public class JobStoreBeanTest {
     }
 
     private ExternalChunk getExternalChunk(ExternalChunk.Type type) {
-        return new ExternalChunk(1, 2, type);
+        return new ExternalChunk(JOB_ID, 2, type);
     }
 
 }

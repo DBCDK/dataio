@@ -47,7 +47,7 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.View getFlowBinderEditView();
     dk.dbc.dataio.gui.client.pages.sink.modify.View getSinkCreateView();
     dk.dbc.dataio.gui.client.pages.sink.modify.View getSinkEditView();
-    dk.dbc.dataio.gui.client.pages.flowcomponent.oldshow.FlowComponentsShowView getFlowComponentsShowView();
+    dk.dbc.dataio.gui.client.pages.flowcomponent.show.View getFlowComponentsShowView();
     dk.dbc.dataio.gui.client.pages.flow.show.View getFlowsShowView();
     dk.dbc.dataio.gui.client.pages.submitter.show.View getSubmittersShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();

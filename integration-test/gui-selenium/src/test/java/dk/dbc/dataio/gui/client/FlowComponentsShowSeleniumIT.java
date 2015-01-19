@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.gui.client.pages.flowcomponent.show.FlowComponentsShowViewImpl;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.oldshow.FlowComponentsShowViewImpl;
 import dk.dbc.dataio.gui.util.ClientFactoryImpl;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.BeforeClass;

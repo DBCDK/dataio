@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
+package dk.dbc.dataio.gui.client.pages.flowcomponent.oldshow;
 
 import com.google.gwt.user.client.ui.IsWidget;
 import dk.dbc.dataio.commons.types.FlowComponent;

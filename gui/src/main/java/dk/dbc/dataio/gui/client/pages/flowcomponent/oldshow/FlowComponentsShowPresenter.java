@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
+package dk.dbc.dataio.gui.client.pages.flowcomponent.oldshow;
 
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;

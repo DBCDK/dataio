@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
+package dk.dbc.dataio.gui.client.pages.flowcomponent.oldshow;
 
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;

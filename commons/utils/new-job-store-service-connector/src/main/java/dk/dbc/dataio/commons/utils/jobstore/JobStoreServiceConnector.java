@@ -1,8 +1,10 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -67,6 +69,37 @@ public class JobStoreServiceConnector {
         }
     }
 
+    /**
+     * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
+     *
+     * @param chunk external chunk
+     * @param jobId job id
+     * @param chunkId chunk id
+     * @return JobInfoSnapshot displaying job information from one exact moment in time.
+     *
+     * @throws NullPointerException if given null-valued external chunk argument
+     * @throws JobStoreServiceConnectorException on general failure to update job
+     * @throws IllegalArgumentException on invalid external chunk type
+     */
+    public JobInfoSnapshot addChunk(ExternalChunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
+            final PathBuilder path = new PathBuilder(chunkTypeToJobStorePath(chunk.getType()))
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                    .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
+            final Response response = HttpClient.doPostWithJson(httpClient, chunk, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+                return readResponseEntity(response, JobInfoSnapshot.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     public Client getHttpClient() {
         return httpClient;
     }
@@ -78,6 +111,7 @@ public class JobStoreServiceConnector {
     /*
      * Private methods
      */
+
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws JobStoreServiceConnectorUnexpectedStatusCodeException {
         if (actualStatus != expectedStatus) {
             throw new JobStoreServiceConnectorUnexpectedStatusCodeException(
@@ -93,5 +127,14 @@ public class JobStoreServiceConnector {
                     String.format("job-store service returned with null-valued %s entity", tClass.getName()));
         }
         return entity;
+    }
+
+    private String chunkTypeToJobStorePath(ExternalChunk.Type chunkType) throws IllegalArgumentException {
+        switch (chunkType) {
+            case PROCESSED:   return JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
+            case DELIVERED:   return JobStoreServiceConstants.JOB_CHUNK_DELIVERED;
+            case PARTITIONED: throw new IllegalArgumentException("PARTITIONED is not a valid type");
+            default:          throw new IllegalArgumentException("ExternalChunk.Type could not be identified");
+        }
     }
 }

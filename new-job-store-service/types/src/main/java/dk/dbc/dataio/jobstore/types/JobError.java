@@ -15,7 +15,10 @@ public class JobError {
         INVALID_URI_SYNTAX,
         INVALID_ITEM_IDENTIFIER,
         ILLEGAL_CHUNK,
-        INVALID_JSON
+        INVALID_JSON,
+        INVALID_JOB_ID,
+        INVALID_CHUNK_ID,
+        INVALID_CHUNK_TYPE
 
     }
 

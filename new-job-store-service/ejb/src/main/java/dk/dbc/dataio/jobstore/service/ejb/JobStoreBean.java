@@ -4,6 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -106,6 +107,21 @@ public class JobStoreBean {
 
             return jobStore.addJob(jobInputStream, dataPartitioner, sequenceAnalyserKeyGenerator, flow, sink);
 
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Updates existing job in the underlying data by adding external chunk changes
+     * @param chunk
+     * @return information snap shot of updated job
+     * @throws JobStoreException on failure to add job
+     */
+    public JobInfoSnapshot addChunk(ExternalChunk chunk) throws JobStoreException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            return jobStore.addChunk(chunk);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -264,6 +265,29 @@ public class JobStoreBeanTest {
         fail("No exception thrown by addAndScheduleJob()");
     }
 
+    @Test(expected = JobStoreException.class)
+    public void addChunk_referencedEntityNotFound_throwsJobStoreException() throws JobStoreException {
+        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
+        when(jobStoreBean.addChunk(chunk)).thenThrow(new JobStoreException("msg", null));
+        jobStoreBean.addChunk(chunk);
+        fail("No exception thrown by addChunk()");
+    }
+
+    @Test
+    public void addChunk_chunkIsAdded_returnsJobInfoSnapShot() throws Exception {
+        JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.DELIVERED);
+        JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapShot(jobSpecification);
+
+        when(jobStoreBean.addChunk(chunk)).thenReturn(jobInfoSnapshot);
+        try {
+            JobInfoSnapshot jobInfoSnapshotReturned = jobStoreBean.addChunk(chunk);
+            assertThat(jobInfoSnapshotReturned, not(nullValue()));
+        } catch(JobStoreException e) {
+            fail("Exception thrown by addChunk()");
+        }
+    }
+
     /*
      * Private methods
      */
@@ -330,6 +354,10 @@ public class JobStoreBeanTest {
                 new State(),
                 "flowName",
                 "sinkName");
+    }
+
+    private ExternalChunk getExternalChunk(ExternalChunk.Type type) {
+        return new ExternalChunk(1, 2, type);
     }
 
 }

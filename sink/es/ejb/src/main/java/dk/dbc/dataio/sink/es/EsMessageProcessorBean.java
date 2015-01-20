@@ -105,16 +105,16 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 case SUCCESS:
                     try {
                         addiRecords.add(ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, chunkResult.getEncoding()));
-                        sinkChunkResult.getItems().add(new ChunkItem(i + 1, "Empty slot", ChunkItem.Status.SUCCESS));
+                        sinkChunkResult.getItems().add(new ChunkItem(i, "Empty slot", ChunkItem.Status.SUCCESS));
                     } catch (RuntimeException | IOException e) {
-                        sinkChunkResult.getItems().add(new ChunkItem(i + 1, e.getMessage(), ChunkItem.Status.FAILURE));
+                        sinkChunkResult.getItems().add(new ChunkItem(i, e.getMessage(), ChunkItem.Status.FAILURE));
                     }
                     break;
                 case FAILURE:
-                    sinkChunkResult.getItems().add(new ChunkItem(i + 1, "Failed by processor", ChunkItem.Status.IGNORE));
+                    sinkChunkResult.getItems().add(new ChunkItem(i, "Failed by processor", ChunkItem.Status.IGNORE));
                     break;
                 case IGNORE:
-                    sinkChunkResult.getItems().add(new ChunkItem(i + 1, "Ignored by processor", ChunkItem.Status.IGNORE));
+                    sinkChunkResult.getItems().add(new ChunkItem(i, "Ignored by processor", ChunkItem.Status.IGNORE));
                     break;
                 default:
                     throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());

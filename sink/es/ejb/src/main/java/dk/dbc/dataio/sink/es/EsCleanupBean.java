@@ -145,7 +145,7 @@ public class EsCleanupBean {
         for (int i = 0; i < resultItems.size(); i++) {
             if (resultItems.get(i).getStatus() == ChunkItem.Status.SUCCESS) {
                 try {
-                    resultItems.set(i, new ChunkItem(i + 1, items.get(j).getData(), items.get(j).getStatus()));
+                    resultItems.set(i, new ChunkItem(i, items.get(j).getData(), items.get(j).getStatus()));
                     j++;
                 } catch (IndexOutOfBoundsException e) {
                     throw new SinkException(String.format("SinkChunkResult item discrepancy for tp<%d>: %d items returned, more expected",

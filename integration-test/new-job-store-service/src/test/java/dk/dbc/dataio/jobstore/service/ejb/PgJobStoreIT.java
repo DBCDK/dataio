@@ -62,8 +62,6 @@ public class PgJobStoreIT {
     public static final String SINK_CACHE_TABLE_NAME = "sinkcache";
     private static final SessionContext SESSION_CONTEXT = mock(SessionContext.class);
     private EntityManager entityManager;
-//    private static final long CHUNK_ID = 1;
-//    private static final short ITEM_ID = 0;
     private static final String DATA = "this is some test data";
 
     /**
@@ -185,7 +183,7 @@ public class PgJobStoreIT {
         assertThat("Item table size", getSizeOfTable(ITEM_TABLE_NAME), is((long) expectedNumberOfItems));
 
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
-        assertJobEntity(jobEntity, jobInfoSnapshot.getJobId(), expectedNumberOfChunks, expectedNumberOfItems,
+        assertJobEntity(jobEntity, expectedNumberOfChunks, expectedNumberOfItems,
                 Arrays.asList(State.Phase.PARTITIONING));
 
         // And...
@@ -237,7 +235,7 @@ public class PgJobStoreIT {
         // Validate that nothing has been processed on job level
         assertThat(jobInfoSnapshotNewJob.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(0));
 
-        // Validate nothing has been processed on chunk level
+        // Validate that nothing has been processed on chunk level
         assertChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, false);
 
         // Validate that nothing has been processed on item level
@@ -337,7 +335,7 @@ public class PgJobStoreIT {
         }
     }
 
-    private void assertJobEntity(JobEntity jobEntity, int jobId, int numberOfChunks, int numberOfItems, List<State.Phase> phasesDone) {
+    private void assertJobEntity(JobEntity jobEntity, int numberOfChunks, int numberOfItems, List<State.Phase> phasesDone) {
         final String jobLabel = String.format("JobEntity[%d]:", jobEntity.getId());
         assertThat(String.format("%s", jobLabel), jobEntity, is(notNullValue()));
         assertThat(String.format("%s number of chunks created", jobLabel), jobEntity.getNumberOfChunks(), is(numberOfChunks));

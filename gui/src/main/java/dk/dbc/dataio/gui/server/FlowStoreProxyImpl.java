@@ -115,19 +115,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Flow> findAllFlowsOld() throws ProxyException {
-        final List<Flow> result;
-        try {
-            result = flowStoreServiceConnector.findAllFlows();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return result;
-    }
-
-    @Override
     public List<FlowModel> findAllFlows() throws ProxyException {
         final List<Flow> flows;
         try {
@@ -197,19 +184,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
-        Flow flow;
-        try {
-            flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return flow;
-    }
-
-    @Override
     public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
         Flow flow;
         try {
@@ -220,20 +194,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return FlowModelMapper.toModel(flow);
-    }
-
-    @Override
-    public List<FlowComponent> findAllFlowComponentsOld() throws ProxyException {
-        final List<FlowComponent> result;
-        try {
-            result = flowStoreServiceConnector.findAllFlowComponents();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-
-        return result;
     }
 
     @Override
@@ -307,19 +267,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
-    }
-
-    @Override
-    public List<FlowBinder> findAllFlowBindersOld() throws ProxyException {
-        final List<FlowBinder> result;
-        try {
-            result = flowStoreServiceConnector.findAllFlowBinders();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return result;
     }
 
     @Override
@@ -408,19 +355,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<Submitter> findAllSubmittersOld() throws ProxyException {
-        final List<Submitter> result;
-        try {
-            result = flowStoreServiceConnector.findAllSubmitters();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return result;
-    }
-
-    @Override
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         final List<Submitter> submitters;
         try {
@@ -479,19 +413,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
         }
         return SinkModelMapper.toModel(sink);
-    }
-
-    @Override
-    public List<Sink> findAllSinksOld() throws ProxyException {
-        final List<Sink> result;
-        try {
-            result = flowStoreServiceConnector.findAllSinks();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
-        return result;
     }
 
     @Override

@@ -225,7 +225,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         when(flowStoreServiceConnector.findAllSinks()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.findAllSinksOld();
+            flowStoreProxy.findAllSinks();
             fail("No INTERNAL_SERVER_ERROR was thrown by findAllSinks()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -241,7 +241,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllSinks()).thenReturn(Arrays.asList(sink));
         try {
-            final List<Sink> allSinks = flowStoreProxy.findAllSinksOld();
+            final List<SinkModel> allSinks = flowStoreProxy.findAllSinks();
             assertNotNull(allSinks);
             assertThat(allSinks.size(), is(1));
             assertThat(allSinks.get(0).getId(), is(sink.getId()));
@@ -534,7 +534,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         when(flowStoreServiceConnector.findAllSubmitters()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.findAllSubmittersOld();
+            flowStoreProxy.findAllSubmitters();
             fail("No INTERNAL_SERVER_ERROR was thrown by findAllSubmitters()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -550,7 +550,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Arrays.asList(submitter));
         try {
-            final List<Submitter> allSubmitters = flowStoreProxy.findAllSubmittersOld();
+            final List<SubmitterModel> allSubmitters = flowStoreProxy.findAllSubmitters();
             assertNotNull(allSubmitters);
             assertThat(allSubmitters.size(), is(1));
             assertThat(allSubmitters.get(0).getId(), is(submitter.getId()));
@@ -683,7 +683,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         when(flowStoreServiceConnector.findAllFlows()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.findAllFlowsOld();
+            flowStoreProxy.findAllFlows();
             fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlows()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -699,7 +699,7 @@ public class FlowStoreProxyImplTest {
 
         when(flowStoreServiceConnector.findAllFlows()).thenReturn(Arrays.asList(flow));
         try {
-            final List<Flow> allFlows = flowStoreProxy.findAllFlowsOld();
+            final List<FlowModel> allFlows = flowStoreProxy.findAllFlows();
             assertNotNull(allFlows);
             assertThat(allFlows.size(), is(1));
             assertThat(allFlows.get(0).getId(), is(flow.getId()));
@@ -707,41 +707,6 @@ public class FlowStoreProxyImplTest {
             fail("Unexpected error when calling: findAllFlows()");
         }
     }
-
-    /*
-    * Test findAllFlowBindersOld
-    */
-    @Test
-    public void findAllFlowBindersOld_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.findAllFlowBinders()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
-        try {
-            flowStoreProxy.findAllFlowBindersOld();
-            fail("No INTERNAL_SERVER_ERROR was thrown by findAllFlowBinders()");
-        } catch (ProxyException e) {
-            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
-        }
-    }
-
-    @Test
-    public void findAllFlowBindersOld_remoteServiceReturnsHttpStatusOk_returnsListOfFlowBinderEntity() throws Exception {
-
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final FlowBinder flowBinder = new FlowBinderBuilder().setId(1L).build();
-
-        when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Arrays.asList(flowBinder));
-        try {
-            final List<FlowBinder> allFlowBinders = flowStoreProxy.findAllFlowBindersOld();
-            assertNotNull(allFlowBinders);
-            assertThat(allFlowBinders.size(), is(1));
-            assertThat(allFlowBinders.get(0).getId(), is(flowBinder.getId()));
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: findAllFlowBinders()");
-        }
-    }
-
 
     /*
     * Test findAllFlowBinders
@@ -1159,7 +1124,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.refreshFlowComponents((eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
-            flowStoreProxy.refreshFlowComponentsOld(flow.getId(), flow.getVersion());
+            flowStoreProxy.refreshFlowComponents(flow.getId(), flow.getVersion());
             fail("No INTERNAL_SERVER_ERROR was thrown by refreshFlowComponents()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
@@ -1174,7 +1139,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.refreshFlowComponents((eq(flow.getId())), (eq(flow.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 409));
         try {
-            flowStoreProxy.refreshFlowComponentsOld(flow.getId(), flow.getVersion());
+            flowStoreProxy.refreshFlowComponents(flow.getId(), flow.getVersion());
             fail("No CONFLICT_ERROR was thrown by refreshFlowComponents()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(ProxyError.CONFLICT_ERROR));
@@ -1190,7 +1155,7 @@ public class FlowStoreProxyImplTest {
                 .thenReturn(flow);
 
         try {
-            final Flow updatedFlow = flowStoreProxy.refreshFlowComponentsOld(flow.getId(), flow.getVersion());
+            final FlowModel updatedFlow = flowStoreProxy.refreshFlowComponents(flow.getId(), flow.getVersion());
             assertNotNull(updatedFlow);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: refreshFlowComponents");

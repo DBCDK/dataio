@@ -3,11 +3,6 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
@@ -22,37 +17,31 @@ public interface FlowStoreProxy extends RemoteService {
     // Flows
     FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException;
     FlowModel updateFlow(FlowModel FlowContent) throws NullPointerException, ProxyException;
-    List<Flow> findAllFlowsOld() throws ProxyException;
     List<FlowModel> findAllFlows() throws ProxyException;
     FlowModel getFlow(Long id) throws ProxyException;
 
     // Flow Components
     FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;
     FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;
-    Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException;
     FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException;
-    List<FlowComponent> findAllFlowComponentsOld() throws ProxyException;
     List<FlowComponentModel> findAllFlowComponents() throws ProxyException;
     FlowComponentModel getFlowComponent(Long id) throws ProxyException;
 
     // Flow Binders
     FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException;
     FlowBinderModel updateFlowBinder(FlowBinderModel FlowBinderContent) throws NullPointerException, ProxyException;
-    List<FlowBinder> findAllFlowBindersOld() throws ProxyException;
     List<FlowBinderModel> findAllFlowBinders() throws ProxyException;
     FlowBinderModel getFlowBinder(long id) throws ProxyException;
 
     // Submitters
     SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
     SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException;
-    List<Submitter> findAllSubmittersOld() throws ProxyException;
     List<SubmitterModel> findAllSubmitters() throws ProxyException;
     SubmitterModel getSubmitter(Long id) throws ProxyException;
 
     // Sinks
     SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException;
     SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException;
-    List<Sink> findAllSinksOld() throws ProxyException;
     List<SinkModel> findAllSinks() throws ProxyException;
     SinkModel getSink(Long id) throws ProxyException;
 

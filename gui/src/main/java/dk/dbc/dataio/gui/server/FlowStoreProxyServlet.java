@@ -1,11 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
@@ -49,11 +44,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<Flow> findAllFlowsOld() throws ProxyException {
-        return flowStoreProxy.findAllFlowsOld();
-    }
-
-    @Override
     public List<FlowModel> findAllFlows() throws ProxyException {
         return flowStoreProxy.findAllFlows();
     }
@@ -79,18 +69,8 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public Flow refreshFlowComponentsOld(Long id, Long version) throws NullPointerException, ProxyException {
-        return flowStoreProxy.refreshFlowComponentsOld(id, version);
-    }
-
-    @Override
     public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
         return flowStoreProxy.refreshFlowComponents(id, version);
-    }
-
-    @Override
-    public List<FlowComponent> findAllFlowComponentsOld() throws ProxyException {
-        return flowStoreProxy.findAllFlowComponentsOld();
     }
 
     @Override
@@ -115,11 +95,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public FlowBinderModel updateFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {
         return flowStoreProxy.updateFlowBinder(model);
-    }
-
-    @Override
-    public List<FlowBinder> findAllFlowBindersOld() throws ProxyException {
-        return flowStoreProxy.findAllFlowBindersOld();
     }
 
     @Override
@@ -148,11 +123,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<Submitter> findAllSubmittersOld() throws ProxyException {
-        return flowStoreProxy.findAllSubmittersOld();
-    }
-
-    @Override
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         return flowStoreProxy.findAllSubmitters();
     }
@@ -175,11 +145,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException {
         return flowStoreProxy.updateSink(model);
-    }
-
-    @Override
-    public List<Sink> findAllSinksOld() throws ProxyException {
-        return flowStoreProxy.findAllSinksOld();
     }
 
     @Override

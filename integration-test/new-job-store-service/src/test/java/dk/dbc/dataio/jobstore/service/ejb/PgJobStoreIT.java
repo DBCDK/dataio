@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -46,6 +48,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,6 +62,9 @@ public class PgJobStoreIT {
     public static final String SINK_CACHE_TABLE_NAME = "sinkcache";
     private static final SessionContext SESSION_CONTEXT = mock(SessionContext.class);
     private EntityManager entityManager;
+//    private static final long CHUNK_ID = 1;
+//    private static final short ITEM_ID = 0;
+    private static final String DATA = "this is some test data";
 
     /**
      * Given: a jobstore with empty flowcache
@@ -162,7 +168,7 @@ public class PgJobStoreIT {
     public void addJob() throws JobStoreException, SQLException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params();
+        final Params params = new Params(true);
         final int expectedNumberOfChunks = 2;
         final int expectedNumberOfItems = 11;
 
@@ -203,6 +209,67 @@ public class PgJobStoreIT {
                 assertItemEntity(itemEntity, itemKey, Arrays.asList(State.Phase.PARTITIONING));
             }
         }
+    }
+
+    /**
+     * Given: a job store where a job is added
+     * When : an external chunk is added
+     * Then : the job info snapshot is updated
+     * And  : the referenced entities are updated
+     */
+    @Test
+    public void addChunk() throws JobStoreException, SQLException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Params params = new Params(false); // The params define that the job is created with 2 chunks.
+        final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
+        final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
+
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+
+        final JobInfoSnapshot jobInfoSnapshotNewJob = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
+                params.sequenceAnalyserKeyGenerator, params.flow, params.sink);
+        jobTransaction.commit();
+
+        assertThat(jobInfoSnapshotNewJob, not(nullValue()));
+
+        // Validate that nothing has been processed on job level
+        assertThat(jobInfoSnapshotNewJob.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(0));
+
+        // Validate nothing has been processed on chunk level
+        assertChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, false);
+
+        // Validate that nothing has been processed on item level
+        assertItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, false);
+
+        ExternalChunk chunk = buildExternalChunk(
+                jobInfoSnapshotNewJob.getJobId(),
+                chunkId, itemId,
+                ExternalChunk.Type.PROCESSED,
+                ChunkItem.Status.SUCCESS);
+
+
+        // When...
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapShotUpdatedJob = pgJobStore.addChunk(chunk);
+        jobTransaction.commit();
+
+        // Then...
+        assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
+
+        // Validate that one external chunk has been processed on job level
+        assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
+        assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshotNewJob.getTimeOfLastModification()), is(true));
+
+        // And...
+
+        // Validate that one external chunk has been processed on chunk level
+        assertChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, true);
+
+        // Validate that one external chunk has been processed on item level
+        assertItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, true);
     }
 
     @Before
@@ -315,6 +382,35 @@ public class PgJobStoreIT {
         }
     }
 
+    private ExternalChunk buildExternalChunk(long jobId, long chunkId, long itemId, ExternalChunk.Type type, ChunkItem.Status status) {
+        ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
+        chunk.insertItem(getChunkItem(itemId, status));
+        return chunk;
+    }
+
+    private ChunkItem getChunkItem(long itemId, ChunkItem.Status status) {
+        return new ChunkItem(itemId, DATA, status);
+    }
+
+    private void assertChunkState(int jobId, int chunkId, int succeeded, boolean isProcessingDone) {
+        final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
+        final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
+        State chunkState = chunkEntity.getState();
+        assertThat(chunkState.getPhase(State.Phase.PROCESSING).getSucceeded(), is(succeeded));
+        assertThat(chunkState.phaseIsDone(State.Phase.PROCESSING), is(isProcessingDone));
+    }
+
+    private void assertItemState(int jobId, int chunkId, short itemId, int succeeded, boolean isProcessingDone) {
+        final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
+        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
+        State itemState = itemEntity.getState();
+        assertThat(itemState.getPhase(State.Phase.PROCESSING).getSucceeded(), is(succeeded));
+        assertThat(itemState.phaseIsDone(State.Phase.PROCESSING), is(isProcessingDone));
+        if(isProcessingDone) {
+            assertThat(itemEntity.getProcessingOutcome().getData(), is(DATA));
+        }
+    }
+
     /* Helper class for parameter values (with defaults)
      */
     private static class Params {
@@ -341,8 +437,8 @@ public class PgJobStoreIT {
         public String dataFileId;
         public short maxChunkSize;
 
-        public Params() {
-            jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), true, 0);
+        public Params(boolean isEOJ) {
+            jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), isEOJ, 0);
             dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(
                     new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();

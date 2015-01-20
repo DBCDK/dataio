@@ -132,30 +132,30 @@ public class EsMessageProcessorBeanTest {
         final String validAddi = "1\na\n1\nb\n";
         final ArrayList<ChunkItem> chunkItems = new ArrayList<>();
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
-                .setId(1)
+                .setId(0)
                 .setData(Base64Util.base64encode(validAddi))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // ignored by processor
-                .setId(2)
+                .setId(1)
                 .setStatus(ChunkItem.Status.IGNORE)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // failed by processor
-                .setId(3)
+                .setId(2)
                 .setStatus(ChunkItem.Status.FAILURE)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processor produces invalid addi
-                .setId(4)
+                .setId(3)
                 .setData("invalid")
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
-                .setId(5)
+                .setId(4)
                 .setData(Base64Util.base64encode(validAddi))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processor produces empty addi
-                .setId(6)
+                .setId(5)
                 .setData("")
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
@@ -169,17 +169,17 @@ public class EsMessageProcessorBeanTest {
         assertThat(esWorkloadFromChunkResult, is(notNullValue()));
         assertThat(esWorkloadFromChunkResult.getAddiRecords().size(), is(2));
         assertThat(esWorkloadFromChunkResult.getSinkChunkResult().getItems().size(), is(6));
-        assertThat("chunkItem 1 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getId(), is(1L));
+        assertThat("chunkItem 1 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getId(), is(0L));
         assertThat("chunkItem 1 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("chunkItem 2 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getId(), is(2L));
+        assertThat("chunkItem 2 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getId(), is(1L));
         assertThat("chunkItem 2 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("chunkItem 3 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(2).getId(), is(3L));
+        assertThat("chunkItem 3 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(2).getId(), is(2L));
         assertThat("chunkItem 3 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(2).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("chunkItem 4 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getId(), is(4L));
+        assertThat("chunkItem 4 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getId(), is(3L));
         assertThat("chunkItem 4 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("chunkItem 5 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getId(), is(5L));
+        assertThat("chunkItem 5 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getId(), is(4L));
         assertThat("chunkItem 5 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("chunkItem 6 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(5).getId(), is(6L));
+        assertThat("chunkItem 6 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(5).getId(), is(5L));
         assertThat("chunkItem 6 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(5).getStatus(), is(ChunkItem.Status.FAILURE));
     }
 

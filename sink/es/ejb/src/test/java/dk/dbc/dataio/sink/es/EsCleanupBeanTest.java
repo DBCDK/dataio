@@ -195,16 +195,16 @@ public class EsCleanupBeanTest {
         when(esConnector.getSinkResultItemsForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
 
         final SinkChunkResult finishedSinkChunkResult = cleanupBean.createSinkChunkResult(esInFlight);
-        assertThat("ChunkItem 1 status", finishedSinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("ChunkItem 1 data", finishedSinkChunkResult.getItems().get(0).getData(), is(resultItems.get(0).getData()));
-        assertThat("ChunkItem 2 status", finishedSinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("ChunkItem 2 data", finishedSinkChunkResult.getItems().get(1).getData(), is(esItems.get(0).getData()));
-        assertThat("ChunkItem 2 ID", finishedSinkChunkResult.getItems().get(1).getId(), is(2L));
-        assertThat("ChunkItem 3 status", finishedSinkChunkResult.getItems().get(2).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("ChunkItem 3 data", finishedSinkChunkResult.getItems().get(2).getData(), is(resultItems.get(2).getData()));
-        assertThat("ChunkItem 4 status", finishedSinkChunkResult.getItems().get(3).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("ChunkItem 4 data", finishedSinkChunkResult.getItems().get(3).getData(), is(esItems.get(1).getData()));
-        assertThat("ChunkItem 4 ID", finishedSinkChunkResult.getItems().get(3).getId(), is(4L));
+        assertThat("ChunkItem 0 status", finishedSinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("ChunkItem 0 data", finishedSinkChunkResult.getItems().get(0).getData(), is(resultItems.get(0).getData()));
+        assertThat("ChunkItem 1 status", finishedSinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem 1 data", finishedSinkChunkResult.getItems().get(1).getData(), is(esItems.get(0).getData()));
+        assertThat("ChunkItem 1 ID", finishedSinkChunkResult.getItems().get(1).getId(), is(1L));
+        assertThat("ChunkItem 2 status", finishedSinkChunkResult.getItems().get(2).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem 2 data", finishedSinkChunkResult.getItems().get(2).getData(), is(resultItems.get(2).getData()));
+        assertThat("ChunkItem 3 status", finishedSinkChunkResult.getItems().get(3).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("ChunkItem 3 data", finishedSinkChunkResult.getItems().get(3).getData(), is(esItems.get(1).getData()));
+        assertThat("ChunkItem 3 ID", finishedSinkChunkResult.getItems().get(3).getId(), is(3L));
     }
 
     @Test(expected = SinkException.class)
@@ -236,6 +236,49 @@ public class EsCleanupBeanTest {
         when(esConnector.getSinkResultItemsForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
 
         cleanupBean.createSinkChunkResult(esInFlight);
+    }
+    
+    @Test
+    public void createSinkChunkResult_chunkCreated_itemsInChunkIsZeroIndexed() throws JsonException, SinkException {
+        final ArrayList<ChunkItem> resultItems = new ArrayList<>();
+        resultItems.add(new ChunkItemBuilder()
+                .setId(0L)
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+        resultItems.add(new ChunkItemBuilder()
+                .setId(1L)
+                .setStatus(ChunkItem.Status.IGNORE)
+                .build());
+        resultItems.add(new ChunkItemBuilder()
+                .setId(2L)
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder()
+                .setItems(resultItems)
+                .build();
+        final EsInFlight esInFlight = new EsInFlight();
+        esInFlight.setTargetReference(42);
+        esInFlight.setSinkChunkResult(JsonUtil.toJson(sinkChunkResult));
+        
+        final ArrayList<ChunkItem> esItems = new ArrayList<>();
+        esItems.add(new ChunkItemBuilder()
+                .setStatus(ChunkItem.Status.FAILURE)
+                .setData("failed")
+                .build());
+        esItems.add(new ChunkItemBuilder()
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .setData("succeeded")
+                .build());
+        
+        when(esConnector.getSinkResultItemsForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
+
+        final SinkChunkResult finishedSinkChunkResult = cleanupBean.createSinkChunkResult(esInFlight);
+        assertThat("ChunkItem 0 status", finishedSinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem 0 ID", finishedSinkChunkResult.getItems().get(0).getId(), is(0L));
+        assertThat("ChunkItem 1 status", finishedSinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("ChunkItem 1 ID", finishedSinkChunkResult.getItems().get(1).getId(), is(1L));
+        assertThat("ChunkItem 2 status", finishedSinkChunkResult.getItems().get(2).getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("ChunkItem 2 ID", finishedSinkChunkResult.getItems().get(2).getId(), is(2L));
     }
 
     @Test(expected = SinkException.class)

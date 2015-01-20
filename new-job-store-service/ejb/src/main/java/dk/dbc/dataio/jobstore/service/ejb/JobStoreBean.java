@@ -116,7 +116,7 @@ public class JobStoreBean {
      * Updates existing job in the underlying data by adding external chunk changes
      * @param chunk
      * @return information snap shot of updated job
-     * @throws JobStoreException on failure to add job
+     * @throws JobStoreException on failure to add chunk
      */
     public JobInfoSnapshot addChunk(ExternalChunk chunk) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();

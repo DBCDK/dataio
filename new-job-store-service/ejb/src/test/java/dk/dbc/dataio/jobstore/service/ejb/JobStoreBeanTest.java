@@ -267,7 +267,7 @@ public class JobStoreBeanTest {
     }
 
     @Test(expected = JobStoreException.class)
-    public void addChunk_referencedEntityNotFound_throwsJobStoreException() throws JobStoreException {
+    public void addChunk_onFailureToUpdateJob_throwsJobStoreException() throws JobStoreException {
         ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
         when(jobStoreBean.addChunk(chunk)).thenThrow(new JobStoreException("msg", null));
         jobStoreBean.addChunk(chunk);

@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -38,10 +39,11 @@ public class JobsBeanTest {
     private UriBuilder mockedUriBuilder;
     private JobsBean jobsBean;
     private JSONBContext jsonbContext;
+    private URI uri;
 
 
     @Before
-    public void setup() {
+    public void setup() throws URISyntaxException {
         initializeJobsBean();
         jsonbContext = new JSONBContext();
 
@@ -51,6 +53,9 @@ public class JobsBeanTest {
 
         when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(mockedUriBuilder);
         when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
+
+        uri = new URI(LOCATION);
+        when(mockedUriBuilder.build()).thenReturn(uri);
     }
 
     // ************************************* ADD JOB TESTS **************************************************************
@@ -79,7 +84,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addJob_invalidInput_throwsInvalidInputException() throws Exception{
+    public void addJob_invalidInput_returnsResponseWithHttpStatusBadRequest() throws Exception{
         JobError jobError = new JobError(JobError.Code.INVALID_DATAFILE, "datafile is invalid", "stack trace");
         InvalidInputException invalidInputException = new InvalidInputException("error message", jobError);
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
@@ -99,13 +104,11 @@ public class JobsBeanTest {
 
     @Test
     public void addJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
-        final URI uri = new URI(LOCATION);
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
         final String jobInputStreamJson = jsonbContext.marshall(jobInputStream);
         final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot();
 
-        when(mockedUriBuilder.build()).thenReturn(uri);
         when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
 
         final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
@@ -124,11 +127,9 @@ public class JobsBeanTest {
 
     @Test
     public void addChunk_jobIsUpdated_jobInfoSnapShotReturned() throws Exception {
-        final URI uri = new URI(LOCATION);
         final JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapshot();
         ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
 
-        when(mockedUriBuilder.build()).thenReturn(uri);
         when(jobsBean.jobStoreBean.addChunk(any(ExternalChunk.class))).thenReturn(jobInfoSnapshot);
 
         final Response response = jobsBean.addChunkProcessed(
@@ -145,7 +146,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addChunk_invalidJobId_throwsInvalidInputException() throws Exception {
+    public void addChunk_invalidJobId_returnsResponseWithHttpStatusBadRequest() throws Exception {
         ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
         final Response response = jobsBean.addChunkDelivered(
                 mockedUriInfo,
@@ -159,7 +160,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addChunk_invalidChunkId_throwsInvalidInputException() throws Exception {
+    public void addChunk_invalidChunkId_returnsResponseWithHttpStatusBadRequest() throws Exception {
         ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
         final Response response = jobsBean.addChunkProcessed(
                 mockedUriInfo,
@@ -173,7 +174,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addChunk_invalidChunkType_throwsInvalidInputException() throws Exception {
+    public void addChunk_invalidChunkType_returnsResponseWithHttpStatusBadRequest() throws Exception {
         ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
         final Response response = jobsBean.addChunkDelivered(
                 mockedUriInfo,
@@ -198,7 +199,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addChunk_invalidInput_throwsInvalidInputException() throws Exception {
+    public void addChunk_invalidInput__returnsResponseWithHttpStatusBadRequest() throws Exception {
         final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, "illegal number of items", "stack trace");
         final InvalidInputException invalidInputException = new InvalidInputException("error message", jobError);
         final ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
@@ -217,7 +218,7 @@ public class JobsBeanTest {
     }
 
     @Test(expected = JobStoreException.class)
-    public void addChunk_referencedEntityNotFound_throwsJobStoreException() throws Exception{
+    public void addChunk_onFailureToUpdateJob_throwsJobStoreException() throws Exception {
         ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.DELIVERED);
         when(jobsBean.jobStoreBean.addChunk(any(ExternalChunk.class))).thenThrow(new JobStoreException("Error"));
 

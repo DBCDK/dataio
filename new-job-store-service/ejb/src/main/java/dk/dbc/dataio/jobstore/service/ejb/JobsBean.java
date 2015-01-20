@@ -103,9 +103,10 @@ public class JobsBean {
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
      *         a HTTP 400 BAD_REQUEST response on referenced items not found
+     *         a HTTP 400 BAD_REQUEST response on failure to update item entities
      *
      * @throws JSONBException on marshalling failure
-     * @throws JobStoreException on referenced chunk or job entities not found, on failure to update job, on failure to update item entities
+     * @throws JobStoreException on failure to update job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_CHUNK_PROCESSED)
@@ -130,10 +131,11 @@ public class JobsBean {
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
-     *         a HTTP 400 BAD_REQUEST response on referenced items not found
+     *         a HTTP 400 BAD_REQUEST response on referenced entities not found
+     *         a HTTP 400 BAD_REQUEST response on failure to update item entities
      *
      * @throws JSONBException on marshalling failure
-     * @throws JobStoreException on referenced chunk or job entities not found, on failure to update job, on failure to update item entities
+     * @throws JobStoreException on failure to update job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_CHUNK_PROCESSED)
@@ -161,8 +163,16 @@ public class JobsBean {
     private Response addChunk(UriInfo uriInfo, long jobId, long chunkId, ExternalChunk.Type type, String externalChunkData)
             throws JobStoreException, JSONBException {
 
+        final ExternalChunk chunk;
         try {
-            final ExternalChunk chunk = jsonbBean.getContext().unmarshall(externalChunkData, ExternalChunk.class);
+            chunk = jsonbBean.getContext().unmarshall(externalChunkData, ExternalChunk.class);
+        } catch (JSONBException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(jsonbBean.getContext().marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+
+        try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
             if(jobError == null) {
                 JobInfoSnapshot jobInfoSnapshot = jobStoreBean.addChunk(chunk);
@@ -174,15 +184,11 @@ public class JobsBean {
                         .entity(jsonbBean.getContext().marshall(jobError))
                         .build();
             }
-        } catch (JSONBException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
-                    .build();
 
         } catch(InvalidInputException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(jsonbBean.getContext().marshall(e.getJobError()))
-                .build();
+                    .entity(jsonbBean.getContext().marshall(e.getJobError()))
+                    .build();
         }
     }
 

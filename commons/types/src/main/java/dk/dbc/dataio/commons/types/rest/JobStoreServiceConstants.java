@@ -12,8 +12,8 @@ public class JobStoreServiceConstants {
     public static final String JOB_CHUNK             = "jobs/{jobId}/chunks/{chunkId}";
     public static final String JOB_PROCESSED         = "jobs/{jobId}/processed/{chunkId}";
     public static final String JOB_DELIVERED         = "jobs/{jobId}/delivered/{chunkId}";
-    public static final String JOB_CHUNK_PROCESSED   = "jobs/{jobId}/chunk/{chunkId}/processed";
-    public static final String JOB_CHUNK_DELIVERED   = "jobs/{jobId}/chunk/{chunkId}/delivered";
+    public static final String JOB_CHUNK_PROCESSED   = "jobs/{jobId}/chunks/{chunkId}/processed";
+    public static final String JOB_CHUNK_DELIVERED   = "jobs/{jobId}/chunks/{chunkId}/delivered";
     public static final String JOB_SUPPLEMENTARYPROCESSDATA = "jobs/{jobId}/supplementaryprocessdata";
 
     private JobStoreServiceConstants() { }

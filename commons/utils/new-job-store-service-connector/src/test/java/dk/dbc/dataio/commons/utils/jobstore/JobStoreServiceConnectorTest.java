@@ -98,14 +98,14 @@ public class JobStoreServiceConnectorTest {
     }
 
     @Test (expected = NullPointerException.class)
-    public void addChunk_chunkTypeIsNull_trows() throws JobStoreServiceConnectorException {
+    public void addChunk_chunkTypeIsNull_throws() throws JobStoreServiceConnectorException {
         ExternalChunk chunk = getExternalChunk(null);
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
     }
 
     @Test (expected = IllegalArgumentException.class)
-    public void addChunk_chunkTypePartitioned_trows() throws JobStoreServiceConnectorException {
+    public void addChunk_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
         ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PARTITIONED);
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);

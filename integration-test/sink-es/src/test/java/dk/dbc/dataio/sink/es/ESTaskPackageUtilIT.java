@@ -3,11 +3,11 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -287,25 +287,30 @@ public class ESTaskPackageUtilIT {
 
         private int createTPAndInsertAddis() throws IllegalStateException, NumberFormatException, IOException, SQLException {
             List<ChunkItem> chunkItems = createChunkItemList();
-            ChunkResult chunkResult = createChunkResult(chunkItems);
+            ExternalChunk processedChunk = createProcessedChunk(chunkItems);
+            List<ChunkItem> processedChunkItems = new ArrayList<>();
+            for(ChunkItem item : processedChunk) {
+                processedChunkItems.add(item);
+            }
             final SinkChunkResult sinkChunkResult = new SinkChunkResult(
-                    chunkResult.getJobId(), chunkResult.getChunkId(), chunkResult.getEncoding(), chunkResult.getItems());
-            EsWorkload esWorkload = new EsWorkload(sinkChunkResult, ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult));
+                    processedChunk.getJobId(), processedChunk.getChunkId(), processedChunk.getEncoding(), processedChunkItems);
+            EsWorkload esWorkload = new EsWorkload(sinkChunkResult, ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk));
             return ESTaskPackageUtil.insertTaskPackage(conn, dbname, esWorkload);
         }
 
         private List<ChunkItem> createChunkItemList() {
             List<ChunkItem> chunkItems = new ArrayList<>(addis.size());
+            int id = 0;
             for (String addi : addis) {
                 // This is not the place to test state of incoming chunk items, therefore: assuming all incoming ChunkItems are successfull.
-                ChunkItem ci = new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.SUCCESS).setData(Base64Util.base64encode(addi)).build();
+                ChunkItem ci = new ChunkItemBuilder().setId(id++).setStatus(ChunkItem.Status.SUCCESS).setData(Base64Util.base64encode(addi)).build();
                 chunkItems.add(ci);
             }
             return chunkItems;
         }
 
-        private ChunkResult createChunkResult(List<ChunkItem> chunkItems) {
-            return new ChunkResultBuilder()
+        private ExternalChunk createProcessedChunk(List<ChunkItem> chunkItems) {
+            return new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                     .setItems(chunkItems)
                     .build();
         }

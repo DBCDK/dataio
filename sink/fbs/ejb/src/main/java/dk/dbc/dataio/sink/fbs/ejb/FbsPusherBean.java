@@ -2,7 +2,7 @@ package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -26,20 +26,20 @@ public class FbsPusherBean {
     /**
      * Pushes items of given ChunkResult to FBS web-service one ChunkItem at a
      * time
-     * @param chunkResult chunk result ready for delivery
+     * @param processedChunk chunk result ready for delivery
      * @return sink chunk result
      * @throws WebServiceException if service communication throws
      * WebServiceException or if service responds with
      * UPDATE_FAILED_PLEASE_RESEND_LATER status.
      */
-    public SinkChunkResult push(ChunkResult chunkResult) throws WebServiceException {
+    public SinkChunkResult push(ExternalChunk processedChunk) throws WebServiceException {
         final StopWatch stopWatch = new StopWatch();
-        LOGGER.info("Examining ChunkResult {} for job {}", chunkResult.getChunkId(), chunkResult.getJobId());
-        final SinkChunkResult sinkChunkResult = new SinkChunkResult(chunkResult.getJobId(),
-                chunkResult.getChunkId(), chunkResult.getEncoding(), new ArrayList<ChunkItem>());
+        LOGGER.info("Examining ChunkResult {} for job {}", processedChunk.getChunkId(), processedChunk.getJobId());
+        final SinkChunkResult sinkChunkResult = new SinkChunkResult(processedChunk.getJobId(),
+                processedChunk.getChunkId(), processedChunk.getEncoding(), new ArrayList<ChunkItem>());
 
         int itemsPushed = 0;
-        for (ChunkItem chunkItem : chunkResult.getItems()) {
+        for (ChunkItem chunkItem : processedChunk) {
             if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
                 executeUpdateOperation(sinkChunkResult, chunkItem);
                 itemsPushed++;
@@ -49,7 +49,7 @@ public class FbsPusherBean {
             }
         }
         LOGGER.info("Pushed {} items from ChunkResult {} for job {} in {} ms",
-                itemsPushed, chunkResult.getChunkId(), chunkResult.getJobId(), stopWatch.getElapsedTime());
+                itemsPushed, processedChunk.getChunkId(), processedChunk.getJobId(), stopWatch.getElapsedTime());
 
         return sinkChunkResult;
     }

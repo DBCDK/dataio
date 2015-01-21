@@ -1,7 +1,7 @@
 package dk.dbc.dataio.commons.utils.service;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
@@ -47,8 +47,8 @@ public class AbstractSinkMessageConsumerBeanTest {
     @Test
     public void unmarshallPayload_consumedMessageArgIsValid_returnsChunkResultInstance() throws InvalidMessageException {
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
-        final ChunkResult chunkResult = getInitializedBean().unmarshallPayload(consumedMessage);
-        assertThat(chunkResult, is(notNullValue()));
+        final ExternalChunk processedChunk = getInitializedBean().unmarshallPayload(consumedMessage);
+        assertThat(processedChunk, is(notNullValue()));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

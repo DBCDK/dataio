@@ -1,13 +1,13 @@
 package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class SinkIT {
-    private final ChunkResult chunkResult = getChunkResult();
+    private final ExternalChunk testProcessedChunk = getProcessedChunk();
 
     @BeforeClass
     public static void setup() {
@@ -46,7 +46,7 @@ public class SinkIT {
         // When...
         InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, System.getProperty("fbs.update.ws.endpoint"));
         final FbsPusherBean fbsPusherBean = getFbsPusherBean();
-        final SinkChunkResult sinkChunkResult = fbsPusherBean.push(chunkResult);
+        final SinkChunkResult sinkChunkResult = fbsPusherBean.push(testProcessedChunk);
 
         // Then...
         assertThat(sinkChunkResult.getItems().size(), is(2));
@@ -61,7 +61,7 @@ public class SinkIT {
         // When...
         InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, "http://nosuchhost.dbc.dk/test");
         final FbsPusherBean fbsPusherBean = getFbsPusherBean();
-        fbsPusherBean.push(chunkResult);
+        fbsPusherBean.push(testProcessedChunk);
     }
 
     private FbsPusherBean getFbsPusherBean() throws NamingException {
@@ -76,9 +76,9 @@ public class SinkIT {
         return fbsUpdateConnectorBean;
     }
 
-    private ChunkResult getChunkResult() {
-        final ChunkResult chunkResult = new ChunkResultBuilder().setItems(Collections.<ChunkItem>emptyList()).build();
-        chunkResult.addItem(new ChunkItemBuilder().setId(0).setData(Base64Util.base64encode(
+    private ExternalChunk getProcessedChunk() {
+        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
+        processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(Base64Util.base64encode(
             "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
                 "<marcx:record format=\"danMARC2\">" +
                     "<marcx:leader>00000n    2200000   4500</marcx:leader>" +
@@ -95,12 +95,12 @@ public class SinkIT {
                 "</marcx:record>" +
             "</marcx:collection>"
         )).build());
-        chunkResult.addItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(
+        processedChunk.insertItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(
                 "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
                   "<marcx:record format=\"danMARC2\">" +
                   "</marcx:record>" +
                 "</marcx:collection>"
         )).build());
-        return chunkResult;
+        return processedChunk;
     }
 }

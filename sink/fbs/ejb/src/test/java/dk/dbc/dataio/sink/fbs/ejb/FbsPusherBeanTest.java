@@ -1,19 +1,19 @@
 package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
+import java.util.ArrayList;
 import org.junit.Test;
 
 import javax.xml.ws.WebServiceException;
-import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -38,13 +38,13 @@ public class FbsPusherBeanTest {
         final String inData1 = "one";
         final String inData2 = "two";
         final String inData3 = "three";
-        final ChunkResult chunkResult = new ChunkResultBuilder().setItems(Collections.<ChunkItem>emptyList()).build();
-        chunkResult.addItem(new ChunkItemBuilder().setId(0).setData(Base64Util.base64encode(inData0)).build());
-        chunkResult.addItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(inData1)).build());
-        chunkResult.addItem(new ChunkItemBuilder().setId(2).setData(Base64Util.base64encode(inData2)).build());
-        chunkResult.addItem(new ChunkItemBuilder().setId(3).setData(Base64Util.base64encode(inData3)).build());
-        chunkResult.addItem(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.FAILURE).build());
-        chunkResult.addItem(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.IGNORE).build());
+        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(new ArrayList<ChunkItem>()).build();
+        processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(Base64Util.base64encode(inData0)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(inData1)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(2).setData(Base64Util.base64encode(inData2)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(3).setData(Base64Util.base64encode(inData3)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.FAILURE).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.IGNORE).build());
 
         final UpdateMarcXchangeResult updateMarcXchangeResultOk = new UpdateMarcXchangeResult();
         updateMarcXchangeResultOk.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.OK);
@@ -62,7 +62,7 @@ public class FbsPusherBeanTest {
         when(fbsUpdateConnector.updateMarcExchange(eq(inData2), anyString())).thenThrow(new IllegalStateException());
         when(fbsUpdateConnector.updateMarcExchange(eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
 
-        final SinkChunkResult sinkChunkResult = fbsPusherBean.push(chunkResult);
+        final SinkChunkResult sinkChunkResult = fbsPusherBean.push(processedChunk);
         assertThat(sinkChunkResult.getItems().size(), is(6));
         assertThat(sinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -78,7 +78,7 @@ public class FbsPusherBeanTest {
     public void push_connectorThrowsWebServiceException_throws() throws FbsUpdateConnectorException {
         when(fbsUpdateConnectorBean.getConnector()).thenReturn(fbsUpdateConnector);
         when(fbsUpdateConnector.updateMarcExchange(anyString(), anyString())).thenThrow(new WebServiceException("died"));
-        fbsPusherBean.push(new ChunkResultBuilder().build());
+        fbsPusherBean.push(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
     }
 
     @Test(expected = WebServiceException.class)
@@ -87,7 +87,7 @@ public class FbsPusherBeanTest {
         updateMarcXchangeResultResendLater.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER);
         when(fbsUpdateConnectorBean.getConnector()).thenReturn(fbsUpdateConnector);
         when(fbsUpdateConnector.updateMarcExchange(anyString(), anyString())).thenReturn(updateMarcXchangeResultResendLater);
-        fbsPusherBean.push(new ChunkResultBuilder().build());
+        fbsPusherBean.push(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
     }
 
     private FbsPusherBean getInitializedBean() {

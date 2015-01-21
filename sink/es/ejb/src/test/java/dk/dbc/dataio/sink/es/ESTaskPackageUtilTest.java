@@ -5,7 +5,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import org.apache.commons.codec.binary.Base64;
@@ -70,15 +70,15 @@ public class ESTaskPackageUtilTest {
     @Test(expected = IllegalStateException.class)
     public void getAddiRecordsFromChunk_twoAddiInOneRecord_throws() throws Exception {
         final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
-        final ChunkResult chunkResult = newChunkResult(addiWithTwoRecords);
-        ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult);
+        final ExternalChunk processedChunk = newProcessedChunk(addiWithTwoRecords);
+        ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
     @Test(expected = NumberFormatException.class)
     public void getAddiRecordsFromChunk_notAddi_throws() throws Exception {
         final String notAddi = "string";
-        final ChunkResult chunkResult = newChunkResult(notAddi);
-        ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult);
+        final ExternalChunk processedChunk = newProcessedChunk(notAddi);
+        ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
     @Test(expected = NumberFormatException.class)
@@ -87,15 +87,17 @@ public class ESTaskPackageUtilTest {
         final ChunkItem item = new ChunkItemBuilder()
                 .setData(simpleAddiString)
                 .build();
-        final ChunkResult chunkResult = new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(item));
-        ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult);
+        final ExternalChunk processedChunk = new ExternalChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.PROCESSED);
+        processedChunk.insertItem(item);
+        processedChunk.setEncoding(ENCODING);
+        ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
     @Test
     public void getAddiRecordsFromChunk_singleSimpleRecordInChunk_happyPath() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
-        final ChunkResult chunkResult = newChunkResult(simpleAddiString);
-        final List<AddiRecord> addiRecordsFromChunk = ESTaskPackageUtil.getAddiRecordsFromChunk(chunkResult);
+        final ExternalChunk processedChunk = newProcessedChunk(simpleAddiString);
+        final List<AddiRecord> addiRecordsFromChunk = ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
         assertThat(addiRecordsFromChunk.size(), is(1));
     }
 
@@ -291,13 +293,16 @@ public class ESTaskPackageUtilTest {
 
     private ChunkItem newChunkItem(String record) {
         return new ChunkItemBuilder()
+                .setId(0L)
                 .setData(encodeBase64(record))
                 .build();
     }
 
-    private ChunkResult newChunkResult(String record) {
-        return new ChunkResult(JOB_ID, CHUNK_ID, ENCODING, Arrays.asList(
-                newChunkItem(record)));
+    private ExternalChunk newProcessedChunk(String record) {
+        ExternalChunk processedChunk = new ExternalChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.PROCESSED);
+        processedChunk.insertItem(newChunkItem(record));
+        processedChunk.setEncoding(ENCODING);
+        return processedChunk;
     }
 
     private AddiRecord newAddiRecordFromString(String record) throws IOException {

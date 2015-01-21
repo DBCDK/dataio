@@ -4,8 +4,8 @@ import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.ext.XLogger;
@@ -134,7 +134,7 @@ public class ESTaskPackageUtil {
      *
      * Records in chunk result items are assumed to be base64 encoded.
      *
-     * @param chunkResult Object containing base64 encoded addi-record items
+     * @param processedChunk Object containing base64 encoded addi-record items
      *
      * @return list of AddiRecord objects.
      *
@@ -143,13 +143,13 @@ public class ESTaskPackageUtil {
      * @throws NumberFormatException if any contained records are not
      * addi-format or not base64 encoded.
      */
-    public static List<AddiRecord> getAddiRecordsFromChunk(ChunkResult chunkResult) throws IllegalStateException, NumberFormatException, IOException {
+    public static List<AddiRecord> getAddiRecordsFromChunk(ExternalChunk processedChunk) throws IllegalStateException, NumberFormatException, IOException {
         final List<AddiRecord> addiRecords = new ArrayList<>();
-        for (ChunkItem item : chunkResult.getItems()) {
-            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(decodeBase64(item.getData(), chunkResult.getEncoding()).getBytes(chunkResult.getEncoding())));
+        for (ChunkItem item : processedChunk) {
+            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(decodeBase64(item.getData(), processedChunk.getEncoding()).getBytes(processedChunk.getEncoding())));
             addiRecords.add(addiReader.getNextRecord());
             if (addiReader.getNextRecord() != null) {
-                throw new IllegalStateException(String.format("More than one Addi in record in: [jobId, chunkId] [%d, %d]", chunkResult.getJobId(), chunkResult.getChunkId()));
+                throw new IllegalStateException(String.format("More than one Addi in record in: [jobId, chunkId] [%d, %d]", processedChunk.getJobId(), processedChunk.getChunkId()));
             }
         }
         return addiRecords;

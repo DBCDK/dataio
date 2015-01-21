@@ -1,7 +1,9 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,6 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ExternalChunk implements Iterable<ChunkItem> {
 
+
     public enum Type {
 
         PARTITIONED,
@@ -35,6 +38,8 @@ public class ExternalChunk implements Iterable<ChunkItem> {
     private final long chunkId;
     @JsonProperty
     private final List<ChunkItem> items;
+    @JsonProperty
+    private String encoding;
 
     /**
      * @param jobId cannot be negative.
@@ -51,6 +56,7 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         this.chunkId = chunkId;
         this.type = type;
         this.items = new ArrayList<>();
+        this.encoding = "UTF-8";
     }
 
     // Private constructor for JsonUtil.fromJson().
@@ -81,6 +87,19 @@ public class ExternalChunk implements Iterable<ChunkItem> {
 
     public int size() {
         return items.size();
+    }
+
+    @JsonIgnore
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
+    public Charset getEncoding() {
+        return Charset.forName(encoding);
+    }
+
+    public void setEncoding(Charset encoding) {
+        this.encoding = encoding.name();
     }
 
     /**

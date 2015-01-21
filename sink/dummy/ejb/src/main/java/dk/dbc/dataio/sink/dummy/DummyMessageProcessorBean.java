@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sink.dummy;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
@@ -21,18 +21,18 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
-        final ChunkResult chunkResult = unmarshallPayload(consumedMessage);
-        final SinkChunkResult sinkChunkResult = processPayload(chunkResult);
+        ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
+        final SinkChunkResult sinkChunkResult = processPayload(processedChunk);
         jobProcessorMessageProducer.send(sinkChunkResult);
     }
 
-    SinkChunkResult processPayload(ChunkResult chunkResult) {
-        final List<ChunkItem> sinkItems = new ArrayList<>(chunkResult.getItems().size());
-        for (final ChunkItem item : chunkResult.getItems()) {
+    SinkChunkResult processPayload(ExternalChunk processedChunk) {
+        final List<ChunkItem> sinkItems = new ArrayList<>(processedChunk.size());
+        for (final ChunkItem item : processedChunk) {
             // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
             ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
             sinkItems.add(new ChunkItem(item.getId(), "Set by DummySink", status));
         }
-        return new SinkChunkResult(chunkResult.getJobId(), chunkResult.getChunkId(), chunkResult.getEncoding(), sinkItems);
+        return new SinkChunkResult(processedChunk.getJobId(), processedChunk.getChunkId(), processedChunk.getEncoding(), sinkItems);
     }
 }

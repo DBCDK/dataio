@@ -35,4 +35,12 @@ public class ChunkResult extends AbstractChunk implements Serializable {
      public Charset getEncoding() {
          return Charset.forName(encoding);
      }
+
+    public static ExternalChunk convertToExternalChunk(ChunkResult chunk) {
+        ExternalChunk nChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
+        for (ChunkItem item : chunk.getItems()) {
+            nChunk.insertItem(item);
+        }
+        return nChunk;
+    }
 }

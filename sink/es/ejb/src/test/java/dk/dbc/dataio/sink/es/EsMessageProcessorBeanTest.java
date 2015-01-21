@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -159,12 +160,12 @@ public class EsMessageProcessorBeanTest {
                 .setData("")
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
-        final ChunkResult chunkResult = new ChunkResultBuilder()
+        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setItems(chunkItems)
                 .build();
 
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        final EsWorkload esWorkloadFromChunkResult = esMessageProcessorBean.getEsWorkloadFromChunkResult(chunkResult);
+        final EsWorkload esWorkloadFromChunkResult = esMessageProcessorBean.getEsWorkloadFromChunkResult(processedChunk);
 
         assertThat(esWorkloadFromChunkResult, is(notNullValue()));
         assertThat(esWorkloadFromChunkResult.getAddiRecords().size(), is(2));

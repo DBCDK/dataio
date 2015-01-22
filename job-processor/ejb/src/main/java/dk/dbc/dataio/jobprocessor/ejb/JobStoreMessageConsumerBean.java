@@ -1,13 +1,11 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -64,9 +62,9 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         final Sink sink = getSink(chunk);
         final Flow flow = getFlow(chunk);
         final SupplementaryProcessData supplementaryProcessData = getSupplementaryProcessData(chunk);
-        final ChunkResult processorResult = chunkProcessor.process(chunk, flow, supplementaryProcessData);
-        jobStoreMessageProducer.send(processorResult);
-        sinkMessageProducer.send(processorResult, sink);
+        final ExternalChunk processedChunk = chunkProcessor.process(chunk, flow, supplementaryProcessData);
+        jobStoreMessageProducer.send(processedChunk);
+        sinkMessageProducer.send(processedChunk, sink);
     }
 
     private Sink getSink(ExternalChunk chunk) throws JobProcessorException {

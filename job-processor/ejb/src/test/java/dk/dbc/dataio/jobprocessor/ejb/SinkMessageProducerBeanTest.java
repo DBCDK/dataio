@@ -1,12 +1,13 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.junit.Before;
@@ -36,7 +37,7 @@ public class SinkMessageProducerBeanTest {
     private ConnectionFactory jmsConnectionFactory;
     private JMSContext jmsContext;
     private JMSProducer jmsProducer;
-    private ChunkResult chunkResult = new ChunkResultBuilder().build();
+    private ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
     private Sink sink = new SinkBuilder().build();
 
     @Before
@@ -58,7 +59,7 @@ public class SinkMessageProducerBeanTest {
     @Test(expected = NullPointerException.class)
     public void send_destinationArgIsNull_throws() throws JobProcessorException {
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
-        sinkMessageProducerBean.send(chunkResult, null);
+        sinkMessageProducerBean.send(processedChunk, null);
     }
 
     @Test(expected = JobProcessorException.class)
@@ -66,14 +67,14 @@ public class SinkMessageProducerBeanTest {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(ChunkResult.class))).thenThrow(new JsonException("JsonException"));
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
-        sinkMessageProducerBean.send(chunkResult, sink);
+        sinkMessageProducerBean.send(processedChunk, sink);
     }
 
     @Test
     public void createMessage_chunkResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
-        final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunkResult, sink);
+        final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, processedChunk, sink);
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
         assertThat(message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));

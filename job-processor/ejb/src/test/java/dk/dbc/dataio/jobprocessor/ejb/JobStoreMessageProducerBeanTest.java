@@ -1,12 +1,12 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.junit.Before;
@@ -76,7 +76,7 @@ public class JobStoreMessageProducerBeanTest {
     @Test(expected = NullPointerException.class)
     public void send_processorResultArgIsNull_throws() throws JobProcessorException {
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
-        jobStoreMessageProducerBean.send((ChunkResult) null);
+        jobStoreMessageProducerBean.send((ExternalChunk) null);
     }
 
     @Test(expected = JobProcessorException.class)
@@ -85,7 +85,7 @@ public class JobStoreMessageProducerBeanTest {
         doThrow(new JMSException("JMSException"))
                 .when(textMessage).setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
-        jobStoreMessageProducerBean.send(new ChunkResultBuilder().build());
+        jobStoreMessageProducerBean.send(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
     }
 
     @Test(expected = JobProcessorException.class)
@@ -93,7 +93,7 @@ public class JobStoreMessageProducerBeanTest {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
-        jobStoreMessageProducerBean.send(new ChunkResultBuilder().build());
+        jobStoreMessageProducerBean.send(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
     }
 
     @Test
@@ -109,7 +109,9 @@ public class JobStoreMessageProducerBeanTest {
     public void createMessage_processorResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
-        TextMessage message = jobStoreMessageProducerBean.createMessage(jmsContext, new ChunkResultBuilder().build());
+        TextMessage message = jobStoreMessageProducerBean.createMessage(
+                jmsContext, 
+                new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
     }

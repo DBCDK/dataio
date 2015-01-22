@@ -15,6 +15,7 @@ import java.util.List;
 public class ChunkResult extends AbstractChunk implements Serializable {
      private static final long serialVersionUID = -8494583387561924223L;
 
+
      private /* final */ String encoding;
 
      private ChunkResult() {
@@ -41,6 +42,20 @@ public class ChunkResult extends AbstractChunk implements Serializable {
         for (ChunkItem item : chunk.getItems()) {
             nChunk.insertItem(item);
         }
+        nChunk.setEncoding(chunk.getEncoding());
         return nChunk;
+    }
+    
+    public static ChunkResult convertFromExternalChunk(ExternalChunk processedChunk) {
+        List<ChunkItem> chunkItems = new ArrayList<>();
+        for(ChunkItem item : processedChunk) {
+            chunkItems.add(item);
+        }
+        return new ChunkResult(
+                processedChunk.getJobId(), 
+                processedChunk.getChunkId(),
+                processedChunk.getEncoding(),
+                chunkItems);
+        
     }
 }

@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JavaScript;
@@ -44,7 +43,7 @@ public class ChunkProcessorBean {
      *
      * @return result of processing
      */
-    public ChunkResult process(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
+    public ExternalChunk process(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
         final StopWatch stopWatchForChunk = new StopWatch();
         LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
         // final Flow flow = chunk.getFlow();
@@ -61,9 +60,13 @@ public class ChunkProcessorBean {
             }
         }
 
-        ChunkResult chunkResult = new ChunkResult(chunk.getJobId(), chunk.getChunkId(), Charset.defaultCharset(), processedItems);// todo: Change Chunk to get actual Charset
+        ExternalChunk processedChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
+        processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
+        for(ChunkItem item : processedItems) {
+            processedChunk.insertItem(item);
+        }
         LOGGER.info("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds", chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
-        return chunkResult;
+        return processedChunk;
     }
 
     private JSWrapperSingleScript setupJavaScriptEnvironment(Flow flow) {

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -25,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -51,10 +51,11 @@ public class ChunkProcessorBeanTest {
         final Flow flow = getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction()));
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(emptyChunk, flow, testSuppData);
-        assertThat(chunkResult.getJobId(), is(jobId));
-        assertThat(chunkResult.getChunkId(), is(emptyChunk.getChunkId()));
-        assertThat(chunkResult.getItems().size(), is(0));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(emptyChunk, flow, testSuppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(emptyChunk.getChunkId()));
+        assertThat(processedChunk.isEmpty(), is(true));
     }
 
     @Test
@@ -70,18 +71,24 @@ public class ChunkProcessorBeanTest {
                 .setData(Base64Util.base64encode(record2))
                 .build();
         final Flow flow = getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction()));
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
                 .setItems(Arrays.asList(item1, item2))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(chunkResult.getJobId(), is(jobId));
-        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(chunkResult.getItems().size(), is(2));
-        assertThat(Base64Util.base64decode(chunkResult.getItems().get(0).getData()), is(record1.toUpperCase()));
-        assertThat(Base64Util.base64decode(chunkResult.getItems().get(1).getData()), is(record2.toUpperCase()));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(2));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem0 = iterator.next();
+        assertThat(Base64Util.base64decode(processedItem0.getData()), is(record1.toUpperCase()));
+        assertThat(iterator.hasNext(), is((true)));
+        ChunkItem processedItem1 = iterator.next();
+        assertThat(Base64Util.base64decode(processedItem1.getData()), is(record2.toUpperCase()));
     }
 
     @Test
@@ -106,12 +113,18 @@ public class ChunkProcessorBeanTest {
         final SupplementaryProcessData suppData = new SupplementaryProcessData(submitter, format);
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow, suppData);
-        assertThat(chunkResult.getJobId(), is(jobId));
-        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(chunkResult.getItems().size(), is(2));
-        assertThat(Base64Util.base64decode(chunkResult.getItems().get(0).getData()), is("456456oneDasFormat"));
-        assertThat(Base64Util.base64decode(chunkResult.getItems().get(1).getData()), is("456456twoDasFormat"));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, suppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(2));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem0 = iterator.next();
+        assertThat(Base64Util.base64decode(processedItem0.getData()), is("456456oneDasFormat"));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem1 = iterator.next();
+        assertThat(Base64Util.base64decode(processedItem1.getData()), is("456456twoDasFormat"));
     }
 
     @Test
@@ -127,11 +140,15 @@ public class ChunkProcessorBeanTest {
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(chunkResult.getJobId(), is(jobId));
-        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(chunkResult.getItems().size(), is(1));
-        assertThat(chunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(1));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem0 = iterator.next();
+        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     @Test
@@ -155,13 +172,21 @@ public class ChunkProcessorBeanTest {
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(chunkResult.getJobId(), is(jobId));
-        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(chunkResult.getItems().size(), is(3));
-        assertThat(chunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(chunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(chunkResult.getItems().get(2).getStatus(), is(ChunkItem.Status.SUCCESS));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(3));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem0 = iterator.next();
+        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem1 = iterator.next();
+        assertThat(processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem2 = iterator.next();
+        assertThat(processedItem2.getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
     @Test
@@ -181,14 +206,18 @@ public class ChunkProcessorBeanTest {
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ChunkResult chunkResult = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(chunkResult.getJobId(), is(jobId));
-        assertThat(chunkResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(chunkResult.getItems().size(), is(2));
-        assertThat(chunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
-        // todo: remove next line
-        LOGGER.info("FailureMessage: {}", Base64Util.base64decode(chunkResult.getItems().get(0).getData()));
-        assertThat(chunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(2));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem0 = iterator.next();
+        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem1 = iterator.next();
+        assertThat(processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     private ChunkProcessorBean getInitializedBean() {

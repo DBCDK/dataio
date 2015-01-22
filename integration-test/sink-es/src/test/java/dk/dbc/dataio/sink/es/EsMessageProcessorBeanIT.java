@@ -4,6 +4,7 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -13,7 +14,7 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.integrationtest.ESTaskPackageIntegrationTestUtil;
@@ -97,7 +98,8 @@ public class EsMessageProcessorBeanIT {
     @Test
     public void esMessageProcessorBean_invalidProcessorResultOnSinksQueue_eventuallyRemovedFromSinksQueue()
             throws JMSException, JsonException, SQLException, ClassNotFoundException {
-        final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(new ChunkResultBuilder().build());
+        final MockedJmsTextMessage processorMessage = 
+                newProcessorMessageForSink(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
         processorMessage.setText("invalid");
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
@@ -116,10 +118,10 @@ public class EsMessageProcessorBeanIT {
         for(long i=0; i<itemsInChunk; i++) {
             items.add( new ChunkItemBuilder().setId(i).setStatus(ChunkItem.Status.FAILURE).build() );
         }
-        final ChunkResult processorResult = new ChunkResultBuilder().setItems(items).build();
+        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
 
         // Put ChunkResult on Queue as message:
-        final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processorResult);
+        final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processedChunk);
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
         // Below wait is defunc - since processing happens so fast that
@@ -139,8 +141,8 @@ public class EsMessageProcessorBeanIT {
         final SinkChunkResult sinkResult = assertSinkMessageForProcessor(sinksQueue.get(0));
 
         // Assert that SinkResult corresponds to ChunkResult and that all items are ignored:
-        assertThat(sinkResult.getJobId(), is(processorResult.getJobId()));
-        assertThat(sinkResult.getChunkId(), is(processorResult.getChunkId()));
+        assertThat(sinkResult.getJobId(), is(processedChunk.getJobId()));
+        assertThat(sinkResult.getChunkId(), is(processedChunk.getChunkId()));
         assertThat(sinkResult.getItems().size(), is(itemsInChunk));
         for (final ChunkItem chunkItem : sinkResult.getItems()) {
             assertThat(chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
@@ -154,10 +156,10 @@ public class EsMessageProcessorBeanIT {
         final ChunkItem item = new ChunkItemBuilder()
                 .setData(Base64Util.base64encode(ADDI_OK))
                 .build();
-        final ChunkResult processorResult = new ChunkResultBuilder()
+        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setItems(Arrays.asList(item))
                 .build();
-        final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processorResult);
+        final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processedChunk);
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, processorMessage);
 
@@ -173,15 +175,15 @@ public class EsMessageProcessorBeanIT {
         assertThat(getEsTaskPackages().size(), is(0));
         final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
         final SinkChunkResult sinkResult = assertSinkMessageForProcessor(sinksQueue.get(0));
-        assertThat(sinkResult.getJobId(), is(processorResult.getJobId()));
-        assertThat(sinkResult.getChunkId(), is(processorResult.getChunkId()));
+        assertThat(sinkResult.getJobId(), is(processedChunk.getJobId()));
+        assertThat(sinkResult.getChunkId(), is(processedChunk.getChunkId()));
         assertThat(sinkResult.getItems().size(), is(1));
         for (final ChunkItem chunkItem : sinkResult.getItems()) {
             assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
         }
     }
 
-    private MockedJmsTextMessage newProcessorMessageForSink(ChunkResult processorResult) throws JMSException, JsonException {
+    private MockedJmsTextMessage newProcessorMessageForSink(ExternalChunk processedChunk) throws JMSException, JsonException {
         final SinkContent sinkContent = new SinkContentBuilder()
                 .setName(SINK_NAME)
                 .setResource(ES_RESOURCE_NAME)
@@ -190,7 +192,8 @@ public class EsMessageProcessorBeanIT {
                 .setContent(sinkContent)
                 .build();
         final MockedJmsTextMessage message = (MockedJmsTextMessage) new SinkMessageProducerBean()
-                .createMessage(jmsContext, processorResult, sink);
+                .createMessage(jmsContext, processedChunk, sink);
+        ChunkResult processorResult = ChunkResult.convertFromExternalChunk(processedChunk);
         message.setText(JsonUtil.toJson(processorResult));
         return message;
     }

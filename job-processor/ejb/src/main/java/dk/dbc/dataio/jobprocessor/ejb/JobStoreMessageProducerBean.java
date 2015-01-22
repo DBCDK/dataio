@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -112,8 +111,7 @@ public class JobStoreMessageProducerBean {
      * @throws JMSException when unable to create JMS message
      */
     public TextMessage createMessage(JMSContext context, ExternalChunk processedChunk) throws JsonException, JMSException {
-        ChunkResult processorResult = ChunkResult.convertFromExternalChunk(processedChunk);
-        final TextMessage message = context.createTextMessage(JsonUtil.toJson(processorResult));
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(processedChunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE);
         return message;

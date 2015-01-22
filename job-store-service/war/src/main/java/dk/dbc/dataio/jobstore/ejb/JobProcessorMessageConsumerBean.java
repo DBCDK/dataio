@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -58,7 +59,8 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     }
 
    private void handleProcessorResult(ConsumedMessage consumedMessage) throws JsonException, JobStoreException {
-        final ChunkResult processorResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ChunkResult.class, MixIns.getMixIns());
+        final ExternalChunk processedChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class, MixIns.getMixIns());
+        final ChunkResult processorResult = ChunkResult.convertFromExternalChunk(processedChunk);
         LOGGER.info("Received processor result {} for job {}", processorResult.getChunkId(), processorResult.getJobId());
         jobStoreBean.getJobStore().addProcessorResult(processorResult);
     }

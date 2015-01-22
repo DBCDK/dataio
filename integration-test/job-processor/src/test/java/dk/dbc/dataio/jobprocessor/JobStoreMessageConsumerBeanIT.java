@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobprocessor;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -100,23 +99,25 @@ public class JobStoreMessageConsumerBeanIT {
         assertThat(processedChunk.getJobId(), is(jobId));
         assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
         assertThat(processedChunk.size(), is(1));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        assertThat(Base64Util.base64decode(iterator.next().getData()), is(itemData.toUpperCase()));
+        Iterator<ChunkItem> sinkIterator = processedChunk.iterator();
+        assertThat(sinkIterator.hasNext(), is(true));
+        assertThat(Base64Util.base64decode(sinkIterator.next().getData()), is(itemData.toUpperCase()));
 
         final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
-        ChunkResult processorResult = assertProcessorMessageForJobStore(processorQueue.get(0));
-        assertThat(processorResult.getJobId(), is(jobId));
-        assertThat(processorResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processorResult.getItems().size(), is(1));
-        assertThat(Base64Util.base64decode(processorResult.getItems().get(0).getData()), is(itemData.toUpperCase()));
+        processedChunk = assertProcessorMessageForJobStore(processorQueue.get(0));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(1));
+        Iterator<ChunkItem> jobStoreIterator = processedChunk.iterator();
+        assertThat(jobStoreIterator.hasNext(), is(true));
+        assertThat(Base64Util.base64decode(jobStoreIterator.next().getData()), is(itemData.toUpperCase()));
     }
 
-    private ChunkResult assertProcessorMessageForJobStore(MockedJmsTextMessage message) throws JMSException, JsonException {
+    private ExternalChunk assertProcessorMessageForJobStore(MockedJmsTextMessage message) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
-        return JsonUtil.fromJson(message.getText(), ChunkResult.class, MixIns.getMixIns());
+        return JsonUtil.fromJson(message.getText(), ExternalChunk.class, MixIns.getMixIns());
     }
 
     private ExternalChunk assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {

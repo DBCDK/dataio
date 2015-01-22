@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -65,7 +64,7 @@ public class SinkMessageProducerBeanTest {
     @Test(expected = JobProcessorException.class)
     public void send_createMessageThrowsJsonException_throws() throws JobProcessorException, JsonException {
         mockStatic(JsonUtil.class);
-        when(JsonUtil.toJson(any(ChunkResult.class))).thenThrow(new JsonException("JsonException"));
+        when(JsonUtil.toJson(any(ExternalChunk.class))).thenThrow(new JsonException("JsonException"));
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
         sinkMessageProducerBean.send(processedChunk, sink);
     }

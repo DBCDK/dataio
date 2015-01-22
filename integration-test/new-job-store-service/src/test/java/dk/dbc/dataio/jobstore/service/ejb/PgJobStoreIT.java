@@ -52,8 +52,13 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PgJobStoreIT {
+    
+    Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
+    
     public static final String DATABASE_NAME = "jobstore";
     public static final String JOB_TABLE_NAME = "job";
     public static final String CHUNK_TABLE_NAME = "chunk";
@@ -259,6 +264,7 @@ public class PgJobStoreIT {
 
         // Validate that one external chunk has been processed on job level
         assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
+        LOGGER.info("new-job: {} updated-job: {}", jobInfoSnapshotNewJob.getTimeOfLastModification().getTime(), jobInfoSnapShotUpdatedJob.getTimeOfLastModification().getTime());
         assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshotNewJob.getTimeOfLastModification()), is(true));
 
         // And...

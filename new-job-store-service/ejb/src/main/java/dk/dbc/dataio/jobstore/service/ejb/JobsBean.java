@@ -138,7 +138,7 @@ public class JobsBean {
      * @throws JobStoreException on failure to update job
      */
     @POST
-    @Path(JobStoreServiceConstants.JOB_CHUNK_PROCESSED)
+    @Path(JobStoreServiceConstants.JOB_CHUNK_DELIVERED)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public Response addChunkDelivered(@Context UriInfo uriInfo, String externalChunkData,

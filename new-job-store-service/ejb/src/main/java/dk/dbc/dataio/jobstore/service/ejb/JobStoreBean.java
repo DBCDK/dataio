@@ -24,6 +24,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserNoOrderKeyGenerator;
@@ -40,6 +41,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Stateless
 public class JobStoreBean {
@@ -122,6 +124,20 @@ public class JobStoreBean {
         final StopWatch stopWatch = new StopWatch();
         try {
             return jobStore.addChunk(chunk);
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Returns job listing based on given criteria
+     * @param criteria job listing criteria
+     * @return list of information snapshots of selected jobs
+     */
+    public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            return jobStore.listJobs(criteria);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

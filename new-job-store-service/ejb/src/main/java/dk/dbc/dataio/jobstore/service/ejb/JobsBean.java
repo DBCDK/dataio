@@ -8,6 +8,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.List;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -36,7 +38,6 @@ import java.net.URI;
 @Path("/")
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
-    private static final String DUMMY_JOB_ID = "42";
 
     @EJB
     JSONBBean jsonbBean;
@@ -146,6 +147,35 @@ public class JobsBean {
                                       @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId)
             throws JSONBException, JobStoreException {
         return addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.DELIVERED, externalChunkData);
+    }
+
+    /**
+     * Retrieves job listing from the underlying data store determined by given search criteria
+     * @param jobListCriteriaData JSON representation of JobListCriteria
+     * @return a HTTP 200 OK response with list of JobInfoSnapshots for selected jobs
+     *         a HTTP 400 BAD_REQUEST response on invalid json content
+     * @throws JSONBException on marshalling failure
+     */
+    @POST
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response listJobs(String jobListCriteriaData) throws JSONBException {
+        try {
+            final JobListCriteria jobListCriteria =
+                    jsonbBean.getContext().unmarshall(jobListCriteriaData, JobListCriteria.class);
+            final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreBean.listJobs(jobListCriteria);
+            return Response.ok()
+                    .entity(jsonbBean.getContext().marshall(jobInfoSnapshots))
+                    .build();
+
+        } catch (JSONBException e) {
+            LOGGER.warn("Bad request: {}", e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(jsonbBean.getContext().marshall(
+                            new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
     }
 
 

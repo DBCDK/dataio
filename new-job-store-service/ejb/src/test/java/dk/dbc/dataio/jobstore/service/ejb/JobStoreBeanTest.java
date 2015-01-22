@@ -22,6 +22,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.junit.Before;
@@ -40,6 +41,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobStoreBeanTest {
@@ -287,6 +289,13 @@ public class JobStoreBeanTest {
         } catch(JobStoreException e) {
             fail("Exception thrown by addChunk()");
         }
+    }
+
+    @Test
+    public void listJobs_delegatesToUnderlyingImplementation() {
+        final JobListCriteria jobListCriteria = new JobListCriteria();
+        jobStoreBean.listJobs(jobListCriteria);
+        verify(mockedJobStore).listJobs(jobListCriteria);
     }
 
     /*

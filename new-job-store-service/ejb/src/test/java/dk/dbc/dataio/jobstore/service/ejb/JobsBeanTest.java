@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -9,7 +10,9 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,9 +22,13 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
@@ -49,7 +56,6 @@ public class JobsBeanTest {
 
         mockedUriInfo = mock(UriInfo.class);
         mockedUriBuilder = mock(UriBuilder.class);
-        jobsBean.jobStoreBean = mock(JobStoreBean.class);
 
         when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(mockedUriBuilder);
         when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
@@ -225,6 +231,56 @@ public class JobsBeanTest {
         jobsBean.addChunkDelivered(mockedUriInfo, jsonbContext.marshall(chunk), chunk.getJobId(), chunk.getChunkId());
     }
 
+    // ************************************* listJobs() tests **********************************************************
+
+    @Test
+    public void listJobs_jobStoreReturnsEmptyList_returnsStatusOkResponseWithEmptyList() throws JSONBException {
+        when(jobsBean.jobStoreBean.listJobs(any(JobListCriteria.class))).thenReturn(Collections.<JobInfoSnapshot>emptyList());
+
+        final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final CollectionType jobInfoSnapshotListType =
+                jsonbContext.getTypeFactory().constructCollectionType(List.class, JobInfoSnapshot.class);
+
+        List<JobInfoSnapshot> jobInfoSnapshots = jsonbContext.unmarshall((String) response.getEntity(), jobInfoSnapshotListType);
+        assertThat("JobInfoSnapshots", jobInfoSnapshots, is(notNullValue()));
+        assertThat("JobInfoSnapshots is empty", jobInfoSnapshots.isEmpty(), is(true));
+    }
+
+    @Test
+    public void listJobs_unableToUnmarshallJobListCriteria_returnsStatusBadRequestWithJobError() throws JSONBException {
+        final Response response = jobsBean.listJobs("Invalid JSON");
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat("JobError", jobError, is(notNullValue()));
+        assertThat("JobError code", jobError.getCode(), is(JobError.Code.INVALID_JSON));
+    }
+
+    @Test
+    public void listJobs_jobStoreReturnsList_returnsStatusOkResponseWithJobInfoSnapshotList() throws JSONBException {
+        final List<JobInfoSnapshot> expectedJobInfoSnapshots = new ArrayList<>();
+        expectedJobInfoSnapshots.add(getJobInfoSnapshot());
+        when(jobsBean.jobStoreBean.listJobs(any(JobListCriteria.class))).thenReturn(expectedJobInfoSnapshots);
+
+        final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final CollectionType jobInfoSnapshotListType =
+                jsonbContext.getTypeFactory().constructCollectionType(List.class, JobInfoSnapshot.class);
+
+        List<JobInfoSnapshot> jobInfoSnapshots = jsonbContext.unmarshall((String) response.getEntity(), jobInfoSnapshotListType);
+        assertThat("JobInfoSnapshots", jobInfoSnapshots, is(notNullValue()));
+        assertThat("JobInfoSnapshots size", jobInfoSnapshots.size(), is(expectedJobInfoSnapshots.size()));
+        assertThat("JobInfoSnapshots element", jobInfoSnapshots.get(0).getJobId(), is(expectedJobInfoSnapshots.get(0).getJobId()));
+    }
 
     /*
      Private methods
@@ -246,6 +302,7 @@ public class JobsBeanTest {
         jobsBean = new JobsBean();
         jobsBean.jsonbBean = new JSONBBean();
         jobsBean.jsonbBean.initialiseContext();
+        jobsBean.jobStoreBean = mock(JobStoreBean.class);
     }
 
     private JobInfoSnapshot getJobInfoSnapshot() {
@@ -268,4 +325,7 @@ public class JobsBeanTest {
         return new ExternalChunk(JOB_ID, CHUNK_ID, type);
     }
 
+    private String asJson(Object object) throws JSONBException {
+        return jsonbContext.marshall(object);
+    }
 }

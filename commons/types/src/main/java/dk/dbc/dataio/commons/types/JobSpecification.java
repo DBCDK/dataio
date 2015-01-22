@@ -104,4 +104,60 @@ public class JobSpecification implements Serializable {
     public String getResultmailInitials() {
         return resultmailInitials;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JobSpecification that = (JobSpecification) o;
+
+        if (submitterId != that.submitterId) {
+            return false;
+        }
+        if (!charset.equals(that.charset)) {
+            return false;
+        }
+        if (!dataFile.equals(that.dataFile)) {
+            return false;
+        }
+        if (!destination.equals(that.destination)) {
+            return false;
+        }
+        if (!format.equals(that.format)) {
+            return false;
+        }
+        if (!mailForNotificationAboutProcessing.equals(that.mailForNotificationAboutProcessing)) {
+            return false;
+        }
+        if (!mailForNotificationAboutVerification.equals(that.mailForNotificationAboutVerification)) {
+            return false;
+        }
+        if (!packaging.equals(that.packaging)) {
+            return false;
+        }
+        if (!resultmailInitials.equals(that.resultmailInitials)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = packaging.hashCode();
+        result = 31 * result + format.hashCode();
+        result = 31 * result + charset.hashCode();
+        result = 31 * result + destination.hashCode();
+        result = 31 * result + (int) (submitterId ^ (submitterId >>> 32));
+        result = 31 * result + mailForNotificationAboutVerification.hashCode();
+        result = 31 * result + mailForNotificationAboutProcessing.hashCode();
+        result = 31 * result + resultmailInitials.hashCode();
+        result = 31 * result + dataFile.hashCode();
+        return result;
+    }
 }

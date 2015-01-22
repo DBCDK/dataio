@@ -103,8 +103,8 @@ public class JobsBean {
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
-     *         a HTTP 400 BAD_REQUEST response on referenced items not found
-     *         a HTTP 400 BAD_REQUEST response on failure to update item entities
+     *         a HTTP 400 BAD_REQUEST response on referenced items not found,
+     *         a HTTP 400 BAD_REQUEST response on failure to update item entities,
      *
      * @throws JSONBException on marshalling failure
      * @throws JobStoreException on failure to update job
@@ -132,8 +132,8 @@ public class JobsBean {
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found
-     *         a HTTP 400 BAD_REQUEST response on failure to update item entities
+     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     *         a HTTP 400 BAD_REQUEST response on failure to update item entities,
      *
      * @throws JSONBException on marshalling failure
      * @throws JobStoreException on failure to update job
@@ -152,8 +152,8 @@ public class JobsBean {
     /**
      * Retrieves job listing from the underlying data store determined by given search criteria
      * @param jobListCriteriaData JSON representation of JobListCriteria
-     * @return a HTTP 200 OK response with list of JobInfoSnapshots for selected jobs
-     *         a HTTP 400 BAD_REQUEST response on invalid json content
+     * @return a HTTP 200 OK response with list of JobInfoSnapshots for selected jobs,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
      * @throws JSONBException on marshalling failure
      */
     @POST

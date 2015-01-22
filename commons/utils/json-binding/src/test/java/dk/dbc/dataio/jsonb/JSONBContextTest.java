@@ -2,6 +2,7 @@ package dk.dbc.dataio.jsonb;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JavaType;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -48,7 +49,7 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_jsonArgIsNull_throws() throws JSONBException {
+    public void unmarshall_byClass_jsonArgIsNull_throws() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.unmarshall(null, SimpleBean.class);
@@ -58,7 +59,7 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_jsonArgIsEmpty_throws() throws JSONBException {
+    public void unmarshall_byClass_jsonArgIsEmpty_throws() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.unmarshall("", SimpleBean.class);
@@ -68,24 +69,24 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_tClassArgIsNull_throws() throws JSONBException {
+    public void unmarshall_byClass_tClassArgIsNull_throws() throws JSONBException {
         final String json = "{\"value\":42}";
         final JSONBContext jsonbContext = new JSONBContext();
         try {
-            jsonbContext.unmarshall(json, null);
+            jsonbContext.unmarshall(json, (Class) null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void unmarshall_emptyJsonObjectToObjectOfTypeWithDefaultConstructor_returnsInstance() throws JSONBException {
+    public void unmarshall_byClass_emptyJsonObjectToObjectOfTypeWithDefaultConstructor_returnsInstance() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         assertThat(jsonbContext.unmarshall("{}", SimpleBean.class), is(notNullValue()));
     }
 
     @Test
-    public void unmarshall_emptyJsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws JSONBException {
+    public void unmarshall_byClass_emptyJsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         try {
             jsonbContext.unmarshall("{}", SimpleBeanWithoutDefaultConstructor.class);
@@ -94,7 +95,7 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_jsonObjectToObjectOfTypeWithDefaultConstructor_returnsInstance() throws Exception {
+    public void unmarshall_byClass_jsonObjectToObjectOfTypeWithDefaultConstructor_returnsInstance() throws Exception {
         final int value = 42;
         final String json = String.format("{\"value\":%d}", value);
         final JSONBContext jsonbContext = new JSONBContext();
@@ -104,7 +105,7 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_jsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws Exception {
+    public void unmarshall_byClass_jsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws Exception {
         final String json = "{\"value\":42}";
         final JSONBContext jsonbContext = new JSONBContext();
         try {
@@ -114,12 +115,89 @@ public class JSONBContextTest {
     }
 
     @Test
-    public void unmarshall_jsonObjectToObjectOfTypeAnnotatedWithoutDefaultConstructor_returnsInstance() throws Exception {
+    public void unmarshall_byClass_jsonObjectToObjectOfTypeAnnotatedWithoutDefaultConstructor_returnsInstance() throws Exception {
         final int value = 42;
         final String json = String.format("{\"value\":%d}", value);
         final JSONBContext jsonbContext = new JSONBContext();
         final AnnotatedSimpleBeanWithoutDefaultConstructor instance =
                 jsonbContext.unmarshall(json, AnnotatedSimpleBeanWithoutDefaultConstructor.class);
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getValue(), is(value));
+    }
+
+    @Test
+    public void unmarshall_byJavaType_jsonArgIsNull_throws() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            jsonbContext.unmarshall(null, jsonbContext.getTypeFactory().constructType(SimpleBean.class));
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void unmarshall_byJavaType_jsonArgIsEmpty_throws() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            jsonbContext.unmarshall("", jsonbContext.getTypeFactory().constructType(SimpleBean.class));
+            fail("No exception thrown");
+        } catch (JSONBException e) {
+        }
+    }
+
+    @Test
+    public void unmarshall_byJavaType_toTypeArgIsNull_throws() throws JSONBException {
+        final String json = "{\"value\":42}";
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            jsonbContext.unmarshall(json, (JavaType) null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void unmarshall_byJavaType_emptyJsonObjectToObjectOfTypeWithDefaultConstructor_returnsInstance() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        assertThat(jsonbContext.unmarshall("{}", jsonbContext.getTypeFactory().constructType(SimpleBean.class)), is(notNullValue()));
+    }
+
+    @Test
+    public void unmarshall_byJavaType_emptyJsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            jsonbContext.unmarshall("{}", jsonbContext.getTypeFactory().constructType(SimpleBeanWithoutDefaultConstructor.class));
+        } catch (JSONBException e) {
+        }
+    }
+
+    @Test
+    public void unmarshall_byJavaType_jsonObjectToObjectOfTypeWithDefaultConstructor_returnsInstance() throws Exception {
+        final int value = 42;
+        final String json = String.format("{\"value\":%d}", value);
+        final JSONBContext jsonbContext = new JSONBContext();
+        final SimpleBean instance = jsonbContext.unmarshall(json, jsonbContext.getTypeFactory().constructType(SimpleBean.class));
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getValue(), is(value));
+    }
+
+    @Test
+    public void unmarshall_byJavaType_jsonObjectToObjectOfTypeWithoutDefaultConstructor_throws() throws Exception {
+        final String json = "{\"value\":42}";
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            jsonbContext.unmarshall(json, jsonbContext.getTypeFactory().constructType(SimpleBeanWithoutDefaultConstructor.class));
+        } catch (JSONBException e) {
+        }
+    }
+
+    @Test
+    public void unmarshall_byJavaType_jsonObjectToObjectOfTypeAnnotatedWithoutDefaultConstructor_returnsInstance() throws Exception {
+        final int value = 42;
+        final String json = String.format("{\"value\":%d}", value);
+        final JSONBContext jsonbContext = new JSONBContext();
+        final AnnotatedSimpleBeanWithoutDefaultConstructor instance =
+                jsonbContext.unmarshall(json, jsonbContext.getTypeFactory().constructType(AnnotatedSimpleBeanWithoutDefaultConstructor.class));
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getValue(), is(value));
     }

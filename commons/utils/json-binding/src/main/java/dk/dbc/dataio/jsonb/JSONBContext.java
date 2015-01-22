@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jsonb;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.IOException;
@@ -53,5 +55,31 @@ public class JSONBContext {
             throw new JSONBException(String.format(
                     "Exception caught when trying to unmarshall JSON %s to %s object", json, tClass.getName()), e);
         }
+    }
+
+    /**
+     * Unmarshalls JSON string into value type
+     * @param json JSON representation of value type
+     * @param toType value type representation
+     * @param <T> type parameter
+     * @return value type instance
+     * @throws JSONBException if unable to unmarshall JSON representation to value type
+     */
+    public <T> T unmarshall(String json, JavaType toType) throws JSONBException {
+        InvariantUtil.checkNotNullOrThrow(toType, "toType");
+        try {
+            return (T) objectMapper.readValue(json, toType);
+        } catch (IOException e) {
+            throw new JSONBException(String.format(
+                    "Exception caught when trying to unmarshall JSON %s to %s object", json, toType), e);
+        }
+    }
+
+    /**
+     * Returns factory class for creating concrete java types.
+     * @return TypeFactory instance
+     */
+    public TypeFactory getTypeFactory() {
+        return objectMapper.getTypeFactory();
     }
 }

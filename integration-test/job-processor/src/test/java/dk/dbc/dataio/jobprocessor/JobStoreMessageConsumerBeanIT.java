@@ -32,6 +32,7 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -94,14 +95,17 @@ public class JobStoreMessageConsumerBeanIT {
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, jobStoreMessage);
 
         final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
-        ChunkResult processorResult = assertProcessorMessageForSink(sinksQueue.get(0));
-        assertThat(processorResult.getJobId(), is(jobId));
-        assertThat(processorResult.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processorResult.getItems().size(), is(1));
-        assertThat(Base64Util.base64decode(processorResult.getItems().get(0).getData()), is(itemData.toUpperCase()));
+        ExternalChunk processedChunk = assertProcessorMessageForSink(sinksQueue.get(0));
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(1));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        assertThat(Base64Util.base64decode(iterator.next().getData()), is(itemData.toUpperCase()));
 
         final List<MockedJmsTextMessage> processorQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
-        processorResult = assertProcessorMessageForJobStore(processorQueue.get(0));
+        ChunkResult processorResult = assertProcessorMessageForJobStore(processorQueue.get(0));
         assertThat(processorResult.getJobId(), is(jobId));
         assertThat(processorResult.getChunkId(), is(chunk.getChunkId()));
         assertThat(processorResult.getItems().size(), is(1));
@@ -115,10 +119,12 @@ public class JobStoreMessageConsumerBeanIT {
         return JsonUtil.fromJson(message.getText(), ChunkResult.class, MixIns.getMixIns());
     }
 
-    private ChunkResult assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {
-        final ChunkResult chunkResult = assertProcessorMessageForJobStore(message);
+    private ExternalChunk assertProcessorMessageForSink(MockedJmsTextMessage message) throws JMSException, JsonException {
+        assertThat(message, is(notNullValue()));
+        assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
+        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
         assertThat(message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sinkResourceName));
-        return chunkResult;
+        return JsonUtil.fromJson(message.getText(), ExternalChunk.class, MixIns.getMixIns());
     }
 
     private MockedJmsTextMessage newJobStoreMessageForJobProcessor(ExternalChunk chunk) throws JMSException, JsonException {

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.commons.utils.service;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -26,8 +25,7 @@ public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageCon
                     consumedMessage.getMessageId(), consumedMessage.getPayloadType(), PAYLOAD_TYPE));
         }
         try {
-            ChunkResult chunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ChunkResult.class, MixIns.getMixIns());
-            ExternalChunk processedChunk = ChunkResult.convertToExternalChunk(chunkResult);
+            ExternalChunk processedChunk= JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class, MixIns.getMixIns());
             if (processedChunk.isEmpty()) {
                 throw new InvalidMessageException(String.format("Message<%s> ChunkResult payload contains no results",
                         consumedMessage.getMessageId()));

@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
@@ -28,6 +29,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -183,6 +185,22 @@ public class PgJobStore {
                 final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, errMsg, null);
                 throw new InvalidInputException(errMsg, jobError);
             }
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Creates job listing based on given criteria
+     * @param criteria job listing criteria
+     * @return list of information snapshots of selected jobs
+     * @throws NullPointerException if given null-valued criteria argument
+     */
+    public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) throws NullPointerException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+            return new JobListQuery(entityManager).execute(criteria);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

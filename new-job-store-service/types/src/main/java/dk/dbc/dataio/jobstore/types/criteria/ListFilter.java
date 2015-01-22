@@ -15,7 +15,7 @@ public class ListFilter<T extends ListFilterField> {
         LESS_THAN,
         GREATER_THAN,
         LESS_THAN_OR_EQUAL_TO,
-        GRATER_THAN_OR_EQUAL_TO,
+        GREATER_THAN_OR_EQUAL_TO,
         EQUAL,
         NOT_EQUAL
     }

@@ -25,6 +25,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
@@ -54,6 +55,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -672,6 +674,48 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(new SinkBuilder().build());
         assertThat(sinkCacheEntity, is(EXPECTED_SINK_CACHE_ENTITY));
+    }
+
+    @Test
+    public void listJobs_criteriaArgIsNull_throws() {
+       final PgJobStore pgJobStore = newPgJobStore();
+        try {
+            pgJobStore.listJobs(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void listJobs_queryReturnsEmptyList_returnsEmptySnapshotList() {
+        final Query query = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString(), eq(JobEntity.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final List<JobInfoSnapshot> jobInfoSnapshots = pgJobStore.listJobs(new JobListCriteria());
+        assertThat("List of JobInfoSnapshot", jobInfoSnapshots, is(notNullValue()));
+        assertThat("List of JobInfoSnapshot is empty", jobInfoSnapshots.isEmpty(), is(true));
+    }
+
+    @Test
+    public void listJobs_queryReturnsNonEmptyList_returnsSnapshotList() {
+        final Query query = mock(Query.class);
+        final JobEntity jobEntity1 = new JobEntity();
+        jobEntity1.setNumberOfItems(42);
+        final JobEntity jobEntity2 = new JobEntity();
+        jobEntity2.setNumberOfItems(4242);
+        when(entityManager.createNativeQuery(anyString(), eq(JobEntity.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(jobEntity1, jobEntity2));
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final List<JobInfoSnapshot> jobInfoSnapshots = pgJobStore.listJobs(new JobListCriteria());
+        assertThat("List of JobInfoSnapshot", jobInfoSnapshots, is(notNullValue()));
+        assertThat("List of JobInfoSnapshot size", jobInfoSnapshots.size(), is(2));
+        assertThat("List of JobInfoSnapshot first element numberOfItems",
+                jobInfoSnapshots.get(0).getNumberOfItems(), is(jobEntity1.getNumberOfItems()));
+        assertThat("List of JobInfoSnapshot second element numberOfItems",
+                jobInfoSnapshots.get(1).getNumberOfItems(), is(jobEntity2.getNumberOfItems()));
     }
 
     /*

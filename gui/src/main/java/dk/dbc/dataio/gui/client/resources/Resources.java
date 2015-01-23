@@ -6,14 +6,14 @@ import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.resources.client.ImageResource;
 
 public interface Resources extends ClientBundle {
-    public static final Resources INSTANCE = GWT.create(Resources.class);
+    Resources INSTANCE = GWT.create(Resources.class);
 
 
     /*
      * CSS Resources
      */
 
-    public interface DataIoCss extends CssResource {
+    interface DataIoCss extends CssResource {
         @ClassName("dual-list-additem-class")
         String dualListAdditemClass();
 

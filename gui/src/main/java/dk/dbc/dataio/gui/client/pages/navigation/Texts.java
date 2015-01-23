@@ -1,51 +1,61 @@
-package dk.dbc.dataio.gui.client.pages.flowbinder.show;
+package dk.dbc.dataio.gui.client.pages.navigation;
 
 import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
 public interface Texts extends Constants {
-    // Labels
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String label_FlowBinders();
 
-
-    // Column Headers
+    // Menu texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Name();
+    String menu_FlowCreation();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Description();
+    String menu_FlowEdit();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Packaging();
+    String menu_Flows();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Format();
+    String menu_FlowBinderCreation();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Charset();
+    String menu_FlowBinderEdit();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Destination();
+    String menu_FlowBinders();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_FlowComponentCreation();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_RecordSplitter();
+    String menu_FlowComponentEdit();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Submitters();
+    String menu_FlowComponents();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Flow();
+    String menu_JavaScriptLogShow();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Sink();
+    String menu_Jobs();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Action();
+    String menu_SinkCreation();
 
-    // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Edit();
+    String menu_SinkEdit();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_Sinks();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_SubmitterCreation();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_SubmitterEdit();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_Submitters();
 
 }

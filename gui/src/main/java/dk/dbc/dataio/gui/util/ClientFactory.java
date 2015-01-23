@@ -10,7 +10,6 @@ import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
-import dk.dbc.dataio.gui.client.views.MenuItem;
 
 /**
  * Provides access to common objects across the application including:
@@ -32,9 +31,6 @@ public interface ClientFactory {
     SinkServiceProxyAsync getSinkServiceProxyAsync();
     JobStoreProxyAsync getJobStoreProxyAsync();
     LogStoreProxyAsync getLogStoreProxyAsync();
-
-    // Menu Structure
-    MenuItem getMenuStructure();
 
     // Views
     dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView();

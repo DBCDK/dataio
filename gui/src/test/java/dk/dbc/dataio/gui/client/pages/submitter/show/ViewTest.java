@@ -45,7 +45,6 @@ public class ViewTest {
 
     // Mocked Texts
     @Mock static Texts mockedTexts;
-    final static String MOCKED_MENU_SUBMITTERS = "Mocked Text: Submittere";
     final static String MOCKED_LABEL_SUBMITTERS = "Mocked Text: Submittere";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
     final static String MOCKED_COLUMNHEADER_NUMBER = "Mocked Text: Nummer";
@@ -54,7 +53,6 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedTexts.menu_Submitters()).thenReturn(MOCKED_MENU_SUBMITTERS);
         when(mockedTexts.label_Submitters()).thenReturn(MOCKED_LABEL_SUBMITTERS);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
         when(mockedTexts.columnHeader_Number()).thenReturn(MOCKED_COLUMNHEADER_NUMBER);

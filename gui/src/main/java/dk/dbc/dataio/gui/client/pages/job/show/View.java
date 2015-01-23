@@ -14,7 +14,7 @@ import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopupEvent;
-import dk.dbc.dataio.gui.client.resource.ImageResources;
+import dk.dbc.dataio.gui.client.resources.Resources;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,7 +35,7 @@ public class View extends ViewWidget {
     private final MyEventBinder statusPopupEventBinder = GWT.create(MyEventBinder.class);
     private final static EventBus statusPopupEventBus = new SimpleEventBus();
 
-    private static ImageResources imageResources;
+    private static Resources resources;
 
     int currentPageSize = PAGE_SIZE;
     ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
@@ -57,9 +57,9 @@ public class View extends ViewWidget {
      * @param header The header text for the View
      * @param texts  The I8n texts for this view
      */
-    public View(String header, Texts texts, ImageResources imageResources) {
+    public View(String header, Texts texts, Resources resources) {
         super(header, texts);
-        View.imageResources = imageResources;
+        View.resources = resources;
         statusPopupEventBinder.bindEventHandlers(this, statusPopupEventBus);
         setupColumns();
     }
@@ -284,7 +284,7 @@ public class View extends ViewWidget {
                 return events;
             }
         };
-        return new StatusColumn(statusPopupEventBus, imageResources, statusCell);
+        return new StatusColumn(statusPopupEventBus, resources, statusCell);
     }
 
 

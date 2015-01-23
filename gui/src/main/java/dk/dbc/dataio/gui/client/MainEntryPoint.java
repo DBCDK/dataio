@@ -14,6 +14,7 @@ import dk.dbc.dataio.gui.client.activities.AppActivityMapper;
 import dk.dbc.dataio.gui.client.exceptions.DioUncaughtExceptionHandler;
 import dk.dbc.dataio.gui.client.pages.job.show.Place;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
+import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.views.MainPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -55,6 +56,8 @@ public class MainEntryPoint implements EntryPoint {
     private void deferredOnModuleLoad() {
         EventBus eventBus = clientFactory.getEventBus();
         PlaceController placeController = clientFactory.getPlaceController();
+        Resources.INSTANCE.css().ensureInjected();
+
 
         // Start ActivityManager for the main widget with our ActivityMapper
         ActivityMapper activityMapper = new AppActivityMapper(clientFactory);

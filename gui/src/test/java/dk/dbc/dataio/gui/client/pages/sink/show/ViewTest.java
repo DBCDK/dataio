@@ -47,7 +47,6 @@ public class ViewTest {
 
     // Mocked Texts
     @Mock static Texts mockedTexts;
-    final static String MOCKED_MENU_SINKS = "Mocked Text: menu_Sinks";
     final static String MOCKED_LABEL_SINKS = "Mocked Text: label_Sinks";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: columnHeader_Name";
@@ -55,7 +54,6 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: columnHeader_Action";
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedTexts.menu_Sinks()).thenReturn(MOCKED_MENU_SINKS);
         when(mockedTexts.label_Sinks()).thenReturn(MOCKED_LABEL_SINKS);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);

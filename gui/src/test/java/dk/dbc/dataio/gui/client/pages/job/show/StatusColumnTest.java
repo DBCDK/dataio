@@ -8,7 +8,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.resource.ImageResources;
+import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +30,8 @@ import static org.mockito.Mockito.when;
 public class StatusColumnTest {
     // Mocked data
     @Mock EventBus mockedEventBus;
-    @Mock ImageResources mockedResources;
+    @Mock
+    Resources mockedResources;
     @Mock Cell<ImageResource> mockedCell;
     @Mock Cell.Context mockedContext;
     @Mock Element mockedElement;

@@ -52,7 +52,6 @@ public class ViewTest {
 
     // Mocked Texts
     @Mock static Texts mockedTexts;
-    final static String MOCKED_MENU_FLOWBINDERSSHOW = "Mocked Text: Flowbinders";
     final static String MOCKED_LABEL_FLOWBINDERS = "Mocked Text: Flowbinders";
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: Navn";
     final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: Beskrivelse";
@@ -68,7 +67,6 @@ public class ViewTest {
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedTexts.menu_FlowBindersShow()).thenReturn(MOCKED_MENU_FLOWBINDERSSHOW);
         when(mockedTexts.label_FlowBinders()).thenReturn(MOCKED_LABEL_FLOWBINDERS);
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
         when(mockedTexts.columnHeader_Description()).thenReturn(MOCKED_COLUMNHEADER_DESCRIPTION);

@@ -5,12 +5,6 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
 public interface Texts extends Constants {
-
-    // Menu text
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Jobs();
-
-
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Jobs();

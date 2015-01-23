@@ -9,7 +9,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopup;
-import dk.dbc.dataio.gui.client.resource.ImageResources;
+import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
  * This class is a specialization of the Column class
@@ -19,7 +19,7 @@ import dk.dbc.dataio.gui.client.resource.ImageResources;
 class StatusColumn extends Column<JobModel, ImageResource> {
     // Attributes
     private final EventBus eventBus;
-    private final ImageResources resources;
+    private final Resources resources;
 
 
     /**
@@ -29,7 +29,7 @@ class StatusColumn extends Column<JobModel, ImageResource> {
      * @param resources The resource containing the images to be used in the display of the icons
      * @param cell      The Image to put into the status column cell
      */
-    public StatusColumn(EventBus eventBus, ImageResources resources, Cell<ImageResource> cell) {
+    public StatusColumn(EventBus eventBus, Resources resources, Cell<ImageResource> cell) {
         super(cell);
         this.eventBus = eventBus;
         this.resources = resources;

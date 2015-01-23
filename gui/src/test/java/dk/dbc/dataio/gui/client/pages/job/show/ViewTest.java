@@ -12,7 +12,7 @@ import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopupEvent;
-import dk.dbc.dataio.gui.client.resource.ImageResources;
+import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +45,8 @@ import static org.mockito.Mockito.when;
 public class ViewTest {
     @GwtMock View.MyEventBinder mockedStatusPopupEventBinder;
     @Mock Presenter presenter;
-    @Mock ImageResources mockedImageResources;
+    @Mock
+    Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
 
 
@@ -70,7 +71,6 @@ public class ViewTest {
 
     // Mocked Texts
     @Mock static Texts mockedTexts;
-    final static String MOCKED_MENU_JOBS = "Mocked Menu Jobs";
     final static String MOCKED_LABEL_JOBS = "Mocked Label Jobs";
     final static String MOCKED_COLUMNHEADER_JOB_ID = "Mocked Column Header Job Id";
     final static String MOCKED_COLUMNHEADER_FILE_NAME = "Mocked Column Header File Name";
@@ -90,7 +90,6 @@ public class ViewTest {
     final static String MOCKED_TEXT_PENDING = "Mocked Text Pending";
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedTexts.menu_Jobs()).thenReturn(MOCKED_MENU_JOBS);
         when(mockedTexts.label_Jobs()).thenReturn(MOCKED_LABEL_JOBS);
         when(mockedTexts.columnHeader_JobId()).thenReturn(MOCKED_COLUMNHEADER_JOB_ID);
         when(mockedTexts.columnHeader_FileName()).thenReturn(MOCKED_COLUMNHEADER_FILE_NAME);
@@ -118,7 +117,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Verify invocations
         verify(mockedStatusPopupEventBinder).bindEventHandlers(eq(view), isA(EventBus.class));
@@ -133,7 +132,7 @@ public class ViewTest {
 
     @Test
     public void constructor_setupData_dataSetupCorrect() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Subject Under Test
         view.setJobs(testModels);
@@ -146,7 +145,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructJobCreationTimeColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Subject Under Test
         Column column = view.constructJobCreationTimeColumn();
@@ -170,7 +169,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructJobIdColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Subject Under Test
         Column column = view.constructJobIdColumn();
@@ -194,7 +193,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFileNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Subject Under Test
         Column column = view.constructFileNameColumn();
@@ -218,7 +217,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSubmitterNumberColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Subject Under Test
         Column column = view.constructSubmitterNumberColumn();
@@ -242,7 +241,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructChunkCountColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Subject Under Test
         Column column = view.constructChunkCountColumn();
@@ -265,7 +264,7 @@ public class ViewTest {
 
     @Test
     public void constructJobStateColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
 
         // Subject Under Test
         StatusColumn column = (StatusColumn) view.constructJobStateColumn();
@@ -284,7 +283,7 @@ public class ViewTest {
      */
     @Test
     public void moreInfoButtonPressedEventRowCountEquals60_event_increasePageSizeCalled() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
         assertThat(view.currentPageSize, is(20));
 
@@ -301,7 +300,7 @@ public class ViewTest {
 
     @Test
     public void moreInfoButtonPressedEventRowCountEquals30_event_increasePageSizeCalled() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
         assertThat(view.currentPageSize, is(20));
 
@@ -318,7 +317,7 @@ public class ViewTest {
 
     @Test
     public void statusPopupEvent_totalStatusInfo_showFailedItemsCalled() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
         view.setPresenter(presenter);
 
@@ -331,7 +330,7 @@ public class ViewTest {
 
     @Test
     public void statusPopupEvent_moreInformationRequested_showMoreInformationCalled() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
         view.setPresenter(presenter);
 
@@ -344,7 +343,7 @@ public class ViewTest {
 
     @Test
     public void statusPopupEvent_detailedStatus_showFailedItemsCalled() {
-        view = new View("Header Text", mockedTexts, mockedImageResources);
+        view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
         view.setPresenter(presenter);
 

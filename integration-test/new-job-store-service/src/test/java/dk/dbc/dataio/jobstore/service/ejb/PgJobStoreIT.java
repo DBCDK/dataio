@@ -5,6 +5,8 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -68,6 +70,7 @@ public class PgJobStoreIT {
     private static final SessionContext SESSION_CONTEXT = mock(SessionContext.class);
     private EntityManager entityManager;
     private static final String DATA = "this is some test data";
+    private final static State.Phase PROCESSING = State.Phase.PROCESSING;
 
     /**
      * Given: a jobstore with empty flowcache
@@ -238,13 +241,13 @@ public class PgJobStoreIT {
         assertThat(jobInfoSnapshotNewJob, not(nullValue()));
 
         // Validate that nothing has been processed on job level
-        assertThat(jobInfoSnapshotNewJob.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(0));
+        assertThat(jobInfoSnapshotNewJob.getState().getPhase(PROCESSING).getSucceeded(), is(0));
 
         // Validate that nothing has been processed on chunk level
-        assertChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, false);
+        assertChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, PROCESSING, false);
 
         // Validate that nothing has been processed on item level
-        assertItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, false);
+        assertItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, PROCESSING, false);
 
         ExternalChunk chunk = buildExternalChunk(
                 jobInfoSnapshotNewJob.getJobId(),
@@ -263,17 +266,17 @@ public class PgJobStoreIT {
         assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
 
         // Validate that one external chunk has been processed on job level
-        assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
+        assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(PROCESSING).getSucceeded(), is(1));
         LOGGER.info("new-job: {} updated-job: {}", jobInfoSnapshotNewJob.getTimeOfLastModification().getTime(), jobInfoSnapShotUpdatedJob.getTimeOfLastModification().getTime());
         assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshotNewJob.getTimeOfLastModification()), is(true));
 
         // And...
 
         // Validate that one external chunk has been processed on chunk level
-        assertChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, true);
+        assertChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
 
         // Validate that one external chunk has been processed on item level
-        assertItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, true);
+        assertItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
     }
 
     @Before
@@ -387,30 +390,25 @@ public class PgJobStoreIT {
     }
 
     private ExternalChunk buildExternalChunk(long jobId, long chunkId, long itemId, ExternalChunk.Type type, ChunkItem.Status status) {
-        ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
-        chunk.insertItem(getChunkItem(itemId, status));
-        return chunk;
+        ChunkItem chunkItem = new ChunkItemBuilder().setId(itemId).setData(DATA).setStatus(status).build();
+        return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(Arrays.asList(chunkItem)).build();
     }
 
-    private ChunkItem getChunkItem(long itemId, ChunkItem.Status status) {
-        return new ChunkItem(itemId, DATA, status);
-    }
-
-    private void assertChunkState(int jobId, int chunkId, int succeeded, boolean isProcessingDone) {
+    private void assertChunkState(int jobId, int chunkId, int succeeded, State.Phase phase, boolean isPhaseDone) {
         final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
         final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
         State chunkState = chunkEntity.getState();
-        assertThat(chunkState.getPhase(State.Phase.PROCESSING).getSucceeded(), is(succeeded));
-        assertThat(chunkState.phaseIsDone(State.Phase.PROCESSING), is(isProcessingDone));
+        assertThat(chunkState.getPhase(phase).getSucceeded(), is(succeeded));
+        assertThat(chunkState.phaseIsDone(phase), is(isPhaseDone));
     }
 
-    private void assertItemState(int jobId, int chunkId, short itemId, int succeeded, boolean isProcessingDone) {
+    private void assertItemState(int jobId, int chunkId, short itemId, int succeeded, State.Phase phase, boolean isPhaseDone) {
         final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
         State itemState = itemEntity.getState();
-        assertThat(itemState.getPhase(State.Phase.PROCESSING).getSucceeded(), is(succeeded));
-        assertThat(itemState.phaseIsDone(State.Phase.PROCESSING), is(isProcessingDone));
-        if(isProcessingDone) {
+        assertThat(itemState.getPhase(phase).getSucceeded(), is(succeeded));
+        assertThat(itemState.phaseIsDone(phase), is(isPhaseDone));
+        if(isPhaseDone) {
             assertThat(itemEntity.getProcessingOutcome().getData(), is(DATA));
         }
     }

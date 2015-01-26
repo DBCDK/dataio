@@ -21,12 +21,16 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
@@ -38,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -54,8 +59,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PgJobStoreIT {
     
@@ -277,6 +280,41 @@ public class PgJobStoreIT {
 
         // Validate that one external chunk has been processed on item level
         assertItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
+    }
+
+    /**
+     * Given: a job store containing a number of jobs
+     * When : requesting a job listing with a criteria selecting a subset of the jobs
+     * Then : only the filtered snapshots are returned
+     */
+    @Test
+    public void listJobs() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Params params = new Params(true);
+        final List<JobInfoSnapshot> snapshots = new ArrayList<>();
+
+        for (int i = 0; i < 4; i++) {
+            final EntityTransaction jobTransaction = entityManager.getTransaction();
+            jobTransaction.begin();
+            snapshots.add(pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
+                    params.sequenceAnalyserKeyGenerator, params.flow, params.sink));
+            jobTransaction.commit();
+        }
+
+        final List<JobInfoSnapshot> expectedSnapshots = snapshots.subList(1, snapshots.size() - 1);
+
+        // When...
+        final JobListCriteria jobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, snapshots.get(0).getJobId()))
+                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, snapshots.get(snapshots.size() - 1).getJobId()));
+
+        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.listJobs(jobListCriteria);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(expectedSnapshots.size()));
+        assertThat("First snapshot in result set", returnedSnapshots.get(0).getJobId(), is(expectedSnapshots.get(0).getJobId()));
+        assertThat("Second snapshot in result set", returnedSnapshots.get(1).getJobId(), is(expectedSnapshots.get(1).getJobId()));
     }
 
     @Before

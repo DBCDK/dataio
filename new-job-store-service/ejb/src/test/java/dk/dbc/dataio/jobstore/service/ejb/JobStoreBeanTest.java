@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -16,12 +17,12 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -31,10 +32,8 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
 
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -46,7 +45,6 @@ import static org.mockito.Mockito.when;
 
 public class JobStoreBeanTest {
     private static final String FILE_STORE_URN_STRING = "urn:dataio-fs:67";
-    private static final int JOB_ID = 3;
 
     private static FlowStoreServiceConnectorException flowStoreException;
     private static FlowStoreServiceConnectorUnexpectedStatusCodeException flowBinderNotFound;
@@ -86,7 +84,7 @@ public class JobStoreBeanTest {
 
     @Test
     public void addAndScheduleJob_getFlowBinder_flowStoreServiceConnectorUnexpectedStatusCodeException() throws FlowStoreServiceConnectorException {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         whenGetFlowBinderThenThrow(jobInputStream.getJobSpecification(), flowStoreUnexpectedException);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -100,7 +98,7 @@ public class JobStoreBeanTest {
 
     @Test
     public void addAndScheduleJob_getFlowBinder_flowStoreServiceConnectorException() throws FlowStoreServiceConnectorException {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         whenGetFlowBinderThenThrow(jobInputStream.getJobSpecification(), flowStoreException);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -113,14 +111,14 @@ public class JobStoreBeanTest {
 
     @Test
     public void addAndScheduleJob_getFlowBinder_flowBinderNotFound() throws FlowStoreServiceConnectorException {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         whenGetFlowBinderThenThrow(jobInputStream.getJobSpecification(), flowBinderNotFound);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
             fail("No exception thrown by addAndScheduleJob()");
         } catch (JobStoreException e) {
             JobError jobError = ((InvalidInputException) e).getJobError();
-            assertThat(jobError, not(nullValue()));
+            assertThat(jobError, is(notNullValue()));
             assertThat(jobError.getCode(), is(JobError.Code.INVALID_FLOW_BINDER_IDENTIFIER));
 
         }
@@ -128,8 +126,8 @@ public class JobStoreBeanTest {
 
     @Test(expected = JobStoreException.class)
     public void addAndScheduleJob_flowNotFound_throws() throws FlowStoreServiceConnectorException, JobStoreException{
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
         when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getId())).thenThrow(flowStoreException);
@@ -140,10 +138,10 @@ public class JobStoreBeanTest {
 
     @Test
     public void addAndScheduleJob_getFile_throwsURISyntaxException() throws FlowStoreServiceConnectorException {
-        JobInputStream jobInputStream = getJobInputStream("invalid");
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
-        Flow flow = new FlowBuilder().build();
-        Sink sink = new SinkBuilder().build();
+        final JobInputStream jobInputStream = getJobInputStream("invalid");
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
         when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getId())).thenReturn(flow);
@@ -154,19 +152,20 @@ public class JobStoreBeanTest {
             fail("No exception thrown by addAndScheduleJob()");
         } catch(JobStoreException e) {
             JobError jobError = ((InvalidInputException) e).getJobError();
-            assertThat(jobError, not(nullValue()));
+            assertThat(jobError, is(notNullValue()));
             assertThat(jobError.getCode(), is(JobError.Code.INVALID_URI_SYNTAX));
         }
     }
 
     @Test
     public void addAndScheduleJob_jobAdded_returnsJobInfoSnapshot() throws Exception {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
-        Flow flow = new FlowBuilder().build();
-        Sink sink = new SinkBuilder().build();
-        JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapShot(jobInputStream.getJobSpecification());
-
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder()
+                .setSpecification(jobInputStream.getJobSpecification())
+                .build();
 
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
@@ -183,8 +182,8 @@ public class JobStoreBeanTest {
                 any(Sink.class))).thenReturn(jobInfoSnapshot);
 
         try {
-            JobInfoSnapshot jobInfoSnapshotReturned = jobStoreBean.addAndScheduleJob(jobInputStream);
-            assertThat(jobInfoSnapshotReturned, not(nullValue()));
+            final JobInfoSnapshot jobInfoSnapshotReturned = jobStoreBean.addAndScheduleJob(jobInputStream);
+            assertThat(jobInfoSnapshotReturned, is(notNullValue()));
         } catch(JobStoreException e) {
             fail("Exception thrown by addAndScheduleJob()");
         }
@@ -192,10 +191,10 @@ public class JobStoreBeanTest {
 
     @Test
     public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorUnexpectedStatusCodeException() throws Exception {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
-        Flow flow = new FlowBuilder().build();
-        Sink sink = new SinkBuilder().build();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
         when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getId())).thenReturn(flow);
@@ -214,10 +213,10 @@ public class JobStoreBeanTest {
 
     @Test
     public void addAndScheduleJob_getInputStream_inputStreamNotFound() throws Exception {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
-        Flow flow = new FlowBuilder().build();
-        Sink sink = new SinkBuilder().build();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
         when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getId())).thenReturn(flow);
@@ -230,17 +229,17 @@ public class JobStoreBeanTest {
             fail("No exception thrown by addAndScheduleJob()");
         } catch(JobStoreException e) {
             JobError jobError = ((InvalidInputException) e).getJobError();
-            assertThat(jobError, not(nullValue()));
+            assertThat(jobError, is(notNullValue()));
             assertThat(jobError.getCode(), is(JobError.Code.INVALID_DATAFILE));
         }
     }
 
     @Test
     public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorException() throws Exception {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
-        Flow flow = new FlowBuilder().build();
-        Sink sink = new SinkBuilder().build();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
         when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getId())).thenReturn(flow);
@@ -258,8 +257,8 @@ public class JobStoreBeanTest {
 
     @Test(expected = JobStoreException.class)
     public void addAndScheduleJob_sinkNotFound_throws() throws FlowStoreServiceConnectorException, JobStoreException {
-        JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
         when(mockedFlowStoreServiceConnectorBean.getSink(flowBinder.getId())).thenThrow(flowStoreException);
@@ -270,22 +269,22 @@ public class JobStoreBeanTest {
 
     @Test(expected = JobStoreException.class)
     public void addChunk_onFailureToUpdateJob_throwsJobStoreException() throws JobStoreException {
-        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
-        when(jobStoreBean.addChunk(chunk)).thenThrow(new JobStoreException("msg", null));
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        when(mockedJobStore.addChunk(chunk)).thenThrow(new JobStoreException("msg", null));
         jobStoreBean.addChunk(chunk);
         fail("No exception thrown by addChunk()");
     }
 
     @Test
     public void addChunk_chunkIsAdded_returnsJobInfoSnapShot() throws Exception {
-        JobSpecification jobSpecification = new JobSpecificationBuilder().build();
-        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.DELIVERED);
-        JobInfoSnapshot jobInfoSnapshot = getJobInfoSnapShot(jobSpecification);
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setSpecification(jobSpecification).build();
 
-        when(jobStoreBean.addChunk(chunk)).thenReturn(jobInfoSnapshot);
+        when(mockedJobStore.addChunk(chunk)).thenReturn(jobInfoSnapshot);
         try {
             JobInfoSnapshot jobInfoSnapshotReturned = jobStoreBean.addChunk(chunk);
-            assertThat(jobInfoSnapshotReturned, not(nullValue()));
+            assertThat(jobInfoSnapshotReturned, is(notNullValue()));
         } catch(JobStoreException e) {
             fail("Exception thrown by addChunk()");
         }
@@ -350,24 +349,4 @@ public class JobStoreBeanTest {
                 + "<record>eleventh</record>"
                 + "</records>";
     }
-
-    private JobInfoSnapshot getJobInfoSnapShot(JobSpecification jobSpecification){
-        return new JobInfoSnapshot(1,
-                false,
-                44,
-                10,
-                10,
-                new Date(),
-                new Date(),
-                new Date(),
-                jobSpecification,
-                new State(),
-                "flowName",
-                "sinkName");
-    }
-
-    private ExternalChunk getExternalChunk(ExternalChunk.Type type) {
-        return new ExternalChunk(JOB_ID, 2, type);
-    }
-
 }

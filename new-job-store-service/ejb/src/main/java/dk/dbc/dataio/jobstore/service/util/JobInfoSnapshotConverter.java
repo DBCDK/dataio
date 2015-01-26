@@ -44,7 +44,7 @@ public final class JobInfoSnapshotConverter {
      */
     private static Date toDate(Timestamp timestamp) {
         if (timestamp != null) {
-            return new Date(timestamp.getTime() + timestamp.getNanos() / 1000000);
+            return new Date(timestamp.getTime());
 
         } else {
             return null;

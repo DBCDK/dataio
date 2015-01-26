@@ -54,10 +54,7 @@ public class JobInfoSnapshotConverterTest {
         assertThat(jobInfoSnapshot.getNumberOfChunks(), is(jobEntity.getNumberOfChunks()));
         assertThat(jobInfoSnapshot.getNumberOfItems(), is(jobEntity.getNumberOfItems()));
 
-        // It is not possible to compare the date and the timestamp directly since Date
-        // does not operate with factional seconds - Hence the full comparison below.
-        assertThat(jobInfoSnapshot.getTimeOfCompletion().getTime(),
-                is(jobEntity.getTimeOfCompletion().getTime() + jobEntity.getTimeOfCompletion().getNanos() / 1000000));
+        assertThat(jobInfoSnapshot.getTimeOfCompletion().getTime(), is(jobEntity.getTimeOfCompletion().getTime()));
     }
 
 }

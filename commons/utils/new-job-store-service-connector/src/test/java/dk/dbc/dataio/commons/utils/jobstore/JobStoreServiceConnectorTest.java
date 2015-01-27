@@ -5,12 +5,12 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +22,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -92,7 +91,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addJob_jobIsCreated() throws JobStoreServiceConnectorException {
-        addJob_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), getJobInfoSnapshot());
+        addJob_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), new JobInfoSnapshotBuilder().build());
     }
 
     // ******************************************* add chunk tests *******************************************
@@ -105,51 +104,51 @@ public class JobStoreServiceConnectorTest {
 
     @Test (expected = NullPointerException.class)
     public void addChunk_chunkTypeIsNull_throws() throws JobStoreServiceConnectorException {
-        ExternalChunk chunk = getExternalChunk(null);
+        final ExternalChunk chunk = new ExternalChunkBuilder(null).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void addChunk_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
-        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PARTITIONED);
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
     }
 
     @Test
     public void addChunk_chunkTypeProcessed_chunkIsAdded() throws JobStoreServiceConnectorException {
-        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
-        JobInfoSnapshot jobInfoSnapshot = addChunk_mockedHttpWithSpecifiedReturnErrorCode(
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final JobInfoSnapshot jobInfoSnapshot = addChunk_mockedHttpWithSpecifiedReturnErrorCode(
                 chunk,
                 chunk.getJobId(),
                 chunk.getChunkId(),
                 JobStoreServiceConstants.JOB_CHUNK_PROCESSED,
                 Response.Status.CREATED.getStatusCode(),
-                getJobInfoSnapshot());
+                new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
 
         assertThat(jobInfoSnapshot, is(notNullValue()));
-        assertThat(Long.valueOf(jobInfoSnapshot.getJobId()).longValue(), is(chunk.getJobId()));
+        assertThat((long) jobInfoSnapshot.getJobId(), is(chunk.getJobId()));
     }
 
     @Test
     public void addChunk_chunkTypeDelivering_chunkIsAdded() throws JobStoreServiceConnectorException {
-        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.DELIVERED);
-        JobInfoSnapshot jobInfoSnapshot = addChunk_mockedHttpWithSpecifiedReturnErrorCode(
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        final JobInfoSnapshot jobInfoSnapshot = addChunk_mockedHttpWithSpecifiedReturnErrorCode(
                 chunk,
                 chunk.getJobId(),
                 chunk.getChunkId(),
                 JobStoreServiceConstants.JOB_CHUNK_DELIVERED,
                 Response.Status.CREATED.getStatusCode(),
-                getJobInfoSnapshot());
+                new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
 
         assertThat(jobInfoSnapshot, is(notNullValue()));
-        assertThat(Long.valueOf(jobInfoSnapshot.getJobId()).longValue(), is(chunk.getJobId()));
+        assertThat((long) jobInfoSnapshot.getJobId(), is(chunk.getJobId()));
     }
 
     @Test(expected = JobStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void addChunk_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.PROCESSED);
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
         addChunk_mockedHttpWithSpecifiedReturnErrorCode(
                 chunk,
                 chunk.getJobId(),
@@ -161,7 +160,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void addChunk_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
-        ExternalChunk chunk = getExternalChunk(ExternalChunk.Type.DELIVERED);
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         addChunk_mockedHttpWithSpecifiedReturnErrorCode(
                 chunk,
                 chunk.getJobId(),
@@ -254,28 +253,7 @@ public class JobStoreServiceConnectorTest {
         return new JobInputStream(jobSpecification, false, PART_NUMBER);
     }
 
-    private static JobInfoSnapshot getJobInfoSnapshot() {
-        return new JobInfoSnapshot(
-                JOB_ID,
-                false,
-                2344,
-                10,
-                10,
-                new Date(),
-                new Date(),
-                null,
-                new JobSpecificationBuilder().build(),
-                new State(),
-                "FlowName",
-                "SinkName");
-    }
-
     private static JobStoreServiceConnector newJobStoreServiceConnector() {
         return new JobStoreServiceConnector(CLIENT, JOB_STORE_URL);
     }
-
-    private static ExternalChunk getExternalChunk(ExternalChunk.Type type) {
-        return new ExternalChunk(JOB_ID, CHUNK_ID, type);
-    }
-
 }

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.commons.utils.jobstore;
+package dk.dbc.dataio.commons.utils.newjobstore;
 
 /**
  * Thrown to indicate general error during job-store communication

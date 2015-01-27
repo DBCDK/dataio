@@ -1,4 +1,4 @@
-package dk.dbc.dataio.commons.utils.jobstore;
+package dk.dbc.dataio.commons.utils.newjobstore;
 
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.JobSpecification;

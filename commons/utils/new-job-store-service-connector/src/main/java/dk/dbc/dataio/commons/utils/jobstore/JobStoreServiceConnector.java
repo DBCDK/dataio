@@ -48,10 +48,8 @@ public class JobStoreServiceConnector {
 
     /**
      * Creates new job defined by given job specification in the job-store
-     *
      * @param jobInputStream containing the job specification
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     *
      * @throws NullPointerException if given null-valued argument
      * @throws ProcessingException on general communication error
      * @throws JobStoreServiceConnectorException on general failure to create job
@@ -74,12 +72,10 @@ public class JobStoreServiceConnector {
 
     /**
      * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
-     *
      * @param chunk external chunk
      * @param jobId job id
      * @param chunkId chunk id
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     *
      * @throws NullPointerException if given null-valued external chunk argument
      * @throws JobStoreServiceConnectorException on general failure to update job
      * @throws IllegalArgumentException on invalid external chunk type

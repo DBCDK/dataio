@@ -4,7 +4,6 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -288,13 +287,13 @@ public class ESTaskPackageUtilIT {
         private int createTPAndInsertAddis() throws IllegalStateException, NumberFormatException, IOException, SQLException {
             List<ChunkItem> chunkItems = createChunkItemList();
             ExternalChunk processedChunk = createProcessedChunk(chunkItems);
-            List<ChunkItem> processedChunkItems = new ArrayList<>();
+            final ExternalChunk deliveredChunk = new ExternalChunk(
+                    processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
             for(ChunkItem item : processedChunk) {
-                processedChunkItems.add(item);
+                deliveredChunk.insertItem(item);
             }
-            final SinkChunkResult sinkChunkResult = new SinkChunkResult(
-                    processedChunk.getJobId(), processedChunk.getChunkId(), processedChunk.getEncoding(), processedChunkItems);
-            EsWorkload esWorkload = new EsWorkload(sinkChunkResult, ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk));
+            deliveredChunk.setEncoding(processedChunk.getEncoding());
+            EsWorkload esWorkload = new EsWorkload(deliveredChunk, ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk));
             return ESTaskPackageUtil.insertTaskPackage(conn, dbname, esWorkload);
         }
 

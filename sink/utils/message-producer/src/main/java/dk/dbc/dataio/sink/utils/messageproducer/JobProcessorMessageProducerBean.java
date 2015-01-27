@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.utils.messageproducer;
 
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -31,19 +32,19 @@ public class JobProcessorMessageProducerBean {
     /**
      * Sends given SinkChunkResult instance as JMS message with JSON payload to processor queue destination
      *
-     * @param sinkChunkResult SinkChunkResult instance to be inserted as message payload
+     * @param deliveredChunk resulting chunk instance to be inserted as message payload
      *
      * @throws NullPointerException when given null-valued argument
      * @throws SinkException when unable to send given SinkChunkResult to destination
      */
-    public void send(SinkChunkResult sinkChunkResult) throws NullPointerException, SinkException {
-        LOGGER.info("Sending SinkChunkResult {} for job {}", sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
+    public void send(ExternalChunk deliveredChunk) throws NullPointerException, SinkException {
+        LOGGER.info("Sending SinkChunkResult {} for job {}", deliveredChunk.getChunkId(), deliveredChunk.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
-            final TextMessage message = createMessage(context, sinkChunkResult);
+            final TextMessage message = createMessage(context, deliveredChunk);
             context.createProducer().send(processorQueue, message);
         } catch (JsonException | JMSException e) {
             final String errorMessage = String.format("Exception caught while sending SinkChunkResult %s for job %s",
-                    sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
+                    deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             throw new SinkException(errorMessage, e);
         }
     }
@@ -52,22 +53,22 @@ public class JobProcessorMessageProducerBean {
      * Sends each SinkChunkResult instance contained in given list as JMS message with JSON payload
      * to processor queue destination
      *
-     * @param sinkChunkResults list of SinkChunkResult instances
+     * @param deliveredChunks list of SinkChunkResult instances
      *
      * @throws NullPointerException when given null-valued argument or when given list contains null valued entries
      * @throws SinkException when unable to send SinkChunkResult to destination
      */
-    public void sendAll(List<SinkChunkResult> sinkChunkResults) throws NullPointerException, SinkException {
+    public void sendAll(List<ExternalChunk> deliveredChunks) throws NullPointerException, SinkException {
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
             final JMSProducer producer = context.createProducer();
-            for (SinkChunkResult sinkChunkResult : sinkChunkResults) {
+            for (ExternalChunk deliveredChunk : deliveredChunks) {
                 try {
-                    LOGGER.info("Sending SinkChunkResult {} for job {}", sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
-                    final TextMessage message = createMessage(context, sinkChunkResult);
+                    LOGGER.info("Sending SinkChunkResult {} for job {}", deliveredChunk.getChunkId(), deliveredChunk.getJobId());
+                    final TextMessage message = createMessage(context, deliveredChunk);
                     producer.send(processorQueue, message);
                 }catch (JsonException | JMSException e) {
                     final String errorMessage = String.format("Exception caught while sending SinkChunkResult %s for job %s",
-                            sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
+                            deliveredChunk.getChunkId(), deliveredChunk.getJobId());
                     throw new SinkException(errorMessage, e);
                 }
             }
@@ -82,14 +83,15 @@ public class JobProcessorMessageProducerBean {
      * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SINK_RESULT_PAYLOAD_TYPE}' respectively.
      *
      * @param context active JMS context
-     * @param sinkChunkResult SinkChunkResult instance to be added as payload
+     * @param deliveredChunk resulting chunk instance to be added as payload
      *
      * @return TextMessage instance
      *
      * @throws JsonException when unable to marshall NewJob instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, SinkChunkResult sinkChunkResult) throws JsonException, JMSException {
+    public TextMessage createMessage(JMSContext context, ExternalChunk deliveredChunk) throws JsonException, JMSException {
+        SinkChunkResult sinkChunkResult = SinkChunkResult.convertFromExternalChunk(deliveredChunk);
         final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkChunkResult));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.SINK_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);

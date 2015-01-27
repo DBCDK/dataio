@@ -1,17 +1,17 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.List;
 
 public class EsWorkload {
-    final SinkChunkResult sinkChunkResult;
+    final ExternalChunk deliveredChunk;
     final List<AddiRecord> addiRecords;
 
-    public EsWorkload(SinkChunkResult sinkChunkResult, List<AddiRecord> addiRecords) {
-        this.sinkChunkResult = InvariantUtil.checkNotNullOrThrow(sinkChunkResult, "sinkChunkResult");
+    public EsWorkload(ExternalChunk deliveredChunk, List<AddiRecord> addiRecords) {
+        this.deliveredChunk = InvariantUtil.checkNotNullOrThrow(deliveredChunk, "deliveredChunk");
         this.addiRecords = InvariantUtil.checkNotNullOrThrow(addiRecords, "addiRecords");
     }
 
@@ -19,7 +19,7 @@ public class EsWorkload {
         return addiRecords;
     }
 
-    public SinkChunkResult getSinkChunkResult() {
-        return sinkChunkResult;
+    public ExternalChunk getDeliveredChunk() {
+        return deliveredChunk;
     }
 }

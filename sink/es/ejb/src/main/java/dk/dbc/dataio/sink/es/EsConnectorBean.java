@@ -68,7 +68,7 @@ public class EsConnectorBean {
         }
     }
 
-    public List<ChunkItem> getSinkResultItemsForTaskPackage(int targetReference) throws SinkException {
+    public List<ChunkItem> getResultingItemsFromSinkForTaskPackage(int targetReference) throws SinkException {
         try (final Connection connection = getConnection()) {
             return ESTaskPackageUtil.getSinkResultItemsForTaskPackage(connection, targetReference);
         } catch (SQLException | NamingException e) {

@@ -2,7 +2,6 @@ package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
@@ -17,6 +16,7 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.xml.ws.WebServiceException;
 import java.util.Collections;
+import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -36,9 +36,9 @@ public class SinkIT {
     }
 
     /**
-     * Given: a ChunkResult with two items, the first one valid and the second one invalid <br/>
-     * When: pushing ChunkResult to FBS web-service endpoint <br/>
-     * Then: a SinkChunkResult with two items is returned <br/>
+     * Given: a processed Chunk with two items, the first one valid and the second one invalid <br/>
+     * When: pushing processed Chunk to FBS web-service endpoint <br/>
+     * Then: a delivered Chunk with two items is returned <br/>
      * And: the first item has status SUCCESS <br/>
      * And: the second item has status FAILURE <br/>
      */
@@ -48,14 +48,19 @@ public class SinkIT {
         // When...
         InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, System.getProperty("fbs.update.ws.endpoint"));
         final FbsPusherBean fbsPusherBean = getFbsPusherBean();
-        final SinkChunkResult sinkChunkResult = fbsPusherBean.push(testProcessedChunk);
+        final ExternalChunk deliveredChunk = fbsPusherBean.push(testProcessedChunk);
 
         // Then...
-        assertThat(sinkChunkResult.getItems().size(), is(2));
+        assertThat(deliveredChunk.size(), is(2));
         // And...
-        assertThat(sinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
+        Iterator<ChunkItem> iterator = deliveredChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item0 = iterator.next();
+        assertThat(item0.getStatus(), is(ChunkItem.Status.SUCCESS));
         // And...
-        assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item1 = iterator.next();
+        assertThat(item1.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     @Test(expected = WebServiceException.class)

@@ -43,4 +43,16 @@ public class SinkChunkResult extends AbstractChunk implements Serializable {
         }
         return nChunk;
     }
+    
+    public static SinkChunkResult convertFromExternalChunk(ExternalChunk chunk) {
+        List<ChunkItem> chunkItems = new ArrayList<>();
+        for (ChunkItem item : chunk) {
+            chunkItems.add(item);
+        }
+        return new SinkChunkResult(
+                chunk.getJobId(),
+                chunk.getChunkId(),
+                chunk.getEncoding(),
+                chunkItems);
+    }
 }

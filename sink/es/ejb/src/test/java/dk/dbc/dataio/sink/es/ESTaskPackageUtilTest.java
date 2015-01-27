@@ -7,7 +7,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -287,7 +287,7 @@ public class ESTaskPackageUtilTest {
     }
 
     private EsWorkload newEsWorkload(String record) throws IOException {
-        return new EsWorkload(new SinkChunkResultBuilder().build(),
+        return new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build(),
                 Arrays.asList(newAddiRecordFromString(record)));
     }
 

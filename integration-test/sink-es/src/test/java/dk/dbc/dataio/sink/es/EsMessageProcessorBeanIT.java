@@ -3,7 +3,6 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
@@ -193,8 +192,7 @@ public class EsMessageProcessorBeanIT {
                 .build();
         final MockedJmsTextMessage message = (MockedJmsTextMessage) new SinkMessageProducerBean()
                 .createMessage(jmsContext, processedChunk, sink);
-        ChunkResult processorResult = ChunkResult.convertFromExternalChunk(processedChunk);
-        message.setText(JsonUtil.toJson(processorResult));
+        message.setText(JsonUtil.toJson(processedChunk));
         return message;
     }
 

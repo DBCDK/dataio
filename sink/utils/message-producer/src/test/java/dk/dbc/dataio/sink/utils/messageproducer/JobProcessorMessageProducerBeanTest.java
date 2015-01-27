@@ -1,11 +1,12 @@
 package dk.dbc.dataio.sink.utils.messageproducer;
 
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,10 +66,10 @@ public class JobProcessorMessageProducerBeanTest {
     public void send_createMessageThrowsJsonException_throws() throws JsonException, SinkException {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
-        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
-            jobProcessorMessageProducerBean.send(sinkChunkResult);
+            jobProcessorMessageProducerBean.send(deliveredChunk);
             fail("No exception thrown");
         } catch (SinkException e) {
         }
@@ -79,9 +80,9 @@ public class JobProcessorMessageProducerBeanTest {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         when(jmsProducer.send(any(Queue.class), any(TextMessage.class))).thenReturn(jmsProducer);
-        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
 
-        jobProcessorMessageProducerBean.send(sinkChunkResult);
+        jobProcessorMessageProducerBean.send(deliveredChunk);
     }
 
     @Test
@@ -98,7 +99,7 @@ public class JobProcessorMessageProducerBeanTest {
     public void sendAll_sinkChunkResultsArgContainsNullEntry_throws() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
-            jobProcessorMessageProducerBean.sendAll(Arrays.asList((SinkChunkResult)null));
+            jobProcessorMessageProducerBean.sendAll(Arrays.asList((ExternalChunk)null));
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -108,10 +109,10 @@ public class JobProcessorMessageProducerBeanTest {
     public void sendAll_createMessageThrowsJsonException_throws() throws JsonException, SinkException {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
-        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
-            jobProcessorMessageProducerBean.sendAll(Arrays.asList(sinkChunkResult));
+            jobProcessorMessageProducerBean.sendAll(Arrays.asList(deliveredChunk));
             fail("No exception thrown");
         } catch (SinkException e) {
         }
@@ -122,9 +123,9 @@ public class JobProcessorMessageProducerBeanTest {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         when(jmsProducer.send(any(Queue.class), any(TextMessage.class))).thenReturn(jmsProducer);
-        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
+        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
 
-        jobProcessorMessageProducerBean.sendAll(Arrays.asList(sinkChunkResult, sinkChunkResult, sinkChunkResult));
+        jobProcessorMessageProducerBean.sendAll(Arrays.asList(deliveredChunk, deliveredChunk, deliveredChunk));
 
         verify(jmsProducer, times(3)).send(any(Queue.class), any(TextMessage.class));
     }
@@ -133,7 +134,7 @@ public class JobProcessorMessageProducerBeanTest {
     public void createMessage_sinkChunkResultArgIsValid_returnsMessageWithHeaderProperties() throws JsonException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new SinkChunkResultBuilder().build());
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.SINK_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
     }

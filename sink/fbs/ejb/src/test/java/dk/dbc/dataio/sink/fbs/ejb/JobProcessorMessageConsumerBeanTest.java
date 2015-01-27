@@ -2,10 +2,9 @@ package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.junit.Test;
@@ -38,9 +37,9 @@ public class JobProcessorMessageConsumerBeanTest {
     @Test
     public void handleConsumedMessage_pusherThrowsSinkException_throws() throws InvalidMessageException, SinkException {
         final SinkException sinkException = new SinkException("DIED");
-        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
-        when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(sinkChunkResult);
-        doThrow(sinkException).when(jobProcessorMessageProducerBean).send(sinkChunkResult);
+        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(deliveredChunk);
+        doThrow(sinkException).when(jobProcessorMessageProducerBean).send(deliveredChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
         try {
             getInitializedBean().handleConsumedMessage(consumedMessage);
@@ -65,9 +64,9 @@ public class JobProcessorMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage_pusherReturnsResult_sendsResult() throws InvalidMessageException, SinkException {
-        final SinkChunkResult sinkChunkResult = new SinkChunkResultBuilder().build();
-        when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(sinkChunkResult);
-        doNothing().when(jobProcessorMessageProducerBean).send(sinkChunkResult);
+        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(deliveredChunk);
+        doNothing().when(jobProcessorMessageProducerBean).send(deliveredChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }

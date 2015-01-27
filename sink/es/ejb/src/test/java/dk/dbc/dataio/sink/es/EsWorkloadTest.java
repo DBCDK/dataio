@@ -1,7 +1,8 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
+import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -18,12 +19,12 @@ public class EsWorkloadTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordsArgIsNull_throws() {
-        new EsWorkload(new SinkChunkResultBuilder().build(), null);
+        new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build(), null);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final EsWorkload instance = new EsWorkload(new SinkChunkResultBuilder().build(), new ArrayList<AddiRecord>(0));
+        final EsWorkload instance = new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build(), new ArrayList<AddiRecord>(0));
         assertThat(instance, is(notNullValue()));
     }
 }

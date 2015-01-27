@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
@@ -96,10 +96,10 @@ public class EsCleanupBean {
             }
             List<EsInFlight> finishedEsInFlight = getEsInFlightsFromTargetReferences(esInFlightMap, finishedTargetReferences);
             int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(finishedEsInFlight);
-            List<SinkChunkResult> sinkChunkResults = createSinkChunkResults(finishedEsInFlight);
+            List<ExternalChunk> deliveredChunks = createDeliveredChunks(finishedEsInFlight);
             esConnector.deleteESTaskpackages(finishedTargetReferences);
             removeEsInFlights(finishedEsInFlight);
-            jobProcessorMessageProducer.sendAll(sinkChunkResults);
+            jobProcessorMessageProducer.sendAll(deliveredChunks);
             esThrottler.releaseRecordSlots(recordSlotsToRelease);
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
@@ -120,47 +120,79 @@ public class EsCleanupBean {
         return filterTargetReferencesFromTaskStatusList(finishedTaskpackages);
     }
 
-    private List<SinkChunkResult> createSinkChunkResults(List<EsInFlight> finshedEsInFlight) throws SinkException {
-        List<SinkChunkResult> sinkChunkResults = new ArrayList<>(finshedEsInFlight.size());
+    private List<ExternalChunk> createDeliveredChunks(List<EsInFlight> finshedEsInFlight) throws SinkException {
+        List<ExternalChunk> deliveredChunks = new ArrayList<>(finshedEsInFlight.size());
         for (EsInFlight esInFlight : finshedEsInFlight) {
-            sinkChunkResults.add(createSinkChunkResult(esInFlight));
+            deliveredChunks.add(createDeliveredChunk(esInFlight));
         }
-        return sinkChunkResults;
+        return deliveredChunks;
     }
 
-    SinkChunkResult createSinkChunkResult(EsInFlight esInFlight) throws SinkException {
-        LOGGER.info("Finishing SinkChunkResult for tp: {}", esInFlight.getTargetReference());
-        final SinkChunkResult sinkChunkResult;
+    ExternalChunk createDeliveredChunk(EsInFlight esInFlight) throws SinkException {
+        LOGGER.info("Finishing delivered chunk for tp: {}", esInFlight.getTargetReference());
+        final ExternalChunk incompleteDeliveredChunk;
         try {
-            sinkChunkResult = JsonUtil.fromJson(esInFlight.getSinkChunkResult(), SinkChunkResult.class);
+            incompleteDeliveredChunk = JsonUtil.fromJson(esInFlight.getIncompleteDeliveredChunk(), ExternalChunk.class);
         } catch (JsonException e) {
-            throw new SinkException(String.format("Unable to marshall SinkChunkResult for tp: %d", esInFlight.getTargetReference()), e);
+            throw new SinkException(String.format("Unable to marshall delivered chunk for tp: %d", esInFlight.getTargetReference()), e);
         }
 
-        final List<ChunkItem> items = esConnector.getSinkResultItemsForTaskPackage(esInFlight.getTargetReference());
-        final List<ChunkItem> resultItems = sinkChunkResult.getItems();
+        // this list only contains the resulting items for the successfull items in the incompleteDeliveredChunk.
+        final List<ChunkItem> items = esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference());
+        
+        // Ensure that all items from the taskpackage has a match in the incompleteDeliveredChunk,
+        // i.e. the number of successfull items in incompleteDeliveredChunk must equals the number of
+        // items from the taskpackage
+        int successfullItemsFromIncompleteDeliveredChunk = getNumberOfSuccessfullItemsFromIncompleteDeliveredChunk(incompleteDeliveredChunk);
+        throwIfMismatchBewteenNumberOfitems(items, successfullItemsFromIncompleteDeliveredChunk, esInFlight, incompleteDeliveredChunk);
+        ExternalChunk deliveredChunk = weaveItemsFromTaskpackageAndIncompleteDeliveredChunk(incompleteDeliveredChunk, items, esInFlight);        
 
-        // Fill out empty slots in pre-built SinkChunkResult
-        int j = 0;
-        for (int i = 0; i < resultItems.size(); i++) {
-            if (resultItems.get(i).getStatus() == ChunkItem.Status.SUCCESS) {
+        return deliveredChunk;
+    }
+    
+    private int getNumberOfSuccessfullItemsFromIncompleteDeliveredChunk(final ExternalChunk incompleteDeliveredChunk) {
+        int successfullItemsFromIncompleteDeliveredChunk = 0;
+        for(ChunkItem item : incompleteDeliveredChunk) {
+            successfullItemsFromIncompleteDeliveredChunk += item.getStatus() == ChunkItem.Status.SUCCESS ? 1 : 0;
+        }
+        return successfullItemsFromIncompleteDeliveredChunk;
+    }
+
+    private void throwIfMismatchBewteenNumberOfitems(final List<ChunkItem> items, int successfullItemsFromIncompleteDeliveredChunk, EsInFlight esInFlight, final ExternalChunk incompleteDeliveredChunk) throws SinkException {
+        if (items.size() != successfullItemsFromIncompleteDeliveredChunk) {
+            throw new SinkException(String.format("Item discrepancy between tp<%d> and inflight chunk (%d/%d): %d items returned, %d items used",
+                    esInFlight.getTargetReference(),
+                    incompleteDeliveredChunk.getJobId(),
+                    incompleteDeliveredChunk.getChunkId(),
+                    items.size(),
+                    incompleteDeliveredChunk.size()));
+        }
+    }
+
+    private ExternalChunk weaveItemsFromTaskpackageAndIncompleteDeliveredChunk(final ExternalChunk incompleteDeliveredChunk, final List<ChunkItem> items, EsInFlight esInFlight) throws SinkException, IllegalArgumentException {
+        // Create new deliveredChunk by weaving incompleteDeliveredChunk and ChunkItems from Taskpackage.
+        ExternalChunk deliveredChunk = new ExternalChunk(incompleteDeliveredChunk.getJobId(), incompleteDeliveredChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+        deliveredChunk.setEncoding(incompleteDeliveredChunk.getEncoding());
+        int itemsCounter = 0;
+        for(ChunkItem item : incompleteDeliveredChunk) {
+            if (item.getStatus() == ChunkItem.Status.SUCCESS) {
                 try {
-                    resultItems.set(i, new ChunkItem(i, items.get(j).getData(), items.get(j).getStatus()));
-                    j++;
+                    int id = (int) item.getId();
+                    deliveredChunk.insertItem(new ChunkItem(id, items.get(itemsCounter).getData(), items.get(itemsCounter).getStatus()));
+                    itemsCounter++;
                 } catch (IndexOutOfBoundsException e) {
-                    throw new SinkException(String.format("SinkChunkResult item discrepancy for tp<%d>: %d items returned, more expected",
-                    esInFlight.getTargetReference(), items.size()));
+                    String errMsg = String.format("Delivered Chunk item discrepancy for tp<%d>: Trying to get item [%d] from items from TP.", 
+                            esInFlight.getTargetReference(),
+                            itemsCounter);
+                    throw new SinkException(errMsg, e);
                 }
+            } else {
+                deliveredChunk.insertItem(item);
             }
         }
-
-        if (items.size() != j) {
-            throw new SinkException(String.format("SinkChunkResult item discrepancy for tp<%d>: %d items returned, %d items used",
-                    esInFlight.getTargetReference(), items.size(), j));
-        }
-
-        return sinkChunkResult;
+        return deliveredChunk;
     }
+
 
     private Map<Integer, EsInFlight> createEsInFlightMap(List<EsInFlight> esInFlightList) {
         Map<Integer, EsInFlight> esInFlightMap = new HashMap<>();

@@ -2,7 +2,6 @@ package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -11,6 +10,7 @@ import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
 import java.util.ArrayList;
+import java.util.Iterator;
 import org.junit.Test;
 
 import javax.xml.ws.WebServiceException;
@@ -33,7 +33,7 @@ public class FbsPusherBeanTest {
     }
 
     @Test
-    public void push_multipleChunkItems_returnsSinkChunkResult() throws FbsUpdateConnectorException {
+    public void push_multipleChunkItems_returnsDeliveredChunk() throws FbsUpdateConnectorException {
         final String inData0 = "zero";
         final String inData1 = "one";
         final String inData2 = "two";
@@ -62,16 +62,31 @@ public class FbsPusherBeanTest {
         when(fbsUpdateConnector.updateMarcExchange(eq(inData2), anyString())).thenThrow(new IllegalStateException());
         when(fbsUpdateConnector.updateMarcExchange(eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
 
-        final SinkChunkResult sinkChunkResult = fbsPusherBean.push(processedChunk);
-        assertThat(sinkChunkResult.getItems().size(), is(6));
-        assertThat(sinkChunkResult.getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(sinkChunkResult.getItems().get(1).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(sinkChunkResult.getItems().get(1).getData(), is(Base64Util.base64encode(okMessage)));
-        assertThat(sinkChunkResult.getItems().get(2).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(sinkChunkResult.getItems().get(3).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(sinkChunkResult.getItems().get(3).getData(), is(Base64Util.base64encode(failedMessage)));
-        assertThat(sinkChunkResult.getItems().get(4).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat(sinkChunkResult.getItems().get(5).getStatus(), is(ChunkItem.Status.IGNORE));
+        final ExternalChunk deliveredChunk = fbsPusherBean.push(processedChunk);
+        assertThat(deliveredChunk.getType(), is(ExternalChunk.Type.DELIVERED));
+        assertThat(deliveredChunk.size(), is(6));
+        Iterator<ChunkItem> iterator = deliveredChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item0 = iterator.next();
+        assertThat(item0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item1 = iterator.next();
+        assertThat(item1.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(item1.getData(), is(Base64Util.base64encode(okMessage)));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item2 = iterator.next();
+        assertThat(item2.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item3 = iterator.next();
+        assertThat(item3.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(item3.getData(), is(Base64Util.base64encode(failedMessage)));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item4 = iterator.next();
+        assertThat(item4.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item5 = iterator.next();
+        assertThat(item5.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(iterator.hasNext(), is(false));
     }
 
     @Test(expected = WebServiceException.class)

@@ -2,7 +2,6 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -28,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -59,12 +59,12 @@ public class EsMessageProcessorBeanTest {
     private final JobProcessorMessageProducerBean jobProcessorMessageProducer = mock(JobProcessorMessageProducerBean.class);
 
     @Test
-    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_sinkChunkResultSentToQueue() throws JMSException, SinkException {
+    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkSentToQueue() throws JMSException, SinkException {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, new ChunkResultJsonBuilder().build());
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        verify(jobProcessorMessageProducer, times(1)).send(any(SinkChunkResult.class));
+        verify(jobProcessorMessageProducer, times(1)).send(any(ExternalChunk.class));
     }
 
     @Test
@@ -169,19 +169,32 @@ public class EsMessageProcessorBeanTest {
 
         assertThat(esWorkloadFromChunkResult, is(notNullValue()));
         assertThat(esWorkloadFromChunkResult.getAddiRecords().size(), is(2));
-        assertThat(esWorkloadFromChunkResult.getSinkChunkResult().getItems().size(), is(6));
-        assertThat("chunkItem 1 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getId(), is(0L));
-        assertThat("chunkItem 1 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(0).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("chunkItem 2 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getId(), is(1L));
-        assertThat("chunkItem 2 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(1).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("chunkItem 3 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(2).getId(), is(2L));
-        assertThat("chunkItem 3 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(2).getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("chunkItem 4 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getId(), is(3L));
-        assertThat("chunkItem 4 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(3).getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("chunkItem 5 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getId(), is(4L));
-        assertThat("chunkItem 5 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(4).getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("chunkItem 6 ID", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(5).getId(), is(5L));
-        assertThat("chunkItem 6 status", esWorkloadFromChunkResult.getSinkChunkResult().getItems().get(5).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(esWorkloadFromChunkResult.getDeliveredChunk().size(), is(6));
+        Iterator<ChunkItem> iterator = esWorkloadFromChunkResult.getDeliveredChunk().iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item0 = iterator.next();
+        assertThat("chunkItem 0 ID", item0.getId(), is(0L));
+        assertThat("chunkItem 0 status", item0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item1 = iterator.next();
+        assertThat("chunkItem 1 ID", item1.getId(), is(1L));
+        assertThat("chunkItem 1 status", item1.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item2 = iterator.next();
+        assertThat("chunkItem 2 ID", item2.getId(), is(2L));
+        assertThat("chunkItem 2 status", item2.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item3 = iterator.next();
+        assertThat("chunkItem 3 ID", item3.getId(), is(3L));
+        assertThat("chunkItem 3 status", item3.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item4 = iterator.next();
+        assertThat("chunkItem 4 ID", item4.getId(), is(4L));
+        assertThat("chunkItem 4 status", item4.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item5 = iterator.next();
+        assertThat("chunkItem 5 ID", item5.getId(), is(5L));
+        assertThat("chunkItem 5 status", item5.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

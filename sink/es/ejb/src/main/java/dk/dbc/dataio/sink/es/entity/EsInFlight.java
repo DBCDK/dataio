@@ -38,7 +38,7 @@ public class EsInFlight {
 
     @Lob
     @Column(nullable = false)
-    private String sinkChunkResult;
+    private String sinkChunkResult; // TODO: This should be changed, but requires reinstall of database together with change in source.
 
     public Long getChunkId() {
         return chunkId;
@@ -80,11 +80,11 @@ public class EsInFlight {
         this.resourceName = resourceName;
     }
 
-    public String getSinkChunkResult() {
+    public String getIncompleteDeliveredChunk() {
         return sinkChunkResult;
     }
 
-    public void setSinkChunkResult(String sinkChunkResult) {
-        this.sinkChunkResult = sinkChunkResult;
+    public void setIncompleteDeliveredChunk(String incompleteDeliveredChunk) {
+        this.sinkChunkResult = incompleteDeliveredChunk;
     }
 }

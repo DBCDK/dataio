@@ -7,9 +7,11 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,11 +20,15 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -165,6 +171,49 @@ public class JobStoreServiceConnectorTest {
                 null);
     }
 
+    // ******************************************* listJobs() tests *******************************************
+
+    @Test
+    public void listJobs_criteriaArgIsNull_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.listJobs(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void listJobs_serviceReturnsUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        try {
+            listJobsWithMockedHttpResponse(new JobListCriteria(), 500, null);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(500));
+        }
+    }
+
+    @Test
+    public void listJobs_serviceReturnsNullEntity_throws() throws JobStoreServiceConnectorException {
+        try {
+            listJobsWithMockedHttpResponse(new JobListCriteria(), 200, null);
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void listJobs_serviceReturnsEmptyListEntity_returnsEmptyList() throws JobStoreServiceConnectorException {
+        final List<JobInfoSnapshot> expectedSnapshots = Collections.emptyList();
+        final List<JobInfoSnapshot> returnedSnapshots = listJobsWithMockedHttpResponse(new JobListCriteria(), 200, expectedSnapshots);
+        assertThat(returnedSnapshots, is(expectedSnapshots));
+    }
+
+    @Test
+    public void listJobs_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
+        final List<JobInfoSnapshot> expectedSnapshots = Arrays.asList(new JobInfoSnapshotBuilder().build());
+        final List<JobInfoSnapshot> returnedSnapshots = listJobsWithMockedHttpResponse(new JobListCriteria(), 200, expectedSnapshots);
+        assertThat(returnedSnapshots, is(expectedSnapshots));
+    }
+
     /*
      * Private methods
      */
@@ -183,6 +232,15 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.addChunk(chunk, jobId, chunkId);
+    }
+
+    private List<JobInfoSnapshot> listJobsWithMockedHttpResponse(
+            JobListCriteria criteria, int statusCode, List<JobInfoSnapshot> responseEntity) throws JobStoreServiceConnectorException {
+
+        when(HttpClient.doPostWithJson(CLIENT, criteria, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES))
+                .thenReturn(new MockedResponse<>(statusCode, responseEntity));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.listJobs(criteria);
     }
 
     private String[] buildAddChunkPath(long jobId, long chunkId, String pathString) {

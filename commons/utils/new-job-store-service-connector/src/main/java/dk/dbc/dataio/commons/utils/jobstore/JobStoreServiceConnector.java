@@ -8,12 +8,15 @@ import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * JobStoreServiceConnector - dataIO job-store REST service client.
@@ -100,6 +103,29 @@ public class JobStoreServiceConnector {
         }
     }
 
+    /**
+     * Retrieves job listing determined by given search criteria from the job-store
+     * @param criteria list criteria
+     * @return list of selected job info snapshots
+     * @throws NullPointerException when given null-valued criteria argument
+     * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
+     */
+    public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES);
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
+            } finally {
+                response.close();
+            }
+        } finally {
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     public Client getHttpClient() {
         return httpClient;
     }
@@ -117,6 +143,16 @@ public class JobStoreServiceConnector {
             throw new JobStoreServiceConnectorUnexpectedStatusCodeException(
                     String.format("job-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
         }
+    }
+
+    private <T> T readResponseEntity(Response response, GenericType<T> genericType) throws JobStoreServiceConnectorException {
+        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
+        final T entity = response.readEntity(genericType);
+        if (entity == null) {
+            throw new JobStoreServiceConnectorException(
+                    String.format("job-store service returned with null-valued %s entity", genericType.getRawType().getName()));
+        }
+        return entity;
     }
 
     private <T> T readResponseEntity(Response response, Class<T> tClass) throws JobStoreServiceConnectorException {

@@ -186,6 +186,7 @@ public class JobStoreServiceConnectorTest {
     public void listJobs_serviceReturnsUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
         try {
             listJobsWithMockedHttpResponse(new JobListCriteria(), 500, null);
+            fail("No exception thrown");
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             assertThat(e.getStatusCode(), is(500));
         }
@@ -195,6 +196,7 @@ public class JobStoreServiceConnectorTest {
     public void listJobs_serviceReturnsNullEntity_throws() throws JobStoreServiceConnectorException {
         try {
             listJobsWithMockedHttpResponse(new JobListCriteria(), 200, null);
+            fail("No exception thrown");
         } catch (JobStoreServiceConnectorException e) {
         }
     }

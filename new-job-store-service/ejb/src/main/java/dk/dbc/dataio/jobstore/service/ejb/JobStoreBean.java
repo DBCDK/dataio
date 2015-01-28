@@ -97,8 +97,8 @@ public class JobStoreBean {
 
         try {
             final FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
-            final Flow flow = getFlowOrThrow(flowBinder.getId());
-            final Sink sink = getSinkOrThrow(flowBinder.getId());
+            final Flow flow = getFlowOrThrow(flowBinder.getContent().getFlowId());
+            final Sink sink = getSinkOrThrow(flowBinder.getContent().getSinkId());
 
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = getSequenceAnalyserKeyGenerator(flowBinder, sink);
             InputStream inputStream = getInputStream(jobInputStream.getJobSpecification());

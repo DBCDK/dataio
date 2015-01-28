@@ -2,15 +2,22 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -28,9 +35,12 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -268,9 +278,43 @@ public class JobsBeanTest {
         assertThat("JobInfoSnapshots element", jobInfoSnapshots.get(0).getJobId(), is(expectedJobInfoSnapshots.get(0).getJobId()));
     }
 
+    // ************************************* getResourceBundle() tests ***********************************************************
+
+    @Test
+    public void getResourceBundle_resourcesLocated_returnsStatusOkResponseWithResourceBundle() throws JSONBException, JobStoreException{
+        Flow flow = new FlowBuilder().build();
+        Sink sink = new SinkBuilder().build();
+        SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessDataBuilder().build();
+        ResourceBundle resourceBundle = new ResourceBundle(flow, sink, supplementaryProcessData);
+
+        when(jobsBean.jobStoreBean.getResourceBundle(anyInt())).thenReturn(resourceBundle);
+
+        final Response response = jobsBean.getResourceBundle(JOB_ID);
+        assertThat("Response", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+        final ResourceBundle resourceBundleReturned = jsonbContext.unmarshall((String) response.getEntity(), ResourceBundle.class);
+        assertThat(resourceBundleReturned, not(nullValue()));
+    }
+
+
+    @Test
+    public void getResourceBundle_jobEntityNotFound_returnsStatusBadRequestResponseWithJobError() throws Exception {
+        JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
+        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
+
+        when(jobsBean.jobStoreBean.getResourceBundle(anyInt())).thenThrow(invalidInputException);
+
+        final Response response = jobsBean.getResourceBundle(JOB_ID);
+        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat(jobErrorReturned, is(notNullValue()));
+    }
+
     /*
      Private methods
     */
+
+
 
     private void initializeJobsBean() {
         jobsBean = new JobsBean();

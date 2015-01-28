@@ -24,6 +24,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -124,6 +125,21 @@ public class JobStoreBean {
         final StopWatch stopWatch = new StopWatch();
         try {
             return jobStore.addChunk(chunk);
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Bundles resources referenced by a job into a single object
+     * @param jobId
+     * @return resources referenced by job
+     * @throws JobStoreException on failure to retrieve job
+     */
+    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            return jobStore.getResourceBundle(jobId);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

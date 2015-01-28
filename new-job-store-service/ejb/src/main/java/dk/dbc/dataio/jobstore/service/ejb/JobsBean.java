@@ -8,6 +8,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
@@ -174,6 +175,32 @@ public class JobsBean {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(jsonbBean.getContext().marshall(
                             new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
+    /**
+     *
+     * @param jobId of job to bundle resources for
+     *
+     * @return a HTTP 200 OK response with resource bundle as JSON,
+     *         a HTTP 400 BAD_REQUEST response on failure to retrieve job
+     *
+     * @return resource bundle as JSON
+     * @throws JSONBException on marshalling failure
+     */
+    @GET
+    @Path(JobStoreServiceConstants.JOB_RESOURCEBUNDLE)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getResourceBundle(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
+        try {
+            ResourceBundle resourceBundle = jobStoreBean.getResourceBundle(jobId);
+            return Response.ok()
+                    .entity(jsonbBean.getContext().marshall(resourceBundle))
+                    .build();
+        } catch (InvalidInputException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(jsonbBean.getContext().marshall(e.getJobError()))
                     .build();
         }
     }

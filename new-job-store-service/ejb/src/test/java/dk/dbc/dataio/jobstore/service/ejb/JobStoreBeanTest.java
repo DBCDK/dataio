@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -23,6 +24,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -287,6 +289,32 @@ public class JobStoreBeanTest {
             assertThat(jobInfoSnapshotReturned, is(notNullValue()));
         } catch(JobStoreException e) {
             fail("Exception thrown by addChunk()");
+        }
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getResourceBundle_onFailureToFindJobEntity_throwsJobStoreException() throws JobStoreException {
+        JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, "msg", null);
+        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
+        when(mockedJobStore.getResourceBundle(0)).thenThrow(invalidInputException);
+        jobStoreBean.getResourceBundle(0);
+        fail("No exception thrown by getResourceBundle()");
+    }
+
+    @Test
+    public void getResourceBundle_bundleIsCreated_returnsResourceBundle() throws Exception {
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        ResourceBundle resourceBundle = new ResourceBundle(
+                new FlowBuilder().build(),
+                new SinkBuilder().build(),
+                new SupplementaryProcessData(jobSpecification.getSubmitterId(), jobSpecification.getFormat()));
+
+        when(mockedJobStore.getResourceBundle(0)).thenReturn(resourceBundle);
+        try {
+            ResourceBundle resourceBundleReturned = jobStoreBean.getResourceBundle(0);
+            assertThat(resourceBundleReturned, is(notNullValue()));
+        } catch(JobStoreException e) {
+            fail("Exception thrown by getResourceBundle()");
         }
     }
 

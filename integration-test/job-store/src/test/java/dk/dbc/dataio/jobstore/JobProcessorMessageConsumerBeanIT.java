@@ -4,14 +4,11 @@ import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobState;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.JobStoreMessageProducerBean;
 import org.junit.Before;
@@ -50,11 +47,11 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.PROCESSING), is(JobState.LifeCycleState.PENDING));
 
         // Put 1st sink result on queue
-        SinkChunkResult sinkResult = new SinkChunkResultBuilder()
+        ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobInfo.getJobId())
                 .setChunkId(1L)
                 .build();
-        JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newSinkResultMessageForJobStore(sinkResult));
+        JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newSinkResultMessageForJobStoreSink(deliveredChunk));
 
         // Put 1st processor result on queue
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
@@ -81,11 +78,11 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newProcessorResultMessageForJobStore(processedChunk));
 
         // Put 2nd sink result on queue
-        sinkResult = new SinkChunkResultBuilder()
+        deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobInfo.getJobId())
                 .setChunkId(2L)
                 .build();
-        JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newSinkResultMessageForJobStore(sinkResult));
+        JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newSinkResultMessageForJobStoreSink(deliveredChunk));
 
         JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
         getProcessorResult(restClient, jobInfo.getJobId(), 2L);
@@ -98,15 +95,14 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
     private MockedJmsTextMessage newProcessorResultMessageForJobStore(ExternalChunk processedChunk) throws JMSException, JsonException {
         final MockedJmsTextMessage message = (MockedJmsTextMessage) new JobStoreMessageProducerBean()
                 .createMessage(jmsContext, processedChunk);
-        ChunkResult processorResult = ChunkResult.convertFromExternalChunk(processedChunk);
-        message.setText(JsonUtil.toJson(processorResult));
+        message.setText(JsonUtil.toJson(processedChunk));
         return message;
     }
 
-    private MockedJmsTextMessage newSinkResultMessageForJobStore(SinkChunkResult sinkResult) throws JMSException, JsonException {
+    private MockedJmsTextMessage newSinkResultMessageForJobStoreSink(ExternalChunk deliveredChunk) throws JMSException, JsonException {
         final MockedJmsTextMessage message = (MockedJmsTextMessage) new JobStoreMessageProducerBean()
-                .createMessage(jmsContext, sinkResult);
-        message.setText(JsonUtil.toJson(sinkResult));
+                .createMessageSink(jmsContext, deliveredChunk);
+        message.setText(JsonUtil.toJson(deliveredChunk));
         return message;
     }
 }

@@ -1,12 +1,11 @@
 package dk.dbc.dataio.jobprocessor;
 
-import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import org.junit.After;
 import org.junit.Before;
@@ -41,7 +40,7 @@ public class SinkMessageConsumerBeanIT {
 
     @Test
     public void sinkMessageConsumerBean_invalidSinkResultOnSinksQueue_eventuallyRemovedFromSinksQueue() throws JMSException, InterruptedException, JsonException {
-        final MockedJmsTextMessage sinkMessage = newSinkMessageForJobProcessor(new SinkChunkResultBuilder().build());
+        final MockedJmsTextMessage sinkMessage = newSinkMessageForJobProcessor(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
         sinkMessage.setText("invalid");
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, sinkMessage);
@@ -53,10 +52,10 @@ public class SinkMessageConsumerBeanIT {
     @Test
     public void sinkMessageConsumerBean_validSinkResultOnSinksQueue_eventuallyRemovedFromSinksQueueAndPutOnProcessorQueue() throws JMSException, InterruptedException, JsonException {
         final long jobId = 42;
-        final SinkChunkResult sinkResultIn = new SinkChunkResultBuilder()
+        final ExternalChunk deliveredChunkIn = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobId)
                 .build();
-        final MockedJmsTextMessage sinkMessage = newSinkMessageForJobProcessor(sinkResultIn);
+        final MockedJmsTextMessage sinkMessage = newSinkMessageForJobProcessor(deliveredChunkIn);
 
         JmsQueueConnector.putOnQueue(JmsQueueConnector.SINKS_QUEUE_NAME, sinkMessage);
 
@@ -69,15 +68,15 @@ public class SinkMessageConsumerBeanIT {
         assertThat(message, is(notNullValue()));
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
-        final SinkChunkResult sinkResultOut = JsonUtil.fromJson(message.getText(), SinkChunkResult.class, MixIns.getMixIns());
-        assertThat(sinkResultOut.getJobId(), is(jobId));
+        final ExternalChunk deliveredChunkOut = JsonUtil.fromJson(message.getText(), ExternalChunk.class);
+        assertThat(deliveredChunkOut.getJobId(), is(jobId));
     }
 
-    private MockedJmsTextMessage newSinkMessageForJobProcessor(SinkChunkResult sinkResult) throws JMSException, JsonException {
+    private MockedJmsTextMessage newSinkMessageForJobProcessor(ExternalChunk deliveredChunk) throws JMSException, JsonException {
         final MockedJmsTextMessage message = new MockedJmsTextMessage();
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.SINK_SOURCE_VALUE);
-        message.setText(JsonUtil.toJson(sinkResult));
+        message.setText(JsonUtil.toJson(deliveredChunk));
         return message;
     }
 }

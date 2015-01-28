@@ -5,9 +5,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
@@ -137,13 +135,13 @@ public class EsMessageProcessorBeanIT {
 
         // Get SinkResult from queue
         final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
-        final SinkChunkResult sinkResult = assertSinkMessageForProcessor(sinksQueue.get(0));
+        final ExternalChunk deliveredChunk = assertSinkMessageForProcessor(sinksQueue.get(0));
 
         // Assert that SinkResult corresponds to ChunkResult and that all items are ignored:
-        assertThat(sinkResult.getJobId(), is(processedChunk.getJobId()));
-        assertThat(sinkResult.getChunkId(), is(processedChunk.getChunkId()));
-        assertThat(sinkResult.getItems().size(), is(itemsInChunk));
-        for (final ChunkItem chunkItem : sinkResult.getItems()) {
+        assertThat(deliveredChunk.getJobId(), is(processedChunk.getJobId()));
+        assertThat(deliveredChunk.getChunkId(), is(processedChunk.getChunkId()));
+        assertThat(deliveredChunk.size(), is(itemsInChunk));
+        for (final ChunkItem chunkItem : deliveredChunk) {
             assertThat(chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
         }
     }
@@ -173,11 +171,11 @@ public class EsMessageProcessorBeanIT {
         assertThat(getNumberOfRecordsInFlight(), is(0));
         assertThat(getEsTaskPackages().size(), is(0));
         final List<MockedJmsTextMessage> sinksQueue = JmsQueueConnector.awaitQueueList(JmsQueueConnector.SINKS_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
-        final SinkChunkResult sinkResult = assertSinkMessageForProcessor(sinksQueue.get(0));
-        assertThat(sinkResult.getJobId(), is(processedChunk.getJobId()));
-        assertThat(sinkResult.getChunkId(), is(processedChunk.getChunkId()));
-        assertThat(sinkResult.getItems().size(), is(1));
-        for (final ChunkItem chunkItem : sinkResult.getItems()) {
+        final ExternalChunk deliveredChunk = assertSinkMessageForProcessor(sinksQueue.get(0));
+        assertThat(deliveredChunk.getJobId(), is(processedChunk.getJobId()));
+        assertThat(deliveredChunk.getChunkId(), is(processedChunk.getChunkId()));
+        assertThat(deliveredChunk.size(), is(1));
+        for (final ChunkItem chunkItem : deliveredChunk) {
             assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
         }
     }
@@ -233,8 +231,10 @@ public class EsMessageProcessorBeanIT {
         }
     }
 
-    public SinkChunkResult assertSinkMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {
+    public ExternalChunk assertSinkMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {
         assertThat(message, is(notNullValue()));
-        return JsonUtil.fromJson(message.getText(), SinkChunkResult.class, MixIns.getMixIns());
+        ExternalChunk deliveredChunk = JsonUtil.fromJson(message.getText(), ExternalChunk.class);
+        assertThat(deliveredChunk.getType(), is(ExternalChunk.Type.DELIVERED));
+        return deliveredChunk;
     }
 }

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -36,19 +35,19 @@ public class JobStoreMessageProducerBean {
     /**
      * Sends given sink result instance as JMS message with JSON payload to job-store queue destination
      *
-     * @param sinkChunkResult sink result instance to be inserted as JSON string message payload
+     * @param deliveredChunk sink result instance to be inserted as JSON string message payload
      *
      * @throws NullPointerException when given null-valued sink result argument
      * @throws JobProcessorException when unable to send given sink result to destination
      */
-    public void send(SinkChunkResult sinkChunkResult) throws NullPointerException, JobProcessorException {
-        LOGGER.info("Sending sink result for chunk {} in job {}", sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
+    public void sendSink(ExternalChunk deliveredChunk) throws NullPointerException, JobProcessorException {
+        LOGGER.info("Sending sink result for chunk {} in job {}", deliveredChunk.getChunkId(), deliveredChunk.getJobId());
         try (JMSContext context = jobStoreQueueConnectionFactory.createContext()) {
-            final TextMessage message = createMessage(context, sinkChunkResult);
+            final TextMessage message = createMessageSink(context, deliveredChunk);
             context.createProducer().send(jobStoreQueue, message);
         } catch (JsonException | JMSException e) {
             final String errorMessage = String.format("Exception caught while sending sink result for chunk %d in job %s",
-                    sinkChunkResult.getChunkId(), sinkChunkResult.getJobId());
+                    deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             throw new JobProcessorException(errorMessage, e);
         }
     }
@@ -61,7 +60,7 @@ public class JobStoreMessageProducerBean {
      * @throws NullPointerException when given null-valued processor result argument
      * @throws JobProcessorException when unable to send given processor result to destination
      */
-    public void send(ExternalChunk processedChunk) throws NullPointerException, JobProcessorException {
+    public void sendProc(ExternalChunk processedChunk) throws NullPointerException, JobProcessorException {
         LOGGER.info("Sending processor result for chunk {} in job {}", processedChunk.getChunkId(), processedChunk.getJobId());
         try (JMSContext context = jobStoreQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, processedChunk);
@@ -81,15 +80,15 @@ public class JobStoreMessageProducerBean {
      * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SINK_RESULT_PAYLOAD_TYPE}' respectively
      *
      * @param context active JMS context
-     * @param sinkResult sink result instance to be added as payload
+     * @param deliveredChunk sink result instance to be added as payload
      *
      * @return TextMessage instance
      *
      * @throws JsonException when unable to marshall sink result instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, SinkChunkResult sinkResult) throws JsonException, JMSException {
-        final TextMessage message = context.createTextMessage(JsonUtil.toJson(sinkResult));
+    public TextMessage createMessageSink(JMSContext context, ExternalChunk deliveredChunk) throws JsonException, JMSException {
+        final TextMessage message = context.createTextMessage(JsonUtil.toJson(deliveredChunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
         return message;

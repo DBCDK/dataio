@@ -1,7 +1,6 @@
 package dk.dbc.dataio.sink.utils.messageproducer;
 
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -53,7 +52,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void send_sinkChunkResultArgIsNull_throws() throws SinkException {
+    public void send_deliveredChunkArgIsNull_throws() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
             jobProcessorMessageProducerBean.send(null);
@@ -65,7 +64,7 @@ public class JobProcessorMessageProducerBeanTest {
     @Test
     public void send_createMessageThrowsJsonException_throws() throws JsonException, SinkException {
         mockStatic(JsonUtil.class);
-        when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
+        when(JsonUtil.toJson(any(ExternalChunk.class))).thenThrow(new JsonException("JsonException"));
         final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
@@ -76,7 +75,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void send_sinkChunkResultIsValid_Success() throws SinkException {
+    public void send_deliveredChunkIsValid_Success() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         when(jmsProducer.send(any(Queue.class), any(TextMessage.class))).thenReturn(jmsProducer);
@@ -86,7 +85,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void sendAll_sinkChunkResultsArgIsNull_throws() throws SinkException {
+    public void sendAll_deliveredChunksArgIsNull_throws() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
             jobProcessorMessageProducerBean.sendAll(null);
@@ -96,7 +95,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void sendAll_sinkChunkResultsArgContainsNullEntry_throws() throws SinkException {
+    public void sendAll_deliveredChunksArgContainsNullEntry_throws() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
             jobProcessorMessageProducerBean.sendAll(Arrays.asList((ExternalChunk)null));
@@ -108,7 +107,7 @@ public class JobProcessorMessageProducerBeanTest {
     @Test
     public void sendAll_createMessageThrowsJsonException_throws() throws JsonException, SinkException {
         mockStatic(JsonUtil.class);
-        when(JsonUtil.toJson(any(SinkChunkResult.class))).thenThrow(new JsonException("JsonException"));
+        when(JsonUtil.toJson(any(ExternalChunk.class))).thenThrow(new JsonException("JsonException"));
         final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         try {
@@ -119,7 +118,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void sendAll_sinkChunkResultsEntriesAreValid_allEntriesSent() throws SinkException {
+    public void sendAll_deliveredChunksEntriesAreValid_allEntriesSent() throws SinkException {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         when(jmsProducer.send(any(Queue.class), any(TextMessage.class))).thenReturn(jmsProducer);
@@ -131,7 +130,7 @@ public class JobProcessorMessageProducerBeanTest {
     }
 
     @Test
-    public void createMessage_sinkChunkResultArgIsValid_returnsMessageWithHeaderProperties() throws JsonException, JMSException {
+    public void createMessage_deliveredChunkArgIsValid_returnsMessageWithHeaderProperties() throws JsonException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());

@@ -1,11 +1,11 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.slf4j.Logger;
@@ -30,15 +30,15 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
      *
      * @param consumedMessage message to be handled
      *
-     * @throws InvalidMessageException if message payload can not be marshalled to SinkChunkResult instance
+     * @throws InvalidMessageException if message payload can not be marshalled to delivered Chunk instance
      * @throws JobProcessorException on general handling error
      */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final SinkChunkResult sinkChunkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
-            LOGGER.info("Received sink result for jobId={}, chunkId={}", sinkChunkResult.getJobId(), sinkChunkResult.getChunkId());
-            jobStoreMessageProducer.send(sinkChunkResult);
+            final ExternalChunk deliveredChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class, MixIns.getMixIns());
+            LOGGER.info("Received sink result for jobId={}, chunkId={}", deliveredChunk.getJobId(), deliveredChunk.getChunkId());
+            jobStoreMessageProducer.sendSink(deliveredChunk);
         } catch (JsonException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid sink result type %s",
                     consumedMessage.getMessageId(), consumedMessage.getPayloadType()), e);

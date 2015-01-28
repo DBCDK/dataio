@@ -1,12 +1,14 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.json.SinkChunkResultJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import org.junit.Test;
 
@@ -39,22 +41,26 @@ public class SinkMessageConsumerBeanTest {
     }
 
     @Test
-    public void onMessage_messageArgPayloadIsValidSinkResult_handled() throws JMSException {
+    public void onMessage_messageArgPayloadIsValidSinkResult_handled() throws JMSException, JsonException {
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
-        textMessage.setText(new SinkChunkResultJsonBuilder().build());
+        ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        String deliveredChunkJson = JsonUtil.toJson(deliveredChunk);
+        textMessage.setText(deliveredChunkJson);
         sinkMessageConsumerBean.onMessage(textMessage);
         assertThat(sinkMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
     }
 
     @Test
-    public void onMessage_handlingThrowsJobProcessorException_transactionRollback() throws JMSException, JobProcessorException {
-        doThrow(new JobProcessorException("JobProcessorException")).when(jobStoreMessageProducer).send(any(SinkChunkResult.class));
+    public void onMessage_handlingThrowsJobProcessorException_transactionRollback() throws JMSException, JobProcessorException, JsonException {
+        doThrow(new JobProcessorException("JobProcessorException")).when(jobStoreMessageProducer).sendSink(any(ExternalChunk.class));
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
-        textMessage.setText(new SinkChunkResultJsonBuilder().build());
+        ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        String deliveredChunkJson = JsonUtil.toJson(deliveredChunk);
+        textMessage.setText(deliveredChunkJson);
         sinkMessageConsumerBean.onMessage(textMessage);
         assertThat(sinkMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(true));
     }

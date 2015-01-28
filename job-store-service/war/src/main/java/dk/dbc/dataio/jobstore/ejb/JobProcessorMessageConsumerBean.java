@@ -66,7 +66,8 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     }
 
     private void handleSinkResult(ConsumedMessage consumedMessage) throws JsonException, JobStoreException {
-        final SinkChunkResult sinkResult = JsonUtil.fromJson(consumedMessage.getMessagePayload(), SinkChunkResult.class, MixIns.getMixIns());
+        final ExternalChunk deliveredChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class);
+        final SinkChunkResult sinkResult = SinkChunkResult.convertFromExternalChunk(deliveredChunk);
         LOGGER.info("Received sink result {} for job {}", sinkResult.getChunkId(), sinkResult.getJobId());
         jobStoreBean.getJobStore().addSinkResult(sinkResult);
         jobSchedulerBean.releaseChunk(sinkResult.getJobId(), sinkResult.getChunkId());

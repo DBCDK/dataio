@@ -50,7 +50,7 @@ public class SinkMessageProducerBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void send_chunkResultArgIsNull_throws() throws JobProcessorException {
+    public void send_processedChunkArgIsNull_throws() throws JobProcessorException {
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
         sinkMessageProducerBean.send(null, sink);
     }
@@ -70,7 +70,7 @@ public class SinkMessageProducerBeanTest {
     }
 
     @Test
-    public void createMessage_chunkResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
+    public void createMessage_deliveredChunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
         final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, processedChunk, sink);

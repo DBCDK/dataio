@@ -63,7 +63,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         final Flow flow = getFlow(chunk);
         final SupplementaryProcessData supplementaryProcessData = getSupplementaryProcessData(chunk);
         final ExternalChunk processedChunk = chunkProcessor.process(chunk, flow, supplementaryProcessData);
-        jobStoreMessageProducer.send(processedChunk);
+        jobStoreMessageProducer.sendProc(processedChunk);
         sinkMessageProducer.send(processedChunk, sink);
     }
 

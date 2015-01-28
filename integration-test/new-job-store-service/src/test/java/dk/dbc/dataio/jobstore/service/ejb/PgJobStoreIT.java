@@ -20,6 +20,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFacto
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -315,6 +316,47 @@ public class PgJobStoreIT {
         assertThat("Number of returned snapshots", returnedSnapshots.size(), is(expectedSnapshots.size()));
         assertThat("First snapshot in result set", returnedSnapshots.get(0).getJobId(), is(expectedSnapshots.get(0).getJobId()));
         assertThat("Second snapshot in result set", returnedSnapshots.get(1).getJobId(), is(expectedSnapshots.get(1).getJobId()));
+    }
+
+    /**
+     * Given: a job store where a job exists
+     * When : requesting a resource bundle for the existing job
+     * Then : the resource bundle contains the correct flow, sink and supplementary process data
+     */
+    @Test
+    public void getResourceBundle() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Params params = new Params(true);
+
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+
+        final JobInfoSnapshot jobInfoSnapshot =
+                pgJobStore.addJob(
+                        params.jobInputStream,
+                        params.dataPartitioner,
+                        params.sequenceAnalyserKeyGenerator,
+                        params.flow,
+                        params.sink);
+
+        jobTransaction.commit();
+        assertThat(jobInfoSnapshot, not(nullValue()));
+
+        // When...
+        ResourceBundle resourceBundle = pgJobStore.getResourceBundle(jobInfoSnapshot.getJobId());
+
+        // Then...
+        assertThat("ResourceBundle", resourceBundle, not(nullValue()));
+        assertThat("ResourceBundle.flow", resourceBundle.getFlow(), not(nullValue()));
+        assertThat(resourceBundle.getFlow(), is(params.flow));
+
+        assertThat("ResourceBundle.sink", resourceBundle.getSink(), not(nullValue()));
+        assertThat(resourceBundle.getSink(), is(params.sink));
+
+        assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), not(nullValue()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(params.jobInputStream.getJobSpecification().getSubmitterId()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(params.jobInputStream.getJobSpecification().getFormat()));
     }
 
     @Before

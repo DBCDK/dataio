@@ -49,4 +49,26 @@ import java.io.Serializable;
      public FlowContent getContent() {
          return content;
      }
+
+     @Override
+     public boolean equals(Object o) {
+         if (this == o) return true;
+         if (!(o instanceof Flow)) return false;
+
+         Flow flow = (Flow) o;
+
+         if (id != flow.id) return false;
+         if (version != flow.version) return false;
+         if (!content.equals(flow.content)) return false;
+
+         return true;
+     }
+
+     @Override
+     public int hashCode() {
+         int result = (int) (id ^ (id >>> 32));
+         result = 31 * result + (int) (version ^ (version >>> 32));
+         result = 31 * result + content.hashCode();
+         return result;
+     }
  }

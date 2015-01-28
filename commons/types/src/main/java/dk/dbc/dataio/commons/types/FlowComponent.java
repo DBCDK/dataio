@@ -49,4 +49,26 @@ public class FlowComponent implements Serializable {
     public FlowComponentContent getContent() {
         return content;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlowComponent)) return false;
+
+        FlowComponent that = (FlowComponent) o;
+
+        if (id != that.id) return false;
+        if (version != that.version) return false;
+        if (!content.equals(that.content)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (int) (version ^ (version >>> 32));
+        result = 31 * result + content.hashCode();
+        return result;
+    }
 }

@@ -42,4 +42,24 @@ public class SinkContent implements Serializable {
     public String getResource() {
         return resource;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SinkContent)) return false;
+
+        SinkContent that = (SinkContent) o;
+
+        if (!name.equals(that.name)) return false;
+        if (!resource.equals(that.resource)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + resource.hashCode();
+        return result;
+    }
 }

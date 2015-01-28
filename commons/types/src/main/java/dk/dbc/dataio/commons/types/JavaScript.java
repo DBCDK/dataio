@@ -41,4 +41,24 @@ public class JavaScript implements Serializable {
     public String getModuleName() {
         return moduleName;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof JavaScript)) return false;
+
+        JavaScript that = (JavaScript) o;
+
+        if (!javascript.equals(that.javascript)) return false;
+        if (!moduleName.equals(that.moduleName)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = javascript.hashCode();
+        result = 31 * result + moduleName.hashCode();
+        return result;
+    }
 }

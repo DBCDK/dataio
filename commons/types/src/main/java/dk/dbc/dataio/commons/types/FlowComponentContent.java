@@ -71,4 +71,32 @@ public class FlowComponentContent implements Serializable {
     public List<JavaScript> getJavascripts() {
         return new ArrayList<JavaScript>(javascripts);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlowComponentContent)) return false;
+
+        FlowComponentContent that = (FlowComponentContent) o;
+
+        if (svnRevision != that.svnRevision) return false;
+        if (!invocationJavascriptName.equals(that.invocationJavascriptName)) return false;
+        if (!invocationMethod.equals(that.invocationMethod)) return false;
+        if (!javascripts.equals(that.javascripts)) return false;
+        if (!name.equals(that.name)) return false;
+        if (!svnProjectForInvocationJavascript.equals(that.svnProjectForInvocationJavascript)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + svnProjectForInvocationJavascript.hashCode();
+        result = 31 * result + (int) (svnRevision ^ (svnRevision >>> 32));
+        result = 31 * result + invocationJavascriptName.hashCode();
+        result = 31 * result + javascripts.hashCode();
+        result = 31 * result + invocationMethod.hashCode();
+        return result;
+    }
 }

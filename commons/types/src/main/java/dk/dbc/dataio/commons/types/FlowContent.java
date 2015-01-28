@@ -54,4 +54,26 @@ public class FlowContent implements Serializable {
     public String getName() {
         return name;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlowContent)) return false;
+
+        FlowContent that = (FlowContent) o;
+
+        if (!components.equals(that.components)) return false;
+        if (!description.equals(that.description)) return false;
+        if (!name.equals(that.name)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + description.hashCode();
+        result = 31 * result + components.hashCode();
+        return result;
+    }
 }

@@ -49,4 +49,26 @@ public class Sink implements Serializable {
     public SinkContent getContent() {
         return content;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Sink)) return false;
+
+        Sink sink = (Sink) o;
+
+        if (id != sink.id) return false;
+        if (version != sink.version) return false;
+        if (!content.equals(sink.content)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (int) (version ^ (version >>> 32));
+        result = 31 * result + content.hashCode();
+        return result;
+    }
 }

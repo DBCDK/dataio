@@ -22,6 +22,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
@@ -49,6 +50,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -68,6 +70,7 @@ public class PgJobStoreTest {
     private static final FlowCacheEntity EXPECTED_FLOW_CACHE_ENTITY = new FlowCacheEntity();
     private static final SinkCacheEntity EXPECTED_SINK_CACHE_ENTITY = new SinkCacheEntity();
     private static final int EXPECTED_NUMBER_OF_CHUNKS = 2;
+    private static final int DEFAULT_JOB_ID = 1;
     private static final List<String> EXPECTED_DATA_ENTRIES = Arrays.asList(
             Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>first</record></records>"),
             Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>second</record></records>"),
@@ -555,6 +558,87 @@ public class PgJobStoreTest {
                 entityStateElement.getSucceeded(), is(1));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void getResourceBundle_jobIdArgIsBelowLowerBound_throws() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        pgJobStore.getResourceBundle(-1);
+        fail("No exception thrown");
+    }
+
+    @Test(expected = JobStoreException.class)
+    public void getResourceBundle_jobEntityNotFound_throws() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
+
+        pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+        fail("No exception thrown");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getResourceBundle_flowIsNull_throws() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Sink sink = new SinkBuilder().build();
+
+        FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
+        SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
+
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID, Arrays.asList(State.Phase.PARTITIONING));
+        jobEntity.setCachedFlow(mockedFlowCacheEntity);
+        jobEntity.setCachedSink(mockedSinkCacheEntity);
+
+        when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(jobEntity);
+        when(jobEntity.getCachedFlow().getFlow()).thenReturn(null);
+        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
+
+        pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+        fail("No exception thrown");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void getResourceBundle_sinkIsNull_throws() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Flow flow = new FlowBuilder().build();
+
+        FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
+        SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
+
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID, Arrays.asList(State.Phase.PARTITIONING));
+        jobEntity.setCachedFlow(mockedFlowCacheEntity);
+        jobEntity.setCachedSink(mockedSinkCacheEntity);
+
+        when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(jobEntity);
+        when(jobEntity.getCachedFlow().getFlow()).thenReturn(flow);
+        when(jobEntity.getCachedSink().getSink()).thenReturn(null);
+
+        pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+        fail("No exception thrown");
+    }
+
+    @Test
+    public void getResourceBundle_resourcesAddedToBundle_returns() throws JobStoreException{
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+
+        FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
+        SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
+
+        JobEntity jobEntity = getJobEntity(1, Arrays.asList(State.Phase.PARTITIONING));
+        jobEntity.setCachedFlow(mockedFlowCacheEntity);
+        jobEntity.setCachedSink(mockedSinkCacheEntity);
+
+        when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(jobEntity);
+        when(jobEntity.getCachedFlow().getFlow()).thenReturn(flow);
+        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
+
+        final ResourceBundle resourceBundle = pgJobStore.getResourceBundle(jobEntity.getId());
+        assertThat(resourceBundle, not(nullValue()));
+        assertThat(resourceBundle.getFlow(), is(flow));
+        assertThat(resourceBundle.getSink(), is(sink));
+        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(jobEntity.getSpecification().getFormat()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
+    }
+
     private ItemEntity getItemEntity(int jobId, int chunkId, short itemId, List<State.Phase> phasesDone) {
         final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = new ItemEntity();
@@ -586,6 +670,7 @@ public class PgJobStoreTest {
         }
         final State jobState = new State();
         jobEntity.setState(jobState);
+        jobEntity.setSpecification(new JobSpecificationBuilder().build());
         if (!phasesDone.isEmpty()) {
             jobEntity.getState().updateState(jobStateChange);
         }

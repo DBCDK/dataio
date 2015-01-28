@@ -2,9 +2,11 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -26,6 +28,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -190,6 +193,7 @@ public class PgJobStore {
         }
     }
 
+
     /**
      * Creates job listing based on given criteria
      * @param criteria job listing criteria
@@ -318,6 +322,38 @@ public class PgJobStore {
             return chunkEntity;
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Adds the sink and flow (cached within a job entity) to a resource bundle.
+     * Adds new supplementary process data object containing submitter id and format retrieved from job specification
+     *
+     * @param jobId of job to bundle resources for
+     * @return resource bundle
+     * @throws InvalidInputException on failure to retrieve job
+     * @throws IllegalArgumentException on job id value being less than the lower bound
+     * @throws NullPointerException on null valued input when creating new resource bundle
+     */
+    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, IllegalArgumentException, NullPointerException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
+            final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+            if (jobEntity == null) {
+                final String errMsg = String.format("JobEntity.%d could not be found", jobId);
+                final JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, errMsg, null);
+                throw new InvalidInputException(errMsg, jobError);
+            }
+            final Flow flow = jobEntity.getCachedFlow().getFlow();
+            final Sink sink = jobEntity.getCachedSink().getSink();
+            final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(
+                    jobEntity.getSpecification().getSubmitterId(),
+                    jobEntity.getSpecification().getFormat());
+
+            return new ResourceBundle(flow, sink, supplementaryProcessData);
+        } finally {
+        LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

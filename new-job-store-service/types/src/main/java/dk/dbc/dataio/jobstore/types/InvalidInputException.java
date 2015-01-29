@@ -1,6 +1,9 @@
 package dk.dbc.dataio.jobstore.types;
 
-public class InvalidInputException extends JobStoreException{
+import javax.ejb.ApplicationException;
+
+@ApplicationException(rollback = false)
+public class InvalidInputException extends JobStoreException {
 
     private JobError jobError;
 

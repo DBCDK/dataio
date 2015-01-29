@@ -290,11 +290,11 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreBean.getResourceBundle(anyInt())).thenReturn(resourceBundle);
 
         final Response response = jobsBean.getResourceBundle(JOB_ID);
-        assertThat("Response", response, not(nullValue()));
+        assertThat("Response not null", response, not(nullValue()));
         assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat("Response entity", response.hasEntity(), is(true));
         final ResourceBundle resourceBundleReturned = jsonbContext.unmarshall((String) response.getEntity(), ResourceBundle.class);
-        assertThat(resourceBundleReturned, not(nullValue()));
+        assertThat("ResourceBundle not null", resourceBundleReturned, not(nullValue()));
     }
 
 
@@ -306,8 +306,11 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreBean.getResourceBundle(anyInt())).thenThrow(invalidInputException);
 
         final Response response = jobsBean.getResourceBundle(JOB_ID);
+        assertThat("Response not null", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
         final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
+        assertThat("JobError not null", jobErrorReturned, is(notNullValue()));
     }
 
     /*

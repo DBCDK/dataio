@@ -292,13 +292,17 @@ public class JobStoreBeanTest {
         }
     }
 
-    @Test(expected = JobStoreException.class)
+    @Test
     public void getResourceBundle_onFailureToFindJobEntity_throwsJobStoreException() throws JobStoreException {
-        JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, "msg", null);
+        JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "msg", null);
         InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
         when(mockedJobStore.getResourceBundle(0)).thenThrow(invalidInputException);
-        jobStoreBean.getResourceBundle(0);
-        fail("No exception thrown by getResourceBundle()");
+        try {
+            jobStoreBean.getResourceBundle(0);
+            fail("No exception thrown by getResourceBundle()");
+        } catch( JobStoreException e) {
+            assertThat(e instanceof InvalidInputException, is(true));
+        }
     }
 
     @Test

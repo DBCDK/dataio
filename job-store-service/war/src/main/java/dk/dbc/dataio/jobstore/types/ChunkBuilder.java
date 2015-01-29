@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.types;
 
-import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;

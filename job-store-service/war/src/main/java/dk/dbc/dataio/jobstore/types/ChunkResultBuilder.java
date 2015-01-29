@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.jobstore.types.ChunkResult;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;

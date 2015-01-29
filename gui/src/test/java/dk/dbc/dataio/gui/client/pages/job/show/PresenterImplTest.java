@@ -15,6 +15,7 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.pages.faileditems.*;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +28,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +59,17 @@ public class PresenterImplTest {
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
     }
 
+    @After
+    public void tearDownMockedData() {
+        reset(mockedClientFactory);
+        reset(mockedJobStore);
+        reset(mockedPlaceController);
+        reset(mockedContainerWidget);
+        reset(mockedEventBus);
+        reset(mockedView);
+        reset(mockedViewWidget);
+        reset(mockedException);
+    }
 
     // Subject Under Test
     private PresenterImpl presenterImpl;

@@ -12,8 +12,8 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +33,6 @@ import static org.mockito.Mockito.when;
  *
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
-@Ignore
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
     @Mock ClientFactory mockedClientFactory;
@@ -40,8 +40,7 @@ public class PresenterImplTest {
     @Mock PlaceController mockedPlaceController;
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
-    @Mock
-    View mockedView;
+    @Mock View mockedView;
     @Mock Widget mockedViewWidget;
     @Mock Throwable mockedException;
 
@@ -54,6 +53,17 @@ public class PresenterImplTest {
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
     }
 
+    @After
+    public void tearDownMockedData() {
+        reset(mockedClientFactory);
+        reset(mockedFlowStore);
+        reset(mockedPlaceController);
+        reset(mockedContainerWidget);
+        reset(mockedEventBus);
+        reset(mockedView);
+        reset(mockedViewWidget);
+        reset(mockedException);
+    }
 
     // Subject Under Test
     private PresenterImpl presenterImpl;

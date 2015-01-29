@@ -1,13 +1,12 @@
 package dk.dbc.dataio.gui.client.pages.flow.show;
 
 import com.google.gwt.cell.client.FieldUpdater;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -19,6 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,11 +30,9 @@ import static org.mockito.Mockito.when;
  * <p/>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
-@Ignore
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
     @Mock Presenter mockedPresenter;
-    @Mock static ClickEvent mockedClickEvent;
 
 
     // Test Data
@@ -71,6 +69,12 @@ public class ViewTest {
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
     }
 
+    @After
+    public void tearDownMockedData() {
+        reset(mockedPresenter);
+        reset(mockedTexts);
+        reset(view.flowsTable);
+    }
 
     /*
      * Testing starts here...

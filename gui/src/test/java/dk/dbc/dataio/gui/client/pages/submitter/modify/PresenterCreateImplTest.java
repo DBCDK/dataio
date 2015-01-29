@@ -7,6 +7,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,6 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,6 +54,22 @@ public class PresenterCreateImplTest {
     public void setupView() {
         view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
+
+    @After
+    public void tearDownMockedData() {
+        reset(mockedClientFactory);
+        reset(mockedFlowStoreProxy);
+        reset(mockedTexts);
+        reset(mockedContainerWidget);
+        reset(mockedEventBus);
+        reset(mockedException);
+        reset(view.number);
+        reset(view.name);
+        reset(view.description);
+        reset(view.status);
+    }
+
+
     //------------------------------------------------------------------------------------------------------------------
 
     @Test

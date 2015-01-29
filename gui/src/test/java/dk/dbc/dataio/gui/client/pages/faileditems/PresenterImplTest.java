@@ -18,10 +18,12 @@ import dk.dbc.dataio.gui.client.model.FailedItemModel;
 import dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,15 +48,15 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    private ClientFactory mockedClientFactory;
-    private Texts mockedTexts;
-    private ShowPlace mockedPlace;
-    private AcceptsOneWidget mockedContainerWidget;
-    private EventBus mockedEventBus;
-    private View mockedView;
-    private PlaceController mockedPlaceController;
-    private JobStoreProxyAsync mockedJobStoreProxy;
-    private Widget mockedWidget;
+    @Mock ClientFactory mockedClientFactory;
+    @Mock Texts mockedTexts;
+    @Mock ShowPlace mockedPlace;
+    @Mock AcceptsOneWidget mockedContainerWidget;
+    @Mock EventBus mockedEventBus;
+    @Mock View mockedView;
+    @Mock PlaceController mockedPlaceController;
+    @Mock JobStoreProxyAsync mockedJobStoreProxy;
+    @Mock Widget mockedWidget;
 
     private PresenterImplConcrete presenterImpl;
 
@@ -108,15 +110,6 @@ public class PresenterImplTest {
 
     @Before
     public void setupMockedObjects() {
-        mockedClientFactory = mock(ClientFactory.class);
-        mockedTexts = mock(Texts.class);
-        mockedPlace = mock(ShowPlace.class);
-        mockedContainerWidget = mock(AcceptsOneWidget.class);
-        mockedEventBus = mock(EventBus.class);
-        mockedView = mock(View.class);
-        mockedPlaceController = mock(PlaceController.class);
-        mockedJobStoreProxy = mock(JobStoreProxyAsync.class);
-        mockedWidget = mock(Widget.class);
         when(mockedPlace.getJobId()).thenReturn(JOB_ID);
         when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
         when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
@@ -133,7 +126,20 @@ public class PresenterImplTest {
         jobInfos.add(new JobInfoBuilder().setJobId(JOB_ID).build());    // This is the job
     }
 
-    //------------------------------------------------------------------------------------------------------------------
+    @After
+    public void tearDownMockedObjects() {
+        reset(mockedClientFactory);
+        reset(mockedTexts);
+        reset(mockedPlace);
+        reset(mockedContainerWidget);
+        reset(mockedEventBus);
+        reset(mockedView);
+        reset(mockedPlaceController);
+        reset(mockedJobStoreProxy);
+        reset(mockedWidget);
+    }
+
+        //------------------------------------------------------------------------------------------------------------------
 
 
     @Test

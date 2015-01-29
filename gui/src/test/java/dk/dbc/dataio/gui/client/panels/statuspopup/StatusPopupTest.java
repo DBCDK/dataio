@@ -1,16 +1,17 @@
 package dk.dbc.dataio.gui.client.panels.statuspopup;
 
 import com.google.gwt.dom.client.Element;
-import com.google.gwtmockito.GwtMock;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -23,8 +24,8 @@ import static org.mockito.Mockito.verify;
 @RunWith(GwtMockitoTestRunner.class)
 public class StatusPopupTest {
     @Mock private ClientFactory mockedClientFactory;
-    @Mock private EventBus eventBus;
-    @Mock private Element parent;
+    @Mock private EventBus mockedEventBus;
+    @Mock private Element mockedParent;
     JobModel model = new JobModel("2014-12-17 00:37:48", "1418773068083", "urn:dataio-fs:46551", "424242",
             true, JobErrorCode.NO_ERROR,
             6, 1, 2, 3,    // Chunkifying: total, success, failure, ignored
@@ -34,23 +35,30 @@ public class StatusPopupTest {
     /*
      * Subject Under Test
      */
-    @GwtMock private StatusPopup statusPopup;
+    private StatusPopup mockedStatusPopup;
+
+    @After
+    public void tearDownMockedData() {
+        reset(mockedClientFactory);
+        reset(mockedEventBus);
+        reset(mockedParent);
+    }
 
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        statusPopup = new StatusPopup(eventBus, parent, model);
+        mockedStatusPopup = new StatusPopup(mockedEventBus, mockedParent, model);
 
-        verify(statusPopup.totalFailed).setText(" 6");
-        verify(statusPopup.chunkifyingSuccess).setText("1");
-        verify(statusPopup.chunkifyingFailed).setText("2");
-        verify(statusPopup.chunkifyingIgnored).setText("3");
-        verify(statusPopup.processingSuccess).setText("2");
-        verify(statusPopup.processingFailed).setText("3");
-        verify(statusPopup.processingIgnored).setText("4");
-        verify(statusPopup.deliveringSuccess).setText("3");
-        verify(statusPopup.deliveringFailed).setText("4");
-        verify(statusPopup.deliveringIgnored).setText("5");
+        verify(mockedStatusPopup.totalFailed).setText(" 6");
+        verify(mockedStatusPopup.chunkifyingSuccess).setText("1");
+        verify(mockedStatusPopup.chunkifyingFailed).setText("2");
+        verify(mockedStatusPopup.chunkifyingIgnored).setText("3");
+        verify(mockedStatusPopup.processingSuccess).setText("2");
+        verify(mockedStatusPopup.processingFailed).setText("3");
+        verify(mockedStatusPopup.processingIgnored).setText("4");
+        verify(mockedStatusPopup.deliveringSuccess).setText("3");
+        verify(mockedStatusPopup.deliveringFailed).setText("4");
+        verify(mockedStatusPopup.deliveringIgnored).setText("5");
     }
 
 }

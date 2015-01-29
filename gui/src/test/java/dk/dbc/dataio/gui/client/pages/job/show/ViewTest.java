@@ -13,6 +13,7 @@ import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopupEvent;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +31,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,9 +46,8 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
     @GwtMock View.MyEventBinder mockedStatusPopupEventBinder;
-    @Mock Presenter presenter;
-    @Mock
-    Resources mockedResources;
+    @Mock Presenter mockedPresenter;
+    @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
 
 
@@ -109,6 +110,16 @@ public class ViewTest {
         when(mockedTexts.text_pending()).thenReturn(MOCKED_TEXT_PENDING);
     }
 
+    @After
+    public void tearDownMockedData() {
+        reset(mockedStatusPopupEventBinder);
+        reset(mockedPresenter);
+        reset(mockedResources);
+        reset(mockedClickEvent);
+        reset(mockedTexts);
+        reset(view.jobsTable);
+        reset(view.moreButton);
+    }
 
     /*
      * Testing starts here...
@@ -319,33 +330,33 @@ public class ViewTest {
     public void statusPopupEvent_totalStatusInfo_showFailedItemsCalled() {
         view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
-        view.setPresenter(presenter);
+        view.setPresenter(mockedPresenter);
 
         // Subject Under Test
         view.statusPopupEvent(new StatusPopupEvent(StatusPopupEvent.StatusPopupEventType.TOTAL_STATUS_INFO, "1234"));
 
         // Verify correct behavior
-        verify(presenter).showFailedItems("1234", null, null);
+        verify(mockedPresenter).showFailedItems("1234", null, null);
     }
 
     @Test
     public void statusPopupEvent_moreInformationRequested_showMoreInformationCalled() {
         view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
-        view.setPresenter(presenter);
+        view.setPresenter(mockedPresenter);
 
         // Subject Under Test
         view.statusPopupEvent(new StatusPopupEvent(StatusPopupEvent.StatusPopupEventType.MORE_INFORMATION_REQUESTED, "2345"));
 
         // Verify correct behavior
-        verify(presenter).showMoreInformation("2345");
+        verify(mockedPresenter).showMoreInformation("2345");
     }
 
     @Test
     public void statusPopupEvent_detailedStatus_showFailedItemsCalled() {
         view = new View("Header Text", mockedTexts, mockedResources);
         view.setJobs(testModels);
-        view.setPresenter(presenter);
+        view.setPresenter(mockedPresenter);
 
         // Subject Under Test
         view.statusPopupEvent(new StatusPopupEvent(StatusPopupEvent.StatusPopupEventType.DETAILED_STATUS,
@@ -354,7 +365,7 @@ public class ViewTest {
                 ItemCompletionState.State.FAILURE));
 
         // Verify correct behavior
-        verify(presenter).showFailedItems("789", JobState.OperationalState.PROCESSING, ItemCompletionState.State.FAILURE);
+        verify(mockedPresenter).showFailedItems("789", JobState.OperationalState.PROCESSING, ItemCompletionState.State.FAILURE);
     }
 
 }

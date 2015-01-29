@@ -9,30 +9,34 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
 
-    private ClientFactory mockedClientFactory;
-    private EventBus mockedEventBus;
-    private Widget mockedWidget;
-    private View mockedView;
-    private Texts mockedConstants;;
-    private AcceptsOneWidget mockedContainerWidget;
-    private LogStoreProxyAsync mockedLogStoreProxy;
+    @Mock ClientFactory mockedClientFactory;
+    @Mock EventBus mockedEventBus;
+    @Mock Widget mockedWidget;
+    @Mock View mockedView;
+    @Mock Texts mockedConstants;
+    @Mock AcceptsOneWidget mockedContainerWidget;
+    @Mock LogStoreProxyAsync mockedLogStoreProxy;
+    @Mock JavaScriptLogPlace mockedJavaScriptLogPlace;
+
     private PresenterImpl presenterImpl;
-    private JavaScriptLogPlace mockedJavaScriptLogPlace;
     private PresenterImplConcrete presenterConcrete;
     private final static String NBSP = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
     private final static String log = "A log with tab and new line is given as input";
@@ -49,19 +53,25 @@ public class PresenterImplTest {
 
     @Before
     public void setupMockedObjects() {
-        mockedClientFactory = mock(ClientFactory.class);
-        mockedWidget = mock(Widget.class);
-        mockedEventBus = mock(EventBus.class);
-        mockedView = mock(View.class);
-        mockedJavaScriptLogPlace = mock(JavaScriptLogPlace.class);
-        mockedConstants = mock(Texts.class);
-        mockedContainerWidget = mock(AcceptsOneWidget.class);
         mockedView.htmlLabel = mock(HTML.class);
-        mockedLogStoreProxy = mock(LogStoreProxyAsync.class);
         when(mockedClientFactory.getJavaScriptLogView()).thenReturn(mockedView);
         when(mockedClientFactory.getLogStoreProxyAsync()).thenReturn(mockedLogStoreProxy);
         when(mockedView.asWidget()).thenReturn(mockedWidget);
     }
+
+    @After
+    public void tearDownMockedObjects() {
+        reset(mockedClientFactory);
+        reset(mockedEventBus);
+        reset(mockedWidget);
+        reset(mockedView.htmlLabel);
+        reset(mockedView);
+        reset(mockedConstants);
+        reset(mockedContainerWidget);
+        reset(mockedLogStoreProxy);
+        reset(mockedJavaScriptLogPlace);
+    }
+
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {

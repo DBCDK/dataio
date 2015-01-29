@@ -9,6 +9,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
@@ -30,17 +32,26 @@ import static org.mockito.Mockito.when;
 public class StatusColumnTest {
     // Mocked data
     @Mock EventBus mockedEventBus;
-    @Mock
-    Resources mockedResources;
+    @Mock Resources mockedResources;
     @Mock Cell<ImageResource> mockedCell;
     @Mock Cell.Context mockedContext;
     @Mock Element mockedElement;
     @Mock static Event mockedBrowserClickEvent;
+
     @Before
     public void setupMockedEvents() {
         when(mockedBrowserClickEvent.getType()).thenReturn("click");
     }
 
+    @After
+    public void tearDownMockedData() {
+        reset(mockedEventBus);
+        reset(mockedResources);
+        reset(mockedCell);
+        reset(mockedContext);
+        reset(mockedElement);
+        reset(mockedBrowserClickEvent);
+    }
 
     // Test data
     private JobModel doneWithoutErrorModel = new JobModel("2014-12-16 08:51:17", "1418716277429",

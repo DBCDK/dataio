@@ -12,6 +12,7 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +26,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,6 +105,21 @@ public class PresenterImplTest {
     public void setupView() {
         view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
+
+    @After
+    public void tearDownMockedData() {
+        reset(mockedClientFactory);
+        reset(mockedFlowStoreProxy);
+        reset(mockedSinkServiceProxy);
+        reset(mockedTexts);
+        reset(mockedContainerWidget);
+        reset(mockedEventBus);
+        reset(mockedException);
+        reset(view.name);
+        reset(view.resource);
+        reset(view.status);
+    }
+
 
     //------------------------------------------------------------------------------------------------------------------
 

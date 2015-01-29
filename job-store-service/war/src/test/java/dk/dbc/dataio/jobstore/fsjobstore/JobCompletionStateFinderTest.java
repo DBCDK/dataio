@@ -1,15 +1,15 @@
 package dk.dbc.dataio.jobstore.fsjobstore;
 
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkCompletionState;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.jobstore.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobCompletionState;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
-import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkChunkResultBuilder;
+import dk.dbc.dataio.jobstore.types.SinkChunkResult;
+import dk.dbc.dataio.jobstore.types.ChunkBuilder;
+import dk.dbc.dataio.jobstore.types.ChunkResultBuilder;
+import dk.dbc.dataio.jobstore.types.SinkChunkResultBuilder;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import java.io.IOException;

@@ -7,9 +7,7 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkResultBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
@@ -59,9 +57,11 @@ public class EsMessageProcessorBeanTest {
     private final JobProcessorMessageProducerBean jobProcessorMessageProducer = mock(JobProcessorMessageProducerBean.class);
 
     @Test
-    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkSentToQueue() throws JMSException, SinkException {
+    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkSentToQueue() throws JMSException, SinkException, JsonException {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, new ChunkResultJsonBuilder().build());
+        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final String processedChunkJson = JsonUtil.toJson(processedChunk);
+        final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
         verify(jobProcessorMessageProducer, times(1)).send(any(ExternalChunk.class));
@@ -226,7 +226,7 @@ public class EsMessageProcessorBeanTest {
             final ChunkItem item = new ChunkItemBuilder()
                     .setData(Base64Util.base64encode(getResourceAsString(resourceName)))
                     .build();
-            return JsonUtil.toJson(new ChunkResultBuilder()
+            return JsonUtil.toJson(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                     .setItems(Arrays.asList(item))
                     .build());
         } catch (JsonException e) {

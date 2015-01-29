@@ -1,5 +1,9 @@
-package dk.dbc.dataio.commons.types;
+package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.AbstractChunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import java.io.Serializable;
 import java.nio.charset.Charset;

@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobErrorCode;

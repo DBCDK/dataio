@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.ejb.monitoring.SequenceAnalyserMonitorBean;

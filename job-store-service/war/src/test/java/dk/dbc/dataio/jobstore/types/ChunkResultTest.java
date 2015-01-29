@@ -1,5 +1,7 @@
-package dk.dbc.dataio.commons.types;
+package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
 import org.junit.Test;
 
 import java.nio.charset.Charset;
@@ -44,9 +46,9 @@ public class ChunkResultTest {
 
     @Test
     public void getResults_resultsCanBeRetrieved() {
-        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data1 = ChunkTest.newChunkItemInstance();
+        final ChunkItem data2 = ChunkTest.newChunkItemInstance();
+        final ChunkItem data3 = ChunkTest.newChunkItemInstance();
         final ChunkResult instance = new ChunkResult(JOBID, CHUNKID, ENCODING, Arrays.asList(data1, data2, data3));
         final List<ChunkItem> items = instance.getItems();
         assertThat(items.size(), is(3));

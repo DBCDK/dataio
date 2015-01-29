@@ -1,11 +1,7 @@
 package dk.dbc.dataio.commons.types.json.mixins;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkItemTest;
-import dk.dbc.dataio.commons.types.ChunkResult;
-import dk.dbc.dataio.commons.types.ChunkResultTest;
-import dk.dbc.dataio.commons.types.ChunkTest;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
@@ -123,26 +119,8 @@ public class MixInsTest {
     }
 
     @Test
-    public void verify_jsonMixInForChunk() throws Exception {
-        final String json = JsonUtil.toJson(ChunkTest.newChunkInstance());
-        JsonUtil.fromJson(json, Chunk.class, MixIns.getMixIns());
-    }
-
-    @Test
     public void verify_jsonMixInForChunkItem() throws Exception {
         final String json = JsonUtil.toJson(ChunkItemTest.newChunkItemInstance());
         JsonUtil.fromJson(json, ChunkItem.class, MixIns.getMixIns());
-    }
-
-    @Test
-    public void verify_jsonMixInForChunkResult() throws Exception {
-        final String json = JsonUtil.toJson(ChunkResultTest.newChunkResultInstance());
-        JsonUtil.fromJson(json, ChunkResult.class, MixIns.getMixIns());
-    }
-
-    @Test
-    public void verify_jsonMixInForSinkChunkResult() throws Exception {
-        final String json = JsonUtil.toJson(ChunkResultTest.newChunkResultInstance());
-        JsonUtil.fromJson(json, ChunkResult.class, MixIns.getMixIns());
     }
 }

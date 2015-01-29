@@ -1,11 +1,14 @@
 package dk.dbc.dataio.commons.utils.service;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
-import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
@@ -14,11 +17,18 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import org.junit.Before;
 
 public class AbstractSinkMessageConsumerBeanTest {
     private static final String MESSAGE_ID = "id";
     private static final String PAYLOAD_TYPE = "ChunkResult";
-    private static final String PAYLOAD = new ChunkResultJsonBuilder().build();
+    private String PAYLOAD;
+    
+    @Before
+    public void setup() throws JsonException {
+        ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        PAYLOAD = JsonUtil.toJson(processedChunk);
+    }
 
     @Test(expected = NullPointerException.class)
     public void unmarshallPayload_consumedMessageArgIsNull_throws() throws InvalidMessageException {
@@ -38,8 +48,9 @@ public class AbstractSinkMessageConsumerBeanTest {
     }
 
     @Test(expected = InvalidMessageException.class)
-    public void unmarshallPayload_consumedMessageArgPayloadIsEmptyChunkResult_throws() throws InvalidMessageException {
-        final String emptyChunkResult = new ChunkResultJsonBuilder().setItems(Collections.<String>emptyList()).build();
+    public void unmarshallPayload_consumedMessageArgPayloadIsEmptyChunkResult_throws() throws InvalidMessageException, JsonException {
+        ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
+        final String emptyChunkResult = JsonUtil.toJson(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, emptyChunkResult);
         getInitializedBean().unmarshallPayload(consumedMessage);
     }

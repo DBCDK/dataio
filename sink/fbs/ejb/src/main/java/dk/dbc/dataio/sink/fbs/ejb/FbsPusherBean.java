@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.xml.ws.WebServiceException;
-import java.util.ArrayList;
 
 @Stateless
 public class FbsPusherBean {

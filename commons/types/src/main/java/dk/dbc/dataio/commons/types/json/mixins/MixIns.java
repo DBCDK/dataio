@@ -1,8 +1,6 @@
 package dk.dbc.dataio.commons.types.json.mixins;
 
-import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ChunkResult;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
@@ -14,7 +12,6 @@ import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkChunkResult;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
@@ -29,9 +26,7 @@ import java.util.Map;
 public class MixIns {
     private static Map<Class<?>, Class<?>> mixIns = new HashMap<>();
     static {
-        mixIns.put(Chunk.class, ChunkMixIn.class);
         mixIns.put(ChunkItem.class, ChunkItemMixIn.class);
-        mixIns.put(ChunkResult.class, ChunkResultMixIn.class);
         mixIns.put(Flow.class, FlowJsonMixIn.class);
         mixIns.put(FlowBinder.class, FlowBinderJsonMixIn.class);
         mixIns.put(FlowBinderContent.class, FlowBinderContentJsonMixIn.class);
@@ -44,7 +39,6 @@ public class MixIns {
         mixIns.put(JobInfo.class, JobInfoJsonMixIn.class);
         mixIns.put(JobSpecification.class, JobSpecificationJsonMixIn.class);
         mixIns.put(Sink.class, SinkJsonMixIn.class);
-        mixIns.put(SinkChunkResult.class, SinkChunkResultMixIn.class);
         mixIns.put(SinkContent.class, SinkContentJsonMixIn.class);
         mixIns.put(SupplementaryProcessData.class, SupplementaryProcessDataJsonMixIn.class);
         mixIns.put(PingResponse.class, PingResponseJsonMixIn.class);

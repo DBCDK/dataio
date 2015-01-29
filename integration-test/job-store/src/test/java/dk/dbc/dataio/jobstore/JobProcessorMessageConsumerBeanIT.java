@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.commons.types.ChunkResult;
+import dk.dbc.dataio.jobstore.types.ChunkResult;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobState;

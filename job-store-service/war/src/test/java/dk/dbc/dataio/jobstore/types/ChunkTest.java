@@ -1,5 +1,13 @@
-package dk.dbc.dataio.commons.types;
+package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
@@ -17,7 +25,7 @@ import static org.junit.Assert.assertThat;
 public class ChunkTest {
     private static final long JOB_ID = 2;
     private static final long CHUNK_ID = 1;
-    private static final Flow FLOW = FlowTest.newFlowInstance();
+    private static final Flow FLOW = newFlowInstance();
     private static final List<ChunkItem> ITEMS = Collections.emptyList();
     private static final SupplementaryProcessData SUPPLEMENTARY_PROCESS_DATA = new SupplementaryProcessData(123456L, "utf-8");
 
@@ -89,7 +97,7 @@ public class ChunkTest {
     public void addRecord_whenMoreThanMaxChunkSizeRecordsAreAdded_throws() {
         final Chunk instance = new Chunk(JOB_ID, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA);
         for (int i = 0; i <= Constants.CHUNK_RECORD_COUNT_UPPER_BOUND; i++) {
-            instance.addItem(ChunkItemTest.newChunkItemInstance());
+            instance.addItem(newChunkItemInstance());
         }
     }
 
@@ -119,9 +127,9 @@ public class ChunkTest {
 
     @Test
     public void getItems_itemsCanBeRetrieved() {
-        final ChunkItem data1 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data2 = ChunkItemTest.newChunkItemInstance();
-        final ChunkItem data3 = ChunkItemTest.newChunkItemInstance();
+        final ChunkItem data1 = newChunkItemInstance();
+        final ChunkItem data2 = newChunkItemInstance();
+        final ChunkItem data3 = newChunkItemInstance();
         final Chunk chunk = new Chunk(JOB_ID, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA, Arrays.asList(data1, data2, data3));
         final List<ChunkItem> items = chunk.getItems();
         assertThat(items.size(), is(3));
@@ -186,5 +194,49 @@ public class ChunkTest {
 
     public static Chunk newChunkInstance() {
         return new Chunk(JOB_ID, CHUNK_ID, FLOW, SUPPLEMENTARY_PROCESS_DATA, ITEMS);
+    }
+    
+    public static ChunkItem newChunkItemInstance() {
+        final long ID = 0L;
+        final String DATA = "data";
+        final ChunkItem.Status STATUS = ChunkItem.Status.SUCCESS;
+        return new ChunkItem(ID, DATA, STATUS);
+    }
+
+    public static Flow newFlowInstance() {
+        final long ID = 42L;
+        final long VERSION = 1L;
+        final FlowContent CONTENT = newFlowContentInstance();
+        return new Flow(ID, VERSION, CONTENT);
+    }
+    
+    public static FlowContent newFlowContentInstance() {
+        final String NAME = "name";
+        final String DESCRIPTION = "description";
+        final List<FlowComponent> COMPONENTS = Arrays.asList(newFlowComponentInstance());
+        return new FlowContent(NAME, DESCRIPTION, COMPONENTS);
+    }
+
+    public static FlowComponent newFlowComponentInstance() {
+        final long ID = 42L;
+        final long VERSION = 1L;
+        final FlowComponentContent CONTENT = newFlowComponentContentInstance();
+        return new FlowComponent(ID, VERSION, CONTENT);
+    }
+
+    public static FlowComponentContent newFlowComponentContentInstance() {
+        final String NAME = "name";
+        final String SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT = "svnProjectForInvocationJavascript";
+        final long SVN_REVISION = 1L;
+        final String JAVA_SCRIPT_NAME = "invocationJavascriptName";
+        final String INVOCATION_METHOD = "method";
+        final List<JavaScript> JAVASCRIPTS = Arrays.asList(newJavaScriptInstance());
+        return new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+    }
+
+    public static JavaScript newJavaScriptInstance() {
+        final String MODULE_NAME = "module";
+        final String JAVASCRIPT = "javascript";
+        return new JavaScript(JAVASCRIPT, MODULE_NAME);
     }
 }

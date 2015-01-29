@@ -3,7 +3,8 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.utils.test.json.ChunkResultJsonBuilder;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
@@ -14,6 +15,7 @@ import javax.xml.ws.WebServiceException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import org.junit.Before;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -23,7 +25,12 @@ import static org.mockito.Mockito.when;
 public class JobProcessorMessageConsumerBeanTest {
     private static final String MESSAGE_ID = "id";
     private static final String PAYLOAD_TYPE = "ChunkResult";
-    private static final String PAYLOAD = new ChunkResultJsonBuilder().build();
+    private String PAYLOAD; 
+
+    @Before
+    public void setup() throws JsonException {
+        PAYLOAD = JsonUtil.toJson(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
+    }
 
     private final FbsPusherBean fbsPusherBean = mock(FbsPusherBean.class);
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);

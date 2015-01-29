@@ -125,7 +125,7 @@ public class JobStoreServiceConnector {
     }
 
     /**
-     * Retrieves a bundle of resources job (identified by the job id given as input)
+     * Retrieves a bundle of resources connected to a specific job (identified by the job id given as input)
      * @param jobId job id
      * @return resourceBundle containing sink, flow, supplementaryProcessData
      * @throws JobStoreServiceConnectorException on general failure to retrieve bundle

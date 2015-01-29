@@ -241,11 +241,13 @@ public class JobStoreServiceConnectorTest {
 
     // ******************************************* getResourceBundle() tests *******************************************
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getResourceBundle_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
-        jobStoreServiceConnector.getResourceBundle(-1);
-        fail("No exception thrown");
+        try {
+            jobStoreServiceConnector.getResourceBundle(-1);
+            fail("No exception thrown");
+        } catch (IllegalArgumentException e) {}
     }
 
     @Test
@@ -260,9 +262,11 @@ public class JobStoreServiceConnectorTest {
         }
     }
 
-    @Test(expected = JobStoreServiceConnectorException.class)
+    @Test
     public void getResourceBundle_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
-        getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null);
+        try {
+            getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null);
+        } catch(JobStoreServiceConnectorException e) {}
     }
 
     @Test
@@ -274,7 +278,7 @@ public class JobStoreServiceConnectorTest {
 
         final ResourceBundle resourceBundle = getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedResourceBundle);
 
-        assertThat("ResourceBundle", resourceBundle, not(nullValue()));
+        assertThat("ResourceBundle not null", resourceBundle, not(nullValue()));
         assertThat("ResourceBundle.flow", resourceBundle.getFlow(), is(expectedResourceBundle.getFlow()));
         assertThat("ResourceBundle.sink", resourceBundle.getSink(), is(expectedResourceBundle.getSink()));
         assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), is(expectedResourceBundle.getSupplementaryProcessData()));

@@ -1,6 +1,11 @@
 package dk.dbc.dataio.commons.utils.newjobstore;
 
+import dk.dbc.dataio.jobstore.types.JobError;
+
 public class JobStoreServiceConnectorUnexpectedStatusCodeException extends JobStoreServiceConnectorException{
+    private static final long serialVersionUID = -6449911421903807835L;
+
+    private JobError jobError;
 
     private final int statusCode;
 
@@ -16,10 +21,17 @@ public class JobStoreServiceConnectorUnexpectedStatusCodeException extends JobSt
     public JobStoreServiceConnectorUnexpectedStatusCodeException(String message, int statusCode) {
         super(message);
         this.statusCode = statusCode;
-
     }
 
     public int getStatusCode() {
         return statusCode;
+    }
+
+    public JobError getJobError() {
+        return jobError;
+    }
+
+    public void setJobError(JobError jobError) {
+        this.jobError = jobError;
     }
 }

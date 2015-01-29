@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
@@ -61,7 +62,7 @@ public class JobStoreServiceConnector {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
             final Response response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
             try {
-                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+                verifyResponseStatus(response, Response.Status.CREATED);
                 return readResponseEntity(response, JobInfoSnapshot.class);
             } finally {
                 response.close();
@@ -90,7 +91,7 @@ public class JobStoreServiceConnector {
                     .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
             final Response response = HttpClient.doPostWithJson(httpClient, chunk, baseUrl, path.build());
             try {
-                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+                verifyResponseStatus(response, Response.Status.CREATED);
                 return readResponseEntity(response, JobInfoSnapshot.class);
             } finally {
                 response.close();
@@ -113,7 +114,7 @@ public class JobStoreServiceConnector {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
             final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES);
             try {
-                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
             } finally {
                 response.close();
@@ -138,7 +139,7 @@ public class JobStoreServiceConnector {
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
             final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
             try {
-                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, ResourceBundle.class);
             } finally {
                 response.close();
@@ -160,10 +161,20 @@ public class JobStoreServiceConnector {
      * Private methods
      */
 
-    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws JobStoreServiceConnectorUnexpectedStatusCodeException {
+    private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws JobStoreServiceConnectorUnexpectedStatusCodeException {
+        final Response.Status actualStatus = Response.Status.fromStatusCode(response.getStatus());
         if (actualStatus != expectedStatus) {
-            throw new JobStoreServiceConnectorUnexpectedStatusCodeException(
-                    String.format("job-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
+            final JobStoreServiceConnectorUnexpectedStatusCodeException exception =
+                    new JobStoreServiceConnectorUnexpectedStatusCodeException(String.format(
+                            "job-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
+            if (actualStatus == Response.Status.BAD_REQUEST) {
+                try {
+                    exception.setJobError(readResponseEntity(response, JobError.class));
+                } catch (JobStoreServiceConnectorException e) {
+                    LOGGER.warn("Unable to extract job-store error from response", e);
+                }
+            }
+            throw exception;
         }
     }
 

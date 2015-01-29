@@ -15,6 +15,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
@@ -93,9 +94,16 @@ public class JobStoreServiceConnectorTest {
         addJob_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
     }
 
-    @Test(expected = JobStoreServiceConnectorException.class)
+    @Test
     public void addJob_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
-        addJob_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        try {
+            addJob_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.BAD_REQUEST.getStatusCode(), jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
     }
 
     @Test
@@ -111,14 +119,14 @@ public class JobStoreServiceConnectorTest {
         jobStoreServiceConnector.addChunk(null, JOB_ID, CHUNK_ID);
     }
 
-    @Test (expected = NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void addChunk_chunkTypeIsNull_throws() throws JobStoreServiceConnectorException {
         final ExternalChunk chunk = new ExternalChunkBuilder(null).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void addChunk_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
@@ -155,16 +163,23 @@ public class JobStoreServiceConnectorTest {
         assertThat((long) jobInfoSnapshot.getJobId(), is(chunk.getJobId()));
     }
 
-    @Test(expected = JobStoreServiceConnectorUnexpectedStatusCodeException.class)
+    @Test
     public void addChunk_badRequestResponse_throws() throws JobStoreServiceConnectorException {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
-        addChunk_mockedHttpWithSpecifiedReturnErrorCode(
-                chunk,
-                chunk.getJobId(),
-                chunk.getChunkId(),
-                JobStoreServiceConstants.JOB_CHUNK_PROCESSED,
-                Response.Status.BAD_REQUEST.getStatusCode(),
-                null);
+        final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_ID, "description", null);
+        try {
+            addChunk_mockedHttpWithSpecifiedReturnErrorCode(
+                    chunk,
+                    chunk.getJobId(),
+                    chunk.getChunkId(),
+                    JobStoreServiceConstants.JOB_CHUNK_PROCESSED,
+                    Response.Status.BAD_REQUEST.getStatusCode(),
+                    jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
     }
 
     @Test(expected = JobStoreServiceConnectorException.class)
@@ -233,9 +248,16 @@ public class JobStoreServiceConnectorTest {
         fail("No exception thrown");
     }
 
-    @Test (expected = JobStoreServiceConnectorUnexpectedStatusCodeException.class)
+    @Test
     public void getResourceBundle_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.BAD_REQUEST.getStatusCode(), null);
+        final JobError jobError = new JobError(JobError.Code.INVALID_JOB_ID, "description", null);
+        try {
+            getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.BAD_REQUEST.getStatusCode(), jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
     }
 
     @Test(expected = JobStoreServiceConnectorException.class)

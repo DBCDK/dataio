@@ -56,4 +56,36 @@ public class JobError {
     public String getStacktrace() {
         return stacktrace;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JobError jobError = (JobError) o;
+
+        if (code != jobError.code) {
+            return false;
+        }
+        if (!description.equals(jobError.description)) {
+            return false;
+        }
+        if (stacktrace != null ? !stacktrace.equals(jobError.stacktrace) : jobError.stacktrace != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = code.hashCode();
+        result = 31 * result + description.hashCode();
+        result = 31 * result + (stacktrace != null ? stacktrace.hashCode() : 0);
+        return result;
+    }
 }

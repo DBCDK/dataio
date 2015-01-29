@@ -17,8 +17,7 @@ public class JobError {
         INVALID_JOB_IDENTIFIER,
         ILLEGAL_CHUNK,
         INVALID_JSON,
-        INVALID_JOB_ID,
-        INVALID_CHUNK_ID,
+        INVALID_CHUNK_IDENTIFIER,
         INVALID_CHUNK_TYPE
 
     }

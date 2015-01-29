@@ -266,11 +266,11 @@ public class JobsBean {
         JobError jobError = null;
         if(jobId != chunk.getJobId()) {
             jobError = new JobError(
-                    JobError.Code.INVALID_JOB_ID,
+                    JobError.Code.INVALID_JOB_IDENTIFIER,
                     String.format("jobId: %s did not match ExternalChunk.jobId: %s", jobId, chunk.getJobId()), null);
         } else if(chunkId != chunk.getChunkId()) {
             jobError = new JobError(
-                    JobError.Code.INVALID_CHUNK_ID,
+                    JobError.Code.INVALID_CHUNK_IDENTIFIER,
                     String.format("chunkId: %s did not match ExternalChunk.chunkId: %s", chunkId, chunk.getChunkId()), null);
         } else if(type != chunk.getType()) {
             jobError = new JobError(

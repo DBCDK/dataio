@@ -166,7 +166,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void addChunk_badRequestResponse_throws() throws JobStoreServiceConnectorException {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
-        final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_ID, "description", null);
+        final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
         try {
             addChunk_mockedHttpWithSpecifiedReturnErrorCode(
                     chunk,
@@ -250,7 +250,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getResourceBundle_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_JOB_ID, "description", null);
+        final JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "description", null);
         try {
             getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.BAD_REQUEST.getStatusCode(), jobError);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {

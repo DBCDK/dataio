@@ -558,23 +558,17 @@ public class PgJobStoreTest {
                 entityStateElement.getSucceeded(), is(1));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void getResourceBundle_jobIdArgIsBelowLowerBound_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        pgJobStore.getResourceBundle(-1);
-        fail("No exception thrown");
-    }
-
-    @Test(expected = JobStoreException.class)
+    @Test
     public void getResourceBundle_jobEntityNotFound_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
-
-        pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
-        fail("No exception thrown");
+        try {
+            pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+            fail("No exception thrown");
+        } catch (JobStoreException e) {}
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void getResourceBundle_flowIsNull_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         final Sink sink = new SinkBuilder().build();
@@ -590,11 +584,13 @@ public class PgJobStoreTest {
         when(jobEntity.getCachedFlow().getFlow()).thenReturn(null);
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
-        pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
-        fail("No exception thrown");
+        try {
+            pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {}
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void getResourceBundle_sinkIsNull_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         final Flow flow = new FlowBuilder().build();
@@ -610,8 +606,10 @@ public class PgJobStoreTest {
         when(jobEntity.getCachedFlow().getFlow()).thenReturn(flow);
         when(jobEntity.getCachedSink().getSink()).thenReturn(null);
 
-        pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
-        fail("No exception thrown");
+        try {
+            pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {}
     }
 
     @Test
@@ -632,99 +630,19 @@ public class PgJobStoreTest {
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
         final ResourceBundle resourceBundle = pgJobStore.getResourceBundle(jobEntity.getId());
-        assertThat(resourceBundle, not(nullValue()));
-        assertThat(resourceBundle.getFlow(), is(flow));
-        assertThat(resourceBundle.getSink(), is(sink));
-        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(jobEntity.getSpecification().getFormat()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
-    }
+        assertThat("ResourceBundle not null", resourceBundle, not(nullValue()));
+        assertThat(String.format("ResourceBundle.flow: %s expected to match: %s", resourceBundle.getFlow(), flow), resourceBundle.getFlow(), is(flow));
+        assertThat(String.format("ResourceBundle.sink: %s expected to match: %s", resourceBundle.getSink(), sink), resourceBundle.getSink(), is(sink));
 
-    private ItemEntity getItemEntity(int jobId, int chunkId, short itemId, List<State.Phase> phasesDone) {
-        final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
-        final ItemEntity itemEntity = new ItemEntity();
-        itemEntity.setKey(itemKey);
-        final StateChange itemStateChange = new StateChange();
-        for (State.Phase phase : phasesDone) {
-            itemStateChange.setPhase(phase)
-                    .setSucceeded(1)
-                    .setBeginDate(new Date())
-                    .setEndDate(new Date());
-        }
-        final State itemState = new State();
-        itemEntity.setState(itemState);
-        if (!phasesDone.isEmpty()) {
-            itemEntity.getState().updateState(itemStateChange);
-        }
-        return itemEntity;
-    }
+        assertThat(String.format("ResourceBundle.supplementaryProcessData.format: %s expected to match: %s:",
+                        resourceBundle.getSupplementaryProcessData().getFormat(),
+                        jobEntity.getSpecification().getFormat()),
+                resourceBundle.getSupplementaryProcessData().getFormat(), is(jobEntity.getSpecification().getFormat()));
 
-    private JobEntity getJobEntity(int numberOfItems, List<State.Phase> phasesDone) {
-        final JobEntity jobEntity = new JobEntity();
-        jobEntity.setNumberOfItems(numberOfItems);
-        final StateChange jobStateChange = new StateChange();
-        for (State.Phase phase : phasesDone) {
-            jobStateChange.setPhase(phase)
-                    .setSucceeded(numberOfItems)
-                    .setBeginDate(new Date())
-                    .setEndDate(new Date());
-        }
-        final State jobState = new State();
-        jobEntity.setState(jobState);
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
-        if (!phasesDone.isEmpty()) {
-            jobEntity.getState().updateState(jobStateChange);
-        }
-        return jobEntity;
-    }
-
-    private ChunkEntity getChunkEntity(int jobId, int chunkId, int numberOfItems, List<State.Phase> phasesDone) {
-        final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
-        final ChunkEntity chunkEntity = new ChunkEntity();
-        chunkEntity.setKey(chunkKey);
-        chunkEntity.setNumberOfItems((short) numberOfItems);
-        final StateChange chunkStateChange = new StateChange();
-        for (State.Phase phase : phasesDone) {
-            chunkStateChange.setPhase(phase)
-                    .setBeginDate(new Date())
-                    .setEndDate(new Date());
-        }
-        final State chunkState = new State();
-        chunkEntity.setState(chunkState);
-        if (!phasesDone.isEmpty()) {
-            chunkEntity.getState().updateState(chunkStateChange);
-        }
-        return chunkEntity;
-    }
-
-    private ExternalChunk getExternalChunk(int jobId, int chunkId, ExternalChunk.Type type, List<String> data, List<ChunkItem.Status> statuses) {
-        final List<ChunkItem> chunkItems = new ArrayList<>(data.size());
-        final LinkedList<ChunkItem.Status> statusStack = new LinkedList<>(statuses);
-        short itemId = 0;
-        for (String itemData : data) {
-            chunkItems.add(new ChunkItem(itemId++, itemData, statusStack.pop()));
-        }
-        return new ExternalChunkBuilder(type)
-                .setJobId(jobId)
-                .setChunkId(chunkId)
-                .setItems(chunkItems)
-                .build();
-    }
-
-    private List<ItemEntity> setItemEntityExpectations(ExternalChunk chunk, List<State.Phase> phasesDone) {
-        final List<ItemEntity> entities = new ArrayList<>(chunk.size());
-        for (ChunkItem chunkItem : chunk) {
-            final ItemEntity itemEntity = getItemEntity((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId(), phasesDone);
-            entities.add(itemEntity);
-        }
-        final ItemEntity[] expectations = entities.toArray(new ItemEntity[entities.size()]);
-        if (expectations.length > 1) {
-            when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class)))
-                    .thenReturn(expectations[0], Arrays.copyOfRange(expectations, 1, expectations.length));
-        } else {
-            when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class)))
-                    .thenReturn(expectations[0]);
-        }
-        return entities;
+        assertThat(String.format("ResourceBundle.supplementaryProcessData.submitter: %s expected to match: %s:",
+                        resourceBundle.getSupplementaryProcessData().getSubmitter(),
+                        jobEntity.getSpecification().getSubmitterId()),
+                resourceBundle.getSupplementaryProcessData().getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
     }
 
     @Test
@@ -816,6 +734,94 @@ public class PgJobStoreTest {
         pgJobStore.entityManager = entityManager;
         pgJobStore.sessionContext = sessionContext;
         return pgJobStore;
+    }
+
+    private ItemEntity getItemEntity(int jobId, int chunkId, short itemId, List<State.Phase> phasesDone) {
+        final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
+        final ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setKey(itemKey);
+        final StateChange itemStateChange = new StateChange();
+        for (State.Phase phase : phasesDone) {
+            itemStateChange.setPhase(phase)
+                    .setSucceeded(1)
+                    .setBeginDate(new Date())
+                    .setEndDate(new Date());
+        }
+        final State itemState = new State();
+        itemEntity.setState(itemState);
+        if (!phasesDone.isEmpty()) {
+            itemEntity.getState().updateState(itemStateChange);
+        }
+        return itemEntity;
+    }
+
+    private JobEntity getJobEntity(int numberOfItems, List<State.Phase> phasesDone) {
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setNumberOfItems(numberOfItems);
+        final StateChange jobStateChange = new StateChange();
+        for (State.Phase phase : phasesDone) {
+            jobStateChange.setPhase(phase)
+                    .setSucceeded(numberOfItems)
+                    .setBeginDate(new Date())
+                    .setEndDate(new Date());
+        }
+        final State jobState = new State();
+        jobEntity.setState(jobState);
+        jobEntity.setSpecification(new JobSpecificationBuilder().build());
+        if (!phasesDone.isEmpty()) {
+            jobEntity.getState().updateState(jobStateChange);
+        }
+        return jobEntity;
+    }
+
+    private ChunkEntity getChunkEntity(int jobId, int chunkId, int numberOfItems, List<State.Phase> phasesDone) {
+        final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
+        final ChunkEntity chunkEntity = new ChunkEntity();
+        chunkEntity.setKey(chunkKey);
+        chunkEntity.setNumberOfItems((short) numberOfItems);
+        final StateChange chunkStateChange = new StateChange();
+        for (State.Phase phase : phasesDone) {
+            chunkStateChange.setPhase(phase)
+                    .setBeginDate(new Date())
+                    .setEndDate(new Date());
+        }
+        final State chunkState = new State();
+        chunkEntity.setState(chunkState);
+        if (!phasesDone.isEmpty()) {
+            chunkEntity.getState().updateState(chunkStateChange);
+        }
+        return chunkEntity;
+    }
+
+    private ExternalChunk getExternalChunk(int jobId, int chunkId, ExternalChunk.Type type, List<String> data, List<ChunkItem.Status> statuses) {
+        final List<ChunkItem> chunkItems = new ArrayList<>(data.size());
+        final LinkedList<ChunkItem.Status> statusStack = new LinkedList<>(statuses);
+        short itemId = 0;
+        for (String itemData : data) {
+            chunkItems.add(new ChunkItem(itemId++, itemData, statusStack.pop()));
+        }
+        return new ExternalChunkBuilder(type)
+                .setJobId(jobId)
+                .setChunkId(chunkId)
+                .setItems(chunkItems)
+                .build();
+    }
+
+    private List<ItemEntity> setItemEntityExpectations(ExternalChunk chunk, List<State.Phase> phasesDone) {
+        final List<ItemEntity> entities = new ArrayList<>(chunk.size());
+        for (ChunkItem chunkItem : chunk) {
+            final ItemEntity itemEntity = getItemEntity((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId(), phasesDone);
+            entities.add(itemEntity);
+        }
+        final ItemEntity[] expectations = entities.toArray(new ItemEntity[entities.size()]);
+        if (expectations.length > 1) {
+            when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class)))
+                    .thenReturn(expectations[0], Arrays.copyOfRange(expectations, 1, expectations.length));
+        } else {
+            when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class)))
+                    .thenReturn(expectations[0]);
+        }
+        return entities;
     }
 
     private void assertChunkItemEntities(PgJobStore.ChunkItemEntities chunkItemEntities, State.Phase phase, List<String> dataEntries, Charset dataEncoding) {

@@ -8,9 +8,9 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 public class ResourceBundle {
-    private Flow flow;
-    private Sink sink;
-    private SupplementaryProcessData supplementaryProcessData;
+    private final Flow flow;
+    private final Sink sink;
+    private final SupplementaryProcessData supplementaryProcessData;
 
     /**
      * Class constructor

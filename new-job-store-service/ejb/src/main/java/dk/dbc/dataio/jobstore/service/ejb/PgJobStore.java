@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
@@ -332,13 +331,11 @@ public class PgJobStore {
      * @param jobId of job to bundle resources for
      * @return resource bundle
      * @throws InvalidInputException on failure to retrieve job
-     * @throws IllegalArgumentException on job id value being less than the lower bound
      * @throws NullPointerException on null valued input when creating new resource bundle
      */
     public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, IllegalArgumentException, NullPointerException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            InvariantUtil.checkLowerBoundOrThrow(jobId, "jobId", Constants.JOB_ID_LOWER_BOUND);
             final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
             if (jobEntity == null) {
                 final String errMsg = String.format("JobEntity.%d could not be found", jobId);

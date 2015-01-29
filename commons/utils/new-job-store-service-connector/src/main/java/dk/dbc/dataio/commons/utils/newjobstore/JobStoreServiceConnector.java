@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +115,31 @@ public class JobStoreServiceConnector {
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
                 return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
+            } finally {
+                response.close();
+            }
+        } finally {
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves a bundle of resources job (identified by the job id given as input)
+     * @param jobId job id
+     * @return resourceBundle containing sink, flow, supplementaryProcessData
+     * @throws JobStoreServiceConnectorException on general failure to retrieve bundle
+     * @throws IllegalArgumentException on job id less than bound value
+     */
+    public ResourceBundle getResourceBundle(int jobId) throws JobStoreServiceConnectorException , IllegalArgumentException{
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_RESOURCEBUNDLE)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                return readResponseEntity(response, ResourceBundle.class);
             } finally {
                 response.close();
             }

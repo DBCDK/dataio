@@ -1,16 +1,23 @@
 package dk.dbc.dataio.commons.utils.newjobstore;
 
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +32,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -215,6 +224,40 @@ public class JobStoreServiceConnectorTest {
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
 
+    // ******************************************* getResourceBundle() tests *******************************************
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getResourceBundle_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        jobStoreServiceConnector.getResourceBundle(-1);
+        fail("No exception thrown");
+    }
+
+    @Test (expected = JobStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void getResourceBundle_badRequestResponse_throws() throws JobStoreServiceConnectorException {
+        getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.BAD_REQUEST.getStatusCode(), null);
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void getResourceBundle_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
+        getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null);
+    }
+
+    @Test
+    public void getResourceBundle_bundleCreated_returnsResourceBundle() throws JobStoreServiceConnectorException {
+        Flow flow = new FlowBuilder().build();
+        Sink sink = new SinkBuilder().build();
+        SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessDataBuilder().build();
+        final ResourceBundle expectedResourceBundle = new ResourceBundle(flow, sink, supplementaryProcessData);
+
+        final ResourceBundle resourceBundle = getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedResourceBundle);
+
+        assertThat("ResourceBundle", resourceBundle, not(nullValue()));
+        assertThat("ResourceBundle.flow", resourceBundle.getFlow(), is(expectedResourceBundle.getFlow()));
+        assertThat("ResourceBundle.sink", resourceBundle.getSink(), is(expectedResourceBundle.getSink()));
+        assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), is(expectedResourceBundle.getSupplementaryProcessData()));
+    }
+
     /*
      * Private methods
      */
@@ -242,6 +285,19 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode, responseEntity));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.listJobs(criteria);
+    }
+
+    private ResourceBundle getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(
+            int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
+
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_RESOURCEBUNDLE)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, JOB_ID);
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.getResourceBundle(JOB_ID);
+
     }
 
     private String[] buildAddChunkPath(long jobId, long chunkId, String pathString) {

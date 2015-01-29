@@ -333,7 +333,7 @@ public class PgJobStore {
      * @throws InvalidInputException on failure to retrieve job
      * @throws NullPointerException on null valued input when creating new resource bundle
      */
-    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, IllegalArgumentException, NullPointerException {
+    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, NullPointerException {
         final StopWatch stopWatch = new StopWatch();
         try {
             final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);

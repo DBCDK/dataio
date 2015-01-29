@@ -279,9 +279,7 @@ public class JobStoreServiceConnectorTest {
         final ResourceBundle resourceBundle = getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedResourceBundle);
 
         assertThat("ResourceBundle not null", resourceBundle, not(nullValue()));
-        assertThat("ResourceBundle.flow", resourceBundle.getFlow(), is(expectedResourceBundle.getFlow()));
-        assertThat("ResourceBundle.sink", resourceBundle.getSink(), is(expectedResourceBundle.getSink()));
-        assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), is(expectedResourceBundle.getSupplementaryProcessData()));
+        assertThat(String.format("ResourceBundle: %s, expected to match: %s", resourceBundle, expectedResourceBundle), resourceBundle, is(expectedResourceBundle));
     }
 
     /*

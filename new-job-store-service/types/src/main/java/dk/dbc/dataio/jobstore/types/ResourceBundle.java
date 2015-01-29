@@ -40,4 +40,26 @@ public class ResourceBundle {
     public SupplementaryProcessData getSupplementaryProcessData() {
         return supplementaryProcessData;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ResourceBundle)) return false;
+
+        ResourceBundle that = (ResourceBundle) o;
+
+        if (!flow.equals(that.flow)) return false;
+        if (!sink.equals(that.sink)) return false;
+        if (!supplementaryProcessData.equals(that.supplementaryProcessData)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = flow.hashCode();
+        result = 31 * result + sink.hashCode();
+        result = 31 * result + supplementaryProcessData.hashCode();
+        return result;
+    }
 }

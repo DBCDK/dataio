@@ -180,7 +180,7 @@ public class JobsBean {
     }
 
     /**
-     *
+     * Retrieves bundle of resources relevant for a job. (sink, flow, supplementaryProcessData)
      * @param jobId of job to bundle resources for
      *
      * @return a HTTP 200 OK response with resource bundle as JSON,

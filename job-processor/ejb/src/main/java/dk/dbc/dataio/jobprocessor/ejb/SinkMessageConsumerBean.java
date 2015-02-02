@@ -36,7 +36,8 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final ExternalChunk deliveredChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class, MixIns.getMixIns());
+            final ExternalChunk deliveredChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            confirmLegalChunkTypeOrThrow(deliveredChunk, ExternalChunk.Type.DELIVERED);
             LOGGER.info("Received sink result for jobId={}, chunkId={}", deliveredChunk.getJobId(), deliveredChunk.getChunkId());
             jobStoreMessageProducer.sendSink(deliveredChunk);
         } catch (JsonException e) {
@@ -44,5 +45,4 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
                     consumedMessage.getMessageId(), consumedMessage.getPayloadType()), e);
         }
     }
-
 }

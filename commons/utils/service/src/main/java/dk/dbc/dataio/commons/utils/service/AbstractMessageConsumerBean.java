@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.service;
 
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -128,6 +129,15 @@ public abstract class AbstractMessageConsumerBean {
             Thread.sleep(waitTime);
         } catch (InterruptedException e) {
             LOGGER.info("Interrupted while backing off for failure retry");
+        }
+    }
+
+    public void confirmLegalChunkTypeOrThrow(ExternalChunk chunk, ExternalChunk.Type legalChunkType) throws InvalidMessageException {
+        if(chunk.getType() != legalChunkType) {
+            String errMsg = String.format("The chunk with id (jobId/chunkId) : [%d/%d] is of illegal type [%s] when [%s] was expected.",
+                    chunk.getJobId(), chunk.getChunkId(), chunk.getType(), legalChunkType);
+            LOGGER.warn(errMsg);
+            throw new InvalidMessageException(errMsg);
         }
     }
 }

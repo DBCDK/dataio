@@ -48,18 +48,19 @@ public class AbstractSinkMessageConsumerBeanTest {
     }
 
     @Test(expected = InvalidMessageException.class)
-    public void unmarshallPayload_consumedMessageArgPayloadIsEmptyChunkResult_throws() throws InvalidMessageException, JsonException {
+    public void unmarshallPayload_consumedMessageArgPayloadIsEmptyProcessedChunk_throws() throws InvalidMessageException, JsonException {
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
-        final String emptyChunkResult = JsonUtil.toJson(processedChunk);
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, emptyChunkResult);
+        final String emptyProcessedChunkJson = JsonUtil.toJson(processedChunk);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, emptyProcessedChunkJson);
         getInitializedBean().unmarshallPayload(consumedMessage);
     }
 
     @Test
-    public void unmarshallPayload_consumedMessageArgIsValid_returnsChunkResultInstance() throws InvalidMessageException {
+    public void unmarshallPayload_consumedMessageArgIsValid_returnsProcessedChunkInstance() throws InvalidMessageException {
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
         final ExternalChunk processedChunk = getInitializedBean().unmarshallPayload(consumedMessage);
         assertThat(processedChunk, is(notNullValue()));
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

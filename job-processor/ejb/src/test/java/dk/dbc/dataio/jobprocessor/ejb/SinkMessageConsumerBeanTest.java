@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -8,8 +9,10 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import java.util.Arrays;
 import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
@@ -38,6 +41,18 @@ public class SinkMessageConsumerBeanTest {
     public void handleConsumedMessage_messageArgPayloadIsInvalidSinkResult_throws() throws JobProcessorException, JMSException, InvalidMessageException {
         final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.SINK_RESULT_PAYLOAD_TYPE, "{'invalid': 'instance'}");
         getInitializedBean().handleConsumedMessage(consumedMessage);
+    }
+    
+    @Test(expected = InvalidMessageException.class)
+    public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JobProcessorException, InvalidMessageException, JsonException {
+        ChunkItem item = new ChunkItemBuilder().setData("This is some data").setStatus(ChunkItem.Status.SUCCESS).build();
+        // The Chunk-type 'processed' is not allowed in the JobProcessor, only 'delivered' is allowed.
+        ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
+        String jsonChunk = JsonUtil.toJson(chunk);
+
+        final SinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
+        final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.NEW_JOB_PAYLOAD_TYPE, jsonChunk);
+        sinkMessageConsumerBean.handleConsumedMessage(message);
     }
 
     @Test

@@ -4,10 +4,16 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.utils.newjobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.JobStore;
 import dk.dbc.dataio.jobstore.fsjobstore.FileSystemJobStore;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserNoOrderKeyGenerator;
@@ -36,9 +42,12 @@ public class JobStoreBean {
     @EJB
     JobSchedulerBean jobScheduler;
 
+    @EJB
+    JobStoreServiceConnectorBean newJobStoreServiceConnectorBean;
+
     // class scoped for easy test injection
     Path jobStorePath;
-    JobStore jobStore;
+    FileSystemJobStore jobStore;
 
     @PostConstruct
     public void setupJobStore() {
@@ -63,7 +72,8 @@ public class JobStoreBean {
     }
 
     public Job createAndScheduleJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
-        final Job job = jobStore.createJob(jobSpec, flowBinder, flow, sink, jobInputStream,
+        final int jobId = addJobToNewJobStore(jobSpec);
+        final Job job = jobStore.createJob(jobId, jobSpec, flowBinder, flow, sink, jobInputStream,
                 getSequenceAnalyserKeyGenerator(flowBinder));
         scheduleJob(job, sink);
         return job;
@@ -83,4 +93,21 @@ public class JobStoreBean {
             jobScheduler.scheduleChunk(jobStore.getChunk(job.getId(), i), sink);
         }
     }
+
+    private int addJobToNewJobStore(JobSpecification jobSpecification) throws JobStoreException {
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 0);
+        try {
+            final JobInfoSnapshot jobInfoSnapshot = newJobStoreServiceConnectorBean.getConnector().addJob(jobInputStream);
+            return jobInfoSnapshot.getJobId();
+        } catch (JobStoreServiceConnectorException e) {
+            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                if (jobError != null) {
+                    LOGGER.error("New job-store returned error: {}", jobError.getDescription());
+                }
+            }
+            throw new JobStoreException("Error in communication with new job-store", e);
+        }
+    }
+
 }

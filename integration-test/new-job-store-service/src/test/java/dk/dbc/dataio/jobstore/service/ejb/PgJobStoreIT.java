@@ -383,6 +383,11 @@ public class PgJobStoreIT {
         }
     }
 
+    @Before
+    public void clearJobStoreBefore() throws SQLException {
+        clearJobStore();
+    }
+
     @After
     public void clearEntityManagerCache() {
         entityManager.clear();

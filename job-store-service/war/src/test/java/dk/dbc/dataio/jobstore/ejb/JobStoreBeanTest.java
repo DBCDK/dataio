@@ -11,6 +11,9 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.json.JobInfoJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.JobSpecificationJsonBuilder;
@@ -18,7 +21,9 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.Job;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -39,7 +44,9 @@ import static dk.dbc.dataio.jobstore.util.Base64Util.base64decode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JobStoreBeanTest {
     @Rule
@@ -47,6 +54,8 @@ public class JobStoreBeanTest {
 
     private JobStoreBean jobStoreBean = null;
     private JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);
+    private JobStoreServiceConnectorBean newJobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+    private JobStoreServiceConnector newJobStoreServiceConnector = mock(JobStoreServiceConnector.class);
 
     @BeforeClass
     public static void setup() {
@@ -55,11 +64,15 @@ public class JobStoreBeanTest {
     }
 
     @Before
-    public void setUp() throws IOException, NamingException {
+    public void setUp() throws IOException, NamingException, JobStoreServiceConnectorException {
         InMemoryInitialContextFactory.bind(JobStoreBean.PATH_RESOURCE_JOB_STORE_HOME, tmpFolder.newFolder().toString());
         jobStoreBean = new JobStoreBean();
         jobStoreBean.setupJobStore();
         jobStoreBean.jobScheduler = jobSchedulerBean;
+        jobStoreBean.newJobStoreServiceConnectorBean = newJobStoreServiceConnectorBean;
+
+        when(newJobStoreServiceConnectorBean.getConnector()).thenReturn(newJobStoreServiceConnector);
+        when(newJobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().build());
     }
 
     @Test

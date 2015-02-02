@@ -21,6 +21,8 @@ import dk.dbc.dataio.jobstore.recordsplitter.DefaultXMLRecordSplitter;
 import dk.dbc.dataio.jobstore.types.IllegalDataException;
 import dk.dbc.dataio.jobstore.types.Job;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +42,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static dk.dbc.dataio.jobstore.util.Base64Util.base64encode;
-import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
-import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 public class FileSystemJobStore implements JobStore {
 
@@ -100,10 +100,8 @@ public class FileSystemJobStore implements JobStore {
         }
     }
 
-    @Override
-    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException {
+    public Job createJob(long jobId, JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException {
         final long jobCreationTime = System.currentTimeMillis();
-        final long jobId = jobCreationTime;
         final Path jobPath = getJobPath(jobId);
         long recordCount;
 
@@ -153,6 +151,12 @@ public class FileSystemJobStore implements JobStore {
             setJobState(jobId, job.getJobState());
             updateJobInfo(job, jobInfo);
         }
+    }
+
+    @Override
+    public Job createJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator) throws JobStoreException {
+        final long jobId = System.currentTimeMillis();
+        return createJob(jobId, jobSpec, flowBinder, flow, sink, jobInputStream, sequenceAnalyserKeyGenerator);
     }
 
     @Override

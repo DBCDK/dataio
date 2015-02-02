@@ -26,6 +26,13 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-new-job-store-service-war</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-job-store-service-ear</artifactId>
       <version>${project.version}</version>
       <type>ear</type>
@@ -165,6 +172,14 @@
               <type>war</type>
               <properties>
                 <context>jms-queue-service</context>
+              </properties>
+            </deployable>
+            <deployable>
+              <groupId>dk.dbc</groupId>
+              <artifactId>dataio-new-job-store-service-war</artifactId>
+              <type>war</type>
+              <properties>
+                <context>${new-job-store-service.context}</context>
               </properties>
             </deployable>
             <deployable>

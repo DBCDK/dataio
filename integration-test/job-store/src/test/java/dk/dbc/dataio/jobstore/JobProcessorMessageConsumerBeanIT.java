@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.jobstore.types.ChunkResult;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobState;
@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.JobStoreMessageProducerBean;
@@ -17,6 +18,8 @@ import org.junit.Test;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -46,10 +49,23 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         JobState jobState = getState(restClient, jobInfo.getJobId());
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.PROCESSING), is(JobState.LifeCycleState.PENDING));
 
+        final List<ChunkItem> chunkItems = Arrays.asList(
+                new ChunkItemBuilder().setId(0).build(),
+                new ChunkItemBuilder().setId(1).build(),
+                new ChunkItemBuilder().setId(2).build(),
+                new ChunkItemBuilder().setId(3).build(),
+                new ChunkItemBuilder().setId(4).build(),
+                new ChunkItemBuilder().setId(5).build(),
+                new ChunkItemBuilder().setId(6).build(),
+                new ChunkItemBuilder().setId(7).build(),
+                new ChunkItemBuilder().setId(8).build(),
+                new ChunkItemBuilder().setId(9).build());
+
         // Put 1st sink result on queue
         ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobInfo.getJobId())
                 .setChunkId(1L)
+                .setItems(chunkItems)
                 .build();
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newSinkResultMessageForJobStoreSink(deliveredChunk));
 
@@ -57,6 +73,7 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setJobId(jobInfo.getJobId())
                 .setChunkId(1L)
+                .setItems(chunkItems)
                 .build();
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newProcessorResultMessageForJobStore(processedChunk));
 

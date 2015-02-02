@@ -15,7 +15,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <logback.jndi.resource>${jndi.url.newjobstore.logback}</logback.jndi.resource>
+    <logback.jndi.resource>${jndi.url.jobstore.logback}</logback.jndi.resource>
   </properties>
 
   <dependencies>

@@ -49,6 +49,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -163,6 +164,9 @@ public class PgJobStore {
                 final State chunkState = new State(chunkEntity.getState());
                 chunkState.updateState(chunkStateChange);
                 chunkEntity.setState(chunkState);
+                if(chunkState.allPhasesAreDone()) {
+                    chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                }
 
                 // update job
 
@@ -177,6 +181,9 @@ public class PgJobStore {
                         .setBeginDate(null)
                         .setEndDate(null));
                 jobEntity.setState(jobState);
+                if(jobState.allPhasesAreDone()) {
+                    jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                }
                 entityManager.flush();
                 entityManager.refresh(jobEntity);
 
@@ -497,7 +504,9 @@ public class PgJobStore {
                 final State itemState = new State(itemEntity.getState());
                 itemState.updateState(itemStateChange);
                 itemEntity.setState(itemState);
-
+                if(itemEntity.getState().allPhasesAreDone()) {
+                    itemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                }
                 nextItemBegin = new Date();
             }
             return chunkItemEntities;

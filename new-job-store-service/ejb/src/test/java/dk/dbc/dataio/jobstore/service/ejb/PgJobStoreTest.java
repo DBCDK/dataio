@@ -169,6 +169,7 @@ public class PgJobStoreTest {
         assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(EXPECTED_NUMBER_OF_CHUNKS));
         assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
+        assertThat("Time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
     }
 
     @Test
@@ -340,7 +341,7 @@ public class PgJobStoreTest {
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         final PgJobStore pgJobStore = newPgJobStore();
-        pgJobStore.addChunk(chunk);
+        JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
 
         // assert ChunkEntity (counters + beginDate and endDate set)
 
@@ -351,6 +352,8 @@ public class PgJobStoreTest {
         assertThat("ChunkEntity: number of ignored items", chunkStateElement.getIgnored(), is(1));
         assertThat("ChunkEntity: number of succeeded items", chunkStateElement.getSucceeded(), is(1));
         assertThat("ChunkEntity: number of items", chunkEntity.getNumberOfItems(), is((short) chunk.size()));
+        assertThat("ChunkEntity: time of completion not set", chunkEntity.getTimeOfCompletion(), is(nullValue()));
+        assertThat("JobInfoSnapshot: time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
     }
 
     @Test
@@ -373,6 +376,7 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
         assertThat("JobInfoSnapshot:", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot: time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
 
         // assert JobEntity (counters + beginDate and endDate set)
 
@@ -383,6 +387,8 @@ public class PgJobStoreTest {
         assertThat("JobEntity: number of ignored items", jobStateElement.getIgnored(), is(42));
         assertThat("JobEntity: number of succeeded items", jobStateElement.getSucceeded(), is(42));
         assertThat("JobEntity: number of items", jobEntity.getNumberOfItems(), is(chunk.size()));
+        assertThat("JobEntity: time of completion not set", jobEntity.getTimeOfCompletion(), is(nullValue()));
+        assertThat("ChunkEntity: time of completion not set", chunkEntity.getTimeOfCompletion(), is(nullValue()));
     }
 
     @Test
@@ -401,6 +407,7 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
         assertThat("JobInfoSnapshot:", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot: time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
 
         // assert JobEntity (counters + beginDate set, endData == null)
 
@@ -411,6 +418,37 @@ public class PgJobStoreTest {
         assertThat("JobEntity: number of ignored items", jobStateElement.getIgnored(), is(1));
         assertThat("JobEntity: number of succeeded items", jobStateElement.getSucceeded(), is(1));
         assertThat("JobEntity: number of items", jobEntity.getNumberOfItems(), is(chunk.size()));
+        assertThat("JobEntity: time of completion", jobEntity.getTimeOfCompletion(), is(nullValue()));
+        assertThat("JobEntity: time of completion not set", jobEntity.getTimeOfCompletion(), is(nullValue()));
+        assertThat("ChunkEntity: time of completion not set", chunkEntity.getTimeOfCompletion(), is(nullValue()));
+    }
+
+    @Test
+    public void addChunk_allPhasesComplete_timeOfCompletionIsSet() throws JobStoreException {
+        final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
+        final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.DELIVERED, chunkData,
+                Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.SUCCESS, ChunkItem.Status.SUCCESS));
+        setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING, State.Phase.PROCESSING));
+
+        ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING, State.Phase.PROCESSING));
+        JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(State.Phase.PARTITIONING, State.Phase.PROCESSING));
+
+        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(chunkEntity);
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addChunk(chunk);
+        assertThat("JobInfoSnapshot:", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+
+        final StateElement jobStateElement = jobEntity.getState().getPhase(State.Phase.PROCESSING);
+        assertThat("JobEntity: processing phase beginDate set", jobStateElement.getBeginDate(), is(notNullValue()));
+        assertThat("JobEntity: processing phase endDate set", jobStateElement.getEndDate(), is(notNullValue()));
+        assertThat("JobEntity: number of failed items", jobStateElement.getFailed(), is(0));
+        assertThat("JobEntity: number of ignored items", jobStateElement.getIgnored(), is(0));
+        assertThat("JobEntity: number of succeeded items", jobStateElement.getSucceeded(), is(3));
+        assertThat("JobEntity: number of items", jobEntity.getNumberOfItems(), is(chunk.size()));
+        assertThat("JobEntity: time of completion", jobEntity.getTimeOfCompletion(), is(notNullValue()));
     }
 
     @Test
@@ -741,17 +779,17 @@ public class PgJobStoreTest {
         final ItemEntity itemEntity = new ItemEntity();
         itemEntity.setKey(itemKey);
         final StateChange itemStateChange = new StateChange();
+        final State itemState = new State();
         for (State.Phase phase : phasesDone) {
             itemStateChange.setPhase(phase)
                     .setSucceeded(1)
                     .setBeginDate(new Date())
                     .setEndDate(new Date());
+
+            itemState.updateState(itemStateChange);
         }
-        final State itemState = new State();
+
         itemEntity.setState(itemState);
-        if (!phasesDone.isEmpty()) {
-            itemEntity.getState().updateState(itemStateChange);
-        }
         return itemEntity;
     }
 
@@ -759,18 +797,17 @@ public class PgJobStoreTest {
         final JobEntity jobEntity = new JobEntity();
         jobEntity.setNumberOfItems(numberOfItems);
         final StateChange jobStateChange = new StateChange();
+        final State jobState = new State();
         for (State.Phase phase : phasesDone) {
             jobStateChange.setPhase(phase)
                     .setSucceeded(numberOfItems)
                     .setBeginDate(new Date())
                     .setEndDate(new Date());
+            jobState.updateState(jobStateChange);
         }
-        final State jobState = new State();
+
         jobEntity.setState(jobState);
         jobEntity.setSpecification(new JobSpecificationBuilder().build());
-        if (!phasesDone.isEmpty()) {
-            jobEntity.getState().updateState(jobStateChange);
-        }
         return jobEntity;
     }
 
@@ -780,16 +817,15 @@ public class PgJobStoreTest {
         chunkEntity.setKey(chunkKey);
         chunkEntity.setNumberOfItems((short) numberOfItems);
         final StateChange chunkStateChange = new StateChange();
+        final State chunkState = new State();
         for (State.Phase phase : phasesDone) {
             chunkStateChange.setPhase(phase)
                     .setBeginDate(new Date())
                     .setEndDate(new Date());
+            chunkState.updateState(chunkStateChange);
         }
-        final State chunkState = new State();
+
         chunkEntity.setState(chunkState);
-        if (!phasesDone.isEmpty()) {
-            chunkEntity.getState().updateState(chunkStateChange);
-        }
         return chunkEntity;
     }
 

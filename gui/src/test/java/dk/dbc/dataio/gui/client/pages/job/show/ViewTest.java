@@ -13,7 +13,6 @@ import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopupEvent;
 import dk.dbc.dataio.gui.client.resources.Resources;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +30,6 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -110,17 +108,6 @@ public class ViewTest {
         when(mockedTexts.text_pending()).thenReturn(MOCKED_TEXT_PENDING);
     }
 
-    @After
-    public void tearDownMockedData() {
-        reset(mockedStatusPopupEventBinder);
-        reset(mockedPresenter);
-        reset(mockedResources);
-        reset(mockedClickEvent);
-        reset(mockedTexts);
-        reset(view.jobsTable);
-        reset(view.moreButton);
-    }
-
     /*
      * Testing starts here...
      */
@@ -138,6 +125,7 @@ public class ViewTest {
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FILE_NAME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SUBMITTER_NUMBER));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOB_STATUS));
+        verify(view.pager).setDisplay(view.jobsTable);
     }
 
 
@@ -149,7 +137,7 @@ public class ViewTest {
         view.setJobs(testModels);
 
         verify(view.jobsTable).getColumnSortList();
-        verify(view.jobsTable).setPageSize(20);
+        verify(view.jobsTable).setPageSize(10);
         verify(view.jobsTable).setRowCount(2);
     }
 
@@ -292,40 +280,6 @@ public class ViewTest {
     /*
      * Testing Event Handlers
      */
-    @Test
-    public void moreInfoButtonPressedEventRowCountEquals60_event_increasePageSizeCalled() {
-        view = new View("Header Text", mockedTexts, mockedResources);
-        view.setJobs(testModels);
-        assertThat(view.currentPageSize, is(20));
-
-        // Assure, that the mocked view.jobsTable reports a big enough size
-        when(view.jobsTable.getRowCount()).thenReturn(60);
-
-        // Subject Under Test
-        view.moreInfoButtonPressedEvent(mockedClickEvent);
-
-        // Test new page size
-        assertThat(view.currentPageSize, is(40));
-        verify(view.jobsTable).setPageSize(40);
-    }
-
-    @Test
-    public void moreInfoButtonPressedEventRowCountEquals30_event_increasePageSizeCalled() {
-        view = new View("Header Text", mockedTexts, mockedResources);
-        view.setJobs(testModels);
-        assertThat(view.currentPageSize, is(20));
-
-        // Assure, that the mocked view.jobsTable reports a big enough size
-        when(view.jobsTable.getRowCount()).thenReturn(30);
-
-        // Subject Under Test
-        view.moreInfoButtonPressedEvent(mockedClickEvent);
-
-        // Test new page size
-        assertThat(view.currentPageSize, is(30));
-        verify(view.jobsTable).setPageSize(30);
-    }
-
     @Test
     public void statusPopupEvent_totalStatusInfo_showFailedItemsCalled() {
         view = new View("Header Text", mockedTexts, mockedResources);

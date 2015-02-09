@@ -1,17 +1,21 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
+
+    // Constants
+    protected static final int PAGE_SIZE = 10;
+    protected static final int FAST_FORWARD_PAGES = 10;
+
 
     // Instantiate UI Binder
     interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
@@ -21,8 +25,15 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     // UI Fields
     @UiField CellTable jobsTable;
-    @UiField Button moreButton;
+    @UiField SimplePager pager;
 
+
+    @UiFactory SimplePager makeSimplePager() {
+        // We want to make a UI Factory instantiation of the pager, because UI Binder only allows us to instantiate
+        // the pager with a location, and we do also want to enable the "Show Last Page" Button and we also want to
+        // set the Fast Forward button to scroll 100 items (10 pages) at a time.
+        return new SimplePager(SimplePager.TextLocation.CENTER, true, FAST_FORWARD_PAGES * PAGE_SIZE, true);
+    }
 
     /**
      * Default constructor
@@ -40,27 +51,5 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
      */
     @Override
     public void init() {}
-
-
-    /*
-     * UI Handlers
-     */
-
-    /**
-     * UI Handler for the More Button
-     *
-     * @param event The event, triggered by a push on the More Button
-     */
-    @UiHandler("moreButton")
-    void moreInfoButtonPressed(ClickEvent event) {
-        moreInfoButtonPressedEvent(event);
-    }
-
-    /**
-     * Abstract event handler for the More Button
-     *
-     * @param event The event, triggered by a push on the More Button
-     */
-    abstract void moreInfoButtonPressedEvent(ClickEvent event);
 
 }

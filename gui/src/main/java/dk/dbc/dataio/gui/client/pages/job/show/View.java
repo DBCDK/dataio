@@ -2,7 +2,6 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
@@ -37,13 +36,9 @@ public class View extends ViewWidget {
 
     private static Resources resources;
 
-    int currentPageSize = PAGE_SIZE;
     ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
     Column jobCreationTimeColumn;
     ListDataProvider<JobModel> dataProvider;
-
-    // Constants
-    private static final int PAGE_SIZE = 20;
 
     // Enums
     enum JobStatus {
@@ -69,17 +64,6 @@ public class View extends ViewWidget {
     /*
      * Event Handlers
      */
-
-    /**
-     * Concrete implementation of abstract Event Handler for the More Button
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @param event The event, triggered by a push on the More Button
-     */
-    @Override
-    void moreInfoButtonPressedEvent(ClickEvent event) {
-        increasePageSize();
-    }
 
     /**
      * Event Handler for events from the Status Popup Panel
@@ -120,8 +104,7 @@ public class View extends ViewWidget {
         ColumnSortEvent.fire(jobsTable, columnSortList);  // Do sort right now
 
         // Set page size parameters
-        currentPageSize = PAGE_SIZE;
-        jobsTable.setPageSize(currentPageSize);
+        jobsTable.setPageSize(PAGE_SIZE);
         jobsTable.setRowCount(jobs.size());
     }
 
@@ -156,6 +139,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
         jobsTable.addColumn(constructChunkCountColumn(), texts.columnHeader_TotalChunkCount());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
+        pager.setDisplay(jobsTable);
     }
 
     /**
@@ -286,20 +270,5 @@ public class View extends ViewWidget {
         };
         return new StatusColumn(statusPopupEventBus, resources, statusCell);
     }
-
-
-    /**
-     * Increases currentPageSize to show one more page
-     */
-    private void increasePageSize() {
-        int newPageSize = currentPageSize + PAGE_SIZE;
-        if (newPageSize > jobsTable.getRowCount()) {
-            currentPageSize = jobsTable.getRowCount();
-        } else {
-            currentPageSize = newPageSize;
-        }
-        jobsTable.setPageSize(currentPageSize);
-    }
-
 
 }

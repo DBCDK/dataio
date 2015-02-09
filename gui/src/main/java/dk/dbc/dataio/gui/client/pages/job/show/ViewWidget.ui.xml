@@ -12,7 +12,7 @@
                 </td>
             </tr>
         </table>
-        <li><g:Button ui:field="moreButton"><ui:text from="{txt.button_ShowMore}"/></g:Button></li>
+        <c:SimplePager ui:field="pager" />
 
     </g:HTMLPanel>
 

@@ -5,7 +5,6 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +17,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,13 +65,6 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Action_Edit()).thenReturn(MOCKED_COLUMNHEADER_ACTION_EDIT);
         when(mockedTexts.button_Refresh()).thenReturn(MOCKED_BUTTON_REFRESH);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
-    }
-
-    @After
-    public void tearDownMockedData() {
-        reset(mockedPresenter);
-        reset(mockedTexts);
-        reset(view.flowsTable);
     }
 
     /*

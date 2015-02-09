@@ -6,12 +6,10 @@ import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -36,13 +34,6 @@ public class StatusPopupTest {
      * Subject Under Test
      */
     private StatusPopup mockedStatusPopup;
-
-    @After
-    public void tearDownMockedData() {
-        reset(mockedClientFactory);
-        reset(mockedEventBus);
-        reset(mockedParent);
-    }
 
 
     @Test

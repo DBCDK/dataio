@@ -1,5 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flow.modify;
-
+package dk.dbc.dataio.gui.client.pages.flow.oldmodify;
 
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -12,16 +11,16 @@ public class PresenterCreateImpl extends PresenterImpl {
     /**
      * Constructor
      * @param clientFactory, clientFactory
-     * @param constants, the constants for submitter modify
+     * @param texts, the constants for flow modify
      */
-    public PresenterCreateImpl(ClientFactory clientFactory, Texts constants) {
-        super(clientFactory, constants);
-        view = clientFactory.getFlowCreateView();
+    public PresenterCreateImpl(ClientFactory clientFactory, Texts texts) {
+        super(clientFactory, texts);
+        view = clientFactory.getOldFlowCreateView();
     }
 
     /**
-     * initializeModel - initializes the model
-     * When starting the form, the fields shall be empty, therefore an empty Model is instantiated
+     * getModel - initializes the model
+     * When starting the form, the fields should be empty, therefore an empty Model is instantiated
      */
     @Override
     public void initializeModel() {
@@ -37,6 +36,5 @@ public class PresenterCreateImpl extends PresenterImpl {
     void saveModel() {
         flowStoreProxy.createFlow(model, new SaveFlowModelAsyncCallback());
     }
-
 
 }

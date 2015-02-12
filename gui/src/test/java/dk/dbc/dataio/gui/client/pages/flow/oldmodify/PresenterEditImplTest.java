@@ -1,10 +1,10 @@
-package dk.dbc.dataio.gui.client.pages.flow.modify;
+package dk.dbc.dataio.gui.client.pages.flow.oldmodify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -59,7 +59,7 @@ public class PresenterEditImplTest {
         mockedEventBus = mock(EventBus.class);
         mockedEditView = mock(View.class);
         mockedEditPlace = mock(EditPlace.class);
-        when(mockedClientFactory.getFlowEditView()).thenReturn(mockedEditView);
+        when(mockedClientFactory.getOldFlowEditView()).thenReturn(mockedEditView);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ public class PresenterEditImplTest {
     public void constructor_instantiate_objectCorrectInitialized() {
         presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory, mockedTexts);
         verify(mockedEditPlace).getFlowId();
-        verify(mockedClientFactory).getFlowEditView();
+        verify(mockedClientFactory).getOldFlowEditView();
     }
 
     @Test

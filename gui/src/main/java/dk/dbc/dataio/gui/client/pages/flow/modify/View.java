@@ -1,15 +1,51 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
-import dk.dbc.dataio.gui.client.views.GenericView;
 
-import java.util.Map;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.BlurEvent;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.ListEntry;
+import dk.dbc.dataio.gui.client.components.TextAreaEntry;
+import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 
-public interface View extends GenericView<Presenter> {
-    void initializeFields();
-    void setName(String name);
-    String getName();
-    void setDescription(String description);
-    String getDescription();
-    void setAvailableFlowComponents(Map<String, String> availableFlowComponents);
-    void setSelectedFlowComponents(Map<String, String> availableFlowComponents);
+public class View extends ContentPanel<Presenter> implements IsWidget {
+    interface FlowUiBinder extends UiBinder<HTMLPanel, View> {}
+    private static FlowUiBinder uiBinder = GWT.create(FlowUiBinder.class);
+
+    public View(String header) {
+        super(header);
+        add(uiBinder.createAndBindUi(this));
+    }
+
+    @Override
+    public void init() {
+    }
+
+    @UiField TextEntry name;
+    @UiField TextAreaEntry description;
+    @UiField ListEntry flowComponents;
+    @UiField Label status;
+
+    @UiHandler("name")
+    void nameChanged(BlurEvent event) {
+        presenter.nameChanged(name.getText());
+    }
+
+    @UiHandler("description")
+    void descriptionChanged(BlurEvent event) {
+        presenter.descriptionChanged(description.getText());
+    }
+
+    @UiHandler("saveButton")
+    void saveButtonPressed(ClickEvent event) {
+        presenter.saveButtonPressed();
+    }
+
 }

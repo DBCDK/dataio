@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flow.modify;
+package dk.dbc.dataio.gui.client.pages.flow.oldmodify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class PresenterCreateImplTest {
     private ClientFactory mockedClientFactory;
     private FlowStoreProxyAsync mockedFlowStoreProxy;
-    private dk.dbc.dataio.gui.client.pages.flow.modify.Texts mockedTexts;
+    private dk.dbc.dataio.gui.client.pages.flow.oldmodify.Texts mockedTexts;
     private AcceptsOneWidget mockedContainerWidget;
     private EventBus mockedEventBus;
     private View mockedCreateView;
@@ -52,7 +52,7 @@ public class PresenterCreateImplTest {
         mockedContainerWidget = mock(AcceptsOneWidget.class);
         mockedEventBus = mock(EventBus.class);
         mockedCreateView = mock(View.class);
-        when(mockedClientFactory.getFlowCreateView()).thenReturn(mockedCreateView);
+        when(mockedClientFactory.getOldFlowCreateView()).thenReturn(mockedCreateView);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
     }
 
@@ -65,7 +65,7 @@ public class PresenterCreateImplTest {
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
 
-        verify(mockedClientFactory).getFlowCreateView();
+        verify(mockedClientFactory).getOldFlowCreateView();
     }
 
     @Test

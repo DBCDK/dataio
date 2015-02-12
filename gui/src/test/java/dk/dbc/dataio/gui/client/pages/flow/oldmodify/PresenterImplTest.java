@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flow.modify;
+package dk.dbc.dataio.gui.client.pages.flow.oldmodify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class PresenterImplTest {
     private ClientFactory mockedClientFactory;
     private FlowStoreProxyAsync mockedFlowStoreProxy;
-    private dk.dbc.dataio.gui.client.pages.flow.modify.Texts mockedTexts;
+    private dk.dbc.dataio.gui.client.pages.flow.oldmodify.Texts mockedTexts;
     private AcceptsOneWidget mockedContainerWidget;
     private EventBus mockedEventBus;
     private View mockedView;
@@ -58,7 +58,7 @@ public class PresenterImplTest {
     private final static String FLOW_COMPONENT_NAME_4 = "FlowComponentName4";
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory, dk.dbc.dataio.gui.client.pages.flow.modify.Texts texts) {
+        public PresenterImplConcrete(ClientFactory clientFactory, dk.dbc.dataio.gui.client.pages.flow.oldmodify.Texts texts) {
             super(clientFactory, texts);
             flowStoreProxy = mockedFlowStoreProxy;
             view = mockedView;
@@ -86,7 +86,7 @@ public class PresenterImplTest {
             return flowStoreProxy;
         }
 
-        public dk.dbc.dataio.gui.client.pages.flow.modify.Texts getFlowModifyConstants() {
+        public dk.dbc.dataio.gui.client.pages.flow.oldmodify.Texts getFlowModifyConstants() {
             return texts;
         }
     }

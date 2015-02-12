@@ -33,6 +33,8 @@ public interface ClientFactory {
     LogStoreProxyAsync getLogStoreProxyAsync();
 
     // Views
+    dk.dbc.dataio.gui.client.pages.flow.oldmodify.View getOldFlowCreateView();
+    dk.dbc.dataio.gui.client.pages.flow.oldmodify.View getOldFlowEditView();
     dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView();
     dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowEditView();
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentCreateView();

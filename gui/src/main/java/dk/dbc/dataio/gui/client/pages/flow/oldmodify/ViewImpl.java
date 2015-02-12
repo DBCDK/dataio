@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flow.modify;
+package dk.dbc.dataio.gui.client.pages.flow.oldmodify;
 
 import com.google.gwt.event.dom.client.BlurEvent;
 import com.google.gwt.event.dom.client.BlurHandler;

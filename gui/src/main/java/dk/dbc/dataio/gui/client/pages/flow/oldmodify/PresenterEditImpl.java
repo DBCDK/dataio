@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.flow.modify;
+package dk.dbc.dataio.gui.client.pages.flow.oldmodify;
 
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -6,7 +6,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
- * Concrete Presenter Implementation Class for Flow Binder Edit
+ * Concrete Presenter Implementation Class for Flow Edit
  */
 public class PresenterEditImpl extends PresenterImpl {
 
@@ -18,14 +18,14 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     public PresenterEditImpl(Place place, ClientFactory clientFactory, Texts texts) {
         super(clientFactory, texts);
-        view = clientFactory.getFlowEditView();
+        view = clientFactory.getOldFlowEditView();
         EditPlace editPlace = (EditPlace) place;
         id = editPlace.getFlowId();
     }
 
     /**
      * Initializing the model
-     * The method fetches the stored Flow Binder, as given in the Place (referenced by this.id)
+     * The method fetches the stored Flow, as given in the Place (referenced by this.id)
      */
     @Override
     public void initializeModel() {
@@ -34,7 +34,7 @@ public class PresenterEditImpl extends PresenterImpl {
 
     /**
      * saveModel
-     * Updates the embedded model as a Flow Binder in the database
+     * Updates the embedded model as a Flow in the database
      */
     @Override
     void saveModel() {
@@ -43,17 +43,18 @@ public class PresenterEditImpl extends PresenterImpl {
 
     // Private methods
     private void getFlow(final long flowId) {
-        flowStoreProxy.getFlow(flowId, new GetFlowModelAsyncCallback());
+        flowStoreProxy.getFlow(flowId, new GetFlowModelFilteredAsyncCallback());
     }
 
     /**
      * Call back class to be instantiated in the call to getFlow in flowstore proxy
      */
-    class GetFlowModelAsyncCallback extends FilteredAsyncCallback<FlowModel> {
+    class GetFlowModelFilteredAsyncCallback extends FilteredAsyncCallback<FlowModel> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             view.setErrorText(texts.error_CannotFetchFlow());
         }
+
         @Override
         public void onSuccess(FlowModel model) {
             setFlowModel(model);

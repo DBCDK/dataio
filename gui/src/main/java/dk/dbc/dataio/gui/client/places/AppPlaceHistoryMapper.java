@@ -4,6 +4,8 @@ import com.google.gwt.place.shared.PlaceHistoryMapper;
 import com.google.gwt.place.shared.WithTokenizers;
 
 @WithTokenizers({
+        dk.dbc.dataio.gui.client.pages.flow.oldmodify.CreatePlace.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.flow.oldmodify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace.Tokenizer.class,

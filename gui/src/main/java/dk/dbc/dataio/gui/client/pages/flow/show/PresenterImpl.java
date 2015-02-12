@@ -6,7 +6,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.FlowModel;
-import dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace;
+import dk.dbc.dataio.gui.client.pages.flow.oldmodify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 

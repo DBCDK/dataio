@@ -1,0 +1,17 @@
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+             xmlns:g='urn:import:com.google.gwt.user.client.ui'
+             xmlns:dio='urn:import:dk.dbc.dataio.gui.client.components'>
+    <ui:with type="dk.dbc.dataio.gui.client.pages.flow.modify.Texts" field="txt"/>
+
+    <g:HTMLPanel>
+
+        <li><dio:TextEntry ui:field="name" guiId="flownamepanel" prompt="{txt.label_FlowName}" maxLength="160" toolTip=""/></li>
+        <li><dio:TextAreaEntry ui:field="description" guiId="flowdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
+        <li><dio:ListEntry ui:field="flowComponents" guiId="flowcomponentpanel" prompt="{txt.label_FlowComponents}" multiSelect="false" visibleItems="6"/></li>
+        <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
+
+        <li><g:Label ui:field="status"/></li>
+
+    </g:HTMLPanel>
+
+</ui:UiBinder>

@@ -16,13 +16,18 @@ import java.util.List;
 public class ListEntry extends DataEntry implements HasValue<String> {
     private boolean valueChangeHandlerInitialized;
 
-    @UiField final ListBox listBox = new ListBox();
+    @UiField final ListBox listBox;
 
 
     public @UiConstructor
-    ListEntry(String guiId, String prompt) {
+    ListEntry(String guiId, String prompt, boolean multiSelect, int visibleItems) {
         super(guiId, prompt);
+        listBox = new ListBox(multiSelect);
+        listBox.setVisibleItemCount(visibleItems);
         listBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        if (visibleItems > 1) {
+            listBox.setWidth("300px");
+        }
         setEnabled(false);  // When empty, disable list box
         add(listBox);
     }

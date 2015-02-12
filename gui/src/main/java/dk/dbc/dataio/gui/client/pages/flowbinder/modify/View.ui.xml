@@ -14,8 +14,8 @@
         <li><dio:TextEntry ui:field="recordSplitter" guiId="flowbindermodifyrecordsplitterpanel" prompt="{txt.label_RecordSplitter}" maxLength="" toolTip=""/></li>
         <li><dio:CheckBoxEntry ui:field="sequenceAnalysis" guiId="flowbindermodifysequenceanalysispanel" prompt="{txt.label_SequenceAnalysis}"/></li>
         <li><dio:DualListEntry ui:field="submitters" guiId="flowbindermodifysubmitterspanel" prompt="{txt.label_Submitters}"/></li>
-        <li><dio:ListEntry ui:field="flow" guiId="flowbindermodifyflowpanel" prompt="{txt.label_Flow}"/></li>
-        <li><dio:ListEntry ui:field="sink" guiId="flowbindermodifysinkpanel" prompt="{txt.label_Sink}"/></li>
+        <li><dio:ListEntry ui:field="flow" guiId="flowbindermodifyflowpanel" prompt="{txt.label_Flow}" multiSelect="false" visibleItems="1"/></li>
+        <li><dio:ListEntry ui:field="sink" guiId="flowbindermodifysinkpanel" prompt="{txt.label_Sink}" multiSelect="false" visibleItems="1"/></li>
         <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
         <li><g:Label ui:field="status"/></li>
 

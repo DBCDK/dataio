@@ -45,7 +45,7 @@ public class NavigationPanel extends FlowPanel {
         submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
         submitterCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace());
         flows.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.show.Place());
-        flowCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace());
+        flowCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.oldmodify.CreatePlace());
         flowComponentCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace());
         flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());
         flowBinderCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace());

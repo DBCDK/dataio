@@ -35,6 +35,8 @@ public class ChunkProcessorBeanTest {
 
     private final long jobId = 42;
     private final String javaScriptUppercaseInvocationMethod = "toUpper";
+    private final String javaScriptReturnEmptyStringInvocationMethod = "returnEmptyString";
+    private final String javaScriptReturnWithNoResultInvocationMethod = "returnWithNoResult";
     private final String javaScriptThrowExceptionInvocationMethod = "throwException";
     private final String javaScriptConcatenateInvocationMethod = "doConcatenation";
     private final String modulesInfoModuleResource = "/ModulesInfo.json";
@@ -219,6 +221,56 @@ public class ChunkProcessorBeanTest {
         ChunkItem processedItem1 = iterator.next();
         assertThat(processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
     }
+    
+    @Test
+    public void process_javascriptReturnsEmptyString_chunkItemIgnored() throws Exception {
+        final ChunkItem item0 = new ChunkItemBuilder()
+                .setId(0)
+                .setData(Base64Util.base64encode("zero"))
+                .build();
+        final Flow flow = getFlow(javaScriptReturnEmptyStringInvocationMethod, getJavaScript(getJavaScriptReturnEmptyStringFunction()));
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(Arrays.asList(item0))
+                .build();
+        
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(1));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem0 = iterator.next();
+        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void process_javascriptReturnsWithNoResult_chunkItemFailed() throws Exception {
+        final ChunkItem item0 = new ChunkItemBuilder()
+                .setId(0)
+                .setData(Base64Util.base64encode("zero"))
+                .build();
+        final Flow flow = getFlow(javaScriptReturnWithNoResultInvocationMethod, getJavaScript(getJavaScriptReturnWithNoResultFunction()));
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(Arrays.asList(item0))
+                .build();
+        
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
+        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getJobId(), is(jobId));
+        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
+        assertThat(processedChunk.size(), is(1));
+        Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem processedItem0 = iterator.next();
+        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(iterator.hasNext(), is(false));
+    }
 
     private ChunkProcessorBean getInitializedBean() {
         return new ChunkProcessorBean();
@@ -262,6 +314,20 @@ public class ChunkProcessorBeanTest {
         return ""
                 + "function " + javaScriptUppercaseInvocationMethod + "(str) {\n"
                 + "    return str.toUpperCase();\n"
+                + "}\n";
+    }
+
+    private String getJavaScriptReturnEmptyStringFunction() {
+        return ""
+                + "function " + javaScriptReturnEmptyStringInvocationMethod + "(str) {\n"
+                + "    return \"\";\n"
+                + "}\n";
+    }
+
+    private String getJavaScriptReturnWithNoResultFunction() {
+        return ""
+                + "function " + javaScriptReturnWithNoResultInvocationMethod + "(str) {\n"
+                + "    return;\n"
                 + "}\n";
     }
 

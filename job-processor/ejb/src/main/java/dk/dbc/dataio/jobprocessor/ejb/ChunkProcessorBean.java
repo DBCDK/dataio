@@ -120,7 +120,11 @@ public class ChunkProcessorBean {
         try {
             final String processedRecord = invokeJavaScript(flow, scriptWrapper, Base64Util.base64decode(inputItem.getData()), supplementaryProcessData);
             LOGGER.info("JavaScript processing result:\n{}", processedRecord);
-            processedItem = new ChunkItem(inputItem.getId(), Base64Util.base64encode(processedRecord), ChunkItem.Status.SUCCESS);
+            if(processedRecord.isEmpty()) {
+                processedItem = new ChunkItem(inputItem.getId(), "Ignored by job-processor since returned data was empty", ChunkItem.Status.IGNORE);
+            } else {
+                processedItem = new ChunkItem(inputItem.getId(), Base64Util.base64encode(processedRecord), ChunkItem.Status.SUCCESS);
+            }
         } catch (Throwable ex) {
             LOGGER.error("Exception caught during JavaScript processing", ex);
             final String failureMsg = getFailureMessage(ex);

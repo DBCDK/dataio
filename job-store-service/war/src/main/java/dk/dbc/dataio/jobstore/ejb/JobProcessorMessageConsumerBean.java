@@ -94,7 +94,9 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
                     LOGGER.error("New job-store returned error: {}", jobError.getDescription());
                 }
             }
-            throw new JobStoreException("Error in communication with new job-store", e);
+            String errMsg = String.format("Error in communication with new job-store for chunk [%d/%d]", chunk.getJobId(), chunk.getChunkId());
+            LOGGER.error(errMsg);
+            throw new JobStoreException(errMsg, e);
         }
     }
 

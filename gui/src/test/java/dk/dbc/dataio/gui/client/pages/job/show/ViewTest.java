@@ -125,7 +125,8 @@ public class ViewTest {
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FILE_NAME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SUBMITTER_NUMBER));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOB_STATUS));
-        verify(view.pager).setDisplay(view.jobsTable);
+        verify(view.pagerTop).setDisplay(view.jobsTable);
+        verify(view.pagerBottom).setDisplay(view.jobsTable);
     }
 
 
@@ -137,7 +138,7 @@ public class ViewTest {
         view.setJobs(testModels);
 
         verify(view.jobsTable).getColumnSortList();
-        verify(view.jobsTable).setPageSize(10);
+        verify(view.jobsTable).setPageSize(20);
         verify(view.jobsTable).setRowCount(2);
     }
 

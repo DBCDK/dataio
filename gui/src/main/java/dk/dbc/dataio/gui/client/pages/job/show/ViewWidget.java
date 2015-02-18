@@ -13,8 +13,8 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     // Constants
-    protected static final int PAGE_SIZE = 10;
-    protected static final int FAST_FORWARD_PAGES = 10;
+    protected static final int PAGE_SIZE = 20;
+    protected static final int FAST_FORWARD_PAGES = 5;
 
 
     // Instantiate UI Binder
@@ -25,7 +25,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     // UI Fields
     @UiField CellTable jobsTable;
-    @UiField SimplePager pager;
+    @UiField SimplePager pagerTop;
+    @UiField SimplePager pagerBottom;
 
 
     @UiFactory SimplePager makeSimplePager() {

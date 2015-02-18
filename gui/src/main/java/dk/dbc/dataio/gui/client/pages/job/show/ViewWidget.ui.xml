@@ -5,14 +5,15 @@
 
     <g:HTMLPanel>
 
+        <c:SimplePager ui:field="pagerTop" />
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>
                 <td id="jobs-show-table" valign='top'>
-                    <c:CellTable pageSize='500' ui:field='jobsTable' />
+                    <c:CellTable pageSize='20' ui:field='jobsTable' />
                 </td>
             </tr>
         </table>
-        <c:SimplePager ui:field="pager" />
+        <c:SimplePager ui:field="pagerBottom" />
 
     </g:HTMLPanel>
 

@@ -139,7 +139,8 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
         jobsTable.addColumn(constructChunkCountColumn(), texts.columnHeader_TotalChunkCount());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
-        pager.setDisplay(jobsTable);
+        pagerTop.setDisplay(jobsTable);
+        pagerBottom.setDisplay(jobsTable);
     }
 
     /**

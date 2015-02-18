@@ -243,6 +243,7 @@ public class ChunkProcessorBeanTest {
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
         ChunkItem processedItem0 = iterator.next();
+        assertThat(processedItem0.getData().isEmpty(), is(false));
         assertThat(processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat(iterator.hasNext(), is(false));
     }
@@ -268,6 +269,7 @@ public class ChunkProcessorBeanTest {
         Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
         ChunkItem processedItem0 = iterator.next();
+        assertThat(processedItem0.getData().isEmpty(), is(false));
         assertThat(processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(iterator.hasNext(), is(false));
     }

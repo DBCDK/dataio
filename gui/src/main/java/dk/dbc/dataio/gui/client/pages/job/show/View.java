@@ -11,7 +11,7 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopupEvent;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
@@ -36,9 +36,9 @@ public class View extends ViewWidget {
 
     private static Resources resources;
 
-    ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
+    ColumnSortEvent.ListHandler<JobModelOld> columnSortHandler;
     Column jobCreationTimeColumn;
-    ListDataProvider<JobModel> dataProvider;
+    ListDataProvider<JobModelOld> dataProvider;
 
     // Enums
     enum JobStatus {
@@ -93,7 +93,7 @@ public class View extends ViewWidget {
      *
      * @param jobs The list of jobs to put into the view
      */
-    public void setJobs(List<JobModel> jobs) {
+    public void setJobs(List<JobModelOld> jobs) {
         dataProvider.getList().clear();
         dataProvider.getList().addAll(jobs);
 
@@ -120,10 +120,10 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns() {
-        dataProvider = new ListDataProvider<JobModel>();
+        dataProvider = new ListDataProvider<JobModelOld>();
         dataProvider.addDataDisplay(jobsTable);
 
-        columnSortHandler = new ColumnSortEvent.ListHandler<JobModel>(dataProvider.getList()) {
+        columnSortHandler = new ColumnSortEvent.ListHandler<JobModelOld>(dataProvider.getList()) {
             @Override
             public void onColumnSort(ColumnSortEvent event) {
                 // Prior to each sort, do sort jobCreationTimeColumn first, to assure, that the secondary search will be by jobCreationTimeColumn
@@ -150,15 +150,15 @@ public class View extends ViewWidget {
      * @return the constructed JobCreationTime column
      */
     Column constructJobCreationTimeColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        TextColumn<JobModelOld> column = new TextColumn<JobModelOld>() {
             @Override
-            public String getValue(JobModel model) {
+            public String getValue(JobModelOld model) {
                 return model.getJobCreationTime();
             }
         };
         column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
+        columnSortHandler.setComparator(column, new Comparator<JobModelOld>() {
+            public int compare(JobModelOld o1, JobModelOld o2) {
                 return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareLongDates(o1.getJobCreationTime(), o2.getJobCreationTime()) : 1;
             }
         });
@@ -173,15 +173,15 @@ public class View extends ViewWidget {
      * @return the constructed JobId column
      */
     Column constructJobIdColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        TextColumn<JobModelOld> column = new TextColumn<JobModelOld>() {
             @Override
-            public String getValue(JobModel model) {
+            public String getValue(JobModelOld model) {
                 return model.getJobId();
             }
         };
         column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
+        columnSortHandler.setComparator(column, new Comparator<JobModelOld>() {
+            public int compare(JobModelOld o1, JobModelOld o2) {
                 return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStringsAsLongs(o1.getJobId(), o2.getJobId()) : 1;
             }
         });
@@ -195,15 +195,15 @@ public class View extends ViewWidget {
      * @return the constructed FileName column
      */
     Column constructFileNameColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        TextColumn<JobModelOld> column = new TextColumn<JobModelOld>() {
             @Override
-            public String getValue(JobModel model) {
+            public String getValue(JobModelOld model) {
                 return model.getFileName();
             }
         };
         column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
+        columnSortHandler.setComparator(column, new Comparator<JobModelOld>() {
+            public int compare(JobModelOld o1, JobModelOld o2) {
                 return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStrings(o1.getFileName(), o2.getFileName()) : 1;
             }
         });
@@ -217,15 +217,15 @@ public class View extends ViewWidget {
      * @return the constructed SubmitterNumber column
      */
     Column constructSubmitterNumberColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        TextColumn<JobModelOld> column = new TextColumn<JobModelOld>() {
             @Override
-            public String getValue(JobModel model) {
+            public String getValue(JobModelOld model) {
                 return model.getSubmitterNumber();
             }
         };
         column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
+        columnSortHandler.setComparator(column, new Comparator<JobModelOld>() {
+            public int compare(JobModelOld o1, JobModelOld o2) {
                 return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStringsAsLongs(o1.getSubmitterNumber(), o2.getSubmitterNumber()) : 1;
             }
         });
@@ -239,15 +239,15 @@ public class View extends ViewWidget {
      * @return the constructed ChunkCount column
      */
     Column constructChunkCountColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        TextColumn<JobModelOld> column = new TextColumn<JobModelOld>() {
             @Override
-            public String getValue(JobModel model) {
+            public String getValue(JobModelOld model) {
                 return String.valueOf(model.getChunkifyingTotalCounter());
             }
         };
         column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
+        columnSortHandler.setComparator(column, new Comparator<JobModelOld>() {
+            public int compare(JobModelOld o1, JobModelOld o2) {
                 return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareLongs(o1.getChunkifyingTotalCounter(), o2.getChunkifyingTotalCounter()) : 1;
             }
         });

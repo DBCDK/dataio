@@ -7,7 +7,7 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.panels.statuspopup.StatusPopup;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
@@ -16,7 +16,7 @@ import dk.dbc.dataio.gui.client.resources.Resources;
  * It contains knowledge about how to map JobModel to the actual Icon to be displayed,
  * and what to do, when clicking on the Icon (display the Status Popup Panel)
  */
-class StatusColumn extends Column<JobModel, ImageResource> {
+class StatusColumn extends Column<JobModelOld, ImageResource> {
     // Attributes
     private final EventBus eventBus;
     private final Resources resources;
@@ -44,7 +44,7 @@ class StatusColumn extends Column<JobModel, ImageResource> {
      * @param event   The event
      */
     @Override
-    public void onBrowserEvent(Cell.Context context, Element parent, JobModel model, NativeEvent event) {
+    public void onBrowserEvent(Cell.Context context, Element parent, JobModelOld model, NativeEvent event) {
         super.onBrowserEvent(context, parent, model, event);
         if ("click".equals(event.getType())) {
             new StatusPopup(eventBus, parent, model);
@@ -58,7 +58,7 @@ class StatusColumn extends Column<JobModel, ImageResource> {
      * @return The image for the given model
      */
     @Override
-    public ImageResource getValue(JobModel model) {
+    public ImageResource getValue(JobModelOld model) {
         switch (getJobStatus(model)) {
             case NOT_DONE:
                 return resources.gray();
@@ -75,7 +75,7 @@ class StatusColumn extends Column<JobModel, ImageResource> {
      * @param model The JobInfo for the job to test
      * @return JobStatusEnum: NOT_DONE, DONE_WITHOUT_ERROR or DONE_WITH_ERROR
      */
-    private View.JobStatus getJobStatus(JobModel model) {
+    private View.JobStatus getJobStatus(JobModelOld model) {
         View.JobStatus jobStatus = View.JobStatus.DONE_WITHOUT_ERROR; // Default value
         if (model.getJobErrorCode() != JobErrorCode.NO_ERROR) {
             // The entire job has failed

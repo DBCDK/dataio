@@ -7,7 +7,7 @@ import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,25 +43,25 @@ public class StatusColumnTest {
 
 
     // Test data
-    private JobModel doneWithoutErrorModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
+    private JobModelOld doneWithoutErrorModel = new JobModelOld("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014",
             true, JobErrorCode.NO_ERROR,
             4, 4, 0, 0,   // Chunkifying: total, success, failure, ignored
             5, 5, 0, 0,   // Processing:  total, success, failure, ignored
             6, 6, 0, 0);  // Delivering:  total, success, failure, ignored
-    private JobModel doneWithErrorCodeModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
+    private JobModelOld doneWithErrorCodeModel = new JobModelOld("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014",
             true, JobErrorCode.DATA_FILE_INVALID,  // Marks the model with an error
             4, 4, 0, 0,   // Chunkifying: total, success, failure, ignored
             5, 5, 0, 0,   // Processing:  total, success, failure, ignored
             6, 6, 0, 0);  // Delivering:  total, success, failure, ignored
-    private JobModel doneWithErrorCountModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
+    private JobModelOld doneWithErrorCountModel = new JobModelOld("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014",
             true, JobErrorCode.NO_ERROR,
             4, 3, 1, 0,   // Chunkifying: total, success, failure, ignored  // One chunkify failure marks the model with an error
             5, 5, 0, 0,   // Processing:  total, success, failure, ignored
             6, 6, 0, 0);  // Delivering:  total, success, failure, ignored
-    private JobModel notDoneModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
+    private JobModelOld notDoneModel = new JobModelOld("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014",
             false, JobErrorCode.NO_ERROR,  // Job not done marks the model as Not Done
             4, 4, 0, 0,   // Chunkifying: total, success, failure, ignored

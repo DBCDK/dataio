@@ -14,7 +14,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobCompletionStateBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.util.Format;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
@@ -141,7 +141,7 @@ public class JobStoreProxyImplTest {
                 .thenReturn(new MockedHttpClientResponse<List<JobInfo>>(Response.Status.OK.getStatusCode(), Arrays.asList(job)));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl();
-        final List<JobModel> allJobs = jobStoreProxy.findAllJobsNew();
+        final List<JobModelOld> allJobs = jobStoreProxy.findAllJobsNew();
         assertThat(allJobs.size(), is(1));
         assertThat(allJobs.get(0).getJobId(), is(String.valueOf(job.getJobId())));
     }

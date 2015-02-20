@@ -8,7 +8,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobState;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -118,14 +118,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the findAllJobsNew method in the Job Store
      */
-    protected class FetchJobsCallback extends FilteredAsyncCallback<List<JobModel>> {
+    protected class FetchJobsCallback extends FilteredAsyncCallback<List<JobModelOld>> {
         @Override
         public void onFilteredFailure(Throwable e) {
             view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
         }
 
         @Override
-        public void onSuccess(List<JobModel> models) {
+        public void onSuccess(List<JobModelOld> models) {
             view.setJobs(models);
         }
     }

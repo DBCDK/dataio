@@ -11,9 +11,9 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
-import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapper;
+import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapperJob;
 import org.glassfish.jersey.client.ClientConfig;
 
 import javax.naming.NamingException;
@@ -72,9 +72,9 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public List<JobModel> findAllJobsNew() throws ProxyException {
+    public List<JobModelOld> findAllJobsNew() throws ProxyException {
         final Response response;
-        final List<JobModel> jobModels = new ArrayList<JobModel>();
+        final List<JobModelOld> jobModels = new ArrayList<JobModelOld>();
         final List<JobInfo> jobInfos;
         try {
             response = HttpClient.doGet(client, ServletUtil.getJobStoreServiceEndpoint(), JobStoreServiceConstants.JOB_COLLECTION);
@@ -85,7 +85,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             assertStatusCode(response, Response.Status.OK);
             jobInfos = response.readEntity(new GenericType<List<JobInfo>>() { });
             for (JobInfo jobInfo: jobInfos) {
-                jobModels.add(JobModelMapper.toModel(jobInfo));
+                jobModels.add(JobModelMapperJob.toModel(jobInfo));
             }
         } finally {
             response.close();

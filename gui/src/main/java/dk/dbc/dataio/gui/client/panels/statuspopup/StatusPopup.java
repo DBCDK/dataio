@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.panels.statuspopup;
 
 import com.google.gwt.dom.client.Element;
 import com.google.web.bindery.event.shared.EventBus;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 
 /**
  * Status Popup Panel
@@ -20,7 +20,7 @@ public class StatusPopup extends StatusPopupWidget {
      * @param parent The future parent for the Status Popup Panel
      * @param model The Model containing job data
      */
-    public StatusPopup(EventBus eventBus, Element parent, JobModel model) {
+    public StatusPopup(EventBus eventBus, Element parent, JobModelOld model) {
         super(eventBus, model.getJobId());
         setAutoHideOnHistoryEventsEnabled(true);
         setAnimationEnabled(true);
@@ -39,7 +39,7 @@ public class StatusPopup extends StatusPopupWidget {
      *
      * @param model The Job Model that holds the Status Popup Panel data to display
      */
-    private void setPopupPanelContent(JobModel model) {
+    private void setPopupPanelContent(JobModelOld model) {
         totalFailed.setText(totalFailed.getText() + " " + String.valueOf(model.getChunkifyingTotalCounter()));
         chunkifyingSuccess.setText(String.valueOf(model.getChunkifyingSuccessCounter()));
         chunkifyingFailed.setText(String.valueOf(model.getChunkifyingFailureCounter()));

@@ -1,18 +1,18 @@
 package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public final class JobModelMapper {
+public final class JobModelMapperJob {
 
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private JobModelMapper() {
+    private JobModelMapperJob() {
     }
 
     /**
@@ -21,12 +21,12 @@ public final class JobModelMapper {
      * @param jobInfo The Job as a JobInfo class
      * @return model The Job as a JobModel class
      */
-    public static JobModel toModel(JobInfo jobInfo) {
+    public static JobModelOld toModel(JobInfo jobInfo) {
         boolean jobNotDone = jobInfo.getChunkifyingChunkCounter() == null ||
                 jobInfo.getProcessingChunkCounter() == null ||
                 jobInfo.getDeliveringChunkCounter() == null;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
-        return new JobModel(
+        return new JobModelOld(
                 simpleDateFormat.format(new Date(jobInfo.getJobCreationTime())),
                 String.valueOf(jobInfo.getJobId()),
                 jobInfo.getJobSpecification().getDataFile().replaceFirst("^/tmp/", ""),

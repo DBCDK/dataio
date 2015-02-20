@@ -4,7 +4,7 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.commons.types.JobErrorCode;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +24,7 @@ public class StatusPopupTest {
     @Mock private ClientFactory mockedClientFactory;
     @Mock private EventBus mockedEventBus;
     @Mock private Element mockedParent;
-    JobModel model = new JobModel("2014-12-17 00:37:48", "1418773068083", "urn:dataio-fs:46551", "424242",
+    JobModelOld model = new JobModelOld("2014-12-17 00:37:48", "1418773068083", "urn:dataio-fs:46551", "424242",
             true, JobErrorCode.NO_ERROR,
             6, 1, 2, 3,    // Chunkifying: total, success, failure, ignored
             9, 2, 3, 4,    // Processing:  total, success, failure, ignored

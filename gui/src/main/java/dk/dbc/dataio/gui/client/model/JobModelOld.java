@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Failed Items Model<br>
  * Holds data to to be used, when showing list of Jobs
  */
-public class JobModel implements Serializable {
+public class JobModelOld implements Serializable {
     private static final long serialVersionUID = 5222362969415514657L;
     private String jobCreationTime;
     private String jobId;
@@ -31,20 +31,20 @@ public class JobModel implements Serializable {
 
 
 
-    public JobModel(String jobCreationTime, String jobId, String fileName, String submitterNumber,
-                    boolean jobDone, JobErrorCode jobErrorCode,
-                    long chunkifyingTotalCounter,
-                    long chunkifyingSuccessCounter,
-                    long chunkifyingFailureCounter,
-                    long chunkifyingIgnoredCounter,
-                    long processingTotalCounter,
-                    long processingSuccessCounter,
-                    long processingFailureCounter,
-                    long processingIgnoredCounter,
-                    long deliveringTotalCounter,
-                    long deliveringSuccessCounter,
-                    long deliveringFailureCounter,
-                    long deliveringIgnoredCounter ) {
+    public JobModelOld(String jobCreationTime, String jobId, String fileName, String submitterNumber,
+                       boolean jobDone, JobErrorCode jobErrorCode,
+                       long chunkifyingTotalCounter,
+                       long chunkifyingSuccessCounter,
+                       long chunkifyingFailureCounter,
+                       long chunkifyingIgnoredCounter,
+                       long processingTotalCounter,
+                       long processingSuccessCounter,
+                       long processingFailureCounter,
+                       long processingIgnoredCounter,
+                       long deliveringTotalCounter,
+                       long deliveringSuccessCounter,
+                       long deliveringFailureCounter,
+                       long deliveringIgnoredCounter) {
         this.jobCreationTime = jobCreationTime;
         this.jobId = jobId;
         this.fileName = fileName;
@@ -65,7 +65,7 @@ public class JobModel implements Serializable {
         this.deliveringIgnoredCounter = deliveringIgnoredCounter;
     }
 
-    public JobModel() {
+    public JobModelOld() {
         this("", "", "", "",
                 false, JobErrorCode.NO_ERROR,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);

@@ -11,7 +11,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobErrorCode;
 import dk.dbc.dataio.commons.types.JobState;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -72,20 +72,20 @@ public class PresenterImplTest {
     }
 
     // Test Data
-    private JobModel testModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429",
+    private JobModelOld testModel1 = new JobModelOld("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014",
             true, JobErrorCode.NO_ERROR,
             15, 4, 5, 6,   // Chunkifying: total, success, failure, ignored
             18, 5, 6, 7,   // Processing:  total, success, failure, ignored
             21, 6, 7, 8);  // Delivering:  total, success, failure, ignored
 
-    private JobModel testModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
+    private JobModelOld testModel2 = new JobModelOld("2014-12-17 00:37:48", "1418773068083",
             "urn:dataio-fs:46551", "424242",
             true, JobErrorCode.NO_ERROR,
             6, 1, 2, 3,    // Chunkifying: total, success, failure, ignored
             9, 2, 3, 4,    // Processing:  total, success, failure, ignored
             12, 3, 4, 5);  // Delivering:  total, success, failure, ignored
-    private List<JobModel> testModels = new ArrayList<JobModel>(Arrays.asList(testModel1, testModel2));
+    private List<JobModelOld> testModels = new ArrayList<JobModelOld>(Arrays.asList(testModel1, testModel2));
 
 
 

@@ -5,7 +5,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 
 import javax.naming.NamingException;
@@ -38,7 +38,7 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
-    public List<JobModel> findAllJobsNew() throws ProxyException {
+    public List<JobModelOld> findAllJobsNew() throws ProxyException {
         return jobStoreProxy.findAllJobsNew();
     }
 

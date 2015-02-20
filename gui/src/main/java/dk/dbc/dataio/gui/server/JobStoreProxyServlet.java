@@ -5,6 +5,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
+import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 
@@ -45,6 +47,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     @Override
     public JobCompletionState getJobCompletionState(long jobId) throws ProxyException {
         return jobStoreProxy.getJobCompletionState(jobId);
+    }
+
+    @Override
+    public List<JobModel> listJobs(JobListCriteriaModel model) throws ProxyException {
+        return jobStoreProxy.listJobs(model);
     }
 
     @Override

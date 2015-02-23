@@ -7,6 +7,7 @@ public class JobModel extends GenericBackendModel {
     private String fileName;
     private String submitterNumber;
     private boolean jobDone;
+    private long itemCounter;
     private long succeededCounter;
     private long failedCounter;
     private long ignoredCounter;
@@ -16,6 +17,7 @@ public class JobModel extends GenericBackendModel {
                     String fileName,
                     String submitterNumber,
                     boolean jobDone,
+                    long itemCounter,
                     long succeededCounter,
                     long failedCounter,
                     long ignoredCounter) {
@@ -23,6 +25,7 @@ public class JobModel extends GenericBackendModel {
         this.jobId = jobId;
         this.fileName = fileName;
         this.submitterNumber = submitterNumber;
+        this.itemCounter = itemCounter;
         this.jobDone = jobDone;
         this.succeededCounter = succeededCounter;
         this.failedCounter = failedCounter;
@@ -31,7 +34,7 @@ public class JobModel extends GenericBackendModel {
     }
 
     public JobModel() {
-        this("", "", "", "", false, 0, 0, 0);
+        this("", "", "", "", false, 0, 0, 0, 0);
     }
 
     public String getJobCreationTime() {
@@ -64,6 +67,14 @@ public class JobModel extends GenericBackendModel {
 
     public void setSubmitterNumber(String submitterNumber) {
         this.submitterNumber = submitterNumber;
+    }
+
+    public long getItemCounter() {
+        return itemCounter;
+    }
+
+    public void setItemCounter(long itemCounter) {
+        this.itemCounter = itemCounter;
     }
 
     public boolean isJobDone() {

@@ -4,6 +4,7 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.StateElement;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,9 +20,10 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getDataFile().replaceFirst("^/tmp/", ""),
                 Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()),
                 jobInfoSnapshot.getState().allPhasesAreDone(),
-                getSucceeded(jobInfoSnapshot.getState(), State.Phase.DELIVERING),
+                getTotal(jobInfoSnapshot.getState()),
+                getSucceeded(jobInfoSnapshot.getState()),
                 getFailed(jobInfoSnapshot.getState()),
-                getIgnored(jobInfoSnapshot.getState(), State.Phase.DELIVERING));
+                getIgnored(jobInfoSnapshot.getState()));
     }
 
     public static List<JobModel> toModel(List<JobInfoSnapshot> jobInfoSnapshots) {
@@ -33,8 +35,24 @@ public class JobModelMapper {
         return jobInfoSnapshotModels;
     }
 
-    private static int getSucceeded(State state, State.Phase phase) {
-        return state.getPhase(phase).getSucceeded();
+    /**
+     * This method determine how many posts that successfully have completed one or more phases.
+     * This is done for each phase, in order to display information to the user for a job that has not yet finished.
+     *
+     * @param state containing information regarding the job
+     * @return number of succeeded items.
+     */
+    private static long getSucceeded(State state) {
+        long succeeded;
+        if(state.getPhase(State.Phase.DELIVERING).getSucceeded() != 0) {
+            succeeded = state.getPhase(State.Phase.DELIVERING).getSucceeded();
+        } else if(state.getPhase(State.Phase.PROCESSING).getSucceeded() != 0) {
+            succeeded = state.getPhase(State.Phase.PROCESSING).getSucceeded();
+        }
+        else {
+            succeeded = state.getPhase(State.Phase.PARTITIONING).getSucceeded();
+        }
+        return succeeded;
     }
 
     private static int getFailed(State state) {
@@ -43,7 +61,35 @@ public class JobModelMapper {
                 state.getPhase(State.Phase.DELIVERING).getFailed();
     }
 
-    private static int getIgnored(State state, State.Phase phase) {
-        return state.getPhase(phase).getIgnored();
+    /**
+     * This method determine how many posts that have been ignored. This is done for each phase,
+     * in order to display information to the user, for a job that has not yet finished.
+     *
+     * @param state containing information regarding the job
+     * @return number of ignored items.
+     */
+    private static int getIgnored(State state) {
+        int ignored;
+        if(state.getPhase(State.Phase.DELIVERING).getIgnored() != 0) {
+            ignored = state.getPhase(State.Phase.DELIVERING).getIgnored();
+        } else if(state.getPhase(State.Phase.PROCESSING).getIgnored() != 0) {
+            ignored = state.getPhase(State.Phase.PROCESSING).getIgnored();
+        } else {
+            ignored = state.getPhase(State.Phase.PARTITIONING).getIgnored();
+        }
+        return ignored;
+    }
+
+    /**
+     * This method finds the total amount of posts. It is using the number from the PARTITIONING phase
+     * in order to display information even if the job does not complete one of the following phases:
+     * PROCESSING/DELIVERING
+     *
+     * @param state containing information regarding the job
+     * @return total number of items.
+     */
+    private static int getTotal(State state) {
+        StateElement stateElement = state.getPhase(State.Phase.PARTITIONING);
+        return stateElement.getSucceeded() + stateElement.getFailed() + stateElement.getIgnored();
     }
 }

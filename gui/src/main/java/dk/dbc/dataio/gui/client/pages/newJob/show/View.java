@@ -98,6 +98,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructFileNameColumn(), texts.columnHeader_FileName());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
+        jobsTable.addColumn(constructItemCountColumn(), texts.columnHeader_TotalChunkCount());
         jobsTable.addColumn(constructSuccessCounterColumn(), texts.columnHeader_SuccessCounter());
         jobsTable.addColumn(constructFailedCounterColumn(), texts.columnHeader_FailureCounter());
         jobsTable.addColumn(constructIgnoredCounterColumn(), texts.columnHeader_IgnoredCounter());
@@ -190,6 +191,28 @@ public class View extends ViewWidget {
         columnSortHandler.setComparator(column, new Comparator<JobModel>() {
             public int compare(JobModel o1, JobModel o2) {
                 return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStringsAsLongs(o1.getSubmitterNumber(), o2.getSubmitterNumber()) : 1;
+            }
+        });
+        return column;
+    }
+
+    /**
+     * This method constructs the item count column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed item count column
+     */
+    Column constructItemCountColumn() {
+        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+            @Override
+            public String getValue(JobModel model) {
+                return String.valueOf(model.getItemCounter());
+            }
+        };
+        column.setSortable(true);
+        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
+            public int compare(JobModel o1, JobModel o2) {
+                return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareLongs(o1.getItemCounter(), o2.getItemCounter()) : 1;
             }
         });
         return column;

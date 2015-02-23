@@ -20,6 +20,9 @@ public interface Texts extends Constants {
     String columnHeader_SubmitterNumber();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_TotalChunkCount();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_JobCreationTime();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -46,6 +46,25 @@ public class ServiceUtil {
     }
 
     /**
+     * Looks up job-store service endpoint through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_RS}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_RS}'
+     * system property.
+     *
+     * @return job-store service URL as String
+     *
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getNewJobStoreServiceEndpoint() throws NamingException {
+        String jobStoreServiceEndpoint = System.getProperty(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
+        if (jobStoreServiceEndpoint == null || jobStoreServiceEndpoint.isEmpty()) {
+            jobStoreServiceEndpoint = getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
+        }
+        return jobStoreServiceEndpoint;
+    }
+
+    /**
      * Looks up file-store service endpoint through Java Naming and Directory Interface (JNDI)
      * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_FILESTORE_RS}'.
      * For testing purposes the JNDI lookup can be bypassed by defining a '{@value

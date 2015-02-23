@@ -49,6 +49,7 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.flow.show.View getFlowsShowView();
     dk.dbc.dataio.gui.client.pages.submitter.show.View getSubmittersShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();
+    dk.dbc.dataio.gui.client.pages.newJob.show.View getNewJobsShowView();
     dk.dbc.dataio.gui.client.pages.sink.show.View getSinksShowView();
     dk.dbc.dataio.gui.client.pages.javascriptlog.View getJavaScriptLogView();
     dk.dbc.dataio.gui.client.pages.flowbinder.show.View getFlowBindersShowView();

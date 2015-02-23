@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.ChunkCompletionState;
 import dk.dbc.dataio.commons.types.ItemCompletionState;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -75,7 +74,7 @@ public class JobStoreProxyImplTest {
         mockStatic(HttpClient.class);
         mockStatic(Format.class);
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
-        when(ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS)).thenReturn(jobStoreServiceUrl);
+        when(ServiceUtil.getNewJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
         when(ServiceUtil.getJobStoreFilesystemUrl()).thenReturn(jobStoreFilesystemUrl);
         when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
     }
@@ -195,7 +194,7 @@ public class JobStoreProxyImplTest {
 
     @Test
     public void noArgs_jobStoreProxyConstructorJobStoreService_EndpointCanNotBeLookedUp_throws() throws Exception{
-        when(ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS)).thenThrow(new NamingException());
+        when(ServiceUtil.getNewJobStoreServiceEndpoint()).thenThrow(new NamingException());
         try{
             new JobStoreProxyImpl();
             fail();

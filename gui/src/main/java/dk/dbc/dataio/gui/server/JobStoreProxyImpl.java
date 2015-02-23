@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
@@ -42,7 +41,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
-        endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
+        endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
         oldJobStoreServiceConnector = new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector(client, baseUrl);
         jobStoreServiceConnector = new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector(client, endpoint);
     }
@@ -60,7 +59,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     public JobStoreProxyImpl(dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector jobStoreServiceConnector) throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
-        endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
+        endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
         this.jobStoreServiceConnector = jobStoreServiceConnector;
     }
 

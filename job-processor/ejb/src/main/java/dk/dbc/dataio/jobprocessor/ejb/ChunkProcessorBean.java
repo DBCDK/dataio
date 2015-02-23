@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in
@@ -35,6 +37,15 @@ import java.util.List;
 @LocalBean
 public class ChunkProcessorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
+    private static final int CACHE_MAX_ENTRIES = 5;
+
+    // A per bean instance LRU cache using a LinkedHashMap with access-ordering
+    private final LinkedHashMap<String, List<JSWrapperSingleScript>> flowCache =
+            new LinkedHashMap(CACHE_MAX_ENTRIES + 1, .75F, true) {
+                @Override
+                public boolean removeEldestEntry(Map.Entry eldest) {
+                    return size() > CACHE_MAX_ENTRIES;
+            }};
 
     /**
      * Processes given chunk with business logic dictated by given flow
@@ -79,6 +90,12 @@ public class ChunkProcessorBean {
     private List<JSWrapperSingleScript> setupJavaScriptEnvironments(Flow flow) throws IllegalStateException {
         final StopWatch stopWatch = new StopWatch();
         try {
+            final String cacheKey = String.format("%d.%d", flow.getId(), flow.getVersion());
+            if (flowCache.containsKey(cacheKey)) {
+                LOGGER.info("Cache hit for flow (id.version) ({})", cacheKey);
+                return flowCache.get(cacheKey);
+            }
+
             LOGGER.info("Setting up Javascript environments");
             final List<JSWrapperSingleScript> jsWrappers = new ArrayList<>(flow.getContent().getComponents().size());
 
@@ -96,6 +113,8 @@ public class ChunkProcessorBean {
             if (jsWrappers.isEmpty()) {
                 throw new IllegalStateException(String.format("No javascript found in flow %s", flow.getContent().getName()));
             }
+            flowCache.put(cacheKey, jsWrappers);
+
             return jsWrappers;
         } finally {
             LOGGER.debug("Javascript environments creation took {} milliseconds", stopWatch.getElapsedTime());

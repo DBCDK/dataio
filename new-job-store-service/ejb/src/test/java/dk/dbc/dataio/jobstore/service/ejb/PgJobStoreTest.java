@@ -418,7 +418,6 @@ public class PgJobStoreTest {
         assertThat("JobEntity: number of ignored items", jobStateElement.getIgnored(), is(1));
         assertThat("JobEntity: number of succeeded items", jobStateElement.getSucceeded(), is(1));
         assertThat("JobEntity: number of items", jobEntity.getNumberOfItems(), is(chunk.size()));
-        assertThat("JobEntity: time of completion", jobEntity.getTimeOfCompletion(), is(nullValue()));
         assertThat("JobEntity: time of completion not set", jobEntity.getTimeOfCompletion(), is(nullValue()));
         assertThat("ChunkEntity: time of completion not set", chunkEntity.getTimeOfCompletion(), is(nullValue()));
     }

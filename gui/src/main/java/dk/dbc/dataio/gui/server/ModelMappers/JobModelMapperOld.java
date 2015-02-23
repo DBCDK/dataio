@@ -7,12 +7,12 @@ import dk.dbc.dataio.gui.client.util.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public final class JobModelMapperJob {
+public final class JobModelMapperOld {
 
     /**
      * Private Constructor prevents instantiation of this static class
      */
-    private JobModelMapperJob() {
+    private JobModelMapperOld() {
     }
 
     /**

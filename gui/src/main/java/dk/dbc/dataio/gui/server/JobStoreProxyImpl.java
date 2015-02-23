@@ -18,7 +18,7 @@ import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.server.ModelMappers.JobListCriteriaModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapper;
-import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapperJob;
+import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapperOld;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import org.glassfish.jersey.client.ClientConfig;
 
@@ -104,7 +104,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             assertStatusCode(response, Response.Status.OK);
             jobInfos = response.readEntity(new GenericType<List<JobInfo>>() { });
             for (JobInfo jobInfo: jobInfos) {
-                jobModels.add(JobModelMapperJob.toModel(jobInfo));
+                jobModels.add(JobModelMapperOld.toModel(jobInfo));
             }
         } finally {
             response.close();

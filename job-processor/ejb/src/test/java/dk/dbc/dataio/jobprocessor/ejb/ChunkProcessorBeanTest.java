@@ -19,30 +19,27 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class ChunkProcessorBeanTest {
-
-    Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBeanTest.class);
-
     private final long jobId = 42;
-    private final String javaScriptUppercaseInvocationMethod = "toUpper";
-    private final String javaScriptReturnEmptyStringInvocationMethod = "returnEmptyString";
-    private final String javaScriptReturnWithNoResultInvocationMethod = "returnWithNoResult";
-    private final String javaScriptThrowExceptionInvocationMethod = "throwException";
-    private final String javaScriptConcatenateInvocationMethod = "doConcatenation";
-    private final String modulesInfoModuleResource = "/ModulesInfo.json";
-    private final String useModuleResource = "/Use.json";
+    private final long submitter = 123;
+    private final String format = "DasFormat";
+    private final String javaScriptReturnUpperCase = "returnUpperCase";
+    private final String javaScriptReturnEmptyString = "returnEmptyString";
+    private final String javaScriptReturnNoResult = "returnNoResult";
+    private final String javaScriptReturnConcatenation = "returnConcatenation";
+    private final String javaScriptThrowException = "throwException";
 
-    private final SupplementaryProcessData testSuppData = new SupplementaryProcessData(424242L, "latin-1");
+    private final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(submitter, format);
 
     @Test
     public void process_emptyChunk_returnsEmptyResult() throws Exception {
@@ -50,259 +47,208 @@ public class ChunkProcessorBeanTest {
                 .setJobId(jobId)
                 .setItems(new ArrayList<ChunkItem>(0))
                 .build();
-        final Flow flow = getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction()));
+        final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptReturnUpperCase,
+                getJavaScript(getJavaScriptReturnUpperCaseFunction()));
+        final Flow flow = getFlow(scriptWrapper);
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(emptyChunk, flow, testSuppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(emptyChunk.getChunkId()));
-        assertThat(processedChunk.isEmpty(), is(true));
-    }
-
-    @Test
-    public void process_chunkWithData_returnsResultOfJavaScriptProcessing() throws Exception {
-        final String record1 = "one";
-        final ChunkItem item1 = new ChunkItemBuilder()
-                .setId(0)
-                .setData(Base64Util.base64encode(record1))
-                .build();
-        final String record2 = "two";
-        final ChunkItem item2 = new ChunkItemBuilder()
-                .setId(1)
-                .setData(Base64Util.base64encode(record2))
-                .build();
-        final Flow flow = getFlow(javaScriptUppercaseInvocationMethod, getJavaScript(getJavaScriptToUpperFunction()));
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
-                .setJobId(jobId)
-                .setItems(Arrays.asList(item1, item2))
-                .build();
-
-        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processedChunk.size(), is(2));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem0 = iterator.next();
-        assertThat(Base64Util.base64decode(processedItem0.getData()), is(record1.toUpperCase()));
-        assertThat(iterator.hasNext(), is((true)));
-        ChunkItem processedItem1 = iterator.next();
-        assertThat(Base64Util.base64decode(processedItem1.getData()), is(record2.toUpperCase()));
-    }
-
-    @Test
-    public void process_chunkWithDataAndProcessData_returnsResultOfJavaScriptProcessing() throws Exception {
-        final String record1 = "one";
-        final ChunkItem item1 = new ChunkItemBuilder()
-                .setId(0)
-                .setData(Base64Util.base64encode(record1))
-                .build();
-        final String record2 = "two";
-        final ChunkItem item2 = new ChunkItemBuilder()
-                .setId(1)
-                .setData(Base64Util.base64encode(record2))
-                .build();
-        final long submitter = 456456L;
-        final String format = "DasFormat";
-        final Flow flow = getFlow(javaScriptConcatenateInvocationMethod, getJavaScript(getJavaScriptConcatenateProcessDataFunction()));
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
-                .setJobId(jobId)
-                .setItems(Arrays.asList(item1, item2))
-                .build();
-        final SupplementaryProcessData suppData = new SupplementaryProcessData(submitter, format);
-
-        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, suppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processedChunk.size(), is(2));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem0 = iterator.next();
-        assertThat(Base64Util.base64decode(processedItem0.getData()), is("456456oneDasFormat"));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem1 = iterator.next();
-        assertThat(Base64Util.base64decode(processedItem1.getData()), is("456456twoDasFormat"));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(emptyChunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, emptyChunk.getChunkId(), 0);
     }
 
     @Test
     public void process_exceptionThrownFromJavascript_chunkItemFailure() throws Exception {
-        final ChunkItem item1 = new ChunkItemBuilder()
-                .setId(0)
-                .setData(Base64Util.base64encode("throw"))
-                .build();
-        final Flow flow = getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException()));
+        final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowException,
+                getJavaScript(getJavaScriptThrowExceptionFunction()));
+        final Flow flow = getFlow(scriptWrapper);
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
-                .setItems(Arrays.asList(item1))
+                .setItems(getItems("throw"))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processedChunk.size(), is(1));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem0 = iterator.next();
-        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     @Test
     public void process_exceptionThrownFromOneOutOfThreeJavascripts_chunkItemFailureForThrowSuccessForRest() throws Exception {
-        final ChunkItem item0 = new ChunkItemBuilder()
-                .setId(0)
-                .setData(Base64Util.base64encode("zero"))
-                .build();
-        final ChunkItem item1 = new ChunkItemBuilder()
-                .setId(1)
-                .setData(Base64Util.base64encode("throw"))
-                .build();
-        final ChunkItem item2 = new ChunkItemBuilder()
-                .setId(2)
-                .setData(Base64Util.base64encode("two"))
-                .build();
-        final Flow flow = getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript(getJavaScriptWhichThrowsException()));
+        final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowException,
+                getJavaScript(getJavaScriptThrowExceptionFunction()));
+        final Flow flow = getFlow(scriptWrapper);
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
-                .setItems(Arrays.asList(item0, item1, item2))
+                .setItems(getItems("zero", "throw", "two"))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processedChunk.size(), is(3));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem0 = iterator.next();
-        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem1 = iterator.next();
-        assertThat(processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem2 = iterator.next();
-        assertThat(processedItem2.getStatus(), is(ChunkItem.Status.SUCCESS));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 3);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem1 = iterator.next();
+        assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk has item[2]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem2 = iterator.next();
+        assertThat("Chunk item[2] status", processedItem2.getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
     @Test
-    public void process_IllegalJavascriptInEnvironment_chunkItemFailure() throws Exception {
-        final ChunkItem item0 = new ChunkItemBuilder()
-                .setId(0)
-                .setData(Base64Util.base64encode("zero"))
-                .build();
-        final ChunkItem item1 = new ChunkItemBuilder()
-                .setId(1)
-                .setData(Base64Util.base64encode("two"))
-                .build();
-        final Flow flow = getFlow(javaScriptThrowExceptionInvocationMethod, getJavaScript("This is not a legal javascript!"));
+    public void process_illegalJavascriptInEnvironment_chunkItemFailure() throws Exception {
+        final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
+                getJavaScript(getJavaScriptReturnUpperCaseFunction()));
+        final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptThrowException,
+                getJavaScript("This is not a legal javascript!"));
+        final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
-                .setItems(Arrays.asList(item0, item1))
+                .setItems(getItems("zero", "one"))
                 .build();
 
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processedChunk.size(), is(2));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem0 = iterator.next();
-        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem1 = iterator.next();
-        assertThat(processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 2);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem1 = iterator.next();
+        assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
     }
     
     @Test
     public void process_javascriptReturnsEmptyString_chunkItemIgnored() throws Exception {
-        final ChunkItem item0 = new ChunkItemBuilder()
-                .setId(0)
-                .setData(Base64Util.base64encode("zero"))
-                .build();
-        final Flow flow = getFlow(javaScriptReturnEmptyStringInvocationMethod, getJavaScript(getJavaScriptReturnEmptyStringFunction()));
+        final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
+                getJavaScript(getJavaScriptReturnUpperCaseFunction()));
+        final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnEmptyString,
+                getJavaScript(getJavaScriptReturnEmptyStringFunction()));
+        final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
-                .setItems(Arrays.asList(item0))
+                .setItems(getItems("zero"))
                 .build();
         
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processedChunk.size(), is(1));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem0 = iterator.next();
-        assertThat(processedItem0.getData().isEmpty(), is(false));
-        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat(iterator.hasNext(), is(false));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] data", processedItem0.getData().isEmpty(), is(false));
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
     @Test
     public void process_javascriptReturnsWithNoResult_chunkItemFailed() throws Exception {
-        final ChunkItem item0 = new ChunkItemBuilder()
-                .setId(0)
-                .setData(Base64Util.base64encode("zero"))
-                .build();
-        final Flow flow = getFlow(javaScriptReturnWithNoResultInvocationMethod, getJavaScript(getJavaScriptReturnWithNoResultFunction()));
+        final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
+                getJavaScript(getJavaScriptReturnUpperCaseFunction()));
+        final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult,
+                getJavaScript(getJavaScriptReturnNoResultFunction()));
+        final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
-                .setItems(Arrays.asList(item0))
+                .setItems(getItems("zero"))
                 .build();
         
         final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, testSuppData);
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat(processedChunk.getJobId(), is(jobId));
-        assertThat(processedChunk.getChunkId(), is(chunk.getChunkId()));
-        assertThat(processedChunk.size(), is(1));
-        Iterator<ChunkItem> iterator = processedChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem processedItem0 = iterator.next();
-        assertThat(processedItem0.getData().isEmpty(), is(false));
-        assertThat(processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(iterator.hasNext(), is(false));
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] data", processedItem0.getData().isEmpty(), is(false));
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void process_multipleFlowComponents_returnsResultOfJavascriptPipe() throws Exception {
+        final String record = "zero";
+        final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
+                getJavaScript(getJavaScriptReturnUpperCaseFunction()));
+        final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnConcatenation,
+                getJavaScript(getJavaScriptReturnConcatenationFunction()));
+        final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(getItems(record))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] data", Base64Util.base64decode(processedItem0.getData()),
+                is(String.format("%s%s%s", submitter, record.toUpperCase(), format)));
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
+    }
+
+    private void assertProcessedChunk(ExternalChunk chunk, long jobID, long chunkId, int chunkSize) {
+        assertThat("Chunk", chunk, is(notNullValue()));
+        assertThat("Chunk job ID", chunk.getJobId(), is(jobID));
+        assertThat("Chunk ID", chunk.getChunkId(), is(chunkId));
+        assertThat("Chunk size", chunk.size(), is(chunkSize));
+        assertThat("Chunk type", chunk.getType(), is(ExternalChunk.Type.PROCESSED));
+    }
+
+    private List<ChunkItem> getItems(String... data) {
+        final List<ChunkItem> items = new ArrayList<>(data.length);
+        int chunkId = 0;
+        for (String itemData : data) {
+            items.add(new ChunkItemBuilder()
+                    .setId(chunkId++)
+                    .setData(Base64Util.base64encode(itemData))
+                    .build());
+        }
+        return items;
     }
 
     private ChunkProcessorBean getInitializedBean() {
         return new ChunkProcessorBean();
     }
 
-    private Flow getFlow(String invocationMethod, JavaScript javascript) throws Exception {
+    private Flow getFlow(ScriptWrapper... scriptWrappers) throws Exception {
         return new FlowBuilder()
-                .setContent(getFlowContent(invocationMethod, javascript))
+                .setContent(getFlowContent(scriptWrappers))
                 .build();
     }
 
-    private FlowContent getFlowContent(String invocationMethod, JavaScript javascript) throws Exception {
+    private FlowContent getFlowContent(ScriptWrapper... scriptWrappers) throws Exception {
+        List<FlowComponent> flowComponents = new ArrayList<>(scriptWrappers.length);
+        for (ScriptWrapper scriptWrapper : scriptWrappers) {
+            flowComponents.add(getFlowComponent(scriptWrapper));
+        }
         return new FlowContentBuilder()
-                .setComponents(Arrays.asList(getFlowComponent(invocationMethod, javascript)))
+                .setComponents(flowComponents)
                 .build();
     }
 
-    private FlowComponent getFlowComponent(String invocationMethod, JavaScript javascript) throws Exception {
+    private FlowComponent getFlowComponent(ScriptWrapper scriptWrapper) throws Exception {
         return new FlowComponentBuilder()
-                .setContent(getFlowComponentContent(invocationMethod, javascript))
+                .setContent(getFlowComponentContent(scriptWrapper))
                 .build();
     }
 
-    private FlowComponentContent getFlowComponentContent(String invocationMethod, JavaScript javascript) throws Exception {
+    private FlowComponentContent getFlowComponentContent(ScriptWrapper scriptWrapper) throws Exception {
+        final String modulesInfoModuleResource = "/ModulesInfo.json";
+        final String useModuleResource = "/Use.json";
         return new FlowComponentContentBuilder()
-                .setInvocationMethod(invocationMethod)
+                .setInvocationMethod(scriptWrapper.invocationMethod)
                 .setJavascripts(Arrays.asList(
-                                javascript,
-                                JsonUtil.fromJson(resourceToString(modulesInfoModuleResource), JavaScript.class, MixIns.getMixIns()),
-                                JsonUtil.fromJson(resourceToString(useModuleResource), JavaScript.class, MixIns.getMixIns())))
+                    scriptWrapper.javaScript,
+                    JsonUtil.fromJson(resourceToString(modulesInfoModuleResource), JavaScript.class, MixIns.getMixIns()),
+                    JsonUtil.fromJson(resourceToString(useModuleResource), JavaScript.class, MixIns.getMixIns())))
                 .build();
     }
 
@@ -312,31 +258,31 @@ public class ChunkProcessorBeanTest {
                 .build();
     }
 
-    private String getJavaScriptToUpperFunction() {
+    private String getJavaScriptReturnUpperCaseFunction() {
         return ""
-                + "function " + javaScriptUppercaseInvocationMethod + "(str) {\n"
+                + "function " + javaScriptReturnUpperCase + "(str) {\n"
                 + "    return str.toUpperCase();\n"
                 + "}\n";
     }
 
     private String getJavaScriptReturnEmptyStringFunction() {
         return ""
-                + "function " + javaScriptReturnEmptyStringInvocationMethod + "(str) {\n"
+                + "function " + javaScriptReturnEmptyString + "(str) {\n"
                 + "    return \"\";\n"
                 + "}\n";
     }
 
-    private String getJavaScriptReturnWithNoResultFunction() {
+    private String getJavaScriptReturnNoResultFunction() {
         return ""
-                + "function " + javaScriptReturnWithNoResultInvocationMethod + "(str) {\n"
+                + "function " + javaScriptReturnNoResult + "(str) {\n"
                 + "    return;\n"
                 + "}\n";
     }
 
-    private String getJavaScriptWhichThrowsException() {
+    private String getJavaScriptThrowExceptionFunction() {
         return ""
-                + "function " + javaScriptThrowExceptionInvocationMethod + "(str) {\n"
-                + "    if(str === \"throw\") {\n"
+                + "function " + javaScriptThrowException + "(str) {\n"
+                + "    if(str === \"throw\" || str === \"\") {\n"
                 + "      throw \"this is an exception from JavaScript\";\n"
                 + "    } else {\n"
                 + "      return str;\n"
@@ -344,9 +290,9 @@ public class ChunkProcessorBeanTest {
                 + "}\n";
     }
 
-    private String getJavaScriptConcatenateProcessDataFunction() {
+    private String getJavaScriptReturnConcatenationFunction() {
         return ""
-                + "function " + javaScriptConcatenateInvocationMethod + "(str, processData) {\n"
+                + "function " + javaScriptReturnConcatenation + "(str, processData) {\n"
                 + "    return processData.submitter + str + processData.format;\n"
                 + "}\n";
     }
@@ -355,5 +301,15 @@ public class ChunkProcessorBeanTest {
         final java.net.URL url = ChunkProcessorBeanTest.class.getResource(resourceName);
         final java.nio.file.Path resPath = java.nio.file.Paths.get(url.toURI());
         return new String(java.nio.file.Files.readAllBytes(resPath), "UTF8");
+    }
+
+    private static class ScriptWrapper {
+        public final String invocationMethod;
+        public final JavaScript javaScript;
+
+        public ScriptWrapper(String invocationMethod, JavaScript javaScript) {
+            this.invocationMethod = invocationMethod;
+            this.javaScript = javaScript;
+        }
     }
 }

@@ -4,6 +4,8 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.json.JsonException;
@@ -32,76 +34,102 @@ import java.util.List;
 @Stateless
 @LocalBean
 public class ChunkProcessorBean {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
 
     /**
-     * Processes given chunk
-     *
+     * Processes given chunk with business logic dictated by given flow
      * @param chunk chunk
-     * @param flow flow
-     *
+     * @param flow flow containing business logic
+     * @param supplementaryProcessData supplementary process data
      * @return result of processing
      */
     public ExternalChunk process(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
         final StopWatch stopWatchForChunk = new StopWatch();
-        LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
-        // final Flow flow = chunk.getFlow();
-        List<ChunkItem> processedItems = new ArrayList<>();
+        try {
+            LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
 
-        if (chunk.size() > 0) {
-            try {
-                JSWrapperSingleScript scriptWrapper = setupJavaScriptEnvironment(flow);
-                processedItems = processItemsWithLogStoreLogging(chunk, flow, supplementaryProcessData, scriptWrapper);
-            } catch (Throwable ex) {
-                // Since we cannot have a failed chunk, we have to fail all items in the chunk
-                // with the Throwable from the javascript-enviroment failure.
-                processedItems = failItemsWithThrowable(chunk, ex);
+            List<ChunkItem> processedItems = new ArrayList<>(0);
+            if (chunk.size() > 0) {
+                try {
+                    final List<JSWrapperSingleScript> jsWrappers = setupJavaScriptEnvironments(flow);
+                    final Object supplementaryData = convertSupplementaryProcessDataToJsJsonObject(jsWrappers.get(0), supplementaryProcessData);
+                    processedItems = processItems(chunk, supplementaryData, jsWrappers);
+                } catch (Throwable ex) {
+                    // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
+                    // with the Throwable.
+                    processedItems = failItemsWithThrowable(chunk, ex);
+                }
             }
-        }
 
-        ExternalChunk processedChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
-        processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
-        for(ChunkItem item : processedItems) {
-            processedChunk.insertItem(item);
+            final ExternalChunk processedChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
+            processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
+            for (ChunkItem item : processedItems) {
+                processedChunk.insertItem(item);
+            }
+            return processedChunk;
+        } finally {
+            LOGGER.info("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds",
+                    chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
         }
-        LOGGER.info("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds", chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
-        return processedChunk;
     }
 
-    private JSWrapperSingleScript setupJavaScriptEnvironment(Flow flow) {
-        LOGGER.info("Setting up Javascript environment");
+    /* Creates separate javascript environments for each component in given flow and returns
+       them as wrapped scripts.
+     */
+    private List<JSWrapperSingleScript> setupJavaScriptEnvironments(Flow flow) throws IllegalStateException {
         final StopWatch stopWatch = new StopWatch();
+        try {
+            LOGGER.info("Setting up Javascript environments");
+            final List<JSWrapperSingleScript> jsWrappers = new ArrayList<>(flow.getContent().getComponents().size());
 
-        final List<JavaScript> javaScriptsBase64 = flow.getContent().getComponents().get(0).getContent().getJavascripts();
-        final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>();
-        for (JavaScript javascriptBase64 : javaScriptsBase64) {
-            javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(), Base64Util.base64decode(javascriptBase64.getJavascript())));
+            for (FlowComponent flowComponent : flow.getContent().getComponents()) {
+                final FlowComponentContent flowComponentContent = flowComponent.getContent();
+                final List<JavaScript> javaScriptsBase64 = flowComponentContent.getJavascripts();
+                final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
+                for (JavaScript javascriptBase64 : javaScriptsBase64) {
+                    javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
+                            Base64Util.base64decode(javascriptBase64.getJavascript())));
+                }
+                jsWrappers.add(new JSWrapperSingleScript(flowComponentContent.getName(),
+                        flowComponentContent.getInvocationMethod(), javaScripts));
+            }
+            if (jsWrappers.isEmpty()) {
+                throw new IllegalStateException(String.format("No javascript found in flow %s", flow.getContent().getName()));
+            }
+            return jsWrappers;
+        } finally {
+            LOGGER.debug("Javascript environments creation took {} milliseconds", stopWatch.getElapsedTime());
         }
-        JSWrapperSingleScript scriptWrapper = new JSWrapperSingleScript(javaScripts);
-
-        LOGGER.debug("Javascript environment creation took {} milliseconds", stopWatch.getElapsedTime());
-        return scriptWrapper;
     }
 
-    private List<ChunkItem> processItemsWithLogStoreLogging(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData, JSWrapperSingleScript scriptWrapper) {
+    /* Processes each item in given chunk in sequence
+     */
+    private List<ChunkItem> processItems(ExternalChunk chunk, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
         List<ChunkItem> processedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
             final StopWatch stopWatchForItem = new StopWatch();
-            ChunkItem processedItem = setupLogStoreLoggingAndProcessItem(flow, supplementaryProcessData, scriptWrapper, item, chunk);
-            processedItems.add(processedItem);
-            LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
-                    chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
+            try {
+                final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(
+                        String.valueOf(chunk.getJobId()), chunk.getChunkId(), item.getId());
+                final ChunkItem processedItem = processItemWithLogStoreTracking(item, logStoreTrackingId,
+                        supplementaryData, jsWrappers);
+                processedItems.add(processedItem);
+            } finally {
+                LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
+                        chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
+            }
         }
         return processedItems;
     }
 
-    private ChunkItem setupLogStoreLoggingAndProcessItem(Flow flow, SupplementaryProcessData supplementaryProcessData, JSWrapperSingleScript scriptWrapper, ChunkItem inputItem, ExternalChunk chunk) {
+    /* Processes given item with log-store tracking enabled
+     */
+    private ChunkItem processItemWithLogStoreTracking(ChunkItem item, LogStoreTrackingId trackingId,
+            Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
         ChunkItem processedItem;
         try {
-            MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY,
-                    LogStoreTrackingId.create(String.valueOf(chunk.getJobId()), chunk.getChunkId(), inputItem.getId()).toString());
-            processedItem = processItem(flow, scriptWrapper, inputItem, supplementaryProcessData);
+            MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY, trackingId.toString());
+            processedItem = processItem(item, supplementaryData, jsWrappers);
         } finally {
             MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
             // This timing assumes the use of LogStoreBufferedJdbcAppender to be meaningful
@@ -110,33 +138,40 @@ public class ChunkProcessorBean {
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
             LOGGER.info("LogStore batch insert for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
-                    chunk.getJobId(), chunk.getChunkId(), inputItem.getId(), stopWatchForLogStoreBatch.getElapsedTime());
+                    trackingId.getJobId(), trackingId.getChunkId(), trackingId.getItemId(), stopWatchForLogStoreBatch.getElapsedTime());
         }
         return processedItem;
     }
 
-    private ChunkItem processItem(final Flow flow, JSWrapperSingleScript scriptWrapper, ChunkItem inputItem, SupplementaryProcessData supplementaryProcessData) {
+    /* Processes given item
+     */
+    private ChunkItem processItem(ChunkItem item, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
         ChunkItem processedItem;
         try {
-            final String processedRecord = invokeJavaScript(flow, scriptWrapper, Base64Util.base64decode(inputItem.getData()), supplementaryProcessData);
-            LOGGER.info("JavaScript processing result:\n{}", processedRecord);
-            if(processedRecord.isEmpty()) {
-                processedItem = new ChunkItem(inputItem.getId(), "Ignored by job-processor since returned data was empty", ChunkItem.Status.IGNORE);
+            String data = Base64Util.base64decode(item.getData());
+            for (JSWrapperSingleScript jsWrapper : jsWrappers) {
+                data = invokeJavaScript(jsWrapper, data, supplementaryData);
+                LOGGER.info("JavaScript processing result:\n{}", data);
+                if (data.isEmpty()) {
+                    // terminate pipeline processing
+                    break;
+                }
+            }
+            if (data.isEmpty()) {
+                processedItem = new ChunkItem(item.getId(), "Ignored by job-processor since returned data was empty", ChunkItem.Status.IGNORE);
             } else {
-                processedItem = new ChunkItem(inputItem.getId(), Base64Util.base64encode(processedRecord), ChunkItem.Status.SUCCESS);
+                processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(data), ChunkItem.Status.SUCCESS);
             }
         } catch (Throwable ex) {
             LOGGER.error("Exception caught during JavaScript processing", ex);
-            final String failureMsg = getFailureMessage(ex);
-            processedItem = new ChunkItem(inputItem.getId(), Base64Util.base64encode(failureMsg), ChunkItem.Status.FAILURE);
+            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE);
         }
         return processedItem;
     }
 
-    private String invokeJavaScript(Flow flow, JSWrapperSingleScript scriptWrapper, String record, SupplementaryProcessData supplementaryProcessData) throws JsonException {
-        Object supProcDataJson = convertSupplementaryProcessDataToJsJsonObject(scriptWrapper, supplementaryProcessData);
-        LOGGER.trace("Starting javascript with invocation method: [{}]", flow.getContent().getComponents().get(0).getContent().getInvocationMethod());
-        final Object result = scriptWrapper.callMethod(flow.getContent().getComponents().get(0).getContent().getInvocationMethod(), new Object[]{record, supProcDataJson});
+    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData) throws JsonException {
+        LOGGER.info("Starting javascript [{}] with invocation method: [{}]", jsWrapper.getScriptId(), jsWrapper.getInvocationMethod());
+        final Object result = jsWrapper.invoke(new Object[]{data, supplementaryData});
         return (String) result;
     }
 
@@ -153,10 +188,10 @@ public class ChunkProcessorBean {
     }
 
     private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws JsonException {
-        // Something about why you need parantheses in the string around the json
-        // when trying to evalute the json in javascript (rhino):
+        // Something about why you need parentheses in the string around the json
+        // when trying to evaluate the json in javascript (rhino):
         // http://rayfd.me/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
-        String jsonStr = "(" + JsonUtil.toJson(supplementaryProcessData) + ")"; // notice the parantheses!
+        final String jsonStr = "(" + JsonUtil.toJson(supplementaryProcessData) + ")"; // notice the parentheses!
         return scriptWrapper.eval(jsonStr);
     }
 

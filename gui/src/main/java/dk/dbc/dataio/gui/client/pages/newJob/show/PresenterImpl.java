@@ -55,7 +55,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all jobs, and sends them to the view
      */
     private void fetchJobs() {
-        jobStoreProxy.listJobs(new JobListCriteriaModel(), (new FetchJobsCallback()));
+        jobStoreProxy.listJobs(new JobListCriteriaModel(), new FetchJobsCallback());
     }
 
     /*

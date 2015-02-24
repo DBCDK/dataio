@@ -3,17 +3,16 @@ package dk.dbc.dataio.jobprocessor.ejb;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
@@ -23,15 +22,12 @@ import javax.jms.TextMessage;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-    JsonUtil.class,
-})
 public class SinkMessageProducerBeanTest {
     private ConnectionFactory jmsConnectionFactory;
     private JMSContext jmsContext;
@@ -49,39 +45,54 @@ public class SinkMessageProducerBeanTest {
         when(jmsContext.createProducer()).thenReturn(jmsProducer);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void send_processedChunkArgIsNull_throws() throws JobProcessorException {
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
-        sinkMessageProducerBean.send(null, sink);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void send_destinationArgIsNull_throws() throws JobProcessorException {
-        final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
-        sinkMessageProducerBean.send(processedChunk, null);
-    }
-
-    @Test(expected = JobProcessorException.class)
-    public void send_createMessageThrowsJsonException_throws() throws JobProcessorException, JsonException {
-        mockStatic(JsonUtil.class);
-        when(JsonUtil.toJson(any(ExternalChunk.class))).thenThrow(new JsonException("JsonException"));
-        final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
-        sinkMessageProducerBean.send(processedChunk, sink);
+        try {
+            sinkMessageProducerBean.send(null, sink);
+            fail("No Exception thrown");
+        } catch (NullPointerException e) {
+        }
     }
 
     @Test
-    public void createMessage_deliveredChunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JsonException {
+    public void send_destinationArgIsNull_throws() throws JobProcessorException {
+        final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
+        try {
+            sinkMessageProducerBean.send(processedChunk, null);
+            fail("No Exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void send_createMessageThrowsJsonException_throws() throws JobProcessorException, JSONBException {
+        final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
+        final JSONBContext jsonbContext = mock(JSONBContext.class);
+        when(sinkMessageProducerBean.jsonBinding.getContext()).thenReturn(jsonbContext);
+        when(jsonbContext.marshall(anyObject())).thenThrow(new JSONBException("JsonException"));
+        try {
+            sinkMessageProducerBean.send(processedChunk, sink);
+            fail("No Exception thrown");
+        } catch (JobProcessorException e) {
+        }
+    }
+
+    @Test
+    public void createMessage_deliveredChunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JSONBException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
         final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, processedChunk, sink);
-        assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
-        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
-        assertThat(message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
+        assertThat("Message source property", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
+        assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
+        assertThat("Message resource property", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
     }
 
     private SinkMessageProducerBean getInitializedBean() {
         final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
         sinkMessageProducerBean.sinksQueueConnectionFactory = jmsConnectionFactory;
+        sinkMessageProducerBean.jsonBinding = Mockito.spy(new JSONBBean());
+        sinkMessageProducerBean.jsonBinding.initialiseContext();
         return sinkMessageProducerBean;
     }
 }

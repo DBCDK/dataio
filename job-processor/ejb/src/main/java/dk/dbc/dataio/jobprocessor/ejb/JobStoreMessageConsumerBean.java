@@ -8,10 +8,10 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +37,9 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     @EJB
     ChunkProcessorBean chunkProcessor;
 
+    @EJB
+    JSONBBean jsonBinding;
+
     /**
      * Processes Chunk received in consumed message
      *
@@ -47,11 +50,12 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
      */
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final ExternalChunk chunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            final ExternalChunk chunk = jsonBinding.getContext()
+                    .unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
             LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
             confirmLegalChunkTypeOrThrow(chunk, ExternalChunk.Type.PARTITIONED);
             process(chunk);
-        } catch (JsonException e) {
+        } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
                     consumedMessage.getMessageId(), consumedMessage.getPayloadType()), e);
         }

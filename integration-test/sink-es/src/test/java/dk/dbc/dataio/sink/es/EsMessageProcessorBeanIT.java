@@ -18,6 +18,8 @@ import dk.dbc.dataio.integrationtest.ESTaskPackageIntegrationTestUtil;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -41,7 +43,6 @@ import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@Ignore("25092014 - ES server unstable (jbn)")
 public class EsMessageProcessorBeanIT {
     // todo: investigate why it takes a very long time (30+ secs) to obtain a ES db connection in certain cases (fx. on the Jenkins node)
     private static final long MAX_QUEUE_WAIT_IN_MS = 120000;
@@ -94,7 +95,7 @@ public class EsMessageProcessorBeanIT {
 
     @Test
     public void esMessageProcessorBean_invalidProcessorResultOnSinksQueue_eventuallyRemovedFromSinksQueue()
-            throws JMSException, JsonException, SQLException, ClassNotFoundException {
+            throws JMSException, JsonException, SQLException, ClassNotFoundException, JSONBException {
         final MockedJmsTextMessage processorMessage = 
                 newProcessorMessageForSink(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
         processorMessage.setText("invalid");
@@ -108,7 +109,7 @@ public class EsMessageProcessorBeanIT {
     @Ignore("sma 15-09-2014: This test is currently not running when executed locally. It is working on Jenkins")
     @Test
     public void esMessageProcessorBean_chunkWithAllRecordsFailed_notProcessedAndSinkResultIsAllIgnored()
-            throws JMSException, JsonException, SQLException, ClassNotFoundException {
+            throws JMSException, JsonException, SQLException, ClassNotFoundException, JSONBException {
         final int itemsInChunk = 10;
         // Create ChunkResult with 10 failed items:
         List<ChunkItem> items = new ArrayList<>(itemsInChunk);
@@ -149,7 +150,7 @@ public class EsMessageProcessorBeanIT {
 
     @Test
     public void esMessageProcessorBean_validProcessorResultOnSinksQueue_eventuallyProcessed()
-            throws JsonException, JMSException, InterruptedException, SQLException, ClassNotFoundException {
+            throws JsonException, JMSException, InterruptedException, SQLException, ClassNotFoundException, JSONBException {
         final ChunkItem item = new ChunkItemBuilder()
                 .setData(Base64Util.base64encode(ADDI_OK))
                 .build();
@@ -180,7 +181,7 @@ public class EsMessageProcessorBeanIT {
         }
     }
 
-    private MockedJmsTextMessage newProcessorMessageForSink(ExternalChunk processedChunk) throws JMSException, JsonException {
+    private MockedJmsTextMessage newProcessorMessageForSink(ExternalChunk processedChunk) throws JMSException, JsonException, JSONBException {
         final SinkContent sinkContent = new SinkContentBuilder()
                 .setName(SINK_NAME)
                 .setResource(ES_RESOURCE_NAME)
@@ -188,7 +189,7 @@ public class EsMessageProcessorBeanIT {
         final Sink sink = new SinkBuilder()
                 .setContent(sinkContent)
                 .build();
-        final MockedJmsTextMessage message = (MockedJmsTextMessage) new SinkMessageProducerBean()
+        final MockedJmsTextMessage message = (MockedJmsTextMessage) getSinkMessageProducerBean()
                 .createMessage(jmsContext, processedChunk, sink);
         message.setText(JsonUtil.toJson(processedChunk));
         return message;
@@ -229,6 +230,12 @@ public class EsMessageProcessorBeanIT {
                 break;
             }
         }
+    }
+
+    private SinkMessageProducerBean getSinkMessageProducerBean() {
+        final JSONBBean jsonbBean = new JSONBBean();
+        jsonbBean.initialiseContext();
+        return new SinkMessageProducerBean(jsonbBean);
     }
 
     public ExternalChunk assertSinkMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {

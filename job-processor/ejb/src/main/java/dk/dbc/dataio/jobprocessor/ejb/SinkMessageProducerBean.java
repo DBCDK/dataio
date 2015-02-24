@@ -3,13 +3,14 @@ package dk.dbc.dataio.jobprocessor.ejb;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.jms.ConnectionFactory;
@@ -33,6 +34,15 @@ public class SinkMessageProducerBean {
     @Resource(name="sinksJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
     Queue sinksQueue;
 
+    @EJB
+    JSONBBean jsonBinding;
+
+    public SinkMessageProducerBean() {}
+
+    public SinkMessageProducerBean(JSONBBean jsonBinding) {
+        this.jsonBinding = jsonBinding;
+    }
+
     /**
      * Sends given processor result instance as JMS message with JSON payload to sink queue destination
      *
@@ -48,7 +58,7 @@ public class SinkMessageProducerBean {
         try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, processedChunk, destination);
             context.createProducer().send(sinksQueue, message);
-        } catch (JsonException | JMSException e) {
+        } catch (JSONBException | JMSException e) {
             final String errorMessage = String.format("Exception caught while sending processor result for chunk %d in job %s",
                     processedChunk.getChunkId(), processedChunk.getJobId());
             throw new JobProcessorException(errorMessage, e);
@@ -70,11 +80,11 @@ public class SinkMessageProducerBean {
      *
      * @return TextMessage instance
      *
-     * @throws JsonException when unable to marshall processor result instance to JSON
+     * @throws JSONBException when unable to marshall processor result instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, ExternalChunk processedChunk, Sink destination) throws JsonException, JMSException {
-        final TextMessage message = context.createTextMessage(JsonUtil.toJson(processedChunk));
+    public TextMessage createMessage(JMSContext context, ExternalChunk processedChunk, Sink destination) throws JMSException, JSONBException {
+        final TextMessage message = context.createTextMessage(jsonBinding.getContext().marshall(processedChunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE);
         message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());

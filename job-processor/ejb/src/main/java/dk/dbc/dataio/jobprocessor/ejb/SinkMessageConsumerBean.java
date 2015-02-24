@@ -1,13 +1,12 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +23,9 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     @EJB
     JobStoreMessageProducerBean jobStoreMessageProducer;
 
+    @EJB
+    JSONBBean jsonBinding;
+
     /**
      * Handles consumed message by forwarding sink result payload from
      * received message to the job-store.
@@ -36,11 +38,11 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final ExternalChunk deliveredChunk = JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            final ExternalChunk deliveredChunk = jsonBinding.getContext().unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
             confirmLegalChunkTypeOrThrow(deliveredChunk, ExternalChunk.Type.DELIVERED);
             LOGGER.info("Received sink result for jobId={}, chunkId={}", deliveredChunk.getJobId(), deliveredChunk.getChunkId());
             jobStoreMessageProducer.sendSink(deliveredChunk);
-        } catch (JsonException e) {
+        } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid sink result type %s",
                     consumedMessage.getMessageId(), consumedMessage.getPayloadType()), e);
         }

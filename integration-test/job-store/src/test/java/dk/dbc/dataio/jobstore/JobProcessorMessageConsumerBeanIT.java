@@ -12,6 +12,8 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.JobStoreMessageProducerBean;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +41,7 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
     }
 
     @Test
-    public void onMessage_resultReceived_resultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException, JobStoreServiceConnectorException {
+    public void onMessage_resultReceived_resultSavedAndJobStateUpdated() throws URISyntaxException, JsonException, JMSException, JobStoreServiceConnectorException, JSONBException {
         final JobInfo jobInfo = createJob(restClient, JobsBeanIT.setupJobPrerequisites(restClient));
 
         // Swallow 1st Chunk message
@@ -109,17 +111,23 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING), is(JobState.LifeCycleState.DONE));
     }
 
-    private MockedJmsTextMessage newProcessorResultMessageForJobStore(ExternalChunk processedChunk) throws JMSException, JsonException {
-        final MockedJmsTextMessage message = (MockedJmsTextMessage) new JobStoreMessageProducerBean()
+    private MockedJmsTextMessage newProcessorResultMessageForJobStore(ExternalChunk processedChunk) throws JMSException, JsonException, JSONBException {
+        final MockedJmsTextMessage message = (MockedJmsTextMessage) getJobStoreMessageProducerBean()
                 .createMessage(jmsContext, processedChunk);
         message.setText(JsonUtil.toJson(processedChunk));
         return message;
     }
 
-    private MockedJmsTextMessage newSinkResultMessageForJobStoreSink(ExternalChunk deliveredChunk) throws JMSException, JsonException {
-        final MockedJmsTextMessage message = (MockedJmsTextMessage) new JobStoreMessageProducerBean()
+    private MockedJmsTextMessage newSinkResultMessageForJobStoreSink(ExternalChunk deliveredChunk) throws JMSException, JsonException, JSONBException {
+        final MockedJmsTextMessage message = (MockedJmsTextMessage) getJobStoreMessageProducerBean()
                 .createMessageSink(jmsContext, deliveredChunk);
         message.setText(JsonUtil.toJson(deliveredChunk));
         return message;
+    }
+
+    private JobStoreMessageProducerBean getJobStoreMessageProducerBean() {
+        final JSONBBean jsonbBean = new JSONBBean();
+        jsonbBean.initialiseContext();
+        return new JobStoreMessageProducerBean(jsonbBean);
     }
 }

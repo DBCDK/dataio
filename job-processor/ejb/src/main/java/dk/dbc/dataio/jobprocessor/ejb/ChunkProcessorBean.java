@@ -8,16 +8,17 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import java.io.ByteArrayOutputStream;
@@ -46,6 +47,9 @@ public class ChunkProcessorBean {
                 public boolean removeEldestEntry(Map.Entry eldest) {
                     return size() > CACHE_MAX_ENTRIES;
             }};
+
+    @EJB
+    JSONBBean jsonBinding;
 
     /**
      * Processes given chunk with business logic dictated by given flow
@@ -188,7 +192,7 @@ public class ChunkProcessorBean {
         return processedItem;
     }
 
-    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData) throws JsonException {
+    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData) {
         LOGGER.info("Starting javascript [{}] with invocation method: [{}]", jsWrapper.getScriptId(), jsWrapper.getInvocationMethod());
         final Object result = jsWrapper.invoke(new Object[]{data, supplementaryData});
         return (String) result;
@@ -206,11 +210,11 @@ public class ChunkProcessorBean {
         return failureMsg;
     }
 
-    private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws JsonException {
+    private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws JSONBException {
         // Something about why you need parentheses in the string around the json
         // when trying to evaluate the json in javascript (rhino):
         // http://rayfd.me/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
-        final String jsonStr = "(" + JsonUtil.toJson(supplementaryProcessData) + ")"; // notice the parentheses!
+        final String jsonStr = "(" + jsonBinding.getContext().marshall(supplementaryProcessData) + ")"; // notice the parentheses!
         return scriptWrapper.eval(jsonStr);
     }
 

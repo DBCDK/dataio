@@ -8,8 +8,6 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -18,6 +16,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -215,7 +215,10 @@ public class ChunkProcessorBeanTest {
     }
 
     private ChunkProcessorBean getInitializedBean() {
-        return new ChunkProcessorBean();
+        final ChunkProcessorBean chunkProcessorBean = new ChunkProcessorBean();
+        chunkProcessorBean.jsonBinding = new JSONBBean();
+        chunkProcessorBean.jsonBinding.initialiseContext();
+        return chunkProcessorBean;
     }
 
     private Flow getFlow(ScriptWrapper... scriptWrappers) throws Exception {
@@ -243,12 +246,13 @@ public class ChunkProcessorBeanTest {
     private FlowComponentContent getFlowComponentContent(ScriptWrapper scriptWrapper) throws Exception {
         final String modulesInfoModuleResource = "/ModulesInfo.json";
         final String useModuleResource = "/Use.json";
+        final JSONBContext jsonbContext = new JSONBContext();
         return new FlowComponentContentBuilder()
                 .setInvocationMethod(scriptWrapper.invocationMethod)
                 .setJavascripts(Arrays.asList(
-                    scriptWrapper.javaScript,
-                    JsonUtil.fromJson(resourceToString(modulesInfoModuleResource), JavaScript.class, MixIns.getMixIns()),
-                    JsonUtil.fromJson(resourceToString(useModuleResource), JavaScript.class, MixIns.getMixIns())))
+                        scriptWrapper.javaScript,
+                        jsonbContext.unmarshall(resourceToString(modulesInfoModuleResource), JavaScript.class),
+                        jsonbContext.unmarshall(resourceToString(useModuleResource), JavaScript.class)))
                 .build();
     }
 

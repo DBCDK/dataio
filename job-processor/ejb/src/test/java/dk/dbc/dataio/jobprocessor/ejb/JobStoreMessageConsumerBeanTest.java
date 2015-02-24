@@ -5,25 +5,27 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
-import java.util.Arrays;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
+import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class JobStoreMessageConsumerBeanTest {
     
-    // Notice: Test of happy-path is done in the job-processor integraiont-test!
+    // Notice: Test of happy-path is done in the job-processor integration-test!
     
     @Test
     public void onMessage_messageArgPayloadIsInvalidNewJob_noTransactionRollback() throws JMSException {
@@ -32,37 +34,52 @@ public class JobStoreMessageConsumerBeanTest {
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.NEW_JOB_PAYLOAD_TYPE);
         textMessage.setText("{'invalid': 'instance'}");
         jobStoreMessageConsumerBean.onMessage(textMessage);
-        assertThat(jobStoreMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+        assertThat("RollbackOnly", jobStoreMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
     }
 
-    @Test(expected = InvalidMessageException.class)
+    @Test
     public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() throws JobProcessorException, JMSException, InvalidMessageException {
         final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.NEW_JOB_PAYLOAD_TYPE, "{'invalid': 'instance'}");
-        getInitializedBean().handleConsumedMessage(consumedMessage);
+        final TestableJobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
+        try {
+            jobStoreMessageConsumerBean.handleConsumedMessage(consumedMessage);
+            fail("No exception thrown");
+        } catch (InvalidMessageException e) {
+        }
     }
 
-    @Test(expected = InvalidMessageException.class)
+    @Test
     public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() throws JobProcessorException, InvalidMessageException {
-        final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
         final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.NEW_JOB_PAYLOAD_TYPE, "invalid");
-        jobStoreMessageConsumerBean.handleConsumedMessage(message);
+        final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
+        try {
+            jobStoreMessageConsumerBean.handleConsumedMessage(message);
+            fail("No exception thrown");
+        } catch (InvalidMessageException e) {
+        }
     }
 
-    @Test(expected = InvalidMessageException.class)
-    public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JobProcessorException, InvalidMessageException, JMSException, JsonException {
-        ChunkItem item = new ChunkItemBuilder().setData("This is some data").setStatus(ChunkItem.Status.SUCCESS).build();
+    @Test
+    public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JobProcessorException, InvalidMessageException, JMSException, JSONBException {
+        final ChunkItem item = new ChunkItemBuilder().setData("This is some data").setStatus(ChunkItem.Status.SUCCESS).build();
         // The Chunk-type 'processed' is not allowed in the JobProcessor, only 'partitioned' is allowed.
-        ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
-        String jsonChunk = JsonUtil.toJson(chunk);
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
+        final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
         final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.NEW_JOB_PAYLOAD_TYPE, jsonChunk);
-        jobStoreMessageConsumerBean.handleConsumedMessage(message);
+        try {
+            jobStoreMessageConsumerBean.handleConsumedMessage(message);
+            fail("No exception thrown");
+        } catch (InvalidMessageException e) {
+        }
     }
 
     private TestableJobStoreMessageConsumerBean getInitializedBean() {
         final TestableJobStoreMessageConsumerBean jobStoreMessageConsumerBean = new TestableJobStoreMessageConsumerBean();
         jobStoreMessageConsumerBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
+        jobStoreMessageConsumerBean.jsonBinding = new JSONBBean();
+        jobStoreMessageConsumerBean.jsonBinding.initialiseContext();
         return jobStoreMessageConsumerBean;
     }
 

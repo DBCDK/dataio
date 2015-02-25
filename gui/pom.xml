@@ -80,6 +80,12 @@
         </profile>
     </profiles>
 
+    <repositories>
+        <repository>
+            <id>plugins</id>
+            <url>http://gwtquery-plugins.googlecode.com/svn/mavenrepo</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -202,6 +208,18 @@
             <artifactId>dataio-job-store-service-test</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.gwtquery</groupId>
+            <artifactId>gwtquery</artifactId>
+            <version>1.4.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.gwtquery.plugins</groupId>
+            <artifactId>draggable-plugin</artifactId>
+            <version>1.0.4</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>

@@ -6,6 +6,7 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
+import com.google.gwt.dom.client.Document;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.place.shared.PlaceHistoryHandler;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
@@ -69,6 +70,11 @@ public class MainEntryPoint implements EntryPoint {
         PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
         historyHandler.register(placeController, eventBus, new Place());
         historyHandler.handleCurrentHistory();
+
+        // Set the title of the Browser Window
+        if (Document.get() != null) {
+            Document.get().setTitle("DBC - Data I/O");
+        }
 
         // Show the root panel
         RootLayoutPanel.get().add(appPanel);

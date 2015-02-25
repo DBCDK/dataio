@@ -21,6 +21,8 @@
 @external .dual-list-removeitem-class, .dual-list-additem-class, .fixed-empty-listbox-width, .dual-list-selection-buttons-pane-class;
 @external .dio-DataEntry, .dio-DataEntry-PromptLabelClass, .dio-SaveButton-ResultLabel;
 @external .dio-DualList, .dio-DualPanesPanel-WidgetRightClass, .dio-DualPanesPanel-WidgetLeftClass, .dio-flow-element;
+@external .dio-DataEntry-InputBoxClass, .dio-SortableList;
+@external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 
 /*
  * Sprites
@@ -108,6 +110,10 @@ li {
     vertical-align: top;
 }
 
+.dio-DataEntry-InputBoxClass {
+    display: inline-block;
+}
+
 .dio-SaveButton-ResultLabel {
     display: inline-block;
 }
@@ -160,3 +166,24 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
     text-align: inherit;
 }
 
+.dio-SortableList {
+    padding: 1px 2px;
+    min-height: 1.37em;
+    min-width: 10em;
+}
+
+.sortable-widget-entry-selected {
+    background-color: blue;
+    color: white;
+    z-index: 1;
+}
+.sortable-widget-entry-deselected {
+    background: transparent;
+    color: black;
+    z-index: 0;
+}
+.sortable-widget-entry-disabled {
+    background: lightgray;
+    color: white;
+    cursor: auto;
+}

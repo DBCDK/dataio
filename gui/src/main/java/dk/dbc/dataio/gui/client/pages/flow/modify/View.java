@@ -8,14 +8,13 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
-import dk.dbc.dataio.gui.client.components.ListEntry;
+import dk.dbc.dataio.gui.client.components.MultiListEntry;
 import dk.dbc.dataio.gui.client.components.TextAreaEntry;
 import dk.dbc.dataio.gui.client.components.TextEntry;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
-public class View extends ContentPanel<Presenter> implements IsWidget {
+public class View extends ContentPanel<Presenter> {
     interface FlowUiBinder extends UiBinder<HTMLPanel, View> {}
     private static FlowUiBinder uiBinder = GWT.create(FlowUiBinder.class);
 
@@ -30,7 +29,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField TextEntry name;
     @UiField TextAreaEntry description;
-    @UiField ListEntry flowComponents;
+    @UiField MultiListEntry flowComponents;
     @UiField Label status;
 
     @UiHandler("name")

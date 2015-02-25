@@ -64,6 +64,21 @@ public interface Resources extends ClientBundle {
 
         @ClassName("gwt-TreeItem")
         String gwtTreeItem();
+
+        @ClassName("dio-DataEntry-InputBoxClass")
+        String dioDataEntryInputBoxClass();
+
+        @ClassName("sortable-widget-entry-deselected")
+        String sortableWidgetEntryDeselected();
+
+        @ClassName("dio-SortableList")
+        String dioSortableList();
+
+        @ClassName("sortable-widget-entry-disabled")
+        String sortableWidgetEntryDisabled();
+
+        @ClassName("sortable-widget-entry-selected")
+        String sortableWidgetEntrySelected();
     }
 
     @Source("css/dataio.css")
@@ -89,6 +104,14 @@ public interface Resources extends ClientBundle {
     @ImageResource.ImageOptions(preventInlining=true)
     @Source("img/lamp_red.png")
     ImageResource red();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/add-button.gif")
+    ImageResource addButton();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/remove-button.gif")
+    ImageResource removeButton();
 
     @ImageResource.ImageOptions(repeatStyle = ImageResource.RepeatStyle.Vertical)
     @Source("img/navigationbg.gif")

@@ -151,7 +151,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setEnabled(true);
         view.flowComponents.clear();
         for (FlowComponentModel flowComponentModel: model.getFlowComponents()) {
-            view.flowComponents.addAvailableItem(flowComponentModel.getName(), Long.toString(flowComponentModel.getId()));
+            view.flowComponents.addValue(flowComponentModel.getName(), Long.toString(flowComponentModel.getId()));
         }
         view.flowComponents.setEnabled(true);
     }

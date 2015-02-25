@@ -34,7 +34,6 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -146,13 +145,21 @@ public class HarvesterBean {
        and record creation date as supplementary data.
      */
     private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
-        final Map<RecordId, Record> records;
+        final Map<String, Record> records;
         try {
-            records = asMap(rawRepoConnector.fetchRecordCollection(recordId));
+            records = rawRepoConnector.fetchRecordCollection(recordId);
         } catch (SQLException | RawRepoException | MarcXMergerException e) {
             throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
         }
         LOGGER.debug("Fetched rawrepo collection<{}> for {}", records.values(), recordId);
+        if (records.isEmpty()) {
+            throw new HarvesterInvalidRecordException("Empty rawrepo collection returned for " + recordId.toString());
+        }
+        if (!records.containsKey(recordId.getBibliographicRecordId())) {
+            throw new HarvesterInvalidRecordException(String.format(
+                    "Record %s was not found in returned collection", recordId.toString()));
+        }
+
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
         marcExchangeCollection.addMember(getRecordContent(recordId, records));
 
@@ -162,34 +169,24 @@ public class HarvesterBean {
         return dataContainer;
     }
 
-    private Map<RecordId, Record> asMap(Map<String, Record> recordMap) {
-        // I do this map-to-map conversion since I'm not exactly sure
-        // what the string key of the original map represents
-        final Map<RecordId, Record> records = new HashMap<>(recordMap.size());
-        for (Record record : recordMap.values()) {
-            records.put(record.getId(), record);
-        }
-        return records;
-    }
-
-    private byte[] getRecordContent(RecordId recordId, Map<RecordId, Record> records) throws HarvesterInvalidRecordException {
+    private byte[] getRecordContent(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
         try {
-            if (!records.containsKey(recordId)) {
-                throw new HarvesterInvalidRecordException(String.format(
-                        "Record %s was not found in returned collection", recordId.toString()));
-            }
-            return records.get(recordId).getContent();
+            return records.get(recordId.getBibliographicRecordId()).getContent();
         } catch (NullPointerException e) {
              throw new HarvesterInvalidRecordException("Record content is null");
         }
     }
 
-    private Date getRecordCreationDate(RecordId recordId, Map<RecordId, Record> records) throws HarvesterInvalidRecordException {
-        if (!records.containsKey(recordId)) {
-            throw new HarvesterInvalidRecordException(String.format(
-                    "Record %s was not found in returned collection", recordId.toString()));
+    private Date getRecordCreationDate(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
+        try {
+            final Date created = records.get(recordId.getBibliographicRecordId()).getCreated();
+            if (created == null) {
+                throw new HarvesterInvalidRecordException("Record creation date is null");
+            }
+            return created;
+        } catch (NullPointerException e) {
+            throw new HarvesterInvalidRecordException("Record creation date is null");
         }
-        return records.get(recordId).getCreated();
     }
 
     private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {

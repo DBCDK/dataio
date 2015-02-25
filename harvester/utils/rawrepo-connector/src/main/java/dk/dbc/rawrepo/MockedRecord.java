@@ -51,7 +51,10 @@ public class MockedRecord implements Record {
 
     @Override
     public Date getCreated() {
-        return new Date(created.getTime());
+        if (created != null) {
+            return new Date(created.getTime());
+        }
+        return null;
     }
 
     @Override
@@ -87,7 +90,11 @@ public class MockedRecord implements Record {
 
     @Override
     public void setCreated(Date date) {
-        created = new Date(date.getTime());
+        if (date != null) {
+            created = new Date(date.getTime());
+        } else {
+            created = null;
+        }
     }
 
     @Override

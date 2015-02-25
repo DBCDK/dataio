@@ -130,14 +130,14 @@ public class HarvesterBean_data_Test {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR_BEAN.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>(){{
-                    put(FIRST_RECORD_HEAD_ID.toString(), FIRST_RECORD_HEAD);
-                    put(FIRST_RECORD_ID.toString(), FIRST_RECORD);
+                    put(FIRST_RECORD_HEAD_ID.getBibliographicRecordId(), FIRST_RECORD_HEAD);
+                    put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
                 .thenReturn(new HashMap<String, Record>(){{
-                    put(SECOND_RECORD_ID.toString(), SECOND_RECORD);
+                    put(SECOND_RECORD_ID.getBibliographicRecordId(), SECOND_RECORD);
                 }})
                 .thenReturn(new HashMap<String, Record>() {{
-                    put(THIRD_RECORD_ID.toString(), THIRD_RECORD);
+                    put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
         // Setup harvester datafile content expectations
@@ -179,13 +179,13 @@ public class HarvesterBean_data_Test {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR_BEAN.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>(){{
-                    put(FIRST_RECORD_ID.toString(), FIRST_RECORD);
+                    put(FIRST_RECORD_ID.getBibliographicRecordId(), FIRST_RECORD);
                 }})
                 .thenReturn(new HashMap<String, Record>(){{
                     put(invalidRecord.getId().toString(), invalidRecord);
                 }})
                 .thenReturn(new HashMap<String, Record>(){{
-                    put(THIRD_RECORD_ID.toString(), THIRD_RECORD);
+                    put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
         // Setup harvester datafile content expectations

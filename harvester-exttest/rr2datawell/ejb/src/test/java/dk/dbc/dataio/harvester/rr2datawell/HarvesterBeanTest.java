@@ -22,6 +22,7 @@ import javax.ejb.SessionContext;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 public class HarvesterBeanTest {
     private final static RecordId RECORD_ID = new RecordId("record", HarvesterBean.COMMUNITY_LIBRARY_NUMBER);
-    private final static String RECORD_CONTENT = asRcordContent(RECORD_ID);
+    private final static String RECORD_CONTENT = asRecordContent(RECORD_ID);
     private final static Record RECORD = new MockedRecord(RECORD_ID, true);
     private final static QueueJob QUEUE_JOB = asQueueJob(RECORD_ID);
 
@@ -57,7 +58,7 @@ public class HarvesterBeanTest {
                 .thenReturn(null);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>() {{
-                    put(RECORD_ID.toString(), RECORD);
+                    put(RECORD_ID.getBibliographicRecordId(), RECORD);
                 }});
         when(harvesterJobBuilderFactoryBean.newHarvesterJobBuilder(any(JobSpecification.class))).thenReturn(harvesterJobBuilder);
     }
@@ -189,6 +190,46 @@ public class HarvesterBeanTest {
     }
 
     @Test
+    public void harvestBatch_recordHasNoCreationDate_recordIsFailed() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
+        final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
+        rrRecord.setCreated(null);
+        rrRecord.setContent(asRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put(RECORD_ID.getBibliographicRecordId(), rrRecord);
+                }});
+        final HarvesterBean harvesterBean = getInitializedBean();
+        harvesterBean.harvestBatch();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
+    public void harvestBatch_rawrepoReturnsEmptyCollection_recordIsFailed() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(Collections.<String, Record>emptyMap());
+
+        final HarvesterBean harvesterBean = getInitializedBean();
+        harvesterBean.harvestBatch();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
+    public void harvestBatch_rawrepoReturnsCollectionWithoutBibliographicRecordId_recordIsFailed() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
+        final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
+        rrRecord.setContent(asRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
+        when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put("unexpectedBibliographicRecordId", rrRecord);
+                }});
+        final HarvesterBean harvesterBean = getInitializedBean();
+        harvesterBean.harvestBatch();
+
+        verify(repoConnectorBean, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
     public void harvestBatch_harvesterJobBuilderThrowsHarvesterException_throws() throws HarvesterException {
         when(harvesterJobBuilder.build()).thenThrow(new HarvesterException("DIED"));
 
@@ -237,7 +278,7 @@ public class HarvesterBeanTest {
                 new Timestamp(new Date().getTime()));
     }
 
-    public static String asRcordContent(RecordId recordId) {
+    public static String asRecordContent(RecordId recordId) {
         return
         "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
             "<marcx:record format=\"danMARC2\">" +

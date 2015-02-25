@@ -34,9 +34,7 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * This stateless Enterprise Java Bean (EJB) handles an actual RawRepo-to-datawell harvest
@@ -160,15 +158,23 @@ public class HarvesterBean {
        and record creation date as supplementary data.
      */
     private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
-        final Set<Record> records;
+        final Map<String, Record> records;
         try {
-            records = asSet(rawRepoConnector.fetchRecordCollection(recordId));
+            records = rawRepoConnector.fetchRecordCollection(recordId);
         } catch (SQLException | RawRepoException | MarcXMergerException e) {
             throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
         }
         LOGGER.debug("Fetched rawrepo collection<{}> for {}", records, recordId);
+        if (records.isEmpty()) {
+            throw new HarvesterInvalidRecordException("Empty rawrepo collection returned for " + recordId.toString());
+        }
+        if (!records.containsKey(recordId.getBibliographicRecordId())) {
+            throw new HarvesterInvalidRecordException(String.format(
+                    "Record %s was not found in returned collection", recordId.toString()));
+        }
+
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
-        for (Record record : records) {
+        for (Record record : records.values()) {
             LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
             marcExchangeCollection.addMember(getRecordContent(record));
         }
@@ -176,14 +182,6 @@ public class HarvesterBean {
         dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
         return dataContainer;
-    }
-
-    private Set<Record> asSet(Map<String, Record> recordMap) {
-        final Set<Record> records = new HashSet<>(recordMap.size());
-        for (Record record : recordMap.values()) {
-            records.add(record);
-        }
-        return records;
     }
 
     private byte[] getRecordContent(Record record) throws HarvesterInvalidRecordException {
@@ -194,13 +192,16 @@ public class HarvesterBean {
         }
     }
 
-    private Date getRecordCreationDate(RecordId recordId, Set<Record> records) {
-        for (Record record : records) {
-            if (record.getId().equals(recordId)) {
-                return record.getCreated();
+    private Date getRecordCreationDate(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
+        try {
+            final Date created = records.get(recordId.getBibliographicRecordId()).getCreated();
+            if (created == null) {
+                throw new HarvesterInvalidRecordException("Record creation date is null");
             }
+            return created;
+        } catch (NullPointerException e) {
+            throw new HarvesterInvalidRecordException("Record creation date is null");
         }
-        return null;
     }
 
     private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {

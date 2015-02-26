@@ -54,23 +54,23 @@ public class HarvesterBean_data_Test {
     private final static SessionContext SESSION_CONTEXT = mock(SessionContext.class);
 
     private final static RecordId FIRST_RECORD_ID = new RecordId("first",
-            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterId());
+            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterNumber());
     private final static String FIRST_RECORD_CONTENT = HarvesterBeanTest.asRecordContent(FIRST_RECORD_ID);
     private final static Record FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
     private final static QueueJob FIRST_QUEUE_JOB = HarvesterBeanTest.asQueueJob(FIRST_RECORD_ID);
 
     private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head",
-            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterId());
+            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterNumber());
     private final static Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID, true);
 
     private final static RecordId SECOND_RECORD_ID = new RecordId("second",
-            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterId());
+            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterNumber());
     private final static String SECOND_RECORD_CONTENT = HarvesterBeanTest.asRecordContent(SECOND_RECORD_ID);
     private final static Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID, true);
     private final static QueueJob SECOND_QUEUE_JOB = HarvesterBeanTest.asQueueJob(SECOND_RECORD_ID);
 
     private final static RecordId THIRD_RECORD_ID = new RecordId("third",
-            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterId());
+            (int) HarvesterBean.JOB_SPECIFICATION_TEMPLATE.getSubmitterNumber());
     private final static String THIRD_RECORD_CONTENT = HarvesterBeanTest.asRecordContent(THIRD_RECORD_ID);
     private final static Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID, true);
     private final static QueueJob THIRD_QUEUE_JOB = HarvesterBeanTest.asQueueJob(THIRD_RECORD_ID);
@@ -239,7 +239,7 @@ public class HarvesterBean_data_Test {
         assertThat(jobSpecification.getFormat(), is(jobSpecificationTemplate.getFormat()));
         assertThat(jobSpecification.getCharset(), is(jobSpecificationTemplate.getCharset()));
         assertThat(jobSpecification.getDestination(), is(jobSpecificationTemplate.getDestination()));
-        assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
+        assertThat(jobSpecification.getSubmitterNumber(), is(jobSpecificationTemplate.getSubmitterNumber()));
     }
 
     private MarcExchangeRecord asMarcExchangeRecord(RecordId recordId) {

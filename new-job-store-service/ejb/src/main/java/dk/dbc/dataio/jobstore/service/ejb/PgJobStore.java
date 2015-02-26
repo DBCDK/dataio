@@ -352,7 +352,7 @@ public class PgJobStore {
             final Flow flow = jobEntity.getCachedFlow().getFlow();
             final Sink sink = jobEntity.getCachedSink().getSink();
             final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(
-                    jobEntity.getSpecification().getSubmitterId(),
+                    jobEntity.getSpecification().getSubmitterNumber(),
                     jobEntity.getSpecification().getFormat());
 
             return new ResourceBundle(flow, sink, supplementaryProcessData);

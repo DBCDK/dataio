@@ -6,7 +6,7 @@ public class JobSpecificationJsonBuilder extends JsonBuilder {
     private String charset = "charset";
     private String destination = "destination";
     private String dataFile = "dataFile";
-    private long submitterId = 42L;
+    private long submitterNumber = 42L;
 
     public JobSpecificationJsonBuilder setCharset(String charset) {
         this.charset = charset;
@@ -33,8 +33,8 @@ public class JobSpecificationJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public JobSpecificationJsonBuilder setSubmitterId(long submitterId) {
-        this.submitterId = submitterId;
+    public JobSpecificationJsonBuilder setSubmitterNumber(long submitterNumber) {
+        this.submitterNumber = submitterNumber;
         return this;
     }
 
@@ -49,7 +49,7 @@ public class JobSpecificationJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("mailForNotificationAboutVerification", "ab@cd.ef")); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("mailForNotificationAboutProcessing", "ab@cd.ef")); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("resultmailInitials", "abc")); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asLongMember("submitterId", submitterId));
+        stringBuilder.append(asLongMember("submitterNumber", submitterNumber));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

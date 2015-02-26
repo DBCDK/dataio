@@ -355,7 +355,7 @@ public class PgJobStoreIT {
         assertThat(resourceBundle.getSink(), is(params.sink));
 
         assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), not(nullValue()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(params.jobInputStream.getJobSpecification().getSubmitterId()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(params.jobInputStream.getJobSpecification().getSubmitterNumber()));
         assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(params.jobInputStream.getJobSpecification().getFormat()));
     }
 

@@ -166,7 +166,7 @@ public class JobStoreBean {
                     jobSpec.getPackaging(),
                     jobSpec.getFormat(),
                     jobSpec.getCharset(),
-                    jobSpec.getSubmitterId(),
+                    jobSpec.getSubmitterNumber(),
                     jobSpec.getDestination());
 
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {

@@ -499,6 +499,6 @@ public class FileSystemJobStore implements JobStore {
     }
 
     private SupplementaryProcessData createSupplementaryProcessData(JobSpecification jobSpecification) {
-        return new SupplementaryProcessData(jobSpecification.getSubmitterId(), jobSpecification.getFormat());
+        return new SupplementaryProcessData(jobSpecification.getSubmitterNumber(), jobSpecification.getFormat());
     }
 }

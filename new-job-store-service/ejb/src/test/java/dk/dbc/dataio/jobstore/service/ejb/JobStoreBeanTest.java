@@ -311,7 +311,7 @@ public class JobStoreBeanTest {
         ResourceBundle resourceBundle = new ResourceBundle(
                 new FlowBuilder().build(),
                 new SinkBuilder().build(),
-                new SupplementaryProcessData(jobSpecification.getSubmitterId(), jobSpecification.getFormat()));
+                new SupplementaryProcessData(jobSpecification.getSubmitterNumber(), jobSpecification.getFormat()));
 
         when(mockedJobStore.getResourceBundle(0)).thenReturn(resourceBundle);
         try {
@@ -352,7 +352,7 @@ public class JobStoreBeanTest {
                 jobSpecification.getPackaging(),
                 jobSpecification.getFormat(),
                 jobSpecification.getCharset(),
-                jobSpecification.getSubmitterId(),
+                jobSpecification.getSubmitterNumber(),
                 jobSpecification.getDestination())).thenThrow(e);
     }
 
@@ -361,7 +361,7 @@ public class JobStoreBeanTest {
                 jobSpecification.getPackaging(),
                 jobSpecification.getFormat(),
                 jobSpecification.getCharset(),
-                jobSpecification.getSubmitterId(),
+                jobSpecification.getSubmitterNumber(),
                 jobSpecification.getDestination())).thenReturn(flowBinder);
     }
 

@@ -678,8 +678,8 @@ public class PgJobStoreTest {
 
         assertThat(String.format("ResourceBundle.supplementaryProcessData.submitter: %s expected to match: %s:",
                         resourceBundle.getSupplementaryProcessData().getSubmitter(),
-                        jobEntity.getSpecification().getSubmitterId()),
-                resourceBundle.getSupplementaryProcessData().getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
+                        jobEntity.getSpecification().getSubmitterNumber()),
+                resourceBundle.getSupplementaryProcessData().getSubmitter(), is(jobEntity.getSpecification().getSubmitterNumber()));
     }
 
     @Test

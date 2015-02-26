@@ -21,7 +21,7 @@ public class JobSpecificationJsonMixIn {
                                      @JsonProperty("format") String format,
                                      @JsonProperty("charset") String charset,
                                      @JsonProperty("destination") String destination,
-                                     @JsonProperty("submitterId") long submitterId,
+                                     @JsonProperty("submitterNumber") long submitterNumber,
                                      @JsonProperty("mailForNotificationAboutVerification") String mailForNotificationAboutVerification,
                                      @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
                                      @JsonProperty("resultmailInitials") String resultmailInitials,

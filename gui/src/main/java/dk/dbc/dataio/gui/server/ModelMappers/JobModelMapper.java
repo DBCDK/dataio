@@ -18,7 +18,7 @@ public class JobModelMapper {
                 simpleDateFormat.format(jobInfoSnapshot.getTimeOfCreation()),
                 String.valueOf(jobInfoSnapshot.getJobId()),
                 jobInfoSnapshot.getSpecification().getDataFile().replaceFirst("^/tmp/", ""),
-                Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()),
+                Long.toString(jobInfoSnapshot.getSpecification().getSubmitterNumber()),
                 jobInfoSnapshot.getState().allPhasesAreDone(),
                 getTotal(jobInfoSnapshot.getState()),
                 getSucceeded(jobInfoSnapshot.getState()),

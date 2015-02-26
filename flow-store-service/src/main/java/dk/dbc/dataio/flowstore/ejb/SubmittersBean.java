@@ -15,8 +15,10 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -26,8 +28,6 @@ import java.util.List;
 
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PathParam;
 
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
@@ -106,6 +106,38 @@ public class SubmittersBean {
     }
 
     /**
+     * Retrieves submitter from underlying data store
+     *
+     * @param number submitter identifier
+     *
+     * @return a HTTP 200 response with submitter content as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json submitter
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_ID_VARIABLE) Long number) throws JsonException {
+        final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
+        query.setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, number);
+        Submitter submitter = query.getSingleResult();
+
+        if (submitter == null) {
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(ServiceUtil.asJsonError("Submitter with submitter number: " + number + " not found."))
+                    .build();
+        }
+        return Response
+                .ok()
+                .entity(JsonUtil.toJson(submitter))
+                .tag(submitter.getVersion().toString())
+                .build();
+    }
+
+    /**
      * Updates an existing submitter
      *
      * @param submitterContent The content of the submitter
@@ -164,4 +196,5 @@ public class SubmittersBean {
         final List<Submitter> results = query.getResultList();
         return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
     }
+
 }

@@ -6,30 +6,31 @@ import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
-import static dk.dbc.dataio.flowstore.ejb.SubmittersBeanTest.newSubmittersBeanWithMockedEntityManager;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
-import java.util.Arrays;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.util.Arrays;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.IsNull.nullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -88,7 +89,7 @@ public class SubmittersBeanTest {
         assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
     }
 
-    /*
+
     @Test
     public void getSubmitter_submitterFound_returnsResponseWithHttpStatusOK() throws JsonException {
         final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
@@ -119,7 +120,46 @@ public class SubmittersBeanTest {
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat(response.getEntityTag(), is(nullValue()));
     }
-    */
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void getSubmitterBySubmitterNumber_submitterFound_returnsResponseWithHttpStatusOK() throws JsonException {
+        final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
+        final Submitter submitter = new Submitter();
+        final Long submitterNumber = 463725L;
+        submitter.setContent(new SubmitterContentJsonBuilder().setNumber(submitterNumber).build());
+        submitter.setVersion(DEFAULT_TEST_VERSION);
+
+        TypedQuery<Submitter> query = mock(TypedQuery.class);
+
+        when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_NUMBER), eq(Submitter.class))).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(submitter);
+
+        Response response = submittersBean.getSubmitterBySubmitterNumber(submitterNumber);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        assertThat(entityNode.get("content").get("number").longValue(), is(submitterNumber));
+        assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void getSubmitterBySubmitterNumber_noSubmitterFound_returnsResponseWithHttpStatusNotFound() throws JsonException {
+        final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
+        final Long submitterNumber = 463725L;
+        TypedQuery<Submitter> query = mock(TypedQuery.class);
+        when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_NUMBER), eq(Submitter.class))).thenReturn(query);
+        when(query.getSingleResult()).thenReturn(null);
+
+        Response response = submittersBean.getSubmitterBySubmitterNumber(submitterNumber);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        assertThat(entityNode.get("message").textValue().contains(submitterNumber.toString()), is(true));
+        assertThat(response.getEntityTag(), is(nullValue()));
+    }
+
 
     @Test(expected = NullPointerException.class)
     public void updateSubmitter_nullSubmitterContent_throws() throws JsonException {

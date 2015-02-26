@@ -31,5 +31,8 @@ public class FlowStoreServiceConstants {
 
     public static final String FLOW_BINDER_RESOLVE = "binders/resolve";
 
+    public static final String SUBMITTER_SEARCHES_NUMBER = "submitters/searches/number/{number}";
+    public static final String SUBMITTER_NUMBER_ID_VARIABLE = "number";
+
     private FlowStoreServiceConstants() { }
 }

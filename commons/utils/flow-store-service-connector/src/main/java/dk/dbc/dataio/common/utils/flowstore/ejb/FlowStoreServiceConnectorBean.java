@@ -110,6 +110,16 @@ public class FlowStoreServiceConnectorBean {
     }
 
     @Lock(LockType.READ)
+    public Submitter getSubmitterBySubmitterNumber(long submitterNumber) throws FlowStoreServiceConnectorException {
+        LOGGER.debug("Retrieving submitter with number: " + submitterNumber);
+        try {
+            return getFlowStoreServiceConnector().getSubmitterBySubmitterNumber(submitterNumber);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
+    @Lock(LockType.READ)
     public Submitter updateSubmitter(SubmitterContent submitterContent, long id, long version) throws FlowStoreServiceConnectorException {
         LOGGER.debug("Updating existing submitter");
         try{

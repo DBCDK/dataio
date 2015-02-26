@@ -24,6 +24,7 @@ import java.util.Map;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
+import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.NUMBER;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -114,6 +115,39 @@ public class FlowStoreServiceConnector_Submitters_Test {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.getSubmitter(ID);
+    }
+
+    // ************************************ get submitter by submitter number tests ************************************
+    @Test
+    public void getSubmitterBySubmitterNumber_submitterRetrieved_returnsSubmitter() throws FlowStoreServiceConnectorException {
+        final Submitter expectedSubmitterResult = new SubmitterBuilder().setContent(new SubmitterContentBuilder().setNumber(NUMBER).build()).build();
+        final Submitter submitterResult = getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), expectedSubmitterResult);
+        assertThat(submitterResult, is(notNullValue()));
+        assertThat(submitterResult.getContent().getNumber(), is(expectedSubmitterResult.getContent().getNumber()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getSubmitterBySubmitterNumber_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void getSubmitterBySubmitterNumber_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
+        getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void getSubmitterByNumber_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
+        getSubmitterBySubmitterNumber_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
+    }
+
+    private Submitter getSubmitterBySubmitterNumber_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
+                .bind(FlowStoreServiceConstants.SUBMITTER_NUMBER_ID_VARIABLE, NUMBER);
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.getSubmitterBySubmitterNumber(NUMBER);
     }
 
     // **************************************** update submitter tests ****************************************

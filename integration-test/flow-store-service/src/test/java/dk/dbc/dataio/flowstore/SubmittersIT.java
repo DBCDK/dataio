@@ -15,26 +15,26 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
-import java.util.HashMap;
-import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Integration tests for the submitters collection part of the flow store service
@@ -208,6 +208,52 @@ public class SubmittersIT {
             flowStoreServiceConnector.getSubmitter(432L);
 
             fail("Invalid request to getSubmitter() was not detected.");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the submitters path with a valid identifier
+     * Then : a submitter is found and returned
+     * And  : assert that the submitter found has an id, a version and contains the same information as the submitter created
+     */
+    @Test
+    public void getSubmitterBySubmitterNumber_ok() throws Exception{
+
+        // When...
+        final SubmitterContent submitterContent = new SubmitterContentBuilder().setNumber(32123L).build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        // Then...
+        Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
+        Submitter submitterToGet = flowStoreServiceConnector.getSubmitterBySubmitterNumber(submitter.getContent().getNumber());
+
+        // And...
+        assertNotNull(submitterToGet);
+        assertNotNull(submitterToGet.getContent());
+        assertThat(submitterToGet.getContent().getName(), is(submitter.getContent().getName()));
+        assertThat(submitterToGet.getContent().getNumber(), is(submitter.getContent().getNumber()));
+        assertThat(submitterToGet.getContent().getDescription(), is(submitter.getContent().getDescription()));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a submitter with an unknown submitter number
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getSubmitterBySubmitterNumber_WrongSubmitterNumber_NotFound() throws FlowStoreServiceConnectorException{
+        try{
+            // Given...
+            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+            flowStoreServiceConnector.getSubmitterBySubmitterNumber(4345532L);
+
+            fail("Invalid request to getSubmitterBySubmitterNumber() was not detected.");
             // Then...
         }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...

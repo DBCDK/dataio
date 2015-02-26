@@ -18,6 +18,7 @@ import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -133,6 +134,7 @@ public class SubmittersBeanTest {
         TypedQuery<Submitter> query = mock(TypedQuery.class);
 
         when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_NUMBER), eq(Submitter.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(submitter));
         when(query.getSingleResult()).thenReturn(submitter);
 
         Response response = submittersBean.getSubmitterBySubmitterNumber(submitterNumber);
@@ -144,13 +146,13 @@ public class SubmittersBeanTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+
     public void getSubmitterBySubmitterNumber_noSubmitterFound_returnsResponseWithHttpStatusNotFound() throws JsonException {
         final SubmittersBean submittersBean = newSubmittersBeanWithMockedEntityManager();
         final Long submitterNumber = 463725L;
         TypedQuery<Submitter> query = mock(TypedQuery.class);
         when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_NUMBER), eq(Submitter.class))).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(null);
+        when(query.getResultList()).thenReturn(new ArrayList<Submitter>());
 
         Response response = submittersBean.getSubmitterBySubmitterNumber(submitterNumber);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));

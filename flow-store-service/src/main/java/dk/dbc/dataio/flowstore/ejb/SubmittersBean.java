@@ -122,14 +122,15 @@ public class SubmittersBean {
     public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_ID_VARIABLE) Long number) throws JsonException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
         query.setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, number);
-        Submitter submitter = query.getSingleResult();
 
-        if (submitter == null) {
+        List results = query.getResultList();
+        if(results.isEmpty()) {
             return Response
                     .status(Response.Status.NOT_FOUND)
                     .entity(ServiceUtil.asJsonError("Submitter with submitter number: " + number + " not found."))
                     .build();
         }
+        Submitter submitter = query.getSingleResult();
         return Response
                 .ok()
                 .entity(JsonUtil.toJson(submitter))

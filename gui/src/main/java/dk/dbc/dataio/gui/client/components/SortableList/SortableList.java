@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components;
+package dk.dbc.dataio.gui.client.components.SortableList;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components;
+package dk.dbc.dataio.gui.client.components.MultiList;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.PushButton;
+import dk.dbc.dataio.gui.client.components.SortableList.SortableList;
 
 import java.util.Map;
 
@@ -18,7 +19,8 @@ public class MultiList extends Composite implements HasValue<Map<String, String>
     interface MultiListUiBinder extends UiBinder<HTMLPanel, MultiList> {}
     private static MultiListUiBinder uiBinder = GWT.create(MultiListUiBinder.class);
 
-    @UiField SortableList list;
+    @UiField
+    SortableList list;
     @UiField PushButton removeButton;
     @UiField PushButton addButton;
 

@@ -5,6 +5,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HasValue;
+import dk.dbc.dataio.gui.client.components.MultiList.MultiList;
 
 import java.util.Map;
 

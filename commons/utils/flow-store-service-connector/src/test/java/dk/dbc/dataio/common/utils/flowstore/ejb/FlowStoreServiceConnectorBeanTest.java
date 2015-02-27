@@ -130,7 +130,7 @@ public class FlowStoreServiceConnectorBeanTest {
         final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
         try {
             flowStoreServiceConnectorBean.getSubmitterBySubmitterNumber(635242L);
-            fail("No exception thrown by getSubmitterNumber()");
+            fail("No exception thrown by getSubmitterBySubmitterNumber()");
         } catch (EJBException e) {
             assertThat((NamingException) e.getCause(), is(namingException));
         }

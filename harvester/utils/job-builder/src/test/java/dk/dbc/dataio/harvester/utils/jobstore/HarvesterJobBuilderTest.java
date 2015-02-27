@@ -239,7 +239,7 @@ public class HarvesterJobBuilderTest {
         assertThat(jobSpecification.getFormat(), is(jobSpecificationTemplate.getFormat()));
         assertThat(jobSpecification.getCharset(), is(jobSpecificationTemplate.getCharset()));
         assertThat(jobSpecification.getDestination(), is(jobSpecificationTemplate.getDestination()));
-        assertThat(jobSpecification.getSubmitterNumber(), is(jobSpecificationTemplate.getSubmitterNumber()));
+        assertThat(jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
     private static class HarvesterXmlRecordImpl implements HarvesterXmlRecord {

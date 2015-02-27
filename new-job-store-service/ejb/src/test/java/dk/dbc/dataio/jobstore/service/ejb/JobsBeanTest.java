@@ -72,7 +72,7 @@ public class JobsBeanTest {
     // ************************************* ADD JOB TESTS **************************************************************
 
     @Test(expected = JobStoreException.class)
-    public void addJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception{
+    public void addJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
         final String jobInputStreamJson = asJson(jobInputStream);
@@ -83,7 +83,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception{
+    public void addJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final Response response = jobsBean.addJob(mockedUriInfo, "invalid JSON");
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
@@ -94,7 +94,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addJob_invalidInput_returnsResponseWithHttpStatusBadRequest() throws Exception{
+    public void addJob_invalidInput_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final JobError jobError = new JobError(JobError.Code.INVALID_DATAFILE, "datafile is invalid", "stack trace");
         final InvalidInputException invalidInputException = new InvalidInputException("error message", jobError);
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
@@ -191,7 +191,7 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addChunk_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception{
+    public void addChunk_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final Response response = jobsBean.addChunkDelivered(mockedUriInfo, "invalid JSON", JOB_ID, CHUNK_ID);
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
@@ -281,7 +281,7 @@ public class JobsBeanTest {
     // ************************************* getResourceBundle() tests ***********************************************************
 
     @Test
-    public void getResourceBundle_resourcesLocated_returnsStatusOkResponseWithResourceBundle() throws JSONBException, JobStoreException{
+    public void getResourceBundle_resourcesLocated_returnsStatusOkResponseWithResourceBundle() throws JSONBException, JobStoreException {
         Flow flow = new FlowBuilder().build();
         Sink sink = new SinkBuilder().build();
         SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessDataBuilder().build();
@@ -318,7 +318,6 @@ public class JobsBeanTest {
     */
 
 
-
     private void initializeJobsBean() {
         jobsBean = new JobsBean();
         jobsBean.jsonbBean = new JSONBBean();
@@ -329,4 +328,5 @@ public class JobsBeanTest {
     private String asJson(Object object) throws JSONBException {
         return jsonbContext.marshall(object);
     }
+
 }

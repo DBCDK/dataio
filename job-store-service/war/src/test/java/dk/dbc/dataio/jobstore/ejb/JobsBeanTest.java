@@ -474,7 +474,7 @@ public class JobsBeanTest {
                 .setPackaging(packaging)
                 .setFormat(format)
                 .setCharset(charset)
-                .setSubmitterNumber(submitterNumber)
+                .setSubmitterId(submitterNumber)
                 .setDestination(destination)
                 .build();
     }

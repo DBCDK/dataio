@@ -30,7 +30,7 @@ public final class JobModelMapperOld {
                 simpleDateFormat.format(new Date(jobInfo.getJobCreationTime())),
                 String.valueOf(jobInfo.getJobId()),
                 jobInfo.getJobSpecification().getDataFile().replaceFirst("^/tmp/", ""),
-                Long.toString(jobInfo.getJobSpecification().getSubmitterNumber()),
+                Long.toString(jobInfo.getJobSpecification().getSubmitterId()),
                 !jobNotDone,
                 jobInfo.getJobErrorCode(),
                 jobNotDone ? 0 : jobInfo.getChunkifyingChunkCounter().getItemResultCounter().getTotal(),

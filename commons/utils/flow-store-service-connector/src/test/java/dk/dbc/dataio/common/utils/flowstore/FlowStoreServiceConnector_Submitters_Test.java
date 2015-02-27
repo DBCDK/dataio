@@ -143,7 +143,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     private Submitter getSubmitterBySubmitterNumber_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
-                .bind(FlowStoreServiceConstants.SUBMITTER_NUMBER_ID_VARIABLE, NUMBER);
+                .bind(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE, NUMBER);
         when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();

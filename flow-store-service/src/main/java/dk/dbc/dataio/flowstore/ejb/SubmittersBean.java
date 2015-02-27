@@ -119,7 +119,7 @@ public class SubmittersBean {
     @GET
     @Path(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_ID_VARIABLE) Long number) throws JsonException {
+    public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE) Long number) throws JsonException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
         query.setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, number);
 

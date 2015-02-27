@@ -195,7 +195,7 @@ public class FlowStoreServiceConnector {
      */
     public Submitter getSubmitterBySubmitterNumber(long submitterNumber) throws ProcessingException, FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
-                .bind(FlowStoreServiceConstants.SUBMITTER_NUMBER_ID_VARIABLE, submitterNumber);
+                .bind(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE, submitterNumber);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {

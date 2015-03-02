@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
 
 import javax.persistence.Column;
@@ -63,8 +64,9 @@ public class JobEntity {
     @JoinColumn(name = "cachedSink")
     private SinkCacheEntity cachedSink;
 
-    private String flowName;
-    private String sinkName;
+    @Column(columnDefinition = "json")
+    @Convert(converter = FlowStoreReferencesConverter.class)
+    private FlowStoreReferences flowStoreReferences;
 
     public int getId() {
         return id;
@@ -134,20 +136,12 @@ public class JobEntity {
         this.state = state;
     }
 
-    public String getFlowName() {
-        return flowName;
+    public FlowStoreReferences getFlowStoreReferences() {
+        return flowStoreReferences;
     }
 
-    public void setFlowName(String flowName) {
-        this.flowName = flowName;
-    }
-
-    public String getSinkName() {
-        return sinkName;
-    }
-
-    public void setSinkName(String sinkName) {
-        this.sinkName = sinkName;
+    public void setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
+        this.flowStoreReferences = flowStoreReferences;
     }
 
     public FlowCacheEntity getCachedFlow() {

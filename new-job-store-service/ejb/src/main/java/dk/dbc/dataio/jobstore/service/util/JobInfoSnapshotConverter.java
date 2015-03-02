@@ -32,8 +32,7 @@ public final class JobInfoSnapshotConverter {
                 toDate(jobEntity.getTimeOfCompletion()),
                 jobEntity.getSpecification(),
                 jobEntity.getState(),
-                jobEntity.getFlowName(),
-                jobEntity.getSinkName());
+                jobEntity.getFlowStoreReferences());
     }
 
     /**

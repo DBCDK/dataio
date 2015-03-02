@@ -35,8 +35,6 @@ public class JobInfoSnapshotConverterTest {
         jobEntity.setState(new State());
         jobEntity.setEoj(false);
         jobEntity.setPartNumber(1234);
-        jobEntity.setFlowName("flowName");
-        jobEntity.setSinkName("sinkName");
         jobEntity.setSpecification(new JobSpecificationBuilder().build());
         jobEntity.setNumberOfChunks(10);
         jobEntity.setNumberOfItems(5);
@@ -48,8 +46,6 @@ public class JobInfoSnapshotConverterTest {
         assertThat(jobInfoSnapshot.getState(), is(jobEntity.getState()));
         assertThat(jobInfoSnapshot.isEoj(), is (jobEntity.isEoj()));
         assertThat(jobInfoSnapshot.getPartNumber(), is(jobEntity.getPartNumber()));
-        assertThat(jobInfoSnapshot.getFlowName(), is(jobEntity.getFlowName()));
-        assertThat(jobInfoSnapshot.getSinkName(), is(jobEntity.getSinkName()));
         assertThat(jobInfoSnapshot.getSpecification(), is(jobEntity.getSpecification()));
         assertThat(jobInfoSnapshot.getNumberOfChunks(), is(jobEntity.getNumberOfChunks()));
         assertThat(jobInfoSnapshot.getNumberOfItems(), is(jobEntity.getNumberOfItems()));

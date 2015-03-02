@@ -16,6 +16,8 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -103,7 +105,7 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
             final Params params = new Params();
-            pgJobStore.addJob(null, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, params.sink);
+            pgJobStore.addJob(null, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -114,7 +116,7 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
             final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, null, params.sequenceAnalyserKeyGenerator, params.flow, params.sink);
+            pgJobStore.addJob(params.jobInputStream, null, params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -125,7 +127,7 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
             final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, null, params.flow, params.sink);
+            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, null, params.flow, params.sink, params.flowStoreReferences);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -136,7 +138,7 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
             final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, null, params.sink);
+            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, null, params.sink, params.flowStoreReferences);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -147,7 +149,7 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
             final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, null);
+            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, null, params.flowStoreReferences);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -158,12 +160,13 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         final JobEntity jobEntity = new JobEntity();
         jobEntity.setState(new State());
+        jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         final Params params = new Params();
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator, params.flow, params.sink);
+                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
 
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(EXPECTED_NUMBER_OF_CHUNKS));
@@ -743,8 +746,10 @@ public class PgJobStoreTest {
         final Query query = mock(Query.class);
         final JobEntity jobEntity1 = new JobEntity();
         jobEntity1.setNumberOfItems(42);
+        jobEntity1.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         final JobEntity jobEntity2 = new JobEntity();
         jobEntity2.setNumberOfItems(4242);
+        jobEntity2.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         when(entityManager.createNativeQuery(anyString(), eq(JobEntity.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(jobEntity1, jobEntity2));
 
@@ -806,6 +811,7 @@ public class PgJobStoreTest {
         }
 
         jobEntity.setState(jobState);
+        jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         jobEntity.setSpecification(new JobSpecificationBuilder().build());
         return jobEntity;
     }
@@ -911,6 +917,7 @@ public class PgJobStoreTest {
         public SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
         public Flow flow;
         public Sink sink;
+        public FlowStoreReferences flowStoreReferences;
         public String dataFileId;
         public short maxChunkSize;
 
@@ -920,6 +927,7 @@ public class PgJobStoreTest {
                     new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
+            flowStoreReferences = new FlowStoreReferencesBuilder().build();
             sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
             maxChunkSize = 10;
             dataFileId = "datafile";

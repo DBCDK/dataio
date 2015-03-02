@@ -29,8 +29,7 @@ CREATE TABLE job (
     state                   JSON NOT NULL,
     cachedFlow              INTEGER REFERENCES flowcache(id),
     cachedSink              INTEGER REFERENCES sinkcache(id),
-    flowName                TEXT NOT NULL,
-    sinkName                TEXT NOT NULL,
+    flowStoreReferences     JSON NOT NULL,
     PRIMARY KEY (id)
 );
 CREATE INDEX job_timeOfCreation_index ON job(timeOfCreation);

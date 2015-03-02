@@ -129,6 +129,8 @@ public class JobsBeanTest {
         assertThat(returnedJobInfoSnapshot, is(notNullValue()));
         assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
         assertThat(returnedJobInfoSnapshot.getSpecification(), is(jobInfoSnapshot.getSpecification()));
+        assertThat(returnedJobInfoSnapshot.getState(), is(jobInfoSnapshot.getState()));
+        assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
     }
 
     // ************************************* ADD CHUNK TESTS **************************************************************

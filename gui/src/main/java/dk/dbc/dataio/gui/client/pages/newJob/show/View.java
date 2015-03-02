@@ -11,9 +11,7 @@ import dk.dbc.dataio.gui.client.resources.Resources;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -296,13 +294,7 @@ public class View extends ViewWidget {
      * @return the constructed JobState column
      */
     Column constructJobStateColumn() {
-        final ImageResourceCell statusCell = new ImageResourceCell() {
-            public Set<String> getConsumedEvents() {
-                HashSet<String> events = new HashSet<String>();
-                events.add("click");
-                return events;
-            }
-        };
+        final ImageResourceCell statusCell = new ImageResourceCell();
         return new StatusColumn(resources, statusCell);
     }
 

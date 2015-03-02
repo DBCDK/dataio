@@ -21,6 +21,7 @@ import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DataException;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -83,7 +84,7 @@ public class PgJobStore {
      * @throws JobStoreException on failure to add job
      */
     public JobInfoSnapshot addJob(JobInputStream jobInputStream, DataPartitionerFactory.DataPartitioner dataPartitioner,
-                                  SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Flow flow, Sink sink) throws JobStoreException {
+                                  SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Flow flow, Sink sink, FlowStoreReferences flowStoreReferences) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
@@ -91,12 +92,13 @@ public class PgJobStore {
             InvariantUtil.checkNotNullOrThrow(sequenceAnalyserKeyGenerator, "sequenceAnalyserKeyGenerator");
             InvariantUtil.checkNotNullOrThrow(flow, "flow");
             InvariantUtil.checkNotNullOrThrow(sink, "sink");
+            InvariantUtil.checkNotNullOrThrow(flowStoreReferences, "flowStoreReferences");
 
             LOGGER.info("Adding job");
             final PgJobStore businessObject = sessionContext.getBusinessObject(PgJobStore.class);
 
             // Creates job entity in its own transactional scope to enable external visibility
-            JobEntity jobEntity = businessObject.createJobEntity(jobInputStream, flow, sink);
+            JobEntity jobEntity = businessObject.createJobEntity(jobInputStream, flow, sink, flowStoreReferences);
 
             final short maxChunkSize = 10;
             int chunkId = 0;
@@ -230,7 +232,7 @@ public class PgJobStore {
      * @throws JobStoreException if unable to cache associated flow or sink
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public JobEntity createJobEntity(JobInputStream jobInputStream, Flow flow, Sink sink) throws JobStoreException {
+    public JobEntity createJobEntity(JobInputStream jobInputStream, Flow flow, Sink sink, FlowStoreReferences flowStoreReferences) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
             final State jobState = new State();
@@ -244,8 +246,7 @@ public class PgJobStore {
             jobEntity.setState(jobState);
             jobEntity.setCachedFlow(flowCacheEntity);
             jobEntity.setCachedSink(sinkCacheEntity);
-            jobEntity.setFlowName(flow.getContent().getName());
-            jobEntity.setSinkName(sink.getContent().getName());
+            jobEntity.setFlowStoreReferences(flowStoreReferences);
             entityManager.persist(jobEntity);
             entityManager.flush();
             entityManager.refresh(jobEntity);

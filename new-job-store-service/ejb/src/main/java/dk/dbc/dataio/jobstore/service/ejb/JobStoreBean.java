@@ -10,15 +10,20 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -42,7 +47,9 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Stateless
 public class JobStoreBean {
@@ -76,14 +83,17 @@ public class JobStoreBean {
                 + "<record>eleventh</record>"
                 + "</records>";
 
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
         final Sink sink = new SinkBuilder().build();
+        final Submitter submitter = new SubmitterBuilder().build();
         final JobInputStream jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), true, 0);
         final DataPartitionerFactory.DataPartitioner dataPartitioner =
                 new DefaultXmlDataPartitionerFactory().createDataPartitioner(
                         new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
         final SequenceAnalyserSinkKeyGenerator keyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
-        jobStore.addJob(jobInputStream, dataPartitioner, keyGenerator, flow, sink);
+        final FlowStoreReferences flowStoreReferences = createFlowStoreReferences(flowBinder, flow, sink, submitter);
+        jobStore.addJob(jobInputStream, dataPartitioner, keyGenerator, flow, sink, flowStoreReferences);
     }
 
     /**
@@ -100,7 +110,9 @@ public class JobStoreBean {
             final FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
             final Flow flow = getFlowOrThrow(flowBinder.getContent().getFlowId());
             final Sink sink = getSinkOrThrow(flowBinder.getContent().getSinkId());
+            final Submitter submitter = getSubmitterOrThrow(jobInputStream.getJobSpecification().getSubmitterId());
 
+            FlowStoreReferences flowStoreReferences = createFlowStoreReferences(flowBinder, flow, sink, submitter);
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = getSequenceAnalyserKeyGenerator(flowBinder, sink);
             InputStream inputStream = getInputStream(jobInputStream.getJobSpecification());
 
@@ -108,8 +120,7 @@ public class JobStoreBean {
                     new DefaultXmlDataPartitionerFactory().createDataPartitioner(
                             inputStream, jobInputStream.getJobSpecification().getCharset());
 
-            return jobStore.addJob(jobInputStream, dataPartitioner, sequenceAnalyserKeyGenerator, flow, sink);
-
+            return jobStore.addJob(jobInputStream, dataPartitioner, sequenceAnalyserKeyGenerator, flow, sink, flowStoreReferences);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -117,7 +128,7 @@ public class JobStoreBean {
 
     /**
      * Updates existing job in the underlying data by adding external chunk changes
-     * @param chunk
+     * @param chunk the chunk id
      * @return information snap shot of updated job
      * @throws JobStoreException on failure to add chunk
      */
@@ -132,7 +143,7 @@ public class JobStoreBean {
 
     /**
      * Bundles resources referenced by a job into a single object
-     * @param jobId
+     * @param jobId the job id
      * @return resources referenced by job
      * @throws JobStoreException on failure to retrieve job
      */
@@ -212,6 +223,16 @@ public class JobStoreBean {
         }
     }
 
+    // Method is package-private for unit testing purposes
+    Submitter getSubmitterOrThrow(long submitterNumber) throws JobStoreException {
+        try {
+            return flowStoreServiceConnectorBean.getSubmitterBySubmitterNumber(submitterNumber);
+        } catch(FlowStoreServiceConnectorException ex) {
+            LOGGER.warn("Could not retrieve Submitter for jobInputStream with submitter number: {}", submitterNumber);
+            throw new JobStoreException("Could not retrieve Submitter", ex);
+        }
+    }
+
     /**
      * Method retrieving job data file
      *
@@ -239,4 +260,59 @@ public class JobStoreBean {
             throw new JobStoreException(e.getMessage(), e);
         }
     }
+
+    /**
+     * Method building flow store references based on the flow store entities given as input
+     *
+     * @param flowBinder to map
+     * @param flow to map
+     * @param sink to map
+     * @param submitter to map
+     * @return flow store references
+     */
+    private FlowStoreReferences createFlowStoreReferences(FlowBinder flowBinder, Flow flow, Sink sink, Submitter submitter) {
+        Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements = new HashMap<>();
+        createFlowBinderReference(referencedFlowStoreElements, flowBinder);
+        createFlowReference(referencedFlowStoreElements, flow);
+        createSinkReference(referencedFlowStoreElements, sink);
+        createSubmitterReference(referencedFlowStoreElements, submitter);
+        return new FlowStoreReferences(referencedFlowStoreElements);
+    }
+
+    private void createFlowBinderReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, FlowBinder flowBinder) {
+        referencedFlowStoreElements.put(
+                FlowStoreReferences.Elements.FLOW_BINDER,
+                new FlowStoreReference(
+                        flowBinder.getId(),
+                        flowBinder.getVersion(),
+                        flowBinder.getContent().getName()));
+    }
+
+    private void createFlowReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, Flow flow) {
+        referencedFlowStoreElements.put(
+                FlowStoreReferences.Elements.FLOW,
+                new FlowStoreReference(
+                        flow.getId(),
+                        flow.getVersion(),
+                        flow.getContent().getName()));
+    }
+
+    private void createSinkReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, Sink sink) {
+        referencedFlowStoreElements.put(
+                FlowStoreReferences.Elements.SINK,
+                new FlowStoreReference(
+                        sink.getId(),
+                        sink.getVersion(),
+                        sink.getContent().getName()));
+    }
+
+    private void createSubmitterReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, Submitter submitter) {
+        referencedFlowStoreElements.put(
+                FlowStoreReferences.Elements.SUBMITTER,
+                new FlowStoreReference(
+                        submitter.getId(),
+                        submitter.getVersion(),
+                        submitter.getContent().getName()));
+    }
+
 }

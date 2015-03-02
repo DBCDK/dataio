@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.test.types;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 
@@ -18,16 +19,10 @@ public class JobInfoSnapshotBuilder {
     private Date timeOfCompletion = new Date();
     private JobSpecification specification = new JobSpecificationBuilder().build();
     private State state = new State();
-    private String flowName = "flowName";
-    private String sinkName = "sinkName";
+    private FlowStoreReferences flowStoreReferences = new FlowStoreReferencesBuilder().build();
 
     public JobInfoSnapshotBuilder setEoj(boolean eoj) {
         this.eoj = eoj;
-        return this;
-    }
-
-    public JobInfoSnapshotBuilder setFlowName(String flowName) {
-        this.flowName = flowName;
         return this;
     }
 
@@ -51,8 +46,8 @@ public class JobInfoSnapshotBuilder {
         return this;
     }
 
-    public JobInfoSnapshotBuilder setSinkName(String sinkName) {
-        this.sinkName = sinkName;
+    public JobInfoSnapshotBuilder setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
+        this.flowStoreReferences = flowStoreReferences;
         return this;
     }
 
@@ -83,6 +78,6 @@ public class JobInfoSnapshotBuilder {
 
     public JobInfoSnapshot build() {
         return new JobInfoSnapshot(jobId, eoj, partNumber, numberOfChunks, numberOfItems, timeOfCreation,
-                timeOfLastModification, timeOfCompletion, specification, state, flowName, sinkName);
+                timeOfLastModification, timeOfCompletion, specification, state, flowStoreReferences);
     }
 }

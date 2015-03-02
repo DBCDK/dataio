@@ -4,9 +4,11 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -17,6 +19,8 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -186,7 +190,7 @@ public class PgJobStoreIT {
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator, params.flow, params.sink);
+                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
         transaction.commit();
 
         // Then...
@@ -239,7 +243,7 @@ public class PgJobStoreIT {
         jobTransaction.begin();
 
         final JobInfoSnapshot jobInfoSnapshotNewJob = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator, params.flow, params.sink);
+                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
         jobTransaction.commit();
 
         assertThat(jobInfoSnapshotNewJob, not(nullValue()));
@@ -299,7 +303,7 @@ public class PgJobStoreIT {
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
             snapshots.add(pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                    params.sequenceAnalyserKeyGenerator, params.flow, params.sink));
+                    params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences));
             jobTransaction.commit();
         }
 
@@ -338,7 +342,8 @@ public class PgJobStoreIT {
                         params.dataPartitioner,
                         params.sequenceAnalyserKeyGenerator,
                         params.flow,
-                        params.sink);
+                        params.sink,
+                        params.flowStoreReferences);
 
         jobTransaction.commit();
         assertThat(jobInfoSnapshot, not(nullValue()));
@@ -521,6 +526,8 @@ public class PgJobStoreIT {
         public SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
         public Flow flow;
         public Sink sink;
+        public FlowBinder flowBinder;
+        public FlowStoreReferences flowStoreReferences;
         public String dataFileId;
         public short maxChunkSize;
 
@@ -530,6 +537,8 @@ public class PgJobStoreIT {
                     new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
+            flowBinder = new FlowBinderBuilder().build();
+            flowStoreReferences = new FlowStoreReferencesBuilder().build();
             sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
             maxChunkSize = 10;
             dataFileId = "datafile";

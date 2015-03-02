@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
@@ -18,8 +19,7 @@ public class JobInfoSnapshot {
     private Date timeOfCompletion;
     private JobSpecification specification;
     private State state;
-    private String flowName;
-    private String sinkName;
+    private FlowStoreReferences flowStoreReferences;
 
     @JsonCreator
     public JobInfoSnapshot(@JsonProperty ("jobId")int jobId,
@@ -32,8 +32,7 @@ public class JobInfoSnapshot {
                            @JsonProperty ("timeOfCompletion")Date timeOfCompletion,
                            @JsonProperty ("specification") JobSpecification specification,
                            @JsonProperty ("state")State state,
-                           @JsonProperty ("flowName")String flowName,
-                           @JsonProperty ("sinkName")String sinkName) {
+                           @JsonProperty ("flowStoreReferences") FlowStoreReferences flowStoreReferences) {
 
         this.jobId = jobId;
         this.eoj = eoj;
@@ -45,8 +44,7 @@ public class JobInfoSnapshot {
         this.timeOfCompletion = (timeOfCompletion == null) ? null : new Date(timeOfCompletion.getTime());
         this.specification = specification;
         this.state = state;
-        this.flowName = flowName;
-        this.sinkName = sinkName;
+        this.flowStoreReferences = flowStoreReferences;
     }
 
     public int getJobId() {
@@ -89,11 +87,17 @@ public class JobInfoSnapshot {
         return state;
     }
 
-    public String getFlowName() {
-        return flowName;
+    public FlowStoreReferences getFlowStoreReferences() {
+        return flowStoreReferences;
     }
 
+    @JsonIgnore
+    public String getFlowName() {
+        return flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW).getName();
+    }
+
+    @JsonIgnore
     public String getSinkName() {
-        return sinkName;
+        return flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK).getName();
     }
 }

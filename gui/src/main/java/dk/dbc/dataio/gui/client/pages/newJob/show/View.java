@@ -96,6 +96,9 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructFileNameColumn(), texts.columnHeader_FileName());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
+        jobsTable.addColumn(constructSubmitterNameColumn(), texts.columnHeader_SubmitterName());
+        jobsTable.addColumn(constructFlowBinderNameColumn(), texts.columnHeader_FlowBinderName());
+        jobsTable.addColumn(constructSinkNameColumn(), texts.columnHeader_SinkName());
         jobsTable.addColumn(constructItemCountColumn(), texts.columnHeader_TotalChunkCount());
         jobsTable.addColumn(constructSuccessCounterColumn(), texts.columnHeader_SuccessCounter());
         jobsTable.addColumn(constructFailedCounterColumn(), texts.columnHeader_FailureCounter());
@@ -189,6 +192,72 @@ public class View extends ViewWidget {
         columnSortHandler.setComparator(column, new Comparator<JobModel>() {
             public int compare(JobModel o1, JobModel o2) {
                 return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStringsAsLongs(o1.getSubmitterNumber(), o2.getSubmitterNumber()) : 1;
+            }
+        });
+        return column;
+    }
+
+    /**
+     * This method constructs the SubmitterName column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed SubmitterName column
+     */
+    Column constructSubmitterNameColumn() {
+        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+            @Override
+            public String getValue(JobModel model) {
+                return model.getSubmitterName();
+            }
+        };
+        column.setSortable(true);
+        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
+            public int compare(JobModel o1, JobModel o2) {
+                return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStrings(o1.getSubmitterName(), o2.getSubmitterName()) : 1;
+            }
+        });
+        return column;
+    }
+
+    /**
+     * This method constructs the FlowBinderName column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed FlowBinderName column
+     */
+    Column constructFlowBinderNameColumn() {
+        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+            @Override
+            public String getValue(JobModel model) {
+                return model.getFlowBinderName();
+            }
+        };
+        column.setSortable(true);
+        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
+            public int compare(JobModel o1, JobModel o2) {
+                return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStrings(o1.getFlowBinderName(), o2.getFlowBinderName()) : 1;
+            }
+        });
+        return column;
+    }
+
+    /**
+     * This method constructs the SinkName column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed SinkName column
+     */
+    Column constructSinkNameColumn() {
+        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+            @Override
+            public String getValue(JobModel model) {
+                return model.getSinkName();
+            }
+        };
+        column.setSortable(true);
+        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
+            public int compare(JobModel o1, JobModel o2) {
+                return ViewHelper.validateObjects(o1, o2) ? ViewHelper.compareStrings(o1.getSinkName(), o2.getSinkName()) : 1;
             }
         });
         return column;

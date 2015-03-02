@@ -6,6 +6,9 @@ public class JobModel extends GenericBackendModel {
     private String jobId;
     private String fileName;
     private String submitterNumber;
+    private String submitterName;
+    private String flowBinderName;
+    private String sinkName;
     private boolean jobDone;
     private long itemCounter;
     private long succeededCounter;
@@ -16,6 +19,9 @@ public class JobModel extends GenericBackendModel {
                     String jobId,
                     String fileName,
                     String submitterNumber,
+                    String submitterName,
+                    String flowBinderName,
+                    String sinkName,
                     boolean jobDone,
                     long itemCounter,
                     long succeededCounter,
@@ -25,6 +31,9 @@ public class JobModel extends GenericBackendModel {
         this.jobId = jobId;
         this.fileName = fileName;
         this.submitterNumber = submitterNumber;
+        this.submitterName = submitterName;
+        this.flowBinderName = flowBinderName;
+        this.sinkName = sinkName;
         this.itemCounter = itemCounter;
         this.jobDone = jobDone;
         this.succeededCounter = succeededCounter;
@@ -34,7 +43,7 @@ public class JobModel extends GenericBackendModel {
     }
 
     public JobModel() {
-        this("", "", "", "", false, 0, 0, 0, 0);
+        this("", "", "", "", "", "", "", false, 0, 0, 0, 0);
     }
 
     public String getJobCreationTime() {
@@ -67,6 +76,30 @@ public class JobModel extends GenericBackendModel {
 
     public void setSubmitterNumber(String submitterNumber) {
         this.submitterNumber = submitterNumber;
+    }
+
+    public String getSubmitterName() {
+        return submitterName;
+    }
+
+    public void setSubmitterName(String submitterName) {
+        this.submitterName = submitterName;
+    }
+
+    public String getFlowBinderName() {
+        return flowBinderName;
+    }
+
+    public void setFlowBinderName(String flowBinderName) {
+        this.flowBinderName = flowBinderName;
+    }
+
+    public String getSinkName() {
+        return sinkName;
+    }
+
+    public void setSinkName(String sinkName) {
+        this.sinkName = sinkName;
     }
 
     public long getItemCounter() {

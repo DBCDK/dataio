@@ -2,6 +2,8 @@ package dk.dbc.dataio.gui.server.ModelMappers;
 
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
@@ -13,12 +15,17 @@ import java.util.List;
 public class JobModelMapper {
 
     public static JobModel toModel(JobInfoSnapshot jobInfoSnapshot) {
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
+
         return new JobModel(
                 simpleDateFormat.format(jobInfoSnapshot.getTimeOfCreation()),
                 String.valueOf(jobInfoSnapshot.getJobId()),
                 jobInfoSnapshot.getSpecification().getDataFile().replaceFirst("^/tmp/", ""),
                 Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()),
+                getSubmitterName(jobInfoSnapshot.getFlowStoreReferences()) ,
+                getFlowBinderName(jobInfoSnapshot.getFlowStoreReferences()),
+                getSinkName(jobInfoSnapshot.getFlowStoreReferences()),
                 jobInfoSnapshot.getState().allPhasesAreDone(),
                 getTotal(jobInfoSnapshot.getState()),
                 getSucceeded(jobInfoSnapshot.getState()),
@@ -33,6 +40,45 @@ public class JobModelMapper {
             jobInfoSnapshotModels.add(toModel(jobInfoSnapshot));
         }
         return jobInfoSnapshotModels;
+    }
+
+    /**
+     * This method retrieves the name of the submitter.
+     * Due to a change in the database scheme it is necessary to check if the referenced submitter exists.
+     * For jobs created before 02.03.2015 the reference will be null.
+     *
+     * @param references the referenced flow store elements
+     * @return name of the submitter
+     */
+    private static String getSubmitterName(FlowStoreReferences references) {
+        FlowStoreReference submitterReference = references.getReference(FlowStoreReferences.Elements.SUBMITTER);
+        return submitterReference == null ? "" : submitterReference.getName();
+    }
+
+    /**
+     * This method retrieves the name of the flow binder.
+     * Due to a change in the database scheme it is necessary to check if the referenced flow binder exists.
+     * For jobs created before 02.03.2015 the reference will be null.
+     *
+     * @param references the referenced flow store elements
+     * @return name of the flow binder
+     */
+    private static String getFlowBinderName(FlowStoreReferences references) {
+        FlowStoreReference flowBinderReference = references.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
+        return flowBinderReference == null ? "" : flowBinderReference.getName();
+    }
+
+    /**
+     * This method retrieves the name of the sink.
+     * Due to a change in the database scheme it is necessary to check if the referenced sink exists.
+     * For jobs created before 02.03.2015 the reference will be null.
+     *
+     * @param references the referenced flow store elements
+     * @return name of the sink
+     */
+    private static String getSinkName(FlowStoreReferences references) {
+        FlowStoreReference sinkReference = references.getReference(FlowStoreReferences.Elements.SINK);
+        return sinkReference == null ? "" : sinkReference.getName();
     }
 
     /**

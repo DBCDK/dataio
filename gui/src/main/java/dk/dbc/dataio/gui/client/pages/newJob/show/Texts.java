@@ -20,6 +20,15 @@ public interface Texts extends Constants {
     String columnHeader_SubmitterNumber();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_SubmitterName();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_FlowBinderName();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_SinkName();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_TotalChunkCount();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

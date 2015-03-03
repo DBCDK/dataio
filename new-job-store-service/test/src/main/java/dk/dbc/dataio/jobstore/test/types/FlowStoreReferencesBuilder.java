@@ -8,18 +8,23 @@ import java.util.Map;
 
 public class FlowStoreReferencesBuilder {
 
-    private Map<FlowStoreReferences.Elements, FlowStoreReference> references = createFlowStoreReferences();
+    private final Map<FlowStoreReferences.Elements, FlowStoreReference> references = createReferences();
 
-    public FlowStoreReferencesBuilder setFlowStoreReferences(Map<FlowStoreReferences.Elements, FlowStoreReference> references) {
-        this.references = references;
+    public FlowStoreReferencesBuilder setFlowStoreReference(FlowStoreReferences.Elements element, FlowStoreReference flowStoreReference) {
+        this.references.put(element, flowStoreReference);
         return this;
     }
 
     public FlowStoreReferences build() {
-        return new FlowStoreReferences(references);
+        FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, references.get(FlowStoreReferences.Elements.FLOW_BINDER));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW, references.get(FlowStoreReferences.Elements.FLOW));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK, references.get(FlowStoreReferences.Elements.SINK));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SUBMITTER, references.get(FlowStoreReferences.Elements.SUBMITTER));
+        return flowStoreReferences;
     }
 
-    private Map<FlowStoreReferences.Elements, FlowStoreReference> createFlowStoreReferences() {
+    private Map<FlowStoreReferences.Elements, FlowStoreReference> createReferences() {
         Map<FlowStoreReferences.Elements, FlowStoreReference> flowStoreReferences = new HashMap<>(4);
         flowStoreReferences.put(FlowStoreReferences.Elements.FLOW_BINDER, new FlowStoreReferenceBuilder().setName("FlowBinderName").build());
         flowStoreReferences.put(FlowStoreReferences.Elements.FLOW, new FlowStoreReferenceBuilder().setName("FlowName").build());

@@ -47,9 +47,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Stateless
 public class JobStoreBean {
@@ -271,48 +269,28 @@ public class JobStoreBean {
      * @return flow store references
      */
     private FlowStoreReferences createFlowStoreReferences(FlowBinder flowBinder, Flow flow, Sink sink, Submitter submitter) {
-        Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements = new HashMap<>();
-        createFlowBinderReference(referencedFlowStoreElements, flowBinder);
-        createFlowReference(referencedFlowStoreElements, flow);
-        createSinkReference(referencedFlowStoreElements, sink);
-        createSubmitterReference(referencedFlowStoreElements, submitter);
-        return new FlowStoreReferences(referencedFlowStoreElements);
+        FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, createFlowBinderReference(flowBinder));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW, createFlowReference(flow));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK, createSinkReference(sink));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SUBMITTER, createSubmitterReference(submitter));
+        return flowStoreReferences;
     }
 
-    private void createFlowBinderReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, FlowBinder flowBinder) {
-        referencedFlowStoreElements.put(
-                FlowStoreReferences.Elements.FLOW_BINDER,
-                new FlowStoreReference(
-                        flowBinder.getId(),
-                        flowBinder.getVersion(),
-                        flowBinder.getContent().getName()));
+    private FlowStoreReference createFlowBinderReference(FlowBinder flowBinder) {
+        return new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(),flowBinder.getContent().getName());
     }
 
-    private void createFlowReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, Flow flow) {
-        referencedFlowStoreElements.put(
-                FlowStoreReferences.Elements.FLOW,
-                new FlowStoreReference(
-                        flow.getId(),
-                        flow.getVersion(),
-                        flow.getContent().getName()));
+    private FlowStoreReference createFlowReference(Flow flow) {
+        return new FlowStoreReference(flow.getId(), flow.getVersion(),flow.getContent().getName());
     }
 
-    private void createSinkReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, Sink sink) {
-        referencedFlowStoreElements.put(
-                FlowStoreReferences.Elements.SINK,
-                new FlowStoreReference(
-                        sink.getId(),
-                        sink.getVersion(),
-                        sink.getContent().getName()));
+    private FlowStoreReference createSinkReference(Sink sink) {
+        return new FlowStoreReference(sink.getId(), sink.getVersion(),sink.getContent().getName());
     }
 
-    private void createSubmitterReference(Map<FlowStoreReferences.Elements, FlowStoreReference> referencedFlowStoreElements, Submitter submitter) {
-        referencedFlowStoreElements.put(
-                FlowStoreReferences.Elements.SUBMITTER,
-                new FlowStoreReference(
-                        submitter.getId(),
-                        submitter.getVersion(),
-                        submitter.getContent().getName()));
+    private FlowStoreReference createSubmitterReference(Submitter submitter) {
+        return new FlowStoreReference(submitter.getId(), submitter.getVersion(),submitter.getContent().getName());
     }
 
 }

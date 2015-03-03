@@ -2,8 +2,8 @@ package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class FlowStoreReferences {
@@ -11,14 +11,22 @@ public class FlowStoreReferences {
     @JsonProperty
     private final Map<Elements, FlowStoreReference> references;
 
-
     @JsonCreator
-    public FlowStoreReferences(@JsonProperty("references") Map<Elements, FlowStoreReference> references) throws NullPointerException {
-        this.references = InvariantUtil.checkNotNullOrThrow(references, "references");
+    public FlowStoreReferences() throws NullPointerException {
+        this.references = new HashMap<>(Elements.values().length);
     }
 
     public enum Elements { FLOW_BINDER, FLOW, SUBMITTER, SINK }
 
+    /**
+     * Sets the specified reference to a flow store element
+     *
+     * @param element the flow store element
+     * @param flowStoreReference the flow store reference
+     */
+    public void setReference(FlowStoreReferences.Elements element, FlowStoreReference flowStoreReference) {
+        references.put(element, flowStoreReference);
+    }
 
     /**
      * Retrieves the specified flowStoreReference from references

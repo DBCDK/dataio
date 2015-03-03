@@ -185,5 +185,11 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 .sortable-widget-entry-disabled {
     background: lightgray;
     color: white;
-    cursor: auto;
+    cursor: pointer;
+    -webkit-touch-callout: none; /* Disable text selection */
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }

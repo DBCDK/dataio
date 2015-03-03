@@ -52,16 +52,6 @@ public class MultiListEntry extends DataEntry implements HasValue<Map<String, St
     }
 
     /**
-     * addValue adds another item to the bottom of the list
-     * @param text The text for the item
-     * @param key The key for the item
-     * @param fireEvent A boolean to determine, if an event is being fired upon change
-     */
-    public void addValue(String text, String key, boolean fireEvent) {
-        multiList.addValue(text, key, fireEvent);
-    }
-
-    /**
      * setValue replaces all items in the list with the supplied map
      * @param items The new map of list items
      */

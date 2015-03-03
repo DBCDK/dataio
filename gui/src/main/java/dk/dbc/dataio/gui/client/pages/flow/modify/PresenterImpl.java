@@ -177,10 +177,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.model = model;
     }
 
-  /*
+
+    /*
      * Local class
      */
-
 
     /**
      * Local call back class to be instantiated in the call to findAllFlowComponents in flowstore proxy

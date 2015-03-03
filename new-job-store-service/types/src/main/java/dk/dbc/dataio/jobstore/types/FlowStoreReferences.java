@@ -12,7 +12,7 @@ public class FlowStoreReferences {
     private final Map<Elements, FlowStoreReference> references;
 
     @JsonCreator
-    public FlowStoreReferences() throws NullPointerException {
+    public FlowStoreReferences() {
         this.references = new HashMap<>(Elements.values().length);
     }
 

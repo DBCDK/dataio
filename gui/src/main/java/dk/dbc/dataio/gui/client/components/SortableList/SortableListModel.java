@@ -205,7 +205,7 @@ public class SortableListModel {
         Label label = new Label(text);
         DraggableWidget<Label> draggableLabel = new DraggableWidget<Label>(label);
         draggableLabel.setDraggableOptions(labelWidgetDraggableOptions(list));
-        GQuery.$(draggableLabel).bind(Event.ONMOUSEDOWN, new MouseDownFunction());
+        $(draggableLabel).bind(Event.ONMOUSEDOWN, new MouseDownFunction());
         return draggableLabel;
     }
 
@@ -217,7 +217,7 @@ public class SortableListModel {
     private DraggableOptions labelWidgetDraggableOptions(Widget container) {
         DraggableOptions options = new DraggableOptions();
         options.setAxis(DraggableOptions.AxisOption.Y_AXIS);
-        options.setContainment(GQuery.$(container.getParent()));
+        options.setContainment($(container.getParent()));
         options.setOnDragStop(new DragStopClass());
         return options;
     }

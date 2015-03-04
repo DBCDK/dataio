@@ -93,7 +93,6 @@ public class RawRepoHarvesterConfigTest {
         final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
         config.addEntry(configEntry);
         final String marshalled = jsonbContext.marshall(config);
-        System.out.println(marshalled);
         final RawRepoHarvesterConfig unmarshalled = jsonbContext.unmarshall(marshalled, RawRepoHarvesterConfig.class);
         assertThat(unmarshalled.getEntries().contains(configEntry), is(true));
     }

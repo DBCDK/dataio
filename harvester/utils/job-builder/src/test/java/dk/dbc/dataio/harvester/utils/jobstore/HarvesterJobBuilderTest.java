@@ -177,7 +177,7 @@ public class HarvesterJobBuilderTest {
 
     @Test
     public void build_creationOfFileStoreUrnThrowsURISyntaxException_throws() throws FileStoreServiceConnectorException, HarvesterException {
-        when(fileStoreServiceConnector.addFile(is)).thenReturn("  ");
+        when(fileStoreServiceConnector.addFile(is)).thenReturn("\\");
 
         final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));

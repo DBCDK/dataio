@@ -43,7 +43,7 @@ public class InvariantUtil {
     public static String checkNotNullNotEmptyOrThrow(String stringObject, String parameterName)
             throws NullPointerException, IllegalArgumentException {
         checkNotNullOrThrow(stringObject, parameterName);
-        if (stringObject.isEmpty()) {
+        if (stringObject.trim().isEmpty()) {
             final String message = "Value of parameter '" + parameterName + "' cannot be empty";
             throw new IllegalArgumentException(message);
         }

@@ -9,5 +9,7 @@ public class JndiConstants {
     public static final String URL_RESOURCE_JOBSTORE_FILESYSTEM = "url/dataio/jobstore/filesystem";
     public static final String URL_RESOURCE_JOBSTORE_RS = "url/dataio/jobstore/rs";
 
+    public static final String CONFIG_RESOURCE_HARVESTER_RR = "config/dataio/harvester/rr";
+
     private JndiConstants() { }
 }

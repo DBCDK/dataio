@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataFileExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifier;
@@ -180,7 +181,7 @@ public class HarvesterBean_data_Test {
         harvesterDataFileWithLocalRecordsExpectations.add(localExpectation1);
 
         // Execute harvest
-        getHarvesterBean().harvest();
+        getHarvesterBean().harvest(new RawRepoHarvesterConfig.Entry());
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -221,7 +222,7 @@ public class HarvesterBean_data_Test {
         harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
 
         // Execute harvest
-        getHarvesterBean().harvest();
+        getHarvesterBean().harvest(new RawRepoHarvesterConfig.Entry());
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();

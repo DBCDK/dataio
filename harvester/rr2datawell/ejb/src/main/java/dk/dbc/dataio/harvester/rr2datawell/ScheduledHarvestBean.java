@@ -1,10 +1,12 @@
 package dk.dbc.dataio.harvester.rr2datawell;
 
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
@@ -22,6 +24,7 @@ import javax.ejb.TimerService;
  */
 @Singleton
 @Startup
+@DependsOn("HarvesterConfigurationBean")
 public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 
@@ -29,6 +32,9 @@ public class ScheduledHarvestBean {
 
     @Resource
     TimerService timerService;
+
+    @EJB
+    HarvesterConfigurationBean config;
 
     @EJB
     HarvesterBean harvester;
@@ -79,7 +85,10 @@ public class ScheduledHarvestBean {
     @Timeout
     public void runScheduledHarvest(Timer timer) {
         try {
-            harvester.harvest();
+            config.reload();
+            for (RawRepoHarvesterConfig.Entry configEntry : config.get().getEntries()){
+                harvester.harvest(configEntry);
+            }
         } catch (Exception e) {
             LOGGER.warn("Exception caught from harvester", e);
         }

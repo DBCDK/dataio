@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
@@ -246,7 +247,7 @@ public class HarvesterBeanTest {
 
         final HarvesterBean harvesterBean = getInitializedBean();
         try {
-            harvesterBean.harvest();
+            harvesterBean.harvest(new RawRepoHarvesterConfig.Entry());
         } catch (HarvesterException e) {
         }
     }
@@ -257,7 +258,7 @@ public class HarvesterBeanTest {
         doReturn(HarvesterBean.HARVEST_BATCH_SIZE).
                 doReturn(HarvesterBean.HARVEST_BATCH_SIZE - 1).
                 when(harvesterBean).harvestBatch();
-        harvesterBean.harvest();
+        harvesterBean.harvest(new RawRepoHarvesterConfig.Entry());
 
         verify(harvesterBean, times(2)).harvestBatch();
     }

@@ -7,6 +7,7 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
@@ -89,7 +90,8 @@ public class HarvesterBean {
      * @throws HarvesterException on failure to complete harvest operation
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void harvest() throws IllegalStateException, HarvesterException {
+    public void harvest(RawRepoHarvesterConfig.Entry config) throws IllegalStateException, HarvesterException {
+        LOGGER.debug("Called with config {}", config);
         while (sessionContext.getBusinessObject(HarvesterBean.class).harvestBatch() == HARVEST_BATCH_SIZE)
             continue;
     }

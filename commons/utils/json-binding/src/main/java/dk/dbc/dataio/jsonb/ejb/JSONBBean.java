@@ -3,6 +3,8 @@ package dk.dbc.dataio.jsonb.ejb;
 import dk.dbc.dataio.jsonb.JSONBContext;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 
 /**
@@ -17,6 +19,7 @@ public class JSONBBean {
         jsonbContext = new JSONBContext();
     }
 
+    @Lock(LockType.READ)
     public JSONBContext getContext() {
         return jsonbContext;
     }

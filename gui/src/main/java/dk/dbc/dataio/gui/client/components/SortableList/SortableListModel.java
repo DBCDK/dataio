@@ -10,6 +10,7 @@ import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.gquery.GQueryWrapper;
 import gwtquery.plugins.draggable.client.DraggableOptions;
 import gwtquery.plugins.draggable.client.events.DragContext;
 import gwtquery.plugins.draggable.client.gwt.DraggableWidget;
@@ -21,10 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.gwt.query.client.GQuery.$;
-
 public class SortableListModel {
-    private class SortableWidget {
+    class SortableWidget {  // This is package private because of test - should be private
         String key;
         String value;
         boolean selected;
@@ -38,10 +37,11 @@ public class SortableListModel {
         }
     }
 
-    private List<SortableWidget> modelWidgets;
-    private ValueChangeHandler<Map<String, String>> valueChangeHandler = null;
+    List<SortableWidget> modelWidgets;  // This is package private because of test - should be private
+    GQueryWrapper gQuery = null;
+    ValueChangeHandler<Map<String, String>> valueChangeHandler = null;  // This is package private because of test - should be private
     private boolean enabled = false;
-    private FlowPanel list;
+    FlowPanel list;  // This is package private because of test - should be private
     private final String SELECTED = "sortable-widget-entry-selected";
     private final String NOT_SELECTED = "sortable-widget-entry-deselected";
     private final String DISABLED_SORTABLE_WIDGET = "sortable-widget-entry-disabled";
@@ -50,7 +50,16 @@ public class SortableListModel {
      * Constructor
      */
     SortableListModel(FlowPanel list) {
+        this(list, new GQueryWrapper());
+    }
+
+    /*
+     * Constructor - allows injection of GwtQuery wrapper
+     * To be used for unit test
+     */
+    SortableListModel(FlowPanel list, GQueryWrapper gQueryWrapper) {
         this.list = list;
+        this.gQuery = gQueryWrapper;
         modelWidgets = new ArrayList<SortableWidget>();
     }
 
@@ -110,7 +119,7 @@ public class SortableListModel {
     void put(Map<String, String> items) {
         clear();
         for (Map.Entry<String, String> item : items.entrySet()) {
-            add(item.getValue(), item.getKey());
+            add(item.getKey(), item.getValue());
         }
     }
 
@@ -205,7 +214,7 @@ public class SortableListModel {
         Label label = new Label(text);
         DraggableWidget<Label> draggableLabel = new DraggableWidget<Label>(label);
         draggableLabel.setDraggableOptions(labelWidgetDraggableOptions(list));
-        $(draggableLabel).bind(Event.ONMOUSEDOWN, new MouseDownFunction());
+        gQuery.$(draggableLabel).bind(Event.ONMOUSEDOWN, new MouseDownFunction());
         return draggableLabel;
     }
 
@@ -217,7 +226,7 @@ public class SortableListModel {
     private DraggableOptions labelWidgetDraggableOptions(Widget container) {
         DraggableOptions options = new DraggableOptions();
         options.setAxis(DraggableOptions.AxisOption.Y_AXIS);
-        options.setContainment($(container.getParent()));
+        options.setContainment(gQuery.$(container.getParent()));
         options.setOnDragStop(new DragStopClass());
         return options;
     }
@@ -239,9 +248,9 @@ public class SortableListModel {
     /**
      * This event handler class implements the mouse down functionality
      */
-    private class MouseDownFunction extends Function {
+    class MouseDownFunction extends Function {  // Is package-private due to test
         public boolean f(Event event) {
-            setOneSelected($(event));
+            setOneSelected(gQuery.$(event));
             return true;
         }
     }
@@ -249,7 +258,7 @@ public class SortableListModel {
     /**
      * This event handler class implements the DragFunction to be activated, when stopping a drag
      */
-    private class DragStopClass implements DraggableOptions.DragFunction {
+    class DragStopClass implements DraggableOptions.DragFunction {  // Is package-private due to test
         @Override
         public void f(DragContext dragContext) {
             reOrder();

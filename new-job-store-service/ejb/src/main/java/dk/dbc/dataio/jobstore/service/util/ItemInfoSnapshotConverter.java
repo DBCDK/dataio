@@ -35,7 +35,7 @@ public class ItemInfoSnapshotConverter {
     }
 
     private static int calculateItemNumber(ItemEntity.Key key) {
-        return key.getChunkId() * CHUNK_SIZE + (key.getId());
+        return key.getChunkId() * CHUNK_SIZE + key.getId();
     }
 
 

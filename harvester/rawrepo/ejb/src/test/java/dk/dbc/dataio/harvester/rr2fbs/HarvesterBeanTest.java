@@ -86,30 +86,6 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvestBatch_repoConnectorBeanQueueSuccessThrowsSqlException_throws() throws SQLException, RawRepoException {
-        doThrow(new SQLException()).when(repoConnectorBean).queueSuccess(QUEUE_JOB);
-
-        final HarvesterBean harvesterBean = getInitializedBean();
-        try {
-            harvesterBean.harvestBatch();
-            fail("No exception thrown");
-        } catch (HarvesterException e) {
-        }
-    }
-
-    @Test
-    public void harvestBatch_repoConnectorBeanQueueSuccessThrowsRawRepoException_throws() throws SQLException, RawRepoException {
-        doThrow(new RawRepoException()).when(repoConnectorBean).queueSuccess(QUEUE_JOB);
-
-        final HarvesterBean harvesterBean = getInitializedBean();
-        try {
-            harvesterBean.harvestBatch();
-            fail("No exception thrown");
-        } catch (HarvesterException e) {
-        }
-    }
-
-    @Test
     public void harvestBatch_repoConnectorBeanQueueFailThrowsSqlException_throws() throws SQLException, RawRepoException, MarcXMergerException {
         final Record rrRecord = mock(Record.class);
         when(repoConnectorBean.fetchRecordCollection(any(RecordId.class)))

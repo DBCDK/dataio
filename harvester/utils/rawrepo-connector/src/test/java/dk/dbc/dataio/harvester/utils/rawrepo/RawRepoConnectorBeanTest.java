@@ -28,11 +28,6 @@ public class RawRepoConnectorBeanTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void queueSuccess_queueJobsArgIsNull_throws() throws SQLException, RawRepoException {
-        new RawRepoConnectorBean().queueSuccess(null);
-    }
-
-    @Test(expected = NullPointerException.class)
     public void queueFail_queueJobsArgIsNull_throws() throws SQLException, RawRepoException {
         new RawRepoConnectorBean().queueFail(null, "error");
     }

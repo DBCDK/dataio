@@ -68,15 +68,6 @@ public class RawRepoConnectorBean {
         }
     }
 
-    public void queueSuccess(QueueJob queueJob) throws NullPointerException, SQLException, RawRepoException {
-        InvariantUtil.checkNotNullOrThrow(queueJob, "queueJob");
-        try (final Connection connection = dataSource.getConnection()) {
-            final StopWatch stopWatch = new StopWatch();
-            // RawRepoDAO.newInstance(connection).queueSuccess(queueJob);
-            LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
     public void queueFail(QueueJob queueJob, String errorMessage)
             throws NullPointerException, SQLException, RawRepoException {
         InvariantUtil.checkNotNullOrThrow(queueJob, "queueJob");

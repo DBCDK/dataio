@@ -123,7 +123,6 @@ public class HarvesterBean {
                             localRecordsJobBuilder.addHarvesterRecord(harvesterRecord);
                             break;
                     }
-                    markAsSuccess(nextQueuedItem);
                 } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
                     LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
                     markAsFailure(nextQueuedItem, e.getMessage());
@@ -203,14 +202,6 @@ public class HarvesterBean {
             return created;
         } catch (NullPointerException e) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
-        }
-    }
-
-    private void markAsSuccess(QueueJob queuedItem) throws HarvesterException {
-        try {
-            rawRepoConnector.queueSuccess(queuedItem);
-        } catch (SQLException | RawRepoException e) {
-            throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as success", e);
         }
     }
 

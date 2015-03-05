@@ -45,8 +45,11 @@ public class SortableListModelTest {
     @Mock FlowPanel mockedParentPanel;
     @Mock GQueryWrapper mockedGQueryWrapper;
     @Mock GQuery mockedGQuery;
+    @SuppressWarnings("deprecation")
     @Mock com.google.gwt.user.client.Element element1;
+    @SuppressWarnings("deprecation")
     @Mock com.google.gwt.user.client.Element element2;
+    @SuppressWarnings("deprecation")
     @Mock com.google.gwt.user.client.Element element3;
     @Mock DraggableWidget draggableWidget1;
     @Mock DraggableWidget draggableWidget2;

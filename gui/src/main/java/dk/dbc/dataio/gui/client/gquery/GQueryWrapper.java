@@ -174,7 +174,7 @@ public class GQueryWrapper {
         return GQuery.when(subordinates);
     }
 
-    public com.google.gwt.query.client.Promise.Deferred Deferred() {
+    public Promise.Deferred Deferred() {
         return GQuery.Deferred();
     }
 

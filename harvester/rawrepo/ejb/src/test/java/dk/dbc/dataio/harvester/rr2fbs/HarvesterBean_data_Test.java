@@ -10,13 +10,14 @@ import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataFileExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
@@ -28,6 +29,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
 import javax.ejb.SessionContext;
@@ -45,12 +47,14 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvesterBean_data_Test {
     private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
-    private final static RawRepoConnectorBean RAW_REPO_CONNECTOR_BEAN = mock(RawRepoConnectorBean.class);
+    private final static RawRepoConnector RAW_REPO_CONNECTOR_BEAN = mock(RawRepoConnector.class);
     private final static SessionContext SESSION_CONTEXT = mock(SessionContext.class);
 
     private final static RecordId FIRST_RECORD_ID = new RecordId("first",
@@ -163,8 +167,11 @@ public class HarvesterBean_data_Test {
         dataContainerExpectation3.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
         harvesterDataFileExpectations.add(dataContainerExpectation3);
 
+        final HarvesterBean harvesterBean = getHarvesterBean();
+        doReturn(RAW_REPO_CONNECTOR_BEAN).when(harvesterBean).getRawRepoConnector(anyString());
+
         // Execute harvest
-        getHarvesterBean().harvest();
+        harvesterBean.harvest(new RawRepoHarvesterConfig.Entry());
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -203,8 +210,11 @@ public class HarvesterBean_data_Test {
         dataContainerExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
         harvesterDataFileExpectations.add(dataContainerExpectation2);
 
+        final HarvesterBean harvesterBean = getHarvesterBean();
+        doReturn(RAW_REPO_CONNECTOR_BEAN).when(harvesterBean).getRawRepoConnector(anyString());
+
         // Execute harvest
-        getHarvesterBean().harvest();
+        harvesterBean.harvest(new RawRepoHarvesterConfig.Entry());
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -215,7 +225,7 @@ public class HarvesterBean_data_Test {
         harvesterJobBuilderFactoryBean.binaryFileStore = BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME);
         harvesterJobBuilderFactoryBean.fileStoreServiceConnectorBean = fileStoreServiceConnectorBean;
         harvesterJobBuilderFactoryBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        final HarvesterBean harvesterBean = new HarvesterBean();
+        final HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
         harvesterBean.init();
         harvesterBean.harvesterJobBuilderFactoryBean = harvesterJobBuilderFactoryBean;
         harvesterBean.rawRepoConnector = RAW_REPO_CONNECTOR_BEAN;

@@ -18,9 +18,6 @@
     <ejb>dataio-harvester-utils-job-builder-${project.version}.jar</ejb>
   </module>
   <module>
-    <ejb>dataio-harvester-utils-rawrepo-connector-${project.version}.jar</ejb>
-  </module>
-  <module>
     <ejb>dataio-harvester-rr2datawell-ejb-${project.version}.jar</ejb>
   </module>
   <library-directory>lib</library-directory>

@@ -7,7 +7,7 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.MockedRecord;
@@ -47,7 +47,7 @@ public class HarvesterBeanTest {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
 
-    private RawRepoConnectorBean repoConnectorBean = mock(RawRepoConnectorBean.class);
+    private RawRepoConnector repoConnectorBean = mock(RawRepoConnector.class);
     private SessionContext sessionContext = mock(SessionContext.class);
     private HarvesterJobBuilderFactoryBean harvesterJobBuilderFactoryBean = mock(HarvesterJobBuilderFactoryBean.class);
     private HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
@@ -219,9 +219,10 @@ public class HarvesterBeanTest {
 
     @Test
     public void harvest_harvesterJobBuilderThrowsHarvesterException_throws() throws HarvesterException {
+        final HarvesterBean harvesterBean = getInitializedBean();
+        doReturn(repoConnectorBean).when(harvesterBean).getRawRepoConnector(anyString());
         when(harvesterJobBuilder.build()).thenThrow(new HarvesterException("DIED"));
 
-        final HarvesterBean harvesterBean = getInitializedBean();
         try {
             harvesterBean.harvest(new RawRepoHarvesterConfig.Entry());
         } catch (HarvesterException e) {
@@ -231,9 +232,11 @@ public class HarvesterBeanTest {
     @Test
     public void harvest_queueSizeExceedsBatchSize_multipleInvocationsOfHarvestBatch() throws HarvesterException {
         final HarvesterBean harvesterBean = getInitializedBean();
+        doReturn(repoConnectorBean).when(harvesterBean).getRawRepoConnector(anyString());
         doReturn(HarvesterBean.HARVEST_BATCH_SIZE).
                 doReturn(HarvesterBean.HARVEST_BATCH_SIZE - 1).
                 when(harvesterBean).harvestBatch();
+
         harvesterBean.harvest(new RawRepoHarvesterConfig.Entry());
 
         verify(harvesterBean, times(2)).harvestBatch();

@@ -12,25 +12,26 @@ import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
 /**
- * This stateless Enterprise Java Bean (EJB) facilitates access to the RawRepo through datasource
- * resolved via JNDI lookup of {@value #JNDI_JDBC_RAW_REPO_NAME}
+ * This class facilitates access to the RawRepo through data source
+ * resolved via JNDI lookup of provided resource name
  */
-@Stateless
-public class RawRepoConnectorBean {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnectorBean.class);
+public class RawRepoConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
 
-    public static final String JNDI_JDBC_RAW_REPO_NAME = "jdbc/dataio/rawrepo";
+    private final DataSource dataSource;
 
-    @Resource(lookup = JNDI_JDBC_RAW_REPO_NAME)
-    private DataSource dataSource;
+    public RawRepoConnector(String dataSourceResourceName)
+            throws NullPointerException, IllegalArgumentException, IllegalStateException {
+        dataSource = lookupDataSource(dataSourceResourceName);
+    }
 
     public Record fetchRecord(RecordId id) throws NullPointerException, SQLException, RawRepoException {
         InvariantUtil.checkNotNullOrThrow(id, "id");
@@ -76,6 +77,35 @@ public class RawRepoConnectorBean {
             final StopWatch stopWatch = new StopWatch();
             RawRepoDAO.newInstance(connection).queueFail(queueJob, errorMessage);
             LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    private DataSource lookupDataSource(String dataSourceResourceName)
+            throws NullPointerException, IllegalArgumentException, IllegalStateException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(dataSourceResourceName, "dataSourceResourceName");
+        InitialContext initialContext = null;
+        try {
+            initialContext = new InitialContext();
+            final Object object = initialContext.lookup(dataSourceResourceName);
+            if (!(object instanceof DataSource)) {
+                throw new IllegalStateException(String.format(
+                        "Unexpected resource type '%s' returned from lookup", object.getClass().getName()));
+            }
+            return (DataSource) object;
+        } catch (NamingException e) {
+            throw new IllegalStateException(e);
+        } finally {
+            if (initialContext != null) {
+                try {
+                    initialContext.close();
+                } catch (NamingException e) {
+                    LOGGER.warn("Unable to close initial context", e);
+                }
+            }
         }
     }
 }

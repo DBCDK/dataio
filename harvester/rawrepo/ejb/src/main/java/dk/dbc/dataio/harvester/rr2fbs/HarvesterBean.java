@@ -7,9 +7,10 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder;
 import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilderFactoryBean;
-import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnectorBean;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
@@ -48,8 +49,7 @@ public class HarvesterBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
     static final int HARVEST_BATCH_SIZE = 10000;
 
-    @EJB
-    RawRepoConnectorBean rawRepoConnector;
+    RawRepoConnector rawRepoConnector;
 
     @EJB
     HarvesterJobBuilderFactoryBean harvesterJobBuilderFactoryBean;
@@ -85,9 +85,20 @@ public class HarvesterBean {
      * @throws HarvesterException on failure to complete harvest operation
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public void harvest() throws IllegalStateException, HarvesterException {
-        while (sessionContext.getBusinessObject(HarvesterBean.class).harvestBatch() == HARVEST_BATCH_SIZE)
+    public void harvest(RawRepoHarvesterConfig.Entry config) throws IllegalStateException, HarvesterException {
+        LOGGER.debug("Called with config {}", config);
+        rawRepoConnector = getRawRepoConnector(config.getResource());
+        final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
+        // Manual injection into business object handling the batch harvest
+        businessObject.rawRepoConnector = rawRepoConnector;
+        while (businessObject.harvestBatch() == HARVEST_BATCH_SIZE)
             continue;
+    }
+
+    /* Stand-alone method to enable easy injection during testing (via partial mocking)
+     */
+    public RawRepoConnector getRawRepoConnector(String dataSourceResourceName) {
+        return new RawRepoConnector(dataSourceResourceName);
     }
 
     /**

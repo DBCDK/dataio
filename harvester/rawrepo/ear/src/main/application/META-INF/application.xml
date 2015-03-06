@@ -6,6 +6,9 @@
     <ejb>dataio-commons-utils-binary-file-store-${project.version}.jar</ejb>
   </module>
   <module>
+    <ejb>dataio-commons-utils-json-binding-${project.version}.jar</ejb>
+  </module>
+  <module>
     <ejb>dataio-commons-utils-file-store-service-connector-${project.version}.jar</ejb>
   </module>
   <module>
@@ -13,9 +16,6 @@
   </module>
   <module>
     <ejb>dataio-harvester-utils-job-builder-${project.version}.jar</ejb>
-  </module>
-  <module>
-    <ejb>dataio-harvester-utils-rawrepo-connector-${project.version}.jar</ejb>
   </module>
   <module>
     <ejb>dataio-harvester-rawrepo-ejb-${project.version}.jar</ejb>

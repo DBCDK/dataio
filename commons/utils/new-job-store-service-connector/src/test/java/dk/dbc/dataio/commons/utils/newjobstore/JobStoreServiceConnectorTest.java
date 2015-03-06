@@ -14,11 +14,14 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
@@ -239,6 +242,51 @@ public class JobStoreServiceConnectorTest {
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
 
+    // ******************************************* listItems() tests *******************************************
+
+    @Test
+    public void listItems_criteriaArgIsNull_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.listItems(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void listItems_serviceReturnsUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        try {
+            listItemsWithMockedHttpResponse(new ItemListCriteria(), 500, null);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(500));
+        }
+    }
+
+    @Test
+    public void listItems_serviceReturnsNullEntity_throws() throws JobStoreServiceConnectorException {
+        try {
+            listItemsWithMockedHttpResponse(new ItemListCriteria(), 200, null);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void listItems_serviceReturnsEmptyListEntity_returnsEmptyList() throws JobStoreServiceConnectorException {
+        final List<ItemInfoSnapshot> expectedSnapshots = Collections.emptyList();
+        final List<ItemInfoSnapshot> returnedSnapshots = listItemsWithMockedHttpResponse(new ItemListCriteria(), 200, expectedSnapshots);
+        assertThat(returnedSnapshots, is(expectedSnapshots));
+    }
+
+    @Test
+    public void listItems_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
+        final List<ItemInfoSnapshot> expectedSnapshots = Arrays.asList(new ItemInfoSnapshotBuilder().build());
+        final List<ItemInfoSnapshot> returnedSnapshots = listItemsWithMockedHttpResponse(new ItemListCriteria(), 200, expectedSnapshots);
+        assertThat(returnedSnapshots, is(expectedSnapshots));
+    }
+
     // ******************************************* getResourceBundle() tests *******************************************
 
     @Test
@@ -309,6 +357,15 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode, responseEntity));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.listJobs(criteria);
+    }
+
+    private List<ItemInfoSnapshot> listItemsWithMockedHttpResponse(
+            ItemListCriteria criteria, int statusCode, List<ItemInfoSnapshot> responseEntity) throws JobStoreServiceConnectorException {
+
+        when(HttpClient.doPostWithJson(CLIENT, criteria, JOB_STORE_URL, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES))
+                .thenReturn(new MockedResponse<>(statusCode, responseEntity));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.listItems(criteria);
     }
 
     private ResourceBundle getResourceBundle_mockedHttpWithSpecifiedReturnErrorCode(

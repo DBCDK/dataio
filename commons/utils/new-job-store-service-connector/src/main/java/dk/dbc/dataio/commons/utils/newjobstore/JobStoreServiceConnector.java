@@ -6,10 +6,12 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,6 +118,29 @@ public class JobStoreServiceConnector {
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, new GenericType<List<JobInfoSnapshot>>() {});
+            } finally {
+                response.close();
+            }
+        } finally {
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves item listing determined by given search criteria from the job-store
+     * @param criteria list criteria
+     * @return list of selected item info snapshots
+     * @throws NullPointerException when given null-valued criteria argument
+     * @throws JobStoreServiceConnectorException on general failure to produce items listing
+     */
+    public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES);
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, new GenericType<List<ItemInfoSnapshot>>() {});
             } finally {
                 response.close();
             }

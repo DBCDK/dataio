@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class ItemInfoSnapshotConverter {
 
-    private static final int CHUNK_SIZE = 10;
+    private static final int CHUNK_SIZE = 10; //TODO - this solution only works as long as we have a fixed chunk size of 10
 
     /**
      * Private Constructor prevents instantiation of this static class
@@ -35,7 +35,8 @@ public class ItemInfoSnapshotConverter {
     }
 
     private static int calculateItemNumber(ItemEntity.Key key) {
-        return key.getChunkId() * CHUNK_SIZE + key.getId();
+        // + 1 because we want to show the first item with number 1 although we are using a 0 index
+        return key.getChunkId() * CHUNK_SIZE + key.getId() + 1;
     }
 
 

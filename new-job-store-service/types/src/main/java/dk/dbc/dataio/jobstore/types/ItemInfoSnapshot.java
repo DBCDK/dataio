@@ -31,9 +31,9 @@ public class ItemInfoSnapshot {
         this.itemId = itemId;
         this.chunkId = chunkId;
         this.jobId = jobId;
-        this.timeOfCreation = timeOfCreation;
-        this.timeOfLastModification = timeOfLastModification;
-        this.timeOfCompletion = timeOfCompletion;
+        this.timeOfCreation = (timeOfCreation == null) ? null : new Date(timeOfCreation.getTime());
+        this.timeOfLastModification = (timeOfLastModification ==  null) ? null : new Date(timeOfLastModification.getTime());
+        this.timeOfCompletion = (timeOfCompletion == null) ? null : new Date(timeOfCompletion.getTime());
         this.state = state;
     }
 
@@ -54,15 +54,15 @@ public class ItemInfoSnapshot {
     }
 
     public Date getTimeOfCreation() {
-        return timeOfCreation;
+        return this.timeOfCreation == null? null : new Date(this.timeOfCreation.getTime());
     }
 
     public Date getTimeOfLastModification() {
-        return timeOfLastModification;
+        return this.timeOfLastModification == null? null : new Date(this.timeOfLastModification.getTime());
     }
 
     public Date getTimeOfCompletion() {
-        return timeOfCompletion;
+        return this.timeOfCompletion == null? null : new Date(this.timeOfCompletion.getTime());
     }
 
     public State getState() {

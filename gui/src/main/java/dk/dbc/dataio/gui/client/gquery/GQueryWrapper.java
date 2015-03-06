@@ -27,6 +27,14 @@ import java.util.List;
  * places, where it is being used. Thereby we can supply a mocked version in unit test.
  *
  * All static methods in the GwtQuery implementation are wrapped in this class
+ *
+ * Note:
+ * The static methods returns the original GQuery object, and NOT the
+ * GQuery wrapper object.
+ * In other words: Only the static methods, that are implemented in this wrapper class
+ * can be injected, and thereby mocked in unit tests. When chaining calls, the GQuery
+ * object is called, and we have lost the ability to mock these calls.
+ *
  */
 public class GQueryWrapper {
 

@@ -11,13 +11,16 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
+import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -278,6 +281,57 @@ public class JobsBeanTest {
         assertThat("JobInfoSnapshots", jobInfoSnapshots, is(notNullValue()));
         assertThat("JobInfoSnapshots size", jobInfoSnapshots.size(), is(expectedJobInfoSnapshots.size()));
         assertThat("JobInfoSnapshots element", jobInfoSnapshots.get(0).getJobId(), is(expectedJobInfoSnapshots.get(0).getJobId()));
+    }
+
+    // ************************************* listItems() tests **********************************************************
+
+    @Test
+    public void listItems_jobStoreReturnsEmptyList_returnsStatusOkResponseWithEmptyList() throws JSONBException {
+        when(jobsBean.jobStoreBean.listItems(any(ItemListCriteria.class))).thenReturn(Collections.<ItemInfoSnapshot>emptyList());
+
+        final Response response = jobsBean.listItems(asJson(new ItemListCriteria()));
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final CollectionType itemInfoSnapshotListType =
+                jsonbContext.getTypeFactory().constructCollectionType(List.class, ItemInfoSnapshot.class);
+
+        List<ItemInfoSnapshot> itemInfoSnapshots = jsonbContext.unmarshall((String) response.getEntity(), itemInfoSnapshotListType);
+        assertThat("ItemInfoSnapshots", itemInfoSnapshots, is(notNullValue()));
+        assertThat("ItemInfoSnapshots is empty", itemInfoSnapshots.isEmpty(), is(true));
+    }
+
+    @Test
+    public void listItems_unableToUnmarshallItemListCriteria_returnsStatusBadRequestWithJobError() throws JSONBException {
+        final Response response = jobsBean.listJobs("Invalid JSON");
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat("JobError", jobError, is(notNullValue()));
+        assertThat("JobError code", jobError.getCode(), is(JobError.Code.INVALID_JSON));
+    }
+
+    @Test
+    public void listItems_jobStoreReturnsList_returnsStatusOkResponseWithItemInfoSnapshotList() throws JSONBException {
+        final List<ItemInfoSnapshot> expectedItemInfoSnapshots = new ArrayList<>();
+        expectedItemInfoSnapshots.add(new ItemInfoSnapshotBuilder().build());
+        when(jobsBean.jobStoreBean.listItems(any(ItemListCriteria.class))).thenReturn(expectedItemInfoSnapshots);
+
+        final Response response = jobsBean.listItems(asJson(new JobListCriteria()));
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final CollectionType itemInfoSnapshotListType =
+                jsonbContext.getTypeFactory().constructCollectionType(List.class, ItemInfoSnapshot.class);
+
+        List<ItemInfoSnapshot> itemInfoSnapshots = jsonbContext.unmarshall((String) response.getEntity(), itemInfoSnapshotListType);
+        assertThat("ItemInfoSnapshots", itemInfoSnapshots, is(notNullValue()));
+        assertThat("ItemInfoSnapshots size", itemInfoSnapshots.size(), is(expectedItemInfoSnapshots.size()));
+        assertThat("ItemInfoSnapshots element", itemInfoSnapshots.get(0).getItemId(), is(expectedItemInfoSnapshots.get(0).getItemId()));
     }
 
     // ************************************* getResourceBundle() tests ***********************************************************

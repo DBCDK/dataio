@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemListQuery;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
@@ -24,6 +25,7 @@ import dk.dbc.dataio.jobstore.types.DataException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -32,6 +34,7 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
@@ -213,6 +216,22 @@ public class PgJobStore {
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
             return new JobListQuery(entityManager).execute(criteria);
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Creates item listing based on given criteria
+     * @param criteria item listing criteria
+     * @return list of information snapshots of selected items
+     * @throws NullPointerException if given null-valued criteria argument
+     */
+    public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) throws NullPointerException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+            return new ItemListQuery(entityManager).execute(criteria);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

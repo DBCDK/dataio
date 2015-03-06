@@ -25,11 +25,13 @@ import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFacto
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -163,6 +165,20 @@ public class JobStoreBean {
         final StopWatch stopWatch = new StopWatch();
         try {
             return jobStore.listJobs(criteria);
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Returns item listing based on given criteria
+     * @param criteria item listing criteria
+     * @return list of information snapshots of selected items
+     */
+    public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            return jobStore.listItems(criteria);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

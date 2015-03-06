@@ -20,6 +20,7 @@ import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -28,6 +29,7 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -761,6 +763,51 @@ public class PgJobStoreTest {
                 jobInfoSnapshots.get(0).getNumberOfItems(), is(jobEntity1.getNumberOfItems()));
         assertThat("List of JobInfoSnapshot second element numberOfItems",
                 jobInfoSnapshots.get(1).getNumberOfItems(), is(jobEntity2.getNumberOfItems()));
+    }
+
+    @Test
+    public void listItems_queryReturnsEmptyList_returnsEmptySnapshotList() {
+        final Query query = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final List<ItemInfoSnapshot> itemInfoSnapshots = pgJobStore.listItems(new ItemListCriteria());
+        assertThat("List of ItemInfoSnapshot", itemInfoSnapshots, is(notNullValue()));
+        assertThat("List of ItemInfoSnapshot is empty", itemInfoSnapshots.isEmpty(), is(true));
+    }
+
+    @Test
+    public void listItems_queryReturnsNonEmptyList_returnsSnapshotList() {
+        final Query query = mock(Query.class);
+        final ItemEntity itemEntity1 = new ItemEntity();
+        itemEntity1.setKey(new ItemEntity.Key(1, 0, (short) 0));
+        final ItemEntity itemEntity2 = new ItemEntity();
+        itemEntity2.setKey(new ItemEntity.Key(1, 0,(short) 1));
+        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(itemEntity1, itemEntity2));
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final List<ItemInfoSnapshot> itemInfoSnapshots = pgJobStore.listItems(new ItemListCriteria());
+        assertThat("List of ItemInfoSnapshot", itemInfoSnapshots, is(notNullValue()));
+        assertThat("List of ItemInfoSnapshot size", itemInfoSnapshots.size(), is(2));
+        assertThat("List of ItemInfoSnapshot first element itemId",
+                itemInfoSnapshots.get(0).getItemId(), is(itemEntity1.getKey().getId()));
+        assertThat("List of ItemInfoSnapshot first element chunkId",
+                itemInfoSnapshots.get(0).getChunkId(), is(itemEntity1.getKey().getChunkId()));
+        assertThat("List of ItemInfoSnapshot first element jobId",
+                itemInfoSnapshots.get(0).getJobId(), is(itemEntity1.getKey().getJobId()));
+        assertThat("List of ItemInfoSnapshot first element itemNumber",
+                itemInfoSnapshots.get(0).getItemNumber(), is(1));
+
+        assertThat("List of JobInfoSnapshot second element itemId",
+                itemInfoSnapshots.get(1).getItemId(), is(itemEntity2.getKey().getId()));
+        assertThat("List of JobInfoSnapshot second element chunkId",
+                itemInfoSnapshots.get(1).getChunkId(), is(itemEntity2.getKey().getChunkId()));
+        assertThat("List of JobInfoSnapshot second element jobId",
+                itemInfoSnapshots.get(1).getJobId(), is(itemEntity2.getKey().getJobId()));
+        assertThat("List of ItemInfoSnapshot second element itemNumber",
+                itemInfoSnapshots.get(1).getItemNumber(), is(2));
     }
 
     /*

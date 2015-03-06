@@ -28,6 +28,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -352,6 +353,13 @@ public class JobStoreBeanTest {
         final JobListCriteria jobListCriteria = new JobListCriteria();
         jobStoreBean.listJobs(jobListCriteria);
         verify(mockedJobStore).listJobs(jobListCriteria);
+    }
+
+    @Test
+    public void listItems_delegatesToUnderlyingImplementation() {
+        final ItemListCriteria itemListCriteria = new ItemListCriteria();
+        jobStoreBean.listItems(itemListCriteria);
+        verify(mockedJobStore).listItems(itemListCriteria);
     }
 
     /*

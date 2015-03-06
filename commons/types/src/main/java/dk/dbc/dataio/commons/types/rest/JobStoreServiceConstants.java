@@ -6,6 +6,7 @@ public class JobStoreServiceConstants {
 
     public static final String JOB_COLLECTION               = "jobs";
     public static final String JOB_COLLECTION_SEARCHES      = "jobs/searches";
+    public static final String ITEM_COLLECTION_SEARCHES     = "jobs/chunks/items/searches";
     public static final String JOB_FLOW                     = "jobs/{jobId}/flow";
     public static final String JOB_SINK                     = "jobs/{jobId}/sink";
     public static final String JOB_STATE                    = "jobs/{jobId}/state";

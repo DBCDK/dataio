@@ -4,11 +4,13 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
@@ -168,6 +170,35 @@ public class JobsBean {
             final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreBean.listJobs(jobListCriteria);
             return Response.ok()
                     .entity(jsonbBean.getContext().marshall(jobInfoSnapshots))
+                    .build();
+
+        } catch (JSONBException e) {
+            LOGGER.warn("Bad request: {}", e.getMessage());
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(jsonbBean.getContext().marshall(
+                            new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
+    /**
+     * Retrieves item listing from the underlying data store determined by given search criteria
+     * @param itemListCriteriaData JSON representation of ItemListCriteria
+     * @return a HTTP 200 OK response with list of ItemInfoSnapshots for selected items,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     * @throws JSONBException on marshalling failure
+     */
+    @POST
+    @Path(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response listItems(String itemListCriteriaData) throws JSONBException {
+        try {
+            final ItemListCriteria itemListCriteria =
+                    jsonbBean.getContext().unmarshall(itemListCriteriaData, ItemListCriteria.class);
+            final List<ItemInfoSnapshot> itemInfoSnapshots = jobStoreBean.listItems(itemListCriteria);
+            return Response.ok()
+                    .entity(jsonbBean.getContext().marshall(itemInfoSnapshots))
                     .build();
 
         } catch (JSONBException e) {

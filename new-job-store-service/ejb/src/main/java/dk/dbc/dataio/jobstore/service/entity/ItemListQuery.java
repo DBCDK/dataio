@@ -20,7 +20,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
 
     static final String QUERY_BASE = "SELECT * FROM item";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobListQuery.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ItemListQuery.class);
 
     private final EntityManager entityManager;
 

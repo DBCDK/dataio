@@ -45,9 +45,12 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         for (ListFilterGroup<U> filterGroup : filtering) {
             for (ListFilterGroup.Member<U> member : filterGroup) {
                 final ListFilter<U> filter = member.getFilter();
-                final ParameterValue value = fieldMap.get(filter.getField()).getValue();
-                value.set(query, parameterIndex, filter.getValue());
-                parameterIndex++;
+                FieldMapping fieldMapping = fieldMap.get(filter.getField());
+                if(fieldMapping instanceof BinaryField) {
+                    final ParameterValue value = ((BinaryField)fieldMapping).getValue();
+                    value.set(query, parameterIndex, filter.getValue());
+                    parameterIndex++;
+                }
             }
         }
     }
@@ -129,22 +132,37 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      * Class used when mapping a ListFilterField to its corresponding
      * column name and value
      */
-    public static class FieldMapping {
+    public abstract static class FieldMapping {
         private final String name;
-        private final ParameterValue value;
 
-        public FieldMapping(String name, ParameterValue value) {
+        public FieldMapping(String name) {
             this.name = name;
-            this.value = value;
         }
 
         public String getName() {
             return name;
         }
+    }
+
+    public static class UnaryField extends FieldMapping {
+        public UnaryField(String name) {
+            super(name);
+        }
+    }
+
+    public static class BinaryField extends FieldMapping {
+        private final ParameterValue value;
+        public BinaryField(String name, ParameterValue value) {
+            super(name);
+            this.value = value;
+        }
 
         public ParameterValue getValue() {
             return value;
         }
+    }
+
+    public ListQuery() {
     }
 
     public interface ParameterValue {

@@ -32,10 +32,10 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
     public ItemListQuery(EntityManager entityManager) throws NullPointerException {
         this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
         // Build list of available fields with associated field mappings
-        fieldMap.put(ItemListCriteria.Field.JOB_ID, new ListQuery.FieldMapping("jobId", new ListQuery.ObjectValue()));
-        fieldMap.put(ItemListCriteria.Field.CHUNK_ID, new ListQuery.FieldMapping("chunkId", new ListQuery.ObjectValue()));
-        fieldMap.put(ItemListCriteria.Field.ITEM_ID, new ListQuery.FieldMapping("id", new ListQuery.ObjectValue()));
-        fieldMap.put(ItemListCriteria.Field.TIME_OF_CREATION, new ListQuery.FieldMapping("timeOfCreation", new ListQuery.ObjectValue()));
+        fieldMap.put(ItemListCriteria.Field.JOB_ID, new ListQuery.BinaryField("jobId", new ListQuery.ObjectValue()));
+        fieldMap.put(ItemListCriteria.Field.CHUNK_ID, new ListQuery.BinaryField("chunkId", new ListQuery.ObjectValue()));
+        fieldMap.put(ItemListCriteria.Field.ITEM_ID, new ListQuery.BinaryField("id", new ListQuery.ObjectValue()));
+        fieldMap.put(ItemListCriteria.Field.TIME_OF_CREATION, new ListQuery.BinaryField("timeOfCreation", new ListQuery.ObjectValue()));
     }
 
     /**

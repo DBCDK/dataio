@@ -25,7 +25,7 @@ public class ItemInfoSnapshotConverterTest {
 
         assertThat(itemInfoSnapshot, not(nullValue()));
         assertItemInfoSnapshotEquals(itemInfoSnapshot, itemEntity);
-        assertThat(itemInfoSnapshot.getItemNumber(), is(23));
+        assertThat(itemInfoSnapshot.getItemNumber(), is(24));
     }
 
      /*

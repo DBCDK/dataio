@@ -37,9 +37,12 @@ public class RawRepoConnector {
         InvariantUtil.checkNotNullOrThrow(id, "id");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
-            final Record record = RawRepoDAO.newInstance(connection).fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
-            LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
-            return record;
+            try {
+                return RawRepoDAO.newInstance(connection)
+                        .fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
+            } finally {
+                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+            }
         }
     }
 
@@ -48,13 +51,15 @@ public class RawRepoConnector {
         InvariantUtil.checkNotNullOrThrow(id, "id");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
-            // This new'ing is expensive but I don't trust reuse due to
-            // internal Transformer and DocumentBuilder
-            final MarcXMerger marcXMerger = new MarcXMerger();
-            final Map<String, Record> recordMap = RawRepoDAO.newInstance(connection)
-                    .fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId(), marcXMerger);
-            LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
-            return recordMap;
+            try {
+                // This new'ing is expensive but I don't trust reuse due to
+                // internal Transformer and DocumentBuilder
+                final MarcXMerger marcXMerger = new MarcXMerger();
+                return RawRepoDAO.newInstance(connection)
+                        .fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId(), marcXMerger);
+            } finally {
+                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+            }
         }
     }
 
@@ -63,9 +68,11 @@ public class RawRepoConnector {
         InvariantUtil.checkNotNullNotEmptyOrThrow(consumerId, "consumerId");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
-            final QueueJob queueJob = RawRepoDAO.newInstance(connection).dequeue(consumerId);
-            LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
-            return queueJob;
+            try {
+                return RawRepoDAO.newInstance(connection).dequeue(consumerId);
+            } finally {
+                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+            }
         }
     }
 
@@ -75,8 +82,11 @@ public class RawRepoConnector {
         InvariantUtil.checkNotNullNotEmptyOrThrow(errorMessage, "errorMessage");
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
-            RawRepoDAO.newInstance(connection).queueFail(queueJob, errorMessage);
-            LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+            try {
+                RawRepoDAO.newInstance(connection).queueFail(queueJob, errorMessage);
+            } finally {
+                LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
+            }
         }
     }
 

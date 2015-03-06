@@ -5,21 +5,18 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio</artifactId>
+    <artifactId>dataio-harvester</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-harvester</artifactId>
-  <name>dataio-harvester</name>
+  <artifactId>dataio-harvester-rr</artifactId>
+  <name>dataio-harvester-rr</name>
   <packaging>pom</packaging>
 
   <modules>
-    <module>rawrepo</module>
-    <module>rr2datawell</module>
-    <module>rr</module>
-    <module>types</module>
-    <module>utils</module>
+    <module>ear</module>
+    <module>ejb</module>
   </modules>
 
 </project>

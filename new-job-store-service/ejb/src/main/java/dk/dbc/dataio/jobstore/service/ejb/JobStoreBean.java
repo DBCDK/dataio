@@ -114,13 +114,17 @@ public class JobStoreBean {
 
             FlowStoreReferences flowStoreReferences = createFlowStoreReferences(flowBinder, flow, sink, submitter);
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = getSequenceAnalyserKeyGenerator(flowBinder, sink);
-            InputStream inputStream = getInputStream(jobInputStream.getJobSpecification());
 
-            final DataPartitionerFactory.DataPartitioner dataPartitioner =
-                    new DefaultXmlDataPartitionerFactory().createDataPartitioner(
-                            inputStream, jobInputStream.getJobSpecification().getCharset());
 
-            return jobStore.addJob(jobInputStream, dataPartitioner, sequenceAnalyserKeyGenerator, flow, sink, flowStoreReferences);
+            try (InputStream inputStream = getInputStream(jobInputStream.getJobSpecification())) {
+                final DataPartitionerFactory.DataPartitioner dataPartitioner =
+                        new DefaultXmlDataPartitionerFactory().createDataPartitioner(
+                                inputStream, jobInputStream.getJobSpecification().getCharset());
+
+                return jobStore.addJob(jobInputStream, dataPartitioner, sequenceAnalyserKeyGenerator, flow, sink, flowStoreReferences);
+            } catch (IOException e) {
+                throw new JobStoreException("Error reading data file", e);
+            }
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

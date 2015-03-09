@@ -10,4 +10,7 @@ public interface Presenter extends GenericPresenter {
     void flowComponentsChanged(Map<String, String> flowComponents);
     void keyPressed();
     void saveButtonPressed();
+    void addButtonPressed();
+    void removeButtonPressed();
+
 }

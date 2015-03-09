@@ -98,6 +98,19 @@ public class SortableListModel {
     }
 
     /**
+     * Gets the key value of the selected widget in the model
+     * @return The key value of the selected widget
+     */
+    public String getSelectedItem() {
+        for (SortableWidget item : modelWidgets) {
+            if (item.selected) {
+                return item.key;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Adds one item to the bottom of the list
      * It does not trigger a ValueChangedEvent
      *

@@ -1,5 +1,8 @@
 package dk.dbc.dataio.gui.client.components;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.HasClickHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiConstructor;
@@ -9,10 +12,15 @@ import dk.dbc.dataio.gui.client.components.MultiList.MultiList;
 
 import java.util.Map;
 
-public class MultiListEntry extends DataEntry implements HasValue<Map<String, String>> {
+public class MultiListEntry extends DataEntry implements HasValue<Map<String, String>>, HasClickHandlers {
 
     @UiField final MultiList multiList = new MultiList();
 
+    /**
+     * Constructor for the MultiListEntry component
+     * @param guiId The Gui Id
+     * @param prompt A prompt text, to be displayed for the Multi List component
+     */
     @UiConstructor
     public MultiListEntry(String guiId, String prompt) {
         super(guiId, prompt);
@@ -21,9 +29,40 @@ public class MultiListEntry extends DataEntry implements HasValue<Map<String, St
         add(multiList);
     }
 
+    /**
+     * Enables og disables the MultiListEntry component
+     * @param enabled True: Enables the MultiListEntry Component, False: Disables the MultiListEntry Component
+     */
     public void setEnabled(boolean enabled) {
         multiList.setEnabled(enabled);
     }
+
+    /**
+     * Tests whether the supplied parameter is an event, caused by a click on the Add button
+     * @param event The event to test
+     * @return True: This was a click on the Add button, False: It was not a click on the Add button
+     */
+    public boolean isAddEvent(ClickEvent event) {
+        return multiList.isAddEvent(event);
+    }
+
+    /**
+     * Tests whether the supplied parameter is an event, caused by a click on the Remove button
+     * @param event The event to test
+     * @return True: This was a click on the Remove button, False: It was not a click on the Remove button
+     */
+    public boolean isRemoveEvent(ClickEvent event) {
+        return multiList.isRemoveEvent(event);
+    }
+
+    /**
+     * Gets the key value of the selected item in the multi list
+     * @return The key value of the selected item
+     */
+    public String getSelectedItem() {
+        return multiList.getSelectedItem();
+    }
+
 
     /**
      * This methods removes all items from the Multi List
@@ -79,4 +118,15 @@ public class MultiListEntry extends DataEntry implements HasValue<Map<String, St
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Map<String, String>> valueChangeHandler) {
         return multiList.addValueChangeHandler(valueChangeHandler);
     }
+
+    /**
+     * This method implements a Click Handler, to signal clicks on one of the buttons
+     * @param clickHandler The Click Handler
+     * @return A HandlerRegistration
+     */
+    @Override
+    public HandlerRegistration addClickHandler(final ClickHandler clickHandler) {
+        return multiList.addClickHandler(clickHandler);
+    }
+
 }

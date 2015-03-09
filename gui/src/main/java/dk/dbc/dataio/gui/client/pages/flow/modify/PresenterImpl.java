@@ -1,6 +1,8 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -11,6 +13,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,9 +23,11 @@ import java.util.Map;
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     private final static String EMPTY = "";
+    private SelectFlowComponentDialogBox selectFlowComponentDialogBox;
+
     protected final Texts texts;
     protected FlowStoreProxyAsync flowStoreProxy;
-    protected View view;
+    protected ViewWidget view;
 
     // Application Models
     protected FlowModel model = new FlowModel();
@@ -110,16 +115,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
-    private FlowComponentModel getFlowComponentModel(String idString) {
-        long id = Long.parseLong(idString);
-        for (FlowComponentModel flowComponentModel: availableFlowComponentModels) {
-            if (flowComponentModel.getId() == id) {
-                return flowComponentModel;
-            }
-        }
-        throw new IllegalArgumentException("FlowComponent not found");
-    }
-
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
@@ -140,9 +135,32 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    @Override
+    public void addButtonPressed() {
+        Map<String, String> listOfComponents = new LinkedHashMap<String, String>();
+        for (FlowComponentModel component : getNonSelectedFlowComponents()) {
+            listOfComponents.put(component.getName(), String.valueOf(component.getId()));
+        }
+        selectFlowComponentDialogBox = new SelectFlowComponentDialogBox();
+        selectFlowComponentDialogBox.activateDialogBox(listOfComponents);
+        selectFlowComponentDialogBox.addClickHandler(new SelectFlowComponentClickHandler());
+    }
 
-    /*
-     * Private methods
+    @Override
+    public void removeButtonPressed() {
+        List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
+        flowComponentModels.remove(getFlowComponentModelIndex(view.flowComponents.getSelectedItem()));
+        model.setFlowComponents(flowComponentModels);
+        updateAllFieldsAccordingToCurrentState();
+    }
+
+
+        /*
+     * Protected methods
+     */
+
+    /**
+     * This method opdates all the fields in the view according to the stored model.
      */
     protected void updateAllFieldsAccordingToCurrentState() {
         view.name.setText(model.getFlowName());
@@ -156,19 +174,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.flowComponents.setEnabled(true);
     }
 
-    void initializeAvailableFlowComponentModels() {
-        flowStoreProxy.findAllFlowComponents(new FindAllFlowComponentsAsyncCallback());
-    }
-
-    private void onFailureSendExceptionToView(Throwable e) {
-        view.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
-    }
-
-
-     /*
-     * Protected methods
-     */
-
     /**
      * Method used to set the model after a successful update or a save
      * @param model The model to save
@@ -179,7 +184,54 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
 
     /*
-     * Local class
+     * Private methods
+     */
+    void initializeAvailableFlowComponentModels() {
+        flowStoreProxy.findAllFlowComponents(new FindAllFlowComponentsAsyncCallback());
+    }
+
+    private void onFailureSendExceptionToView(Throwable e) {
+        view.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+    }
+
+    private List<FlowComponentModel> getNonSelectedFlowComponents() {
+        List<FlowComponentModel> nonSelectedFlowComponents = new ArrayList<FlowComponentModel>();
+        List<Long> selectedFlowComponentIds = new ArrayList<Long>();
+        for (FlowComponentModel selected: model.getFlowComponents()) {
+            selectedFlowComponentIds.add(selected.getId());
+        }
+        for (FlowComponentModel available:  availableFlowComponentModels) {
+            if (!selectedFlowComponentIds.contains(available.getId())) {
+                nonSelectedFlowComponents.add(available);
+            }
+        }
+        return nonSelectedFlowComponents;
+    }
+
+    private FlowComponentModel getFlowComponentModel(String idString) {
+        long id = Long.parseLong(idString);
+        for (FlowComponentModel flowComponentModel: availableFlowComponentModels) {
+            if (flowComponentModel.getId() == id) {
+                return flowComponentModel;
+            }
+        }
+        throw new IllegalArgumentException("FlowComponent not found");
+    }
+
+    private int getFlowComponentModelIndex(String idString) {
+        long id = Long.parseLong(idString);
+        List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
+        for (int index = 0; index < flowComponentModels.size(); index++) {
+            if (flowComponentModels.get(index).getId() == id) {
+                return index;
+            }
+        }
+        throw new IllegalArgumentException("FlowComponent not found");
+    }
+
+
+    /*
+     * Local classes
      */
 
     /**
@@ -213,8 +265,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    /**
+     * Local class to be used to establish a callback from the Select Flow Components Dialog Box
+     */
+    class SelectFlowComponentClickHandler implements ClickHandler {
+        @Override
+        public void onClick(ClickEvent event) {
+            int selected = selectFlowComponentDialogBox.flowComponentsList.getSelectedIndex();
+            String value = selectFlowComponentDialogBox.flowComponentsList.getValue(selected);
+            FlowComponentModel selectedModel = getFlowComponentModel(value);
+            List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
+            flowComponentModels.add(selectedModel);
+            model.setFlowComponents(flowComponentModels);
+            updateAllFieldsAccordingToCurrentState();
+        }
+    }
 
-    /*
+        /*
      * Abstract methods
      */
 

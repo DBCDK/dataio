@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.client.components.MultiList;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+
 public class MultiList extends MultiListWidget {
 
     /**
@@ -28,4 +30,33 @@ public class MultiList extends MultiListWidget {
         removeButton.setEnabled(enabled);
     }
 
+    /**
+     * Tests whether the event argument is a result of a click on the Add button
+     * Please note, that the preferred way to implement this would be to supply this information in the event itself,
+     * but this is currently not possible.
+     * @param event Event, containing the click event to test for
+     * @return True if the event was an Add button click, False if not
+     */
+    public boolean isAddEvent(ClickEvent event) {
+        return event.getSource().equals(addButton);
+    }
+
+    /**
+     * Tests whether the event argument is a result of a click on the Remove button
+     * Please note, that the preferred way to implement this would be to supply this information in the event itself,
+     * but this is currently not possible.
+     * @param event Event, containing the click event to test for
+     * @return True if the event was an Remove button click, False if not
+     */
+    public boolean isRemoveEvent(ClickEvent event) {
+        return event.getSource().equals(removeButton);
+    }
+
+    /**
+     * Gets the selected item in the list as a key value
+     * @return The key value of the selected item
+     */
+    public String getSelectedItem() {
+        return list.getSelectedItem();
+    }
 }

@@ -212,12 +212,12 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView() {
+    public dk.dbc.dataio.gui.client.pages.flow.modify.ViewWidget getFlowCreateView() {
         return flowCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowEditView() {
+    public dk.dbc.dataio.gui.client.pages.flow.modify.ViewWidget getFlowEditView() {
         return flowEditView;
     }
 

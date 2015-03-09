@@ -43,4 +43,11 @@ public class SortableList extends SortableListWidget {
         model.add(text, key);
     }
 
+    /**
+     * Gets the key value of the selected item in the model
+     * @return The key value of the selected item
+     */
+    public String getSelectedItem() {
+        return model.getSelectedItem();
+    }
 }

@@ -28,9 +28,11 @@ public class ItemListCriteria implements ListCriteria<ItemListCriteria.Field>{
         /**
          * item creation time
          */
-        TIME_OF_CREATION
-
-
+        TIME_OF_CREATION,
+        /*
+         * failed items
+         */
+        STATE_FAILED
     }
 
     private LinkedList<ListFilterGroup<ItemListCriteria.Field>> filtering;

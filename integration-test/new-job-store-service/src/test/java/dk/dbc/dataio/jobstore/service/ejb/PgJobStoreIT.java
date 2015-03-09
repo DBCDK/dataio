@@ -266,7 +266,6 @@ public class PgJobStoreIT {
                 ExternalChunk.Type.PROCESSED,
                 ChunkItem.Status.SUCCESS);
 
-
         // When...
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -326,20 +325,32 @@ public class PgJobStoreIT {
     }
 
     /**
-     * Given: a job store containing a number of jobs
-     * When : requesting a item listing with a criteria selecting items from a specific job
-     * Then : only the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC
+     * Given   : a job store containing a number of jobs
+     * When    : requesting an item listing with a criteria selecting all items from a specific job
+     * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC
+     * And When: requesting an item listing with a criteria selecting all failed items from a specific job
+     * Then    : only one filtered snapshot is returned.
      */
     @Test
     public void listItems() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
+        final Params params = new Params(true);  // The params define that the job is created with 2 chunks.
+        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
 
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
-        JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
         jobTransaction.commit();
+
+        ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
+                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.PROCESSED);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
 
         // When...
         final ItemListCriteria itemListCriteria = new ItemListCriteria()
@@ -347,17 +358,30 @@ public class PgJobStoreIT {
                 .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
                 .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
 
-        final List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.listItems(itemListCriteria);
+        List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.listItems(itemListCriteria);
 
         // Then
-        int expectedItemNumber = 1;
+        assertThat("Number of returned items", returnedItemInfoSnapshots.size(), is(jobInfoSnapshot.getNumberOfItems()));
+
+        int expectedItemId = 1;
         for(ItemInfoSnapshot itemInfoSnapshot : returnedItemInfoSnapshots) {
-            assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(jobInfoSnapshot.getNumberOfItems()));
             assertThat("Job id referred to by item", itemInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
-            assertThat("Item number", itemInfoSnapshot.getItemNumber(), is(expectedItemNumber));
-            expectedItemNumber++;
+            assertThat("Item number", itemInfoSnapshot.getItemNumber(), is(expectedItemId));
+            expectedItemId++;
         }
+
+        // And when...
+        final ItemListCriteria findAllItemsForJobWithStatusFailed = new ItemListCriteria()
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))
+                .and(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED));
+
+        returnedItemInfoSnapshots = pgJobStore.listItems(findAllItemsForJobWithStatusFailed);
+        assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
+        assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(FAILED_ITEM_ID));
+        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(FAILED_ITEM_ID + 1));
     }
+
 
     /**
      * Given: a job store where a job exists
@@ -519,6 +543,20 @@ public class PgJobStoreIT {
     private ExternalChunk buildExternalChunk(long jobId, long chunkId, long itemId, ExternalChunk.Type type, ChunkItem.Status status) {
         ChunkItem chunkItem = new ChunkItemBuilder().setId(itemId).setData(DATA).setStatus(status).build();
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(Arrays.asList(chunkItem)).build();
+    }
+
+    private ExternalChunk buildExternalChunkContainingChunkItemArray(int numberOfItems, long jobId, long chunkId, long failedItemId, long ignoredItemId, ExternalChunk.Type type) {
+        List<ChunkItem> items = new ArrayList<>(numberOfItems);
+        for(int i = 0; i < numberOfItems; i++) {
+            if(i == failedItemId) {
+                items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(ChunkItem.Status.FAILURE).build());
+            } else if( i == ignoredItemId) {
+                items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(ChunkItem.Status.IGNORE).build());
+            } else {
+                items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(ChunkItem.Status.SUCCESS).build());
+            }
+        }
+        return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
     }
 
     private void assertChunkState(int jobId, int chunkId, int succeeded, State.Phase phase, boolean isPhaseDone) {

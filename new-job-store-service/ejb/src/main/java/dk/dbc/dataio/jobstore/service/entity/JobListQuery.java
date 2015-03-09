@@ -33,9 +33,9 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
     public JobListQuery(EntityManager entityManager) throws NullPointerException {
         this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
         // Build list of available fields with associated field mappings
-        fieldMap.put(JobListCriteria.Field.JOB_ID, new ListQuery.BinaryField("id", new ObjectValue()));
-        fieldMap.put(JobListCriteria.Field.TIME_OF_CREATION, new ListQuery.BinaryField("timeOfCreation", new TimestampValue()));
-        fieldMap.put(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, new ListQuery.BinaryField("timeOfLastModification", new TimestampValue()));
+        fieldMap.put(JobListCriteria.Field.JOB_ID, new BinaryOpField("id", new ObjectValue()));
+        fieldMap.put(JobListCriteria.Field.TIME_OF_CREATION, new BinaryOpField("timeOfCreation", new TimestampValue()));
+        fieldMap.put(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, new BinaryOpField("timeOfLastModification", new TimestampValue()));
     }
 
     /**

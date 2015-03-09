@@ -123,4 +123,17 @@ public class ItemListCriteriaTest {
         jsonbContext.unmarshall(jsonbContext.marshall(new ItemListCriteria()), ItemListCriteria.class);
     }
 
+    @Test
+    public void instance_whenVerbatimFieldConstruct_canBeMarshalAndUnmarshalled() throws JSONBException {
+        final List<ListFilter<ItemListCriteria.Field>> filters = new ArrayList<>();
+        filters.add(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED));
+
+        final ListCriteria itemListCriteria = new ItemListCriteria()
+                .where(filters.get(0))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.DESC));
+
+        final JSONBContext jsonbContext = new JSONBContext();
+        jsonbContext.unmarshall(jsonbContext.marshall(itemListCriteria), ItemListCriteria.class);
+    }
+
 }

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.types.criteria;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
@@ -17,7 +18,8 @@ public class ListFilter<T extends ListFilterField> {
         LESS_THAN_OR_EQUAL_TO,
         GREATER_THAN_OR_EQUAL_TO,
         EQUAL,
-        NOT_EQUAL
+        NOT_EQUAL,
+        NOOP
     }
 
     private final T field;
@@ -37,6 +39,11 @@ public class ListFilter<T extends ListFilterField> {
         this.field = InvariantUtil.checkNotNullOrThrow(field, "field");
         this.operator = InvariantUtil.checkNotNullOrThrow(operator, "operator");
         this.value = value;
+    }
+
+    @JsonIgnore
+    public ListFilter(@JsonProperty("field") T field) {
+        this(field, Op.NOOP, null);
     }
 
     public T getField() {

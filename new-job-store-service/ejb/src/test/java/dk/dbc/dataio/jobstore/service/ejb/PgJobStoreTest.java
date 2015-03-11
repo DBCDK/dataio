@@ -342,7 +342,7 @@ public class PgJobStoreTest {
         final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
         final JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
 
-        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(chunkEntity);
+        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         final PgJobStore pgJobStore = newPgJobStore();
@@ -375,7 +375,7 @@ public class PgJobStoreTest {
         jobEntity.getState().getPhase(State.Phase.PROCESSING).setIgnored(41);
         jobEntity.getState().getPhase(State.Phase.PROCESSING).setSucceeded(41);
 
-        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(chunkEntity);
+        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         final PgJobStore pgJobStore = newPgJobStore();
@@ -406,7 +406,7 @@ public class PgJobStoreTest {
         final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
         final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.<State.Phase>emptyList());
 
-        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(chunkEntity);
+        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         final PgJobStore pgJobStore = newPgJobStore();
@@ -437,7 +437,7 @@ public class PgJobStoreTest {
         ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING, State.Phase.PROCESSING));
         JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(State.Phase.PARTITIONING, State.Phase.PROCESSING));
 
-        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(chunkEntity);
+        when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         final PgJobStore pgJobStore = newPgJobStore();

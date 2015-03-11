@@ -146,15 +146,15 @@ public class PgJobStore {
             InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
             LOGGER.info("Adding chunk[{},{}]", chunk.getJobId(), chunk.getChunkId());
 
-            // update items
-
-            final ChunkItemEntities chunkItemEntities = updateChunkItemEntities(chunk);
-
             final ChunkEntity.Key chunkKey =  new ChunkEntity.Key((int) chunk.getChunkId(), (int) chunk.getJobId());
-            final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
+            final ChunkEntity chunkEntity = getExclusiveAccessFor(ChunkEntity.class, chunkKey);
             if (chunkEntity == null) {
                 throw new JobStoreException(String.format("ChunkEntity.%s could not be found", chunkKey));
             }
+
+            // update items
+
+            final ChunkItemEntities chunkItemEntities = updateChunkItemEntities(chunk);
 
             if (chunkItemEntities.size() == chunkEntity.getNumberOfItems()) {
                 // update chunk
@@ -606,8 +606,8 @@ public class PgJobStore {
         }
     }
 
-    private <T> T getExclusiveAccessFor(Class<T> entityClass, int id) {
-        return entityManager.find(entityClass, id, LockModeType.PESSIMISTIC_WRITE);
+    private <T> T getExclusiveAccessFor(Class<T> entityClass, Object primaryKey) {
+        return entityManager.find(entityClass, primaryKey, LockModeType.PESSIMISTIC_WRITE);
     }
 
     private State.Phase chunkTypeToStatePhase(ExternalChunk.Type chunkType) {

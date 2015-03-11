@@ -29,7 +29,6 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static dk.dbc.dataio.gui.client.pages.newJob.show.Texts newJobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.newJob.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.javascriptlog.Texts javaScriptLogShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.javascriptlog.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts flowComponentsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts FlowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts flowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts flowComponentModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts flowBinderModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts.class);

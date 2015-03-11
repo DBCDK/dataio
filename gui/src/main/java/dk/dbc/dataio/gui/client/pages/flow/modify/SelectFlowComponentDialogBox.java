@@ -23,7 +23,7 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
     }
     private static SelectFlowComponentDialogBoxUiBinder ourUiBinder = GWT.create(SelectFlowComponentDialogBoxUiBinder.class);
 
-    private ClickHandler selectButtonClickHandler = null;
+    ClickHandler selectButtonClickHandler = null;  // Is package private due to test
 
     private final int MAX_NUMBER_OF_SHOWN_ITEMS = 10;
 
@@ -32,6 +32,10 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
     @UiField ListBox flowComponentsList;
 
 
+    /**
+     * UI Handler for clicks on the Select button in the dialog
+     * @param event The Click Event
+     */
     @UiHandler("selectFlowComponentButton")
     void selectFlowComponentButtonPressed(ClickEvent event) {
         availableFlowComponentsDialog.hide();
@@ -40,13 +44,20 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
         }
     }
 
+    /**
+     * Constructor
+     */
     public SelectFlowComponentDialogBox() {
         initWidget(ourUiBinder.createAndBindUi(this));
         availableFlowComponentsDialog.setGlassEnabled(true);
         availableFlowComponentsDialog.setAnimationEnabled(true);
     }
 
-
+    /**
+     * Activates and shows the Dialog Box
+     * Supplies available flow components, that will be show in the dialog box
+     * @param availableFlowComponents Flow components to be shown in the list
+     */
     public void activateDialogBox(Map<String, String> availableFlowComponents) {
         for (Map.Entry<String, String> item : availableFlowComponents.entrySet()) {
             flowComponentsList.addItem(item.getKey(), item.getValue());
@@ -56,6 +67,11 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
         availableFlowComponentsDialog.show();
     }
 
+    /**
+     * Adds a click handler to the Dialog Box, that will be activated, when pushing one of the buttons in the dialog
+     * @param clickHandler Click handler, taking care of click events
+     * @return A Handler Registration object, to be used when de-activating the click handler
+     */
     @Override
     public HandlerRegistration addClickHandler(ClickHandler clickHandler) {
         selectButtonClickHandler = clickHandler;

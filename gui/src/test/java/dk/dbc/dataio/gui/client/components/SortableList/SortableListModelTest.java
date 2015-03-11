@@ -227,6 +227,33 @@ public class SortableListModelTest {
         assertThat(sortableListModel.modelWidgets.get(2).selected, is(false));
     }
 
+    @Test
+    public void getSelected_noSelection_returnNone() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.put(constructTestData());
+
+        assertThat(sortableListModel.getSelectedItem(), is((String) null));
+    }
+
+    @Test
+    public void getSelected_oneSelected_returnSelectedItem() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.put(constructTestData());
+        sortableListModel.modelWidgets.get(1).selected = true;  // Set selection to KEY2 (index 1)
+
+        assertThat(sortableListModel.getSelectedItem(), is(KEY2));
+    }
+
+    @Test
+    public void getSelected_twoSelected_returnFirstSelectedItem() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.put(constructTestData());
+        sortableListModel.modelWidgets.get(0).selected = true;  // Set selection to KEY1 (index 0)
+        sortableListModel.modelWidgets.get(2).selected = true;  // AND set selection to KEY3 (index 2)
+
+        assertThat(sortableListModel.getSelectedItem(), is(KEY1));
+    }
+
 
     /*
      * Private methods

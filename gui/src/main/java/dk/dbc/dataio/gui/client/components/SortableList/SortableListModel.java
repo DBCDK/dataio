@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 public class SortableListModel {
-    class SortableWidget {  // This is package private because of test - should be private
+    static class SortableWidget {  // This is package private because of test - should be private
         String key;
         String value;
         boolean selected;

@@ -1,9 +1,12 @@
 package dk.dbc.dataio.gui.client.components.MultiList;
 
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -46,6 +49,42 @@ public class MultiListTest {
 
         multiList.setEnabled(false);
         verify(multiList.list).setEnabled(false);
+    }
+
+    @Test
+    public void isAddEvent_callIsAddEvent_check() {
+        final MultiList multiList = new MultiList();
+
+        final ClickEvent addEvent = new ClickEvent() {
+            {
+                super.setSource(multiList.addButton);
+            }
+        };
+        final ClickEvent nonAddEvent = new ClickEvent() {
+            {
+                super.setSource(multiList.removeButton);
+            }
+        };
+        assertThat(multiList.isAddEvent(addEvent), is(true));
+        assertThat(multiList.isAddEvent(nonAddEvent), is(false));
+    }
+
+    @Test
+    public void isRemoveEvent_callIsRemoveEvent_check() {
+        final MultiList multiList = new MultiList();
+
+        final ClickEvent addEvent = new ClickEvent() {
+            {
+                super.setSource(multiList.addButton);
+            }
+        };
+        final ClickEvent nonAddEvent = new ClickEvent() {
+            {
+                super.setSource(multiList.removeButton);
+            }
+        };
+        assertThat(multiList.isRemoveEvent(addEvent), is(false));
+        assertThat(multiList.isRemoveEvent(nonAddEvent), is(true));
     }
 
 }

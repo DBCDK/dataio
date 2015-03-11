@@ -272,12 +272,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onClick(ClickEvent event) {
             int selected = selectFlowComponentDialogBox.flowComponentsList.getSelectedIndex();
-            String value = selectFlowComponentDialogBox.flowComponentsList.getValue(selected);
-            FlowComponentModel selectedModel = getFlowComponentModel(value);
-            List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
-            flowComponentModels.add(selectedModel);
-            model.setFlowComponents(flowComponentModels);
-            updateAllFieldsAccordingToCurrentState();
+            if (selected >= 0) {
+                String value = selectFlowComponentDialogBox.flowComponentsList.getValue(selected);
+                FlowComponentModel selectedModel = getFlowComponentModel(value);
+                List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
+                flowComponentModels.add(selectedModel);
+                model.setFlowComponents(flowComponentModels);
+                updateAllFieldsAccordingToCurrentState();
+            }
         }
     }
 

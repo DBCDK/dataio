@@ -14,15 +14,20 @@ import dk.dbc.dataio.commons.utils.test.model.JobCompletionStateBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
+import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.glassfish.jersey.client.ClientConfig;
-import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -204,7 +209,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
+      public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -219,12 +224,56 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(jobInfoSnapshots);
         try {
             List<JobModel> jobModels = jobStoreProxy.listJobs(new JobListCriteriaModel());
-            MatcherAssert.assertThat(jobModels, not(nullValue()));
+            assertThat(jobModels, not(nullValue()));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: listJobs()");
         }
     }
 
+    @Test(expected = ProxyException.class)
+    public void listItems_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.listItems(new ItemListCriteriaModel());
+    }
+
+    @Test
+    public void listFailedItemsForJob_remoteServiceReturnsHttpStatusOk_returnsListOfItemModelEntities() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        List<ItemInfoSnapshot> itemInfoSnapshots = getFailedListOfItemInfoSnapshots();
+        ItemListCriteriaModel model = new ItemListCriteriaModel();
+        model.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
+
+        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenReturn(itemInfoSnapshots);
+        try {
+            List<ItemModel> itemModels = jobStoreProxy.listItems(model);
+            assertThat(itemModels, not(nullValue()));
+            assertThat(itemModels.get(0).getStatus(), is(ItemModel.LifeCycle.PROCESSING));
+            assertThat(itemModels.get(1).getStatus(), is(ItemModel.LifeCycle.DELIVERING));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: listItems()");
+        }
+    }
+
+    @Test
+    public void listAllItemsForJob_remoteServiceReturnsHttpStatusOk_returnsListOfItemModelEntities() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        List<ItemInfoSnapshot> itemInfoSnapshots = getListOfItemInfoSnapshots();
+        ItemListCriteriaModel model = new ItemListCriteriaModel();
+        model.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
+
+        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenReturn(itemInfoSnapshots);
+        try {
+            List<ItemModel> itemModels = jobStoreProxy.listItems(model);
+            assertThat(itemModels, not(nullValue()));
+            assertThat(itemModels.get(0).getStatus(), is(ItemModel.LifeCycle.PROCESSING));
+            assertThat(itemModels.get(1).getStatus(), is(ItemModel.LifeCycle.DELIVERING));
+            assertThat(itemModels.get(2).getStatus(), is(ItemModel.LifeCycle.DONE));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: listItems()");
+        }
+    }
     /*
      * private methods
      */
@@ -239,6 +288,66 @@ public class JobStoreProxyImplTest {
 
     private JobInfoSnapshot getJobInfoSnapShot(Date date) {
         return new JobInfoSnapshotBuilder().setJobId(Long.valueOf(ID).intValue()).setTimeOfCreation(date).build();
+    }
+
+    private List<ItemInfoSnapshot> getListOfItemInfoSnapshots() {
+        List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<ItemInfoSnapshot>(3);
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedPhase(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 0).build());
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildPhaseCompletion(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 1).build());
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildPhaseCompletion(State.Phase.DELIVERING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 2).build());
+        return itemInfoSnapshots;
+    }
+
+    private List<ItemInfoSnapshot> getFailedListOfItemInfoSnapshots() {
+        List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<ItemInfoSnapshot>(3);
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedPhase(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 0).build());
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedPhase(State.Phase.DELIVERING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 1).build());
+        return itemInfoSnapshots;
+    }
+
+    private State buildFailedPhase(State.Phase phaseToFail) {
+        State state = new State();
+        switch (phaseToFail) {
+            case PARTITIONING:
+                state.getPhase(State.Phase.PARTITIONING).setFailed(1);
+                state.getPhase(State.Phase.PROCESSING).setIgnored(1);
+                state.getPhase(State.Phase.DELIVERING).setIgnored(1);
+                break;
+            case PROCESSING:
+                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).setFailed(1);
+                state.getPhase(State.Phase.DELIVERING).setIgnored(1);
+                break;
+            case DELIVERING:
+                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
+                state.getPhase(State.Phase.DELIVERING).setFailed(1);
+        }
+        return state;
+    }
+
+    private State buildPhaseCompletion(State.Phase lastPhaseCompleted) {
+        State state = new State();
+        switch (lastPhaseCompleted) {
+            case PARTITIONING:
+                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+                state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+                break;
+            case PROCESSING:
+                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+                state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).setEndDate(new Date());
+                break;
+            case DELIVERING:
+                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+                state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).setEndDate(new Date());
+                state.getPhase(State.Phase.DELIVERING).setSucceeded(1);
+                state.getPhase(State.Phase.DELIVERING).setEndDate(new Date());
+        }
+        return state;
     }
 
 }

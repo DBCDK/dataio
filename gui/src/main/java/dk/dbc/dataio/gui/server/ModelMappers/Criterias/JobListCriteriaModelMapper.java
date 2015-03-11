@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.server.ModelMappers;
+package dk.dbc.dataio.gui.server.ModelMappers.Criterias;
 
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -19,4 +19,6 @@ public final class JobListCriteriaModelMapper {
 
         return new JobListCriteria().where(jobIdGreaterThanCondition).orderBy(descendingTimeOfCreation);
     }
+
+
 }

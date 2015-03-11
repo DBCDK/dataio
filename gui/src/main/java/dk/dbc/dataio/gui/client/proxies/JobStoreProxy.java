@@ -7,6 +7,8 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
+import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.JobModelOld;
@@ -21,6 +23,7 @@ public interface JobStoreProxy extends RemoteService {
     List<JobModelOld> findAllJobsNew() throws ProxyException;
     JobCompletionState getJobCompletionState(long jobId) throws ProxyException;
     List<JobModel> listJobs(JobListCriteriaModel model) throws ProxyException;
+    List<ItemModel> listItems(ItemListCriteriaModel model) throws ProxyException;
     void close();
 
     class Factory {

@@ -16,18 +16,15 @@ public class ItemInfoSnapshotBuilder {
     private Date timeOfCompletion = new Date();
     private State state = new State();
 
-    public ItemInfoSnapshotBuilder setItemNumber(int itemNumber) {
-        this.itemNumber = itemNumber;
-        return this;
-    }
-
     public ItemInfoSnapshotBuilder setItemId(short itemId) {
         this.itemId = itemId;
+        this.itemNumber = calculateItemNumber();
         return this;
     }
 
     public ItemInfoSnapshotBuilder setChunkId(int chunkId) {
         this.chunkId = chunkId;
+        this.itemNumber = calculateItemNumber();
         return this;
     }
 
@@ -58,6 +55,10 @@ public class ItemInfoSnapshotBuilder {
 
     public ItemInfoSnapshot build() {
         return new ItemInfoSnapshot(itemNumber, itemId, chunkId, jobId, timeOfCreation, timeOfLastModification, timeOfCompletion, state);
+    }
+
+    private int calculateItemNumber() {
+        return chunkId * 10 + itemId + 1;
     }
 
 }

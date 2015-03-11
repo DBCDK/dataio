@@ -12,13 +12,18 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
+import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.JobModelOld;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
-import dk.dbc.dataio.gui.server.ModelMappers.JobListCriteriaModelMapper;
+import dk.dbc.dataio.gui.server.ModelMappers.Criterias.ItemListCriteriaModelMapper;
+import dk.dbc.dataio.gui.server.ModelMappers.ItemModelMapper;
+import dk.dbc.dataio.gui.server.ModelMappers.Criterias.JobListCriteriaModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapper;
 import dk.dbc.dataio.gui.server.ModelMappers.JobModelMapperOld;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import org.glassfish.jersey.client.ClientConfig;
 
@@ -141,6 +146,35 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
         }
         return JobModelMapper.toModel(jobInfoSnapshotList);
+    }
+
+    @Override
+    public List<ItemModel> listItems(ItemListCriteriaModel model) throws ProxyException{
+        List<ItemInfoSnapshot> itemInfoSnapshotList;
+        List<ItemModel> itemModels = new ArrayList<ItemModel>();
+
+        try {
+            switch (model.getItemSearchType()) {
+                case FAILED:
+                    itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toFailedItemListCriteria(model));
+                    itemModels = ItemModelMapper.toFailedItemsModel(itemInfoSnapshotList);
+                    break;
+                case ALL:
+                    itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toItemListCriteriaAll(model));
+                    itemModels = ItemModelMapper.toAllItemsModel(itemInfoSnapshotList);
+                    break;
+            }
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if(e.getJobError() != null) {
+                throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException e) {
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        return itemModels;
     }
 
     /*

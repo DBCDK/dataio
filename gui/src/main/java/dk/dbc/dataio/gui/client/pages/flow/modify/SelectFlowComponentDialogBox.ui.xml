@@ -11,10 +11,10 @@
     <g:HTMLPanel>
 
         <g:DialogBox ui:field="availableFlowComponentsDialog" text="{txt.caption_SelectFlowComponent}" title="{txt.caption_SelectFlowComponent}" modal="false" >
-            <g:caption>Caption eller hvad?</g:caption>
             <g:FlowPanel>
                 <g:ListBox ui:field="flowComponentsList" visibleItemCount="4" addStyleNames="{style.listbox}" />
                 <g:Button ui:field="selectFlowComponentButton" text="{txt.button_Select}"/>
+                <g:Button ui:field="cancelButton" text="{txt.button_Cancel}"/>
             </g:FlowPanel>
         </g:DialogBox>
 

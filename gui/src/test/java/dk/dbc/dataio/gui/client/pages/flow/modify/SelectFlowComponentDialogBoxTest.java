@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -35,14 +36,7 @@ public class SelectFlowComponentDialogBoxTest {
     private SelectFlowComponentDialogBox selectFlowComponentDialogBoxUnderTest;
 
     @Mock ClickHandler mockedClickHandler;
-
-
-    //------------------------------------------------------------------------------------------------------------------
-
-//    @Before
-//    public void setupMockedObjects() {
-//
-//    }
+    @Mock ClickEvent mockedClickEvent;
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -89,6 +83,26 @@ public class SelectFlowComponentDialogBoxTest {
         registration.removeHandler();
 
         assertThat(selectFlowComponentDialogBoxUnderTest.selectButtonClickHandler, is((ClickHandler) null));
+    }
+
+    @Test
+    public void uiHandlerSelectFlowComponent_callUiHandler_checkCorrectBehavior() {
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
+        selectFlowComponentDialogBoxUnderTest.addClickHandler(mockedClickHandler);
+
+        selectFlowComponentDialogBoxUnderTest.selectFlowComponentButtonPressed(mockedClickEvent);
+
+        verify(selectFlowComponentDialogBoxUnderTest.availableFlowComponentsDialog).hide();
+        verify(mockedClickHandler).onClick(mockedClickEvent);
+    }
+
+    @Test
+    public void uiHandlerCancel_callUiHandler_checkCorrectBehavior() {
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
+
+        selectFlowComponentDialogBoxUnderTest.cancelButtonPressed(mockedClickEvent);
+
+        verify(selectFlowComponentDialogBoxUnderTest.availableFlowComponentsDialog).hide();
     }
 
     //------------------------------------------------------------------------------------------------------------------

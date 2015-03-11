@@ -18,6 +18,7 @@
  *  This is done by declaring them @external like listed below.
  */
 @external .gwt-Tree, .gwt-TreeItem, .gwt-Button;
+@external .gwtQuery-draggable-dragging;
 @external .dual-list-removeitem-class, .dual-list-additem-class, .fixed-empty-listbox-width, .dual-list-selection-buttons-pane-class;
 @external .dio-DataEntry, .dio-DataEntry-PromptLabelClass, .dio-SaveButton-ResultLabel;
 @external .dio-DualList, .dio-DualPanesPanel-WidgetRightClass, .dio-DualPanesPanel-WidgetLeftClass, .dio-flow-element;
@@ -175,12 +176,10 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 .sortable-widget-entry-selected {
     background-color: blue;
     color: white;
-    z-index: 1;
 }
 .sortable-widget-entry-deselected {
     background: transparent;
     color: black;
-    z-index: 0;
 }
 .sortable-widget-entry-disabled {
     background: lightgray;
@@ -192,4 +191,8 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.gwtQuery-draggable-dragging {
+    z-index: 1;
 }

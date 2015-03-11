@@ -45,6 +45,15 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
     }
 
     /**
+     * UI Handler for clicks on the Cancel button in the dialog
+     * @param event The Click Event
+     */
+    @UiHandler("cancelButton")
+    void cancelButtonPressed(ClickEvent event) {
+        availableFlowComponentsDialog.hide();
+    }
+
+    /**
      * Constructor
      */
     public SelectFlowComponentDialogBox() {

@@ -29,7 +29,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static dk.dbc.dataio.gui.client.pages.newJob.show.Texts newJobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.newJob.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.javascriptlog.Texts javaScriptLogShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.javascriptlog.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts flowComponentsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.flow.oldmodify.Texts oldFlowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.oldmodify.Texts.class);
+    private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts FlowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts flowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts flowComponentModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts flowBinderModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts.class);
@@ -58,8 +58,6 @@ public class ClientFactoryImpl implements ClientFactory {
     private final LogStoreProxyAsync logStoreProxyAsync = LogStoreProxy.Factory.getAsyncInstance();
 
     // Views
-    private final dk.dbc.dataio.gui.client.pages.flow.oldmodify.View oldFlowCreateView = new dk.dbc.dataio.gui.client.pages.flow.oldmodify.ViewImpl(menuTexts.menu_FlowCreation(), oldFlowModifyTexts);
-    private final dk.dbc.dataio.gui.client.pages.flow.oldmodify.View oldFlowEditView = new dk.dbc.dataio.gui.client.pages.flow.oldmodify.ViewImpl(menuTexts.menu_FlowEdit(), oldFlowModifyTexts);
     private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowCreateView = new dk.dbc.dataio.gui.client.pages.flow.modify.View(menuTexts.menu_FlowCreation());
     private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowEditView = new dk.dbc.dataio.gui.client.pages.flow.modify.View(menuTexts.menu_FlowEdit());
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View flowComponentCreateView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View(menuTexts.menu_FlowComponentCreation());
@@ -105,11 +103,11 @@ public class ClientFactoryImpl implements ClientFactory {
     // getPresenter
     @Override
     public com.google.gwt.activity.shared.Activity getPresenter(com.google.gwt.place.shared.Place place) {
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.oldmodify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.flow.oldmodify.PresenterCreateImpl(this, oldFlowModifyTexts);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
+            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this, flowModifyTexts);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.oldmodify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.flow.oldmodify.PresenterEditImpl(place, this, oldFlowModifyTexts);
+        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace) {
+            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterEditImpl(place, this, flowModifyTexts);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this, flowModifyTexts);
@@ -202,22 +200,12 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Views
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.oldmodify.View getOldFlowCreateView() {
-        return oldFlowCreateView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flow.oldmodify.View getOldFlowEditView() {
-        return oldFlowEditView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.ViewWidget getFlowCreateView() {
+    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView() {
         return flowCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.ViewWidget getFlowEditView() {
+    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowEditView() {
         return flowEditView;
     }
 

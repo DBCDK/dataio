@@ -10,7 +10,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
-import dk.dbc.dataio.gui.client.pages.flow.oldmodify.EditPlace;
+import dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;

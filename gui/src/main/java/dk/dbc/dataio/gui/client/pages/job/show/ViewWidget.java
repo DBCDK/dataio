@@ -6,11 +6,10 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.SimplePager;
-import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
-public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
+public abstract class ViewWidget extends ContentPanel<Presenter>  {
 
     // Constants
     protected static final int PAGE_SIZE = 20;

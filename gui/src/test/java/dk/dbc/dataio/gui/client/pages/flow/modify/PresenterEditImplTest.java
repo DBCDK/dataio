@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -107,9 +108,7 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, mockedTexts);
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
         FlowModel model = getValidFlowModel(4, 5);
-
-        assertThat(presenterEditImplConcrete.model, is(notNullValue()));
-        assertThat(presenterEditImplConcrete.model.getFlowName(), is(""));
+        assertThat(presenterEditImplConcrete.model, is(nullValue()));
 
         presenterEditImplConcrete.callback.onSuccess(model);  // Emulate a successful callback from flowstore
 
@@ -129,7 +128,7 @@ public class PresenterEditImplTest {
         verify(view.description).setEnabled(true);
         verify(view.flowComponents, times(2)).clear();
         verify(view.flowComponents).addValue("name", "4");
-        verify(view.flowComponents).setEnabled(true);
+        verify(view.flowComponents).setEnabled(false);
     }
 
     @Test

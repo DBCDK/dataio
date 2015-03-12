@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,7 +91,6 @@ public class PresenterCreateImplTest {
         verify(view.description).setEnabled(true);
         verify(view.flowComponents, times(2)).clear();
         verify(view.flowComponents).setEnabled(false);
-        verify(view.flowComponents).setEnabled(true);
         verifyNoMoreInteractions(view.flowComponents);  // To make sure, that there are no addValue() calls
     }
 
@@ -108,7 +108,7 @@ public class PresenterCreateImplTest {
         presenterCreateImpl.descriptionChanged(DESCRIPTION);
         Map<String, String> flowComponents = new HashMap<String, String>();
         flowComponents.put(String.valueOf(FLOW_COMPONENT_ID), FLOW_COMPONENT_NAME);
-        presenterCreateImpl.availableFlowComponentModels.add(new FlowComponentModel(FLOW_COMPONENT_ID, 1L, FLOW_COMPONENT_NAME, "", "", "", "", new ArrayList<String>()));
+        presenterCreateImpl.availableFlowComponentModels = Arrays.asList(new FlowComponentModel(FLOW_COMPONENT_ID, 1L, FLOW_COMPONENT_NAME, "", "", "", "", new ArrayList<String>()));
         presenterCreateImpl.flowComponentsChanged(flowComponents);
 
         presenterCreateImpl.saveModel();

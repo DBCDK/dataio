@@ -36,25 +36,23 @@ public class SelectFlowComponentDialogBoxTest {
     private SelectFlowComponentDialogBox selectFlowComponentDialogBoxUnderTest;
 
     @Mock ClickHandler mockedClickHandler;
+    @Mock ClickHandler mockedClickHandler2;
     @Mock ClickEvent mockedClickEvent;
 
     //------------------------------------------------------------------------------------------------------------------
 
 
     @Test
-    public void constructor_instantiate_objectCorrectInitialized() {
-        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
+    public void constructorWithEmptyList_instantiate_objectCorrectInitialized() {
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox(new LinkedHashMap<String, String>(), mockedClickHandler);
 
         verify(selectFlowComponentDialogBoxUnderTest.availableFlowComponentsDialog).setGlassEnabled(true);
         verify(selectFlowComponentDialogBoxUnderTest.availableFlowComponentsDialog).setAnimationEnabled(true);
     }
 
     @Test
-    public void activateDialogBox_callActivateDialogBox_dialogBoxIsShown() {
-        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
-        Map<String, String> availableTestFlowComponents = produceTestFlowComponents();
-
-        selectFlowComponentDialogBoxUnderTest.activateDialogBox(availableTestFlowComponents);
+    public void constructorWithNotEmptyList_instantiate_objectCorrectInitialized() {
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox(produceTestFlowComponents(), mockedClickHandler);
 
         verify(selectFlowComponentDialogBoxUnderTest.flowComponentsList).addItem(FLOW_COMPONENT_ID_1, FLOW_COMPONENT_NAME_1);
         verify(selectFlowComponentDialogBoxUnderTest.flowComponentsList).addItem(FLOW_COMPONENT_ID_2, FLOW_COMPONENT_NAME_2);
@@ -66,19 +64,18 @@ public class SelectFlowComponentDialogBoxTest {
     }
 
     @Test
-    public void addClickHandler_callAddClickHandler_clickHandlerAdded() {
-        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
-        assertThat(selectFlowComponentDialogBoxUnderTest.selectButtonClickHandler, is((ClickHandler) null));
+    public void addClickHandler_callAddClickHandler_newClickHandler() {
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox(new LinkedHashMap<String, String>(), mockedClickHandler);
 
-        selectFlowComponentDialogBoxUnderTest.addClickHandler(mockedClickHandler);
+        selectFlowComponentDialogBoxUnderTest.addClickHandler(mockedClickHandler2);
 
-        assertThat(selectFlowComponentDialogBoxUnderTest.selectButtonClickHandler, is(mockedClickHandler));
+        assertThat(selectFlowComponentDialogBoxUnderTest.selectButtonClickHandler, is(mockedClickHandler2));
     }
 
     @Test
     public void removeClickHandler_callRemoveInHandlerRegistration_clickHandlerRemoved() {
-        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
-        HandlerRegistration registration = selectFlowComponentDialogBoxUnderTest.addClickHandler(mockedClickHandler);
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox(new LinkedHashMap<String, String>(), mockedClickHandler);
+        HandlerRegistration registration = selectFlowComponentDialogBoxUnderTest.addClickHandler(mockedClickHandler2);
 
         registration.removeHandler();
 
@@ -87,7 +84,7 @@ public class SelectFlowComponentDialogBoxTest {
 
     @Test
     public void uiHandlerSelectFlowComponent_callUiHandler_checkCorrectBehavior() {
-        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox(new LinkedHashMap<String, String>(), mockedClickHandler);
         selectFlowComponentDialogBoxUnderTest.addClickHandler(mockedClickHandler);
 
         selectFlowComponentDialogBoxUnderTest.selectFlowComponentButtonPressed(mockedClickEvent);
@@ -98,7 +95,7 @@ public class SelectFlowComponentDialogBoxTest {
 
     @Test
     public void uiHandlerCancel_callUiHandler_checkCorrectBehavior() {
-        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox();
+        selectFlowComponentDialogBoxUnderTest = new SelectFlowComponentDialogBox(new LinkedHashMap<String, String>(), mockedClickHandler);
 
         selectFlowComponentDialogBoxUnderTest.cancelButtonPressed(mockedClickEvent);
 

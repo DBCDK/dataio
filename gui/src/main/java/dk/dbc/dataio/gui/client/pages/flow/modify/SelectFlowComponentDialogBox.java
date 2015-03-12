@@ -55,25 +55,23 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
 
     /**
      * Constructor
-     */
-    public SelectFlowComponentDialogBox() {
-        initWidget(ourUiBinder.createAndBindUi(this));
-        availableFlowComponentsDialog.setGlassEnabled(true);
-        availableFlowComponentsDialog.setAnimationEnabled(true);
-    }
-
-    /**
      * Activates and shows the Dialog Box
      * Supplies available flow components, that will be show in the dialog box
      * @param availableFlowComponents Flow components to be shown in the list
      */
-    public void activateDialogBox(Map<String, String> availableFlowComponents) {
+    public SelectFlowComponentDialogBox(Map<String, String> availableFlowComponents, ClickHandler clickHandler) {
+        initWidget(ourUiBinder.createAndBindUi(this));
+        availableFlowComponentsDialog.setGlassEnabled(true);
+        availableFlowComponentsDialog.setAnimationEnabled(true);
         for (Map.Entry<String, String> item : availableFlowComponents.entrySet()) {
             flowComponentsList.addItem(item.getKey(), item.getValue());
         }
-        flowComponentsList.setVisibleItemCount(availableFlowComponents.size() < MAX_NUMBER_OF_SHOWN_ITEMS ? availableFlowComponents.size() : MAX_NUMBER_OF_SHOWN_ITEMS);
+        int listBoxSize = availableFlowComponents.size() < MAX_NUMBER_OF_SHOWN_ITEMS ? availableFlowComponents.size() : MAX_NUMBER_OF_SHOWN_ITEMS;  // To assure, that max size is MAX_NUMBER_OF_SHOWN_ITEMS
+        listBoxSize = listBoxSize > 1 ? listBoxSize : 2;  // To assure, that min size is 2
+        flowComponentsList.setVisibleItemCount(listBoxSize);
         availableFlowComponentsDialog.center();
         availableFlowComponentsDialog.show();
+        addClickHandler(clickHandler);
     }
 
     /**

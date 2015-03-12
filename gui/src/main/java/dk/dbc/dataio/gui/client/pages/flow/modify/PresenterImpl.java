@@ -155,7 +155,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 flowComponentModels.remove(getFlowComponentModelIndex(view.flowComponents.getSelectedItem()));
                 model.setFlowComponents(flowComponentModels);
                 updateAllFieldsAccordingToCurrentState();
-            } catch (Exception e) {  // NPMD - do not report a PMD warning
+            } catch (Exception e) {  // NOPMD
+                // NOPMD
                 // Exceptions are not caught intentionally here - If an exception occurs, nothing is being removed
             }
         }

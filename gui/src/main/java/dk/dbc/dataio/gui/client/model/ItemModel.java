@@ -8,7 +8,7 @@ public class ItemModel extends GenericBackendModel {
     private String itemId;
     private String chunkId;
     private String jobId;
-    LifeCycle lifeCycle;
+    private LifeCycle lifeCycle;
 
 
     public ItemModel(

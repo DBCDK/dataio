@@ -12,10 +12,7 @@ public class ItemListCriteriaModel implements IsSerializable {
     private ItemSearchType itemSearchType;
 
     public ItemListCriteriaModel() {
-        this.itemId = "0";
-        this.chunkId = "0";
-        this.jobId = "0";
-        this.itemSearchType = ItemSearchType.FAILED;
+        this("0", "0", "0", ItemSearchType.FAILED);
     }
 
     public ItemListCriteriaModel(String itemId, String chunkId, String jobId, ItemSearchType itemSearchType) {

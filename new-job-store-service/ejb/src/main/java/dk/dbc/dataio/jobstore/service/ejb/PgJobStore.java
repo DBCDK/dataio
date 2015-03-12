@@ -120,9 +120,7 @@ public class PgJobStore {
                     .setEndDate(new Date());
 
             jobEntity = getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
-            final State jobState = new State(jobEntity.getState());
-            jobState.updateState(jobStateChange);
-            jobEntity.setState(jobState);
+            updateJobEntityState(jobEntity, jobStateChange);
             entityManager.flush();
 
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
@@ -166,9 +164,7 @@ public class PgJobStore {
                     .setBeginDate(chunkPhaseBeginDate)
                     .setEndDate(chunkPhaseEndDate);
 
-                final State chunkState = new State(chunkEntity.getState());
-                chunkState.updateState(chunkStateChange);
-                chunkEntity.setState(chunkState);
+                final State chunkState = updateChunkEntityState(chunkEntity, chunkStateChange);
                 if(chunkState.allPhasesAreDone()) {
                     chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
                 }
@@ -180,13 +176,8 @@ public class PgJobStore {
                     throw new JobStoreException(String.format("JobEntity.%d could not be found",
                             chunkEntity.getKey().getJobId()));
                 }
-
-                final State jobState = new State(jobEntity.getState());
-                jobState.updateState(chunkStateChange
-                        .setBeginDate(null)
-                        .setEndDate(null));
-                jobEntity.setState(jobState);
-                if(jobState.allPhasesAreDone()) {
+                final State jobState = updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
+                if (jobState.allPhasesAreDone()) {
                     jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
                 }
                 entityManager.flush();
@@ -336,12 +327,7 @@ public class PgJobStore {
                 final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
                 jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
                 jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
-                final State jobState = new State(jobEntity.getState());
-                jobState.updateState(chunkStateChange
-                    .setBeginDate(null)
-                    .setEndDate(null)
-                );
-                jobEntity.setState(jobState);
+                updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
                 entityManager.flush();
             }
 
@@ -521,10 +507,8 @@ public class PgJobStore {
                         break;
                 }
 
-                final State itemState = new State(itemEntity.getState());
-                itemState.updateState(itemStateChange);
-                itemEntity.setState(itemState);
-                if(itemEntity.getState().allPhasesAreDone()) {
+                final State itemState = updateItemEntityState(itemEntity, itemStateChange);
+                if(itemState.allPhasesAreDone()) {
                     itemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
                 }
                 nextItemBegin = new Date();
@@ -617,6 +601,27 @@ public class PgJobStore {
             case DELIVERED:   return State.Phase.DELIVERING;
             default:          return null;
         }
+    }
+
+    private State updateJobEntityState(JobEntity jobEntity, StateChange stateChange) {
+        final State jobState = new State(jobEntity.getState());
+        jobState.updateState(stateChange);
+        jobEntity.setState(jobState);
+        return jobState;
+    }
+
+    private State updateChunkEntityState(ChunkEntity chunkEntity, StateChange stateChange) {
+        final State chunkState = new State(chunkEntity.getState());
+        chunkState.updateState(stateChange);
+        chunkEntity.setState(chunkState);
+        return chunkState;
+    }
+
+    private State updateItemEntityState(ItemEntity itemEntity, StateChange stateChange) {
+        final State itemState = new State(itemEntity.getState());
+        itemState.updateState(stateChange);
+        itemEntity.setState(itemState);
+        return itemState;
     }
 
     /* Chunk item entities compound class

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
@@ -89,15 +88,5 @@ public class JobInfoSnapshot {
 
     public FlowStoreReferences getFlowStoreReferences() {
         return flowStoreReferences;
-    }
-
-    @JsonIgnore
-    public String getFlowName() {
-        return flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW).getName();
-    }
-
-    @JsonIgnore
-    public String getSinkName() {
-        return flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK).getName();
     }
 }

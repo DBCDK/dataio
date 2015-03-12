@@ -22,11 +22,11 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
-import dk.dbc.dataio.gui.server.ModelMappers.FlowBinderModelMapper;
-import dk.dbc.dataio.gui.server.ModelMappers.FlowComponentModelMapper;
-import dk.dbc.dataio.gui.server.ModelMappers.FlowModelMapper;
-import dk.dbc.dataio.gui.server.ModelMappers.SinkModelMapper;
-import dk.dbc.dataio.gui.server.ModelMappers.SubmitterModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.FlowBinderModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 
 import javax.naming.NamingException;

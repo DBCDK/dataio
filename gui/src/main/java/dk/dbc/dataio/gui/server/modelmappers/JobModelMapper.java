@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.server.ModelMappers;
+package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.Format;

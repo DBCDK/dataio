@@ -28,7 +28,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.server.ModelMappers.FlowComponentModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
 import org.junit.Test;

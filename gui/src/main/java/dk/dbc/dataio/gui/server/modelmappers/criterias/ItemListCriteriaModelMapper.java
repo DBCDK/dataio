@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.server.ModelMappers.criterias;
+package dk.dbc.dataio.gui.server.modelmappers.criterias;
 
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;

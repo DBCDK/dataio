@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.server.ModelMappers;
+package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;

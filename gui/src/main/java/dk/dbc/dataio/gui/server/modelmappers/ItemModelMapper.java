@@ -9,12 +9,11 @@ import java.util.List;
 
 /*
  * This class maps returned job info snapshots (from an item search) to an item model.
- * the methods contain different logic for the field: LifeCycle.
  *
- * Depending on the search type, the value is referring to:
+ * Depending on the search type (FAILED, IGNORED, ALL), LifeCycle is referring to:
  *
- * FAILED/IGNORED   -> in which phase (PARTITIONING, PROCESSING, DELIVERING) was an item failed/ignored
- * ALL              -> the current phase of the item (PARTITIONING, PROCESSING, DELIVERING, DONE)
+ * FAILED/IGNORED   -> In which phase (PARTITIONING, PROCESSING, DELIVERING) was an item failed/ignored
+ * ALL              -> The phase which the item is currently in (PARTITIONING, PROCESSING, DELIVERING, DONE)
  */
 public final class ItemModelMapper {
 
@@ -29,6 +28,21 @@ public final class ItemModelMapper {
         List<ItemModel> itemInfoSnapshotModels = new ArrayList<ItemModel>(itemInfoSnapshots.size());
         for (ItemInfoSnapshot itemInfoSnapshot : itemInfoSnapshots) {
             itemInfoSnapshotModels.add(toFailedItemsModel(itemInfoSnapshot));
+        }
+        return itemInfoSnapshotModels;
+    }
+
+    /**
+     * Maps a list of item info snapshots to a list of item models for an item search locating IGNORED items
+     * belonging to a specific job
+     *
+     * @param itemInfoSnapshots item info snapshots to map
+     * @return list of item model containing the mapped values
+     */
+    public static List<ItemModel> toIgnoredItemsModel(List<ItemInfoSnapshot> itemInfoSnapshots) {
+        List<ItemModel> itemInfoSnapshotModels = new ArrayList<ItemModel>(itemInfoSnapshots.size());
+        for (ItemInfoSnapshot itemInfoSnapshot : itemInfoSnapshots) {
+            itemInfoSnapshotModels.add(toIgnoredItemsModel(itemInfoSnapshot));
         }
         return itemInfoSnapshotModels;
     }
@@ -68,6 +82,21 @@ public final class ItemModelMapper {
     }
 
     /**
+     * Maps an item info snapshot to an item model for a search locating all IGNORED items for a specific job
+     *
+     * @param itemInfoSnapshot item info snapshot to map
+     * @return item model containing the mapped values
+     */
+    private static ItemModel toIgnoredItemsModel(ItemInfoSnapshot itemInfoSnapshot) {
+        return new ItemModel(
+                Long.valueOf(itemInfoSnapshot.getItemNumber()).toString(),
+                Long.valueOf(itemInfoSnapshot.getItemId()).toString(),
+                Long.valueOf(itemInfoSnapshot.getChunkId()).toString(),
+                Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
+                searchIgnored(itemInfoSnapshot.getState()));
+    }
+
+    /**
      * Maps an item info snapshot to an item model for a search locating ALL items for a specific job
      *
      * @param itemInfoSnapshot item info snapshot to map
@@ -86,7 +115,7 @@ public final class ItemModelMapper {
      * This method determines the return value based on the phase in which the item failed
      *
      * @param state containing information regarding the status of the item (success, failed, ignored)
-     * @return the life cycle (which phase has the item has failed in).
+     * @return the life cycle (in which phase has the item failed).
      */
     private static ItemModel.LifeCycle searchFailed(State state) {
         ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING; //Default value
@@ -99,10 +128,27 @@ public final class ItemModelMapper {
     }
 
     /**
+     * This method determines the return value based on the phase in which the item was firstly ignored
+     *
+     * @param state containing information regarding the status of the item (success, failed, ignored)
+     * @return the life cycle (in which phase has the item firstly been ignored).
+     */
+    private static ItemModel.LifeCycle searchIgnored(State state) {
+        ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING; //Default value
+        if (state.getPhase(State.Phase.PROCESSING).getIgnored() == 1) {
+            lifeCycle = ItemModel.LifeCycle.PROCESSING;
+        } else if (state.getPhase(State.Phase.DELIVERING).getIgnored() == 1) {
+            lifeCycle = ItemModel.LifeCycle.DELIVERING;
+        }
+        return lifeCycle;
+    }
+
+
+    /**
      * This method determines the return value based on the current phase of the item
      *
      * @param state containing information regarding the status of the item (success, failed, ignored)
-     * @return the life cycle (which phase is the item is currently in).
+     * @return the life cycle (in which phase is the item is currently).
      */
     private static ItemModel.LifeCycle searchAll(State state) {
         ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING; //Default value;

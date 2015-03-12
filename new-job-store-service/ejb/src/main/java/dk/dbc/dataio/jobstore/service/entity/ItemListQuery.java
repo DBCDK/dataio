@@ -37,6 +37,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
         fieldMap.put(ItemListCriteria.Field.ITEM_ID, new BinaryOpField("id", new ListQuery.ObjectValue()));
         fieldMap.put(ItemListCriteria.Field.TIME_OF_CREATION, new BinaryOpField("timeOfCreation", new ListQuery.ObjectValue()));
         fieldMap.put(ItemListCriteria.Field.STATE_FAILED, new VerbatimField("(state->'states'->'PARTITIONING'->>'failed' != '0' OR state->'states'->'PROCESSING'->>'failed' != '0' OR state->'states'->'DELIVERING'->>'failed' != '0')"));
+        fieldMap.put(ItemListCriteria.Field.STATE_IGNORED, new VerbatimField("(state->'states'->'PARTITIONING'->>'ignored' != '0' OR state->'states'->'PROCESSING'->>'ignored' != '0' OR state->'states'->'DELIVERING'->>'ignored' != '0')"));
     }
 
     /**

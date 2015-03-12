@@ -209,7 +209,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-      public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
+    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -244,6 +244,24 @@ public class JobStoreProxyImplTest {
         List<ItemInfoSnapshot> itemInfoSnapshots = getFailedListOfItemInfoSnapshots();
         ItemListCriteriaModel model = new ItemListCriteriaModel();
         model.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
+
+        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenReturn(itemInfoSnapshots);
+        try {
+            List<ItemModel> itemModels = jobStoreProxy.listItems(model);
+            assertThat(itemModels, not(nullValue()));
+            assertThat(itemModels.get(0).getStatus(), is(ItemModel.LifeCycle.PROCESSING));
+            assertThat(itemModels.get(1).getStatus(), is(ItemModel.LifeCycle.DELIVERING));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: listItems()");
+        }
+    }
+
+    @Test
+    public void listIgnoredItemsForJob_remoteServiceReturnsHttpStatusOk_returnsListOfItemModelEntities() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        List<ItemInfoSnapshot> itemInfoSnapshots = getIgnoredListOfItemInfoSnapshots();
+        ItemListCriteriaModel model = new ItemListCriteriaModel();
+        model.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
 
         when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenReturn(itemInfoSnapshots);
         try {
@@ -292,20 +310,27 @@ public class JobStoreProxyImplTest {
 
     private List<ItemInfoSnapshot> getListOfItemInfoSnapshots() {
         List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<ItemInfoSnapshot>(3);
-        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedPhase(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 0).build());
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedAndIgnoredPhase(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 0).build());
         itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildPhaseCompletion(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 1).build());
         itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildPhaseCompletion(State.Phase.DELIVERING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 2).build());
         return itemInfoSnapshots;
     }
 
     private List<ItemInfoSnapshot> getFailedListOfItemInfoSnapshots() {
-        List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<ItemInfoSnapshot>(3);
-        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedPhase(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 0).build());
-        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedPhase(State.Phase.DELIVERING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 1).build());
+        List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<ItemInfoSnapshot>(2);
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedAndIgnoredPhase(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 0).build());
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedAndIgnoredPhase(State.Phase.DELIVERING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 1).build());
         return itemInfoSnapshots;
     }
 
-    private State buildFailedPhase(State.Phase phaseToFail) {
+    private List<ItemInfoSnapshot> getIgnoredListOfItemInfoSnapshots() {
+        List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<ItemInfoSnapshot>(2);
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedAndIgnoredPhase(State.Phase.PARTITIONING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 0).build());
+        itemInfoSnapshots.add(new ItemInfoSnapshotBuilder().setState(buildFailedAndIgnoredPhase(State.Phase.PROCESSING)).setJobId(Long.valueOf(ID).intValue()).setItemId((short) 1).build());
+        return itemInfoSnapshots;
+    }
+
+    private State buildFailedAndIgnoredPhase(State.Phase phaseToFail) {
         State state = new State();
         switch (phaseToFail) {
             case PARTITIONING:
@@ -341,6 +366,5 @@ public class JobStoreProxyImplTest {
         }
         return state;
     }
-
 
 }

@@ -127,13 +127,14 @@ public class ItemListCriteriaTest {
     public void instance_whenVerbatimFieldConstruct_canBeMarshalAndUnmarshalled() throws JSONBException {
         final List<ListFilter<ItemListCriteria.Field>> filters = new ArrayList<>();
         filters.add(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED));
+        filters.add(new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED));
 
         final ListCriteria itemListCriteria = new ItemListCriteria()
                 .where(filters.get(0))
+                .and(filters.get(1))
                 .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.DESC));
 
         final JSONBContext jsonbContext = new JSONBContext();
         jsonbContext.unmarshall(jsonbContext.marshall(itemListCriteria), ItemListCriteria.class);
     }
-
 }

@@ -69,9 +69,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreIT {
-    
+
     Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
-    
+
     public static final String DATABASE_NAME = "jobstore";
     public static final String JOB_TABLE_NAME = "job";
     public static final String CHUNK_TABLE_NAME = "chunk";
@@ -304,8 +304,13 @@ public class PgJobStoreIT {
         for (int i = 0; i < 4; i++) {
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
-            snapshots.add(pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                    params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences));
+            snapshots.add(pgJobStore.addJob(
+                    params.jobInputStream,
+                    params.dataPartitioner,
+                    params.sequenceAnalyserKeyGenerator,
+                    params.flow,
+                    params.sink,
+                    params.flowStoreReferences));
             jobTransaction.commit();
         }
 
@@ -326,13 +331,11 @@ public class PgJobStoreIT {
 
     /**
      * Given   : a job store containing a number of jobs
-     * When    : requesting an item listing with a criteria selecting all items from a specific job
-     * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC
-     * And When: requesting an item listing with a criteria selecting all failed items from a specific job
-     * Then    : only one filtered snapshot is returned.
+     * When    : requesting an item listing with a criteria selecting failed items from a specific job
+     * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
      */
     @Test
-    public void listItems() throws JobStoreException {
+    public void listFailedItemsForJob() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final Params params = new Params(true);  // The params define that the job is created with 2 chunks.
@@ -341,11 +344,107 @@ public class PgJobStoreIT {
 
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(
+                params.jobInputStream,
+                params.dataPartitioner,
+                params.sequenceAnalyserKeyGenerator,
+                params.flow,
+                params.sink,
+                params.flowStoreReferences);
         jobTransaction.commit();
 
         ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
                 10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.PROCESSED);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
+
+        // When...
+        final ItemListCriteria findAllItemsForJobWithStatusFailed = new ItemListCriteria()
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))
+                .and(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED));
+
+        List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.listItems(findAllItemsForJobWithStatusFailed);
+        assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
+        assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(FAILED_ITEM_ID));
+        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(FAILED_ITEM_ID + 1));
+    }
+
+    /**
+     * Given   : a job store containing a number of jobs
+     * When    : requesting an item listing with a criteria selecting ignored items from a specific job
+     * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
+     */
+    @Test
+    public void listIgnoredItemsForJob() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Params params = new Params(true);  // The params define that the job is created with 2 chunks.
+        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
+        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
+
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(
+                params.jobInputStream,
+                params.dataPartitioner,
+                params.sequenceAnalyserKeyGenerator,
+                params.flow,
+                params.sink,
+                params.flowStoreReferences);
+        jobTransaction.commit();
+
+        ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
+                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
+
+        // When...
+        final ItemListCriteria findAllItemsForJobWithStatusIgnored = new ItemListCriteria()
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))
+                .and(new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED));
+
+        List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.listItems(findAllItemsForJobWithStatusIgnored);
+        assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
+        assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(IGNORED_ITEM_ID));
+        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(IGNORED_ITEM_ID + 1));
+    }
+
+    /**
+     * Given   : a job store containing a number of jobs
+     * When    : requesting an item listing with a criteria selecting all items from a specific job
+     * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC
+     */
+    @Test
+    public void listAllItemsForJob() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Params params = new Params(true);  // The params define that the job is created with 2 chunks.
+        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
+        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
+
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(
+                params.jobInputStream,
+                params.dataPartitioner,
+                params.sequenceAnalyserKeyGenerator,
+                params.flow,
+                params.sink,
+                params.flowStoreReferences);
+        jobTransaction.commit();
+
+        ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
+                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -362,24 +461,12 @@ public class PgJobStoreIT {
 
         // Then
         assertThat("Number of returned items", returnedItemInfoSnapshots.size(), is(jobInfoSnapshot.getNumberOfItems()));
-
         int expectedItemId = 1;
         for(ItemInfoSnapshot itemInfoSnapshot : returnedItemInfoSnapshots) {
             assertThat("Job id referred to by item", itemInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
             assertThat("Item number", itemInfoSnapshot.getItemNumber(), is(expectedItemId));
             expectedItemId++;
         }
-
-        // And when...
-        final ItemListCriteria findAllItemsForJobWithStatusFailed = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))
-                .and(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED));
-
-        returnedItemInfoSnapshots = pgJobStore.listItems(findAllItemsForJobWithStatusFailed);
-        assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
-        assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(FAILED_ITEM_ID));
-        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(FAILED_ITEM_ID + 1));
     }
 
 
@@ -582,19 +669,19 @@ public class PgJobStoreIT {
      */
     private static class Params {
         final String xml =
-                  "<records>"
-                + "<record>first</record>"
-                + "<record>second</record>"
-                + "<record>third</record>"
-                + "<record>fourth</record>"
-                + "<record>fifth</record>"
-                + "<record>sixth</record>"
-                + "<record>seventh</record>"
-                + "<record>eighth</record>"
-                + "<record>ninth</record>"
-                + "<record>tenth</record>"
-                + "<record>eleventh</record>"
-                + "</records>";
+                "<records>"
+                        + "<record>first</record>"
+                        + "<record>second</record>"
+                        + "<record>third</record>"
+                        + "<record>fourth</record>"
+                        + "<record>fifth</record>"
+                        + "<record>sixth</record>"
+                        + "<record>seventh</record>"
+                        + "<record>eighth</record>"
+                        + "<record>ninth</record>"
+                        + "<record>tenth</record>"
+                        + "<record>eleventh</record>"
+                        + "</records>";
 
         public JobInputStream jobInputStream;
         public DataPartitionerFactory.DataPartitioner dataPartitioner;

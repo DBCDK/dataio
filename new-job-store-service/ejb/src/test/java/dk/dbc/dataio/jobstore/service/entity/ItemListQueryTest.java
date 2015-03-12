@@ -146,20 +146,28 @@ public class ItemListQueryTest {
                 .where(new ListFilter<>(ItemListCriteria.Field.ITEM_ID, ListFilter.Op.EQUAL, 42))
                 .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, 43))
                 .and(new ListFilter<>(ItemListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.LESS_THAN_OR_EQUAL_TO, 42))
-                        .where(new ListFilter<>(ItemListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN, 42));
+                .where(new ListFilter<>(ItemListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN, 42));
         assertThat(itemListQuery.buildQueryString(ItemListQuery.QUERY_BASE, itemListCriteria), is(expectedQuery));
     }
 
     @Test
     public void buildQueryString_SingleWhereClauseMultipleFiltersMultipleOrderByClauses_returnsQueryString() {
-        final String expectedQuery = ItemListQuery.QUERY_BASE + " WHERE jobId=?1 AND (state->'states'->'PARTITIONING'->>'failed' != '0' OR state->'states'->'PROCESSING'->>'failed' != '0' OR state->'states'->'DELIVERING'->>'failed' != '0') ORDER BY chunkId ASC, id ASC";
+        final String expectedQuery = ItemListQuery.QUERY_BASE +
+                " WHERE jobId=?1 " +
+                "AND (state->'states'->'PARTITIONING'->>'failed' != '0' " +
+                "OR state->'states'->'PROCESSING'->>'failed' != '0' " +
+                "OR state->'states'->'DELIVERING'->>'failed' != '0') " +
+                "AND (state->'states'->'PARTITIONING'->>'ignored' != '0' " +
+                "OR state->'states'->'PROCESSING'->>'ignored' != '0' " +
+                "OR state->'states'->'DELIVERING'->>'ignored' != '0') " +
+                "ORDER BY chunkId ASC, id ASC";
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
         final ItemListCriteria itemListCriteria = new ItemListCriteria()
                 .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 42))
                 .and(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED))
+                .and(new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED))
                 .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
                 .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
         assertThat(itemListQuery.buildQueryString(ItemListQuery.QUERY_BASE, itemListCriteria), is(expectedQuery));
     }
-
 }

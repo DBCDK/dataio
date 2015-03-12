@@ -27,7 +27,21 @@ public class ItemListCriteriaModelMapper {
     }
 
     /**
-     * This method defines the seach criteria for locating all items items contained within a job
+     * This method defines the search criteria for locating ignored items within a job
+     *
+     * @param model ignored item list criteria model, containing the values needed to perform the search
+     * @return ItemListCriteria with added filtering parameters
+     */
+    public static ItemListCriteria toIgnoredItemListCriteria(ItemListCriteriaModel model) {
+        ListFilter jobIdEqualsCondition = new ListFilter<ItemListCriteria.Field>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(model.getJobId()).intValue());
+        ListFilter itemStatus = new ListFilter<ItemListCriteria.Field>(ItemListCriteria.Field.STATE_IGNORED);
+        ListOrderBy ascendingChunkId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC);
+        ListOrderBy ascendingItemId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC);
+        return new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus).orderBy(ascendingChunkId).orderBy(ascendingItemId);
+    }
+
+    /**
+     * This method defines the search criteria for locating all items items contained within a job
      *
      * @param model item list criteria model, containing the values needed to perform the search
      * @return ItemListCriteria with added filtering parameters

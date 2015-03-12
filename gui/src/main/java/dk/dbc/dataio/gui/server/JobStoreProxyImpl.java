@@ -159,6 +159,10 @@ public class JobStoreProxyImpl implements JobStoreProxy {
                     itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toFailedItemListCriteria(model));
                     itemModels = ItemModelMapper.toFailedItemsModel(itemInfoSnapshotList);
                     break;
+                case IGNORED:
+                    itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toIgnoredItemListCriteria(model));
+                    itemModels = ItemModelMapper.toIgnoredItemsModel(itemInfoSnapshotList);
+                    break;
                 case ALL:
                     itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toItemListCriteriaAll(model));
                     itemModels = ItemModelMapper.toAllItemsModel(itemInfoSnapshotList);
@@ -202,5 +206,4 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             throw new ProxyException(errorCode, response.readEntity(String.class));
         }
     }
-
 }

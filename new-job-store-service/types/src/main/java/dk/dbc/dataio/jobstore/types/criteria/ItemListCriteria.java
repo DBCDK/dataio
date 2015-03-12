@@ -32,7 +32,11 @@ public class ItemListCriteria implements ListCriteria<ItemListCriteria.Field>{
         /*
          * failed items
          */
-        STATE_FAILED
+        STATE_FAILED,
+        /*
+         * ignored items
+         */
+        STATE_IGNORED
     }
 
     private LinkedList<ListFilterGroup<ItemListCriteria.Field>> filtering;

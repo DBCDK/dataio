@@ -329,25 +329,18 @@ public class JobStoreProxyImplTest {
     private State buildPhaseCompletion(State.Phase lastPhaseCompleted) {
         State state = new State();
         switch (lastPhaseCompleted) {
+            case DELIVERING:
+                state.getPhase(State.Phase.DELIVERING).setSucceeded(1);
+                state.getPhase(State.Phase.DELIVERING).setEndDate(new Date());
+            case PROCESSING:
+                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
+                state.getPhase(State.Phase.PROCESSING).setEndDate(new Date());
             case PARTITIONING:
                 state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
                 state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
-                break;
-            case PROCESSING:
-                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
-                state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
-                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
-                state.getPhase(State.Phase.PROCESSING).setEndDate(new Date());
-                break;
-            case DELIVERING:
-                state.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
-                state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
-                state.getPhase(State.Phase.PROCESSING).setSucceeded(1);
-                state.getPhase(State.Phase.PROCESSING).setEndDate(new Date());
-                state.getPhase(State.Phase.DELIVERING).setSucceeded(1);
-                state.getPhase(State.Phase.DELIVERING).setEndDate(new Date());
         }
         return state;
     }
+
 
 }

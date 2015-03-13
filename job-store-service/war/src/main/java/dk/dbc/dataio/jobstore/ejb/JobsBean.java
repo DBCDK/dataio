@@ -118,13 +118,14 @@ public class JobsBean {
     }
 
     private Job createJobInJobStore(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink) throws JobStoreException {
+        final int jobId = jobStoreBean.addJobToNewJobStore(jobSpec);
         String jobDataFile = jobSpec.getDataFile();
         boolean localFile = Files.exists(Paths.get(jobDataFile));
         // A little bit unconventionel: Deciding which InputStream to use based on whether the file is local.
         // This is to ensure that there is no duplicated code, i.e. two try-with-resources each with a call to createAndScheduleJob,
         // and to ensure that try-with-resources is used.
         try (InputStream jobInputStream = localFile ? Files.newInputStream(Paths.get(jobDataFile)) : fileStoreServiceConnectorBean.getFile(new FileStoreUrn(jobDataFile).getFileId())) {
-            return jobStoreBean.createAndScheduleJob(jobSpec, flowBinder, flow, sink, jobInputStream);
+            return jobStoreBean.createAndScheduleJob(jobId, jobSpec, flowBinder, flow, sink, jobInputStream);
         } catch (IOException | FileStoreServiceConnectorException | URISyntaxException ex) {
             throw new JobStoreException("An error occured while trying to retrieve jobdatafile from inputstream. Value for jobdatafile: '" + jobDataFile + "'", ex);
         }

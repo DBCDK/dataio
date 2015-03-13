@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.naming.NamingException;
@@ -67,12 +69,13 @@ public class JobStoreBean {
         }
     }
 
+    @Lock(LockType.READ)
     public JobStore getJobStore() {
         return jobStore;
     }
 
-    public Job createAndScheduleJob(JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
-        final int jobId = addJobToNewJobStore(jobSpec);
+    @Lock(LockType.READ)
+    public Job createAndScheduleJob(long jobId, JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
         final Job job = jobStore.createJob(jobId, jobSpec, flowBinder, flow, sink, jobInputStream,
                 getSequenceAnalyserKeyGenerator(flowBinder));
         scheduleJob(job, sink);
@@ -94,7 +97,8 @@ public class JobStoreBean {
         }
     }
 
-    private int addJobToNewJobStore(JobSpecification jobSpecification) throws JobStoreException {
+    @Lock(LockType.READ)
+    public int addJobToNewJobStore(JobSpecification jobSpecification) throws JobStoreException {
         final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 0);
         try {
             final JobInfoSnapshot jobInfoSnapshot = newJobStoreServiceConnectorBean.getConnector().addJob(jobInputStream);

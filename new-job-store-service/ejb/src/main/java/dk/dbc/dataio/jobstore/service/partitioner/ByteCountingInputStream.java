@@ -7,11 +7,9 @@ import java.io.InputStream;
  * count the number of bytes read through the stream
  */
 public class ByteCountingInputStream extends InputStream {
-    long count = 0;
-
-    long marked = -1;
-
-    InputStream is;
+    private long count = 0;
+    private long marked = -1;
+    private InputStream is;
 
     @Override
     public int available() throws IOException {

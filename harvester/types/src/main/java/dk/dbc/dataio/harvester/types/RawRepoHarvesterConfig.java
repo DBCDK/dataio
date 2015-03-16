@@ -64,6 +64,9 @@ public class RawRepoHarvesterConfig {
         /** JNDI name of rawrepo JDBC resource
          */
         private String resource;
+        /** Harvest batch size
+         */
+        private int batchSize = 10000;
 
         public String getId() {
             return id;
@@ -83,11 +86,21 @@ public class RawRepoHarvesterConfig {
             return this;
         }
 
+        public int getBatchSize() {
+            return batchSize;
+        }
+
+        public Entry setBatchSize(int batchSize) {
+            this.batchSize = batchSize;
+            return this;
+        }
+
         @Override
         public String toString() {
             return "Entry{" +
                     "id='" + id + '\'' +
                     ", resource='" + resource + '\'' +
+                    ", batchSize=" + batchSize +
                     '}';
         }
 
@@ -102,6 +115,9 @@ public class RawRepoHarvesterConfig {
 
             Entry entry = (Entry) o;
 
+            if (batchSize != entry.batchSize) {
+                return false;
+            }
             if (id != null ? !id.equals(entry.id) : entry.id != null) {
                 return false;
             }
@@ -116,6 +132,7 @@ public class RawRepoHarvesterConfig {
         public int hashCode() {
             int result = id != null ? id.hashCode() : 0;
             result = 31 * result + (resource != null ? resource.hashCode() : 0);
+            result = 31 * result + batchSize;
             return result;
         }
     }

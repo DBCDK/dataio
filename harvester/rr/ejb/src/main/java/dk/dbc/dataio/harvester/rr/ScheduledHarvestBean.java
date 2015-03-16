@@ -17,6 +17,10 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.Future;
 
 /**
  * This singleton Enterprise Java Bean (EJB) class executes scheduled harvest
@@ -29,6 +33,8 @@ public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
 
     private Timer timer = null;
+
+    final Map<String, Future<Integer>> runningHarvests = new HashMap<>();
 
     @Resource
     TimerService timerService;
@@ -47,7 +53,7 @@ public class ScheduledHarvestBean {
     @PostConstruct
     public void bootstrap() {
         final ScheduleExpression scheduleExpression = new ScheduleExpression();
-        scheduleExpression.second("*/30");
+        scheduleExpression.second("*/5");
         scheduleExpression.minute("*");
         scheduleExpression.hour("*");
         start(scheduleExpression);
@@ -79,18 +85,36 @@ public class ScheduledHarvestBean {
     }
 
     /**
-     * Executes harvest operation on each scheduled point in time
+     * Executes harvest operations not already running on each scheduled point in time
      * @param timer current timer
      */
     @Timeout
-    public void runScheduledHarvest(Timer timer) {
+    public void scheduleHarvests(Timer timer) {
         try {
             config.reload();
-            for (RawRepoHarvesterConfig.Entry configEntry : config.get().getEntries()){
-                harvester.harvest(configEntry);
+            final Iterator<Map.Entry<String, Future<Integer>>> iterator = runningHarvests.entrySet().iterator();
+            while (iterator.hasNext()) {
+                final Map.Entry<String, Future<Integer>> harvest = iterator.next();
+                if (harvest.getValue().isDone()) {
+                    iterator.remove();
+                    try {
+                        final Integer recordsHarvested = harvest.getValue().get();
+                        LOGGER.info("Scheduled harvest for '{}' harvested {} records",
+                                harvest.getKey(), recordsHarvested);
+                    } catch (Exception e) {
+                        LOGGER.warn("Exception caught from scheduled harvest for '{}'", harvest.getKey(), e);
+                    }
+                }
+            }
+
+            for (RawRepoHarvesterConfig.Entry configEntry : config.get().getEntries()) {
+                if (!runningHarvests.containsKey(configEntry.getId())) {
+                    runningHarvests.put(configEntry.getId(), harvester.harvest(configEntry));
+                    LOGGER.debug("Scheduling harvest for '{}'", configEntry.getId());
+                }
             }
         } catch (Exception e) {
-            LOGGER.warn("Exception caught from harvester", e);
+            LOGGER.warn("Exception caught while scheduling harvests", e);
         }
     }
 }

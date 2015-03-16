@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
 import dk.dbc.dataio.jobstore.types.DataException;

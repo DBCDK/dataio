@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.service.partitioner;
+package dk.dbc.dataio.common.utils.io;
 
 import java.io.IOException;
 import java.io.InputStream;

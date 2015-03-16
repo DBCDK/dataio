@@ -22,6 +22,7 @@ public class DefaultXmlDataPartitionerTest {
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         assertThat(dataPartitioner.iterator().hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -31,6 +32,7 @@ public class DefaultXmlDataPartitionerTest {
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         assertThat(dataPartitioner.iterator().hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -66,6 +68,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedResult2));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -80,6 +83,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedResult));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -162,6 +166,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -195,6 +200,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -250,6 +256,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -265,6 +272,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -280,6 +288,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -295,6 +304,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -310,6 +320,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -325,6 +336,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -367,6 +379,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -420,6 +433,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -439,6 +453,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -554,6 +569,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -585,6 +601,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(xml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test
@@ -604,6 +621,7 @@ public class DefaultXmlDataPartitionerTest {
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
+        assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes().length)));
     }
 
     @Test

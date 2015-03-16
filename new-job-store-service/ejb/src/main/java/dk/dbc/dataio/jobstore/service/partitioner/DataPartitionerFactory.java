@@ -19,5 +19,6 @@ public interface DataPartitionerFactory {
 
     interface DataPartitioner extends Iterable<String> {
         Charset getEncoding() throws InvalidEncodingException;
+        long getBytesRead();
     }
 }

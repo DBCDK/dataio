@@ -113,7 +113,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
 
         private final XMLEventFactory xmlEventFactory;
         private final XMLOutputFactory xmlOutputFactory;
-        private final InputStream inputStream;
+        private final ByteCountingInputStream inputStream;
         private final String expectedEncoding;
         private String encoding;
         private String rootTag;
@@ -124,7 +124,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
         private Iterator<String> iterator;
 
         public DefaultXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
-            this.inputStream = inputStream;
+            this.inputStream = new ByteCountingInputStream(inputStream);
             this.expectedEncoding = expectedEncoding;
             encoding = StandardCharsets.UTF_8.name();
             xmlEventFactory = XMLEventFactory.newInstance();
@@ -142,6 +142,11 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                 throw new InvalidEncodingException(String.format(
                         "Invalid encoding specified '%s'", expectedEncoding), e);
             }
+        }
+
+        @Override
+        public long getBytesRead() {
+            return inputStream.getBytesRead();
         }
 
         @Override

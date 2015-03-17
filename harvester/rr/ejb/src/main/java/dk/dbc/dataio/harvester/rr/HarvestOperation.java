@@ -109,7 +109,7 @@ public class HarvestOperation {
         harvesterJobBuilders.clear();
     }
 
-    private JobSpecification getJobSpecificationTemplate(int agencyId) {
+    JobSpecification getJobSpecificationTemplate(int agencyId) {
         // ToDo: use config to fill out template
         return new JobSpecification("xml", "katalog", "utf8", "fbs", agencyId,
                 "placeholder", "placeholder", "placeholder", "placeholder");

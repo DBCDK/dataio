@@ -1,5 +1,8 @@
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import org.slf4j.Logger;
@@ -9,6 +12,7 @@ import org.slf4j.MDC;
 import javax.annotation.Resource;
 import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.SessionContext;
@@ -27,6 +31,15 @@ public class HarvesterBean {
 
     @Resource
     SessionContext sessionContext;
+
+    @EJB
+    public BinaryFileStoreBean binaryFileStoreBean;
+
+    @EJB
+    public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+
+    @EJB
+    public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     /**
      * Executes harvest operation in batches (each batch in its own transactional
@@ -72,7 +85,7 @@ public class HarvesterBean {
     /* Stand-alone method to enable easy injection during testing (via partial mocking)
      */
     public HarvestOperation getHarvestOperation(RawRepoHarvesterConfig.Entry config) {
-        LOGGER.debug("Using rr resource {}", config.getResource());
-        return new HarvestOperation();
+        return new HarvestOperation(config, new HarvesterJobBuilderFactory(
+                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector()));
     }
 }

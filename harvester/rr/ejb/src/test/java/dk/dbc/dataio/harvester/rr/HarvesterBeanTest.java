@@ -33,7 +33,7 @@ public class HarvesterBeanTest {
     }
 
     @Test
-    public void harvest_availableItemsExceedsBetchSize_multipleExecutionsOfHarvestOperation() throws HarvesterException, ExecutionException, InterruptedException {
+    public void harvest_availableItemsExceedsBatchSize_multipleExecutionsOfHarvestOperation() throws HarvesterException, ExecutionException, InterruptedException {
         final HarvesterBean harvesterBean = getHarvesterBean();
         final RawRepoHarvesterConfig.Entry config = getConfig("id");
         final int expectedNumberOfItemsHarvested = config.getBatchSize()*3 - 1;

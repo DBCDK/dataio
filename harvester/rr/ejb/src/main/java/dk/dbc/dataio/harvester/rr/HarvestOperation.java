@@ -1,9 +1,211 @@
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.harvester.types.DataContainer;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
+import dk.dbc.dataio.harvester.types.HarvesterSourceException;
+import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
+import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.marcxmerge.MarcXMergerException;
+import dk.dbc.rawrepo.QueueJob;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HarvestOperation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
+
+    // ToDo: use config value
+    private static final String QUEUE_ID = "queueID";
+
+    private final RawRepoHarvesterConfig.Entry config;
+    private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
+    private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
+    private final DocumentBuilder documentBuilder;
+    private final Transformer transformer;
+    private final RawRepoConnector rawRepoConnector;
+
+    public HarvestOperation(RawRepoHarvesterConfig.Entry config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
+            throws NullPointerException, IllegalArgumentException, IllegalStateException {
+        this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
+        this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
+        documentBuilder = getDocumentBuilder();
+        transformer = getTransformer();
+        rawRepoConnector = getRawRepoConnector(config.getResource());
+    }
+
     public int execute() throws HarvesterException {
-        return 42;
+        int itemsHarvested = 0;
+        QueueJob nextQueuedItem = getNextQueuedItem();
+        while (nextQueuedItem != null) {
+            LOGGER.info("{} ready for harvesting", nextQueuedItem);
+            try {
+                final RecordId queuedRecordId = nextQueuedItem.getJob();
+                final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
+                getHarvesterJobBuilder(queuedRecordId.getAgencyId()).addHarvesterRecord(harvesterRecord);
+            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+                LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
+                markAsFailure(nextQueuedItem, e.getMessage());
+            }
+
+            if (++itemsHarvested == config.getBatchSize()) {
+                break;
+            }
+            nextQueuedItem = getNextQueuedItem();
+        }
+        flushHarvesterJobBuilders();
+        LOGGER.info("Harvested {} items from {} queue", itemsHarvested, QUEUE_ID);
+        return itemsHarvested;
+    }
+
+    private HarvesterJobBuilder getHarvesterJobBuilder(int agencyId) throws HarvesterException {
+        if (!harvesterJobBuilders.containsKey(agencyId)) {
+            harvesterJobBuilders.put(agencyId, harvesterJobBuilderFactory
+                    .newHarvesterJobBuilder(getJobSpecificationTemplate(agencyId)));
+        }
+        return harvesterJobBuilders.get(agencyId);
+    }
+
+    private void flushHarvesterJobBuilders() throws HarvesterException {
+        try {
+            for (Map.Entry<Integer, HarvesterJobBuilder> entry : harvesterJobBuilders.entrySet()) {
+                try {
+                    entry.getValue().build();
+                } catch (HarvesterException e) {
+                    LOGGER.error("Failed to flush HarvesterJobBuilder for {}", entry.getKey(), e);
+                    throw e;
+                }
+            }
+        } finally {
+            closeHarvesterJobBuilders();
+        }
+    }
+
+    private void closeHarvesterJobBuilders() {
+        for (Map.Entry<Integer, HarvesterJobBuilder> entry : harvesterJobBuilders.entrySet()) {
+            try {
+                entry.getValue().close();
+            } catch (Exception e) {
+                LOGGER.warn("Unable to close HarvesterJobBuilder for {}", entry.getKey());
+            }
+        }
+        harvesterJobBuilders.clear();
+    }
+
+    private JobSpecification getJobSpecificationTemplate(int agencyId) {
+        // ToDo: use config to fill out template
+        return new JobSpecification("xml", "katalog", "utf8", "fbs", agencyId,
+                "placeholder", "placeholder", "placeholder", "placeholder");
+    }
+
+    /* Returns next rawrepo queue item (or null if queue is empty)
+     */
+    private QueueJob getNextQueuedItem() throws HarvesterException {
+        try {
+            return rawRepoConnector.dequeue(QUEUE_ID);
+        } catch (SQLException | RawRepoException e) {
+            throw new HarvesterException(e);
+        }
+    }
+
+    /* Fetches rawrepo record associated with given record ID and adds
+       its content to a new MARC exchange collection.
+       Returns data container harvester record containing MARC exchange collection as data
+       and record creation date as supplementary data.
+     */
+    private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
+        final Map<String, Record> records;
+        try {
+            records = rawRepoConnector.fetchRecordCollection(recordId);
+        } catch (SQLException | RawRepoException | MarcXMergerException e) {
+            throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
+        }
+        LOGGER.debug("Fetched rawrepo collection<{}> for {}", records.values(), recordId);
+        if (records.isEmpty()) {
+            throw new HarvesterInvalidRecordException("Empty rawrepo collection returned for " + recordId.toString());
+        }
+        if (!records.containsKey(recordId.getBibliographicRecordId())) {
+            throw new HarvesterInvalidRecordException(String.format(
+                    "Record %s was not found in returned collection", recordId.toString()));
+        }
+
+        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
+        marcExchangeCollection.addMember(getRecordContent(recordId, records));
+
+        final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
+        dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
+        dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
+        return dataContainer;
+    }
+
+    private byte[] getRecordContent(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
+        try {
+            return records.get(recordId.getBibliographicRecordId()).getContent();
+        } catch (NullPointerException e) {
+             throw new HarvesterInvalidRecordException("Record content is null");
+        }
+    }
+
+    private Date getRecordCreationDate(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
+        try {
+            final Date created = records.get(recordId.getBibliographicRecordId()).getCreated();
+            if (created == null) {
+                throw new HarvesterInvalidRecordException("Record creation date is null");
+            }
+            return created;
+        } catch (NullPointerException e) {
+            throw new HarvesterInvalidRecordException("Record creation date is null");
+        }
+    }
+
+    private void markAsFailure(QueueJob queuedItem, String errorMessage) throws HarvesterException {
+        try {
+            rawRepoConnector.queueFail(queuedItem, errorMessage);
+        } catch (SQLException | RawRepoException e) {
+            throw new HarvesterException("Unable to mark queue item "+ queuedItem.toString() +" as failure", e);
+        }
+    }
+
+    /* Stand-alone methods to enable easy override during testing */
+
+    RawRepoConnector getRawRepoConnector(String dataSourceResourceName)
+            throws NullPointerException, IllegalArgumentException, IllegalStateException {
+        return new RawRepoConnector(dataSourceResourceName);
+    }
+
+    private DocumentBuilder getDocumentBuilder() {
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        try {
+            return documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private Transformer getTransformer() {
+        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        try {
+            return transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

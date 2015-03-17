@@ -12,7 +12,4 @@
 
     <artifactId>dataio-commons-utils-io</artifactId>
     <name>dataio-commons-utils-io</name>
-
-    <dependencies>
-    </dependencies>
 </project>

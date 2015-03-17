@@ -38,7 +38,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
 
     /**
      * Class constructor
-     * @param binaryFileStore binaryFileStoreBean for tmp file writing
+     * @param binaryFileStore binaryFileStore implementation for tmp file writing
      * @param fileStoreServiceConnector file-store service connector for datafile uploads
      * @param jobStoreServiceConnector job-store service connector for job creation
      * @param jobSpecificationTemplate job specification template
@@ -50,7 +50,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
                                FileStoreServiceConnector fileStoreServiceConnector,
                                JobStoreServiceConnector jobStoreServiceConnector,
                                JobSpecification jobSpecificationTemplate) throws NullPointerException, HarvesterException {
-        this.binaryFileStore = InvariantUtil.checkNotNullOrThrow(binaryFileStore, "binaryFileStoreBean");
+        this.binaryFileStore = InvariantUtil.checkNotNullOrThrow(binaryFileStore, "binaryFileStore");
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
         this.jobSpecificationTemplate = InvariantUtil.checkNotNullOrThrow(jobSpecificationTemplate, "jobSpecificationTemplate");

@@ -3,16 +3,10 @@
              xmlns:c="urn:import:com.google.gwt.user.cellview.client">
     <ui:with type="dk.dbc.dataio.gui.client.pages.newJob.show.Texts" field="txt"/>
 
-    <g:HTMLPanel>
+    <g:HTMLPanel styleName="jobs-show-table">
 
         <c:SimplePager ui:field="pagerTop" />
-        <table cellspacing='0' cellpadding='0' style='width:100%;'>
-            <tr>
-                <td id="jobs-show-table" valign='top'>
-                    <c:CellTable pageSize='20' ui:field='jobsTable' />
-                </td>
-            </tr>
-        </table>
+        <c:CellTable pageSize='20' ui:field='jobsTable' />
         <c:SimplePager ui:field="pagerBottom" />
 
     </g:HTMLPanel>

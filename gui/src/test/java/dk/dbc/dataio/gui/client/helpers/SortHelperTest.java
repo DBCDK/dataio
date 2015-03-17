@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.newJob.show;
+package dk.dbc.dataio.gui.client.helpers;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.pages.job.show.ViewHelper;
@@ -19,7 +19,7 @@ import static org.junit.Assert.assertThat;
  * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class ViewHelperTest {
+public class SortHelperTest {
 
     /*
      * Testing starts here...

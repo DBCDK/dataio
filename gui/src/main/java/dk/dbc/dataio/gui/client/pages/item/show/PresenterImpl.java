@@ -1,0 +1,107 @@
+package dk.dbc.dataio.gui.client.pages.item.show;
+
+import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
+import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
+import dk.dbc.dataio.gui.util.ClientFactory;
+
+import java.util.List;
+
+public class PresenterImpl extends AbstractActivity implements Presenter {
+    protected ClientFactory clientFactory;
+    protected Texts texts;
+    protected View view;
+    protected PlaceController placeController;
+    protected JobStoreProxyAsync jobStoreProxy;
+    protected String jobId;
+    protected String submitterName;
+    protected String sinkName;
+
+    public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory, Texts texts) {
+        this.clientFactory = clientFactory;
+        this.texts = texts;
+        placeController = clientFactory.getPlaceController();
+        jobStoreProxy = clientFactory.getJobStoreProxyAsync();
+        Place showPlace = (Place) place;
+        this.jobId = showPlace.getJobId();
+        this.submitterName = showPlace.getSubmitterName();
+        this.sinkName = showPlace.getSinkName();
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the Place is being invoked
+     * This method is the start signal for the presenter
+     *
+     * @param containerWidget the widget to use
+     * @param eventBus        the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        view = clientFactory.getItemsShowView();
+        view.setPresenter(this);
+        view.jobHeader.setText(constructJobHeaderText());
+        containerWidget.setWidget(view.asWidget());
+        getAllItems();
+    }
+
+
+    /*
+     * Protected methods
+     *
+     */
+
+    /**
+     * This method fetches all failed items from the job store for the given Job ID
+     */
+    protected void getAllItems() {
+        ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel("", "", this.jobId, ItemListCriteriaModel.ItemSearchType.ALL);
+        jobStoreProxy.listItems(itemListCriteriaModel, new GetAllItemsCallback());
+    }
+
+
+    /*
+     * Private methods
+     */
+    private String constructJobHeaderText() {
+        return texts.text_JobId() + " " + jobId + ", "
+                + texts.text_Submitter() + " " + submitterName + ", "
+                + texts.text_Sink() + " " + sinkName;
+    }
+
+    /*
+     * Overrided methods
+     */
+
+     /**
+     * An indication from the view, that an item has been selected
+     * @param itemModel The model for the selected item
+     */
+    @Override
+    public void itemSelected(ItemModel itemModel) {
+        Window.alert("Item er nu selected: " + itemModel.getItemNumber());
+    }
+
+
+    /*
+     * Private classes
+     */
+
+    class GetAllItemsCallback implements AsyncCallback<List<ItemModel>> {
+        @Override
+        public void onFailure(Throwable throwable) {
+            view.setErrorText(texts.error_CouldNotFetchItems());
+        }
+        @Override
+        public void onSuccess(List<ItemModel> itemModels) {
+            view.setItems(itemModels);
+        }
+    }
+
+}

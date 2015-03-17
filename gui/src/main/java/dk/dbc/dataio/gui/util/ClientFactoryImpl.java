@@ -4,6 +4,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
+import dk.dbc.dataio.gui.client.pages.item.show.Place;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -35,6 +36,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static dk.dbc.dataio.gui.client.pages.sink.modify.Texts sinkModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.submitter.modify.Texts submitterModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.submitter.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.faileditems.Texts failedItemsTexts = GWT.create(dk.dbc.dataio.gui.client.pages.faileditems.Texts.class);
+    private final static dk.dbc.dataio.gui.client.pages.item.show.Texts itemsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.item.show.Texts.class);
     //private final static HarvestersShowTexts harvestersShowTexts = GWT.create(HarvestersShowTexts.class);
 
     // Image Resources
@@ -76,6 +78,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterCreation());
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterEdit());
     private final dk.dbc.dataio.gui.client.pages.faileditems.View faileditemsView = new dk.dbc.dataio.gui.client.pages.faileditems.View(failedItemsTexts.label_JobId(), failedItemsTexts);
+    private final dk.dbc.dataio.gui.client.pages.item.show.View itemsShowView = new dk.dbc.dataio.gui.client.pages.item.show.View(itemsShowTexts.menu_Items(), itemsShowTexts);
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
     public ClientFactoryImpl() {
@@ -102,12 +105,6 @@ public class ClientFactoryImpl implements ClientFactory {
     // getPresenter
     @Override
     public com.google.gwt.activity.shared.Activity getPresenter(com.google.gwt.place.shared.Place place) {
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this, flowModifyTexts);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterEditImpl(place, this, flowModifyTexts);
-        }
         if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
             return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this, flowModifyTexts);
         }
@@ -165,6 +162,9 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace) {
             return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(place, this, failedItemsTexts);
         }
+        if (place instanceof Place) {
+            return new dk.dbc.dataio.gui.client.pages.item.show.PresenterImpl(place, this, itemsShowTexts);
+        }
 //        if (place instanceof dk.dbc.dataio.gui.client.pages.harvester.show.HarvestersShowPlace) {
 //            return new dk.dbc.dataio.gui.client.pages.harvester.show.HarvestersShowActivity(this);
 //        }
@@ -196,6 +196,7 @@ public class ClientFactoryImpl implements ClientFactory {
     public LogStoreProxyAsync getLogStoreProxyAsync() {
         return logStoreProxyAsync;
     }
+
 
     // Views
     @Override
@@ -291,6 +292,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.faileditems.View getFaileditemsView() {
         return faileditemsView;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.item.show.View getItemsShowView() {
+        return itemsShowView;
     }
 
 //    @Override

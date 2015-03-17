@@ -226,6 +226,29 @@ public class HarvestOperationTest {
         }
     }
 
+    @Test
+    public void execute_rawRepoRecordHasAgencyIdMatchingCommunityLibraryNumber_recordIsFailed()
+            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
+        final RecordId recordId = new RecordId("record", HarvestOperation.COMMUNITY_LIBRARY_NUMBER);
+        final String recordContent = getRecordContent(recordId);
+        final QueueJob queueJob = getQueueJob(recordId);
+        final Record record = new MockedRecord(recordId, true);
+        record.setContent(recordContent.getBytes(StandardCharsets.UTF_8));
+
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(queueJob)
+                .thenReturn(null);
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put(RECORD_ID.getBibliographicRecordId(), record);
+                }});
+
+        final HarvestOperation harvestOperation = getHarvestOperation(getHarvestOperationConfig());
+        harvestOperation.execute();
+
+        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
     private HarvestOperation getHarvestOperation(RawRepoHarvesterConfig.Entry config) {
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }

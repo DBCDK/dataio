@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HarvestOperation {
+    public static final int COMMUNITY_LIBRARY_NUMBER = 191919;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
     // ToDo: use config value
@@ -57,7 +59,7 @@ public class HarvestOperation {
         while (nextQueuedItem != null) {
             LOGGER.info("{} ready for harvesting", nextQueuedItem);
             try {
-                final RecordId queuedRecordId = nextQueuedItem.getJob();
+                final RecordId queuedRecordId = verifyAgencyIdOrThrow(nextQueuedItem.getJob());
                 final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
                 getHarvesterJobBuilder(queuedRecordId.getAgencyId()).addHarvesterRecord(harvesterRecord);
             } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
@@ -73,6 +75,19 @@ public class HarvestOperation {
         flushHarvesterJobBuilders();
         LOGGER.info("Harvested {} items from {} queue", itemsHarvested, QUEUE_ID);
         return itemsHarvested;
+    }
+
+    JobSpecification getJobSpecificationTemplate(int agencyId) {
+        // ToDo: use config to fill out template
+        return new JobSpecification("xml", "katalog", "utf8", "fbs", agencyId,
+                "placeholder", "placeholder", "placeholder", "placeholder");
+    }
+
+    private RecordId verifyAgencyIdOrThrow(RecordId recordId) throws HarvesterInvalidRecordException {
+        if (recordId.getAgencyId() == COMMUNITY_LIBRARY_NUMBER) {
+            throw new HarvesterInvalidRecordException("Discarding queue item with id " + recordId.toString());
+        }
+        return recordId;
     }
 
     private HarvesterJobBuilder getHarvesterJobBuilder(int agencyId) throws HarvesterException {
@@ -107,12 +122,6 @@ public class HarvestOperation {
             }
         }
         harvesterJobBuilders.clear();
-    }
-
-    JobSpecification getJobSpecificationTemplate(int agencyId) {
-        // ToDo: use config to fill out template
-        return new JobSpecification("xml", "katalog", "utf8", "fbs", agencyId,
-                "placeholder", "placeholder", "placeholder", "placeholder");
     }
 
     /* Returns next rawrepo queue item (or null if queue is empty)

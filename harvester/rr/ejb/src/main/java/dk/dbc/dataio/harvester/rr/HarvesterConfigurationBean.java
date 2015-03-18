@@ -14,6 +14,8 @@ import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.naming.NamingException;
 
 /**
@@ -49,6 +51,7 @@ public class HarvesterConfigurationBean {
      * @throws dk.dbc.dataio.harvester.types.HarvesterException on failure to lookup configuration resource or failure to
      * unmarshall returned value returned by lookup to configuration POJO.
      */
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void reload() throws HarvesterException {
         LOGGER.debug("Retrieving configuration");
         try {

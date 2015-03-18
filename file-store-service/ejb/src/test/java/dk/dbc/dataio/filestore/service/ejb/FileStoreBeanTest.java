@@ -1,6 +1,5 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
-import com.sun.media.sound.InvalidDataException;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
@@ -109,14 +108,14 @@ public class FileStoreBeanTest {
     }
 
     @Test (expected = IllegalArgumentException.class)
-    public void getByteSize_fileIdIsEmpty_throws() throws InvalidDataException{
+    public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException{
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         fileStoreBean.getByteSize("");
         fail("getByteSize: Invalid file ID was not detected");
     }
 
     @Test (expected = NullPointerException.class)
-    public void getByteSize_fileIdIsNull_throws() throws InvalidDataException{
+    public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException{
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         fileStoreBean.getByteSize(null);
         fail("getByteSize: Invalid file ID was not detected");
@@ -128,18 +127,18 @@ public class FileStoreBeanTest {
         try {
             fileStoreBean.getByteSize("notANumber");
             fail("getByteSize: Invalid file ID was not detected");
-        } catch(InvalidDataException e) {}
+        } catch(IllegalArgumentException e) {}
     }
 
     @Test (expected = EJBException.class)
-    public void getByteSize_filAttributesNotFound_throws() throws InvalidDataException{
+    public void getByteSize_filAttributesNotFound_throws() throws IllegalArgumentException{
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
         fileStoreBean.getByteSize(fileId);
     }
 
     @Test
-    public void getByteSize_fileAttributesExist_returnsByteSize() throws InvalidDataException{
+    public void getByteSize_fileAttributesExist_returnsByteSize() throws IllegalArgumentException{
         FileAttributes fileAttributes = new FileAttributes(new Date(), path);
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(fileAttributes);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();

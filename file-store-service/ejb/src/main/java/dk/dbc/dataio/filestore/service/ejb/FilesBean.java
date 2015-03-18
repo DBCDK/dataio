@@ -1,6 +1,5 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
-import com.sun.media.sound.InvalidDataException;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +102,7 @@ public class FilesBean {
             return Response.ok().entity(byteSize).build();
         } catch (EJBException e) {
             return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (InvalidDataException e) {
+        } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }

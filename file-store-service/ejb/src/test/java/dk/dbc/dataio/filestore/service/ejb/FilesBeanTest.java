@@ -1,6 +1,5 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
-import com.sun.media.sound.InvalidDataException;
 import org.junit.Test;
 
 import javax.ejb.EJBException;
@@ -58,7 +57,7 @@ public class FilesBeanTest {
     }
 
     @Test
-    public void getByteSize_fileAttributesNotFound_returnsStatusNotFoundResponse() throws InvalidDataException{
+    public void getByteSize_fileAttributesNotFound_returnsStatusNotFoundResponse() throws IllegalArgumentException{
         when(fileStoreBean.getByteSize(fileId)).thenThrow(new EJBException());
 
         final FilesBean filesBean = newFilesBeanInstance();
@@ -67,8 +66,8 @@ public class FilesBeanTest {
     }
 
     @Test
-    public void getByteSize_fileIdNotANumber_returnsBadRequestResponse() throws InvalidDataException{
-        when(fileStoreBean.getByteSize(anyString())).thenThrow(new InvalidDataException());
+    public void getByteSize_fileIdNotANumber_returnsBadRequestResponse() throws IllegalArgumentException{
+        when(fileStoreBean.getByteSize(anyString())).thenThrow(new IllegalArgumentException());
 
         final FilesBean filesBean = newFilesBeanInstance();
         final Response response = filesBean.getByteSize("notANumber");
@@ -76,7 +75,7 @@ public class FilesBeanTest {
     }
 
     @Test
-    public void getByteSize_fileAttributesFound_returnsStatusOkResponse() throws InvalidDataException {
+    public void getByteSize_fileAttributesFound_returnsStatusOkResponse() throws IllegalArgumentException {
         long byteSize = 42;
         when(fileStoreBean.getByteSize(fileId)).thenReturn(byteSize);
 

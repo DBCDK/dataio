@@ -1,6 +1,5 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
-import com.sun.media.sound.InvalidDataException;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
@@ -92,7 +91,7 @@ public class FileStoreBean {
      * @throws IllegalArgumentException if given empty-valued fileId argument
      * @throws EJBException if no file attributes can be found for given file ID
      */
-    public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, EJBException, InvalidDataException {
+    public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, EJBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         try {
             Long.parseLong(fileId);
@@ -102,7 +101,7 @@ public class FileStoreBean {
             }
             return fileAttributes.getByteSize();
         } catch (NumberFormatException e) {
-            throw new InvalidDataException(String.format("Given id '{}' is invalid", fileId));
+            throw new IllegalArgumentException(String.format("Given id '{}' is invalid", fileId));
         }
     }
 

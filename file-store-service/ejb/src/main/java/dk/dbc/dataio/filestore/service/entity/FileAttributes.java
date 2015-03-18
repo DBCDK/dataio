@@ -47,6 +47,8 @@ public class FileAttributes {
 
     private String location;
 
+    private long byteSize;
+
     public Long getId() {
         return id;
     }
@@ -57,5 +59,13 @@ public class FileAttributes {
 
     public Path getLocation() {
         return Paths.get(location);
+    }
+
+    public void setByteSize(long byteSize) {
+        this.byteSize = byteSize;
+    }
+
+    public long getByteSize() {
+        return byteSize;
     }
 }

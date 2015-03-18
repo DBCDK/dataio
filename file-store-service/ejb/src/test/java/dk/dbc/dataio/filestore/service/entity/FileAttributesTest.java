@@ -36,6 +36,7 @@ public class FileAttributesTest {
         assertThat(fileAttributes, is(notNullValue()));
         assertThat(fileAttributes.getCreationTime(), is(creationTime));
         assertThat(fileAttributes.getLocation(), is(path));
+        assertThat(fileAttributes.getByteSize(), is(0L));
     }
 
     @Test
@@ -53,5 +54,12 @@ public class FileAttributesTest {
         creationTimeToBeModified.setTime(42);
         assertThat(fileAttributes.getCreationTime(), is(not(creationTimeToBeModified)));
         assertThat(fileAttributes.getCreationTime(), is(creationTime));
+    }
+
+    @Test public void setBytesRead_bytesReadIsSet_bytesReadIsReturnedWithUpdatedValue() {
+        final FileAttributes fileAttributes = new FileAttributes(creationTime, path);
+        assertThat(fileAttributes.getByteSize(), is(0L));
+        fileAttributes.setByteSize(42);
+        assertThat(fileAttributes.getByteSize(), is(42L));
     }
 }

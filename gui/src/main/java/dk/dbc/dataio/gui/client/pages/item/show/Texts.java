@@ -29,6 +29,17 @@ public interface Texts extends Constants {
     String label_Back();
 
 
+    // Button texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_AllItems();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_FailedItems();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_IgnoredItems();
+
+
     // Texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_Item();

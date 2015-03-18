@@ -48,7 +48,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.setPresenter(this);
         view.jobHeader.setText(constructJobHeaderText());
         containerWidget.setWidget(view.asWidget());
-        getAllItems();
+        view.allItemsButton.setValue(true);
+        getItems();
     }
 
 
@@ -58,13 +59,24 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
 
     /**
-     * This method fetches all failed items from the job store for the given Job ID
+     * This method fetches items from the job store, and instantiates a callback class to take further action
+     * The method checks, whether to fetch All items, only Failed items or only Ignored items, and sets
+     * the ItemListCriteria according to that.
      */
-    protected void getAllItems() {
-        ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel("", "", this.jobId, ItemListCriteriaModel.ItemSearchType.ALL);
-        jobStoreProxy.listItems(itemListCriteriaModel, new GetAllItemsCallback());
+    protected void getItems() {
+        ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
+        itemListCriteriaModel.setJobId(this.jobId);
+        if (view.allItemsButton.getValue()) {
+            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
+        } else if (view.failedItemsButton.getValue()) {
+            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
+        } else if (view.ignoredItemsButton.getValue()) {
+            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
+        } else {
+            return;
+        }
+        jobStoreProxy.listItems(itemListCriteriaModel, new GetItemsCallback());
     }
-
 
     /*
      * Private methods
@@ -88,12 +100,21 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         Window.alert("Item er nu selected: " + itemModel.getItemNumber());
     }
 
+    /**
+     * This method filters the shown posts, so that the items as requested by the
+     * Radio Buttons are shown
+     */
+    @Override
+    public void filterItems() {
+        getItems();
+    }
+
 
     /*
      * Private classes
      */
 
-    class GetAllItemsCallback implements AsyncCallback<List<ItemModel>> {
+    class GetItemsCallback implements AsyncCallback<List<ItemModel>> {
         @Override
         public void onFailure(Throwable throwable) {
             view.setErrorText(texts.error_CouldNotFetchItems());

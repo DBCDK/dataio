@@ -6,6 +6,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
@@ -21,7 +22,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -42,12 +45,21 @@ public class PresenterImplTest {
     @Mock Throwable mockedException;
     @Mock Place mockedPlace;
     @Mock Label mockedJobHeader;
+    @Mock RadioButton mockedAllItemsButton;
+    @Mock RadioButton mockedFailedItemsButton;
+    @Mock RadioButton mockedIgnoredItemsButton;
 
     // Setup mocked data
     @Before
     public void setupMockedData() {
         when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
         when(mockedClientFactory.getItemsShowView()).thenReturn(mockedView);
+        mockedView.allItemsButton = mockedAllItemsButton;
+        mockedView.failedItemsButton = mockedFailedItemsButton;
+        mockedView.ignoredItemsButton = mockedIgnoredItemsButton;
+        when(mockedAllItemsButton.getValue()).thenReturn(true);
+        when(mockedFailedItemsButton.getValue()).thenReturn(false);
+        when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
         mockedView.jobHeader = mockedJobHeader;
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
     }
@@ -59,6 +71,9 @@ public class PresenterImplTest {
     final static String MOCKED_COLUMN_STATUS = "Mocked Status";
     final static String MOCKED_ERROR_COULDNOTFETCHITEMS = "Mocked Det var ikke muligt at hente poster fra Job Store";
     final static String MOCKED_LABEL_BACK = "Mocked Tilbage til Joboversigten";
+    final static String MOCKED_BUTTON_ALLITEMS = "Mocked Alle Poster";
+    final static String MOCKED_BUTTON_FAILEDITEMS = "Mocked Fejlede Poster";
+    final static String MOCKED_BUTTON_IGNOREDITEMS = "Mocked Ignorerede Poster";
     final static String MOCKED_TEXT_ITEM = "Mocked Post";
     final static String MOCKED_TEXT_JOBID = "Mocked Job Id:";
     final static String MOCKED_TEXT_SUBMITTER = "Mocked Submitter:";
@@ -75,6 +90,9 @@ public class PresenterImplTest {
         when(mockedText.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
         when(mockedText.error_CouldNotFetchItems()).thenReturn(MOCKED_ERROR_COULDNOTFETCHITEMS);
         when(mockedText.label_Back()).thenReturn(MOCKED_LABEL_BACK);
+        when(mockedText.label_Back()).thenReturn(MOCKED_BUTTON_ALLITEMS);
+        when(mockedText.label_Back()).thenReturn(MOCKED_BUTTON_FAILEDITEMS);
+        when(mockedText.label_Back()).thenReturn(MOCKED_BUTTON_IGNOREDITEMS);
         when(mockedText.text_Item()).thenReturn(MOCKED_TEXT_ITEM);
         when(mockedText.text_JobId()).thenReturn(MOCKED_TEXT_JOBID);
         when(mockedText.text_Submitter()).thenReturn(MOCKED_TEXT_SUBMITTER);
@@ -96,7 +114,7 @@ public class PresenterImplTest {
         public PresenterImplConcrete(Place place, ClientFactory clientFactory, Texts texts) {
             super(place, clientFactory, texts);
         }
-        public GetAllItemsCallback getAllItemsCallback = new GetAllItemsCallback();
+        public GetItemsCallback getItemsCallback = new GetItemsCallback();
     }
 
 
@@ -136,7 +154,65 @@ public class PresenterImplTest {
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
+        verify(mockedAllItemsButton).setValue(true);
+        verify(mockedAllItemsButton).getValue();
+        verifyZeroInteractions(mockedFailedItemsButton);
+        verifyZeroInteractions(mockedIgnoredItemsButton);
         verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+    }
+
+    @Test
+    public void filterItems_allItemsSelected_allItemsRequested() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedAllItemsButton.getValue()).thenReturn(true);
+        when(mockedFailedItemsButton.getValue()).thenReturn(false);
+        when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
+
+        // Subject under test
+        presenterImpl.filterItems();
+
+        // Verify Test
+        verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
+        verifyZeroInteractions(mockedFailedItemsButton);
+        verifyZeroInteractions(mockedIgnoredItemsButton);
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));  // Two invocations: One during call to start, one during fiterItems()
+    }
+
+    @Test
+    public void filterItems_failedItemsSelected_failedItemsRequested() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedAllItemsButton.getValue()).thenReturn(false);
+        when(mockedFailedItemsButton.getValue()).thenReturn(true);
+        when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
+
+        // Subject under test
+        presenterImpl.filterItems();
+
+        // Verify Test
+        verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
+        verify(mockedFailedItemsButton).getValue();
+        verifyZeroInteractions(mockedIgnoredItemsButton);
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));  // Two invocations: One during call to start, one during fiterItems()
+    }
+
+    @Test
+    public void filterItems_ignoredItemsSelected_ignoredItemsRequested() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedAllItemsButton.getValue()).thenReturn(false);
+        when(mockedFailedItemsButton.getValue()).thenReturn(false);
+        when(mockedIgnoredItemsButton.getValue()).thenReturn(true);
+
+        // Subject under test
+        presenterImpl.filterItems();
+
+        // Verify Test
+        verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
+        verify(mockedFailedItemsButton).getValue();
+        verify(mockedIgnoredItemsButton).getValue();
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));  // Two invocations: One during call to start, one during fiterItems()
     }
 
     @Test
@@ -145,7 +221,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getAllItemsCallback.onFailure(mockedException);
+        presenterImpl.getItemsCallback.onFailure(mockedException);
 
         // Verify Test
         verify(mockedView).setErrorText(any(String.class));
@@ -157,7 +233,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getAllItemsCallback.onSuccess(testModels);
+        presenterImpl.getItemsCallback.onSuccess(testModels);
 
         // Verify Test
         verify(mockedView).setItems(testModels);

@@ -6,14 +6,33 @@
     <ui:style>
         .header {
             font-size: 20px;
+            margin-bottom: 0.5em;
+        }
+        .radio-buttons {
+        }
+        .content-area {
+            border: gray solid 2px;
+            padding: 0.5em;
+            margin-top: 0.3em;
         }
     </ui:style>
 
     <g:HTMLPanel styleName="items-show-table">
 
         <g:Label ui:field="jobHeader" addStyleNames="{style.header}" />
-        <c:CellTable pageSize='500' ui:field='itemsTable' />
+
+        <span class="{style.radio-buttons}">
+            <g:RadioButton ui:field="allItemsButton" name="itemsButton" value="true" enabled="true" text="{txt.button_AllItems}" />
+            <g:RadioButton ui:field="failedItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_FailedItems}" />
+            <g:RadioButton ui:field="ignoredItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_IgnoredItems}" />
+        </span>
+
+        <g:FlowPanel styleName="{style.content-area}" >
+            <c:CellTable ui:field='itemsTable' />
+        </g:FlowPanel>
+
         <c:SimplePager ui:field="pager" />
+
         <g:Button ui:field="backButton" text="{txt.label_Back}" />
 
     </g:HTMLPanel>

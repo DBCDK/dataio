@@ -11,6 +11,7 @@ import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -30,6 +31,9 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiField Label jobHeader;
     @UiField CellTable itemsTable;
     @UiField SimplePager pager;
+    @UiField RadioButton allItemsButton;
+    @UiField RadioButton failedItemsButton;
+    @UiField RadioButton ignoredItemsButton;
 
     @UiFactory
     SimplePager makeSimplePager() {
@@ -42,6 +46,11 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("backButton")
     void backButtonPressed(ClickEvent event) {
         History.back();
+    }
+
+    @UiHandler(value={"allItemsButton", "failedItemsButton", "ignoredItemsButton"})
+    void filterItemsRadioButtonPressed(ClickEvent event) {
+        presenter.filterItems();
     }
 
     public ViewWidget(String header, Texts texts) {

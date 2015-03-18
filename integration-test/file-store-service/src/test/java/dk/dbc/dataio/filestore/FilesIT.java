@@ -1,5 +1,6 @@
 package dk.dbc.dataio.filestore;
 
+import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -95,7 +96,29 @@ public class FilesIT {
             writeFile(destinationFile, fileStream);
             assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
         }
+    }
 
+    /**
+     * Given: a deployed file-store service
+     * When : adding a file
+     * Then : the input streams byte size has been added to file attributes and the byte size can be retrieved
+     */
+    @Test
+    public void getByteSize() throws IOException, FileStoreServiceConnectorException {
+        // When...
+        final Path sourceFile = rootFolder.newFile().toPath();
+        writeFile(sourceFile);
+        assertThat(Files.size(sourceFile)>0, is(true));
+
+        final FileStoreServiceConnector fileStoreServiceConnector =
+                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
+
+        final InputStream inputStream = getInputStreamForFile(sourceFile);
+        final String fileId = fileStoreServiceConnector.addFile(inputStream);
+
+            // Then...
+        final long byteSize = fileStoreServiceConnector.getByteSize(fileId);
+        assertThat(byteSize, is(new ByteCountingInputStream(inputStream).getBytesRead()));
     }
 
     private static void writeFile(Path path) throws IOException {

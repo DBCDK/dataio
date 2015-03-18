@@ -70,7 +70,7 @@ public class HarvestOperation {
             nextQueuedItem = getNextQueuedItem();
         }
         flushHarvesterJobBuilders();
-        LOGGER.info("Harvested {} items from {} queue", itemsHarvested, config.getId());
+        LOGGER.info("Harvested {} items from {} queue", itemsHarvested, config.getConsumerId());
         return itemsHarvested;
     }
 

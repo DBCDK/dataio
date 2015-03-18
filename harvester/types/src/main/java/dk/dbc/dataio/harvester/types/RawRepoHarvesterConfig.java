@@ -1,8 +1,11 @@
 package dk.dbc.dataio.harvester.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -51,6 +54,7 @@ public class RawRepoHarvesterConfig {
             InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getResource(), "entry.resource");
             InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getConsumerId(), "entry.consumerId");
             InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getDestination(), "entry.destination");
+            InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getFormat(), "entry.format");
         } catch (NullPointerException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -72,8 +76,19 @@ public class RawRepoHarvesterConfig {
         /** Destination for harvested items */
         private String destination;
 
+        /** Format of harvested items */
+        private String format;
+
+        /** Optional format overrides for specific agencyIds */
+        @JsonProperty
+        private final Map<Integer, String> formatOverrides;
+
         /** Harvest batch size (default 10000) */
         private int batchSize = 10000;
+
+        public Entry() {
+            formatOverrides = new HashMap<>();
+        }
 
         public String getId() {
             return id;
@@ -120,6 +135,25 @@ public class RawRepoHarvesterConfig {
             return this;
         }
 
+        public String getFormat() {
+            return format;
+        }
+
+        public Entry setFormat(String format) {
+            this.format = format;
+            return this;
+        }
+
+        public String getFormat(int agencyId) {
+            final String formatOverride = formatOverrides.get(agencyId);
+            return formatOverride != null ? formatOverride : format;
+        }
+
+        public Entry setFormatOverride(int agencyId, String format) {
+            formatOverrides.put(agencyId, format);
+            return this;
+        }
+
         @Override
         public String toString() {
             return "Entry{" +
@@ -127,6 +161,8 @@ public class RawRepoHarvesterConfig {
                     ", resource='" + resource + '\'' +
                     ", consumerId='" + consumerId + '\'' +
                     ", destination='" + destination + '\'' +
+                    ", format='" + format + '\'' +
+                    ", formatOverrides=" + formatOverrides +
                     ", batchSize=" + batchSize +
                     '}';
         }
@@ -151,6 +187,12 @@ public class RawRepoHarvesterConfig {
             if (destination != null ? !destination.equals(entry.destination) : entry.destination != null) {
                 return false;
             }
+            if (format != null ? !format.equals(entry.format) : entry.format != null) {
+                return false;
+            }
+            if (!formatOverrides.equals(entry.formatOverrides)) {
+                return false;
+            }
             if (id != null ? !id.equals(entry.id) : entry.id != null) {
                 return false;
             }
@@ -167,6 +209,8 @@ public class RawRepoHarvesterConfig {
             result = 31 * result + (resource != null ? resource.hashCode() : 0);
             result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
+            result = 31 * result + (format != null ? format.hashCode() : 0);
+            result = 31 * result + formatOverrides.hashCode();
             result = 31 * result + batchSize;
             return result;
         }

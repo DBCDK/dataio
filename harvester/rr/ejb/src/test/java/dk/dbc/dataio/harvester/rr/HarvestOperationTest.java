@@ -255,16 +255,34 @@ public class HarvestOperationTest {
     @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() {
         final int agencyId = 424242;
-        final String consumerId = "rrConsumer";
-        final String destination = "rrDestination";
         final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
                 .setSubmitterId(agencyId)
-                .setDestination(destination)
+                .build();
+
+        final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry()
+                .setConsumerId("consumerId")
+                .setFormat(expectedJobSpecificationTemplate.getFormat())
+                .setDestination(expectedJobSpecificationTemplate.getDestination());
+        final HarvestOperation harvestOperation = getHarvestOperation(config);
+
+        assertThat(harvestOperation.getJobSpecificationTemplate(agencyId), is(expectedJobSpecificationTemplate));
+    }
+
+    @Test
+    public void getJobSpecificationTemplate_interpolatesConfigWithFormatOverrides() {
+        final int agencyId = 424242;
+        final String consumerId = "rrConsumer";
+        final String formatOverride = "alternativeFormat";
+        final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
+                .setSubmitterId(agencyId)
+                .setFormat(formatOverride)
                 .build();
 
         final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry()
                 .setConsumerId(consumerId)
-                .setDestination(destination);
+                .setDestination(expectedJobSpecificationTemplate.getDestination())
+                .setFormat("format")
+                .setFormatOverride(agencyId, formatOverride);
         final HarvestOperation harvestOperation = getHarvestOperation(config);
 
         assertThat(harvestOperation.getJobSpecificationTemplate(agencyId), is(expectedJobSpecificationTemplate));

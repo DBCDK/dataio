@@ -131,6 +131,32 @@ public class RawRepoHarvesterConfigTest {
     }
 
     @Test
+    public void addEntry_entryArgHasNullFormat_throws() {
+        final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder()
+                .setFormat(null)
+                .build();
+        final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
+        try {
+            config.addEntry(configEntry);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void addEntry_entryArgHasEmptyFormat_throws() {
+        final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder()
+                .setFormat("   ")
+                .build();
+        final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
+        try {
+            config.addEntry(configEntry);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
     public void emptyConfigCanBeMarshalledAndUnmarshalled() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
@@ -142,6 +168,7 @@ public class RawRepoHarvesterConfigTest {
     public void nonEmptyConfigCanBeMarshalledAndUnmarshalled() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder().build();
+        configEntry.setFormatOverride(42, "format42");
         final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
         config.addEntry(configEntry);
         final String marshalled = jsonbContext.marshall(config);
@@ -149,10 +176,25 @@ public class RawRepoHarvesterConfigTest {
         assertThat(unmarshalled.getEntries().contains(configEntry), is(true));
     }
 
+    @Test
+    public void formatCanBeOverridden() {
+        final String format = "format";
+        final String formatFor42 = "format42";
+        final int agencyId42 = 42;
+        final RawRepoHarvesterConfig.Entry entry = new RawRepoHarvesterConfigEntryBuilder()
+                .setFormat(format)
+                .build();
+        entry.setFormatOverride(agencyId42, formatFor42);
+        assertThat("format", entry.getFormat(), is(format));
+        assertThat("format not overridden", entry.getFormat(123), is(format));
+        assertThat("format overridden", entry.getFormat(agencyId42), is(formatFor42));
+    }
+
     public static class RawRepoHarvesterConfigEntryBuilder {
         private String id = "id";
         private String resource = "resource";
         private String consumerId = "consumerId";
+        private String format = "format";
         private String destination = "destination";
 
         public RawRepoHarvesterConfigEntryBuilder setId(String id) {
@@ -175,11 +217,17 @@ public class RawRepoHarvesterConfigTest {
             return this;
         }
 
+        public RawRepoHarvesterConfigEntryBuilder setFormat(String format) {
+            this.format = format;
+            return this;
+        }
+
         public RawRepoHarvesterConfig.Entry build() {
             return new RawRepoHarvesterConfig.Entry()
                     .setId(id)
                     .setResource(resource)
                     .setConsumerId(consumerId)
+                    .setFormat(format)
                     .setDestination(destination);
         }
     }

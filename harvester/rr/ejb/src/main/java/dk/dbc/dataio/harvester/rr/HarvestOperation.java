@@ -75,7 +75,7 @@ public class HarvestOperation {
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {
-        return new JobSpecification("xml", "katalog", "utf8", config.getDestination(), agencyId,
+        return new JobSpecification("xml", config.getFormat(agencyId), "utf8", config.getDestination(), agencyId,
                 "placeholder", "placeholder", "placeholder", "placeholder");
     }
 

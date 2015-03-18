@@ -18,6 +18,7 @@ public class HarvesterTestUtil {
                 .setId("id")
                 .setResource("resource")
                 .setConsumerId("consumerId")
+                .setFormat("format")
                 .setDestination("destination");
     }
 }

@@ -1,10 +1,12 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
+import com.sun.media.sound.InvalidDataException;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -82,6 +84,28 @@ public class FilesBean {
         };
 
         return Response.ok(stream).build();
+    }
+
+    /**
+     * Retrieves the size of a file contained within the file attributes belonging to a file
+     * @param id ID of file
+     * @return a HTTP 200 OK response with byte size as entity
+     *         a HTTP 400 BAD_REQUEST response in case the file id is not a number
+     *         a HTTP 404 NOT_FOUND response in case the file attributes could not be found
+     *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     */
+    @GET
+    @javax.ws.rs.Path(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
+    public Response getByteSize(@PathParam("id") final String id) {
+        LOGGER.trace("getFileAttributes() method called with file ID {}", id);
+        try {
+            final long byteSize = fileStore.getByteSize(id);
+            return Response.ok().entity(byteSize).build();
+        } catch (EJBException e) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (InvalidDataException e) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
     }
 
     @SuppressWarnings("PMD.UnusedPrivateMethod")

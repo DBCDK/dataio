@@ -1,7 +1,9 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
+import com.sun.media.sound.InvalidDataException;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
 import org.slf4j.Logger;
@@ -50,6 +52,10 @@ public class FileStoreBean {
         final Path path = location.resolve(String.valueOf(fileAttributes.getId()));
         final BinaryFile binaryFile = binaryFileStore.getBinaryFile(path);
         binaryFile.write(dataSource);
+
+        // Set the number of bytes read on file attributes
+        fileAttributes.setByteSize(new ByteCountingInputStream(dataSource).getBytesRead());
+
         LOGGER.info("Wrote file {}", path.toString());
         return String.valueOf(fileAttributes.getId());
     }
@@ -75,6 +81,29 @@ public class FileStoreBean {
         final Path path = fileAttributes.getLocation().resolve(String.valueOf(fileAttributes.getId()));
         final BinaryFile binaryFile = binaryFileStore.getBinaryFile(path);
         binaryFile.read(dataDestination);
+    }
+
+    /**
+     * Retrieves the byte size of a file specified through the file id given as input
+     * @param fileId ID of file
+     * @return the byte size of the file
+     *
+     * @throws NullPointerException if given null-valued fileId argument
+     * @throws IllegalArgumentException if given empty-valued fileId argument
+     * @throws EJBException if no file attributes can be found for given file ID
+     */
+    public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, EJBException, InvalidDataException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+        try {
+            Long.parseLong(fileId);
+            final FileAttributes fileAttributes = entityManager.find(FileAttributes.class, Long.parseLong(fileId));
+            if (fileAttributes == null) {
+                throw new EJBException(String.format("Trying to get non-existing file with ID '%s'", fileId));
+            }
+            return fileAttributes.getByteSize();
+        } catch (NumberFormatException e) {
+            throw new InvalidDataException(String.format("Given id '{}' is invalid", fileId));
+        }
     }
 
     /**
@@ -106,4 +135,6 @@ public class FileStoreBean {
     private FileAttributes lookupFileAttributes(long id) {
         return entityManager.find(FileAttributes.class, id);
     }
+
+
 }

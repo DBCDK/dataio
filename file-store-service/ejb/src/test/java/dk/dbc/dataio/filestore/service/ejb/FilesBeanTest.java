@@ -1,7 +1,9 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
+import com.sun.media.sound.InvalidDataException;
 import org.junit.Test;
 
+import javax.ejb.EJBException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -11,6 +13,7 @@ import java.io.OutputStream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,6 +55,35 @@ public class FilesBeanTest {
         final FilesBean filesBean = newFilesBeanInstance();
         final Response response = filesBean.getFile(fileId);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void getByteSize_fileAttributesNotFound_returnsStatusNotFoundResponse() throws InvalidDataException{
+        when(fileStoreBean.getByteSize(fileId)).thenThrow(new EJBException());
+
+        final FilesBean filesBean = newFilesBeanInstance();
+        final Response response = filesBean.getByteSize(fileId);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void getByteSize_fileIdNotANumber_returnsBadRequestResponse() throws InvalidDataException{
+        when(fileStoreBean.getByteSize(anyString())).thenThrow(new InvalidDataException());
+
+        final FilesBean filesBean = newFilesBeanInstance();
+        final Response response = filesBean.getByteSize("notANumber");
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    @Test
+    public void getByteSize_fileAttributesFound_returnsStatusOkResponse() throws InvalidDataException {
+        long byteSize = 42;
+        when(fileStoreBean.getByteSize(fileId)).thenReturn(byteSize);
+
+        final FilesBean filesBean = newFilesBeanInstance();
+        final Response response = filesBean.getByteSize(fileId);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat((Long) response.getEntity(), is(byteSize));
     }
 
     private FilesBean newFilesBeanInstance() {

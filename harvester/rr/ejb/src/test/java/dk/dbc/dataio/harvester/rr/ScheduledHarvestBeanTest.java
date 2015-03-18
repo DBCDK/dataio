@@ -44,7 +44,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_nonEmptyConfig_resultsInRunningHarvests() {
-        bindHarvesterConfig(new RawRepoHarvesterConfig.Entry().setId("id").setResource("resource"));
+        bindHarvesterConfig(HarvesterTestUtil.getHarvestOperationConfigEntry());
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests(timer);
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(1));
@@ -53,7 +53,7 @@ public class ScheduledHarvestBeanTest {
     @Test
     public void scheduleHarvests_harvestCompletes_reschedulesHarvest() throws HarvesterException {
         when(harvesterBean.harvest(any(RawRepoHarvesterConfig.Entry.class))).thenReturn(new MockedFuture());
-        bindHarvesterConfig(new RawRepoHarvesterConfig.Entry().setId("id").setResource("resource"));
+        bindHarvesterConfig(HarvesterTestUtil.getHarvestOperationConfigEntry());
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests(timer);
         scheduledHarvestBean.scheduleHarvests(timer);
@@ -63,7 +63,7 @@ public class ScheduledHarvestBeanTest {
     @Test
     public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest() throws HarvesterException {
         when(harvesterBean.harvest(any(RawRepoHarvesterConfig.Entry.class))).thenReturn(new MockedFuture());
-        bindHarvesterConfig(new RawRepoHarvesterConfig.Entry().setId("id").setResource("resource"));
+        bindHarvesterConfig(HarvesterTestUtil.getHarvestOperationConfigEntry());
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests(timer);
         bindHarvesterConfig();
@@ -76,7 +76,7 @@ public class ScheduledHarvestBeanTest {
         final MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
         when(harvesterBean.harvest(any(RawRepoHarvesterConfig.Entry.class))).thenReturn(mockedFuture);
-        bindHarvesterConfig(new RawRepoHarvesterConfig.Entry().setId("id").setResource("resource"));
+        bindHarvesterConfig(HarvesterTestUtil.getHarvestOperationConfigEntry());
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests(timer);
         scheduledHarvestBean.scheduleHarvests(timer);
@@ -88,7 +88,7 @@ public class ScheduledHarvestBeanTest {
         final MockedFuture mockedFuture = new MockedFuture();
         mockedFuture.exception = new ExecutionException("DIED", new IllegalStateException());
         when(harvesterBean.harvest(any(RawRepoHarvesterConfig.Entry.class))).thenReturn(mockedFuture);
-        bindHarvesterConfig(new RawRepoHarvesterConfig.Entry().setId("id").setResource("resource"));
+        bindHarvesterConfig(HarvesterTestUtil.getHarvestOperationConfigEntry());
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests(timer);
         bindHarvesterConfig();
@@ -106,10 +106,7 @@ public class ScheduledHarvestBeanTest {
     }
 
     private void bindHarvesterConfig(RawRepoHarvesterConfig.Entry... entries) {
-        final RawRepoHarvesterConfig rawRepoHarvesterConfig = new RawRepoHarvesterConfig();
-        for (RawRepoHarvesterConfig.Entry entry : entries) {
-            rawRepoHarvesterConfig.addEntry(entry);
-        }
+        final RawRepoHarvesterConfig rawRepoHarvesterConfig = HarvesterTestUtil.getRawRepoHarvesterConfig(entries);
         try {
             InMemoryInitialContextFactory.bind(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR,
                     new JSONBContext().marshall(rawRepoHarvesterConfig));

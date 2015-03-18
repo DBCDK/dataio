@@ -79,6 +79,58 @@ public class RawRepoHarvesterConfigTest {
     }
 
     @Test
+    public void addEntry_entryArgHasNullConsumerId_throws() {
+        final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder()
+                .setConsumerId(null)
+                .build();
+        final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
+        try {
+            config.addEntry(configEntry);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void addEntry_entryArgHasEmptyConsumerId_throws() {
+        final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder()
+                .setConsumerId("   ")
+                .build();
+        final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
+        try {
+            config.addEntry(configEntry);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void addEntry_entryArgHasNullDestination_throws() {
+        final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder()
+                .setDestination(null)
+                .build();
+        final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
+        try {
+            config.addEntry(configEntry);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void addEntry_entryArgHasEmptyDestination_throws() {
+        final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder()
+                .setDestination("   ")
+                .build();
+        final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
+        try {
+            config.addEntry(configEntry);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
     public void emptyConfigCanBeMarshalledAndUnmarshalled() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
@@ -100,6 +152,8 @@ public class RawRepoHarvesterConfigTest {
     public static class RawRepoHarvesterConfigEntryBuilder {
         private String id = "id";
         private String resource = "resource";
+        private String consumerId = "consumerId";
+        private String destination = "destination";
 
         public RawRepoHarvesterConfigEntryBuilder setId(String id) {
             this.id = id;
@@ -111,10 +165,22 @@ public class RawRepoHarvesterConfigTest {
             return this;
         }
 
+        public RawRepoHarvesterConfigEntryBuilder setConsumerId(String consumerId) {
+            this.consumerId = consumerId;
+            return this;
+        }
+
+        public RawRepoHarvesterConfigEntryBuilder setDestination(String destination) {
+            this.destination = destination;
+            return this;
+        }
+
         public RawRepoHarvesterConfig.Entry build() {
             return new RawRepoHarvesterConfig.Entry()
                     .setId(id)
-                    .setResource(resource);
+                    .setResource(resource)
+                    .setConsumerId(consumerId)
+                    .setDestination(destination);
         }
     }
 

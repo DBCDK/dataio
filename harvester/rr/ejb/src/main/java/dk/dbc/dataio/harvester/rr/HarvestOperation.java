@@ -34,9 +34,6 @@ public class HarvestOperation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
-    // ToDo: use config value
-    private static final String QUEUE_ID = "queueID";
-
     private final RawRepoHarvesterConfig.Entry config;
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
@@ -73,13 +70,12 @@ public class HarvestOperation {
             nextQueuedItem = getNextQueuedItem();
         }
         flushHarvesterJobBuilders();
-        LOGGER.info("Harvested {} items from {} queue", itemsHarvested, QUEUE_ID);
+        LOGGER.info("Harvested {} items from {} queue", itemsHarvested, config.getId());
         return itemsHarvested;
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {
-        // ToDo: use config to fill out template
-        return new JobSpecification("xml", "katalog", "utf8", "fbs", agencyId,
+        return new JobSpecification("xml", "katalog", "utf8", config.getDestination(), agencyId,
                 "placeholder", "placeholder", "placeholder", "placeholder");
     }
 
@@ -128,7 +124,7 @@ public class HarvestOperation {
      */
     private QueueJob getNextQueuedItem() throws HarvesterException {
         try {
-            return rawRepoConnector.dequeue(QUEUE_ID);
+            return rawRepoConnector.dequeue(config.getConsumerId());
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterException(e);
         }

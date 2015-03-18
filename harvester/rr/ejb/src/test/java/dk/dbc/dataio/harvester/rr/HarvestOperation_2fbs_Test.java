@@ -46,7 +46,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperation_2fbs_Test {
-    private static final String QUEUE_ID = "queueID";
+    private static final String CONSUMER_ID = "consumerId";
     private static final int AGENCY_ID = 123456;
 
     private static final String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
@@ -97,7 +97,7 @@ public class HarvestOperation_2fbs_Test {
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
 
         // Mock rawrepo return values
-        when(RAW_REPO_CONNECTOR.dequeue(QUEUE_ID))
+        when(RAW_REPO_CONNECTOR.dequeue(CONSUMER_ID))
                 .thenReturn(FIRST_QUEUE_JOB)
                 .thenReturn(SECOND_QUEUE_JOB)
                 .thenReturn(THIRD_QUEUE_JOB)
@@ -228,11 +228,10 @@ public class HarvestOperation_2fbs_Test {
     }
 
     private HarvestOperation getHarvestOperation() {
-        final RawRepoHarvesterConfig.Entry config = new RawRepoHarvesterConfig.Entry()
-                .setId("id")
-                .setResource("resource");
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
+        final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
+        config.setConsumerId(CONSUMER_ID);
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }
 

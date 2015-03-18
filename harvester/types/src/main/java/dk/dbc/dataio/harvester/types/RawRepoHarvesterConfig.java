@@ -49,6 +49,8 @@ public class RawRepoHarvesterConfig {
             InvariantUtil.checkNotNullOrThrow(entry, "entry");
             InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getId(), "entry.id");
             InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getResource(), "entry.resource");
+            InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getConsumerId(), "entry.consumerId");
+            InvariantUtil.checkNotNullNotEmptyOrThrow(entry.getDestination(), "entry.destination");
         } catch (NullPointerException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -58,14 +60,19 @@ public class RawRepoHarvesterConfig {
      * Class representing a harvest operation.
      */
     public static class Entry {
-        /** ID of harvest operation
-         */
+        /** ID of harvest operation */
         private String id;
-        /** JNDI name of rawrepo JDBC resource
-         */
+
+        /** JNDI name of rawrepo JDBC resource */
         private String resource;
-        /** Harvest batch size
-         */
+
+        /** rawrepo queue consumer ID */
+        private String consumerId;
+
+        /** Destination for harvested items */
+        private String destination;
+
+        /** Harvest batch size (default 10000) */
         private int batchSize = 10000;
 
         public String getId() {
@@ -95,11 +102,31 @@ public class RawRepoHarvesterConfig {
             return this;
         }
 
+        public String getConsumerId() {
+            return consumerId;
+        }
+
+        public Entry setConsumerId(String consumerId) {
+            this.consumerId = consumerId;
+            return this;
+        }
+
+        public String getDestination() {
+            return destination;
+        }
+
+        public Entry setDestination(String destination) {
+            this.destination = destination;
+            return this;
+        }
+
         @Override
         public String toString() {
             return "Entry{" +
                     "id='" + id + '\'' +
                     ", resource='" + resource + '\'' +
+                    ", consumerId='" + consumerId + '\'' +
+                    ", destination='" + destination + '\'' +
                     ", batchSize=" + batchSize +
                     '}';
         }
@@ -118,6 +145,12 @@ public class RawRepoHarvesterConfig {
             if (batchSize != entry.batchSize) {
                 return false;
             }
+            if (consumerId != null ? !consumerId.equals(entry.consumerId) : entry.consumerId != null) {
+                return false;
+            }
+            if (destination != null ? !destination.equals(entry.destination) : entry.destination != null) {
+                return false;
+            }
             if (id != null ? !id.equals(entry.id) : entry.id != null) {
                 return false;
             }
@@ -132,6 +165,8 @@ public class RawRepoHarvesterConfig {
         public int hashCode() {
             int result = id != null ? id.hashCode() : 0;
             result = 31 * result + (resource != null ? resource.hashCode() : 0);
+            result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
+            result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + batchSize;
             return result;
         }

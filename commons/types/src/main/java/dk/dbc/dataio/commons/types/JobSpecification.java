@@ -161,4 +161,19 @@ public class JobSpecification implements Serializable {
         result = 31 * result + dataFile.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "JobSpecification{" +
+                "packaging='" + packaging + '\'' +
+                ", format='" + format + '\'' +
+                ", charset='" + charset + '\'' +
+                ", destination='" + destination + '\'' +
+                ", submitterId=" + submitterId +
+                ", mailForNotificationAboutVerification='" + mailForNotificationAboutVerification + '\'' +
+                ", mailForNotificationAboutProcessing='" + mailForNotificationAboutProcessing + '\'' +
+                ", resultmailInitials='" + resultmailInitials + '\'' +
+                ", dataFile='" + dataFile + '\'' +
+                '}';
+    }
 }

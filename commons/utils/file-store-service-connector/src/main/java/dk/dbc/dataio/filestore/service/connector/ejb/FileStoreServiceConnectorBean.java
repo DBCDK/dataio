@@ -92,6 +92,19 @@ public class FileStoreServiceConnectorBean {
 
     }
 
+    @Lock(LockType.READ)
+    public long getByteSize(final String fileId) throws FileStoreServiceConnectorException {
+        LOGGER.debug("Getting byte size for file with id '{}'", fileId);
+        try {
+            // performance: consider JNDI lookup cache or service-locator pattern
+            final String baseUrl = ServiceUtil.getFileStoreServiceEndpoint();
+            final FileStoreServiceConnector fileStoreServiceConnector = new FileStoreServiceConnector(client, baseUrl);
+            return fileStoreServiceConnector.getByteSize(fileId);
+        } catch (NamingException e) {
+            throw new EJBException(e);
+        }
+    }
+
     public FileStoreServiceConnector getConnector() {
         try {
             final String baseUrl = ServiceUtil.getFileStoreServiceEndpoint();

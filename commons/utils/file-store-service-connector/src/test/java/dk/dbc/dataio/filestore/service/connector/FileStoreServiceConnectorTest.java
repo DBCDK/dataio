@@ -178,6 +178,73 @@ public class FileStoreServiceConnectorTest {
         assertThat(fileStoreServiceConnector.getFile(FILE_ID), is(INPUT_STREAM));
     }
 
+    //********
+
+    @Test
+    public void getByteSize_fileIdArgIsNull_throws() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getByteSize(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void getByteSize_fileIdArgIsEmpty_throws() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getByteSize("");
+            fail("No exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void getByteSize_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doGet(CLIENT, FILE_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getByteSize(FILE_ID);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        }
+    }
+
+    @Test
+    public void getByteSize_responseWithNullEntity_throws() throws FileStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doGet(CLIENT, FILE_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.getByteSize(FILE_ID);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorException e) {
+            assertThat(e instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(false));
+        }
+    }
+
+    @Test
+    public void getByteSize_fileAttributesExists_returnsByteSize() throws FileStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doGet(CLIENT, FILE_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), 42L));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        assertThat(fileStoreServiceConnector.getByteSize(FILE_ID), is(42L));
+    }
+
+
+
     private static FileStoreServiceConnector newFileStoreServiceConnector() {
         return new FileStoreServiceConnector(CLIENT, FILE_STORE_URL);
     }

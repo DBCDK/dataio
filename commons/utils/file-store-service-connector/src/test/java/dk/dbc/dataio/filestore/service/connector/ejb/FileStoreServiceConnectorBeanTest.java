@@ -60,6 +60,20 @@ public class FileStoreServiceConnectorBeanTest {
         }
     }
 
+    @Test
+    public void getByteSize_endpointLookupThrowsNamingException_throws() throws NamingException, FileStoreServiceConnectorException {
+        final NamingException namingException = new NamingException();
+        when(ServiceUtil.getFileStoreServiceEndpoint()).thenThrow(namingException);
+        final FileStoreServiceConnectorBean fileStoreServiceConnectorBean = getInitializedBean();
+        try {
+            fileStoreServiceConnectorBean.getByteSize(FILE_ID);
+            fail("No exception thrown");
+        } catch (EJBException e) {
+            assertThat(e.getCause() instanceof NamingException, is(true));
+            assertThat((NamingException) e.getCause(), is(namingException));
+        }
+    }
+
     private FileStoreServiceConnectorBean getInitializedBean() {
         return new FileStoreServiceConnectorBean();
     }

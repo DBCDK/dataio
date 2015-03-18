@@ -105,7 +105,32 @@ public class FileStoreServiceConnector {
 
             final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseInputStream(response);
+            return readResponseEntity(response, InputStream.class);
+        } finally {
+            LOGGER.debug("FileStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves size of a file in bytes.
+     * @param fileId ID of file
+     * @return byte size of file
+     * @throws NullPointerException if given null-valued fileId argument
+     * @throws IllegalArgumentException if given empty-valued fileId argument
+     * @throws FileStoreServiceConnectorException on failure to extract byte size from response
+     * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public long getByteSize(final String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+            final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
+                    .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, Long.class);
+
         } finally {
             LOGGER.debug("FileStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -119,12 +144,14 @@ public class FileStoreServiceConnector {
         return baseUrl;
     }
 
-    private InputStream readResponseInputStream(Response response) throws FileStoreServiceConnectorException {
-        final InputStream inputStream = response.readEntity(InputStream.class);
-        if (inputStream == null) {
-            throw new FileStoreServiceConnectorException("file-store service returned with null-valued input stream");
+    private <T> T readResponseEntity(Response response, Class<T> tClass) throws FileStoreServiceConnectorException {
+        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
+        final T entity = response.readEntity(tClass);
+        if (entity == null) {
+            throw new FileStoreServiceConnectorException (
+                    String.format("file-store service returned with null-valued %s entity", tClass.getName()));
         }
-        return inputStream;
+        return entity;
     }
 
     private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus)

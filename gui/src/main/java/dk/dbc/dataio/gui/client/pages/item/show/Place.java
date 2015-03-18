@@ -26,15 +26,27 @@ public class Place extends com.google.gwt.place.shared.Place {
     }
 
     public String getJobId() {
-        return decode(combinedUrl.split(SPLITTER_CHAR)[0]);
+        try {
+            return decode(combinedUrl.split(SPLITTER_CHAR)[0]);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     public String getSubmitterName() {
-        return decode(combinedUrl.split(SPLITTER_CHAR)[1]);
+        try {
+            return decode(combinedUrl.split(SPLITTER_CHAR)[1]);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     public String getSinkName() {
-        return decode(combinedUrl.split(SPLITTER_CHAR)[2]);
+        try {
+            return decode(combinedUrl.split(SPLITTER_CHAR)[2]);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     @Prefix("ShowItems")

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.filestore;
 
-import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -19,11 +18,13 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -106,19 +107,17 @@ public class FilesIT {
     @Test
     public void getByteSize() throws IOException, FileStoreServiceConnectorException {
         // When...
-        final Path sourceFile = rootFolder.newFile().toPath();
-        writeFile(sourceFile);
-        assertThat(Files.size(sourceFile)>0, is(true));
+        byte[] data = "1234".getBytes(StandardCharsets.UTF_8);
 
         final FileStoreServiceConnector fileStoreServiceConnector =
                 new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
 
-        final InputStream inputStream = getInputStreamForFile(sourceFile);
+        final InputStream inputStream = new ByteArrayInputStream(data);
         final String fileId = fileStoreServiceConnector.addFile(inputStream);
 
             // Then...
         final long byteSize = fileStoreServiceConnector.getByteSize(fileId);
-        assertThat(byteSize, is(new ByteCountingInputStream(inputStream).getBytesRead()));
+        assertThat(byteSize, is((long)data.length));
     }
 
     private static void writeFile(Path path) throws IOException {

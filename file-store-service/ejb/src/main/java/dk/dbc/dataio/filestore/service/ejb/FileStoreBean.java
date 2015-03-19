@@ -48,12 +48,13 @@ public class FileStoreBean {
         fileAttributes = entityManager.merge(fileAttributes);
         entityManager.flush();
 
+        ByteCountingInputStream wrappedDataSource = new ByteCountingInputStream(dataSource);
         final Path path = location.resolve(String.valueOf(fileAttributes.getId()));
         final BinaryFile binaryFile = binaryFileStore.getBinaryFile(path);
-        binaryFile.write(dataSource);
+        binaryFile.write(wrappedDataSource);
 
         // Set the number of bytes read on file attributes
-        fileAttributes.setByteSize(new ByteCountingInputStream(dataSource).getBytesRead());
+        fileAttributes.setByteSize(wrappedDataSource.getBytesRead());
 
         LOGGER.info("Wrote file {}", path.toString());
         return String.valueOf(fileAttributes.getId());

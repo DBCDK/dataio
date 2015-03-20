@@ -105,7 +105,6 @@ public class JobStoreBean {
      */
     public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
-
         try {
             final FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
             final Flow flow = getFlowOrThrow(flowBinder.getContent().getFlowId());
@@ -115,13 +114,19 @@ public class JobStoreBean {
             FlowStoreReferences flowStoreReferences = createFlowStoreReferences(flowBinder, flow, sink, submitter);
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = getSequenceAnalyserKeyGenerator(flowBinder, sink);
 
-
-            try (InputStream inputStream = getInputStream(jobInputStream.getJobSpecification())) {
+            String fileId = getFileIdFromDataFile(jobInputStream.getJobSpecification().getDataFile());
+            try {
+                InputStream inputStream = getInputStream(jobInputStream.getJobSpecification().getDataFile(), fileId);
                 final DataPartitionerFactory.DataPartitioner dataPartitioner =
                         new DefaultXmlDataPartitionerFactory().createDataPartitioner(
                                 inputStream, jobInputStream.getJobSpecification().getCharset());
 
-                return jobStore.addJob(jobInputStream, dataPartitioner, sequenceAnalyserKeyGenerator, flow, sink, flowStoreReferences);
+                final JobInfoSnapshot jobInfoSnapshot = jobStore.addJob(jobInputStream, dataPartitioner, sequenceAnalyserKeyGenerator, flow, sink, flowStoreReferences);
+                if(fileId != null) {
+                    // Compare byte size only if the file is located in the file store
+                    compareByteSize(fileId, dataPartitioner);
+                }
+                return jobInfoSnapshot;
             } catch (IOException e) {
                 throw new JobStoreException("Error reading data file", e);
             }
@@ -251,18 +256,74 @@ public class JobStoreBean {
         }
     }
 
+    // Method is package-private for unit testing purposes
+    long getByteSizeOrThrow(String fileId) throws JobStoreException {
+        try {
+            return fileStoreServiceConnectorBean.getByteSize(fileId);
+        } catch(FileStoreServiceConnectorException ex) {
+            LOGGER.warn("Could not retrieve byte size for file with id: {}", fileId);
+            throw new JobStoreException("Could not retrieve byte size", ex);
+        }
+    }
+
+    /**
+     * Method is package-private for unit testing purposes
+     * Method compares bytes size of a file with the byte size of the data partitioner used when adding a job to the job store
+     *
+     * @param fileId file id
+     * @param dataPartitioner containing the input steam
+     * @throws IOException if the byte size differs
+     * @throws JobStoreException if the byte size could not be retrieved, InvalidInputException if the file store service URI was invalid
+     */
+      void compareByteSize(String fileId, DataPartitionerFactory.DataPartitioner dataPartitioner) throws IOException, JobStoreException {
+        long fileByteSize = getByteSizeOrThrow(fileId);
+        long jobByteSize = dataPartitioner.getBytesRead();
+
+        if(fileByteSize != jobByteSize){
+            throw new IOException(String.format(
+                    "Error reading data file {%s}. DataPartitioner.byteSize was: %s. FileStore.byteSize was: %s",
+                    fileId, jobByteSize, fileByteSize));
+        }
+    }
+
+    /**
+     * Method retrieving a file ID from a datafile if the file is located in file store
+     * @param datafile data file
+     * @return file ID as String
+     * @throws InvalidInputException on invalid URI syntax
+     */
+    private String getFileIdFromDataFile(String datafile) throws InvalidInputException {
+        String fileId = null;
+        if(!Files.exists(Paths.get(datafile))) {
+            try {
+                fileId = new FileStoreUrn(datafile).getFileId();
+            } catch (URISyntaxException e) {
+                JobError jobError = new JobError(JobError.Code.INVALID_URI_SYNTAX, e.getMessage(), ServiceUtil.stackTraceToString(e));
+                throw new InvalidInputException("Invalid file store service URI", jobError);
+            }
+        }
+        return fileId;
+    }
+
+
     /**
      * Method retrieving job data file
      *
-     * @param jobSpecification job specification
+     * @param fileId file ID, null if file is not persisted in file store
      * @return input stream
      * @throws JobStoreException on failure on retrieving job data file
      */
-    private InputStream getInputStream (JobSpecification jobSpecification) throws JobStoreException {
-        String jobDataFile = jobSpecification.getDataFile();
-        boolean isLocalFile = Files.exists(Paths.get(jobDataFile));
+    private InputStream getInputStream (String dataFile, String fileId) throws JobStoreException {
         try {
-            return isLocalFile ? Files.newInputStream(Paths.get(jobDataFile)) : fileStoreServiceConnectorBean.getFile(new FileStoreUrn(jobDataFile).getFileId());
+            InputStream inputStream;
+            if(fileId == null) {
+                // The file is local
+                inputStream = Files.newInputStream(Paths.get(dataFile));
+            } else {
+                // The file can be looked up in file store
+                inputStream = fileStoreServiceConnectorBean.getFile(fileId);
+            }
+            return inputStream;
         } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
             // If status is NOT_FOUND (404)
             if(e.getStatusCode() == 404) {
@@ -271,9 +332,6 @@ public class JobStoreBean {
             } else {
                 throw new JobStoreException("Error retrieving job data file", e);
             }
-        } catch (URISyntaxException e) {
-            JobError jobError = new JobError(JobError.Code.INVALID_URI_SYNTAX, e.getMessage(), ServiceUtil.stackTraceToString(e));
-            throw new InvalidInputException("Invalid file store service URI", jobError);
         } catch (FileStoreServiceConnectorException | IOException e) {
             throw new JobStoreException(e.getMessage(), e);
         }

@@ -20,7 +20,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected PlaceController placeController;
     protected JobStoreProxyAsync jobStoreProxy;
     protected String jobId;
-    protected String submitterName;
+    protected String submitterNumber;
     protected String sinkName;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory, Texts texts) {
@@ -30,7 +30,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
         Place showPlace = (Place) place;
         this.jobId = showPlace.getJobId();
-        this.submitterName = showPlace.getSubmitterName();
+        this.submitterNumber = showPlace.getSubmitterNumber();
         this.sinkName = showPlace.getSinkName();
     }
 
@@ -83,7 +83,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private String constructJobHeaderText() {
         return texts.text_JobId() + " " + jobId + ", "
-                + texts.text_Submitter() + " " + submitterName + ", "
+                + texts.text_Submitter() + " " + submitterNumber + ", "
                 + texts.text_Sink() + " " + sinkName;
     }
 

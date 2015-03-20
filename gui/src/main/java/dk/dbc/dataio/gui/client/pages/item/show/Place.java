@@ -21,8 +21,8 @@ public class Place extends com.google.gwt.place.shared.Place {
         this.combinedUrl = url;
     }
 
-    public Place(String jobId, String submitterName, String sinkName) {
-        combinedUrl = encode(jobId) + SPLITTER_CHAR + encode(submitterName) + SPLITTER_CHAR + encode(sinkName);
+    public Place(String jobId, String submitterNumber, String sinkName) {
+        combinedUrl = encode(jobId) + SPLITTER_CHAR + encode(submitterNumber) + SPLITTER_CHAR + encode(sinkName);
     }
 
     public String getJobId() {
@@ -33,7 +33,7 @@ public class Place extends com.google.gwt.place.shared.Place {
         }
     }
 
-    public String getSubmitterName() {
+    public String getSubmitterNumber() {
         try {
             return decode(combinedUrl.split(SPLITTER_CHAR)[1]);
         } catch (Exception e) {

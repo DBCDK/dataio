@@ -135,7 +135,7 @@ public class PresenterImplTest {
         verify(mockedClientFactory).getPlaceController();
         verify(mockedClientFactory).getJobStoreProxyAsync();
         verify(mockedPlace).getJobId();
-        verify(mockedPlace).getSubmitterName();
+        verify(mockedPlace).getSubmitterNumber();
         verify(mockedPlace).getSinkName();
     }
 
@@ -143,7 +143,7 @@ public class PresenterImplTest {
     public void start_callStart_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
         presenterImpl.jobId = "1234";
-        presenterImpl.submitterName = "Submi";
+        presenterImpl.submitterNumber = "Submi";
         presenterImpl.sinkName = "Sinki";
 
         // Test Subject Under Test

@@ -22,7 +22,7 @@ public class PlaceTest {
         Place place = new Place("id:submitter:sink");
 
         assertThat(place.getJobId(), is("id"));
-        assertThat(place.getSubmitterName(), is("submitter"));
+        assertThat(place.getSubmitterNumber(), is("submitter"));
         assertThat(place.getSinkName(), is("sink"));
     }
 
@@ -31,7 +31,7 @@ public class PlaceTest {
         Place place = new Place(":submitter:sink");
 
         assertThat(place.getJobId(), is(""));
-        assertThat(place.getSubmitterName(), is("submitter"));
+        assertThat(place.getSubmitterNumber(), is("submitter"));
         assertThat(place.getSinkName(), is("sink"));
     }
 
@@ -40,7 +40,7 @@ public class PlaceTest {
         Place place = new Place("id::sink");
 
         assertThat(place.getJobId(), is("id"));
-        assertThat(place.getSubmitterName(), is(""));
+        assertThat(place.getSubmitterNumber(), is(""));
         assertThat(place.getSinkName(), is("sink"));
     }
 
@@ -49,7 +49,7 @@ public class PlaceTest {
         Place place = new Place("id:submitter:");
 
         assertThat(place.getJobId(), is("id"));
-        assertThat(place.getSubmitterName(), is("submitter"));
+        assertThat(place.getSubmitterNumber(), is("submitter"));
         assertThat(place.getSinkName(), is(""));
     }
 
@@ -58,7 +58,7 @@ public class PlaceTest {
         Place place = new Place("id:submitter");
 
         assertThat(place.getJobId(), is("id"));
-        assertThat(place.getSubmitterName(), is("submitter"));
+        assertThat(place.getSubmitterNumber(), is("submitter"));
         assertThat(place.getSinkName(), is(""));
     }
 
@@ -67,7 +67,7 @@ public class PlaceTest {
         Place place = new Place("id");
 
         assertThat(place.getJobId(), is("id"));
-        assertThat(place.getSubmitterName(), is(""));
+        assertThat(place.getSubmitterNumber(), is(""));
         assertThat(place.getSinkName(), is(""));
     }
 
@@ -76,7 +76,7 @@ public class PlaceTest {
         Place place = new Place("iD", "sUbmitter", "sInk");
 
         assertThat(place.getJobId(), is("iD"));
-        assertThat(place.getSubmitterName(), is("sUbmitter"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk"));
     }
 
@@ -85,7 +85,7 @@ public class PlaceTest {
         Place place = new Place("", "sUbmitter", "sInk");
 
         assertThat(place.getJobId(), is(""));
-        assertThat(place.getSubmitterName(), is("sUbmitter"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk"));
     }
 
@@ -94,7 +94,7 @@ public class PlaceTest {
         Place place = new Place("iD", "", "sInk");
 
         assertThat(place.getJobId(), is("iD"));
-        assertThat(place.getSubmitterName(), is(""));
+        assertThat(place.getSubmitterNumber(), is(""));
         assertThat(place.getSinkName(), is("sInk"));
     }
 
@@ -103,7 +103,7 @@ public class PlaceTest {
         Place place = new Place("iD", "sUbmitter", "");
 
         assertThat(place.getJobId(), is("iD"));
-        assertThat(place.getSubmitterName(), is("sUbmitter"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is(""));
     }
 
@@ -112,7 +112,7 @@ public class PlaceTest {
         Place place = new Place("i:D", "sUbmitter", "sInk");
 
         assertThat(place.getJobId(), is("i:D"));
-        assertThat(place.getSubmitterName(), is("sUbmitter"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk"));
     }
 
@@ -121,7 +121,7 @@ public class PlaceTest {
         Place place = new Place("iD", "sUbmi:tter", "sInk");
 
         assertThat(place.getJobId(), is("iD"));
-        assertThat(place.getSubmitterName(), is("sUbmi:tter"));
+        assertThat(place.getSubmitterNumber(), is("sUbmi:tter"));
         assertThat(place.getSinkName(), is("sInk"));
     }
 
@@ -130,7 +130,7 @@ public class PlaceTest {
         Place place = new Place("iD", "sUbmitter", "sInk:");
 
         assertThat(place.getJobId(), is("iD"));
-        assertThat(place.getSubmitterName(), is("sUbmitter"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk:"));
     }
 

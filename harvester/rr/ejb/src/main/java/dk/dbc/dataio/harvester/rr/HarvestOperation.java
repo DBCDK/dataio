@@ -151,13 +151,25 @@ public class HarvestOperation {
                     "Record %s was not found in returned collection", recordId.toString()));
         }
 
-        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
-        marcExchangeCollection.addMember(getRecordContent(recordId, records));
-
+        final MarcExchangeCollection marcExchangeCollection = getMarcExchangeCollection(recordId, records);
         final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
         dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
         return dataContainer;
+    }
+
+    private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records)
+            throws HarvesterException {
+        final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
+        if (config.includeRelations()) {
+            for (Record record : records.values()) {
+                LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
+                marcExchangeCollection.addMember(getRecordContent(record));
+            }
+        } else {
+            marcExchangeCollection.addMember(getRecordContent(recordId, records));
+        }
+        return marcExchangeCollection;
     }
 
     private byte[] getRecordContent(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
@@ -165,6 +177,14 @@ public class HarvestOperation {
             return records.get(recordId.getBibliographicRecordId()).getContent();
         } catch (NullPointerException e) {
              throw new HarvesterInvalidRecordException("Record content is null");
+        }
+    }
+
+    private byte[] getRecordContent(Record record) throws HarvesterInvalidRecordException {
+        try {
+            return record.getContent();
+        } catch (NullPointerException e) {
+            throw new HarvesterInvalidRecordException("Record content is null");
         }
     }
 

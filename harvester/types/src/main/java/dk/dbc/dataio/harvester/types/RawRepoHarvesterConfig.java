@@ -83,6 +83,11 @@ public class RawRepoHarvesterConfig {
         @JsonProperty
         private final Map<Integer, String> formatOverrides;
 
+        /** Flag indicating whether or not to include
+            record relations in marcXchange collections */
+        @JsonProperty
+        private boolean includeRelations = true;
+
         /** Harvest batch size (default 10000) */
         private int batchSize = 10000;
 
@@ -154,6 +159,15 @@ public class RawRepoHarvesterConfig {
             return this;
         }
 
+        public boolean includeRelations() {
+            return includeRelations;
+        }
+
+        public Entry setIncludeRelations(boolean includeRelations) {
+            this.includeRelations = includeRelations;
+            return this;
+        }
+
         @Override
         public String toString() {
             return "Entry{" +
@@ -163,6 +177,7 @@ public class RawRepoHarvesterConfig {
                     ", destination='" + destination + '\'' +
                     ", format='" + format + '\'' +
                     ", formatOverrides=" + formatOverrides +
+                    ", includeRelations=" + includeRelations +
                     ", batchSize=" + batchSize +
                     '}';
         }
@@ -181,6 +196,9 @@ public class RawRepoHarvesterConfig {
             if (batchSize != entry.batchSize) {
                 return false;
             }
+            if (includeRelations != entry.includeRelations) {
+                return false;
+            }
             if (consumerId != null ? !consumerId.equals(entry.consumerId) : entry.consumerId != null) {
                 return false;
             }
@@ -190,7 +208,7 @@ public class RawRepoHarvesterConfig {
             if (format != null ? !format.equals(entry.format) : entry.format != null) {
                 return false;
             }
-            if (!formatOverrides.equals(entry.formatOverrides)) {
+            if (formatOverrides != null ? !formatOverrides.equals(entry.formatOverrides) : entry.formatOverrides != null) {
                 return false;
             }
             if (id != null ? !id.equals(entry.id) : entry.id != null) {
@@ -210,7 +228,8 @@ public class RawRepoHarvesterConfig {
             result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
-            result = 31 * result + formatOverrides.hashCode();
+            result = 31 * result + (formatOverrides != null ? formatOverrides.hashCode() : 0);
+            result = 31 * result + (includeRelations ? 1 : 0);
             result = 31 * result + batchSize;
             return result;
         }

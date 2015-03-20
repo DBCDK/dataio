@@ -115,8 +115,7 @@ public class JobStoreBean {
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = getSequenceAnalyserKeyGenerator(flowBinder, sink);
 
             String fileId = getFileIdFromDataFile(jobInputStream.getJobSpecification().getDataFile());
-            try {
-                InputStream inputStream = getInputStream(jobInputStream.getJobSpecification().getDataFile(), fileId);
+            try (InputStream inputStream = getInputStream(jobInputStream.getJobSpecification().getDataFile(), fileId)) {
                 final DataPartitionerFactory.DataPartitioner dataPartitioner =
                         new DefaultXmlDataPartitionerFactory().createDataPartitioner(
                                 inputStream, jobInputStream.getJobSpecification().getCharset());

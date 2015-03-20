@@ -163,7 +163,7 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_getFile_throwsURISyntaxException() throws FlowStoreServiceConnectorException {
         final JobInputStream jobInputStream = getJobInputStream("invalid");
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
             fail("No exception thrown by addAndScheduleJob()");
@@ -177,8 +177,8 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_fileAttributesNotFound_throwsJobStoreException() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        getSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
         when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenReturn(byteArrayInputStream);
@@ -192,8 +192,8 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_differentByteSize_throwsJobStoreException() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreException {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        getSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
         when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenReturn(byteArrayInputStream);
@@ -207,8 +207,8 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_byteSizeNotFound_throwsJobStoreException() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreException {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        getSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
         when(mockedFileStoreServiceConnectorBean.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
@@ -240,8 +240,8 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_jobAdded_returnsJobInfoSnapshot() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        getSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
         when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenReturn(byteArrayInputStream);
@@ -258,7 +258,7 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorUnexpectedStatusCodeException() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
         when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenThrow(fileStoreUnexpectedException);
 
         try {
@@ -274,7 +274,7 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_getInputStream_inputStreamNotFound() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
         when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenThrow(jobDataFileNotFound);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -289,7 +289,7 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorException() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        getSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
         when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenThrow(fileStoreException);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -394,7 +394,7 @@ public class JobStoreBeanTest {
         jobStoreBean.jsonbBean.initialiseContext();
     }
 
-    private void getSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
+    private void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
         final Sink sink = new SinkBuilder().build();
@@ -406,7 +406,7 @@ public class JobStoreBeanTest {
         when(mockedFlowStoreServiceConnectorBean.getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
     }
 
-    private void getSuccessfulMockedReturnsFromJobStore(JobSpecification jobSpecification) throws JobStoreException {
+    private void setupSuccessfulMockedReturnsFromJobStore(JobSpecification jobSpecification) throws JobStoreException {
         final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder()
                 .setSpecification(jobSpecification)
                 .build();

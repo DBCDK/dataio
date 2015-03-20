@@ -95,7 +95,6 @@ public class FileStoreBean {
     public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, EJBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         try {
-            Long.parseLong(fileId);
             final FileAttributes fileAttributes = entityManager.find(FileAttributes.class, Long.parseLong(fileId));
             if (fileAttributes == null) {
                 throw new EJBException(String.format("Trying to get non-existing file with ID '%s'", fileId));

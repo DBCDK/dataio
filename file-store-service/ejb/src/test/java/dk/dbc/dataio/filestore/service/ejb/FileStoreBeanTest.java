@@ -107,18 +107,22 @@ public class FileStoreBeanTest {
         assertThat(fileStoreBean.fileExists(fileId), is(true));
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void getByteSize_fileIdIsEmpty_throws() throws IllegalArgumentException{
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getByteSize("");
-        fail("getByteSize: Invalid file ID was not detected");
+        try {
+            fileStoreBean.getByteSize("");
+            fail("getByteSize: Invalid file ID was not detected");
+        } catch (IllegalArgumentException e) {}
     }
 
-    @Test (expected = NullPointerException.class)
+    @Test
     public void getByteSize_fileIdIsNull_throws() throws IllegalArgumentException{
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getByteSize(null);
-        fail("getByteSize: Invalid file ID was not detected");
+        try {
+            fileStoreBean.getByteSize(null);
+            fail("getByteSize: Invalid file ID was not detected");
+        } catch (NullPointerException e) {}
     }
 
     @Test
@@ -130,11 +134,13 @@ public class FileStoreBeanTest {
         } catch(IllegalArgumentException e) {}
     }
 
-    @Test (expected = EJBException.class)
+    @Test
     public void getByteSize_filAttributesNotFound_throws() throws IllegalArgumentException{
         when(entityManager.find(eq(FileAttributes.class), eq(Long.valueOf(fileId)))).thenReturn(null);
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
-        fileStoreBean.getByteSize(fileId);
+        try {
+            fileStoreBean.getByteSize(fileId);
+        } catch (EJBException e) {}
     }
 
     @Test

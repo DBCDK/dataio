@@ -101,7 +101,7 @@ public class FileStoreBean {
             }
             return fileAttributes.getByteSize();
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(String.format("Given id '{}' is invalid", fileId));
+            throw new IllegalArgumentException(String.format("Given id '%s' is invalid", fileId));
         }
     }
 

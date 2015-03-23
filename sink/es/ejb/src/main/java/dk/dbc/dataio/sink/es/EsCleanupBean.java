@@ -50,11 +50,7 @@ public class EsCleanupBean {
                 Arrays.toString(createEsInFlightMap(esInFlightList).keySet().toArray()));
         int slotsInFlight = sumRecordSlotsInEsInFlightList(esInFlightList);
         LOGGER.info("Sum of recordSlots for inFlight Chunks: [{}]", slotsInFlight);
-        try {
-            esThrottler.acquireRecordSlots(slotsInFlight);
-        } catch (IllegalArgumentException | InterruptedException e) {
-            LOGGER.error("An exception was caught while trying to count down the esThrotler: {}", e.getMessage(), e);
-        }
+        esThrottler.acquireRecordSlots(slotsInFlight);
         // Integrity-test is deferred to the first run of cleanup().
     }
 

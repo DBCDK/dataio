@@ -51,10 +51,10 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
         final EsWorkload workload = getEsWorkloadFromChunkResult(processedChunk);
 
-        try {
-            esThrottler.acquireRecordSlots(workload.getAddiRecords().size());
-        } catch (InterruptedException e) {
-            throw new SinkException("Interrupted while waiting for free record slots", e);
+        if (!esThrottler.acquireRecordSlots(workload.getAddiRecords().size())) {
+            LOGGER.warn("Unable to acquire needed record slots - forcing rollback");
+            messageDrivenContext.setRollbackOnly();
+            return;
         }
         try {
             if (workload.getAddiRecords().isEmpty()) {

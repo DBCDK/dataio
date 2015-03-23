@@ -31,7 +31,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -65,15 +64,6 @@ public class EsMessageProcessorBeanTest {
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
         verify(jobProcessorMessageProducer, times(1)).send(any(ExternalChunk.class));
-    }
-
-    @Test
-    public void onMessage_esThrottlerThrowsInterruptedException_transactionRollback() throws InterruptedException, JMSException {
-        final EsThrottlerBean esThrottlerBean = mock(EsThrottlerBean.class);
-        doThrow(new InterruptedException("TEST")).when(esThrottlerBean).acquireRecordSlots(anyInt());
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean(esThrottlerBean);
-        esMessageProcessorBean.onMessage(getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord));
-        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(true));
     }
 
     @Test

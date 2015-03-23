@@ -145,6 +145,9 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.submitterNumber = "Submi";
         presenterImpl.sinkName = "Sinki";
+        when(mockedAllItemsButton.getValue()).thenReturn(false);
+        when(mockedFailedItemsButton.getValue()).thenReturn(true);
+        when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
 
         // Test Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -154,9 +157,9 @@ public class PresenterImplTest {
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
-        verify(mockedAllItemsButton).setValue(true);
+        verify(mockedFailedItemsButton).setValue(true);
         verify(mockedAllItemsButton).getValue();
-        verifyZeroInteractions(mockedFailedItemsButton);
+        verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
         verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
@@ -165,8 +168,8 @@ public class PresenterImplTest {
     public void filterItems_allItemsSelected_allItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedAllItemsButton.getValue()).thenReturn(true);
-        when(mockedFailedItemsButton.getValue()).thenReturn(false);
+        when(mockedAllItemsButton.getValue()).thenReturn(false);
+        when(mockedFailedItemsButton.getValue()).thenReturn(true);
         when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
 
         // Subject under test
@@ -174,7 +177,7 @@ public class PresenterImplTest {
 
         // Verify Test
         verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
-        verifyZeroInteractions(mockedFailedItemsButton);
+        verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
         verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));  // Two invocations: One during call to start, one during fiterItems()
     }

@@ -48,7 +48,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.setPresenter(this);
         view.jobHeader.setText(constructJobHeaderText());
         containerWidget.setWidget(view.asWidget());
-        view.allItemsButton.setValue(true);
+        view.failedItemsButton.setValue(true);
         getItems();
     }
 

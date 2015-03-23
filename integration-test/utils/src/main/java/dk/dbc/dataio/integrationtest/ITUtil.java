@@ -9,16 +9,6 @@ import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
-import org.tmatesoft.svn.core.SVNCommitInfo;
-import org.tmatesoft.svn.core.SVNDepth;
-import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.SVNURL;
-import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
-import org.tmatesoft.svn.core.wc2.SvnCheckout;
-import org.tmatesoft.svn.core.wc2.SvnCommit;
-import org.tmatesoft.svn.core.wc2.SvnImport;
-import org.tmatesoft.svn.core.wc2.SvnOperationFactory;
-import org.tmatesoft.svn.core.wc2.SvnTarget;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;

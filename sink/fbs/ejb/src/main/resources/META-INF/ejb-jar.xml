@@ -21,6 +21,10 @@
           <activation-config-property-value>false</activation-config-property-value>
         </activation-config-property>
         <activation-config-property>
+          <activation-config-property-name>endpointExceptionRedeliveryInterval</activation-config-property-name>
+          <activation-config-property-value>30000</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
           <activation-config-property-name>messageSelector</activation-config-property-name>
           <activation-config-property-value>resource = 'url/dataio/fbs/ws'</activation-config-property-value>
         </activation-config-property>

@@ -26,15 +26,26 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
         /**
          * job last modification time
          */
-        TIME_OF_LAST_MODIFICATION
+        TIME_OF_LAST_MODIFICATION,
+        /*
+         * The amount of records to be returned
+         */
+        LIMIT,
+        /*
+         * The offset of records to be returned
+         */
+        OFFSET
     }
 
     private LinkedList<ListFilterGroup<JobListCriteria.Field>> filtering;
     private List<ListOrderBy<JobListCriteria.Field>> ordering;
+    private int limit;
+    private int offset;
 
     public JobListCriteria() {
         filtering = new LinkedList<>();
         ordering = new ArrayList<>();
+
     }
 
     @Override
@@ -56,6 +67,18 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
     }
 
     @Override
+    public JobListCriteria limit(int limit) throws NullPointerException {
+        this.limit = limit;
+        return this;
+    }
+
+    @Override
+    public JobListCriteria offset(int offset) throws NullPointerException {
+        this.offset = offset;
+        return this;
+    }
+
+    @Override
     public List<ListFilterGroup<Field>> getFiltering() {
         return Collections.unmodifiableList(filtering);
     }
@@ -69,5 +92,15 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
     public JobListCriteria orderBy(ListOrderBy<Field> orderBy) throws NullPointerException {
         ordering.add(InvariantUtil.checkNotNullOrThrow(orderBy, "orderBy"));
         return this;
+    }
+
+    @Override
+    public int getLimit() {
+        return limit;
+    }
+
+    @Override
+    public int getOffset() {
+        return offset;
     }
 }

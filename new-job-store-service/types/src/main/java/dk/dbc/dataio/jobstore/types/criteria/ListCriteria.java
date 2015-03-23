@@ -15,6 +15,8 @@ import java.util.List;
  *          .or(new ListFilterImpl(...))
  *      .orderBy(new ListOrderByImpl(...))
  *      .orderBy(new ListOrderByImpl(...));
+ *      .limit(int)
+ *      .offset(int)
  *
  * for (ListFilterGroup<ListCriteriaImplField> filters : listCriteria.getFiltering()) {
  *     ...
@@ -37,7 +39,12 @@ public interface ListCriteria<T extends ListFilterField> {
     ListCriteria<T> where(ListFilter<T> filter);
     ListCriteria<T> and(ListFilter<T> filter);
     ListCriteria<T> or(ListFilter<T> filter);
+    ListCriteria<T> limit(int limit);
+    ListCriteria<T> offset(int offset);
+
     List<ListFilterGroup<T>> getFiltering();
     ListCriteria<T> orderBy(ListOrderBy<T> orderBy);
     List<ListOrderBy<T>> getOrdering();
+    int getLimit();
+    int getOffset();
 }

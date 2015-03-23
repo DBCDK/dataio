@@ -34,6 +34,8 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         final StringBuilder queryString = new StringBuilder(queryBase);
         addWhereClauses(queryString, criteria.getFiltering());
         addOrderByClauses(queryString, criteria.getOrdering());
+        addLimitClause(queryString, criteria.getLimit());
+        addOffsetClause(queryString, criteria.getOffset());
         return queryString.toString();
     }
 
@@ -120,6 +122,20 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             if (iterator.hasNext()) {
                 queryString.append(",");
             }
+        }
+    }
+
+    private void addLimitClause(StringBuilder queryString, int limit) {
+        if (limit > 0) {
+            queryString.append(" LIMIT");
+            queryString.append(" ").append(limit);
+        }
+    }
+
+    private void addOffsetClause(StringBuilder queryString, int offset) {
+        if(offset > 0) {
+            queryString.append(" OFFSET");
+            queryString.append(" ").append(offset);
         }
     }
 

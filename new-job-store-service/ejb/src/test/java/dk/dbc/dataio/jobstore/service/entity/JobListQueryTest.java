@@ -134,4 +134,44 @@ public class JobListQueryTest {
                 .or(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.LESS_THAN, 42));
         assertThat(jobListQuery.buildQueryString(JobListQuery.QUERY_BASE, jobListCriteria), is(expectedQuery));
     }
+
+    @Test
+    public void buildQueryString_SingleWhereClauseLimitClause_returnsQueryString() {
+        final String expectedQuery = JobListQuery.QUERY_BASE + " WHERE id=?1 LIMIT 10";
+        final JobListQuery jobListQuery = new JobListQuery(ENTITY_MANAGER);
+        final JobListCriteria jobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 42))
+                .limit(10);
+        assertThat(jobListQuery.buildQueryString(JobListQuery.QUERY_BASE, jobListCriteria), is(expectedQuery));
+    }
+
+    @Test
+    public void buildQueryString_SingleWhereClauseLimitClauseZero_returnsQueryString() {
+        final String expectedQuery = JobListQuery.QUERY_BASE + " WHERE id=?1";
+        final JobListQuery jobListQuery = new JobListQuery(ENTITY_MANAGER);
+        final JobListCriteria jobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 42))
+                .limit(0);
+        assertThat(jobListQuery.buildQueryString(JobListQuery.QUERY_BASE, jobListCriteria), is(expectedQuery));
+    }
+
+    @Test
+    public void buildQueryString_SingleWhereClauseOffsetClause_returnsQueryString() {
+        final String expectedQuery = JobListQuery.QUERY_BASE + " WHERE id=?1 OFFSET 20";
+        final JobListQuery jobListQuery = new JobListQuery(ENTITY_MANAGER);
+        final JobListCriteria jobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 42))
+                .offset(20);
+        assertThat(jobListQuery.buildQueryString(JobListQuery.QUERY_BASE, jobListCriteria), is(expectedQuery));
+    }
+
+    @Test
+    public void buildQueryString_SingleWhereClauseOffsetClauseZero_returnsQueryString() {
+        final String expectedQuery = JobListQuery.QUERY_BASE + " WHERE id=?1";
+        final JobListQuery jobListQuery = new JobListQuery(ENTITY_MANAGER);
+        final JobListCriteria jobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 42))
+                .offset(0);
+        assertThat(jobListQuery.buildQueryString(JobListQuery.QUERY_BASE, jobListCriteria), is(expectedQuery));
+    }
 }

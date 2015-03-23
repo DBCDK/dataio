@@ -110,7 +110,10 @@ public class JobListCriteriaTest {
                 .and(filters.get(1))
                 .where(filters.get(2))
                 .or(filters.get(3))
-                .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.DESC));
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.DESC))
+                .limit(10)
+                .offset(2);
+
 
         final JSONBContext jsonbContext = new JSONBContext();
         jsonbContext.unmarshall(jsonbContext.marshall(jobListCriteria), JobListCriteria.class);

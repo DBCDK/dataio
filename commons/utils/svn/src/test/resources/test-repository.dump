@@ -1,0 +1,107 @@
+SVN-fs-dump-format-version: 2
+
+UUID: bd2ec77d-30ec-4d9a-b2ef-cc70dbaccb2a
+
+Revision-number: 0
+Prop-content-length: 56
+Content-length: 56
+
+K 8
+svn:date
+V 27
+2015-03-23T10:32:48.292172Z
+PROPS-END
+
+Revision-number: 1
+Prop-content-length: 113
+Content-length: 113
+
+K 10
+svn:author
+V 3
+ja7
+K 8
+svn:date
+V 27
+2015-03-23T10:35:27.387761Z
+K 7
+svn:log
+V 15
+initial import
+
+PROPS-END
+
+Node-path: test-project
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+
+Node-path: test-project/hello.txt
+Node-kind: file
+Node-action: add
+Prop-content-length: 10
+Text-content-length: 6
+Text-content-md5: b1946ac92492d2347c6235b4d2611184
+Text-content-sha1: f572d396fae9206628714fb2ce00f72e94f2258f
+Content-length: 16
+
+PROPS-END
+hello
+
+
+Node-path: test-project/sub
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+
+Node-path: test-project/sub/world.txt
+Node-kind: file
+Node-action: add
+Prop-content-length: 10
+Text-content-length: 6
+Text-content-md5: 591785b794601e212b260e25925636fd
+Text-content-sha1: 9591818c07e900db7e1e0bc4b884c945e6a61b24
+Content-length: 16
+
+PROPS-END
+world
+
+
+Revision-number: 2
+Prop-content-length: 115
+Content-length: 115
+
+K 10
+svn:author
+V 3
+ja7
+K 8
+svn:date
+V 27
+2015-03-23T12:25:46.739128Z
+K 7
+svn:log
+V 17
+commiting changes
+PROPS-END
+
+Node-path: test-project/hello.txt
+Node-kind: file
+Node-action: change
+Text-content-length: 16
+Text-content-md5: 0fe91cc5d74c9c55beba73655165bc39
+Text-content-sha1: 7a1ecc8484549a5b01762ed3790ebbb9f69111ad
+Content-length: 16
+
+hello
+some data
+
+

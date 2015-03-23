@@ -1,23 +1,27 @@
 package dk.dbc.dataio.commons.svn;
 
 import dk.dbc.dataio.commons.types.RevisionInfo;
-import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.tmatesoft.svn.core.SVNCommitInfo;
+import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
+import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
+import org.tmatesoft.svn.core.wc.SVNClientManager;
+import org.tmatesoft.svn.core.wc.admin.SVNAdminClient;
+import org.tmatesoft.svn.core.wc2.*;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -73,15 +77,8 @@ public class SvnConnectorTest {
 
     @Test
     public void listAvailableRevisions_projectUrlExists_returnsListOfRevisions() throws Exception {
-        final String logMessage = "commiting changes";
-        final File checkoutFolder = tempFolder.newFolder("workspace");
-        final SVNURL reposUrl = createNewRepository();
-        final SVNURL projectUrl = importProject(reposUrl);
-
-        // Modify file and commit to force second revision
-        ITUtil.doSvnCheckout(projectUrl, checkoutFolder.toPath());
-        appendToFile(FileSystems.getDefault().getPath(checkoutFolder.getPath(), helloFile), "some data");
-        ITUtil.doSvnCommit(checkoutFolder.toPath(), logMessage);
+        final SVNURL reposUrl = createTemporaryTestRepository();
+        final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
 
         final List<RevisionInfo> revisions = SvnConnector.listAvailableRevisions(projectUrl.toDecodedString());
         assertThat(revisions.size(), is(2));
@@ -89,7 +86,7 @@ public class SvnConnectorTest {
         assertThat(revisions.get(0).getRevision(), is(2L));
         assertThat(revisions.get(1).getRevision(), is(1L));
         // RevisionInfo content
-        assertThat(revisions.get(0).getMessage(), is(logMessage));
+        assertThat(revisions.get(0).getMessage(), is("commiting changes"));
         assertThat(revisions.get(0).getChangedItems().size(), is(1));
         assertThat(revisions.get(0).getChangedItems().get(0).getPath().endsWith(helloFile), is(true));
     }
@@ -127,8 +124,8 @@ public class SvnConnectorTest {
                 String.format("%s/sub", projectName),
                 String.format("%s/%s", projectName, worldFile),
                 String.format("%s/%s", projectName, helloFile)));
-        final SVNURL reposUrl = createNewRepository();
-        final SVNURL projectUrl = importProject(reposUrl);
+        final SVNURL reposUrl= createTemporaryTestRepository();
+        final SVNURL projectUrl = reposUrl.appendPath(projectName, false);
         final List<String> paths = SvnConnector.listAvailablePaths(projectUrl.toDecodedString(), revision);
         assertThat(paths, is(expectedPaths));
     }
@@ -169,22 +166,18 @@ public class SvnConnectorTest {
     public void export_projectUrlPointsToEntireProject_exportsProject() throws Exception {
         final File checkoutFolder = tempFolder.newFolder("workspace");
         final File exportFolder = tempFolder.newFolder("export");
-        final SVNURL reposUrl = createNewRepository();
-        final SVNURL projectUrl = importProject(reposUrl);
 
-        // Modify file and commit to force second revision
-        ITUtil.doSvnCheckout(projectUrl, checkoutFolder.toPath());
-        appendToFile(FileSystems.getDefault().getPath(checkoutFolder.getPath(), helloFile), "some data");
-        ITUtil.doSvnCommit(checkoutFolder.toPath(), "changed");
+        final SVNURL reposUrl = createTemporaryTestRepository();
+        final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
+
 
         // export first revision
         SvnConnector.export(projectUrl.toDecodedString(), revision, exportFolder.toPath());
 
         // Get original file content from resources folder
-        final List<String> expectedHelloFileContent = Files.readAllLines(
-                FileSystems.getDefault().getPath(this.getClass().getResource(String.format("/%s/%s", projectName, helloFile)).getPath()), StandardCharsets.UTF_8);
-        final List<String> expectedWorldFileContent = Files.readAllLines(
-                FileSystems.getDefault().getPath(this.getClass().getResource(String.format("/%s/%s", projectName, worldFile)).getPath()), StandardCharsets.UTF_8);
+        final List<String> expectedHelloFileContent = Arrays.asList("hello");
+
+        final List<String> expectedWorldFileContent =Arrays.asList("world");
 
         // Get exported file content
         final List<String> exportedHelloFileContent = Files.readAllLines(
@@ -202,16 +195,15 @@ public class SvnConnectorTest {
     @Test
     public void export_projectUrlPointsToSingleFile_exportsFile() throws Exception {
         final File exportFolder = tempFolder.newFolder("export");
-        final SVNURL reposUrl = createNewRepository();
-        final SVNURL projectUrl = importProject(reposUrl);
+        final SVNURL reposUrl = createTemporaryTestRepository();
+        final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
         final SVNURL fileUrl = projectUrl.appendPath(helloFile, false);
 
         // export first revision of file
         SvnConnector.export(fileUrl.toDecodedString(), revision, exportFolder.toPath());
 
         // Get original file content from resources folder
-        final List<String> expectedHelloFileContent = Files.readAllLines(
-                FileSystems.getDefault().getPath(this.getClass().getResource(String.format("/%s/%s", projectName, helloFile)).getPath()), StandardCharsets.UTF_8);
+        final List<String> expectedHelloFileContent = Arrays.asList("hello");
 
         // Get exported file content
         final List<String> exportedHelloFileContent = Files.readAllLines(
@@ -223,16 +215,20 @@ public class SvnConnectorTest {
         assertThat(Files.notExists(FileSystems.getDefault().getPath(exportFolder.getPath(), worldFile)), is(true));
     }
 
-    private SVNURL createNewRepository() throws Exception {
-        final File repos = tempFolder.newFolder(repositoryName);
-        return ITUtil.doSvnCreateFsRepository(repos.toPath());
+    private SVNURL createTemporaryTestRepository() throws Exception {
+        final File repoFileName = tempFolder.newFolder(repositoryName);
+        final SVNAdminClient svnAdminClient= SVNClientManager.newInstance().getAdminClient();
+        final SVNURL SVNRepo = svnAdminClient.doCreateRepository(repoFileName, null, true, false, false, false);
+
+        final InputStream project = this.getClass().getResourceAsStream(String.format("/%s", "test-repository.dump"));
+        svnAdminClient.doLoad(repoFileName, project);
+
+        return SVNRepo;
     }
 
-    private SVNURL importProject(final SVNURL reposUrl) throws Exception {
-        final SVNURL projectUrl = reposUrl.appendPath(projectName, false);
-        final URL project = this.getClass().getResource(String.format("/%s", projectName));
-        ITUtil.doSvnImport(projectUrl, Paths.get(project.toURI()), "initial import");
-        return projectUrl;
+    private SVNURL createNewRepository() throws Exception {
+        final File newFolder = tempFolder.newFolder(repositoryName);
+        return SVNRepositoryFactory.createLocalRepository(newFolder, true, true);
     }
 
     private void appendToFile(final Path filename, final String data) throws Exception {

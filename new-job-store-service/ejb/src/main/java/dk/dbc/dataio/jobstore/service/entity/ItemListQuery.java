@@ -40,7 +40,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
     /**
      * Creates and executes item listing query with given criteria
      * @param criteria query criteria
-     * @return list of information snapshots for selected items
+     * @return list of entities for selected items
      * @throws NullPointerException if given null-valued criteria argument
      * @throws javax.persistence.PersistenceException if unable to execute query
      */

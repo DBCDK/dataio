@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
@@ -40,18 +39,18 @@ public class ItemListQueryTest {
     }
 
     @Test
-    public void execute_queryReturnsEmptyList_returnsEmptySnapshotList() {
+    public void execute_queryReturnsEmptyList_returnsEmptyItemEntityList() {
         when(ENTITY_MANAGER.createNativeQuery(ItemListQuery.QUERY_BASE, ItemEntity.class)).thenReturn(QUERY);
         when(QUERY.getResultList()).thenReturn(Collections.emptyList());
 
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
-        final List<ItemInfoSnapshot> itemInfoSnapshots = itemListQuery.execute(new ItemListCriteria());
-        assertThat("List of ItemInfoSnapshot", itemInfoSnapshots, is(notNullValue()));
-        assertThat("List of ItemInfoSnapshot is empty", itemInfoSnapshots.isEmpty(), is(true));
+        final List<ItemEntity> itemEntities = itemListQuery.execute(new ItemListCriteria());
+        assertThat("List<ItemEntity>", itemEntities, is(notNullValue()));
+        assertThat("List<ItemEntity> is empty", itemEntities.isEmpty(), is(true));
     }
 
     @Test
-    public void execute_queryReturnsNonEmptyList_returnsSnapshotList() {
+    public void execute_queryReturnsNonEmptyList_returnsItemEntityList() {
         final ItemEntity itemEntity1 = new ItemEntity();
         itemEntity1.setKey(new ItemEntity.Key(1, 1, (short) 1));
 
@@ -62,25 +61,12 @@ public class ItemListQueryTest {
         when(QUERY.getResultList()).thenReturn(Arrays.asList(itemEntity1, itemEntity2));
 
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
-        final List<ItemInfoSnapshot> itemInfoSnapshots = itemListQuery.execute(new ItemListCriteria());
+        final List<ItemEntity> itemEntities = itemListQuery.execute(new ItemListCriteria());
 
-        assertThat("List of ItemInfoSnapshot", itemInfoSnapshots, is(notNullValue()));
-        assertThat("List of ItemInfoSnapshot size", itemInfoSnapshots.size(), is(2));
-
-        assertThat("List of ItemInfoSnapshot first element item id",
-                itemInfoSnapshots.get(0).getItemId(), is(itemEntity1.getKey().getId()));
-        assertThat("List of ItemInfoSnapshot first element chunk id",
-                itemInfoSnapshots.get(0).getChunkId(), is(itemEntity1.getKey().getChunkId()));
-        assertThat("List of ItemInfoSnapshot first element job id",
-                itemInfoSnapshots.get(0).getJobId(), is(itemEntity1.getKey().getJobId()));
-
-
-        assertThat("List of ItemInfoSnapshot second element item id",
-                itemInfoSnapshots.get(1).getItemId(), is(itemEntity2.getKey().getId()));
-        assertThat("List of ItemInfoSnapshot second element chunk id",
-                itemInfoSnapshots.get(1).getChunkId(), is(itemEntity2.getKey().getChunkId()));
-        assertThat("List of ItemInfoSnapshot second element job id",
-                itemInfoSnapshots.get(1).getJobId(), is(itemEntity2.getKey().getJobId()));
+        assertThat("List<ItemEntity>", itemEntities, is(notNullValue()));
+        assertThat("List<ItemEntity>.size()", itemEntities.size(), is(2));
+        assertThat("List<ItemEntity>.get(0).getKey()", itemEntities.get(0).getKey(), is(itemEntity1.getKey()));
+        assertThat("List<ItemEntity>.get(1).getKey()", itemEntities.get(1).getKey(), is(itemEntity2.getKey()));
     }
 
     @Test

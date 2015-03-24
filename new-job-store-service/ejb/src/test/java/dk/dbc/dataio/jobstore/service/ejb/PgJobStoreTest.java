@@ -43,7 +43,6 @@ import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -824,8 +823,8 @@ public class PgJobStoreTest {
 
     @Test
     public void getChunk_queryReturnsEmptyList_returnsNull() {
-        final TypedQuery query = mock(TypedQuery.class);
-        when(entityManager.createNamedQuery(ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class)).thenReturn(query);
+        final Query query = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         final PgJobStore pgJobStore = newPgJobStore();
@@ -834,8 +833,8 @@ public class PgJobStoreTest {
 
     @Test
     public void getChunk_queryReturnsItemEntityWithoutData_throws() {
-        final TypedQuery query = mock(TypedQuery.class);
-        when(entityManager.createNamedQuery(ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class)).thenReturn(query);
+        final Query query = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(new ItemEntity()));
 
         final PgJobStore pgJobStore = newPgJobStore();
@@ -864,8 +863,8 @@ public class PgJobStoreTest {
         entity2.setPartitioningOutcome(data2);
         entity2.setState(state2);
 
-        final TypedQuery query = mock(TypedQuery.class);
-        when(entityManager.createNamedQuery(ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class)).thenReturn(query);
+        final Query query = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(entity1, entity2));
 
         final PgJobStore pgJobStore = newPgJobStore();

@@ -1,8 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
-import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,20 +45,11 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
      * @throws javax.persistence.PersistenceException if unable to execute query
      */
     @Override
-    public List<ItemInfoSnapshot> execute(ItemListCriteria criteria) throws NullPointerException, PersistenceException {
+    public List<ItemEntity> execute(ItemListCriteria criteria) throws NullPointerException, PersistenceException {
         final String query = buildQueryString(QUERY_BASE, criteria);
         LOGGER.debug("query = {}", query);
         final Query listItemQuery = entityManager.createNativeQuery(query, ItemEntity.class);
         setParameters(listItemQuery, criteria);
-
-        /* We can not utilise @SqlResultSetMapping to map directly to ItemInfoSnapshot
-           since we have no way to convert our complex JSON types into their corresponding POJOs */
-
-        final List<ItemEntity> items = listItemQuery.getResultList();
-        final List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<>(items.size());
-        for (ItemEntity itemEntity : items) {
-            itemInfoSnapshots.add(ItemInfoSnapshotConverter.toItemInfoSnapshot(itemEntity));
-        }
-        return itemInfoSnapshots;
+        return listItemQuery.getResultList();
     }
 }

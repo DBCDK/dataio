@@ -20,6 +20,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DataException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -36,6 +37,8 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -52,7 +55,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import javax.persistence.TypedQuery;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -223,7 +225,12 @@ public class PgJobStore {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
-            return new ItemListQuery(entityManager).execute(criteria);
+            final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
+            final List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<>(itemEntities.size());
+            for (ItemEntity itemEntity : itemEntities) {
+                itemInfoSnapshots.add(ItemInfoSnapshotConverter.toItemInfoSnapshot(itemEntity));
+            }
+            return itemInfoSnapshots;
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -381,12 +388,12 @@ public class PgJobStore {
         final StopWatch stopWatch = new StopWatch();
         try {
             final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
-            final TypedQuery<ItemEntity> findChunkItems = entityManager.createNamedQuery(
-                    ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class);
-            findChunkItems.setParameter("jobId", jobId);
-            findChunkItems.setParameter("chunkId", chunkId);
+            final ItemListCriteria criteria = new ItemListCriteria()
+                    .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
+                        .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
+                    .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
 
-            final List<ItemEntity> itemEntities = findChunkItems.getResultList();
+            final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
             if (itemEntities.size() > 0) {
                 final ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
                 for (ItemEntity itemEntity : itemEntities) {

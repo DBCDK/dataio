@@ -11,21 +11,13 @@ import javax.persistence.Convert;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "item")
-@NamedQueries({
-    @NamedQuery(name = ItemEntity.QUERY_FIND_CHUNK_ITEMS, query =
-            "SELECT i FROM ItemEntity i WHERE i.key.jobId = :jobId AND i.key.chunkId = :chunkId ORDER BY i.key.id ASC")
-})
 public class ItemEntity {
-    public static final String QUERY_FIND_CHUNK_ITEMS = "ItemEntity.findChunkItems";
-
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
        database update. The only way to achieve an update is to replace

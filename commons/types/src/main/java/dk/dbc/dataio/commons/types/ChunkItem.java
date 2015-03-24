@@ -49,4 +49,36 @@ public class ChunkItem implements Serializable {
     public Status getStatus() {
         return status;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ChunkItem chunkItem = (ChunkItem) o;
+
+        if (id != chunkItem.id) {
+            return false;
+        }
+        if (!data.equals(chunkItem.data)) {
+            return false;
+        }
+        if (status != chunkItem.status) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + data.hashCode();
+        result = 31 * result + status.hashCode();
+        return result;
+    }
 }

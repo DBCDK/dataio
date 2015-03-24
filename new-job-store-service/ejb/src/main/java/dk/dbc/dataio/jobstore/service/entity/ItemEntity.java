@@ -1,19 +1,31 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.StateElement;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "item")
+@NamedQueries({
+    @NamedQuery(name = ItemEntity.QUERY_FIND_CHUNK_ITEMS, query =
+            "SELECT i FROM ItemEntity i WHERE i.key.jobId = :jobId AND i.key.chunkId = :chunkId ORDER BY i.key.id ASC")
+})
 public class ItemEntity {
+    public static final String QUERY_FIND_CHUNK_ITEMS = "ItemEntity.findChunkItems";
+
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
        database update. The only way to achieve an update is to replace
@@ -164,6 +176,51 @@ public class ItemEntity {
                     ", chunkId=" + chunkId +
                     ", itemId=" + id +
                     '}';
+        }
+    }
+
+    /**
+     * @param phase phase
+     * @return ChunkItem representation of item data for specified phase
+     * @throws NullPointerException if called with null-valued phase, if
+     * item contains no data for phase or if item contains no state info
+     * for phase.
+     */
+    public ChunkItem toChunkItem(State.Phase phase) throws NullPointerException {
+        InvariantUtil.checkNotNullOrThrow(phase, "phase");
+        return new ChunkItem(key.getId(), getItemDataForPhase(phase).getData(), getChunkItemStatusForPhase(phase));
+    }
+
+    /**
+     * @param phase phase
+     * @return encoding of item data for specified phase or null
+     * if no item data is set
+     */
+    public Charset getEncodingForPhase(State.Phase phase) {
+        final ItemData itemData = getItemDataForPhase(phase);
+        if (itemData != null) {
+            return itemData.getEncoding();
+        }
+        return null;
+    }
+
+    private ItemData getItemDataForPhase(State.Phase phase) {
+        switch (phase) {
+            case PARTITIONING: return getPartitioningOutcome();
+            case PROCESSING: return getProcessingOutcome();
+            case DELIVERING: return getDeliveringOutcome();
+            default: throw new IllegalStateException(String.format("Unknown phase: '%s'", phase));
+        }
+    }
+
+    private ChunkItem.Status getChunkItemStatusForPhase(State.Phase phase) {
+        final StateElement stateElement = state.getPhase(phase);
+        if (stateElement.getSucceeded() == 1) {
+            return ChunkItem.Status.SUCCESS;
+        } else if(stateElement.getFailed() == 1) {
+            return ChunkItem.Status.FAILURE;
+        } else {
+            return ChunkItem.Status.IGNORE;
         }
     }
 }

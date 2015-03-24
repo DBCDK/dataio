@@ -43,6 +43,7 @@ import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -808,6 +810,76 @@ public class PgJobStoreTest {
                 itemInfoSnapshots.get(1).getJobId(), is(itemEntity2.getKey().getJobId()));
         assertThat("List of ItemInfoSnapshot second element itemNumber",
                 itemInfoSnapshots.get(1).getItemNumber(), is(2));
+    }
+
+    @Test
+    public void getChunk_typeArgIsNull_throws() {
+        final PgJobStore pgJobStore = newPgJobStore();
+        try {
+            pgJobStore.getChunk(null, 2, 1);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void getChunk_queryReturnsEmptyList_returnsNull() {
+        final TypedQuery query = mock(TypedQuery.class);
+        when(entityManager.createNamedQuery(ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        assertThat(pgJobStore.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1), is(nullValue()));
+    }
+
+    @Test
+    public void getChunk_queryReturnsItemEntityWithoutData_throws() {
+        final TypedQuery query = mock(TypedQuery.class);
+        when(entityManager.createNamedQuery(ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(new ItemEntity()));
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        try {
+            pgJobStore.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void getChunk_queryReturnsItemEntityWithData_returnsChunk() {
+        final ItemData data1 = new ItemData("data1", StandardCharsets.UTF_8);
+        final State state1 = new State();
+        state1.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
+        final ItemEntity entity1 = new ItemEntity();
+        entity1.setKey(new ItemEntity.Key(2, 1, (short) 0));
+        entity1.setPartitioningOutcome(data1);
+        entity1.setState(state1);
+
+        final ItemData data2 = new ItemData("data2", StandardCharsets.ISO_8859_1);
+        final State state2 = new State();
+        state2.getPhase(State.Phase.PARTITIONING).setFailed(1);
+        final ItemEntity entity2 = new ItemEntity();
+        entity2.setKey(new ItemEntity.Key(2, 1, (short) 1));
+        entity2.setPartitioningOutcome(data2);
+        entity2.setState(state2);
+
+        final TypedQuery query = mock(TypedQuery.class);
+        when(entityManager.createNamedQuery(ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(entity1, entity2));
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final ExternalChunk chunk = pgJobStore.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
+        assertThat("chunk", chunk, is(notNullValue()));
+        assertThat("chunk.size()", chunk.size(), is(2));
+        assertThat("chunk.getEncoding()", chunk.getEncoding(), is(data1.getEncoding()));
+        final Iterator<ChunkItem> iterator = chunk.iterator();
+        final ChunkItem firstChunkItem = iterator.next();
+        assertThat("chunk[0].getId()", firstChunkItem.getId(), is((long) entity1.getKey().getId()));
+        assertThat("chunk[0].getData()", firstChunkItem.getData(), is(data1.getData()));
+        final ChunkItem secondChunkItem = iterator.next();
+        assertThat("chunk[1].getId()", secondChunkItem.getId(), is((long) entity2.getKey().getId()));
+        assertThat("chunk[1].getData()", secondChunkItem.getData(), is(data2.getData()));
     }
 
     /*

@@ -52,6 +52,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -368,6 +369,39 @@ public class PgJobStore {
     }
 
     /**
+     * @param type type of requested chunk
+     * @param jobId id of job containing chunk
+     * @param chunkId id of chunk
+     * @return chunk representation for given chunk ID, job ID and type or
+     * null if no item entities could be found
+     * @throws NullPointerException if given null-valued type or if any of
+     * underlying item entities contains no data for the corresponding phase
+     */
+    public ExternalChunk getChunk(ExternalChunk.Type type, int jobId, int chunkId) throws NullPointerException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
+            final TypedQuery<ItemEntity> findChunkItems = entityManager.createNamedQuery(
+                    ItemEntity.QUERY_FIND_CHUNK_ITEMS, ItemEntity.class);
+            findChunkItems.setParameter("jobId", jobId);
+            findChunkItems.setParameter("chunkId", chunkId);
+
+            final List<ItemEntity> itemEntities = findChunkItems.getResultList();
+            if (itemEntities.size() > 0) {
+                final ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
+                for (ItemEntity itemEntity : itemEntities) {
+                    chunk.insertItem(itemEntity.toChunkItem(phase));
+                }
+                chunk.setEncoding(itemEntities.get(0).getEncodingForPhase(phase));
+                return chunk;
+            }
+            return null;
+        } finally {
+            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Creates item entities for given chunk using data extracted via given data partitioner
      * @param jobId id of job containing chunk
      * @param chunkId id of chunk for which items are to be created
@@ -599,7 +633,7 @@ public class PgJobStore {
             case PARTITIONED: return State.Phase.PARTITIONING;
             case PROCESSED:   return State.Phase.PROCESSING;
             case DELIVERED:   return State.Phase.DELIVERING;
-            default:          return null;
+            default: throw new IllegalStateException(String.format("Unknown type: '%s'", chunkType));
         }
     }
 

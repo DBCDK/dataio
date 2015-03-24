@@ -36,15 +36,7 @@ public class ItemListCriteria implements ListCriteria<ItemListCriteria.Field>{
         /*
          * ignored items
          */
-        STATE_IGNORED,
-        /*
-         * The amount of records to be returned
-         */
-        LIMIT,
-        /*
-         * The offset of records to be returned
-         */
-        OFFSET
+        STATE_IGNORED
     }
 
     private LinkedList<ListFilterGroup<ItemListCriteria.Field>> filtering;
@@ -76,13 +68,13 @@ public class ItemListCriteria implements ListCriteria<ItemListCriteria.Field>{
     }
 
     @Override
-    public ItemListCriteria limit(int limit) throws NullPointerException {
+    public ItemListCriteria limit(int limit) {
         this.limit = limit;
         return this;
     }
 
     @Override
-    public ItemListCriteria offset(int offset) throws NullPointerException {
+    public ItemListCriteria offset(int offset) {
         this.offset = offset;
         return this;
     }

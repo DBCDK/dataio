@@ -26,15 +26,7 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
         /**
          * job last modification time
          */
-        TIME_OF_LAST_MODIFICATION,
-        /*
-         * The amount of records to be returned
-         */
-        LIMIT,
-        /*
-         * The offset of records to be returned
-         */
-        OFFSET
+        TIME_OF_LAST_MODIFICATION
     }
 
     private LinkedList<ListFilterGroup<JobListCriteria.Field>> filtering;
@@ -67,13 +59,13 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
     }
 
     @Override
-    public JobListCriteria limit(int limit) throws NullPointerException {
+    public JobListCriteria limit(int limit) {
         this.limit = limit;
         return this;
     }
 
     @Override
-    public JobListCriteria offset(int offset) throws NullPointerException {
+    public JobListCriteria offset(int offset) {
         this.offset = offset;
         return this;
     }

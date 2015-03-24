@@ -127,15 +127,13 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
 
     private void addLimitClause(StringBuilder queryString, int limit) {
         if (limit > 0) {
-            queryString.append(" LIMIT");
-            queryString.append(" ").append(limit);
+            queryString.append(" LIMIT ").append(limit);
         }
     }
 
     private void addOffsetClause(StringBuilder queryString, int offset) {
         if(offset > 0) {
-            queryString.append(" OFFSET");
-            queryString.append(" ").append(offset);
+            queryString.append(" OFFSET ").append(offset);
         }
     }
 

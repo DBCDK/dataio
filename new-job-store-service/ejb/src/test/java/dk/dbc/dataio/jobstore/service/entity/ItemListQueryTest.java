@@ -173,41 +173,33 @@ public class ItemListQueryTest {
 
     @Test
     public void buildQueryString_SingleWhereClauseLimitClause_returnsQueryString() {
-        final String expectedQuery = ItemListQuery.QUERY_BASE + " WHERE id=?1 LIMIT 10";
+        final String expectedQuery = ItemListQuery.QUERY_BASE + " LIMIT 10";
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
-        final ItemListCriteria itemListCriteria = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.ITEM_ID, ListFilter.Op.EQUAL, 42))
-                .limit(10);
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().limit(10);
         assertThat(itemListQuery.buildQueryString(ItemListQuery.QUERY_BASE, itemListCriteria), is(expectedQuery));
     }
 
     @Test
     public void buildQueryString_SingleWhereClauseLimitClauseZero_returnsQueryString() {
-        final String expectedQuery = ItemListQuery.QUERY_BASE + " WHERE id=?1";
+        final String expectedQuery = ItemListQuery.QUERY_BASE + " LIMIT 10";
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
-        final ItemListCriteria itemListCriteria = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.ITEM_ID, ListFilter.Op.EQUAL, 42))
-                .limit(0);
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().limit(10);
         assertThat(itemListQuery.buildQueryString(ItemListQuery.QUERY_BASE, itemListCriteria), is(expectedQuery));
     }
 
     @Test
     public void buildQueryString_SingleWhereClauseOffsetClause_returnsQueryString() {
-        final String expectedQuery = ItemListQuery.QUERY_BASE + " WHERE id=?1 OFFSET 20";
+        final String expectedQuery = ItemListQuery.QUERY_BASE + " OFFSET 20";
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
-        final ItemListCriteria itemListCriteria = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.ITEM_ID, ListFilter.Op.EQUAL, 42))
-                .offset(20);
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().offset(20);
         assertThat(itemListQuery.buildQueryString(ItemListQuery.QUERY_BASE, itemListCriteria), is(expectedQuery));
     }
 
     @Test
     public void buildQueryString_SingleWhereClauseOffsetClauseZero_returnsQueryString() {
-        final String expectedQuery = ItemListQuery.QUERY_BASE + " WHERE id=?1";
+        final String expectedQuery = ItemListQuery.QUERY_BASE;
         final ItemListQuery itemListQuery = new ItemListQuery(ENTITY_MANAGER);
-        final ItemListCriteria itemListCriteria = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.ITEM_ID, ListFilter.Op.EQUAL, 42))
-                .offset(0);
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().offset(0);
         assertThat(itemListQuery.buildQueryString(ItemListQuery.QUERY_BASE, itemListCriteria), is(expectedQuery));
     }
 }

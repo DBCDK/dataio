@@ -19,8 +19,6 @@
       <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
-      <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
-      <property name="eclipselink.logging.level" value="FINE"/>
     </properties>
   </persistence-unit>
   <persistence-unit name="jobstoreIT" transaction-type="RESOURCE_LOCAL">

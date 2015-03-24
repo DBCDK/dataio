@@ -512,6 +512,30 @@ public class PgJobStoreIT {
         assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(params.jobInputStream.getJobSpecification().getFormat()));
     }
 
+    /**
+     * Given: a non-empty jobstore
+     * Then : a chunks can be retrieved
+     */
+    @Test
+    public void getChunk() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Params params = new Params(true);
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
+                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+        transaction.commit();
+
+        // Then...
+        final ExternalChunk chunk0 = pgJobStore.getChunk(ExternalChunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 0);
+        assertThat("chunk0", chunk0, is(notNullValue()));
+        assertThat("chunk0.size()", chunk0.size(), is(10));
+        final ExternalChunk chunk1 = pgJobStore.getChunk(ExternalChunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 1);
+        assertThat("chunk1", chunk1, is(notNullValue()));
+        assertThat("chunk1.size()", chunk1.size(), is(1));
+    }
+
     @Before
     public void initialiseEntityManager() {
         final Map<String, String> properties = new HashMap<>();

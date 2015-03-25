@@ -12,8 +12,15 @@
         }
         .content-area {
             border: gray solid 2px;
-            padding: 0.5em;
             margin-top: 0.3em;
+        }
+        .horizontal-element {
+            padding: 0.5em;
+            text-align: left;
+        }
+        .items-content {
+        }
+        .tab-content {
         }
     </ui:style>
 
@@ -22,14 +29,24 @@
         <g:Label ui:field="jobHeader" addStyleNames="{style.header}" />
 
         <span class="{style.radio-buttons}">
-            <g:RadioButton ui:field="allItemsButton" name="itemsButton" value="true" enabled="true" text="{txt.button_AllItems}" />
+            <g:RadioButton ui:field="allItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_AllItems}" />
             <g:RadioButton ui:field="failedItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_FailedItems}" />
             <g:RadioButton ui:field="ignoredItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_IgnoredItems}" />
         </span>
 
-        <g:FlowPanel styleName="{style.content-area}" >
-            <c:CellTable ui:field='itemsTable' />
-        </g:FlowPanel>
+        <g:HorizontalPanel addStyleNames="{style.content-area}" verticalAlignment="top" horizontalAlignment="left" width="100%" >
+            <g:cell>
+                <c:CellTable ui:field='itemsTable' width="16em" addStyleNames="{style.horizontal-element} {style.items-content}"/>
+            </g:cell>
+
+            <g:cell width="100%">
+                <g:DecoratedTabPanel animationEnabled="true" width="100%" addStyleNames="{style.horizontal-element} {style.tab-content}">
+                    <g:Tab text="{txt.tab_JavascriptLog}">
+                        <g:Label></g:Label>
+                    </g:Tab>
+                </g:DecoratedTabPanel>
+            </g:cell>
+        </g:HorizontalPanel>
 
         <c:SimplePager ui:field="pager" />
 

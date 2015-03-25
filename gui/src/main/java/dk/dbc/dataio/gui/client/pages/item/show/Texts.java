@@ -69,4 +69,10 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String lifecycle_Unknown();
+
+
+    // Tabs
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_JavascriptLog();
+
 }

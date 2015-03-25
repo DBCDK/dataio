@@ -1,32 +1,30 @@
 package dk.dbc.dataio.commons.svn;
 
 import dk.dbc.dataio.commons.types.RevisionInfo;
+import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.tmatesoft.svn.core.SVNCommitInfo;
-import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.admin.SVNAdminClient;
-import org.tmatesoft.svn.core.wc2.*;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -80,15 +78,18 @@ public class SvnConnectorTest {
         final SVNURL reposUrl = createTemporaryTestRepository();
         final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
 
-        final List<RevisionInfo> revisions = SvnConnector.listAvailableRevisions(projectUrl.toDecodedString());
-        assertThat(revisions.size(), is(2));
+        List<RevisionInfo> revisions = SvnConnector.listAvailableRevisions(projectUrl.toDecodedString());
+        Collections.reverse( revisions );
+
+        assertThat(revisions.size(), greaterThanOrEqualTo(3));
         // Latest revision first
-        assertThat(revisions.get(0).getRevision(), is(2L));
-        assertThat(revisions.get(1).getRevision(), is(1L));
+        assertThat(revisions.get(2).getRevision(), is(4L));
+        assertThat(revisions.get(1).getRevision(), is(2L));
+        assertThat(revisions.get(0).getRevision(), is(1L));
         // RevisionInfo content
-        assertThat(revisions.get(0).getMessage(), is("commiting changes"));
-        assertThat(revisions.get(0).getChangedItems().size(), is(1));
-        assertThat(revisions.get(0).getChangedItems().get(0).getPath().endsWith(helloFile), is(true));
+        assertThat(revisions.get(1).getMessage(), is("commiting changes"));
+        assertThat(revisions.get(1).getChangedItems().size(), is(1));
+        assertThat(revisions.get(1).getChangedItems().get(0).getPath().endsWith(helloFile), is(true));
     }
 
     @Test(expected = NullPointerException.class)
@@ -171,13 +172,13 @@ public class SvnConnectorTest {
         final SVNURL projectUrl = reposUrl.appendPath( projectName, false);
 
 
-        // export first revision
-        SvnConnector.export(projectUrl.toDecodedString(), revision, exportFolder.toPath());
+        // export revision 4 which contains an external to
+        SvnConnector.export(projectUrl.toDecodedString(), 4, exportFolder.toPath());
 
         // Get original file content from resources folder
-        final List<String> expectedHelloFileContent = Arrays.asList("hello");
+        final List<String> expectedHelloFileContent = Arrays.asList("hello", "fisk");
+        final List<String> expectedWorldFileContent = Arrays.asList("world");
 
-        final List<String> expectedWorldFileContent =Arrays.asList("world");
 
         // Get exported file content
         final List<String> exportedHelloFileContent = Files.readAllLines(
@@ -185,11 +186,28 @@ public class SvnConnectorTest {
         final List<String> exportedWorldFileContent = Files.readAllLines(
                 FileSystems.getDefault().getPath(exportFolder.getPath(), worldFile), StandardCharsets.UTF_8);
 
+        final List<String> files=fileList( exportFolder.toPath());
+
+        final String[] expectedFiles = {"hello.txt", "sub"};
+
+        assertThat( files , Matchers.containsInAnyOrder(expectedFiles));
+
         // Compare original file content with exported file content
         assertThat(exportedHelloFileContent.size(), is(expectedHelloFileContent.size()));
         assertThat(exportedHelloFileContent.get(0), is(expectedHelloFileContent.get(0)));
         assertThat(exportedWorldFileContent.size(), is(expectedWorldFileContent.size()));
         assertThat(exportedWorldFileContent.get(0), is(expectedWorldFileContent.get(0)));
+    }
+
+
+    public static List<String> fileList(Path directory) {
+        List<String> fileNames = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
+            for (Path path : directoryStream) {
+                fileNames.add(path.getFileName().toString());
+            }
+        } catch (IOException ex) {}
+        return fileNames;
     }
 
     @Test

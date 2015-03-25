@@ -105,3 +105,78 @@ hello
 some data
 
 
+Revision-number: 3
+Prop-content-length: 121
+Content-length: 121
+
+K 10
+svn:author
+V 3
+ja7
+K 8
+svn:date
+V 27
+2015-03-23T12:47:20.836039Z
+K 7
+svn:log
+V 23
+Added an other project
+
+PROPS-END
+
+Node-path: external-project
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+
+Node-path: external-project/otherfile.txt
+Node-kind: file
+Node-action: add
+Prop-content-length: 10
+Text-content-length: 24
+Text-content-md5: 2cb7770f87916b1337fba1a1b3889cb8
+Text-content-sha1: 021811bdbab03f6134e529f095ceb312c4687b95
+Content-length: 34
+
+PROPS-END
+File From Other Project
+
+
+Revision-number: 4
+Prop-content-length: 112
+Content-length: 112
+
+K 10
+svn:author
+V 3
+ja7
+K 8
+svn:date
+V 27
+2015-03-23T12:51:01.873769Z
+K 7
+svn:log
+V 14
+Add externals
+
+PROPS-END
+
+Node-path: test-project
+Node-kind: dir
+Node-action: change
+Prop-content-length: 131
+Content-length: 131
+
+K 13
+svn:externals
+V 96
+^/external-project/ external-project
+^/external-project/otherfile.txt sub/one-external-file.txt
+
+PROPS-END
+
+

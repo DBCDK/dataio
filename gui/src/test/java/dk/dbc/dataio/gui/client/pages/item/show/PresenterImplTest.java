@@ -3,8 +3,11 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -44,7 +47,11 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock Throwable mockedException;
     @Mock Place mockedPlace;
+
     @Mock Label mockedJobHeader;
+    @Mock CellTable mockedItemsTable;
+    @Mock DecoratedTabPanel mockedTabPanel;
+    @Mock SimplePager mockedPager;
     @Mock RadioButton mockedAllItemsButton;
     @Mock RadioButton mockedFailedItemsButton;
     @Mock RadioButton mockedIgnoredItemsButton;
@@ -54,13 +61,16 @@ public class PresenterImplTest {
     public void setupMockedData() {
         when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
         when(mockedClientFactory.getItemsShowView()).thenReturn(mockedView);
+        mockedView.jobHeader = mockedJobHeader;
+        mockedView.itemsTable = mockedItemsTable;
+        mockedView.tabPanel = mockedTabPanel;
+        mockedView.pager = mockedPager;
         mockedView.allItemsButton = mockedAllItemsButton;
         mockedView.failedItemsButton = mockedFailedItemsButton;
         mockedView.ignoredItemsButton = mockedIgnoredItemsButton;
         when(mockedAllItemsButton.getValue()).thenReturn(true);
         when(mockedFailedItemsButton.getValue()).thenReturn(false);
         when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
-        mockedView.jobHeader = mockedJobHeader;
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
     }
 

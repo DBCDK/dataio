@@ -3,12 +3,12 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.List;
@@ -19,6 +19,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected View view;
     protected PlaceController placeController;
     protected JobStoreProxyAsync jobStoreProxy;
+    protected LogStoreProxyAsync logStoreProxy;
     protected String jobId;
     protected String submitterNumber;
     protected String sinkName;
@@ -28,6 +29,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.texts = texts;
         placeController = clientFactory.getPlaceController();
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
+        logStoreProxy = clientFactory.getLogStoreProxyAsync();
         Place showPlace = (Place) place;
         this.jobId = showPlace.getJobId();
         this.submitterNumber = showPlace.getSubmitterNumber();
@@ -50,6 +52,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         containerWidget.setWidget(view.asWidget());
         view.failedItemsButton.setValue(true);
         getItems();
+        view.tabPanel.clear();
+        view.tabPanel.setVisible(false);
     }
 
 
@@ -88,7 +92,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     /*
-     * Overrided methods
+     * Overridden methods
      */
 
      /**
@@ -97,7 +101,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void itemSelected(ItemModel itemModel) {
-        Window.alert("Item er nu selected: " + itemModel.getItemNumber());
+        view.tabPanel.clear();
+        view.addTab(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
+        if (view.tabPanel.getWidgetCount() > 0) {
+            view.tabPanel.selectTab(0);
+            view.tabPanel.setVisible(true);
+        }
     }
 
     /**
@@ -106,6 +115,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void filterItems() {
+        view.tabPanel.setVisible(false);
+        view.tabPanel.clear();
         getItems();
     }
 

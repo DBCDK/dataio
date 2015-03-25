@@ -5,12 +5,13 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
-import com.google.gwt.view.client.NoSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SelectionModel;
-import dk.dbc.dataio.gui.client.model.ItemModel;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.helpers.SortHelper;
+import dk.dbc.dataio.gui.client.model.ItemModel;
 
 import java.util.Comparator;
 import java.util.List;
@@ -53,6 +54,17 @@ public class View extends ViewWidget {
         // Set page size parameters
         itemsTable.setPageSize(PAGE_SIZE);
         itemsTable.setRowCount(itemModels.size());
+    }
+
+    /**
+     * Adds a tab to the Tab Panel
+     * @param widget The widget to fill into the content area of the tab
+     * @param title Til title of the Tab
+     */
+    public void addTab(Widget widget, String title) {
+        if (widget != null) {
+            tabPanel.add(widget, title);
+        }
     }
 
 
@@ -151,10 +163,10 @@ public class View extends ViewWidget {
      */
 
     private SelectionModel constructSelectionModel() {
-        final NoSelectionModel<ItemModel> selectionModel = new NoSelectionModel<ItemModel>();
+        final SingleSelectionModel<ItemModel> selectionModel = new SingleSelectionModel<ItemModel>();
         selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
             public void onSelectionChange(SelectionChangeEvent event) {
-                ItemModel selected = selectionModel.getLastSelectedObject();
+                ItemModel selected = selectionModel.getSelectedObject();
                 if (selected != null) {
                     presenter.itemSelected(selected);
                 }

@@ -40,11 +40,7 @@
             </g:cell>
 
             <g:cell width="100%">
-                <g:DecoratedTabPanel animationEnabled="true" width="100%" addStyleNames="{style.horizontal-element} {style.tab-content}">
-                    <g:Tab text="{txt.tab_JavascriptLog}">
-                        <g:Label></g:Label>
-                    </g:Tab>
-                </g:DecoratedTabPanel>
+                <g:DecoratedTabPanel ui:field="tabPanel" visible="false" animationEnabled="true" width="100%" addStyleNames="{style.horizontal-element} {style.tab-content}" />
             </g:cell>
         </g:HorizontalPanel>
 

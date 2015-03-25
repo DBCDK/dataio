@@ -12,6 +12,7 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.TabPanel;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -30,6 +31,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField Label jobHeader;
     @UiField CellTable itemsTable;
+    @UiField TabPanel tabPanel;
     @UiField SimplePager pager;
     @UiField RadioButton allItemsButton;
     @UiField RadioButton failedItemsButton;

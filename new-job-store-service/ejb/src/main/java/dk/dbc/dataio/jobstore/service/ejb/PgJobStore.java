@@ -73,6 +73,9 @@ public class PgJobStore {
     SessionContext sessionContext;
 
     @EJB
+    JobSchedulerBean jobSchedulerBean;
+
+    @EJB
     JSONBBean jsonbBean;
 
     @PersistenceContext(unitName = "jobstorePU")
@@ -114,6 +117,10 @@ public class PgJobStore {
                 // transactional scope to enable external visibility of job creation progress
                 chunkEntity = businessObject.createChunkEntity(jobEntity.getId(), chunkId++, maxChunkSize,
                         dataPartitioner, sequenceAnalyserKeyGenerator, jobInputStream.getJobSpecification().getDataFile());
+
+                if (chunkEntity != null) {
+                    jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), sink);
+                }
             } while (chunkEntity != null);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
@@ -170,6 +177,7 @@ public class PgJobStore {
                 final State chunkState = updateChunkEntityState(chunkEntity, chunkStateChange);
                 if(chunkState.allPhasesAreDone()) {
                     chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                    jobSchedulerBean.releaseChunk(chunkEntity.toCollisionDetectionElement().getIdentifier());
                 }
 
                 // update job

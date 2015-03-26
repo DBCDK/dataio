@@ -26,6 +26,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
@@ -92,6 +93,7 @@ public class PgJobStoreTest {
 
     private final EntityManager entityManager = mock(EntityManager.class);
     private final SessionContext sessionContext = mock(SessionContext.class);
+    private final JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);
 
     @Before
     public void setupExpectations() {
@@ -890,6 +892,7 @@ public class PgJobStoreTest {
         jsonbBean.initialiseContext();
 
         final PgJobStore pgJobStore = new PgJobStore();
+        pgJobStore.jobSchedulerBean = jobSchedulerBean;
         pgJobStore.jsonbBean = jsonbBean;
         pgJobStore.entityManager = entityManager;
         pgJobStore.sessionContext = sessionContext;
@@ -947,6 +950,7 @@ public class PgJobStoreTest {
                     .setEndDate(new Date());
             chunkState.updateState(chunkStateChange);
         }
+        chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.<String>emptySet()));
 
         chunkEntity.setState(chunkState);
         return chunkEntity;

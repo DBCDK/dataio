@@ -448,7 +448,7 @@ public class FileSystemJobStore implements JobStore {
 
     private long applyRecordSplitter(Job job, DefaultXMLRecordSplitter recordSplitter, SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Sink sink) throws IllegalDataException, JobStoreException {
         long jobId = job.getId();
-        long chunkId = 1;
+        long chunkId = 0;
         long recordCount = 0;
         long counter = 0;
         SupplementaryProcessData supplementaryProcessData = createSupplementaryProcessData(job);

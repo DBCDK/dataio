@@ -69,19 +69,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreIT {
-
-    Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
-
     public static final String DATABASE_NAME = "jobstore";
     public static final String JOB_TABLE_NAME = "job";
     public static final String CHUNK_TABLE_NAME = "chunk";
     public static final String ITEM_TABLE_NAME = "item";
     public static final String FLOW_CACHE_TABLE_NAME = "flowcache";
     public static final String SINK_CACHE_TABLE_NAME = "sinkcache";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
     private static final SessionContext SESSION_CONTEXT = mock(SessionContext.class);
-    private EntityManager entityManager;
+    private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
     private static final String DATA = "this is some test data";
-    private final static State.Phase PROCESSING = State.Phase.PROCESSING;
+    private static final State.Phase PROCESSING = State.Phase.PROCESSING;
+    private EntityManager entityManager;
 
     /**
      * Given: a jobstore with empty flowcache
@@ -578,6 +578,7 @@ public class PgJobStoreIT {
         pgJobStore.entityManager = entityManager;
         pgJobStore.jsonbBean = jsonbBean;
         pgJobStore.sessionContext = SESSION_CONTEXT;
+        pgJobStore.jobSchedulerBean = JOB_SCHEDULER_BEAN;
 
         when(SESSION_CONTEXT.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
 

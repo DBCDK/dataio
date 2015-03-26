@@ -177,7 +177,7 @@ public class FileSystemJobStore_CreateJobTest extends FileSystemJobStoreTestUtil
     public void createJob_newJobIsCreated_chunkFileWithGeneratedKeysIsAddedToJobFolder() throws Exception {
         final TestJob testJob = new TestJob().create();
         final FileSystemJobStore jobStore = new FileSystemJobStore(testJob.getTheJobStorePath());
-        final Chunk chunk = jobStore.getChunk(testJob.job.getId(), 1);
+        final Chunk chunk = jobStore.getChunk(testJob.job.getId(), 0);
         assertThat(chunk, is(notNullValue()));
         assertThat(chunk.getKeys().size(), is(1));
         assertThat(chunk.getKeys().contains(testJob.sink.getContent().getName()), is(true));

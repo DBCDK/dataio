@@ -66,7 +66,7 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         // Put 1st sink result on queue
         ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobInfo.getJobId())
-                .setChunkId(1L)
+                .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newSinkResultMessageForJobStoreSink(deliveredChunk));
@@ -74,7 +74,7 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         // Put 1st processor result on queue
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setJobId(jobInfo.getJobId())
-                .setChunkId(1L)
+                .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newProcessorResultMessageForJobStore(processedChunk));
@@ -83,8 +83,8 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
         JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
 
-        getProcessorResult(restClient, jobInfo.getJobId(), 1L);
-        getSinkResult(restClient, jobInfo.getJobId(), 1L);
+        getProcessorResult(restClient, jobInfo.getJobId(), 0L);
+        getSinkResult(restClient, jobInfo.getJobId(), 0L);
         jobState = getState(restClient, jobInfo.getJobId());
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.PROCESSING), is(JobState.LifeCycleState.ACTIVE));
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING), is(JobState.LifeCycleState.ACTIVE));
@@ -92,20 +92,20 @@ public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
         // Put 2nd processor result on queue
         processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setJobId(jobInfo.getJobId())
-                .setChunkId(2L)
+                .setChunkId(1L)
                 .build();
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newProcessorResultMessageForJobStore(processedChunk));
 
         // Put 2nd sink result on queue
         deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobInfo.getJobId())
-                .setChunkId(2L)
+                .setChunkId(1L)
                 .build();
         JmsQueueConnector.putOnQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME, newSinkResultMessageForJobStoreSink(deliveredChunk));
 
         JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
-        getProcessorResult(restClient, jobInfo.getJobId(), 2L);
-        getSinkResult(restClient, jobInfo.getJobId(), 2L);
+        getProcessorResult(restClient, jobInfo.getJobId(), 1L);
+        getSinkResult(restClient, jobInfo.getJobId(), 1L);
         jobState = getState(restClient, jobInfo.getJobId());
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.PROCESSING), is(JobState.LifeCycleState.DONE));
         assertThat(jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING), is(JobState.LifeCycleState.DONE));

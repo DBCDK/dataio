@@ -92,7 +92,7 @@ public class JobStoreBeanTest {
         assertThat(job.getJobInfo().getJobErrorCode(), is(JobErrorCode.NO_ERROR));
         assertThat(job.getJobInfo().getJobRecordCount(), is(1L));
         assertThat(jobStoreBean.getJobStore().getNumberOfChunksInJob(job.getId()), is(1L));
-        final Chunk chunk = jobStoreBean.getJobStore().getChunk(job.getId(), 1);
+        final Chunk chunk = jobStoreBean.getJobStore().getChunk(job.getId(), 0);
         assertThat(chunk.getItems().size(), is(1));
         assertThat(base64decode(chunk.getItems().get(0).getData()), is(xmlHeader + someXML));
     }

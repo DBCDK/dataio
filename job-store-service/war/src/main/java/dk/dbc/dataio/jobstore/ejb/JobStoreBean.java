@@ -76,10 +76,9 @@ public class JobStoreBean {
 
     @Lock(LockType.READ)
     public Job createAndScheduleJob(long jobId, JobSpecification jobSpec, FlowBinder flowBinder, Flow flow, Sink sink, InputStream jobInputStream) throws JobStoreException {
-        final Job job = jobStore.createJob(jobId, jobSpec, flowBinder, flow, sink, jobInputStream,
+        //scheduleJob(job, sink);
+        return jobStore.createJob(jobId, jobSpec, flowBinder, flow, sink, jobInputStream,
                 getSequenceAnalyserKeyGenerator(flowBinder));
-        scheduleJob(job, sink);
-        return job;
     }
 
     private SequenceAnalyserKeyGenerator getSequenceAnalyserKeyGenerator(FlowBinder flowBinder) {
@@ -87,13 +86,6 @@ public class JobStoreBean {
             return new SequenceAnalyserSinkKeyGenerator();
         } else {
             return new SequenceAnalyserNoOrderKeyGenerator();
-        }
-    }
-
-    private void scheduleJob(Job job, Sink sink) throws JobStoreException {
-       final long numberOfChunks = jobStore.getNumberOfChunksInJob(job.getId());
-        for (long i = 1; i <= numberOfChunks; i++) {
-            jobScheduler.scheduleChunk(jobStore.getChunk(job.getId(), i), sink);
         }
     }
 

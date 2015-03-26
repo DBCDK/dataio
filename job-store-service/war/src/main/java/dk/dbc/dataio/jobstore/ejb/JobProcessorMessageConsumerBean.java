@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.ejb;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -80,7 +79,6 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
         final SinkChunkResult sinkResult = SinkChunkResult.convertFromExternalChunk(deliveredChunk);
         LOGGER.info("Received sink result {} for job {}", sinkResult.getChunkId(), sinkResult.getJobId());
         jobStoreBean.getJobStore().addSinkResult(sinkResult);
-        jobSchedulerBean.releaseChunk(sinkResult.getJobId(), sinkResult.getChunkId());
         addChunkToNewJobStore(makeChunkCompatibleWithNewJobStore(deliveredChunk));
     }
 
@@ -101,10 +99,11 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     }
 
     private ExternalChunk makeChunkCompatibleWithNewJobStore(ExternalChunk chunk) {
-        final ExternalChunk compatibleChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId() - 1, chunk.getType());
+        /*final ExternalChunk compatibleChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId() - 1, chunk.getType());
         for (ChunkItem item : chunk) {
             compatibleChunk.insertItem(item);
         }
-        return compatibleChunk;
+        return compatibleChunk;*/
+        return chunk;
     }
  }

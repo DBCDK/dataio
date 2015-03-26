@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.jobstore.types.Chunk;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
@@ -64,9 +63,9 @@ public class HarvesterJobIT extends AbstractJobStoreTest {
 
         // And...
 
-        final ExternalChunk chunk1 = getChunk(restClient, jobInfo.getJobId(), 1L);
+        final ExternalChunk chunk1 = getChunk(restClient, jobInfo.getJobId(), 0L);
         assertThat(chunk1.size(), is(Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
-        final ExternalChunk chunk2 = getChunk(restClient, jobInfo.getJobId(), 2L);
+        final ExternalChunk chunk2 = getChunk(restClient, jobInfo.getJobId(), 1L);
         assertThat(chunk2.size(), is(recordCount - Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
     }
 

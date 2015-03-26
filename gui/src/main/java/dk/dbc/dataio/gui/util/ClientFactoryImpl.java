@@ -27,14 +27,12 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts flowBindersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.sink.show.Texts sinksShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.job.show.Texts jobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.show.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.javascriptlog.Texts javaScriptLogShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.javascriptlog.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts flowComponentsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.modify.Texts flowModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts flowComponentModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts flowBinderModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.sink.modify.Texts sinkModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.submitter.modify.Texts submitterModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.submitter.modify.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.faileditems.Texts failedItemsTexts = GWT.create(dk.dbc.dataio.gui.client.pages.faileditems.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.item.show.Texts itemsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.item.show.Texts.class);
     //private final static HarvestersShowTexts harvestersShowTexts = GWT.create(HarvestersShowTexts.class);
 
@@ -70,12 +68,10 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.flow.show.View flowsShowView = new dk.dbc.dataio.gui.client.pages.flow.show.View(menuTexts.menu_Flows(), flowsShowTexts);
     private final dk.dbc.dataio.gui.client.pages.submitter.show.View submittersShowView = new dk.dbc.dataio.gui.client.pages.submitter.show.View(menuTexts.menu_Submitters(), submittersShowTexts);
     private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(menuTexts.menu_Jobs(), jobsShowTexts, RESOURCES);
-    private final dk.dbc.dataio.gui.client.pages.javascriptlog.View javaScriptLogView = new dk.dbc.dataio.gui.client.pages.javascriptlog.View(menuTexts.menu_JavaScriptLogShow());
     private final dk.dbc.dataio.gui.client.pages.sink.show.View sinksShowView = new dk.dbc.dataio.gui.client.pages.sink.show.View(menuTexts.menu_Sinks(), sinksShowTexts);
     private final dk.dbc.dataio.gui.client.pages.flowbinder.show.View flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.show.View(menuTexts.menu_FlowBinders(), flowBindersShowTexts);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterCreation());
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterEdit());
-    private final dk.dbc.dataio.gui.client.pages.faileditems.View faileditemsView = new dk.dbc.dataio.gui.client.pages.faileditems.View(failedItemsTexts.label_JobId(), failedItemsTexts);
     private final dk.dbc.dataio.gui.client.pages.item.show.View itemsShowView = new dk.dbc.dataio.gui.client.pages.item.show.View(itemsShowTexts.menu_Items(), itemsShowTexts);
     //private final HarvestersShowView harvestersShowView = new HarvestersShowViewImpl();
 
@@ -145,17 +141,11 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof dk.dbc.dataio.gui.client.pages.job.show.Place) {
             return new dk.dbc.dataio.gui.client.pages.job.show.PresenterImpl(this);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace) {
-            return new dk.dbc.dataio.gui.client.pages.javascriptlog.PresenterImpl(place, this, javaScriptLogShowTexts);
-        }
         if (place instanceof dk.dbc.dataio.gui.client.pages.sink.show.Place) {
             return new dk.dbc.dataio.gui.client.pages.sink.show.PresenterImpl(this);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.show.Place) {
             return new dk.dbc.dataio.gui.client.pages.flowbinder.show.PresenterImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.faileditems.ShowPlace) {
-            return new dk.dbc.dataio.gui.client.pages.faileditems.PresenterImpl(place, this, failedItemsTexts);
         }
         if (place instanceof Place) {
             return new dk.dbc.dataio.gui.client.pages.item.show.PresenterImpl(place, this, itemsShowTexts);
@@ -265,11 +255,6 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.javascriptlog.View getJavaScriptLogView() {
-        return javaScriptLogView;
-    }
-
-    @Override
     public dk.dbc.dataio.gui.client.pages.sink.show.View getSinksShowView() {
         return sinksShowView;
     }
@@ -277,11 +262,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.flowbinder.show.View getFlowBindersShowView() {
         return flowBindersShowView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.faileditems.View getFaileditemsView() {
-        return faileditemsView;
     }
 
     @Override

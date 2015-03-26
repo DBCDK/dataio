@@ -25,7 +25,6 @@ import org.glassfish.jersey.client.ClientConfig;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,14 +40,6 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
         endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
         jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
-    }
-
-    // This constructor is intended for test purpose only (old job store) with reference to dependency injection.
-    // Should be removed when the old job store is removed
-    public JobStoreProxyImpl(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector oldJobStoreServiceConnector) throws NamingException {
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
-        client = HttpClient.newClient(clientConfig);
-        baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
     }
 
     // This constructor is intended for test purpose only (new job store) with reference to dependency injection.
@@ -120,21 +111,4 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         HttpClient.closeClient(client);
     }
 
-    private void assertStatusCode(Response response, Response.Status expectedStatus) throws ProxyException {
-        final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-        if (status != expectedStatus) {
-            final ProxyError errorCode;
-            switch (status) {
-                case BAD_REQUEST: errorCode = ProxyError.BAD_REQUEST;
-                    break;
-                case NOT_ACCEPTABLE: errorCode = ProxyError.NOT_ACCEPTABLE;
-                    break;
-                case PRECONDITION_FAILED: errorCode = ProxyError.ENTITY_NOT_FOUND;
-                    break;
-                default:
-                    errorCode = ProxyError.INTERNAL_SERVER_ERROR;
-            }
-            throw new ProxyException(errorCode, response.readEntity(String.class));
-        }
-    }
 }

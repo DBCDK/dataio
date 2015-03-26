@@ -23,7 +23,7 @@ public class ItemListCriteriaModelMapper {
         ListFilter itemStatus = new ListFilter<ItemListCriteria.Field>(ItemListCriteria.Field.STATE_FAILED);
         ListOrderBy ascendingChunkId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC);
         ListOrderBy ascendingItemId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC);
-        return new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus).orderBy(ascendingChunkId).orderBy(ascendingItemId);
+        return new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus).orderBy(ascendingChunkId).orderBy(ascendingItemId).limit(model.getLimit()).offset(model.getOffset());
     }
 
     /**
@@ -37,7 +37,7 @@ public class ItemListCriteriaModelMapper {
         ListFilter itemStatus = new ListFilter<ItemListCriteria.Field>(ItemListCriteria.Field.STATE_IGNORED);
         ListOrderBy ascendingChunkId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC);
         ListOrderBy ascendingItemId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC);
-        return new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus).orderBy(ascendingChunkId).orderBy(ascendingItemId);
+        return new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus).orderBy(ascendingChunkId).orderBy(ascendingItemId).limit(model.getLimit()).offset(model.getOffset());
     }
 
     /**
@@ -50,6 +50,6 @@ public class ItemListCriteriaModelMapper {
         ListFilter jobIdEqualsCondition = new ListFilter<ItemListCriteria.Field>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(model.getJobId()).intValue());
         ListOrderBy ascendingChunkId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC);
         ListOrderBy ascendingItemId = new ListOrderBy<ItemListCriteria.Field>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC);
-        return new ItemListCriteria().where(jobIdEqualsCondition).orderBy(ascendingChunkId).orderBy(ascendingItemId);
+        return new ItemListCriteria().where(jobIdEqualsCondition).orderBy(ascendingChunkId).orderBy(ascendingItemId).limit(model.getLimit()).offset(model.getOffset());
     }
 }

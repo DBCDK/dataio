@@ -10,16 +10,20 @@ public class ItemListCriteriaModel implements IsSerializable {
     private String chunkId;
     private String jobId;
     private ItemSearchType itemSearchType;
+    private int limit;
+    private int offset;
 
     public ItemListCriteriaModel() {
-        this("0", "0", "0", ItemSearchType.FAILED);
+        this("0", "0", "0", ItemSearchType.FAILED, 0, 0);
     }
 
-    private ItemListCriteriaModel(String itemId, String chunkId, String jobId, ItemSearchType itemSearchType) {
+    private ItemListCriteriaModel(String itemId, String chunkId, String jobId, ItemSearchType itemSearchType, int offset, int limit) {
         this.itemId = itemId;
         this.chunkId = chunkId;
         this.jobId = jobId;
         this.itemSearchType = itemSearchType;
+        this.offset = offset;
+        this.limit = limit;
     }
 
     public String getItemId() {
@@ -52,5 +56,21 @@ public class ItemListCriteriaModel implements IsSerializable {
 
     public void setItemSearchType(ItemSearchType itemSearchType) {
         this.itemSearchType = itemSearchType;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 }

@@ -144,6 +144,7 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedClientFactory).getPlaceController();
         verify(mockedClientFactory).getJobStoreProxyAsync();
+        verify(mockedClientFactory).getLogStoreProxyAsync();
         verify(mockedPlace).getJobId();
         verify(mockedPlace).getSubmitterNumber();
         verify(mockedPlace).getSinkName();
@@ -172,6 +173,8 @@ public class PresenterImplTest {
         verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
         verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+        verify(mockedTabPanel).clear();
+        verify(mockedTabPanel).setVisible(false);
     }
 
     @Test
@@ -186,6 +189,8 @@ public class PresenterImplTest {
         presenterImpl.filterItems();
 
         // Verify Test
+        verify(mockedTabPanel, times(2)).setVisible(false);
+        verify(mockedTabPanel, times(2)).clear();
         verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
         verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
@@ -204,6 +209,8 @@ public class PresenterImplTest {
         presenterImpl.filterItems();
 
         // Verify Test
+        verify(mockedTabPanel, times(2)).setVisible(false);
+        verify(mockedTabPanel, times(2)).clear();
         verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
         verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
@@ -222,6 +229,8 @@ public class PresenterImplTest {
         presenterImpl.filterItems();
 
         // Verify Test
+        verify(mockedTabPanel, times(2)).setVisible(false);
+        verify(mockedTabPanel, times(2)).clear();
         verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
         verify(mockedFailedItemsButton).getValue();
         verify(mockedIgnoredItemsButton).getValue();

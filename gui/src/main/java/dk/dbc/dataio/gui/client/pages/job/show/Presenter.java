@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.newJob.show;
+package dk.dbc.dataio.gui.client.pages.job.show;
 
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;

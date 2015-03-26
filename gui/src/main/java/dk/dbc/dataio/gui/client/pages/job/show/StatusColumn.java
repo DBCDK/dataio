@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.newJob.show;
+package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.resources.client.ImageResource;

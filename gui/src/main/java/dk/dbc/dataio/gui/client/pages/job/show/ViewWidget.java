@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.newJob.show;
+package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;

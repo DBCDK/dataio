@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.pages.newJob.show;
+package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
@@ -44,7 +44,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = clientFactory.getNewJobsShowView();
+        view = clientFactory.getJobsShowView();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
         fetchJobs();

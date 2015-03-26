@@ -1,5 +1,5 @@
 
-package dk.dbc.dataio.gui.client.pages.newJob.show;
+package dk.dbc.dataio.gui.client.pages.job.show;
 
 
 import com.google.gwt.event.shared.EventBus;
@@ -49,7 +49,7 @@ public class PresenterImplTest {
     public void setupMockedData() {
         when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStore);
         when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
-        when(mockedClientFactory.getNewJobsShowView()).thenReturn(mockedView);
+        when(mockedClientFactory.getJobsShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
     }
 
@@ -96,7 +96,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
-        verify(mockedClientFactory).getNewJobsShowView();
+        verify(mockedClientFactory).getJobsShowView();
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedJobStore).listJobs(any(JobListCriteriaModel.class),any(AsyncCallback.class));

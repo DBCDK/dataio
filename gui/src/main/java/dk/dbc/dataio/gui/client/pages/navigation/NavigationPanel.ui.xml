@@ -7,7 +7,7 @@
         <g:Image resource="{res.dbcLogo}" styleName="{res.css.navigationPanelImage}"/>
 
         <g:Tree ui:field="menu">
-            <g:TreeItem text="{txt.menu_NewJobs}" ui:field="newJobs"/>
+            <g:TreeItem text="{txt.menu_Jobs}" ui:field="jobs"/>
             <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters">
                 <g:TreeItem text="{txt.menu_SubmitterCreation}" ui:field="submitterCreation"/>
             </g:TreeItem>

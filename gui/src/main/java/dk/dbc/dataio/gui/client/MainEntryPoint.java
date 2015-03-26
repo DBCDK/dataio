@@ -13,7 +13,7 @@ import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.activities.AppActivityMapper;
 import dk.dbc.dataio.gui.client.exceptions.DioUncaughtExceptionHandler;
-import dk.dbc.dataio.gui.client.pages.newJob.show.Place;
+import dk.dbc.dataio.gui.client.pages.job.show.Place;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.views.MainPanel;

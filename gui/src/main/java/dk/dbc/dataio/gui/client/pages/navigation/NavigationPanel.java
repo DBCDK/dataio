@@ -19,7 +19,7 @@ public class NavigationPanel extends FlowPanel {
     private final PlaceController placeController;
 
     @UiField Tree menu;
-    @UiField TreeItem newJobs;
+    @UiField TreeItem jobs;
     @UiField TreeItem submitters;
     @UiField TreeItem submitterCreation;
     @UiField TreeItem flows;
@@ -41,7 +41,7 @@ public class NavigationPanel extends FlowPanel {
         super();
         this.placeController = placeController;
         add(uiBinder.createAndBindUi(this));
-        newJobs.setUserObject(new dk.dbc.dataio.gui.client.pages.newJob.show.Place());
+        jobs.setUserObject(new dk.dbc.dataio.gui.client.pages.job.show.Place());
         submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
         submitterCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace());
         flows.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.show.Place());

@@ -19,7 +19,6 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flow.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.submitter.show.Place.Tokenizer.class,
-        dk.dbc.dataio.gui.client.pages.job.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.javascriptlog.JavaScriptLogPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.sink.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.Tokenizer.class,

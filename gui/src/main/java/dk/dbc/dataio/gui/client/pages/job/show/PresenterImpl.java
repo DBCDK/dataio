@@ -61,7 +61,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void itemSelected(JobModel model) {
-        placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(model.getJobId(), model.getSubmitterNumber(), model.getSinkName()));
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(
+                model.getJobId(),
+                model.getSubmitterNumber(),
+                model.getSinkName(),
+                String.valueOf(model.getItemCounter()),
+                String.valueOf(model.getFailedCounter()),
+                String.valueOf(model.getIgnoredCounter())));
     }
 
 

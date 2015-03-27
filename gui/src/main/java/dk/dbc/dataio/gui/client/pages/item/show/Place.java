@@ -21,8 +21,13 @@ public class Place extends com.google.gwt.place.shared.Place {
         this.combinedUrl = url;
     }
 
-    public Place(String jobId, String submitterNumber, String sinkName) {
-        combinedUrl = encode(jobId) + SPLITTER_CHAR + encode(submitterNumber) + SPLITTER_CHAR + encode(sinkName);
+    public Place(String jobId, String submitterNumber, String sinkName, String itemCounter, String failedItemCounter, String ignoredItemCounter) {
+        combinedUrl = encode(jobId) + SPLITTER_CHAR
+                + encode(submitterNumber) + SPLITTER_CHAR
+                + encode(sinkName) + SPLITTER_CHAR
+                + encode(itemCounter) + SPLITTER_CHAR
+                + encode(failedItemCounter) + SPLITTER_CHAR
+                + encode(ignoredItemCounter);
     }
 
     public String getJobId() {
@@ -49,6 +54,30 @@ public class Place extends com.google.gwt.place.shared.Place {
         }
     }
 
+    public String getItemCounter() {
+        try {
+            return decode(combinedUrl.split(SPLITTER_CHAR)[3]);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public String getFailedItemCounter() {
+        try {
+            return decode(combinedUrl.split(SPLITTER_CHAR)[4]);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public String getIgnoredItemCounter() {
+        try {
+            return decode(combinedUrl.split(SPLITTER_CHAR)[5]);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     @Prefix("ShowItems")
     public static class Tokenizer implements PlaceTokenizer<Place> {
         @Override
@@ -60,6 +89,7 @@ public class Place extends com.google.gwt.place.shared.Place {
             return new Place(token);
         }
     }
+
 
     private String encode(String value) {
         return value.replace(SPLITTER_CHAR, COLON_CHARACTER_ENTITY);

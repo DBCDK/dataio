@@ -2,26 +2,20 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 
 import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.cellview.client.ColumnSortEvent;
-import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SelectionModel;
 import com.google.gwt.view.client.SingleSelectionModel;
-import dk.dbc.dataio.gui.client.helpers.SortHelper;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**
  * This class is the View class for the Items Show View
  */
 public class View extends ViewWidget {
-    ListDataProvider<ItemModel> dataProvider;
-    ColumnSortEvent.ListHandler<ItemModel> columnSortHandler;
     Column itemNumberColumn;
 
     /**
@@ -35,25 +29,15 @@ public class View extends ViewWidget {
         setupColumns();
     }
 
-
     /**
      * This method is used to put data into the view
-     *
      * @param itemModels The list of items to put into the view
+     * @param offset the start index
+     * @param rowCount the number of rows which should be displayed
      */
-    public void setItems(List<ItemModel> itemModels) {
-        dataProvider.getList().clear();
-        dataProvider.getList().addAll(itemModels);
-
-        // Do sort by item number
-        ColumnSortList columnSortList = itemsTable.getColumnSortList();
-        columnSortList.clear();  // Clear the Sort List
-        columnSortList.push(itemNumberColumn);  // Default sorting is by item number
-        ColumnSortEvent.fire(itemsTable, columnSortList);  // Do sort right now
-
-        // Set page size parameters
-        itemsTable.setPageSize(PAGE_SIZE);
-        itemsTable.setRowCount(itemModels.size());
+    public void setItems(List<ItemModel> itemModels, int offset, int rowCount) {
+        itemsTable.setRowCount(rowCount);
+        itemsTable.setRowData(offset, itemModels);
     }
 
     /**
@@ -67,7 +51,6 @@ public class View extends ViewWidget {
         }
     }
 
-
     /**
      * Private methods
      */
@@ -78,16 +61,17 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns() {
-        dataProvider = new ListDataProvider<ItemModel>();
-        dataProvider.addDataDisplay(itemsTable);
-
-        columnSortHandler = new ColumnSortEvent.ListHandler<ItemModel>(dataProvider.getList());
-        itemsTable.addColumnSortHandler(columnSortHandler);
-
         itemsTable.addColumn(itemNumberColumn = constructItemColumn(), texts.column_Item());
         itemsTable.addColumn(constructStatusColumn(), texts.column_Status());
-
         itemsTable.setSelectionModel(constructSelectionModel());
+
+        itemsTable.addRangeChangeHandler(new RangeChangeEvent.Handler() {
+            @Override
+            public void onRangeChange(RangeChangeEvent event) {
+                presenter.filterItems();
+            }
+        });
+
         pager.setDisplay(itemsTable);
     }
 
@@ -104,13 +88,6 @@ public class View extends ViewWidget {
                 return texts.text_Item() + " " + model.getItemNumber();
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<ItemModel>() {
-            public int compare(ItemModel o1, ItemModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareLongs(Long.valueOf(o1.getItemNumber()), Long.valueOf(o2.getItemNumber())) : 1;
-            }
-        });
-        column.setDefaultSortAscending(true);  // Set default sort order for Item Number Column to Ascending
         return column;
     }
 
@@ -127,17 +104,8 @@ public class View extends ViewWidget {
                 return formatStatus(model.getStatus());
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<ItemModel>() {
-            public int compare(ItemModel o1, ItemModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStrings(formatStatus(o1.getStatus()), formatStatus(o2.getStatus())) : 1;
-            }
-        });
-        column.setDefaultSortAscending(false);  // Set default sort order for Status Column to Descending
         return column;
     }
-
-
 
     /*
      * Private methods
@@ -174,6 +142,5 @@ public class View extends ViewWidget {
         });
         return selectionModel;
     }
-
 
 }

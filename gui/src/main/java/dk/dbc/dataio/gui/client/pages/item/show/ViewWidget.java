@@ -52,6 +52,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler(value={"allItemsButton", "failedItemsButton", "ignoredItemsButton"})
     void filterItemsRadioButtonPressed(ClickEvent event) {
+        pager.firstPage();
         presenter.filterItems();
     }
 

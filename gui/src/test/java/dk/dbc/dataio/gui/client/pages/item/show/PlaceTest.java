@@ -72,66 +72,160 @@ public class PlaceTest {
     }
 
     @Test
-    public void instantiateWithIdSubmitterAndSink_instantiateLegalPars_ok() {
-        Place place = new Place("iD", "sUbmitter", "sInk");
+    public void instantiate_instantiateLegalPars_ok() {
+        Place place = new Place("iD", "sUbmitter", "sInk", "1" , "0", "0");
 
         assertThat(place.getJobId(), is("iD"));
         assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
     }
 
     @Test
-    public void instantiateWithIdSubmitterAndSink_instantiateEmptyId_emptyId() {
-        Place place = new Place("", "sUbmitter", "sInk");
+    public void instantiate_instantiateEmptyId_emptyId() {
+        Place place = new Place("", "sUbmitter", "sInk", "1" , "0", "0");
 
         assertThat(place.getJobId(), is(""));
         assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
     }
 
     @Test
-    public void instantiateWithIdSubmitterAndSink_instantiateEmptySubmitter_emptySubmitter() {
-        Place place = new Place("iD", "", "sInk");
+    public void instantiate_instantiateEmptySubmitter_emptySubmitter() {
+        Place place = new Place("iD", "", "sInk", "1" , "0", "0");
 
         assertThat(place.getJobId(), is("iD"));
         assertThat(place.getSubmitterNumber(), is(""));
         assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
     }
 
     @Test
-    public void instantiateWithIdSubmitterAndSink_instantiateEmptySink_emptySink() {
-        Place place = new Place("iD", "sUbmitter", "");
+    public void instantiate_instantiateEmptySink_emptySink() {
+        Place place = new Place("iD", "sUbmitter", "", "1" , "0", "0");
 
         assertThat(place.getJobId(), is("iD"));
         assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is(""));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
     }
 
     @Test
-    public void instantiateWithIdSubmitterAndSink_instantiateIdContainsColon_idContainsColon() {
-        Place place = new Place("i:D", "sUbmitter", "sInk");
+    public void instantiate_instantiateEmptyItemCounter_emptyItemCounter() {
+        Place place = new Place("iD", "sUbmitter", "", "" , "0", "0");
+
+        assertThat(place.getJobId(), is("iD"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
+        assertThat(place.getSinkName(), is(""));
+        assertThat(place.getItemCounter(), is(""));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
+    }
+
+    @Test
+    public void instantiate_instantiateEmptyFailedItemCounter_emptyFailedItemCounter() {
+        Place place = new Place("iD", "sUbmitter", "", "1" , "", "0");
+
+        assertThat(place.getJobId(), is("iD"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
+        assertThat(place.getSinkName(), is(""));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is(""));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
+    }
+
+    @Test
+    public void instantiate_instantiateEmptyIgnoredItemCounter_emptyIgnoredItemCounter() {
+        Place place = new Place("iD", "sUbmitter", "", "1" , "0", "");
+
+        assertThat(place.getJobId(), is("iD"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
+        assertThat(place.getSinkName(), is(""));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is(""));
+    }
+
+    @Test
+    public void instantiate_instantiateIdContainsColon_idContainsColon() {
+        Place place = new Place("i:D", "sUbmitter", "sInk", "1" , "0", "0");
 
         assertThat(place.getJobId(), is("i:D"));
         assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
     }
 
     @Test
-    public void instantiateWithIdSubmitterAndSink_instantiateSubmitterContainsColon_submitterContainsColon() {
-        Place place = new Place("iD", "sUbmi:tter", "sInk");
+    public void instantiate_instantiateSubmitterContainsColon_submitterContainsColon() {
+        Place place = new Place("iD", "sUbmi:tter", "sInk", "1" , "0", "0");
 
         assertThat(place.getJobId(), is("iD"));
         assertThat(place.getSubmitterNumber(), is("sUbmi:tter"));
         assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
     }
 
     @Test
-    public void instantiateWithIdSubmitterAndSink_instantiateSinkContainsColon_sinkContainsColon() {
-        Place place = new Place("iD", "sUbmitter", "sInk:");
+    public void instantiate_instantiateSinkContainsColon_sinkContainsColon() {
+        Place place = new Place("iD", "sUbmitter", "sInk:","1" , "0", "0");
 
         assertThat(place.getJobId(), is("iD"));
         assertThat(place.getSubmitterNumber(), is("sUbmitter"));
         assertThat(place.getSinkName(), is("sInk:"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
     }
+
+    @Test
+    public void instantiate_instantiateItemCounterContainsColon_itemCounterContainsColon() {
+        Place place = new Place("iD", "sUbmitter", "sInk","1:" , "0", "0");
+
+        assertThat(place.getJobId(), is("iD"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
+        assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1:"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
+    }
+
+    @Test
+    public void instantiate_instantiateFailedItemCounterContainsColon_failedItemCounterContainsColon() {
+        Place place = new Place("iD", "sUbmitter", "sInk","1" , "0:", "0");
+
+        assertThat(place.getJobId(), is("iD"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
+        assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0:"));
+        assertThat(place.getIgnoredItemCounter(), is("0"));
+    }
+
+    @Test
+    public void instantiate_instantiateIgnoredItemCounterContainsColon_ignoredItemCounterContainsColon() {
+        Place place = new Place("iD", "sUbmitter", "sInk","1" , "0", "0:");
+
+        assertThat(place.getJobId(), is("iD"));
+        assertThat(place.getSubmitterNumber(), is("sUbmitter"));
+        assertThat(place.getSinkName(), is("sInk"));
+        assertThat(place.getItemCounter(), is("1"));
+        assertThat(place.getFailedItemCounter(), is("0"));
+        assertThat(place.getIgnoredItemCounter(), is("0:"));
+    }
+
 
 }

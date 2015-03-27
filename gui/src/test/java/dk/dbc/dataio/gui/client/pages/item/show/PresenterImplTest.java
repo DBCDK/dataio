@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.Range;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
@@ -31,12 +32,12 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * PresenterImpl unit tests
- *
- * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
- */
+* PresenterImpl unit tests
+*
+* The test methods of this class uses the following naming convention:
+*
+*  unitOfWork_stateUnderTest_expectedBehavior
+*/
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
     @Mock ClientFactory mockedClientFactory;
@@ -56,6 +57,9 @@ public class PresenterImplTest {
     @Mock RadioButton mockedFailedItemsButton;
     @Mock RadioButton mockedIgnoredItemsButton;
 
+    private final static int OFFSET = 0;
+    private final static int ROW_COUNT = 4;
+
     // Setup mocked data
     @Before
     public void setupMockedData() {
@@ -72,6 +76,10 @@ public class PresenterImplTest {
         when(mockedFailedItemsButton.getValue()).thenReturn(false);
         when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
+        when(mockedPlace.getItemCounter()).thenReturn("4");
+        when(mockedPlace.getFailedItemCounter()).thenReturn("0");
+        when(mockedPlace.getIgnoredItemCounter()).thenReturn("0");
+        when(mockedView.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
     }
 
     // Mocked Texts
@@ -124,7 +132,7 @@ public class PresenterImplTest {
         public PresenterImplConcrete(Place place, ClientFactory clientFactory, Texts texts) {
             super(place, clientFactory, texts);
         }
-        public GetItemsCallback getItemsCallback = new GetItemsCallback();
+        public GetItemsCallback getItemsCallback = new GetItemsCallback(ROW_COUNT, OFFSET);
     }
 
 
@@ -148,6 +156,9 @@ public class PresenterImplTest {
         verify(mockedPlace).getJobId();
         verify(mockedPlace).getSubmitterNumber();
         verify(mockedPlace).getSinkName();
+        verify(mockedPlace).getItemCounter();
+        verify(mockedPlace).getFailedItemCounter();
+        verify(mockedPlace).getIgnoredItemCounter();
     }
 
     @Test
@@ -156,9 +167,7 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.submitterNumber = "Submi";
         presenterImpl.sinkName = "Sinki";
-        when(mockedAllItemsButton.getValue()).thenReturn(false);
         when(mockedFailedItemsButton.getValue()).thenReturn(true);
-        when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
 
         // Test Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -169,9 +178,9 @@ public class PresenterImplTest {
         verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFailedItemsButton).setValue(true);
-        verify(mockedAllItemsButton).getValue();
         verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
+        verifyZeroInteractions(mockedAllItemsButton);
         verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
         verify(mockedTabPanel).clear();
         verify(mockedTabPanel).setVisible(false);
@@ -181,27 +190,23 @@ public class PresenterImplTest {
     public void filterItems_allItemsSelected_allItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedAllItemsButton.getValue()).thenReturn(false);
-        when(mockedFailedItemsButton.getValue()).thenReturn(true);
-        when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
 
         // Subject under test
         presenterImpl.filterItems();
 
         // Verify Test
+        // Two invocations: One during call to start, one during filterItems()
         verify(mockedTabPanel, times(2)).setVisible(false);
         verify(mockedTabPanel, times(2)).clear();
-        verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
-        verify(mockedFailedItemsButton).getValue();
-        verifyZeroInteractions(mockedIgnoredItemsButton);
-        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));  // Two invocations: One during call to start, one during fiterItems()
+        verify(mockedFailedItemsButton, times(2)).getValue();
+        verify(mockedFailedItemsButton, times(2)).getValue();
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
 
     @Test
     public void filterItems_failedItemsSelected_failedItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedAllItemsButton.getValue()).thenReturn(false);
         when(mockedFailedItemsButton.getValue()).thenReturn(true);
         when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
 
@@ -211,17 +216,15 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedTabPanel, times(2)).setVisible(false);
         verify(mockedTabPanel, times(2)).clear();
-        verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
-        verify(mockedFailedItemsButton).getValue();
-        verifyZeroInteractions(mockedIgnoredItemsButton);
-        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));  // Two invocations: One during call to start, one during fiterItems()
+        verify(mockedFailedItemsButton, times(2)).getValue();
+        verify(mockedIgnoredItemsButton).getValue();
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
 
     @Test
     public void filterItems_ignoredItemsSelected_ignoredItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedAllItemsButton.getValue()).thenReturn(false);
         when(mockedFailedItemsButton.getValue()).thenReturn(false);
         when(mockedIgnoredItemsButton.getValue()).thenReturn(true);
 
@@ -231,10 +234,9 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedTabPanel, times(2)).setVisible(false);
         verify(mockedTabPanel, times(2)).clear();
-        verify(mockedAllItemsButton, times(2)).getValue();  // Two invocations: One during call to start, one during fiterItems()
-        verify(mockedFailedItemsButton).getValue();
-        verify(mockedIgnoredItemsButton).getValue();
-        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));  // Two invocations: One during call to start, one during fiterItems()
+        verify(mockedFailedItemsButton, times(2)).getValue();
+        verify(mockedIgnoredItemsButton, times(2)).getValue();
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
 
     @Test
@@ -258,7 +260,7 @@ public class PresenterImplTest {
         presenterImpl.getItemsCallback.onSuccess(testModels);
 
         // Verify Test
-        verify(mockedView).setItems(testModels);
+        verify(mockedView).setItems(testModels, OFFSET, ROW_COUNT);
     }
 
 }

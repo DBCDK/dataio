@@ -14,6 +14,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.List;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
+    private static final int PAGE_SIZE = 20;
     protected ClientFactory clientFactory;
     protected Texts texts;
     protected View view;
@@ -23,6 +24,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected String jobId;
     protected String submitterNumber;
     protected String sinkName;
+    protected int itemCounter;
+    protected int failedItemCounter;
+    protected int ignoredItemCounter;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory, Texts texts) {
         this.clientFactory = clientFactory;
@@ -34,6 +38,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.jobId = showPlace.getJobId();
         this.submitterNumber = showPlace.getSubmitterNumber();
         this.sinkName = showPlace.getSinkName();
+        this.itemCounter = Integer.parseInt(showPlace.getItemCounter());
+        this.failedItemCounter = Integer.parseInt(showPlace.getFailedItemCounter());
+        this.ignoredItemCounter = Integer.parseInt(showPlace.getIgnoredItemCounter());
     }
 
     /**
@@ -51,11 +58,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.jobHeader.setText(constructJobHeaderText());
         containerWidget.setWidget(view.asWidget());
         view.failedItemsButton.setValue(true);
+        view.pager.setPageSize(PAGE_SIZE);
         getItems();
         view.tabPanel.clear();
         view.tabPanel.setVisible(false);
     }
-
 
     /*
      * Protected methods
@@ -68,18 +75,25 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * the ItemListCriteria according to that.
      */
     protected void getItems() {
-        ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
-        itemListCriteriaModel.setJobId(this.jobId);
-        if (view.allItemsButton.getValue()) {
-            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
-        } else if (view.failedItemsButton.getValue()) {
+        final ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
+        final GetItemsCallback getItemsCallback;
+        final int offset = view.itemsTable.getVisibleRange().getStart();
+
+        if (view.failedItemsButton.getValue()) {
             itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
+            getItemsCallback = new GetItemsCallback(failedItemCounter, offset);
         } else if (view.ignoredItemsButton.getValue()) {
             itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
+            getItemsCallback = new GetItemsCallback(ignoredItemCounter, offset);
         } else {
-            return;
+            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
+            getItemsCallback = new GetItemsCallback(itemCounter, offset);
         }
-        jobStoreProxy.listItems(itemListCriteriaModel, new GetItemsCallback());
+
+        itemListCriteriaModel.setJobId(this.jobId);
+        itemListCriteriaModel.setLimit(view.pager.getPageSize());
+        itemListCriteriaModel.setOffset(offset);
+        jobStoreProxy.listItems(itemListCriteriaModel, getItemsCallback);
     }
 
     /*
@@ -95,7 +109,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Overridden methods
      */
 
-     /**
+    /**
      * An indication from the view, that an item has been selected
      * @param itemModel The model for the selected item
      */
@@ -120,19 +134,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getItems();
     }
 
-
     /*
      * Private classes
      */
 
     class GetItemsCallback implements AsyncCallback<List<ItemModel>> {
+
+        private final int rowCount;
+        private final int offset;
+
+        public GetItemsCallback(int rowCount, int offset) {
+            this.rowCount = rowCount;
+            this.offset = offset;
+        }
         @Override
         public void onFailure(Throwable throwable) {
             view.setErrorText(texts.error_CouldNotFetchItems());
         }
         @Override
         public void onSuccess(List<ItemModel> itemModels) {
-            view.setItems(itemModels);
+            view.setItems(itemModels, offset, rowCount);
         }
     }
 

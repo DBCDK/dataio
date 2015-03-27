@@ -55,17 +55,21 @@ public class HarvestOperation {
         QueueJob nextQueuedItem = getNextQueuedItem();
         while (nextQueuedItem != null) {
             LOGGER.info("{} ready for harvesting", nextQueuedItem);
-            try {
-                final RecordId queuedRecordId = verifyAgencyIdOrThrow(nextQueuedItem.getJob());
-                final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
-                getHarvesterJobBuilder(queuedRecordId.getAgencyId()).addHarvesterRecord(harvesterRecord);
-            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
-                markAsFailure(nextQueuedItem, e.getMessage());
-            }
+            final RecordId queuedRecordId = nextQueuedItem.getJob();
+            if (queuedRecordId.getAgencyId() != COMMUNITY_LIBRARY_NUMBER) {
+                try {
+                    final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
+                    getHarvesterJobBuilder(queuedRecordId.getAgencyId()).addHarvesterRecord(harvesterRecord);
+                } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+                    LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
+                    markAsFailure(nextQueuedItem, e.getMessage());
+                }
 
-            if (++itemsHarvested == config.getBatchSize()) {
-                break;
+                if (++itemsHarvested == config.getBatchSize()) {
+                    break;
+                }
+            } else {
+                LOGGER.debug("Skipped {}", queuedRecordId);
             }
             nextQueuedItem = getNextQueuedItem();
         }
@@ -77,13 +81,6 @@ public class HarvestOperation {
     JobSpecification getJobSpecificationTemplate(int agencyId) {
         return new JobSpecification("xml", config.getFormat(agencyId), "utf8", config.getDestination(), agencyId,
                 "placeholder", "placeholder", "placeholder", "placeholder");
-    }
-
-    private RecordId verifyAgencyIdOrThrow(RecordId recordId) throws HarvesterInvalidRecordException {
-        if (recordId.getAgencyId() == COMMUNITY_LIBRARY_NUMBER) {
-            throw new HarvesterInvalidRecordException("Discarding queue item with id " + recordId.toString());
-        }
-        return recordId;
     }
 
     private HarvesterJobBuilder getHarvesterJobBuilder(int agencyId) throws HarvesterException {

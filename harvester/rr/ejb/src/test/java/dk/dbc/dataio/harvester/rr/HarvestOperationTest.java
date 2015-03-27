@@ -230,7 +230,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoRecordHasAgencyIdMatchingCommunityLibraryNumber_recordIsFailed()
+    public void execute_rawRepoRecordHasAgencyIdMatchingCommunityLibraryNumber_recordIsSkipped()
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         final RecordId recordId = new RecordId("record", HarvestOperation.COMMUNITY_LIBRARY_NUMBER);
         final String recordContent = getRecordContent(recordId);
@@ -241,15 +241,11 @@ public class HarvestOperationTest {
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueJob)
                 .thenReturn(null);
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashMap<String, Record>() {{
-                    put(RECORD_ID.getBibliographicRecordId(), record);
-                }});
 
         final HarvestOperation harvestOperation = getHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        verify(rawRepoConnector, times(0)).fetchRecordCollection(any(RecordId.class));
     }
 
     @Test

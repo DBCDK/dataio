@@ -34,7 +34,6 @@ public class ViewTest {
     @Mock Presenter mockedPresenter;
     @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
-//    @Mock ColumnSortList mockedColumnSortList;
 
 
     // Test Data

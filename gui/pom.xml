@@ -17,37 +17,11 @@
         <gwt.version>2.6.1</gwt.version>
         <runTarget>gui.html</runTarget>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <developmentFlowStoreURLProperty></developmentFlowStoreURLProperty>
-        <developmentJobStoreURLProperty></developmentJobStoreURLProperty>
-        <developmentSinkServiceURLProperty></developmentSinkServiceURLProperty>
-        <developmentDataioGuiSubversionScmEndpointProperty></developmentDataioGuiSubversionScmEndpointProperty>
-        <developmentJobStoreFilesystemProperty></developmentJobStoreFilesystemProperty>
-        <developmentLogStoreURLProperty></developmentLogStoreURLProperty>
     </properties>
 
     <profiles>
         <profile>
             <id>dev</id>
-            <properties>
-                <developmentFlowStoreURLProperty>
-                    -DflowStoreURL=http://localhost:${container.http.port}${flow-store-service.context}
-                </developmentFlowStoreURLProperty>
-                <developmentJobStoreURLProperty>
-                    -DdataioJobStoreServiceEndpoint=http://localhost:${container.http.port}${job-store-service.context}
-                </developmentJobStoreURLProperty>
-                <developmentSinkServiceURLProperty>
-                    -DdataioSinkServiceEndpoint=http://localhost:${container.http.port}${sink-service.context}
-                </developmentSinkServiceURLProperty>
-                <developmentDataioGuiSubversionScmEndpointProperty>
-                    -DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos
-                </developmentDataioGuiSubversionScmEndpointProperty>
-                <developmentJobStoreFilesystemProperty>
-                    -Durl/dataio/jobstore/filesystem=http://localhost:${container.http.port}${job-store-service.context}
-                </developmentJobStoreFilesystemProperty>
-                <developmentLogStoreURLProperty>
-                    -DlogStoreURL=http://localhost:${container.http.port}${log-store-service.context}
-                </developmentLogStoreURLProperty>
-            </properties>
 
             <dependencies>
                 <dependency>
@@ -171,12 +145,6 @@
         </dependency>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
-            <version>${project.version}</version>
-            <type>ejb</type>
-        </dependency>
-        <dependency>
-            <groupId>dk.dbc</groupId>
             <artifactId>dataio-commons-utils-new-job-store-service-connector</artifactId>
             <version>${project.version}</version>
             <type>ejb</type>
@@ -281,11 +249,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <extraJvmArgs>${developmentFlowStoreURLProperty}
-                        ${developmentDataioGuiSubversionScmEndpointProperty} ${developmentSinkServiceURLProperty}
-                        ${developmentJobStoreURLProperty} ${developmentJobStoreFilesystemProperty}
-                        ${developmentLogStoreURLProperty}
-                    </extraJvmArgs>
                     <hostedWebapp>${project.build.directory}/${project.build.finalName}</hostedWebapp>
                     <!--localWorkers>1</localWorkers-->
                 </configuration>

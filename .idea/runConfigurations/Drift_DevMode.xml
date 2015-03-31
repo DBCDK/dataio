@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Drift DevMode" type="GWT.ConfigurationType" factoryName="GWT Configuration" singleton="true">
+    <module name="dataio-gui" />
+    <option name="VM_PARAMETERS" value="-Xmx512m -DflowStoreURL=http://dataio-be-p01.dbc.dk:1080/dataio/flow-store-service -DdataioJobStoreServiceEndpoint=http://dataio-be-p01.dbc.dk:1080/dataio/job-store-service -DdataioSinkServiceEndpoint=http://dataio-wn-p02.dbc.dk:1080/dataio/sink-service -DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos -Durl/dataio/jobstore/filesystem=http://dataio-be-p01.dbc.dk/dataio-job-store -Durl/dataio/logstore/rs=http://dataio-wn-s01.dbc.dk:1080/dataio/log-store-service " />
+    <option name="RUN_PAGE" value="gui.html" />
+    <option name="GWT_MODULE" value="dk.dbc.dataio.gui.Main" />
+    <option name="BROWSER" value="a7bb68e0-33c0-4d6f-a81a-aac1fdb870c8" />
+    <RunnerSettings RunnerId="Run" />
+    <ConfigurationWrapper RunnerId="Run" />
+    <method />
+  </configuration>
+</component>

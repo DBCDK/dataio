@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TmpEngine" type="GWT.ConfigurationType" factoryName="GWT Configuration" singleton="true">
+    <module name="dataio-gui" />
+    <option name="VM_PARAMETERS" value="-Xmx512m -DflowStoreURL=http://dataio-s01:1080/dataio/flow-store-service -DdataioJobStoreServiceEndpoint=http://dataio-s01:1080/dataio/job-store-service -DdataioSinkServiceEndpoint=http://dataio-s01:1080/dataio/sink-service -DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos " />
+    <option name="RUN_PAGE" value="tmpengine.html" />
+    <option name="GWT_MODULE" value="dk.dbc.dataio.gui.Engine" />
+    <option name="BROWSER" value="a7bb68e0-33c0-4d6f-a81a-aac1fdb870c8" />
+    <RunnerSettings RunnerId="Run" />
+    <ConfigurationWrapper RunnerId="Run" />
+    <method />
+  </configuration>
+</component>

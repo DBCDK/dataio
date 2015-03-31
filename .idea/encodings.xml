@@ -10,6 +10,7 @@
     <file url="file://$PROJECT_DIR$/commons/utils/flow-store-service-connector" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/commons/utils/httpclient" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/commons/utils/invariant" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/commons/utils/io" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/commons/utils/javascript" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/commons/utils/jersey-media-json-jackson2x" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/commons/utils/job-store-service-connector" charset="UTF-8" />
@@ -46,6 +47,9 @@
     <file url="file://$PROJECT_DIR$/harvester/rawrepo" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/harvester/rawrepo/ear" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/harvester/rawrepo/ejb" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/harvester/rr" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/harvester/rr/ear" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/harvester/rr/ejb" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/harvester/rr2datawell" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/harvester/rr2datawell/ear" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/harvester/rr2datawell/ejb" charset="UTF-8" />
@@ -85,6 +89,7 @@
     <file url="file://$PROJECT_DIR$/log-store-service/war" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/new-job-store-service" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/new-job-store-service/ejb" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/new-job-store-service/test" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/new-job-store-service/types" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/new-job-store-service/war" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/performance-benchmarks" charset="UTF-8" />

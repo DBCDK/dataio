@@ -92,8 +92,8 @@ public class DualList extends FlowPanel {
         }
     }
     
-    ListBox right = new ListBox(true);
-    ListBox left = new ListBox(true);
+    ListBox right = new ListBox();
+    ListBox left = new ListBox();
     Image addItem = new Image();
     Image removeItem = new Image();
     FlowPanel buttonPanel = new FlowPanel();
@@ -102,6 +102,8 @@ public class DualList extends FlowPanel {
      * Constructor
      */
     public DualList() {
+        this.right.setMultipleSelect(true);
+        this.left.setMultipleSelect(true);
         this.setStylePrimaryName(DUAL_LIST_COMPONENT_CLASS);
         this.left.setStylePrimaryName(DUAL_LIST_LEFT_SELECTION_PANE_CLASS);
         this.buttonPanel.setStylePrimaryName(DUAL_LIST_SELECTION_BUTTONS_PANE_CLASS);

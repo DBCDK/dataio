@@ -22,7 +22,8 @@ public class ListEntry extends DataEntry implements HasValue<String> {
     public @UiConstructor
     ListEntry(String guiId, String prompt, boolean multiSelect, int visibleItems) {
         super(guiId, prompt);
-        listBox = new ListBox(multiSelect);
+        listBox = new ListBox();
+        listBox.setMultipleSelect(multiSelect);
         listBox.setVisibleItemCount(visibleItems);
         listBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
         if (visibleItems > 1) {

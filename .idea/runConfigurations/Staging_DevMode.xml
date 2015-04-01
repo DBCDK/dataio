@@ -4,6 +4,7 @@
     <option name="VM_PARAMETERS" value="-Xmx512m -DflowStoreURL=http://dataio-be-s01.dbc.dk:1080/dataio/flow-store-service -DdataioJobStoreServiceEndpoint=http://dataio-be-s01.dbc.dk:1080/dataio/job-store-service -DdataioSinkServiceEndpoint=http://dataio-wn-s02.dbc.dk:1080/dataio/sink-service -DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos -Durl/dataio/jobstore/filesystem=http://dataio-be-s01.dbc.dk/dataio-job-store -Durl/dataio/logstore/rs=http://dataio-wn-s01.dbc.dk:1080/dataio/log-store-service -Durl/dataio/jobstore/rs=http://dataio-be-s01.dbc.dk:1080/dataio-new-job-store-service-war-1.0-SNAPSHOT" />
     <option name="RUN_PAGE" value="gui.html" />
     <option name="BROWSER" value="a7bb68e0-33c0-4d6f-a81a-aac1fdb870c8" />
+    <option name="USE_SUPER_DEV_MODE" value="true" />
     <RunnerSettings RunnerId="Debug">
       <option name="DEBUG_PORT" value="" />
       <option name="TRANSPORT" value="0" />

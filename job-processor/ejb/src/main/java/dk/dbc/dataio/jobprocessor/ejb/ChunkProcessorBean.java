@@ -152,7 +152,7 @@ public class ChunkProcessorBean {
         ChunkItem processedItem;
         try {
             MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY, trackingId.toString());
-            processedItem = processItem(item, supplementaryData, jsWrappers);
+            processedItem = processItem(item, supplementaryData, jsWrappers, trackingId);
         } finally {
             MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
             // This timing assumes the use of LogStoreBufferedJdbcAppender to be meaningful
@@ -168,12 +168,12 @@ public class ChunkProcessorBean {
 
     /* Processes given item
      */
-    private ChunkItem processItem(ChunkItem item, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
+    private ChunkItem processItem(ChunkItem item, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers, LogStoreTrackingId trackingId) {
         ChunkItem processedItem;
         try {
             String data = Base64Util.base64decode(item.getData());
             for (JSWrapperSingleScript jsWrapper : jsWrappers) {
-                data = invokeJavaScript(jsWrapper, data, supplementaryData);
+                data = invokeJavaScript(jsWrapper, data, supplementaryData, trackingId);
                 LOGGER.info("JavaScript processing result:\n{}", data);
                 if (data.isEmpty()) {
                     // terminate pipeline processing
@@ -192,8 +192,8 @@ public class ChunkProcessorBean {
         return processedItem;
     }
 
-    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData) {
-        LOGGER.info("Starting javascript [{}] with invocation method: [{}]", jsWrapper.getScriptId(), jsWrapper.getInvocationMethod());
+    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData, LogStoreTrackingId trackingId) {
+        LOGGER.info("Starting javascript [{}] with invocation method: [{}] and logging ID [{}]", jsWrapper.getScriptId(), jsWrapper.getInvocationMethod(), trackingId.toString());
         final Object result = jsWrapper.invoke(new Object[]{data, supplementaryData});
         return (String) result;
     }

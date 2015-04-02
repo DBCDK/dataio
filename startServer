@@ -19,11 +19,11 @@ function shutdown {
 }
 
 function deploy {
-    mvn -f ${BASEDIR}/pom.xml -P dev -pl integration-test/gui-selenium -am package org.codehaus.cargo:cargo-maven2-plugin:deploy
+    echo Dont know how to deploy
 }
 
 function undeploy {
-    mvn -f ${BASEDIR}/pom.xml -P dev -pl integration-test/gui-selenium -DskipTests -am package org.codehaus.cargo:cargo-maven2-plugin:undeploy
+   echo Dont know hot to undeploy
 }
 
 function clear_mountpoint {
@@ -39,13 +39,11 @@ legal_parameters="start stop startup shutdown help"
 case $1 in
     start) 
 	startup
-	deploy
 	;;
     startup) 
 	startup
 	;;
     stop)
-	undeploy
 	shutdown
 	;;
     shutdown)

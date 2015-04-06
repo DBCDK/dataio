@@ -68,7 +68,8 @@ function getBuildNumberOfLastStableDataIOBuild() {
 
 function copyM2TarFromLastStableBuild() {
     echo "Copy m2.tar.gz from last successful build:"
-    time wget http://is.dbc.dk/job/dataio/$LAST_STABLE_DATAIO_BUILD_NUMBER/artifact/m2.tar.gz || die "Could not download m2.tar.gz from last successfull build"
+    rm m2.tar.gz*
+    time wget http://is.dbc.dk/job/dataio/$LAST_STABLE_DATAIO_BUILD_NUMBER/artifact/m2.tar.gz -O m2.tar.gz || die "Could not download m2.tar.gz from last successfull build"
 }
 
 function unpackageM2() {

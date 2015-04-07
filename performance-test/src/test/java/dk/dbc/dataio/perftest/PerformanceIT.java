@@ -1,6 +1,8 @@
 package dk.dbc.dataio.perftest;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
@@ -8,17 +10,26 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.JobState;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.apache.commons.codec.binary.Base64;
+import org.glassfish.jersey.client.ClientConfig;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -36,9 +47,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -47,30 +56,42 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-
 public class PerformanceIT {
-
     private static Logger LOGGER = LoggerFactory.getLogger(PerformanceIT.class);
 
     private static final String DATASET_FILE = "dataset.json";
+    private static final String PACKAGING = "xml";
+    private static final String FORMAT = "testdata";
+    private static final String ENCODING = "utf8";
+    private static final String DESTINATION = "dummysink";
+    private static final String SINK_RESOURCE = "jdbc/dataio/dummy";
+    private static final long SUBMITTER_NUMBER = 424242;
 
     private static final long RECORDS_PER_TEST = 10000;
     private static long lowContentTimingResult = 0; // to be set from low-content test
     private static long highContentTimingResult = 0; // to be set from high-content test
     private static long timestampForTestStart = 0;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
+    private static JobStoreServiceConnector jobStoreServiceConnector;
+    private static dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector newJobStoreServiceConnector;
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
+
+    @BeforeClass
+    public static void setupClass() throws ClassNotFoundException {
+        final Client httpClient = HttpClient.newClient(new ClientConfig()
+                .register(new Jackson2xFeature()));
+
+        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
+        newJobStoreServiceConnector = new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector(httpClient, ITUtil.NEW_JOB_STORE_BASE_URL);
+    }
 
     @BeforeClass
     public static void setStartTime() {
@@ -78,15 +99,13 @@ public class PerformanceIT {
     }
 
     @After
-    public void clearDb() throws SQLException, ClassNotFoundException {
-        try (final Connection connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)) {
-            ITUtil.clearAllDbTables(connection);
-        }
+    public void clearJobStore() {
+        ITUtil.clearJobStore();
     }
 
     @After
-    public void clearJobStore() {
-        ITUtil.clearJobStore();
+    public void clearFlowStore() {
+        ITUtil.clearFlowStore();
     }
 
     @AfterClass
@@ -96,32 +115,35 @@ public class PerformanceIT {
     }
 
     @Test
-    public void lowContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
+    public void lowContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
         // Create test data
         File testdata = tmpFolder.newFile();
         createTemporaryFile(testdata, RECORDS_PER_TEST, "low");
 
         // Initialize flow-store
-        JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForSmallPerformanceTest());
+        initializeFlowStore(getJavaScriptsForSmallPerformanceTest());
 
         // Create JobSpec
-        JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", testdata.getAbsolutePath());
-
-        // Start timer
-        long timer = System.currentTimeMillis();
+        final JobSpecification jobSpec = new JobSpecificationBuilder()
+                .setPackaging(PACKAGING)
+                .setFormat(FORMAT)
+                .setCharset(ENCODING)
+                .setDestination(DESTINATION)
+                .setSubmitterId(SUBMITTER_NUMBER)
+                .setDataFile(testdata.getAbsolutePath())
+                .build();
 
         // Insert Job
-        JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+        final JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
 
         // Wait for job-completion
-        waitForCompletion(jobStoreServiceConnector, jobInfo.getJobId());
+        final JobInfoSnapshot jobInfoSnapshot = waitForCompletion(jobInfo.getJobId());
 
-        // End Timer
-        lowContentTimingResult = System.currentTimeMillis() - timer;
+        lowContentTimingResult = jobInfoSnapshot.getTimeOfCompletion().getTime() - jobInfoSnapshot.getTimeOfCreation().getTime();
     }
 
     @Test
-    public void highContentPerformanceTest() throws JsonException, IOException, JobStoreServiceConnectorException {
+    public void highContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
         // Create test data
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
@@ -131,30 +153,35 @@ public class PerformanceIT {
         createTemporaryFile(testdata, RECORDS_PER_TEST, sb.toString());
 
         // Initialize flow-store
-        JobStoreServiceConnector jobStoreServiceConnector = initializeFlowStore(getJavaScriptsForLargePerformanceTest());
+        initializeFlowStore(getJavaScriptsForLargePerformanceTest());
 
         // Create JobSpec
-        JobSpecification jobSpec = new JobSpecification("xml", "testdata", "utf8", "dummysink", 424242L, "jda@dbc.dk", "jda@dbc.dk", "jda", testdata.getAbsolutePath());
-
-        // Start timer
-        long timer = System.currentTimeMillis();
+        final JobSpecification jobSpec = new JobSpecificationBuilder()
+                .setPackaging(PACKAGING)
+                .setFormat(FORMAT)
+                .setCharset(ENCODING)
+                .setDestination(DESTINATION)
+                .setSubmitterId(SUBMITTER_NUMBER)
+                .setDataFile(testdata.getAbsolutePath())
+                .build();
 
         // Insert Job
-        JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+        final JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
 
         // Wait for job-completion
-        waitForCompletion(jobStoreServiceConnector, jobInfo.getJobId());
+        final JobInfoSnapshot jobInfoSnapshot = waitForCompletion(jobInfo.getJobId());
 
-        // End Timer
-        highContentTimingResult = System.currentTimeMillis() - timer;
+        highContentTimingResult = jobInfoSnapshot.getTimeOfCompletion().getTime() - jobInfoSnapshot.getTimeOfCreation().getTime();
     }
 
-    private void waitForCompletion(JobStoreServiceConnector jobStoreServiceConnector, long jobId) throws ProcessingException, JobStoreServiceConnectorException {
+    private JobInfoSnapshot waitForCompletion(long jobId) throws dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
+        final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+        JobInfoSnapshot jobInfoSnapshot = null;
         boolean done = false;
         // Wait for Job-completion
         while (!done) {
-            JobState jobState = jobStoreServiceConnector.getState(jobId);
-            if (jobState.getLifeCycleStateFor(JobState.OperationalState.DELIVERING) == JobState.LifeCycleState.DONE) {
+            jobInfoSnapshot = newJobStoreServiceConnector.listJobs(criteria).get(0);
+            if (jobInfoSnapshot.getState().allPhasesAreDone()) {
                 done = true;
             } else {
                 try {
@@ -163,9 +190,10 @@ public class PerformanceIT {
                 }
             }
         }
+        return jobInfoSnapshot;
     }
 
-    private void createTemporaryFile(File f, long numberOfElements, String data) throws UnsupportedEncodingException, IOException {
+    private void createTemporaryFile(File f, long numberOfElements, String data) throws IOException {
         final String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<container>\n";
         final String tail = "</container>\n";
         try (BufferedWriter bw = Files.newBufferedWriter(f.toPath(), Charset.forName("utf-8"))) {
@@ -179,46 +207,46 @@ public class PerformanceIT {
         }
     }
 
-    private JobStoreServiceConnector initializeFlowStore(List<JavaScript> javaScripts) throws JsonException, UnsupportedEncodingException {
-
-        String flowStorebaseUrl = ITUtil.FLOW_STORE_BASE_URL;
-        String jobStorebaseUrl = ITUtil.JOB_STORE_BASE_URL;
-        Client restClient = HttpClient.newClient();
-
+    private void initializeFlowStore(List<JavaScript> javaScripts) throws FlowStoreServiceConnectorException {
         // insert submitter:
-        SubmitterContent submitterContent = new SubmitterContent(424242L, "perftestbib", "Library for performancetest");
-        long submitterId = insertObjectInFlowStore(restClient, flowStorebaseUrl, submitterContent, FlowStoreServiceConstants.SUBMITTERS);
+        final SubmitterContent submitterContent = new SubmitterContentBuilder()
+                .setNumber(SUBMITTER_NUMBER)
+                .build();
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
 
         // insert flowcomponent with javascripts:
-        FlowComponentContent flowComponentContent = new FlowComponentContent("perftest-flow-component", "No_SVN_project", 1L, "invocationJavaScript", javaScripts, "invocationFunction");
-        long flowComponentId = insertObjectInFlowStore(restClient, flowStorebaseUrl, flowComponentContent, FlowStoreServiceConstants.FLOW_COMPONENTS);
-
-        // get flowcomponent:
-        // The flow needs the complete flowcomponent to be created - not just the flowcomponentcontent, hence we need to retrieve the flowcomponent.
-        final Response response = HttpClient.doGet(restClient, flowStorebaseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.OK.getStatusCode()));
-        final String responseContent = response.readEntity(String.class);
-        assertThat(responseContent, is(notNullValue()));
-        final ArrayNode responseContentNode = (ArrayNode) JsonUtil.getJsonRoot(responseContent);
-        assertThat(responseContentNode.get(0).get("id").longValue(), is(flowComponentId));
-        String flowComponentJson = responseContentNode.get(0).toString();
-        FlowComponent flowComponent = JsonUtil.fromJson(flowComponentJson, FlowComponent.class);
-
-        System.out.println("response: " + flowComponentJson);
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setInvocationJavascriptName("invocationJavaScript")
+                .setJavascripts(javaScripts)
+                .setInvocationMethod("invocationFunction")
+                .build();
+        final FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
 
         // insert flow:
-        FlowContent flowContent = new FlowContent("perftest-flow", "Flow for perftest", Arrays.asList(flowComponent));
-        long flowId = insertObjectInFlowStore(restClient, flowStorebaseUrl, flowContent, FlowStoreServiceConstants.FLOWS);
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setComponents(Arrays.asList(flowComponent))
+                .build();
+        final Flow flow = flowStoreServiceConnector.createFlow(flowContent);
 
         // insert sink:
-        SinkContent sinkContent = new SinkContent("perftest-dummy-sink-" + UUID.randomUUID().toString(), "jdbc/dataio/dummy");
-        long sinkId = insertObjectInFlowStore(restClient, flowStorebaseUrl, sinkContent, FlowStoreServiceConstants.SINKS);
+        final SinkContent sinkContent = new SinkContentBuilder()
+                .setName("perftest-dummy-sink-" + UUID.randomUUID().toString())
+                .setResource(SINK_RESOURCE)
+                .build();
+        final Sink sink = flowStoreServiceConnector.createSink(sinkContent);
 
         // insert flowbinder
-        FlowBinderContent flowBinderContent = new FlowBinderContent("perftest-flowbinder", "flowbinder for perftest", "xml", "testdata", "utf8", "dummysink", "Default Record Splitter", true, flowId, Arrays.asList(Long.valueOf(submitterId)), sinkId);
-        insertObjectInFlowStore(restClient, flowStorebaseUrl, flowBinderContent, FlowStoreServiceConstants.FLOW_BINDERS);
-
-        return new JobStoreServiceConnector(restClient, jobStorebaseUrl);
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setPackaging(PACKAGING)
+                .setFormat(FORMAT)
+                .setCharset(ENCODING)
+                .setDestination(DESTINATION)
+                .setSequneceAnalysis(true)
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .build();
+        flowStoreServiceConnector.createFlowBinder(flowBinderContent);
     }
 
     /*
@@ -240,7 +268,7 @@ public class PerformanceIT {
     /*
      * Creates realistic sized javascripts for use in the performance-test.
      */
-    private List<JavaScript> getJavaScriptsForLargePerformanceTest() throws UnsupportedEncodingException, IOException {
+    private List<JavaScript> getJavaScriptsForLargePerformanceTest() throws IOException {
         // This method must return a list of javascripts where the first javascript has a function called
         // invocationfunction for use as entrance to the javascripts.
 
@@ -287,14 +315,6 @@ public class PerformanceIT {
             javascripts.add(new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("TestResource_" + jsDependency + ".use.js").getBytes("UTF-8")), jsDependency));
         }
         return javascripts;
-    }
-
-    private <T> long insertObjectInFlowStore(Client restClient, String baseUrl, T type, String restEndPoint) throws JsonException {
-        final String json = JsonUtil.toJson(type);
-        final Response response = HttpClient.doPostWithJson(restClient, json, baseUrl, restEndPoint);
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.CREATED.getStatusCode()));
-        long id = ITUtil.getResourceIdFromLocationHeaderAndAssertHasValue(response);
-        return id;
     }
 
     private static Dataset updateDataset(long timestamp, long measurementLow, long measurementHigh) throws IOException {

@@ -34,7 +34,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class JobProcessorMessageConsumerBeanIT extends AbstractJobStoreTest {
+public class QueueIT extends AbstractJobStoreTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 

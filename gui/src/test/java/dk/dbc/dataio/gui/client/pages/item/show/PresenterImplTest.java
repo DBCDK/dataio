@@ -178,6 +178,9 @@ public class PresenterImplTest {
         verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFailedItemsButton).setValue(true);
+        verify(mockedView).setSelectionEnabled(false);
+        verify(mockedView.tabPanel).setVisible(false);
+        verify(mockedView.tabPanel).clear();
         verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
         verifyZeroInteractions(mockedAllItemsButton);
@@ -261,6 +264,7 @@ public class PresenterImplTest {
 
         // Verify Test
         verify(mockedView).setItems(testModels, OFFSET, ROW_COUNT);
+        verify(mockedView).setSelectionEnabled(true);
     }
 
 }

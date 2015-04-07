@@ -60,8 +60,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.failedItemsButton.setValue(true);
         view.pager.setPageSize(PAGE_SIZE);
         getItems();
-        view.tabPanel.clear();
-        view.tabPanel.setVisible(false);
     }
 
     /*
@@ -79,6 +77,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         final GetItemsCallback getItemsCallback;
         final int offset = view.itemsTable.getVisibleRange().getStart();
 
+        view.setSelectionEnabled(false);
+        view.tabPanel.setVisible(false);
+        view.tabPanel.clear();
         if (view.failedItemsButton.getValue()) {
             itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
             getItemsCallback = new GetItemsCallback(failedItemCounter, offset);
@@ -129,8 +130,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void filterItems() {
-        view.tabPanel.setVisible(false);
-        view.tabPanel.clear();
         getItems();
     }
 
@@ -154,6 +153,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onSuccess(List<ItemModel> itemModels) {
             view.setItems(itemModels, offset, rowCount);
+            view.setSelectionEnabled(true);
         }
     }
 

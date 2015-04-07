@@ -2,7 +2,10 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.view.client.SelectionModel;
+import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.RangeChangeEvent;
+import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -16,9 +19,11 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -34,7 +39,10 @@ public class ViewTest {
     @Mock Presenter mockedPresenter;
     @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
-
+    @Mock Widget mockedWidget;
+    @Mock SelectionChangeEvent mockedSelectionChangeEvent;
+    @Mock SingleSelectionModel mockedSelectionModel;
+    @Mock ItemModel mockedItemModel;
 
     // Test Data
     private ItemModel testModel1 = new ItemModel("11", "ItemId1", "ChunkId1", "JobId1", ItemModel.LifeCycle.DELIVERING);
@@ -94,25 +102,118 @@ public class ViewTest {
         // Verify invocations
         verify(view.itemsTable).addColumn(view.itemNumberColumn, MOCKED_COLUMN_ITEM);
         verify(view.itemsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_STATUS));
-        verify(view.itemsTable).setSelectionModel(isA(SelectionModel.class));
+        verify(view.itemsTable).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
         verify(view.pager).setDisplay(view.itemsTable);
     }
 
+//        verify(view.itemsTable).setSelectionModel(isA(SelectionModel.class));
 
     @Test
-    public void constructor_setupData_dataSetupCorrect() {
+    public void setItems_setItemsValidData_dataSetupCorrect() {
+        // Test setup
         view = new View("Header Text", mockedTexts);
         final int OFFSET = 0;
 
         // Subject Under Test
         view.setItems(testModels, OFFSET, testModels.size());
+
+        // Verification
         verify(view.itemsTable).setRowCount(testModels.size());
         verify(view.itemsTable).setRowData(OFFSET, testModels);
     }
 
     @Test
+    public void addTab_addTabCalledWithValidWidget_tabSetupCorrectly() {
+        // Test setup
+        view = new View("Header Text", mockedTexts);
+        final String TITLE = "Title";
+
+        // Subject Under Test
+        view.addTab(mockedWidget, TITLE);
+
+        // Verification
+        verify(view.tabPanel).add(mockedWidget, TITLE);
+    }
+
+    @Test
+    public void addTab_addTabCalledWithInvalidWidget_tabNotSet() {
+        // Test setup
+        view = new View("Header Text", mockedTexts);
+        final String TITLE = "Title";
+
+        // Subject Under Test
+        view.addTab(null, TITLE);
+
+        // Verification
+        verifyNoMoreInteractions(view.tabPanel);
+    }
+
+    @Test
+    public void enableSelection_setSelectionEnabled_selectionEnabled() {
+        // Test setup
+        view = new View("Header Text", mockedTexts);
+
+        // Subject Under Test
+        view.setSelectionEnabled(true);
+
+        // Verification
+        verify(view.itemsTable).setSelectionModel(view.selectionModel);
+    }
+
+    @Test
+    public void disableSelection_setSelectionEnabled_selectionDisabled() {
+        // Test setup
+        view = new View("Header Text", mockedTexts);
+
+        // Subject Under Test
+        view.setSelectionEnabled(false);
+
+        // Verification
+        verify(view.itemsTable).setSelectionModel(null);
+    }
+
+    class ConcreteView extends View {
+        SelectionChangeHandlerClass selectionChangeHandler = new SelectionChangeHandlerClass();
+
+        public ConcreteView(String header, Texts texts) {
+            super(header, texts);
+        }
+    }
+
+    @Test
+    public void selectionChangeHandlerClass_callEventHandler_verify() {
+        // Test setup
+        ConcreteView concreteView = new ConcreteView("Header", mockedTexts);
+        concreteView.selectionModel = mockedSelectionModel;
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedItemModel);
+        concreteView.setPresenter(mockedPresenter);
+
+        // Subject Under Test
+        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
+
+        // Verification
+        verify(mockedPresenter).itemSelected(mockedItemModel);
+    }
+
+    @Test
+    public void selectionChangeHandlerClass_callEventHandlerWithEmptySelection_verifyNoSelectionSetToPresenter() {
+        // Test setup
+        ConcreteView concreteView = new ConcreteView("Header", mockedTexts);
+        concreteView.selectionModel = mockedSelectionModel;
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(null);
+        concreteView.setPresenter(mockedPresenter);
+
+        // Subject Under Test
+        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
+
+        // Verification
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void constructItemColumn_call_correctlySetup() {
+        // Test setup
         view = new View("Header Text", mockedTexts);
 
         // Subject Under Test

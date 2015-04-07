@@ -62,6 +62,7 @@
             <h2.port>${h2.port}</h2.port>
             <job.store.basepath>${job.store.basepath}</job.store.basepath>
             <job-store-service.context>${job-store-service.context}</job-store-service.context>
+            <new-job-store-service.context>${new-job-store-service.context}</new-job-store-service.context>
             <postgresql.port>${postgresql.port}</postgresql.port>
             <rawrepo.db.name>${rawrepo.db.name}</rawrepo.db.name>
             <svn.local.dir>${svn.local.dir}</svn.local.dir>

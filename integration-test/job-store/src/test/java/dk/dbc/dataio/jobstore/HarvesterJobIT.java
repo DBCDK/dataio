@@ -1,27 +1,29 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.commons.types.Constants;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
-import dk.dbc.dataio.commons.types.JobErrorCode;
-import dk.dbc.dataio.commons.types.JobInfo;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
-import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestName;
 
-import javax.ws.rs.client.Client;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -39,38 +41,48 @@ public class HarvesterJobIT extends AbstractJobStoreTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
+    @Rule
+    public TestName test = new TestName();
+
     /**
      * Given: an empty job-store <br/>
-     * When: a job specification is posted, which references a harvester data file
+     * When: a job specification is posted, which references a harvester marcXchange data file
      * containing a number of records exceeding the capacity of a single chunk <br/>
      * Then: a new job is created without error <br/>
      * And: the proper number of chunks is created <br/>
      */
     @Test
-    public void createJob_jobSpecificationReferencesHarvesterXmlDataFile_newJobIsCreated()
-            throws IOException, HarvesterException, FileStoreServiceConnectorException, URISyntaxException, JobStoreServiceConnectorException {
+    public void createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated()
+            throws IOException, JobStoreServiceConnectorException, URISyntaxException {
+        final int recordCount = 15;
+        final String fileId = createMarcxchangeHarvesterDataFile(tmpFolder.newFile(), recordCount);
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                    .setPackaging("xml")
+                    .setFormat("katalog")
+                    .setCharset("utf8")
+                    .setDestination(test.getMethodName())
+                    .setSubmitterId(700000)
+                    .setDataFile(FileStoreUrn.create(fileId).toString())
+                    .build();
+        createFlowStoreEnvironmentMatchingJobSpecification(jobSpecification);
 
         // When...
 
-        final int recordCount = 15;
-        final String fileId = createMarcExchangeHarvesterDataFile(restClient, tmpFolder.newFile(), recordCount);
-        final JobSpecification jobSpecification = getJobSpecification(restClient, fileId);
-        final JobInfo jobInfo = createJob(restClient, jobSpecification);
+        final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(getJobInputStream(jobSpecification));
 
         // Then...
 
-        assertThat(jobInfo.getJobErrorCode(), is(JobErrorCode.NO_ERROR));
+        final State jobState = jobInfoSnapshot.getState();
+        assertThat("Partitioning phase complete", jobState.phaseIsDone(State.Phase.PARTITIONING), is(true));
+        assertThat("Partitioning phase failures", jobState.getPhase(State.Phase.PARTITIONING).getFailed(), is(0));
 
         // And...
 
-        final ExternalChunk chunk1 = getChunk(restClient, jobInfo.getJobId(), 0L);
-        assertThat(chunk1.size(), is(Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
-        final ExternalChunk chunk2 = getChunk(restClient, jobInfo.getJobId(), 1L);
-        assertThat(chunk2.size(), is(recordCount - Constants.CHUNK_RECORD_COUNT_UPPER_BOUND));
+        assertThat("Number of items", jobInfoSnapshot.getNumberOfItems(), is(recordCount));
+        assertThat("Number of chunks", jobInfoSnapshot.getNumberOfChunks(), is(2));
     }
 
-    private static String createMarcExchangeHarvesterDataFile(Client client, File datafile, int numberOfRecords)
-            throws IOException, HarvesterException, FileStoreServiceConnectorException {
+    public static String createMarcxchangeHarvesterDataFile(File datafile, int numberOfRecords) {
         try (final OutputStream os = new FileOutputStream(datafile)) {
             try (final HarvesterXmlDataFile harvesterXmlDataFile = new HarvesterXmlDataFile(StandardCharsets.UTF_8, os)) {
                 while (numberOfRecords-- > 0) {
@@ -81,39 +93,38 @@ public class HarvesterJobIT extends AbstractJobStoreTest {
                     harvesterXmlDataFile.addRecord(marcExchangeCollection);
                 }
             }
-        }
-        final FileStoreServiceConnector fileStoreServiceConnector =
-                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
-        try (final InputStream is = new FileInputStream(datafile)) {
-            return fileStoreServiceConnector.addFile(is);
+            try (final InputStream is = new FileInputStream(datafile)) {
+                return fileStoreServiceConnector.addFile(is);
+            }
+        } catch (IOException | HarvesterException | FileStoreServiceConnectorException e) {
+            throw new IllegalStateException(e);
         }
     }
 
-    private static JobSpecification getJobSpecification(Client restClient, String fileId) throws URISyntaxException {
-        final String packaging = "xml";
-        final String format = "katalog";
-        final String charset = "utf8";
-        final String destination = "fbs";
-        final long submitterNumber = 42;
-        final long flowId = ITUtil.createFlow(restClient, ITUtil.FLOW_STORE_BASE_URL, new FlowContentJsonBuilder().build());
-        final long sinkId = ITUtil.createSink(restClient, ITUtil.FLOW_STORE_BASE_URL, new SinkContentJsonBuilder().build());
-        final long submitterId = ITUtil.createSubmitter(restClient, ITUtil.FLOW_STORE_BASE_URL,
-                new SubmitterContentJsonBuilder()
-                        .setNumber(submitterNumber)
-                        .build());
-        ITUtil.createFlowBinder(restClient, ITUtil.FLOW_STORE_BASE_URL,
-                new FlowBinderContentJsonBuilder()
-                        .setPackaging(packaging)
-                        .setFormat(format)
-                        .setCharset(charset)
-                        .setDestination(destination)
-                        .setRecordSplitter("DefaultXMLRecordSplitter")
-                        .setFlowId(flowId)
-                        .setSinkId(sinkId)
-                        .setSubmitterIds(Arrays.asList(submitterId))
-                        .build());
+    public static void createFlowStoreEnvironmentMatchingJobSpecification(JobSpecification jobSpecification) {
+        try {
+            final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+            final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
+                    .setName(jobSpecification.getDestination())
+                    .build());
+            final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
+                    .setNumber(jobSpecification.getSubmitterId())
+                    .build());
+            flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
+                    .setPackaging(jobSpecification.getPackaging())
+                    .setFormat(jobSpecification.getFormat())
+                    .setCharset(jobSpecification.getCharset())
+                    .setDestination(jobSpecification.getDestination())
+                    .setSubmitterIds(Arrays.asList(submitter.getId()))
+                    .setFlowId(flow.getId())
+                    .setSinkId(sink.getId())
+                    .build());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
-        return new JobSpecification(packaging, format, charset, destination, submitterNumber, "", "", "",
-                FileStoreUrn.create(fileId).toString());
+    public static JobInputStream getJobInputStream(JobSpecification jobSpecification) {
+        return new JobInputStream(jobSpecification, true, 0);
     }
 }

@@ -1,32 +1,7 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.JobInfo;
-import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
-import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
-import dk.dbc.dataio.integrationtest.ITUtil;
-import dk.dbc.dataio.integrationtest.JmsQueueConnector;
-import org.junit.Test;
-
-import javax.jms.JMSException;
-import javax.ws.rs.client.Client;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
 public class JobsBeanIT extends AbstractJobStoreTest {
-    private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
+/*    private static final long MAX_QUEUE_WAIT_IN_MS = 5000;
     private static final String DATA_FILE_RESOURCE = "/data.xml";
 
     @Test
@@ -73,5 +48,5 @@ public class JobsBeanIT extends AbstractJobStoreTest {
 
         return new JobSpecification(packaging, format, charset, destination, submitterNumber, "", "", "",
                 dataFile.toAbsolutePath().toString());
-    }
+    }*/
 }

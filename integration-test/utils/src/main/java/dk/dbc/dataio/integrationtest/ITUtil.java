@@ -32,7 +32,9 @@ public class ITUtil {
     public static final String FLOW_STORE_BASE_URL = String.format("http://%s:%s%s",
                 System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("flow-store-service.context"));
     public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
-                System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("job-store-service.context"));
+            System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("job-store-service.context"));
+    public static final String NEW_JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
+                System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("new-job-store-service.context"));
 
     public static final String FLOW_STORE_DATABASE_NAME = "flow_store";
     public static final String FLOWS_TABLE_NAME = "flows";
@@ -126,6 +128,14 @@ public class ITUtil {
         FileUtils.deleteQuietly(new File(System.getProperty("file.store.basepath")));
         try (final Connection connection = newDbConnection("file_store")) {
             clearDbTables(connection, "file_attributes");
+        } catch (ClassNotFoundException | SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public static void clearFlowStore() {
+        try (final Connection connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)) {
+            clearAllDbTables(connection);
         } catch (ClassNotFoundException | SQLException e) {
             throw new IllegalStateException(e);
         }

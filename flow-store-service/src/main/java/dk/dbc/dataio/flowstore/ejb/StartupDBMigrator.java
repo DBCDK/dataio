@@ -10,8 +10,6 @@ import javax.annotation.Resource;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
 /**
@@ -29,7 +27,7 @@ public class StartupDBMigrator {
    	private DataSource dataSource;
 
    	@PostConstruct
-   	private void onStartup() {
+   	public void onStartup() {
 		log.error("ja7 in onStartup");
     	if (dataSource == null) {
    			log.error("no datasource found to execute the db migrations!");

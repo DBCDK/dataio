@@ -23,7 +23,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -105,9 +105,7 @@ public class ViewTest {
         verify(view.itemsTable).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
         verify(view.pager).setDisplay(view.itemsTable);
     }
-
-//        verify(view.itemsTable).setSelectionModel(isA(SelectionModel.class));
-
+    
     @Test
     public void setItems_setItemsValidData_dataSetupCorrect() {
         // Test setup
@@ -145,7 +143,7 @@ public class ViewTest {
         view.addTab(null, TITLE);
 
         // Verification
-        verifyNoMoreInteractions(view.tabPanel);
+        verifyZeroInteractions(view.tabPanel);
     }
 
     @Test
@@ -207,7 +205,7 @@ public class ViewTest {
         concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
 
         // Verification
-        verifyNoMoreInteractions(mockedPresenter);
+        verifyZeroInteractions(mockedPresenter);
     }
 
     @Test

@@ -5,10 +5,12 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
@@ -17,11 +19,10 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Before;
 
 public class AbstractSinkMessageConsumerBeanTest {
     private static final String MESSAGE_ID = "id";
-    private static final String PAYLOAD_TYPE = "ChunkResult";
+    private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private String PAYLOAD;
     
     @Before

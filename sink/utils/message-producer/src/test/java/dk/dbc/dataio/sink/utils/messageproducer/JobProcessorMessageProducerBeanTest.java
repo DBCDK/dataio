@@ -135,7 +135,7 @@ public class JobProcessorMessageProducerBeanTest {
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.SINK_SOURCE_VALUE));
-        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
+        assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
     }
 
     private JobProcessorMessageProducerBean getInitializedBean() {

@@ -33,7 +33,7 @@ public class SinkMessageConsumerBeanTest {
     public void onMessage_messageArgPayloadIsInvalidSinkResult_noTransactionRollback() throws JMSException {
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
+        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         textMessage.setText("{'invalid': 'instance'}");
         sinkMessageConsumerBean.onMessage(textMessage);
         assertThat("RollbackOnly", sinkMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
@@ -41,7 +41,7 @@ public class SinkMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage_messageArgPayloadIsInvalidSinkResult_throws() throws JobProcessorException, JMSException, InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.SINK_RESULT_PAYLOAD_TYPE, "{'invalid': 'instance'}");
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, "{'invalid': 'instance'}");
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         try {
             sinkMessageConsumerBean.handleConsumedMessage(consumedMessage);
@@ -57,7 +57,7 @@ public class SinkMessageConsumerBeanTest {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
-        final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.NEW_JOB_PAYLOAD_TYPE, jsonChunk);
+        final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, jsonChunk);
         final SinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         try {
             sinkMessageConsumerBean.handleConsumedMessage(message);
@@ -70,7 +70,7 @@ public class SinkMessageConsumerBeanTest {
     public void onMessage_messageArgPayloadIsValidSinkResult_handled() throws JMSException, JSONBException {
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
+        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         final String deliveredChunkJson = new JSONBContext().marshall(deliveredChunk);
         textMessage.setText(deliveredChunkJson);
@@ -83,7 +83,7 @@ public class SinkMessageConsumerBeanTest {
         doThrow(new JobProcessorException("JobProcessorException")).when(jobStoreMessageProducer).sendSink(any(ExternalChunk.class));
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
+        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         final String deliveredChunkJson = new JSONBContext().marshall(deliveredChunk);
         textMessage.setText(deliveredChunkJson);

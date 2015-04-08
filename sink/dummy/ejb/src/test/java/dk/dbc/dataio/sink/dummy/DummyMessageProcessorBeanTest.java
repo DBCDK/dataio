@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -29,7 +30,7 @@ public class DummyMessageProcessorBeanTest {
     @Test
     public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JsonException {
         final String messageId = "id";
-        final String payloadType = "ChunkResult";
+        final String payloadType = JmsConstants.CHUNK_PAYLOAD_TYPE;
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
         final String payload = JsonUtil.toJson(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, payload);

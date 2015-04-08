@@ -1,15 +1,14 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
@@ -42,10 +41,8 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
 
     /**
      * Processes Chunk received in consumed message
-     *
      * @param consumedMessage message to be handled
-     *
-     * @throws InvalidMessageException if message payload can not be unmarshalled to Chunk instance
+     * @throws InvalidMessageException if message payload can not be unmarshalled to chunk instance
      * @throws JobProcessorException on general handling error
      */
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
@@ -62,38 +59,21 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     }
 
     private void process(ExternalChunk chunk) throws JobProcessorException {
-        final Sink sink = getSink(chunk);
-        final Flow flow = getFlow(chunk);
-        final SupplementaryProcessData supplementaryProcessData = getSupplementaryProcessData(chunk);
-        final ExternalChunk processedChunk = chunkProcessor.process(chunk, flow, supplementaryProcessData);
+        final ResourceBundle resourceBundle = getResourceBundle(chunk);
+        final ExternalChunk processedChunk = chunkProcessor.process(chunk, resourceBundle.getFlow(), resourceBundle.getSupplementaryProcessData());
         jobStoreMessageProducer.sendProc(processedChunk);
-        sinkMessageProducer.send(processedChunk, sink);
+        sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
     }
 
-    private Sink getSink(ExternalChunk chunk) throws JobProcessorException {
+    private ResourceBundle getResourceBundle(ExternalChunk chunk) throws JobProcessorException {
+        final StopWatch stopWatch = new StopWatch();
         try {
-            return jobStoreServiceConnector.getSink(chunk.getJobId());
+            return jobStoreServiceConnector.getConnector().getResourceBundle((int) chunk.getJobId());
         } catch (JobStoreServiceConnectorException e) {
             throw new JobProcessorException(String.format(
-                    "Exception caught while fetching sink for job %s", chunk.getJobId()), e);
-        }
-    }
-
-    private Flow getFlow(ExternalChunk chunk) throws JobProcessorException {
-        try {
-            return jobStoreServiceConnector.getFlow(chunk.getJobId());
-        } catch (JobStoreServiceConnectorException e) {
-            throw new JobProcessorException(String.format(
-                    "Exception caught while fetching flow for job %s", chunk.getJobId()), e);
-        }
-    }
-
-    private SupplementaryProcessData getSupplementaryProcessData(ExternalChunk chunk) throws JobProcessorException {
-        try {
-            return jobStoreServiceConnector.getSupplementaryProcessData(chunk.getJobId());
-        } catch (JobStoreServiceConnectorException e) {
-            throw new JobProcessorException(String.format(
-                    "Exception caught while fetching supplementaryProcessData for job %s", chunk.getJobId()), e);
+                    "Exception caught while fetching resources for job %s", chunk.getJobId()), e);
+        } finally {
+            LOGGER.debug("Fetching resource bundle took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 }

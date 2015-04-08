@@ -22,7 +22,7 @@ public class FbsPusherBean {
     FbsUpdateConnectorBean fbsUpdateConnector;
 
     /**
-     * Pushes items of given ChunkResult to FBS web-service one ChunkItem at a
+     * Pushes items of given chunk to FBS web-service one ChunkItem at a
      * time
      * @param processedChunk chunk result ready for delivery
      * @return sink chunk result
@@ -32,7 +32,7 @@ public class FbsPusherBean {
      */
     public ExternalChunk push(ExternalChunk processedChunk) throws WebServiceException {
         final StopWatch stopWatch = new StopWatch();
-        LOGGER.info("Examining ChunkResult {} for job {}", processedChunk.getChunkId(), processedChunk.getJobId());
+        LOGGER.info("Examining chunk {} for job {}", processedChunk.getChunkId(), processedChunk.getJobId());
         final ExternalChunk deliveredChunk = new ExternalChunk(
                 processedChunk.getJobId(),
                 processedChunk.getChunkId(), 
@@ -50,7 +50,7 @@ public class FbsPusherBean {
                         String.format("Processor item status was: %s", chunkItem.getStatus())));
             }
         }
-        LOGGER.info("Pushed {} items from ChunkResult {} for job {} in {} ms",
+        LOGGER.info("Pushed {} items from chunk {} for job {} in {} ms",
                 itemsPushed, processedChunk.getChunkId(), processedChunk.getJobId(), stopWatch.getElapsedTime());
 
         return deliveredChunk;
@@ -75,11 +75,11 @@ public class FbsPusherBean {
                             chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage());
             }
         } catch (WebServiceException e) {
-            LOGGER.error("WebServiceException caught when handling Item {} for ChunkResult {} for job {}",
+            LOGGER.error("WebServiceException caught when handling Item {} for chunk {} for job {}",
                     chunkItem.getId(), chunkId, jobId, e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("Item {} registered as FAILED for ChunkResult {} for job {} due to exception",
+            LOGGER.error("Item {} registered as FAILED for chunk {} for job {} due to exception",
                     chunkItem.getId(), chunkId, jobId, e);
             deliveredItem = newFailedChunkItem(chunkItem.getId(), ServiceUtil.stackTraceToString(e));
         }

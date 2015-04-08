@@ -92,7 +92,7 @@ public class JobProcessorMessageProducerBean {
     public TextMessage createMessage(JMSContext context, ExternalChunk deliveredChunk) throws JsonException, JMSException {
         final TextMessage message = context.createTextMessage(JsonUtil.toJson(deliveredChunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.SINK_SOURCE_VALUE);
-        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
+        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         return message;
     }
 }

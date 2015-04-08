@@ -42,9 +42,9 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      * Generates ES workload from given processor result, ensures that ES processing
      * capacity is not exceeded by acquiring the necessary number of record slots from
      * the ES throttler, creates ES task package, and marks it as being in-flight.
-     * @param consumedMessage message containing ChunkResult payload
+     * @param consumedMessage message containing chunk payload
      * @throws SinkException on any failure during workload processing
-     * @throws InvalidMessageException if unable to unmarshall message payload to ChunkResult
+     * @throws InvalidMessageException if unable to unmarshall message payload to chunk
      */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
@@ -83,7 +83,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     /**
-     * Generates ES workload based on given ChunkResult content.
+     * Generates ES workload based on given chunk content.
      * <br/> All input ChunkItems with status SUCCESS containing valid Addi records are converted into ChunkItem placeholders with status SUCCESS in Delivered Chunk
      * <br/> All input ChunkItems with status SUCCESS containing invalid Addi records are converted into ChunkItems with status FAILURE in Delivered Chunk
      * <br/> All input ChunkItems with status IGNORE are converted into ChunkItems with status IGNORE in Delivered Chunk

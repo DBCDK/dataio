@@ -33,11 +33,11 @@ public class ChunkProcessorBeanTest {
     private final long jobId = 42;
     private final long submitter = 123;
     private final String format = "DasFormat";
-    private final String javaScriptReturnUpperCase = "returnUpperCase";
-    private final String javaScriptReturnEmptyString = "returnEmptyString";
-    private final String javaScriptReturnNoResult = "returnNoResult";
-    private final String javaScriptReturnConcatenation = "returnConcatenation";
-    private final String javaScriptThrowException = "throwException";
+    final String javaScriptReturnUpperCase = "returnUpperCase";
+    final String javaScriptReturnEmptyString = "returnEmptyString";
+    final String javaScriptReturnNoResult = "returnNoResult";
+    final String javaScriptReturnConcatenation = "returnConcatenation";
+    final String javaScriptThrowException = "throwException";
 
     private final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(submitter, format);
 
@@ -221,7 +221,7 @@ public class ChunkProcessorBeanTest {
         return chunkProcessorBean;
     }
 
-    private Flow getFlow(ScriptWrapper... scriptWrappers) throws Exception {
+    Flow getFlow(ScriptWrapper... scriptWrappers) throws Exception {
         return new FlowBuilder()
                 .setContent(getFlowContent(scriptWrappers))
                 .build();
@@ -256,34 +256,34 @@ public class ChunkProcessorBeanTest {
                 .build();
     }
 
-    private JavaScript getJavaScript(String javascript) {
+    JavaScript getJavaScript(String javascript) {
         return new JavaScriptBuilder()
                 .setJavascript(Base64Util.base64encode(javascript))
                 .build();
     }
 
-    private String getJavaScriptReturnUpperCaseFunction() {
+    String getJavaScriptReturnUpperCaseFunction() {
         return ""
                 + "function " + javaScriptReturnUpperCase + "(str) {\n"
                 + "    return str.toUpperCase();\n"
                 + "}\n";
     }
 
-    private String getJavaScriptReturnEmptyStringFunction() {
+    String getJavaScriptReturnEmptyStringFunction() {
         return ""
                 + "function " + javaScriptReturnEmptyString + "(str) {\n"
                 + "    return \"\";\n"
                 + "}\n";
     }
 
-    private String getJavaScriptReturnNoResultFunction() {
+    String getJavaScriptReturnNoResultFunction() {
         return ""
                 + "function " + javaScriptReturnNoResult + "(str) {\n"
                 + "    return;\n"
                 + "}\n";
     }
 
-    private String getJavaScriptThrowExceptionFunction() {
+    String getJavaScriptThrowExceptionFunction() {
         return ""
                 + "function " + javaScriptThrowException + "(str) {\n"
                 + "    if(str === \"throw\" || str === \"\") {\n"
@@ -294,7 +294,7 @@ public class ChunkProcessorBeanTest {
                 + "}\n";
     }
 
-    private String getJavaScriptReturnConcatenationFunction() {
+    String getJavaScriptReturnConcatenationFunction() {
         return ""
                 + "function " + javaScriptReturnConcatenation + "(str, processData) {\n"
                 + "    return processData.submitter + str + processData.format;\n"
@@ -307,7 +307,7 @@ public class ChunkProcessorBeanTest {
         return new String(java.nio.file.Files.readAllBytes(resPath), "UTF8");
     }
 
-    private static class ScriptWrapper {
+    static class ScriptWrapper {
         public final String invocationMethod;
         public final JavaScript javaScript;
 

@@ -3,11 +3,13 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.xml.ws.WebServiceException;
@@ -15,7 +17,6 @@ import javax.xml.ws.WebServiceException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import org.junit.Before;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 public class JobProcessorMessageConsumerBeanTest {
     private static final String MESSAGE_ID = "id";
-    private static final String PAYLOAD_TYPE = "ChunkResult";
+    private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private String PAYLOAD; 
 
     @Before

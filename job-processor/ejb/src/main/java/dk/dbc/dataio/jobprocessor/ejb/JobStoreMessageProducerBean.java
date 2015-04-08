@@ -53,7 +53,7 @@ public class JobStoreMessageProducerBean {
     public void sendSink(ExternalChunk deliveredChunk) throws NullPointerException, JobProcessorException {
         LOGGER.info("Sending sink result for chunk {} in job {}", deliveredChunk.getChunkId(), deliveredChunk.getJobId());
         try (JMSContext context = jobStoreQueueConnectionFactory.createContext()) {
-            final TextMessage message = createMessageSink(context, deliveredChunk);
+            final TextMessage message = createMessage(context, deliveredChunk);
             context.createProducer().send(jobStoreQueue, message);
         } catch (JSONBException | JMSException e) {
             final String errorMessage = String.format("Exception caught while sending sink result for chunk %d in job %s",
@@ -83,33 +83,11 @@ public class JobStoreMessageProducerBean {
     }
 
     /**
-     * Creates new TextMessage with given sink result instance as JSON payload with
-     * header properties '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SOURCE_PROPERTY_NAME}'
-     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PAYLOAD_PROPERTY_NAME}'
-     * set to '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_SOURCE_VALUE}'
-     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SINK_RESULT_PAYLOAD_TYPE}' respectively
-     *
-     * @param context active JMS context
-     * @param deliveredChunk sink result instance to be added as payload
-     *
-     * @return TextMessage instance
-     *
-     * @throws JSONBException when unable to marshall sink result instance to JSON
-     * @throws JMSException when unable to create JMS message
-     */
-    public TextMessage createMessageSink(JMSContext context, ExternalChunk deliveredChunk) throws JMSException, JSONBException {
-        final TextMessage message = context.createTextMessage(jsonBinding.getContext().marshall(deliveredChunk));
-        message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
-        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.SINK_RESULT_PAYLOAD_TYPE);
-        return message;
-    }
-
-    /**
      * Creates new TextMessage with given processor result instance as JSON payload with
      * header properties '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SOURCE_PROPERTY_NAME}'
      * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PAYLOAD_PROPERTY_NAME}'
      * set to '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_SOURCE_VALUE}'
-     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_RESULT_PAYLOAD_TYPE}' respectively
+     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively
      *
      * @param context active JMS context
      * @param processedChunk processor result instance to be inserted as JSON string message payload
@@ -122,7 +100,7 @@ public class JobStoreMessageProducerBean {
     public TextMessage createMessage(JMSContext context, ExternalChunk processedChunk) throws JMSException, JSONBException {
         final TextMessage message = context.createTextMessage(jsonBinding.getContext().marshall(processedChunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
-        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE);
+        message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         return message;
     }
 }

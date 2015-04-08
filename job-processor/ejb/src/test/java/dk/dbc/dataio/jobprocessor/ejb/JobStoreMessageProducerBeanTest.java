@@ -120,9 +120,9 @@ public class JobStoreMessageProducerBeanTest {
     public void createMessage_sinkResultArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JSONBException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
-        TextMessage message = jobStoreMessageProducerBean.createMessageSink(jmsContext, new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
+        TextMessage message = jobStoreMessageProducerBean.createMessage(jmsContext, new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
         assertThat("Message source property", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
-        assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.SINK_RESULT_PAYLOAD_TYPE));
+        assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
     }
 
     @Test
@@ -133,7 +133,7 @@ public class JobStoreMessageProducerBeanTest {
                 jmsContext, 
                 new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
         assertThat("Message source property", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
-        assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE));
+        assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
     }
 
     private JobStoreMessageProducerBean getInitializedBean() {

@@ -31,7 +31,7 @@ public class JobProcessorMessageConsumerBeanTest {
     @Test
     public void onMessage_messageArgPayloadIsInvalid_noTransactionRollback() throws JMSException {
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
-        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.PROCESSOR_RESULT_PAYLOAD_TYPE);
+        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         textMessage.setText("{'invalid': 'instance'}");
         jobProcessorMessageConsumerBean.onMessage(textMessage);
         assertThat(jobProcessorMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
@@ -39,7 +39,7 @@ public class JobProcessorMessageConsumerBeanTest {
 
     @Test(expected = InvalidMessageException.class)
     public void handleConsumedMessage_messageArgPayloadIsInvalid_throws() throws JobStoreException, JMSException, InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.SINK_RESULT_PAYLOAD_TYPE, "{'invalid': 'instance'}");
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, "{'invalid': 'instance'}");
         jobProcessorMessageConsumerBean.handleConsumedMessage(consumedMessage);
     }
 

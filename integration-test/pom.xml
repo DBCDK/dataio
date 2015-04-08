@@ -25,10 +25,8 @@
 	<module>harvesters</module>
 	<module>sink-es</module>
 	<module>sinks</module>
-	<module>job-processor</module>
     <module>new-job-store-service</module>
 	<module>job-store</module>
-	<module>mocked-job-store-service</module>
 	<module>jms-queue-service</module>
 	<module>glassfish</module>
 	<module>h2</module>

@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 public class EsMessageProcessorBeanTest {
     private static final int RECORDS_CAPACITY = 1;
     private static final String ES_DATABASE_NAME = "dbname";
-    private static final String PAYLOAD_TYPE = "ChunkResult";
+    private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private final String chunkResultWithOneValidAddiRecord = generateChunkResultJsonWithResource("/1record.addi");
     private final EsConnectorBean esConnector = mock(EsConnectorBean.class);
     private final EsInFlightBean esInFlightAdmin = mock(EsInFlightBean.class);

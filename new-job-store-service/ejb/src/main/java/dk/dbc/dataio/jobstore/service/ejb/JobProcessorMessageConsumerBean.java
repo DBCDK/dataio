@@ -39,7 +39,7 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, JobStoreException {
         try {
             final ExternalChunk externalChunk = jsonbBean.getContext().unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
-            LOGGER.info("Received chunk {} for job {}", externalChunk.getChunkId(), externalChunk.getJobId());
+            LOGGER.info("Received chunk {} with chunk type {} for job {}", externalChunk.getChunkId(), externalChunk.getType(), externalChunk.getJobId());
             jobStoreBean.addChunk(externalChunk);
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s result type",

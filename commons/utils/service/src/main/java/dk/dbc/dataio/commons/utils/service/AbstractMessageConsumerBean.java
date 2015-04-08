@@ -110,7 +110,7 @@ public abstract class AbstractMessageConsumerBean {
      * @throws ServiceException
      * @throws JobStoreException
      */
-    public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException, JobStoreException;
+    public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException;
 
     public void confirmLegalChunkTypeOrThrow(ExternalChunk chunk, ExternalChunk.Type legalChunkType) throws InvalidMessageException {
         if(chunk.getType() != legalChunkType) {

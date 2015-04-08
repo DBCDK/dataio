@@ -8,7 +8,6 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -16,8 +15,8 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
@@ -26,6 +25,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.apache.commons.codec.binary.Base64;
@@ -78,7 +78,6 @@ public class PerformanceIT {
     private static long timestampForTestStart = 0;
     private static FlowStoreServiceConnector flowStoreServiceConnector;
     private static JobStoreServiceConnector jobStoreServiceConnector;
-    private static dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector newJobStoreServiceConnector;
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -89,8 +88,7 @@ public class PerformanceIT {
                 .register(new Jackson2xFeature()));
 
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
-        newJobStoreServiceConnector = new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector(httpClient, ITUtil.NEW_JOB_STORE_BASE_URL);
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.NEW_JOB_STORE_BASE_URL);
     }
 
     @BeforeClass
@@ -115,7 +113,7 @@ public class PerformanceIT {
     }
 
     @Test
-    public void lowContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
+    public void lowContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Create test data
         File testdata = tmpFolder.newFile();
         createTemporaryFile(testdata, RECORDS_PER_TEST, "low");
@@ -134,16 +132,16 @@ public class PerformanceIT {
                 .build();
 
         // Insert Job
-        final JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+        JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpec, true, 0));
 
         // Wait for job-completion
-        final JobInfoSnapshot jobInfoSnapshot = waitForCompletion(jobInfo.getJobId());
+        jobInfoSnapshot = waitForCompletion(jobInfoSnapshot.getJobId());
 
         lowContentTimingResult = jobInfoSnapshot.getTimeOfCompletion().getTime() - jobInfoSnapshot.getTimeOfCreation().getTime();
     }
 
     @Test
-    public void highContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
+    public void highContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Create test data
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
@@ -166,10 +164,10 @@ public class PerformanceIT {
                 .build();
 
         // Insert Job
-        final JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpec);
+        JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpec, true, 0));
 
         // Wait for job-completion
-        final JobInfoSnapshot jobInfoSnapshot = waitForCompletion(jobInfo.getJobId());
+        jobInfoSnapshot = waitForCompletion(jobInfoSnapshot.getJobId());
 
         highContentTimingResult = jobInfoSnapshot.getTimeOfCompletion().getTime() - jobInfoSnapshot.getTimeOfCreation().getTime();
     }
@@ -180,7 +178,7 @@ public class PerformanceIT {
         boolean done = false;
         // Wait for Job-completion
         while (!done) {
-            jobInfoSnapshot = newJobStoreServiceConnector.listJobs(criteria).get(0);
+            jobInfoSnapshot = jobStoreServiceConnector.listJobs(criteria).get(0);
             if (jobInfoSnapshot.getState().allPhasesAreDone()) {
                 done = true;
             } else {

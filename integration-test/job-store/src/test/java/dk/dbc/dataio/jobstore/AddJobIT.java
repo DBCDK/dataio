@@ -37,7 +37,7 @@ import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class HarvesterJobIT extends AbstractJobStoreTest {
+public class AddJobIT extends AbstractJobStoreTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 

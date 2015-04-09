@@ -25,16 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createFlowComponent;
-import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static dk.dbc.dataio.integrationtest.ITUtil.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 /**
  * Integration tests for the flow components collection part of the flow store service
@@ -48,7 +41,7 @@ public class FlowComponentsIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
-        dbConnection = newDbConnection("flow_store");
+        dbConnection = newIntegrationTestConnection();
     }
 
     @AfterClass

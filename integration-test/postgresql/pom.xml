@@ -81,6 +81,16 @@
                   </pgDbScripts>
                 </configuration>
               </execution>
+              <execution>
+                <id>integrationtest</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <pgDbName>integrationtest</pgDbName>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
         </plugins>

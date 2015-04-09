@@ -28,19 +28,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
-import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
+import static dk.dbc.dataio.integrationtest.ITUtil.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Integration tests for the flows collection part of the flow store service
  */
+
 public class FlowsIT {
     private static Client restClient;
     private static Connection dbConnection;
@@ -50,7 +46,7 @@ public class FlowsIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
-        dbConnection = newDbConnection("flow_store");
+        dbConnection = newIntegrationTestConnection();
     }
 
     @AfterClass
@@ -474,7 +470,7 @@ public class FlowsIT {
         try{
             // When...
             final FlowContent newFlowContent = new FlowContentBuilder().build();
-            flowStoreServiceConnector.updateFlow(newFlowContent, 1234, 1L);
+            flowStoreServiceConnector.updateFlow(newFlowContent, 12345, 1L);
 
             fail("Wrong flow Id was not detected as input to updateFlow().");
             // Then...

@@ -87,6 +87,8 @@ CREATE TABLE sequence (
     PRIMARY KEY (seq_name)
 );
 
+
+insert into sequence ( seq_name, seq_count ) values ('SEQ_GEN',1200);
 --
 -- Name: sinks; Type: TABLE; Schema: public; Owner: flowstore; Tablespace: 
 --

@@ -24,16 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.clearDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createSink;
-import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static dk.dbc.dataio.integrationtest.ITUtil.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 public class SinksIT {
 
@@ -44,7 +37,7 @@ public class SinksIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
-        dbConnection = newDbConnection("flow_store");
+        dbConnection = newIntegrationTestConnection();
         restClient = HttpClient.newClient();
     }
 

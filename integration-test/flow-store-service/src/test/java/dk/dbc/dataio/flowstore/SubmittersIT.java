@@ -11,10 +11,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,15 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
-import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
-import static dk.dbc.dataio.integrationtest.ITUtil.newDbConnection;
+import static dk.dbc.dataio.integrationtest.ITUtil.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Integration tests for the submitters collection part of the flow store service
@@ -51,7 +43,7 @@ public class SubmittersIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
-        dbConnection = newDbConnection("flow_store");
+        dbConnection = newIntegrationTestConnection();
     }
 
     @AfterClass
@@ -59,6 +51,7 @@ public class SubmittersIT {
         JDBCUtil.closeConnection(dbConnection);
     }
 
+    @Before
     @After
     public void tearDown() throws SQLException {
         clearAllDbTables(dbConnection);

@@ -70,6 +70,21 @@ public class ITUtil {
         return conn;
     }
 
+    public static Connection newIntegrationTestConnection() throws SQLException {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+
+        final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",
+                System.getProperty("postgresql.port"), "integrationtest");
+        final Connection connection = DriverManager.getConnection(dbUrl,
+                System.getProperty("user.name"), System.getProperty("user.name"));
+        connection.setAutoCommit(true);
+        return connection;
+    }
+
     private static String getDBPasswordInAWayThatFindBugsAccepts() {
        return "ro" + "ot";
     }

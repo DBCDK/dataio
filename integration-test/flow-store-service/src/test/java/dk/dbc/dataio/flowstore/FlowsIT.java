@@ -295,7 +295,7 @@ public class FlowsIT {
 
         try{
             // When...
-            flowStoreServiceConnector.refreshFlowComponents(1234, 1L);
+            flowStoreServiceConnector.refreshFlowComponents(12347, 1L);
 
             fail("Wrong flow Id was not detected as input to refreshFlowComponents().");
 

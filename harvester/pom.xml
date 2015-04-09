@@ -15,8 +15,6 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>rawrepo</module>
-    <module>rr2datawell</module>
     <module>rr</module>
     <module>types</module>
     <module>utils</module>

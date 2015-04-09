@@ -11,7 +11,6 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
-import dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -58,22 +57,22 @@ public class HarvesterJobBuilderTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_binaryFileStoreArgIsNull_throws() throws HarvesterException {
-        new dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder(null, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate);
+        new HarvesterJobBuilder(null, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_fileStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
-        new dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder(binaryFileStore, null, jobStoreServiceConnector, jobSpecificationTemplate);
+        new HarvesterJobBuilder(binaryFileStore, null, jobStoreServiceConnector, jobSpecificationTemplate);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_jobStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
-        new dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, null, jobSpecificationTemplate);
+        new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, null, jobSpecificationTemplate);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_jobSpecificationTemplateArgIsNull_throws() throws HarvesterException {
-        new dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, null);
+        new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, null);
     }
 
     @Test
@@ -89,7 +88,7 @@ public class HarvesterJobBuilderTest {
 
     @Test
     public void addHarvesterRecord_harvesterRecordArgIsValid_incrementsRecordCounter() throws HarvesterException, IOException {
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         assertThat(harvesterJobBuilder.getRecordsAdded(), is(0));
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         assertThat(harvesterJobBuilder.getRecordsAdded(), is(1));
@@ -97,7 +96,7 @@ public class HarvesterJobBuilderTest {
 
     @Test
     public void addHarvesterRecord_harvesterRecordArgIsValid_writesToDataFile() throws HarvesterException, IOException {
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
 
         // Two writes - one for the header, and one for the record data
@@ -106,7 +105,7 @@ public class HarvesterJobBuilderTest {
 
     @Test
     public void addHarvesterRecord_harvesterRecordArgIsInvalid_throws() throws HarvesterException, IOException {
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
 
         try {
             harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>", StandardCharsets.ISO_8859_1));
@@ -119,7 +118,7 @@ public class HarvesterJobBuilderTest {
     public void build_closingOfOutputStreamThrowsIOException_throws() throws IOException, HarvesterException {
         doThrow(new IOException()).when(os).close();
 
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         try {
             harvesterJobBuilder.build();
             fail("No exception thrown");
@@ -130,7 +129,7 @@ public class HarvesterJobBuilderTest {
     @Test
     public void build_noHarvesterRecordsAdded_noJobIsCreated()
             throws HarvesterException, JobStoreServiceConnectorException, FileStoreServiceConnectorException {
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         assertThat(harvesterJobBuilder.build(), is(nullValue()));
         verify(fileStoreServiceConnector, times(0)).addFile(any(InputStream.class));
         verify(jobStoreServiceConnector, times(0)).createJob(any(JobSpecification.class));
@@ -141,7 +140,7 @@ public class HarvesterJobBuilderTest {
             throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException {
         when(fileStoreServiceConnector.addFile(is)).thenThrow(new FileStoreServiceConnectorException("DIED"));
 
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         try {
             harvesterJobBuilder.build();
@@ -156,7 +155,7 @@ public class HarvesterJobBuilderTest {
             throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException, IOException {
         doThrow(new IOException()).when(is).close();
 
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         harvesterJobBuilder.build();
         verify(jobStoreServiceConnector, times(1)).createJob(any(JobSpecification.class));
@@ -167,7 +166,7 @@ public class HarvesterJobBuilderTest {
             throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.createJob(any(JobSpecification.class))).thenThrow(new JobStoreServiceConnectorException("DIED"));
 
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         try {
             harvesterJobBuilder.build();
@@ -180,7 +179,7 @@ public class HarvesterJobBuilderTest {
     public void build_creationOfFileStoreUrnThrowsURISyntaxException_throws() throws FileStoreServiceConnectorException, HarvesterException {
         when(fileStoreServiceConnector.addFile(is)).thenReturn("\\");
 
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         try {
             harvesterJobBuilder.build();
@@ -195,7 +194,7 @@ public class HarvesterJobBuilderTest {
         final MockedJobStoreServiceConnector mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
         mockedJobStoreServiceConnector.jobInfos.add(jobInfo);
 
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = new dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder(
+        final HarvesterJobBuilder harvesterJobBuilder = new HarvesterJobBuilder(
                 binaryFileStore, fileStoreServiceConnector, mockedJobStoreServiceConnector, jobSpecificationTemplate);
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         harvesterJobBuilder.build();
@@ -206,7 +205,7 @@ public class HarvesterJobBuilderTest {
 
     @Test
     public void close_deletesTmpFile() throws HarvesterException {
-        try (dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder()) {
+        try (HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder()) {
         }
         verify(binaryFile, times(1)).delete();
     }
@@ -215,7 +214,7 @@ public class HarvesterJobBuilderTest {
     public void close_deletionOfTmpFileThrowsIllegalStateException_noExceptionThrown() throws HarvesterException {
         doThrow(new IllegalStateException()).when(binaryFile).delete();
 
-        dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.close();
     }
 
@@ -223,7 +222,7 @@ public class HarvesterJobBuilderTest {
     public void close_closingOfOutputStreamThrowsIOException_throws() throws IOException, HarvesterException {
         doThrow(new IOException()).when(os).close();
 
-        final dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         try {
             harvesterJobBuilder.close();
             fail("No exception thrown");
@@ -231,7 +230,7 @@ public class HarvesterJobBuilderTest {
         }
     }
 
-    private dk.dbc.dataio.harvester.utils.jobstore.HarvesterJobBuilder newHarvesterJobBuilder() throws HarvesterException {
+    private HarvesterJobBuilder newHarvesterJobBuilder() throws HarvesterException {
         return new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate);
     }
 

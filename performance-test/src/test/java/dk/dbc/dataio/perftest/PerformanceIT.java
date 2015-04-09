@@ -38,7 +38,6 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -59,7 +58,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class PerformanceIT {
     private static Logger LOGGER = LoggerFactory.getLogger(PerformanceIT.class);
@@ -70,7 +68,6 @@ public class PerformanceIT {
     private static final String ENCODING = "utf8";
     private static final String DESTINATION = "dummysink";
     private static final String SINK_RESOURCE = "jdbc/dataio/dummy";
-    private static final long SUBMITTER_NUMBER = 424242;
 
     private static final long RECORDS_PER_TEST = 10000;
     private static long lowContentTimingResult = 0; // to be set from low-content test
@@ -96,16 +93,6 @@ public class PerformanceIT {
         timestampForTestStart = System.currentTimeMillis();
     }
 
-    @After
-    public void clearJobStore() {
-        ITUtil.clearJobStore();
-    }
-
-    @After
-    public void clearFlowStore() {
-        ITUtil.clearFlowStore();
-    }
-
     @AfterClass
     public static void updateDataPointsAndCreateGraphImage() throws IOException {
         Dataset dataset = updateDataset(timestampForTestStart, lowContentTimingResult, highContentTimingResult);
@@ -114,12 +101,14 @@ public class PerformanceIT {
 
     @Test
     public void lowContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        final long submitterNumber = 424242;
+
         // Create test data
         File testdata = tmpFolder.newFile();
         createTemporaryFile(testdata, RECORDS_PER_TEST, "low");
 
         // Initialize flow-store
-        initializeFlowStore(getJavaScriptsForSmallPerformanceTest());
+        initializeFlowStore("lowContent", submitterNumber, getJavaScriptsForSmallPerformanceTest());
 
         // Create JobSpec
         final JobSpecification jobSpec = new JobSpecificationBuilder()
@@ -127,7 +116,7 @@ public class PerformanceIT {
                 .setFormat(FORMAT)
                 .setCharset(ENCODING)
                 .setDestination(DESTINATION)
-                .setSubmitterId(SUBMITTER_NUMBER)
+                .setSubmitterId(submitterNumber)
                 .setDataFile(testdata.getAbsolutePath())
                 .build();
 
@@ -142,6 +131,8 @@ public class PerformanceIT {
 
     @Test
     public void highContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        final long submitterNumber = 434343;
+
         // Create test data
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 1000; i++) {
@@ -151,7 +142,7 @@ public class PerformanceIT {
         createTemporaryFile(testdata, RECORDS_PER_TEST, sb.toString());
 
         // Initialize flow-store
-        initializeFlowStore(getJavaScriptsForLargePerformanceTest());
+        initializeFlowStore("highContent", submitterNumber, getJavaScriptsForLargePerformanceTest());
 
         // Create JobSpec
         final JobSpecification jobSpec = new JobSpecificationBuilder()
@@ -159,7 +150,7 @@ public class PerformanceIT {
                 .setFormat(FORMAT)
                 .setCharset(ENCODING)
                 .setDestination(DESTINATION)
-                .setSubmitterId(SUBMITTER_NUMBER)
+                .setSubmitterId(submitterNumber)
                 .setDataFile(testdata.getAbsolutePath())
                 .build();
 
@@ -205,15 +196,17 @@ public class PerformanceIT {
         }
     }
 
-    private void initializeFlowStore(List<JavaScript> javaScripts) throws FlowStoreServiceConnectorException {
+    private void initializeFlowStore(String id, long submitterNumber, List<JavaScript> javaScripts) throws FlowStoreServiceConnectorException {
         // insert submitter:
         final SubmitterContent submitterContent = new SubmitterContentBuilder()
-                .setNumber(SUBMITTER_NUMBER)
+                .setNumber(submitterNumber)
+                .setName(id)
                 .build();
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
 
         // insert flowcomponent with javascripts:
         final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName(id)
                 .setInvocationJavascriptName("invocationJavaScript")
                 .setJavascripts(javaScripts)
                 .setInvocationMethod("invocationFunction")
@@ -222,19 +215,21 @@ public class PerformanceIT {
 
         // insert flow:
         final FlowContent flowContent = new FlowContentBuilder()
+                .setName(id)
                 .setComponents(Arrays.asList(flowComponent))
                 .build();
         final Flow flow = flowStoreServiceConnector.createFlow(flowContent);
 
         // insert sink:
         final SinkContent sinkContent = new SinkContentBuilder()
-                .setName("perftest-dummy-sink-" + UUID.randomUUID().toString())
+                .setName(id)
                 .setResource(SINK_RESOURCE)
                 .build();
         final Sink sink = flowStoreServiceConnector.createSink(sinkContent);
 
         // insert flowbinder
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setName(id)
                 .setPackaging(PACKAGING)
                 .setFormat(FORMAT)
                 .setCharset(ENCODING)

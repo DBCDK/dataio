@@ -70,12 +70,8 @@ public class ITUtil {
         return conn;
     }
 
-    public static Connection newIntegrationTestConnection() throws SQLException {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e);
-        }
+    public static Connection newIntegrationTestConnection() throws SQLException, ClassNotFoundException {
+        Class.forName("org.postgresql.Driver");
 
         final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",
                 System.getProperty("postgresql.port"), "integrationtest");
@@ -149,7 +145,7 @@ public class ITUtil {
     }
 
     public static void clearFlowStore() {
-        try (final Connection connection = ITUtil.newDbConnection(ITUtil.FLOW_STORE_DATABASE_NAME)) {
+        try (final Connection connection = ITUtil.newIntegrationTestConnection()) {
             clearAllDbTables(connection);
         } catch (ClassNotFoundException | SQLException e) {
             throw new IllegalStateException(e);

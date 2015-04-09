@@ -172,7 +172,7 @@ public class PerformanceIT {
         highContentTimingResult = jobInfoSnapshot.getTimeOfCompletion().getTime() - jobInfoSnapshot.getTimeOfCreation().getTime();
     }
 
-    private JobInfoSnapshot waitForCompletion(long jobId) throws dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
+    private JobInfoSnapshot waitForCompletion(long jobId) throws JobStoreServiceConnectorException {
         final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         JobInfoSnapshot jobInfoSnapshot = null;
         boolean done = false;

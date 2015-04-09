@@ -12,8 +12,20 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The Job Model Mapper class maps a jobs from JobInfoSnapshot objects to JobModel objects
+ */
 public class JobModelMapper {
 
+    /*
+     * Public Methods
+     */
+
+    /**
+     * Maps a single JobInfoSnapshot object to a JobModel object
+     * @param jobInfoSnapshot The input JobInfoSnapshot object
+     * @return The mapped JobModel object
+     */
     public static JobModel toModel(JobInfoSnapshot jobInfoSnapshot) {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
@@ -30,9 +42,21 @@ public class JobModelMapper {
                 getTotal(jobInfoSnapshot.getState()),
                 getSucceeded(jobInfoSnapshot.getState()),
                 getFailed(jobInfoSnapshot.getState()),
-                getIgnored(jobInfoSnapshot.getState()));
+                getIgnored(jobInfoSnapshot.getState()),
+                jobInfoSnapshot.getSpecification().getPackaging(),
+                jobInfoSnapshot.getSpecification().getFormat(),
+                jobInfoSnapshot.getSpecification().getCharset(),
+                jobInfoSnapshot.getSpecification().getDestination(),
+                jobInfoSnapshot.getSpecification().getMailForNotificationAboutVerification(),
+                jobInfoSnapshot.getSpecification().getMailForNotificationAboutProcessing(),
+                jobInfoSnapshot.getSpecification().getResultmailInitials());
     }
 
+    /**
+     * Maps a list of JobInfoSnapshot objects to a list of JobModel objects
+     * @param jobInfoSnapshots A list of input JobInfoSnapshot objects
+     * @return The list of resulting JobModel objects
+     */
     public static List<JobModel> toModel(List<JobInfoSnapshot> jobInfoSnapshots) {
         List<JobModel> jobInfoSnapshotModels = new ArrayList<JobModel>(jobInfoSnapshots.size());
 
@@ -41,6 +65,11 @@ public class JobModelMapper {
         }
         return jobInfoSnapshotModels;
     }
+
+
+    /*
+     * Private Methods
+     */
 
     /**
      * This method retrieves the name of the submitter.

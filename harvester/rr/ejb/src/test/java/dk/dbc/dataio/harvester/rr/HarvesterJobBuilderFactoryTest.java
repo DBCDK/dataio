@@ -2,7 +2,7 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;

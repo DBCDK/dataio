@@ -2,10 +2,9 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
-import dk.dbc.dataio.commons.utils.test.model.JobInfoBuilder;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
@@ -15,6 +14,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifi
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
@@ -110,7 +110,7 @@ public class HarvestOperation_2fbs_Test {
 
         // Intercept harvester job specifications with mocked JobStoreServiceConnector
         mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
-        mockedJobStoreServiceConnector.jobInfos.add(new JobInfoBuilder().build());
+        mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
 
         harvesterDataFileExpectations = new ArrayList<>();
     }
@@ -207,7 +207,7 @@ public class HarvestOperation_2fbs_Test {
     }
 
     private void verifyJobSpecifications() {
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobSpecifications.remove(),
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 getHarvestOperation().getJobSpecificationTemplate(AGENCY_ID));
     }
 

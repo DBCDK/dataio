@@ -2,15 +2,16 @@ package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
-import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -42,7 +43,7 @@ public class HarvesterJobBuilderTest {
     private final String fileId = "42";
     private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private final JobInfo jobInfo = mock(JobInfo.class);
+    private final JobInfoSnapshot jobInfoSnapshot = mock(JobInfoSnapshot.class);
     private final JobSpecification jobSpecificationTemplate =
             new JobSpecification("packaging", "format", "encoding", "destination", 42, "placeholder", "placeholder", "placeholder", "placeholder");
 
@@ -52,7 +53,7 @@ public class HarvesterJobBuilderTest {
         when(binaryFile.openOutputStream()).thenReturn(os);
         when(binaryFile.openInputStream()).thenReturn(is);
         when(fileStoreServiceConnector.addFile(is)).thenReturn(fileId);
-        when(jobStoreServiceConnector.createJob(any(JobSpecification.class))).thenReturn(jobInfo);
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
     }
 
     @Test(expected = NullPointerException.class)
@@ -132,7 +133,7 @@ public class HarvesterJobBuilderTest {
         final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         assertThat(harvesterJobBuilder.build(), is(nullValue()));
         verify(fileStoreServiceConnector, times(0)).addFile(any(InputStream.class));
-        verify(jobStoreServiceConnector, times(0)).createJob(any(JobSpecification.class));
+        verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
     }
 
     @Test
@@ -147,7 +148,7 @@ public class HarvesterJobBuilderTest {
             fail("No exception thrown");
         } catch (HarvesterException e) {
         }
-        verify(jobStoreServiceConnector, times(0)).createJob(any(JobSpecification.class));
+        verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
     }
 
     @Test
@@ -158,13 +159,13 @@ public class HarvesterJobBuilderTest {
         final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         harvesterJobBuilder.build();
-        verify(jobStoreServiceConnector, times(1)).createJob(any(JobSpecification.class));
+        verify(jobStoreServiceConnector, times(1)).addJob(any(JobInputStream.class));
     }
 
     @Test
     public void build_creationOfJobThrowsJobStoreServiceConnectorException_throws()
             throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.createJob(any(JobSpecification.class))).thenThrow(new JobStoreServiceConnectorException("DIED"));
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new JobStoreServiceConnectorException("DIED"));
 
         final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
@@ -192,14 +193,14 @@ public class HarvesterJobBuilderTest {
     public void build_harvesterRecordsAdded_createsJobUsingJobSpecificationTemplate()
             throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException {
         final MockedJobStoreServiceConnector mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
-        mockedJobStoreServiceConnector.jobInfos.add(jobInfo);
+        mockedJobStoreServiceConnector.jobInfoSnapshots.add(jobInfoSnapshot);
 
         final HarvesterJobBuilder harvesterJobBuilder = new HarvesterJobBuilder(
                 binaryFileStore, fileStoreServiceConnector, mockedJobStoreServiceConnector, jobSpecificationTemplate);
         harvesterJobBuilder.addHarvesterRecord(new HarvesterXmlRecordImpl("<record/>"));
         harvesterJobBuilder.build();
 
-        verifyJobSpecification(mockedJobStoreServiceConnector.jobSpecifications.remove(),
+        verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 jobSpecificationTemplate);
     }
 

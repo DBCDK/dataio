@@ -3,16 +3,19 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
-import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
+import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,11 +76,11 @@ public class HarvesterJobBuilder implements AutoCloseable {
      * Uploads harvester data file, as long as the data file contains
      * any records, to the file-store and creates job in the job-store
      * referencing the uploaded file
-     * @return job info for created job, or null if no job was created
+     * @return job info snapshot for created job, or null if no job was created
      * @throws dk.dbc.dataio.harvester.types.HarvesterException on failure to upload to file-store or on
      * failure to create job in job-store
      */
-    public JobInfo build() throws HarvesterException {
+    public JobInfoSnapshot build() throws HarvesterException {
         dataFile.close();
         try {
             closeTmpFileOutputStream();
@@ -148,13 +151,20 @@ public class HarvesterJobBuilder implements AutoCloseable {
 
     /* Creates new job in the job-store
     */
-    private JobInfo createJobInJobStore(String fileId) throws HarvesterException {
+    private JobInfoSnapshot createJobInJobStore(String fileId) throws HarvesterException {
         final JobSpecification jobSpecification = createJobSpecification(fileId);
         try {
-            final JobInfo jobInfo = jobStoreServiceConnector.createJob(jobSpecification);
-            LOGGER.info("Created job in job-store with ID {}", jobInfo.getJobId());
-            return jobInfo;
+            final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(
+                    new JobInputStream(jobSpecification, true, 0));
+            LOGGER.info("Created job in job-store with ID {}", jobInfoSnapshot.getJobId());
+            return jobInfoSnapshot;
         } catch (JobStoreServiceConnectorException e) {
+            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                if (jobError != null) {
+                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
+                }
+            }
             throw new HarvesterException("Unable to create job in job-store", e);
         }
     }

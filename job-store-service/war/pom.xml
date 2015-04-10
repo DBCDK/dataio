@@ -155,7 +155,7 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-new-job-store-service-connector</artifactId>
+      <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
       <version>${project.version}</version>
       <type>ejb</type>
       <scope>provided</scope>

@@ -10,8 +10,8 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils-new-job-store-service-connector</artifactId>
-  <name>dataio-commons-utils-new-job-store-service-connector</name>
+  <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+  <name>dataio-commons-utils-job-store-service-connector</name>
   <packaging>ejb</packaging>
 
   <dependencies>

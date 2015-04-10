@@ -23,7 +23,7 @@
     <module>jersey-media-json-jackson2x</module>
     <module>log-store-service-connector</module>
     <module>flow-store-service-connector</module>
-    <module>new-job-store-service-connector</module>
+    <module>job-store-service-connector</module>
     <module>io</module>
     <module>json</module>
     <module>json-binding</module>

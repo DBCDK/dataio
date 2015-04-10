@@ -12,7 +12,7 @@
     <ejb>dataio-commons-utils-file-store-service-connector-${project.version}.jar</ejb>
   </module>
   <module>
-    <ejb>dataio-commons-utils-new-job-store-service-connector-${project.version}.jar</ejb>
+    <ejb>dataio-commons-utils-job-store-service-connector-${project.version}.jar</ejb>
   </module>
   <module>
     <ejb>dataio-harvester-rr-ejb-${project.version}.jar</ejb>

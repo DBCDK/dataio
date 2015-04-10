@@ -1,7 +1,7 @@
 import FlowStore
 
 import dk.dbc.dataio.commons.types.JobSpecification
-
+import dk.dbc.dataio.jobstore.types.JobInputStream
 import groovy.json.JsonSlurper
 
 def createDefaultFlowComponent(flowStore) {
@@ -35,7 +35,7 @@ def createDefaultJob(jobConn) {
 
   def jobSpec = new JobSpecification(jobSpecPackaging, jobSpecFormat, jobSpecCharset, jobSpecDestination, 
 				     submitterNumber, mailAddr, mailAddr, initials, dataFile)
-  jobConn.createJob(jobSpec)
+  jobConn.addJob(new JobInputStream(jobSpec, true, 0))
 }
 
 

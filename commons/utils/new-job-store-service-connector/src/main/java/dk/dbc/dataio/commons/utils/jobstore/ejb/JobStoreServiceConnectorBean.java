@@ -1,9 +1,9 @@
-package dk.dbc.dataio.commons.utils.newjobstore.ejb;
+package dk.dbc.dataio.commons.utils.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
-import dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.glassfish.jersey.client.ClientConfig;
 import org.slf4j.Logger;

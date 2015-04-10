@@ -1,7 +1,7 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
-import dk.dbc.dataio.commons.utils.newjobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;

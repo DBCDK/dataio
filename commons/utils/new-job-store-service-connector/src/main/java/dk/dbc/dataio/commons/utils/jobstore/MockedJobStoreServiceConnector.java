@@ -1,4 +1,4 @@
-package dk.dbc.dataio.commons.utils.newjobstore;
+package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;

@@ -51,7 +51,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class JobStoreProxyImplTest {
     private final String jobStoreServiceUrl = "http://dataio/job-service";
     private final Client client = mock(Client.class);
-    private final dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector jobStoreServiceConnector = mock(dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnector.class);
+    private final dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector jobStoreServiceConnector = mock(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector.class);
 
     private final long ID = 737L;
     private final JobCompletionState defaultJobCompletionState = new JobCompletionStateBuilder()
@@ -90,8 +90,8 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException("Testing"));
+    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.listJobs(new JobListCriteriaModel());
@@ -112,8 +112,8 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listItems_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.newjobstore.JobStoreServiceConnectorException("Testing"));
+    public void listItems_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.listItems(new ItemListCriteriaModel());

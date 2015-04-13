@@ -27,7 +27,7 @@ public class JSWrapperSingleScript {
         jsEnvironment = new Environment();
         jsEnvironment.registerUseFunction(mh);
         if( requireCacheJson != null ) {
-            loadRequireCache( requireCacheJson, mh );
+            loadRequireCache( requireCacheJson );
         }
         jsEnvironment.eval(javascripts.get(0).javascript);
         this.scriptId = scriptId;
@@ -35,7 +35,7 @@ public class JSWrapperSingleScript {
     }
 
 
-    private void loadRequireCache(String requireCacheJSON, ModuleHandler mh) {
+    private void loadRequireCache(String requireCacheJSON) {
         jsEnvironment.eval(DEFINE_REQUIRE_CACHE_FUNCTION_JAVASCRIPT);
         jsEnvironment.callMethod(INTERNAL_LOAD_REQUIRE_CACHE, new Object[]{requireCacheJSON});
     }

@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 
 import java.util.ArrayList;
@@ -60,8 +59,8 @@ public final class FlowComponentModelMapper {
 
     /**
      * Maps a model to a flow component content, containing the java scripts given as input
-     * @param model
-     * @param requiredJavaScripts
+     * @param model FlowComponentModel
+     * @param requiredJavaScripts List javaScript and requireCache
      * @return flowComponentContent
      */
     public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException{

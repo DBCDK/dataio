@@ -2,11 +2,7 @@ package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.FlowBinderModel;
-import dk.dbc.dataio.gui.client.model.FlowComponentModel;
-import dk.dbc.dataio.gui.client.model.FlowModel;
-import dk.dbc.dataio.gui.client.model.SinkModel;
-import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.model.*;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 
 import javax.naming.NamingException;

@@ -3,10 +3,8 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
-import dk.dbc.dataio.commons.javascript.JavascriptUtil;
-import dk.dbc.dataio.commons.javascript.SpecializedFileSchemeHandler;
-import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 
 import java.io.Serializable;

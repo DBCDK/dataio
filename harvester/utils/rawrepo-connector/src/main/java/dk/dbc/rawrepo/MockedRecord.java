@@ -83,6 +83,11 @@ public class MockedRecord implements Record {
     }
 
     @Override
+    public String getEnrichmentTrail() {
+        return null;
+    }
+
+    @Override
     public void setContent(byte[] bytes) {
         content = new byte[bytes.length];
         System.arraycopy(bytes, 0, content, 0, bytes.length);

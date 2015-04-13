@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.apache.commons.codec.binary.Base64;
@@ -62,6 +63,8 @@ import java.util.List;
 public class PerformanceIT {
     private static Logger LOGGER = LoggerFactory.getLogger(PerformanceIT.class);
 
+    private static final long SLEEP_INTERVAL_IN_MS = 1000;
+    private static final long MAX_WAIT_IN_MS = 3600000;
     private static final String DATASET_FILE = "dataset.json";
     private static final String PACKAGING = "xml";
     private static final String FORMAT = "testdata";
@@ -124,7 +127,7 @@ public class PerformanceIT {
         JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpec, true, 0));
 
         // Wait for job-completion
-        jobInfoSnapshot = waitForCompletion(jobInfoSnapshot.getJobId());
+        jobInfoSnapshot = waitForJobCompletion(jobInfoSnapshot.getJobId());
 
         lowContentTimingResult = jobInfoSnapshot.getTimeOfCompletion().getTime() - jobInfoSnapshot.getTimeOfCreation().getTime();
     }
@@ -158,28 +161,41 @@ public class PerformanceIT {
         JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpec, true, 0));
 
         // Wait for job-completion
-        jobInfoSnapshot = waitForCompletion(jobInfoSnapshot.getJobId());
+        jobInfoSnapshot = waitForJobCompletion(jobInfoSnapshot.getJobId());
 
         highContentTimingResult = jobInfoSnapshot.getTimeOfCompletion().getTime() - jobInfoSnapshot.getTimeOfCreation().getTime();
     }
 
-    private JobInfoSnapshot waitForCompletion(long jobId) throws JobStoreServiceConnectorException {
+    private JobInfoSnapshot waitForJobCompletion(long jobId) throws JobStoreServiceConnectorException {
         final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         JobInfoSnapshot jobInfoSnapshot = null;
-        boolean done = false;
         // Wait for Job-completion
-        while (!done) {
+        long remainingWaitInMs = MAX_WAIT_IN_MS;
+
+        while ( remainingWaitInMs > 0 ) {
             jobInfoSnapshot = jobStoreServiceConnector.listJobs(criteria).get(0);
-            if (jobInfoSnapshot.getState().allPhasesAreDone()) {
-                done = true;
+            if (allPhasesAreDoneSuccessfully(jobInfoSnapshot)) {
+                break;
             } else {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(SLEEP_INTERVAL_IN_MS);
+                    remainingWaitInMs -= SLEEP_INTERVAL_IN_MS;
                 } catch (InterruptedException ex) {
+                    break;
                 }
             }
         }
+        if (!allPhasesAreDoneSuccessfully(jobInfoSnapshot)) {
+            throw new IllegalStateException(String.format("Job %d did not complete successfully in time",
+                    jobInfoSnapshot.getJobId()));
+        }
+
         return jobInfoSnapshot;
+    }
+
+    private boolean allPhasesAreDoneSuccessfully(JobInfoSnapshot jobInfoSnapshot) {
+        final State state = jobInfoSnapshot.getState();
+        return state.allPhasesAreDone() && state.getPhase(State.Phase.DELIVERING).getSucceeded() == RECORDS_PER_TEST;
     }
 
     private void createTemporaryFile(File f, long numberOfElements, String data) throws IOException {

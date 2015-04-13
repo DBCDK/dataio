@@ -1,20 +1,18 @@
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-import dk.dbc.dataio.commons.javascript.JavascriptUtil;
 import dk.dbc.dataio.commons.types.RevisionInfo;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
-
-import dk.dbc.dataio.commons.utils.service.ServiceUtil; // To be removed when hack is removed
-import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError; // To be removed when hack is removed
-import java.util.ArrayList; // To be removed when hack is removed
-import java.util.Collections; // To be removed when hack is removed
-import java.util.Date; // To be removed when hack is removed
-import javax.naming.NamingException; // To be removed when hack is removed
 
 public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implements JavaScriptProjectFetcher {
     private static final long serialVersionUID = 6080138003266070829L;

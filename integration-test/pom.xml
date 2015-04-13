@@ -17,20 +17,20 @@
     <profile>
       <id>integration-test</id>
       <activation>
-	<activeByDefault>true</activeByDefault>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
-	<module>file-store-service</module>
-	<module>flow-store-service</module>
-	<module>harvesters</module>
-	<module>sink-es</module>
-	<module>sinks</module>
-    <module>new-job-store-service</module>
-	<module>job-store</module>
-	<module>jms-queue-service</module>
-	<module>glassfish</module>
-	<module>h2</module>
-	<module>postgresql</module>
+        <module>file-store-service</module>
+        <module>flow-store-service</module>
+        <module>harvesters</module>
+        <module>sink-es</module>
+        <module>sinks</module>
+        <module>new-job-store-service</module>
+        <module>job-store</module>
+        <module>jms-queue-service</module>
+        <module>glassfish</module>
+        <module>h2</module>
+        <module>postgresql</module>
       </modules>
     </profile>
   </profiles>
@@ -49,7 +49,7 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
-            <container.hostname>${container.hostname}</container.hostname>
+          <container.hostname>${container.hostname}</container.hostname>
             <container.http.port>${container.http.port}</container.http.port>
             <es.dbname>${es.dbname}</es.dbname>
             <fbs.update.ws.endpoint>${fbs.update.ws.endpoint}</fbs.update.ws.endpoint>
@@ -58,9 +58,7 @@
             <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
             <glassfish.port>${container.http.port}</glassfish.port>
             <h2.port>${h2.port}</h2.port>
-            <job.store.basepath>${job.store.basepath}</job.store.basepath>
             <job-store-service.context>${job-store-service.context}</job-store-service.context>
-            <new-job-store-service.context>${new-job-store-service.context}</new-job-store-service.context>
             <postgresql.port>${postgresql.port}</postgresql.port>
             <rawrepo.db.name>${rawrepo.db.name}</rawrepo.db.name>
             <svn.local.dir>${svn.local.dir}</svn.local.dir>

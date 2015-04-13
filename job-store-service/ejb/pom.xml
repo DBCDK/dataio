@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>dataio-new-job-store-service</artifactId>
+        <artifactId>dataio-job-store-service</artifactId>
         <groupId>dk.dbc</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dataio-new-job-store-service-ejb</artifactId>
-    <name>dataio-new-job-store-service-ejb</name>
+    <artifactId>dataio-job-store-service-ejb</artifactId>
+    <name>dataio-job-store-service-ejb</name>
     <packaging>ejb</packaging>
 
   <dependencies>

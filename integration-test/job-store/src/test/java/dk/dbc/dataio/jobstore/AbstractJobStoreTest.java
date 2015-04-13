@@ -26,7 +26,7 @@ public abstract class AbstractJobStoreTest {
 
         fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, ITUtil.FILE_STORE_BASE_URL);
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.NEW_JOB_STORE_BASE_URL);
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
     }
 
     @AfterClass

@@ -85,7 +85,7 @@ public class PerformanceIT {
                 .register(new Jackson2xFeature()));
 
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.NEW_JOB_STORE_BASE_URL);
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
     }
 
     @BeforeClass

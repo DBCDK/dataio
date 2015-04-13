@@ -23,8 +23,8 @@ public class ITUtil {
             System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("file-store-service.context"));
     public static final String FLOW_STORE_BASE_URL = String.format("http://%s:%s%s",
                 System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("flow-store-service.context"));
-    public static final String NEW_JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
-                System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("new-job-store-service.context"));
+    public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
+                System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("job-store-service.context"));
 
     public static final String FLOWS_TABLE_NAME = "flows";
     public static final String FLOW_COMPONENTS_TABLE_NAME = "flow_components";

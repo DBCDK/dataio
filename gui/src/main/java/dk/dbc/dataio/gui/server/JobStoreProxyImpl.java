@@ -30,14 +30,12 @@ import java.util.List;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
     Client client;
-    String baseUrl;
     String endpoint;
     JobStoreServiceConnector jobStoreServiceConnector;
 
     public JobStoreProxyImpl() throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
-        baseUrl = ServiceUtil.getJobStoreServiceEndpoint();
         endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
         jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
     }

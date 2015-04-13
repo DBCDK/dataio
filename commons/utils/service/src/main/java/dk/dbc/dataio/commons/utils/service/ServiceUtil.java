@@ -20,30 +20,10 @@ public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
 
     private static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
-    private static final String JOB_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioJobStoreServiceEndpoint";
     private static final String SINK_SERVICE_ENDPOINT_RESOURCE = "dataioSinkServiceEndpoint";
     private static final String SUBVERSION_SCM_ENDPOINT_RESOURCE = "dataioGuiSubversionScmEndpoint";
 
     private ServiceUtil() { }
-
-    /**
-     * Looks up file-store filesystem url through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_FILESYSTEM}'.
-     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
-     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_JOBSTORE_FILESYSTEM}'
-     * system property.
-     *
-     * @return job-store filesystem URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getJobStoreFilesystemUrl() throws NamingException {
-        String jobStoreFileSystemUrl = System.getProperty(JndiConstants.URL_RESOURCE_JOBSTORE_FILESYSTEM);
-        if (jobStoreFileSystemUrl == null || jobStoreFileSystemUrl.isEmpty()) {
-            jobStoreFileSystemUrl = getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_FILESYSTEM);
-        }
-        return jobStoreFileSystemUrl;
-    }
 
     /**
      * Looks up job-store service endpoint through Java Naming and Directory Interface (JNDI)
@@ -98,24 +78,6 @@ public class ServiceUtil {
             flowStoreServiceEndpoint = getStringValueFromResource(FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
         }
         return flowStoreServiceEndpoint;
-    }
-
-    /**
-     * Looks up job-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value #JOB_STORE_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
-     * the JNDI lookup can be bypassed by defining a '{@value #JOB_STORE_SERVICE_ENDPOINT_RESOURCE}'
-     * system property.
-     *
-     * @return job-store service URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getJobStoreServiceEndpoint() throws NamingException {
-        String jobStoreServiceEndpoint = System.getProperty(JOB_STORE_SERVICE_ENDPOINT_RESOURCE);
-        if (jobStoreServiceEndpoint == null || jobStoreServiceEndpoint.isEmpty()) {
-            jobStoreServiceEndpoint = getStringValueFromResource(JOB_STORE_SERVICE_ENDPOINT_RESOURCE);
-        }
-        return jobStoreServiceEndpoint;
     }
 
     /**

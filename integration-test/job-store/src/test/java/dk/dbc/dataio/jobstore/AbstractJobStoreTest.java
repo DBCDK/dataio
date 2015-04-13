@@ -30,11 +30,6 @@ public abstract class AbstractJobStoreTest {
     }
 
     @AfterClass
-    public static void clearJobStore() {
-        ITUtil.clearJobStore();
-    }
-
-    @AfterClass
     public static void clearFileStore() {
         ITUtil.clearFileStore();
     }

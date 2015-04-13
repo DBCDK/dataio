@@ -58,18 +58,6 @@
          </exclusion>
       </exclusions>
     </dependency>
-    <!--dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-file-store-service-connector</artifactId>
-      <version>${project.version}</version>
-      <type>ejb</type>
-      <exclusions>
-         <exclusion>
-             <groupId>org.glassfish.hk2.external</groupId>
-             <artifactId>asm-all-repackaged</artifactId>
-         </exclusion>
-      </exclusions>
-    </dependency-->
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-javascript</artifactId>
@@ -79,18 +67,6 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-json-binding</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-store-service-war</artifactId>
-      <version>${project.version}</version>
-      <classifier>mockablejobstore</classifier>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-store-service-war</artifactId>
-      <version>${project.version}</version>
-      <classifier>classes</classifier>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -112,18 +88,7 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-integration-test-utils</artifactId>
       <version>${project.version}</version>
-      <!--exclusions>
-          <exclusion>
-              <groupId>org.glassfish.jersey.core</groupId>
-              <artifactId>jersey-client</artifactId>
-          </exclusion>
-      </exclusions-->
     </dependency>
-    <!--dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>${h2.version}</version>
-    </dependency-->
 
   </dependencies>
 </project>

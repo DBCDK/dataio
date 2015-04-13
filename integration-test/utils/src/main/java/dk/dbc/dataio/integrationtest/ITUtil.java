@@ -2,22 +2,14 @@ package dk.dbc.dataio.integrationtest;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
-import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -36,7 +28,6 @@ public class ITUtil {
     public static final String NEW_JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
                 System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("new-job-store-service.context"));
 
-    public static final String FLOW_STORE_DATABASE_NAME = "flow_store";
     public static final String FLOWS_TABLE_NAME = "flows";
     public static final String FLOW_COMPONENTS_TABLE_NAME = "flow_components";
     public static final String FLOW_BINDERS_TABLE_NAME = "flow_binders";
@@ -44,17 +35,6 @@ public class ITUtil {
     public static final String FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME = "flow_binders_search_index";
     public static final String SUBMITTERS_TABLE_NAME = "submitters";
     public static final String SINKS_TABLE_NAME = "sinks";
-
-    public static final String FLOWS_TABLE_SELECT_CONTENT_STMT = String.format(
-            "SELECT content FROM %s WHERE id=?", FLOWS_TABLE_NAME);
-    public static final String FLOW_BINDERS_TABLE_SELECT_CONTENT_STMT = String.format(
-            "SELECT content FROM %s WHERE id=?", FLOW_BINDERS_TABLE_NAME);
-    public static final String FLOW_COMPONENTS_TABLE_SELECT_CONTENT_STMT = String.format(
-            "SELECT content FROM %s WHERE id=?", FLOW_COMPONENTS_TABLE_NAME);
-    public static final String SUBMITTERS_TABLE_SELECT_CONTENT_STMT = String.format(
-            "SELECT content FROM %s WHERE id=?", SUBMITTERS_TABLE_NAME);
-    public static final String SINKS_TABLE_SELECT_CONTENT_STMT = String.format(
-            "SELECT content FROM %s WHERE id=?", SINKS_TABLE_NAME);
 
     private ITUtil() { }
 
@@ -122,19 +102,6 @@ public class ITUtil {
                 SINKS_TABLE_NAME);
     }
 
-    /**
-     * Deletes all job-store filesystem content
-     */
-    public static void clearJobStore() {
-        final Path jobStorePath = Paths.get(System.getProperty("job.store.basepath"));
-        FileUtils.deleteQuietly(jobStorePath.toFile());
-        try {
-            Files.createDirectory(jobStorePath);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     public static void clearFileStore() {
         FileUtils.deleteQuietly(new File(System.getProperty("file.store.basepath")));
         try (final Connection connection = newDbConnection("file_store")) {
@@ -152,14 +119,6 @@ public class ITUtil {
         }
     }
 
-    public static long createFlowComponentWithName(String name) {
-        final Client restClient = ClientBuilder.newClient();
-        final String flowComponentContent = new FlowComponentContentJsonBuilder()
-                .setName(name)
-                .build();
-        return createFlowComponent(restClient, FLOW_STORE_BASE_URL, flowComponentContent);
-    }
-
     public static long createFlowComponent(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS));
@@ -175,25 +134,9 @@ public class ITUtil {
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SUBMITTERS));
     }
 
-    public static long createFlowBinder(Client restClient, String baseUrl, String content) {
-        return getResourceIdFromLocationHeaderAndAssertHasValue(
-                HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS));
-    }
-
     public static long createSink(Client restClient, String baseUrl, String content) {
         return getResourceIdFromLocationHeaderAndAssertHasValue(
                 HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SINKS));
-    }
-
-    public static void updateSink(Client restClient, String baseUrl, String content, long sinkId, long  version) {
-        HttpClient.doPostWithJson(restClient, content, baseUrl, FlowStoreServiceConstants.SINKS, Long.toString(sinkId), Long.toString(version), "content");
-    }
-
-    public static Response getJobProcessorResult(Client restClient, long jobId, long chunkId) {
-        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_PROCESSED)
-                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
-                .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId);
-        return HttpClient.doGet(restClient, JOB_STORE_BASE_URL, path.build());
     }
 
     /**

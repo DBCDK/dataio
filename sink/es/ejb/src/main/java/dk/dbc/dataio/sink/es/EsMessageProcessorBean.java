@@ -12,9 +12,25 @@ import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,5 +135,59 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             }
         }
         return new EsWorkload(incompleteDeliveredChunk, addiRecords);
+    }
+
+    /**
+     * This method removes the processing tag from the dom if it exists
+     * @param nodeList if not null then containing exactly one item
+     * @param document the document
+     * @return a new byte array representing meta data without the processing tag, null if the processing tag was not set
+     * @throws TransformerException
+     */
+    byte[] RemoveProcessingTagFromDom(NodeList nodeList, Document document) throws TransformerException {
+        byte[] processedMetaData = null;
+        if(nodeList.getLength() == 1) {
+            Node node = nodeList.item(0);
+            node.getParentNode().removeChild(node); // Remove node from dom
+            Source source = new DOMSource(document);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            Result result = new StreamResult(byteArrayOutputStream);
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer();
+            transformer.transform(source, result);
+            processedMetaData = byteArrayOutputStream.toByteArray();
+        }
+        return processedMetaData;
+    }
+
+    /**
+     * This method determines if 2709 encoding should be performed depending on the node value
+     * @param nodeList if not null then containing exactly one item
+     * @return true if 2709 encoding should be performed, otherwise false
+     */
+    boolean do2709Encoding(NodeList nodeList) {
+        boolean do2709Encoding = false;
+
+        if(nodeList.getLength() == 1) {
+            Node nNode = nodeList.item(0);
+            do2709Encoding = Boolean.valueOf(nNode.getAttributes().getNamedItem("encodeAs2709").getNodeValue());
+        }
+        return do2709Encoding;
+    }
+
+    public Document getDocument(byte[] byteArray) throws IOException, SAXException {
+        final DocumentBuilder builder = getDocumentBuilder();
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+        return builder.parse(byteArrayInputStream);
+    }
+
+    private DocumentBuilder getDocumentBuilder() {
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        try {
+            return documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

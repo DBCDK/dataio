@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -14,9 +15,18 @@ import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -28,7 +38,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
@@ -50,6 +62,7 @@ public class EsMessageProcessorBeanTest {
     private static final int RECORDS_CAPACITY = 1;
     private static final String ES_DATABASE_NAME = "dbname";
     private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
+    private static final String PROCESSING_TAG = "dataio:sink-processing";
     private final String chunkResultWithOneValidAddiRecord = generateChunkResultJsonWithResource("/1record.addi");
     private final EsConnectorBean esConnector = mock(EsConnectorBean.class);
     private final EsInFlightBean esInFlightAdmin = mock(EsInFlightBean.class);
@@ -187,10 +200,6 @@ public class EsMessageProcessorBeanTest {
         assertThat("chunkItem 5 status", item5.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
-    private TestableMessageConsumerBean getInitializedBean() {
-        return getInitializedBean(null);
-    }
-
     private TestableMessageConsumerBean getInitializedBean(EsThrottlerBean esThrottlerBean) {
         final TestableMessageConsumerBean testableMessageConsumerBean = new TestableMessageConsumerBean();
         testableMessageConsumerBean.setMessageDrivenContext(new MockedMessageDrivenContext());
@@ -238,6 +247,121 @@ public class EsMessageProcessorBeanTest {
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, payloadType);
         textMessage.setText(payload);
         return textMessage;
+    }
+
+    @Test
+    public void removeProcessingTagFromDom_tagIsSetWithValueFalse_tagIsRemovedAndNewMetaDataReturned() throws IOException, XPathExpressionException, TransformerException, SAXException {
+        final String validAddi = "236\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        Document document = getDocument(addiRecord);
+        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
+        assertThat(nodeList.getLength(), is(1));
+
+        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
+                assertThat(nodeList.getLength(), is(0));
+                assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
+        }
+
+    @Test
+    public void removeProcessingTagFromDom_tagIsSetWithValueTrue_tagIsRemovedAndNewMetaDataReturned() throws IOException, XPathExpressionException, TransformerException, SAXException {
+        final String validAddi = "235\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        Document document = getDocument(addiRecord);
+        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
+        assertThat(nodeList.getLength(), is(1));
+        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
+        assertThat(nodeList.getLength(), is(0));
+        assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
+        System.out.println(new String(modifiedMetaData, StandardCharsets.UTF_8)); //TODO - remove
+    }
+
+    @Test
+    public void removeProcessingTagFromDom_tagIsNotSet_newMetaDataIsNull() throws IOException, XPathExpressionException, TransformerException, SAXException {
+        final String validAddi = "131\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/></es:referencedata>\n1\nb\n";
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        Document document = getDocument(addiRecord);
+        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
+        assertThat(nodeList.getLength(), is(0));
+        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
+        assertThat(modifiedMetaData, is(nullValue()));
+    }
+
+    @Test
+    public void do2709Encoding_tagIsSetWithValueTrue_returnsTrue() throws IOException, SAXException {
+        final String validAddi = "235\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        Document document = getDocument(addiRecord);
+        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
+        assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(true));
+    }
+
+    @Test
+    public void do2709Encoding_tagIsSetWithValueFalse_returnsFalse() throws IOException, SAXException {
+       final String validAddi = "236\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+       final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+       final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+       final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+       Document document = getDocument(addiRecord);
+       NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
+       assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(false));
+    }
+
+    @Test
+    public void do2709Encoding_tagIsNotSet_returnsFalse() throws IOException, SAXException {
+        final String validAddi = "131\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/></es:referencedata>\n1\nb\n";
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        Document document = getDocument(addiRecord);
+        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
+        assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(false));
+    }
+
+    @Test
+    public void getDocument_bytesAreConverted_documentIsReturned() throws IOException, SAXException {
+        final String validAddi = "236\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        Document document = esMessageProcessorBean.getDocument(addiRecord.getMetaData());
+        assertThat(document, not(nullValue()));
+    }
+
+    private TestableMessageConsumerBean getInitializedBean() {
+        return getInitializedBean(null);
+    }
+
+    private ChunkItem getChunkItem(String validAddi, ChunkItem.Status status) {
+        return new ChunkItemBuilder()  // processed successfully
+                .setId(0)
+                .setData(Base64Util.base64encode(validAddi))
+                .setStatus(status)
+                .build();
+    }
+
+    private Document getDocument(AddiRecord addiRecord) throws IOException, SAXException {
+        byte[] metadata = addiRecord.getMetaData();
+        final DocumentBuilder builder = getDocumentBuilder();
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(metadata);
+        return builder.parse(byteArrayInputStream);
+    }
+
+    private DocumentBuilder getDocumentBuilder() {
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        try {
+            return documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static class TestableMessageConsumerBean extends EsMessageProcessorBean {

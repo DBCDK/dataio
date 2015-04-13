@@ -7,21 +7,37 @@ import dk.dbc.jslib.SchemeURI;
 import java.util.List;
 
 public class JSWrapperSingleScript {
+    public static final String INTERNAL_LOAD_REQUIRE_CACHE = "__internal_load_require_cache";
+    public static final String DEFINE_REQUIRE_CACHE_FUNCTION_JAVASCRIPT = "use(\"Require\");\n" +
+            "function "+ INTERNAL_LOAD_REQUIRE_CACHE + "( json ) {\n" +
+            "Require.setCache( JSON.parse(json) );\n" +
+            "};";
+
     private final Environment jsEnvironment;
     private final String invocationMethod;
     private final String scriptId;
 
     public JSWrapperSingleScript(String scriptId, String invocationMethod,
-                                 List<StringSourceSchemeHandler.Script> javascripts) {
+                                 List<StringSourceSchemeHandler.Script> javascripts,
+                                 String requireCacheJson ) {
         final ModuleHandler mh = new ModuleHandler();
         StringSourceSchemeHandler sssh = new StringSourceSchemeHandler(javascripts);
         mh.registerHandler("string", sssh);
         mh.addSearchPath(new SchemeURI("string", "."));
         jsEnvironment = new Environment();
         jsEnvironment.registerUseFunction(mh);
+        if( requireCacheJson != null ) {
+            loadRequireCache( requireCacheJson, mh );
+        }
         jsEnvironment.eval(javascripts.get(0).javascript);
         this.scriptId = scriptId;
         this.invocationMethod = invocationMethod;
+    }
+
+
+    private void loadRequireCache(String requireCacheJSON, ModuleHandler mh) {
+        jsEnvironment.eval(DEFINE_REQUIRE_CACHE_FUNCTION_JAVASCRIPT);
+        jsEnvironment.callMethod(INTERNAL_LOAD_REQUIRE_CACHE, new Object[]{requireCacheJSON});
     }
 
     public Object invoke(final Object[] args) {

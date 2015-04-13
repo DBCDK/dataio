@@ -14,6 +14,7 @@ import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -111,8 +112,12 @@ public class ChunkProcessorBean {
                     javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
                             Base64Util.base64decode(javascriptBase64.getJavascript())));
                 }
+                String requireCacheJson = null;
+                if( flowComponentContent.getRequireCache() != null ) {
+                    requireCacheJson = Base64Util.base64decode(flowComponentContent.getRequireCache());
+                }
                 jsWrappers.add(new JSWrapperSingleScript(flowComponentContent.getName(),
-                        flowComponentContent.getInvocationMethod(), javaScripts));
+                        flowComponentContent.getInvocationMethod(), javaScripts, requireCacheJson));
             }
             if (jsWrappers.isEmpty()) {
                 throw new IllegalStateException(String.format("No javascript found in flow %s", flow.getContent().getName()));

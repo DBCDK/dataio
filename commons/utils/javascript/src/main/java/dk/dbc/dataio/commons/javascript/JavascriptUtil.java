@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import java.io.Reader;
+import java.io.Serializable;
 import java.util.List;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.ModuleHandler;
@@ -177,7 +178,16 @@ public class JavascriptUtil {
         return result;
     }
 
-    public static List<SpecializedFileSchemeHandler.JS> getAllDependentJavascripts(Path root, Path javascript) throws IOException {
+    public static class getAllDependatJavascriptsResult implements Serializable {
+        public List<SpecializedFileSchemeHandler.JS> javaScripts;
+        public String requireCache = null;
+
+        public getAllDependatJavascriptsResult(List<SpecializedFileSchemeHandler.JS> javaScripts, String requireCache) {
+            this.javaScripts = javaScripts;
+            this.requireCache = requireCache;
+        }
+    }
+    public static getAllDependatJavascriptsResult getAllDependentJavascripts(Path root, Path javascript) throws IOException {
         DirectoriesContainingJavascriptFinder javascriptDirFinder = new DirectoriesContainingJavascriptFinder();
         Files.walkFileTree(root, javascriptDirFinder);
         List<Path> javascriptDirs = javascriptDirFinder.getJavascriptDirectories();
@@ -193,6 +203,13 @@ public class JavascriptUtil {
         jsEnvironment.registerUseFunction(mh);
         jsEnvironment.evalFile(javascript.toString());
 
-        return sfsh.getJavascripts();
+        Object res=jsEnvironment.eval("if( hasOwnProperty('Require') ) { JSON.stringify(Require.getCache()); } else { ''; };");
+        String resAsString=(String)res;
+        String requireCache=null;
+        if( resAsString!=null && resAsString.length()>1 ) {
+            requireCache = resAsString;
+        }
+
+        return new getAllDependatJavascriptsResult( sfsh.getJavascripts(), requireCache );
     }
 }

@@ -14,7 +14,8 @@ import java.util.List;
  * Method implementations of a MixIn class are ignored.
  */
 @SuppressWarnings("unused")
-public class FlowComponentContentJsonMixIn {
+public class
+        FlowComponentContentJsonMixIn {
 
     /**
      * Makes jackson runtime aware of non-default FlowComponentContent
@@ -26,6 +27,7 @@ public class FlowComponentContentJsonMixIn {
                                          @JsonProperty("svnRevision") long svnRevision,
                                          @JsonProperty("invocationJavascriptName") String invocationJavascriptName,
                                          @JsonProperty("javascripts") List<JavaScript> javascripts,
-                                         @JsonProperty("invocationMethod") String invocationMethod) {
+                                         @JsonProperty("invocationMethod") String invocationMethod,
+                                         @JsonProperty("requireCache") String requireCache) {
     }
 }

@@ -20,8 +20,11 @@ public class FlowComponentContent implements Serializable {
     private /* final */ String invocationJavascriptName;
     private /* final */ List<JavaScript> javascripts;
     private /* final */ String invocationMethod;
+    private /* final */ String requireCache;
 
     private FlowComponentContent() { }
+
+
 
     /**
      * Class constructor
@@ -39,13 +42,39 @@ public class FlowComponentContent implements Serializable {
      * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
-    public FlowComponentContent(String name, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javascripts, String invocationMethod) {
+    public FlowComponentContent(String name, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javascripts, String invocationMethod )
+    {
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.svnProjectForInvocationJavascript = InvariantUtil.checkNotNullNotEmptyOrThrow(svnProjectForInvocationJavascript, "svnProjectForInvocationJavascript");
         this.svnRevision = InvariantUtil.checkLowerBoundOrThrow(svnRevision, "svnRevision", 1);
         this.invocationJavascriptName = InvariantUtil.checkNotNullNotEmptyOrThrow(invocationJavascriptName, "invocationJavascriptName");
         this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
         this.javascripts = new ArrayList<JavaScript>(InvariantUtil.checkNotNullOrThrow(javascripts, "javascripts"));
+
+    }
+    /**
+     * Class constructor
+     *
+     * Attention: when changing the signature of this constructor
+     * remember to also change the signature in the corresponding *JsonMixIn class.
+     *
+     * @param name name of flow component
+     * @param svnProjectForInvocationJavascript name of the SVN Project
+     * @param svnRevision the SVN Revision number
+     * @param invocationJavascriptName name of the original javascript
+     * @param javascripts list of attached JavaScripts (can be empty)
+     * @param invocationMethod name of invocation method (can be empty)
+     * @param requireCache the JSON string of the RequireCache ( can be empty )
+     *
+     * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
+     * @throws IllegalArgumentException if given empty-valued name argument
+     */
+
+    public FlowComponentContent(String name, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javascripts, String invocationMethod,
+                                    String requireCache)
+    {
+        this(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod);
+        this.requireCache = requireCache;
     }
 
     public String getName() {
@@ -98,5 +127,9 @@ public class FlowComponentContent implements Serializable {
         result = 31 * result + javascripts.hashCode();
         result = 31 * result + invocationMethod.hashCode();
         return result;
+    }
+
+    public String getRequireCache() {
+        return requireCache;
     }
 }

@@ -3,10 +3,14 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+import dk.dbc.dataio.commons.javascript.JavascriptUtil;
+import dk.dbc.dataio.commons.javascript.SpecializedFileSchemeHandler;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @RemoteServiceRelativePath("JavaScriptProjectFetcher")
@@ -63,7 +67,7 @@ public interface JavaScriptProjectFetcher extends RemoteService {
      *
      * @throws JavaScriptProjectFetcherException if unable to fetch javaScript content
      */
-    List<JavaScript> fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName, String javaScriptFunction) throws JavaScriptProjectFetcherException;
+    fetchRequiredJavaScriptResult fetchRequiredJavaScript(String projectUrl, long revision, String javaScriptFileName, String javaScriptFunction) throws JavaScriptProjectFetcherException;
     
     /**
      * The factory class for JavaScriptProjectFetcher
@@ -77,5 +81,20 @@ public interface JavaScriptProjectFetcher extends RemoteService {
             return asyncInstance;
         }
     }
+
+    class fetchRequiredJavaScriptResult implements Serializable {
+        public List<JavaScript> javaScripts;
+        public String requireCache = null;
+
+        public fetchRequiredJavaScriptResult(List<JavaScript> javaScripts, String requireCache) {
+            this.javaScripts = javaScripts;
+            this.requireCache = requireCache;
+        }
+
+        public fetchRequiredJavaScriptResult() {
+            javaScripts = new ArrayList<JavaScript>();
+        }
+    }
+
     
 }

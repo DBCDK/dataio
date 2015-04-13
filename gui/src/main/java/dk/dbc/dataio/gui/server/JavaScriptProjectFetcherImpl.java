@@ -182,7 +182,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
      *          JAVASCRIPT_READ_ERROR - on failure to read JavaScript exported from the SCM system.
      */
     @Override
-    public List<JavaScript> fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction)
+    public fetchRequiredJavaScriptResult fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
@@ -190,6 +190,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         final String errorMessage = "Unable to retrieve required javaScript for function '{}' in script in file '{}' in revision {} of project '{}'";
         final String projectUrl = buildProjectUrl(projectName);
         final List<JavaScript> javaScripts = new ArrayList<JavaScript>();
+        String requireCache=null;
         Path exportFolder = null;
         try {
             exportFolder = createTmpFolder(getClass().getName());
@@ -205,8 +206,13 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
                 SvnConnector.export(buildProjectUrl(dependency), revision, Paths.get(exportFolder.toString(), dependency));
             }
 
-            for (SpecializedFileSchemeHandler.JS js : JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath)) {
+            JavascriptUtil.getAllDependatJavascriptsResult result=JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath);
+            for (SpecializedFileSchemeHandler.JS js : result.javaScripts) {
                 javaScripts.add(new JavaScript(Base64.encodeBase64String(js.javascript.getBytes(CHARSET)), js.modulename));
+            }
+
+            if( result.requireCache != null ) {
+                requireCache = Base64.encodeBase64String( result.requireCache.getBytes(CHARSET) );
             }
         } catch (SVNException e) {
             log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
@@ -220,7 +226,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         } finally {
             deleteFolder(exportFolder);
         }
-        return javaScripts;
+        return new fetchRequiredJavaScriptResult(javaScripts, requireCache );
     }
 
     private String buildProjectUrl(final String projectName) throws JavaScriptProjectFetcherException {

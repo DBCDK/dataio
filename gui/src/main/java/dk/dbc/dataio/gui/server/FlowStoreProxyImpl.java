@@ -22,6 +22,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 import dk.dbc.dataio.gui.server.modelmappers.FlowBinderModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
@@ -149,8 +150,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
         try {
-            List<JavaScript> javaScripts = fetchRequiredJavaScripts(model);
-            flowComponent = flowStoreServiceConnector.createFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, javaScripts));
+            fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
+            flowComponent = flowStoreServiceConnector.createFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
@@ -167,9 +168,9 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
         try {
-            List<JavaScript> javaScripts = fetchRequiredJavaScripts(model);
+            fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
             flowComponent = flowStoreServiceConnector.updateFlowComponent(
-                    FlowComponentModelMapper.toFlowComponentContent(model, javaScripts), model.getId(), model.getVersion());
+                    FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult), model.getId(), model.getVersion());
 
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
@@ -545,7 +546,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return flowComponents;
     }
 
-    private List<JavaScript> fetchRequiredJavaScripts(FlowComponentModel model) throws JavaScriptProjectFetcherException {
+    private fetchRequiredJavaScriptResult fetchRequiredJavaScripts(FlowComponentModel model) throws JavaScriptProjectFetcherException {
         return javaScriptProjectFetcher.fetchRequiredJavaScript(
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),

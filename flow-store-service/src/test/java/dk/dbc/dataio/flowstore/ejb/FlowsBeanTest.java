@@ -167,7 +167,7 @@ public class FlowsBeanTest {
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
         FlowComponentContent flowComponentContent = new FlowComponentContent(
-                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod");
+                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod", "RequireCache");
         dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(1L, 22L, flowComponentContent);
 
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
@@ -202,7 +202,7 @@ public class FlowsBeanTest {
         when(JsonUtil.toJson(flow)).thenReturn("test");
 
         FlowComponentContent flowComponentContent = new FlowComponentContent(
-                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod");
+                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod", "RequireCache");
         dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, flowComponentContent);
 
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();

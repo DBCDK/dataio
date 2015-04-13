@@ -45,7 +45,6 @@ public class SpecializedFileSchemeHandlerTest {
         List<SpecializedFileSchemeHandler.JS> javascripts = schemeHandler.getJavascripts();
         assertThat(javascripts.size(), is(1));
         assertThat(javascripts.get(0).javascript, is(javascript));
-        assertThat(javascripts.get(0).filename, is(jsFile.getAbsolutePath()));
         assertThat(javascripts.get(0).modulename, is("test"));
     }
 
@@ -68,10 +67,8 @@ public class SpecializedFileSchemeHandlerTest {
         List<SpecializedFileSchemeHandler.JS> javascripts = schemeHandler.getJavascripts();
         assertThat(javascripts.size(), is(2));
         assertThat(javascripts.get(0).javascript, is(javascriptUpper));
-        assertThat(javascripts.get(0).filename, is(jsFileUpper.getAbsolutePath()));
         assertThat(javascripts.get(0).modulename, is("upper"));
         assertThat(javascripts.get(1).javascript, is(javascriptLower));
-        assertThat(javascripts.get(1).filename, is(jsFileLower.getAbsolutePath()));
         assertThat(javascripts.get(1).modulename, is("lower"));
     }
 
@@ -85,9 +82,7 @@ public class SpecializedFileSchemeHandlerTest {
         Files.walkFileTree(rootDir1, finderJsCommon);
         DirectoriesContainingJavascriptFinder finderDatawell = new DirectoriesContainingJavascriptFinder();
         Files.walkFileTree(rootDir2, finderDatawell);
-//        for (Path path : finderJsCommon.getJavascriptDirectories()) {
-//            System.out.println("Path: " + path.toString());
-//        }
+
         ModuleHandler mh = new ModuleHandler();
         SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler("");
         //FileSchemeHandler sfsh = new FileSchemeHandler("");

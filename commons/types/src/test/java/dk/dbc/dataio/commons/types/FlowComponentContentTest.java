@@ -1,12 +1,17 @@
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.commons.types.json.mixins.MixIns;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
 
 /**
  * FlowComponentContent unit tests
@@ -22,67 +27,68 @@ public class FlowComponentContentTest {
     private static final String JAVA_SCRIPT_NAME = "invocationJavascriptName";
     private static final String INVOCATION_METHOD = "method";
     private static final List<JavaScript> JAVASCRIPTS = Arrays.asList(JavaScriptTest.newJavaScriptInstance());
+    private static final String REQUIRE_CACHE="";
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
-        new FlowComponentContent(null, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(null, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nameArgIsEmpty_throws() {
-        new FlowComponentContent("", SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent("", SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_svnProjectArgIsNull_throws() {
-        new FlowComponentContent(NAME, null, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, null, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_svnProjectArgIsEmpty_throws() {
-        new FlowComponentContent(NAME, "", SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, "", SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_svnRevisionArgIsZero_throws() {
-        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, 0, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, 0, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_invocationJavascriptNameArgIsNull_throws() {
-        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, null, JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, null, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_invocationJavascriptNameArgIsEmpty_throws() {
-        new FlowComponentContent("", SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, "", JAVASCRIPTS, INVOCATION_METHOD);
+        new FlowComponentContent("", SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, "", JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_javascriptsArgIsNull_throws() {
-        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, null, INVOCATION_METHOD);
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, null, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_invocationMethodArgIsNull_throws() {
-        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, null);
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, null, REQUIRE_CACHE);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_invocationMethodArgIsEmpty_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, "");
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, "", REQUIRE_CACHE);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_javascriptsArgIsEmpty_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, new ArrayList<JavaScript>(0), INVOCATION_METHOD);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, new ArrayList<JavaScript>(0), INVOCATION_METHOD, REQUIRE_CACHE);
         assertThat(instance, is(notNullValue()));
     }
 
@@ -90,7 +96,7 @@ public class FlowComponentContentTest {
     public void verify_defensiveCopyingOfJavascriptsList() {
         final List<JavaScript> javaScripts = new ArrayList<>();
         javaScripts.add(JavaScriptTest.newJavaScriptInstance());
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, javaScripts, INVOCATION_METHOD);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, javaScripts, INVOCATION_METHOD, REQUIRE_CACHE);
         assertThat(instance.getJavascripts().size(), is(1));
         javaScripts.add(null);
         final List<JavaScript> returnedJavascripts = instance.getJavascripts();
@@ -99,7 +105,57 @@ public class FlowComponentContentTest {
         assertThat(instance.getJavascripts().size(), is(1));
     }
 
+    @Test
+    public void testJsonUnmarchallOld() throws Exception {
+        String data="{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
+                "        \"invocationMethod\": \"tracerbullet_xmldom\",\n" +
+                "        \"javascripts\": [\n" +
+                "            {\n" +
+                "                \"javascript\": \"dXNlKCAiTG9nIiApOwp1c2UoICJYTUxET00iKTsKCgpmdW5jdGlvbiB0cmFjZXJidWxsZXRfeG1sZG9tKCByZWNvcmQsIHN1Ym1pdHRlcl9mb3JtYXQgKSB7CiAgICBMb2cudHJhY2UoICJFbnRlcmluZzogdHJhY2VyYnVsbGV0X3htbGRvbSBmdW5jdGlvbiIgKTsKICAgIExvZy5pbmZvICggIlRoZSByZWNvcmQgICBpcz0gIiwgcmVjb3JkICk7CiAgICBMb2cuaW5mbyAoICJUaGUgc3VibWl0ZXIgaXM9ICIsIHN1Ym1pdHRlcl9mb3JtYXQpOwoKICAgIHZhciBkb21QYXJzZXI9bmV3IFhNTERPTS5ET01QYXJzZXIoKTsKCgogICAgdmFyIGRvYyA9IGRvbVBhcnNlci5wYXJzZUZyb21TdHJpbmcoIHJlY29yZCApOwogICAgdmFyIHJlY29yZEVsZW1lbnQ9ZG9jLmdldEVsZW1lbnRzQnlUYWdOYW1lKCdyZWNvcmQnKVswXTsKICAgIHZhciB2YWx1ZT1yZWNvcmRFbGVtZW50LmNoaWxkTm9kZXNbMF0ubm9kZVZhbHVlOwoKICAgIExvZy50cmFjZSggIkxlYXZpbmc6IHRyYWNlcmJ1bGxldF94bWxkb20gZnVuY3Rpb24iICk7CiAgICByZXR1cm4gIkRvbmUgd2l0aCByZWNvcmQ6ICIgKyB2YWx1ZTsKfQ==\",\n" +
+                "                \"moduleName\": \"\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"javascript\": \"dXNlKCAiTG9nIiApOwp1c2UoICJYTUxET00iKTsKCgpmdW5jdGlvbiB0cmFjZXJidWxsZXRfeG1sZG9tKCByZWNvcmQsIHN1Ym1pdHRlcl9mb3JtYXQgKSB7CiAgICBMb2cudHJhY2UoICJFbnRlcmluZzogdHJhY2VyYnVsbGV0X3htbGRvbSBmdW5jdGlvbiIgKTsKICAgIExvZy5pbmZvICggIlRoZSByZWNvcmQgICBpcz0gIiwgcmVjb3JkICk7CiAgICBMb2cuaW5mbyAoICJUaGUgc3VibWl0ZXIgaXM9ICIsIHN1Ym1pdHRlcl9mb3JtYXQpOwoKICAgIHZhciBkb21QYXJzZXI9bmV3IFhNTERPTS5ET01QYXJzZXIoKTsKCgogICAgdmFyIGRvYyA9IGRvbVBhcnNlci5wYXJzZUZyb21TdHJpbmcoIHJlY29yZCApOwogICAgdmFyIHJlY29yZEVsZW1lbnQ9ZG9jLmdldEVsZW1lbnRzQnlUYWdOYW1lKCdyZWNvcmQnKVswXTsKICAgIHZhciB2YWx1ZT1yZWNvcmRFbGVtZW50LmNoaWxkTm9kZXNbMF0ubm9kZVZhbHVlOwoKICAgIExvZy50cmFjZSggIkxlYXZpbmc6IHRyYWNlcmJ1bGxldF94bWxkb20gZnVuY3Rpb24iICk7CiAgICByZXR1cm4gIkRvbmUgd2l0aCByZWNvcmQ6ICIgKyB2YWx1ZTsKfQ==\",\n" +
+                "                \"moduleName\": \"moduleName2\"\n" +
+                "            }]," +
+                "        \"name\": \"test\",\n" +
+                "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
+                "        \"svnRevision\": 83597\n" +
+                "}"
+                ;
+
+        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class, MixIns.getMixIns());
+        assertThat("fisk", flowComponentContent.getName(), is("test"));
+        assertThat( flowComponentContent.getRequireCache(), is(nullValue()));
+    }
+
+    @Test
+    public void testJsonUnmarchall() throws Exception {
+
+        String data="{ \"invocationJavascriptName\": \"trunk/tracerBulletXmlDom.js\",\n" +
+                "        \"invocationMethod\": \"tracerbullet_xmldom\",\n" +
+                "        \"javascripts\": [\n" +
+                "            {\n" +
+                "                \"javascript\": \"dXNlKCAiTG9nIiApOwp1c2UoICJYTUxET00iKTsKCgpmdW5jdGlvbiB0cmFjZXJidWxsZXRfeG1sZG9tKCByZWNvcmQsIHN1Ym1pdHRlcl9mb3JtYXQgKSB7CiAgICBMb2cudHJhY2UoICJFbnRlcmluZzogdHJhY2VyYnVsbGV0X3htbGRvbSBmdW5jdGlvbiIgKTsKICAgIExvZy5pbmZvICggIlRoZSByZWNvcmQgICBpcz0gIiwgcmVjb3JkICk7CiAgICBMb2cuaW5mbyAoICJUaGUgc3VibWl0ZXIgaXM9ICIsIHN1Ym1pdHRlcl9mb3JtYXQpOwoKICAgIHZhciBkb21QYXJzZXI9bmV3IFhNTERPTS5ET01QYXJzZXIoKTsKCgogICAgdmFyIGRvYyA9IGRvbVBhcnNlci5wYXJzZUZyb21TdHJpbmcoIHJlY29yZCApOwogICAgdmFyIHJlY29yZEVsZW1lbnQ9ZG9jLmdldEVsZW1lbnRzQnlUYWdOYW1lKCdyZWNvcmQnKVswXTsKICAgIHZhciB2YWx1ZT1yZWNvcmRFbGVtZW50LmNoaWxkTm9kZXNbMF0ubm9kZVZhbHVlOwoKICAgIExvZy50cmFjZSggIkxlYXZpbmc6IHRyYWNlcmJ1bGxldF94bWxkb20gZnVuY3Rpb24iICk7CiAgICByZXR1cm4gIkRvbmUgd2l0aCByZWNvcmQ6ICIgKyB2YWx1ZTsKfQ==\",\n" +
+                "                \"moduleName\": \"\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "                \"javascript\": \"dXNlKCAiTG9nIiApOwp1c2UoICJYTUxET00iKTsKCgpmdW5jdGlvbiB0cmFjZXJidWxsZXRfeG1sZG9tKCByZWNvcmQsIHN1Ym1pdHRlcl9mb3JtYXQgKSB7CiAgICBMb2cudHJhY2UoICJFbnRlcmluZzogdHJhY2VyYnVsbGV0X3htbGRvbSBmdW5jdGlvbiIgKTsKICAgIExvZy5pbmZvICggIlRoZSByZWNvcmQgICBpcz0gIiwgcmVjb3JkICk7CiAgICBMb2cuaW5mbyAoICJUaGUgc3VibWl0ZXIgaXM9ICIsIHN1Ym1pdHRlcl9mb3JtYXQpOwoKICAgIHZhciBkb21QYXJzZXI9bmV3IFhNTERPTS5ET01QYXJzZXIoKTsKCgogICAgdmFyIGRvYyA9IGRvbVBhcnNlci5wYXJzZUZyb21TdHJpbmcoIHJlY29yZCApOwogICAgdmFyIHJlY29yZEVsZW1lbnQ9ZG9jLmdldEVsZW1lbnRzQnlUYWdOYW1lKCdyZWNvcmQnKVswXTsKICAgIHZhciB2YWx1ZT1yZWNvcmRFbGVtZW50LmNoaWxkTm9kZXNbMF0ubm9kZVZhbHVlOwoKICAgIExvZy50cmFjZSggIkxlYXZpbmc6IHRyYWNlcmJ1bGxldF94bWxkb20gZnVuY3Rpb24iICk7CiAgICByZXR1cm4gIkRvbmUgd2l0aCByZWNvcmQ6ICIgKyB2YWx1ZTsKfQ==\",\n" +
+                "                \"moduleName\": \"moduleName2\"\n" +
+                "            }]," +
+                "        \"name\": \"test\",\n" +
+                "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
+                "        \"svnRevision\": 83597,\n" +
+                "        \"requireCache\": \"RequireCacheString\"" +
+                "}"
+                ;
+
+        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class, MixIns.getMixIns());
+        assertThat( flowComponentContent.getName(), is("test"));
+        assertThat(flowComponentContent.getRequireCache(), is("RequireCacheString"));
+    }
+
     public static FlowComponentContent newFlowComponentContentInstance() {
-        return new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD);
+        return new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
     }
 }

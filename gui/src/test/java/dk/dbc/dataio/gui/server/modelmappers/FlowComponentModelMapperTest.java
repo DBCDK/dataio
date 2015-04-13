@@ -7,6 +7,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -141,7 +143,7 @@ public class FlowComponentModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toFlowComponentContent_nullInput_throwsNullPointerException() {
-        FlowComponentModelMapper.toFlowComponentContent(null, Arrays.asList(new JavaScriptBuilder().build()));
+        FlowComponentModelMapper.toFlowComponentContent(null, createTestFetchRequiredJavaScriptResult());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -153,21 +155,21 @@ public class FlowComponentModelMapperTest {
     @Test(expected = IllegalArgumentException.class)
     public void toFlowComponentContent_listOfJavaScriptsAreEmpty_throwsIllegalArgumentException() {
         FlowComponentModel model = getDefaultFlowComponentModel();
-        FlowComponentModelMapper.toFlowComponentContent(model, new ArrayList<JavaScript>());
+        FlowComponentModelMapper.toFlowComponentContent(model, new fetchRequiredJavaScriptResult( new ArrayList<JavaScript>(), null));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toFlowComponentContent_validInputEmptyField_throwsIllegalArgumentException() {
         FlowComponentModel model = getDefaultFlowComponentModel();
         model.setName("");
-        FlowComponentModelMapper.toFlowComponentContent(model, Arrays.asList(new JavaScriptBuilder().build()));
+        FlowComponentModelMapper.toFlowComponentContent(model, createTestFetchRequiredJavaScriptResult());
     }
 
     @Test
     public void toFlowComponentContent_validInput_returnsValidFlowComponentContent() {
         JavaScript javaScript = new JavaScriptBuilder().build();
         FlowComponentModel flowComponentModel = getDefaultFlowComponentModel();
-        FlowComponentContent content = FlowComponentModelMapper.toFlowComponentContent(flowComponentModel, Arrays.asList(javaScript));
+        FlowComponentContent content = FlowComponentModelMapper.toFlowComponentContent(flowComponentModel, createTestFetchRequiredJavaScriptResult());
 
         assertThat(content.getName(), is(flowComponentModel.getName()));
         assertThat(content.getSvnProjectForInvocationJavascript(), is(flowComponentModel.getSvnProject()));
@@ -214,4 +216,7 @@ public class FlowComponentModelMapperTest {
 
     }
 
+    private fetchRequiredJavaScriptResult createTestFetchRequiredJavaScriptResult() {
+        return new fetchRequiredJavaScriptResult(Arrays.asList(new JavaScriptBuilder().build()), null);
+    }
 }

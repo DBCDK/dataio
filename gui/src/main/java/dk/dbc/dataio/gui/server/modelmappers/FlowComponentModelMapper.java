@@ -4,6 +4,8 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,13 +61,17 @@ public final class FlowComponentModelMapper {
     /**
      * Maps a model to a flow component content, containing the java scripts given as input
      * @param model
+     * @param requiredJavaScripts
      * @return flowComponentContent
      */
-    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, List<JavaScript> javaScripts) throws IllegalArgumentException{
+    public static FlowComponentContent toFlowComponentContent(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException{
         if (model.isInputFieldsEmptyModulesExcluded()) {
             throw new IllegalArgumentException("The fields in the Flow Component Model cannot be empty");
         }
-        if (javaScripts == null || javaScripts.isEmpty()) {
+        if (requiredJavaScripts == null ) {
+            throw new IllegalArgumentException("The list of java scripts cannot be null or empty");
+        }
+        if (requiredJavaScripts.javaScripts == null || requiredJavaScripts.javaScripts.isEmpty()) {
             throw new IllegalArgumentException("The list of java scripts cannot be null or empty");
         }
         return new FlowComponentContent(
@@ -73,8 +79,10 @@ public final class FlowComponentModelMapper {
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
                 model.getInvocationJavascript(),
-                javaScripts,
-                model.getInvocationMethod());
+                requiredJavaScripts.javaScripts,
+                model.getInvocationMethod(),
+                requiredJavaScripts.requireCache);
+        //TODO handle require
     }
 
 }

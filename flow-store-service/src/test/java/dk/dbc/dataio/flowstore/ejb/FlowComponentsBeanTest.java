@@ -142,7 +142,7 @@ public class FlowComponentsBeanTest {
     public void CreateFlowComponent_flowComponentCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JsonException, ReferencedEntityNotFoundException {
         final UriInfo uriInfo = mock(UriInfo.class);
         final UriBuilder uriBuilder = mock(UriBuilder.class);
-        final FlowComponentContent flowComponentContent = new FlowComponentContent("CreateContentName", "svnProjectForInvocationJavascript", 1L, "invocationJavascriptName", new ArrayList<JavaScript>(), "invocationMethod");
+        final FlowComponentContent flowComponentContent = new FlowComponentContent("CreateContentName", "svnProjectForInvocationJavascript", 1L, "invocationJavascriptName", new ArrayList<JavaScript>(), "invocationMethod", "RequireCach");
         final String flowComponentContentString = new FlowComponentContentJsonBuilder().setName("CreateContentName").build();
         final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
 

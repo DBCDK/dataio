@@ -14,6 +14,7 @@ public class FlowComponentContentBuilder {
     private List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(
             new JavaScriptBuilder().build()));
     private String invocationMethod = "invocationMethod";
+    private String requireCache = null;
 
     public FlowComponentContentBuilder setName(String name) {
         this.name = name;
@@ -45,7 +46,12 @@ public class FlowComponentContentBuilder {
         return this;
     }
 
+    public FlowComponentContentBuilder setRequireCache( String requireCache) {
+        this.requireCache = requireCache;
+        return this;
+    }
+
     public FlowComponentContent build() {
-        return new FlowComponentContent(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod);
+        return new FlowComponentContent(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod, requireCache);
     }
 }

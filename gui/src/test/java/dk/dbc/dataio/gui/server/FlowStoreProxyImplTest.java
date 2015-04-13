@@ -28,6 +28,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
@@ -1469,11 +1470,11 @@ public class FlowStoreProxyImplTest {
         }
     }
 
-    private List<JavaScript> getDefaultJavaScripts() {
+    private JavaScriptProjectFetcher.fetchRequiredJavaScriptResult getDefaultJavaScripts() {
         List<JavaScript> javaScripts = new ArrayList<JavaScript>(2);
         javaScripts.add(new JavaScript("javascript1", "javaScriptName1"));
         javaScripts.add(new JavaScript("javascript2", "javaScriptName2"));
-        return javaScripts;
+        return new JavaScriptProjectFetcher.fetchRequiredJavaScriptResult(javaScripts, null);
     }
 
     private FlowComponentModel getDefaultFlowComponentModel() {

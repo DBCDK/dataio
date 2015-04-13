@@ -52,13 +52,15 @@ public class SpecializedFileSchemeHandler extends FileSchemeHandler {
         this.javascripts.add(new JS(javascript, filename));
     }
 
+    public void addJS(JS js) {
+        this.javascripts.add(js);
+    }
+
     public static class JS {
         public final String javascript;
-        public final String filename;
         public final String modulename;
         public JS(String javascript, String filename) {
             this.javascript = javascript;
-            this.filename = filename;
             this.modulename = filename.substring(filename.lastIndexOf("/")+1, filename.indexOf(".use.js"));
         }
     }

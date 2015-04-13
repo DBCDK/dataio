@@ -1,6 +1,5 @@
 package dk.dbc.dataio.commons.utils.test.json;
 
-import dk.dbc.dataio.commons.types.ChunkCounter;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -8,9 +7,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.ItemResultCounter;
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.types.JobInfo;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -65,11 +62,6 @@ public class JsonBuilderTest {
     }
 
     @Test
-    public void JobInfoJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new JobInfoJsonBuilder().build(), JobInfo.class, MixIns.getMixIns());
-    }
-
-    @Test
     public void JobSpecificationJsonBuilderProducesValidJson() throws JsonException {
         JsonUtil.fromJson(new JobSpecificationJsonBuilder().build(), JobSpecification.class, MixIns.getMixIns());
     }
@@ -97,16 +89,6 @@ public class JsonBuilderTest {
     @Test
     public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JsonException {
         JsonUtil.fromJson(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class, MixIns.getMixIns());
-    }
-
-    @Test
-    public void ChunkCounterJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new ChunkCounterJsonBuilder().build(), ChunkCounter.class, MixIns.getMixIns());
-    }
-
-    @Test
-    public void ItemResultCounterJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new ItemResultCounterJsonBuilder().build(), ItemResultCounter.class, MixIns.getMixIns());
     }
 
     @Test

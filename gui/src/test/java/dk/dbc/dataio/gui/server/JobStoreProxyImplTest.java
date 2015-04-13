@@ -1,11 +1,7 @@
 package dk.dbc.dataio.gui.server;
 
-import dk.dbc.dataio.commons.types.ItemCompletionState;
-import dk.dbc.dataio.commons.types.JobCompletionState;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.commons.utils.test.model.ChunkCompletionStateBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobCompletionStateBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
@@ -54,12 +50,6 @@ public class JobStoreProxyImplTest {
     private final dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector jobStoreServiceConnector = mock(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector.class);
 
     private final long ID = 737L;
-    private final JobCompletionState defaultJobCompletionState = new JobCompletionStateBuilder()
-            .addChunk(new ChunkCompletionStateBuilder()
-                    .addItem(new ItemCompletionState(ID, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.SUCCESS, ItemCompletionState.State.SUCCESS))
-                    .build())
-            .build();
-
 
     @Before
     public void setup() throws Exception {

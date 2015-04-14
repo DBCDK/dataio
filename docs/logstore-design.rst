@@ -53,12 +53,6 @@ Dette gør det muligt i logstore at knytte en given log event til et item i
 en chunk i et job (se jobstore design dokument for en beskrivelse af
 job-chunk-item modellen).
 
-Det skal bemærkes, at hver enkelt log event medfører et par af *insert/commit*
-hændelser i databasen, og af den grund kan logningen vise sig at blive for
-stor en performancemæssig flaskehals for dataIO systemets processeringsmaskine.
-Derfor skal der på sigt sandsynligvis indtænkes en mekanisme til
-masseindsættelse.
-
 Drift beskrivelse
 ~~~~~~~~~~~~~~~~~
 

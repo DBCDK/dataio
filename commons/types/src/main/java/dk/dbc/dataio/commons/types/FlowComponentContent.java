@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,18 +105,18 @@ public class FlowComponentContent implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof FlowComponentContent)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
         FlowComponentContent that = (FlowComponentContent) o;
 
         if (svnRevision != that.svnRevision) return false;
-        if (!invocationJavascriptName.equals(that.invocationJavascriptName)) return false;
-        if (!invocationMethod.equals(that.invocationMethod)) return false;
-        if (!javascripts.equals(that.javascripts)) return false;
         if (!name.equals(that.name)) return false;
         if (!svnProjectForInvocationJavascript.equals(that.svnProjectForInvocationJavascript)) return false;
+        if (!invocationJavascriptName.equals(that.invocationJavascriptName)) return false;
+        if (!javascripts.equals(that.javascripts)) return false;
+        if (!invocationMethod.equals(that.invocationMethod)) return false;
+        return !(requireCache != null ? !requireCache.equals(that.requireCache) : that.requireCache != null);
 
-        return true;
     }
 
     @Override
@@ -126,6 +127,7 @@ public class FlowComponentContent implements Serializable {
         result = 31 * result + invocationJavascriptName.hashCode();
         result = 31 * result + javascripts.hashCode();
         result = 31 * result + invocationMethod.hashCode();
+        result = 31 * result + (requireCache != null ? requireCache.hashCode() : 0);
         return result;
     }
 

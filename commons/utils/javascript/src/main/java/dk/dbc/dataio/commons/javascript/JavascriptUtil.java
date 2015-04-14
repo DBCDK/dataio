@@ -1,19 +1,20 @@
 package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import java.io.Reader;
-import java.io.Serializable;
-import java.util.List;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.ModuleHandler;
 import dk.dbc.jslib.SchemeURI;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.ScriptableObject;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JavascriptUtil {
 
@@ -178,16 +179,16 @@ public class JavascriptUtil {
         return result;
     }
 
-    public static class getAllDependatJavascriptsResult implements Serializable {
+    public static class getAllDependentJavascriptsResult implements Serializable {
         public List<SpecializedFileSchemeHandler.JS> javaScripts;
         public String requireCache = null;
 
-        public getAllDependatJavascriptsResult(List<SpecializedFileSchemeHandler.JS> javaScripts, String requireCache) {
+        public getAllDependentJavascriptsResult(List<SpecializedFileSchemeHandler.JS> javaScripts, String requireCache) {
             this.javaScripts = javaScripts;
             this.requireCache = requireCache;
         }
     }
-    public static getAllDependatJavascriptsResult getAllDependentJavascripts(Path root, Path javascript) throws IOException {
+    public static getAllDependentJavascriptsResult getAllDependentJavascripts(Path root, Path javascript) throws IOException {
         DirectoriesContainingJavascriptFinder javascriptDirFinder = new DirectoriesContainingJavascriptFinder();
         Files.walkFileTree(root, javascriptDirFinder);
         List<Path> javascriptDirs = javascriptDirFinder.getJavascriptDirectories();
@@ -210,6 +211,6 @@ public class JavascriptUtil {
             requireCache = resAsString;
         }
 
-        return new getAllDependatJavascriptsResult( sfsh.getJavascripts(), requireCache );
+        return new getAllDependentJavascriptsResult( sfsh.getJavascripts(), requireCache );
     }
 }

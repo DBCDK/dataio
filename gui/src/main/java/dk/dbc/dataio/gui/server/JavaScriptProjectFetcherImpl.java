@@ -22,11 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -206,7 +202,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
                 SvnConnector.export(buildProjectUrl(dependency), revision, Paths.get(exportFolder.toString(), dependency));
             }
 
-            JavascriptUtil.getAllDependatJavascriptsResult result=JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath);
+            JavascriptUtil.getAllDependentJavascriptsResult result=JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath);
             for (SpecializedFileSchemeHandler.JS js : result.javaScripts) {
                 javaScripts.add(new JavaScript(Base64.encodeBase64String(js.javascript.getBytes(CHARSET)), js.modulename));
             }

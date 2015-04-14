@@ -145,7 +145,6 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), "Empty slot", ChunkItem.Status.SUCCESS));
                     } catch (RuntimeException | IOException | SAXException | TransformerException e) {
                         incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), e.getMessage(), ChunkItem.Status.FAILURE));
-                        System.out.println("My message" + e.getMessage());
                     }
                     break;
                 case FAILURE:

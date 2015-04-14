@@ -299,7 +299,7 @@ public class EsMessageProcessorBeanTest {
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(nodeList.getLength(), is(1));
 
-        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
+        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList.item(0), document);
         assertThat(nodeList.getLength(), is(0));
         assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
     }
@@ -313,22 +313,9 @@ public class EsMessageProcessorBeanTest {
         Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(nodeList.getLength(), is(1));
-        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
+        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList.item(0), document);
         assertThat(nodeList.getLength(), is(0));
         assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
-    }
-
-    @Test
-    public void removeProcessingTagFromDom_tagIsNotSet_newMetaDataIsNull() throws IOException, XPathExpressionException, TransformerException, SAXException {
-        final String validAddi = getValidAddiWithoutProcessing();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord.getMetaData());
-        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
-        assertThat(nodeList.getLength(), is(0));
-        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
-        assertThat(modifiedMetaData, is(nullValue()));
     }
 
     @Test

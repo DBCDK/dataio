@@ -131,10 +131,10 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                             if (do2709Encoding(nodeList)) {
                                 Document contentDataDocument = getDocument(addiRecordFromChunkItem.getContentData());
                                 byte[] as2709 = Iso2709Packer.create2709FromMarcXChangeRecord(contentDataDocument, new DanMarc2Charset());
-                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList, contentDataDocument);
+                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList.item(0), contentDataDocument);
                                 processedAddiRecord = new AddiRecord(newMetaData, as2709);
                             } else {
-                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList, metaDataDocument);
+                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList.item(0), metaDataDocument);
                                 processedAddiRecord = new AddiRecord(newMetaData, addiRecordFromChunkItem.getContentData());
                             }
                             addiRecords.remove(addiRecordFromChunkItem);
@@ -161,26 +161,21 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     /**
-     * This method removes the processing tag from the dom if it exists
-     * @param nodeList if not null then containing exactly one item
+     * This method removes the processing tag from the dom
+     * @param node the node to remove
      * @param document the document
-     * @return a new byte array representing meta data without the processing tag, null if the processing tag was not set
+     * @return a new byte array representing meta data without the processing tag
      * @throws TransformerException
      */
-    byte[] RemoveProcessingTagFromDom(NodeList nodeList, Document document) throws TransformerException {
-        byte[] processedMetaData = null;
-        if(nodeList.getLength() == 1) {
-            Node node = nodeList.item(0);
-            node.getParentNode().removeChild(node); // Remove node from dom
-            Source source = new DOMSource(document);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            Result result = new StreamResult(byteArrayOutputStream);
-            TransformerFactory factory = TransformerFactory.newInstance();
-            Transformer transformer = factory.newTransformer();
-            transformer.transform(source, result);
-            processedMetaData = byteArrayOutputStream.toByteArray();
-        }
-        return processedMetaData;
+    byte[] RemoveProcessingTagFromDom(Node node, Document document) throws TransformerException {
+        node.getParentNode().removeChild(node); // Remove node from dom
+        Source source = new DOMSource(document);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Result result = new StreamResult(byteArrayOutputStream);
+        TransformerFactory factory = TransformerFactory.newInstance();
+        Transformer transformer = factory.newTransformer();
+        transformer.transform(source, result);
+        return byteArrayOutputStream.toByteArray();
     }
 
     /**

@@ -1,0 +1,11 @@
+{
+         "charset": "utf8",
+         "destination": "requiretb",
+         "format": "testdata",
+         "mailForNotificationAboutProcessing": "-mailForNotificationAboutProcessing-",
+         "mailForNotificationAboutVerification": "-mailForNotificationAboutVerification-",
+         "resultmailInitials": "resultMail",
+         "packaging": "xml",
+         "submitterId": 424242
+}
+

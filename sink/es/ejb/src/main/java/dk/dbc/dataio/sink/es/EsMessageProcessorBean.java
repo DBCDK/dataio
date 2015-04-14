@@ -161,21 +161,16 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     /**
-     * This method determines if 2709 encoding should be performed depending on the node value
+     * This method determines if iso2709 encoding should be performed depending on the node value
      * @param nodeList if not null then containing exactly one item
-     * @return true if 2709 encoding should be performed, otherwise false
+     * @return true if iso2709 encoding should be performed, otherwise false
      */
     boolean do2709Encoding(NodeList nodeList) {
-        boolean do2709Encoding = false;
-
-        if(nodeList.getLength() == 1) {
-            Node nNode = nodeList.item(0);
-            do2709Encoding = Boolean.valueOf(nNode.getAttributes().getNamedItem("encodeAs2709").getNodeValue());
-        }
-        return do2709Encoding;
+        Node node = nodeList.item(0);
+        return Boolean.valueOf(node.getAttributes().getNamedItem("encodeAs2709").getNodeValue());
     }
 
-    public Document getDocument(byte[] byteArray) throws IOException, SAXException {
+    Document getDocument(byte[] byteArray) throws IOException, SAXException {
         final DocumentBuilder builder = getDocumentBuilder();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
         return builder.parse(byteArrayInputStream);

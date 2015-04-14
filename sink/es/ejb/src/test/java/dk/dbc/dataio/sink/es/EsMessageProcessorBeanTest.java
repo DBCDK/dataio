@@ -251,41 +251,40 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void removeProcessingTagFromDom_tagIsSetWithValueFalse_tagIsRemovedAndNewMetaDataReturned() throws IOException, XPathExpressionException, TransformerException, SAXException {
-        final String validAddi = "236\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final String validAddi = getValidAddiWithProcessingFalse();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord);
+        Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(nodeList.getLength(), is(1));
 
         byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
-                assertThat(nodeList.getLength(), is(0));
-                assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
-        }
+        assertThat(nodeList.getLength(), is(0));
+        assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
+    }
 
     @Test
     public void removeProcessingTagFromDom_tagIsSetWithValueTrue_tagIsRemovedAndNewMetaDataReturned() throws IOException, XPathExpressionException, TransformerException, SAXException {
-        final String validAddi = "235\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final String validAddi = getValidAdiWithProcessingTrue();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord);
+        Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(nodeList.getLength(), is(1));
         byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
         assertThat(nodeList.getLength(), is(0));
         assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
-        System.out.println(new String(modifiedMetaData, StandardCharsets.UTF_8)); //TODO - remove
     }
 
     @Test
     public void removeProcessingTagFromDom_tagIsNotSet_newMetaDataIsNull() throws IOException, XPathExpressionException, TransformerException, SAXException {
-        final String validAddi = "131\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/></es:referencedata>\n1\nb\n";
+        final String validAddi = getValidAddiWithoutProcessing();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord);
+        Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(nodeList.getLength(), is(0));
         byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList, document);
@@ -294,45 +293,46 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void do2709Encoding_tagIsSetWithValueTrue_returnsTrue() throws IOException, SAXException {
-        final String validAddi = "235\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final String validAddi = getValidAdiWithProcessingTrue();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord);
+        Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(true));
     }
 
     @Test
     public void do2709Encoding_tagIsSetWithValueFalse_returnsFalse() throws IOException, SAXException {
-       final String validAddi = "236\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
-       final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-       final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
-       final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-       Document document = getDocument(addiRecord);
-       NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
-       assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(false));
-    }
-
-    @Test
-    public void do2709Encoding_tagIsNotSet_returnsFalse() throws IOException, SAXException {
-        final String validAddi = "131\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/></es:referencedata>\n1\nb\n";
+        final String validAddi = getValidAddiWithProcessingFalse();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord);
+        Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(false));
     }
 
     @Test
     public void getDocument_bytesAreConverted_documentIsReturned() throws IOException, SAXException {
-        final String validAddi = "236\n<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\"><es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/><dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/></es:referencedata>\n1\nb\n";
+        final String validAddi = getValidAddiWithProcessingFalse();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = esMessageProcessorBean.getDocument(addiRecord.getMetaData());
         assertThat(document, not(nullValue()));
+    }
+
+    @Test
+    public void getDocument_invalidAddi_throws() throws IOException, SAXException {
+        final String validAddi = getValidAddiWithoutProcessing();
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        try {
+            esMessageProcessorBean.getDocument(addiRecord.getContentData());
+            fail();
+        } catch (SAXException e) {}
     }
 
     private TestableMessageConsumerBean getInitializedBean() {
@@ -347,10 +347,9 @@ public class EsMessageProcessorBeanTest {
                 .build();
     }
 
-    private Document getDocument(AddiRecord addiRecord) throws IOException, SAXException {
-        byte[] metadata = addiRecord.getMetaData();
+    private Document getDocument(byte[] byteArray) throws IOException, SAXException {
         final DocumentBuilder builder = getDocumentBuilder();
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(metadata);
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
         return builder.parse(byteArrayInputStream);
     }
 
@@ -362,6 +361,29 @@ public class EsMessageProcessorBeanTest {
         } catch (ParserConfigurationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private String getValidAddiWithProcessingFalse() {
+        return "236\n" +
+                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
+                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/>" +
+                "</es:referencedata>\n1\nb\n";
+    }
+
+    private String getValidAddiWithoutProcessing() {
+        return "131\n" +
+                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
+                "</es:referencedata>\n1\nb\n";
+    }
+
+    private String getValidAdiWithProcessingTrue() {
+        return "235\n" +
+                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
+                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
+                "</es:referencedata>\n1\nb\n";
     }
 
     private static class TestableMessageConsumerBean extends EsMessageProcessorBean {

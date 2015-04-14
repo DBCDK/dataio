@@ -54,7 +54,7 @@ public class HarvestOperation_2fbs_Test {
 
     private static final RecordId FIRST_RECORD_ID = new RecordId("first", AGENCY_ID);
     private static final String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
-    private static final Record FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
+    private static final MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
     private static final QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID);
 
     private static final RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", AGENCY_ID);
@@ -72,6 +72,7 @@ public class HarvestOperation_2fbs_Test {
 
     static {
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
+        FIRST_RECORD.setEnrichmentTrail("trail");
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
@@ -138,6 +139,7 @@ public class HarvestOperation_2fbs_Test {
         final DataContainerExpectation dataContainerExpectation1 = new DataContainerExpectation();
         dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
         dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
         harvesterDataFileExpectations.add(dataContainerExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
@@ -185,6 +187,7 @@ public class HarvestOperation_2fbs_Test {
         final DataContainerExpectation dataContainerExpectation1 = new DataContainerExpectation();
         dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
         dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
         harvesterDataFileExpectations.add(dataContainerExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();

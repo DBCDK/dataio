@@ -55,7 +55,7 @@ public class HarvesterBean_2datawell_Test {
 
     private final static RecordId FIRST_RECORD_ID = new RecordId("first", COMMUNITY_ID);
     private final static String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
-    private final static Record FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
+    private final static MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
     private final static QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID);
 
     private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", COMMUNITY_ID);
@@ -80,6 +80,7 @@ public class HarvesterBean_2datawell_Test {
         FIRST_RECORD_HEAD.setContent(FIRST_RECORD_HEAD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD_SECTION.setContent(FIRST_RECORD_SECTION_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
+        FIRST_RECORD.setEnrichmentTrail("trail");
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
@@ -154,6 +155,7 @@ public class HarvesterBean_2datawell_Test {
         final DataContainerExpectation communityExpectation1 = new DataContainerExpectation();
         communityExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
         communityExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        communityExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
         harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();

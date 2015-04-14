@@ -11,6 +11,7 @@ public class MockedRecord implements Record {
     private Date created;
     private Date modified;
     private String mimeType;
+    private String enrichmentTrail;
 
     public MockedRecord(RecordId recordId, boolean isOriginal) {
         this.recordId = recordId;
@@ -18,6 +19,7 @@ public class MockedRecord implements Record {
         this.isDeleted = false;
         this.isEnriched = false;
         this.mimeType = "mimeType";
+        enrichmentTrail = null;
         content = null;
         created = modified = new Date();
     }
@@ -84,7 +86,11 @@ public class MockedRecord implements Record {
 
     @Override
     public String getEnrichmentTrail() {
-        return null;
+        return enrichmentTrail;
+    }
+
+    public void setEnrichmentTrail(String enrichmentTrail) {
+        this.enrichmentTrail = enrichmentTrail;
     }
 
     @Override

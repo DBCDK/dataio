@@ -33,6 +33,7 @@ public class DataContainer implements HarvesterXmlRecord {
     private final DocumentBuilder documentBuilder;
     private final Charset charset = StandardCharsets.UTF_8;
     private String creationDate = null;
+    private String enrichmentTrail = null;
     private Element data;
 
     /**
@@ -104,6 +105,10 @@ public class DataContainer implements HarvesterXmlRecord {
         this.creationDate = new SimpleDateFormat("YYYYMMdd").format(creationDate);
     }
 
+    public void setEnrichmentTrail(String enrichmentTrail) {
+        this.enrichmentTrail = enrichmentTrail;
+    }
+
     /**
      * Sets container data
      * @param data data as DOM element
@@ -120,6 +125,11 @@ public class DataContainer implements HarvesterXmlRecord {
             final Element creationDateElement = dataContainer.createElement("creationDate");
             creationDateElement.setTextContent(creationDate);
             dataSupplementaryElement.appendChild(creationDateElement);
+        }
+        if (enrichmentTrail != null) {
+            final Element enrichmentTrailElement = dataContainer.createElement("enrichmentTrail");
+            enrichmentTrailElement.setTextContent(this.enrichmentTrail);
+            dataSupplementaryElement.appendChild(enrichmentTrailElement);
         }
         dataContainer.getDocumentElement().appendChild(dataSupplementaryElement);
     }

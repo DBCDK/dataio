@@ -151,6 +151,7 @@ public class HarvestOperation {
         final MarcExchangeCollection marcExchangeCollection = getMarcExchangeCollection(recordId, records);
         final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
         dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
+        dataContainer.setEnrichmentTrail(getRecordEnrichmentTrail(recordId, records));
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
         return dataContainer;
     }
@@ -195,6 +196,10 @@ public class HarvestOperation {
         } catch (NullPointerException e) {
             throw new HarvesterInvalidRecordException("Record creation date is null");
         }
+    }
+
+    private String getRecordEnrichmentTrail(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
+        return records.get(recordId.getBibliographicRecordId()).getEnrichmentTrail();
     }
 
     private void markAsFailure(QueueJob queuedItem, String errorMessage) throws HarvesterException {

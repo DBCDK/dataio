@@ -91,6 +91,12 @@ public class DataContainerTest {
     }
 
     @Test
+    public void setEnrichmentTrail_enrichmentTrailArgIsNull_returns() throws HarvesterException {
+        final DataContainer dataContainer = getDataContainer();
+        dataContainer.setEnrichmentTrail(null);
+    }
+
+    @Test
     public void asDocument_dataContainerHasSupplementaryData_documentRepresentationHasNonEmptySupplementaryData()
             throws HarvesterException, IOException, TransformerException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(getDocumentBuilder(), getTransformer());
@@ -98,10 +104,13 @@ public class DataContainerTest {
 
         Map<String, String> expectedSupplementaryData = new HashMap<>();
         final Date expectedDate = new Date();
+        final String expectedEnrichmentTrail = "trail";
         expectedSupplementaryData.put("creationDate", new SimpleDateFormat("YYYYMMdd").format(expectedDate));
+        expectedSupplementaryData.put("enrichmentTrail", expectedEnrichmentTrail);
 
         final DataContainer dataContainer = getDataContainer();
-        dataContainer.setCreationDate(new Date());
+        dataContainer.setCreationDate(expectedDate);
+        dataContainer.setEnrichmentTrail(expectedEnrichmentTrail);
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
         assertDataContainerDocument(dataContainer.asDocument(), expectedSupplementaryData);
@@ -127,10 +136,13 @@ public class DataContainerTest {
 
         Map<String, String> expectedSupplementaryData = new HashMap<>();
         final Date expectedDate = new Date();
+        final String expectedEnrichmentTrail = "trail";
         expectedSupplementaryData.put("creationDate", new SimpleDateFormat("YYYYMMdd").format(expectedDate));
+        expectedSupplementaryData.put("enrichmentTrail", expectedEnrichmentTrail);
 
         final DataContainer dataContainer = getDataContainer();
-        dataContainer.setCreationDate(new Date());
+        dataContainer.setCreationDate(expectedDate);
+        dataContainer.setEnrichmentTrail(expectedEnrichmentTrail);
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
         assertDataContainerDocument(asDocument(dataContainer.asBytes()), expectedSupplementaryData);
@@ -168,11 +180,11 @@ public class DataContainerTest {
 
     private void assertDataContainerSupplementaryData(Node supplementaryDataNode, Map<String, String> expectedSupplementaryData) {
         final NodeList childNodes = supplementaryDataNode.getChildNodes();
-        assertThat(childNodes.getLength(), is(expectedSupplementaryData.size()));
+        assertThat("Number of supplementary data nodes", childNodes.getLength(), is(expectedSupplementaryData.size()));
         for (Map.Entry<String, String> entry : expectedSupplementaryData.entrySet()) {
             final NodeList elementsByTagName = ((Element) supplementaryDataNode).getElementsByTagName(entry.getKey());
-            assertThat(elementsByTagName.getLength(), is(1));
-            assertThat(elementsByTagName.item(0).getTextContent(), is(entry.getValue()));
+            assertThat(entry.getKey() + " elements", elementsByTagName.getLength(), is(1));
+            assertThat(entry.getKey() + " value",  elementsByTagName.item(0).getTextContent(), is(entry.getValue()));
         }
     }
 

@@ -10,6 +10,8 @@ import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
+import dk.dbc.marc.DanMarc2Charset;
+import dk.dbc.marc.Iso2709Packer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -38,6 +40,7 @@ import java.util.List;
 @MessageDriven
 public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsMessageProcessorBean.class);
+    private static final String PROCESSING_TAG = "dataio:sink-processing";
 
     @EJB
     EsThrottlerBean esThrottler;
@@ -118,10 +121,31 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             switch (chunkItem.getStatus()) {
                 case SUCCESS:
                     try {
-                        addiRecords.add(ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding()));
+                        AddiRecord addiRecordFromChunkItem = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding());
+                        Document metaDataDocument = getDocument(addiRecordFromChunkItem.getMetaData());
+
+                        NodeList nodeList = metaDataDocument.getElementsByTagName(PROCESSING_TAG);
+                        final AddiRecord processedAddiRecord;
+
+                        if(nodeList.getLength() == 1) { // The specific tag has been located
+                            if (do2709Encoding(nodeList)) {
+                                Document contentDataDocument = getDocument(addiRecordFromChunkItem.getContentData());
+                                byte[] as2709 = Iso2709Packer.create2709FromMarcXChangeRecord(contentDataDocument, new DanMarc2Charset());
+                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList, contentDataDocument);
+                                processedAddiRecord = new AddiRecord(newMetaData, as2709);
+                            } else {
+                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList, metaDataDocument);
+                                processedAddiRecord = new AddiRecord(newMetaData, addiRecordFromChunkItem.getContentData());
+                            }
+                            addiRecords.remove(addiRecordFromChunkItem);
+                            addiRecords.add(processedAddiRecord);
+                        } else {
+                            addiRecords.add(ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding()));
+                        }
                         incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), "Empty slot", ChunkItem.Status.SUCCESS));
-                    } catch (RuntimeException | IOException e) {
+                    } catch (RuntimeException | IOException | SAXException | TransformerException e) {
                         incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), e.getMessage(), ChunkItem.Status.FAILURE));
+                        System.out.println("My message" + e.getMessage());
                     }
                     break;
                 case FAILURE:

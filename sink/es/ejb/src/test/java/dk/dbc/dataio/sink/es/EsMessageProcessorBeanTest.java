@@ -133,11 +133,15 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void getEsWorkloadFromChunkResult_chunkResultArgIsNonEmpty_returnsEsWorkload() throws SinkException {
-        final String validAddi = "1\na\n1\nb\n";
+        final String validAddiProcessingFalse = getValidAddiWithProcessingFalse();
+        final String validAddiProcessingTrue = getValidAddiWithProcessingTrueAndValidMarcXContentData();
+        final String validAddiWithoutProcessing = getValidAddiWithoutProcessing();
+        final String validAddiProcessingTrueInvalidMarcX = getValidAddiWithProcessingTrueAndInvalidMarcXContentData();
+
         final ArrayList<ChunkItem> chunkItems = new ArrayList<>();
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
                 .setId(0)
-                .setData(Base64Util.base64encode(validAddi))
+                .setData(Base64Util.base64encode(validAddiWithoutProcessing))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // ignored by processor
@@ -155,7 +159,7 @@ public class EsMessageProcessorBeanTest {
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
                 .setId(4)
-                .setData(Base64Util.base64encode(validAddi))
+                .setData(Base64Util.base64encode(validAddiWithoutProcessing))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processor produces empty addi
@@ -163,6 +167,22 @@ public class EsMessageProcessorBeanTest {
                 .setData("")
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
+        chunkItems.add(new ChunkItemBuilder()               // sink processing removed from meta data and processed successfully
+                .setId(6)
+                .setData(Base64Util.base64encode(validAddiProcessingFalse))
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+        chunkItems.add(new ChunkItemBuilder()               //sink processing removed from meta data, content data converted to iso2709 and processed successfully
+                .setId(7)
+                .setData(Base64Util.base64encode(validAddiProcessingTrue))
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+        chunkItems.add(new ChunkItemBuilder()
+                .setId(8)
+                .setData(Base64Util.base64encode(validAddiProcessingTrueInvalidMarcX))
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .build());
+
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setItems(chunkItems)
                 .build();
@@ -171,8 +191,8 @@ public class EsMessageProcessorBeanTest {
         final EsWorkload esWorkloadFromChunkResult = esMessageProcessorBean.getEsWorkloadFromChunkResult(processedChunk);
 
         assertThat(esWorkloadFromChunkResult, is(notNullValue()));
-        assertThat(esWorkloadFromChunkResult.getAddiRecords().size(), is(2));
-        assertThat(esWorkloadFromChunkResult.getDeliveredChunk().size(), is(6));
+        assertThat(esWorkloadFromChunkResult.getAddiRecords().size(), is(4));
+        assertThat(esWorkloadFromChunkResult.getDeliveredChunk().size(), is(9));
         Iterator<ChunkItem> iterator = esWorkloadFromChunkResult.getDeliveredChunk().iterator();
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item0 = iterator.next();
@@ -198,6 +218,26 @@ public class EsMessageProcessorBeanTest {
         ChunkItem item5 = iterator.next();
         assertThat("chunkItem 5 ID", item5.getId(), is(5L));
         assertThat("chunkItem 5 status", item5.getStatus(), is(ChunkItem.Status.FAILURE));
+        ChunkItem item6 = iterator.next();
+        assertThat("chunkItem 6 ID", item6.getId(), is(6L));
+        assertThat("chunkItem 6 status", item6.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item7 = iterator.next();
+        assertThat("chunkItem 7 ID", item7.getId(), is(7L));
+        assertThat("chunkItem 7 status", item7.getStatus(), is(ChunkItem.Status.SUCCESS));
+        ChunkItem item8 = iterator.next();
+        assertThat("chunkItem 8 ID", item8.getId(), is(8L));
+        assertThat("chunkItem 8 status", item8.getStatus(), is(ChunkItem.Status.FAILURE));
+
+        // assert that the processing tag has been removed from the meta data for the 2 items
+        // that successfully have been processed.
+        AddiRecord addiRecord3 = esWorkloadFromChunkResult.getAddiRecords().get(2);
+        byte[] metadata = addiRecord3.getMetaData();
+        assertThat(new String(metadata, StandardCharsets.UTF_8).contains(PROCESSING_TAG), is(false));
+
+        AddiRecord addiRecord4 = esWorkloadFromChunkResult.getAddiRecords().get(3);
+        byte[] metadata2 = addiRecord4.getMetaData();
+        assertThat(new String(metadata2, StandardCharsets.UTF_8).contains(PROCESSING_TAG), is(false));
     }
 
     private TestableMessageConsumerBean getInitializedBean(EsThrottlerBean esThrottlerBean) {
@@ -384,6 +424,41 @@ public class EsMessageProcessorBeanTest {
                 "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
                 "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
                 "</es:referencedata>\n1\nb\n";
+    }
+
+    private String getValidAddiWithProcessingTrueAndInvalidMarcXContentData() {
+        return "235\n" +
+                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
+                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
+                "</es:referencedata>" +
+                "\n238\n" +
+                "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                "<marcx:record format=\"danMARC2\"><marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                "<marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
+                "</marcx:record>" +
+                "</marcx:collection>" +
+                "\n";
+    }
+
+    private String getValidAddiWithProcessingTrueAndValidMarcXContentData() {
+        return "235\n" +
+                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
+                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
+                "</es:referencedata>" +
+                "\n506\n" +
+                "<marcx:record xmlns:marcx='info:lc/xmlns/marcxchange-v1'>" +
+                "<marcx:leader>00000n    2200000   4500</marcx:leader>" +
+                "<marcx:datafield tag='100' ind1='0' ind2='0'>" +
+                "<marcx:subfield code='a'>field1</marcx:subfield>" +
+                "<marcx:subfield code='b'/>" +
+                "<marcx:subfield code='d'>Field2</marcx:subfield>" +
+                "</marcx:datafield><marcx:datafield tag='101' ind1='1' ind2='2'>" +
+                "<marcx:subfield code='h'>est</marcx:subfield>" +
+                "<marcx:subfield code='k'>o</marcx:subfield>" +
+                "<marcx:subfield code='G'>ris</marcx:subfield>" +
+                "</marcx:datafield></marcx:record>\n";
     }
 
     private static class TestableMessageConsumerBean extends EsMessageProcessorBean {

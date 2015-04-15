@@ -6,13 +6,11 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ejb.Timer;
 import javax.naming.Context;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -100,8 +98,6 @@ public class ScheduledHarvestBeanTest {
         final ScheduledHarvestBean scheduledHarvestBean = new ScheduledHarvestBean();
         scheduledHarvestBean.harvester = harvesterBean;
         scheduledHarvestBean.config = new HarvesterConfigurationBean();
-        scheduledHarvestBean.config.jsonbBean = new JSONBBean();
-        scheduledHarvestBean.config.jsonbBean.initialiseContext();
         return scheduledHarvestBean;
     }
 

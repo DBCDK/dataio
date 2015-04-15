@@ -6,7 +6,6 @@ import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -105,9 +104,6 @@ public class HarvesterConfigurationBeanTest {
     }
 
     private HarvesterConfigurationBean getHarvesterConfigurationBean() {
-        final HarvesterConfigurationBean bean = new HarvesterConfigurationBean();
-        bean.jsonbBean = new JSONBBean();
-        bean.jsonbBean.initialiseContext();
-        return bean;
+        return new HarvesterConfigurationBean();
     }
 }

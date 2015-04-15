@@ -4,13 +4,12 @@ import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -27,8 +26,7 @@ import javax.naming.NamingException;
 public class HarvesterConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 
-    @EJB
-    JSONBBean jsonbBean;
+    JSONBContext jsonbContext = new JSONBContext();
 
     RawRepoHarvesterConfig config;
 
@@ -56,7 +54,7 @@ public class HarvesterConfigurationBean {
         LOGGER.debug("Retrieving configuration");
         try {
             final String jsonConfig = ServiceUtil.getStringValueFromResource(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR);
-            config = jsonbBean.getContext().unmarshall(jsonConfig, RawRepoHarvesterConfig.class);
+            config = jsonbContext.unmarshall(jsonConfig, RawRepoHarvesterConfig.class);
             LOGGER.info("Applying configuration: {}", config);
         } catch (NamingException | JSONBException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);

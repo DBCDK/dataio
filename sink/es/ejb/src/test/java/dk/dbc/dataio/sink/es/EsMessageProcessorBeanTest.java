@@ -25,7 +25,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -257,6 +256,7 @@ public class EsMessageProcessorBeanTest {
         testableMessageConsumerBean.esConnector = esConnector;
         testableMessageConsumerBean.esInFlightAdmin = esInFlightAdmin;
         testableMessageConsumerBean.jobProcessorMessageProducer = jobProcessorMessageProducer;
+        testableMessageConsumerBean.setup();
         return testableMessageConsumerBean;
     }
 
@@ -290,7 +290,7 @@ public class EsMessageProcessorBeanTest {
     }
 
     @Test
-    public void removeProcessingTagFromDom_tagIsSetWithValueFalse_tagIsRemovedAndNewMetaDataReturned() throws IOException, XPathExpressionException, TransformerException, SAXException {
+    public void removeNodeFromDom_processingTagIsSetWithValueFalse_tagIsRemovedAndNewMetaDataReturned() throws IOException, TransformerException, SAXException {
         final String validAddi = getValidAddiWithProcessingFalse();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
@@ -299,13 +299,12 @@ public class EsMessageProcessorBeanTest {
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(nodeList.getLength(), is(1));
 
-        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList.item(0), document);
+        esMessageProcessorBean.removeNodeFromDom(nodeList.item(0));
         assertThat(nodeList.getLength(), is(0));
-        assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
     }
 
     @Test
-    public void removeProcessingTagFromDom_tagIsSetWithValueTrue_tagIsRemovedAndNewMetaDataReturned() throws IOException, XPathExpressionException, TransformerException, SAXException {
+    public void removeNodeFromDom_processingTagIsSetWithValueTrue_tagIsRemovedAndNewMetaDataReturned() throws TransformerException, SAXException, IOException {
         final String validAddi = getValidAdiWithProcessingTrue();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
         final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
@@ -313,9 +312,8 @@ public class EsMessageProcessorBeanTest {
         Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
         assertThat(nodeList.getLength(), is(1));
-        byte[] modifiedMetaData = esMessageProcessorBean.RemoveProcessingTagFromDom(nodeList.item(0), document);
+        esMessageProcessorBean.removeNodeFromDom(nodeList.item(0));
         assertThat(nodeList.getLength(), is(0));
-        assertThat(modifiedMetaData.length, not(addiRecord.getMetaData().length));
     }
 
     @Test
@@ -360,6 +358,16 @@ public class EsMessageProcessorBeanTest {
             esMessageProcessorBean.getDocument(addiRecord.getContentData());
             fail();
         } catch (SAXException e) {}
+    }
+
+    @Test
+    public void domToByteArray_documentIsConvertedToByteArray_byteArrayReturned () throws IOException, SAXException, TransformerException {
+        final String validAddi = getValidAdiWithProcessingTrue();
+        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        Document document = getDocument(addiRecord.getMetaData());
+        assertThat(esMessageProcessorBean.domToByteArray(document), not(nullValue()));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

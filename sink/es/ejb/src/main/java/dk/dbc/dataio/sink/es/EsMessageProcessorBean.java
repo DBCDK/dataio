@@ -1,6 +1,7 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
@@ -19,7 +20,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,6 +30,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -41,6 +45,8 @@ import java.util.List;
 public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsMessageProcessorBean.class);
     private static final String PROCESSING_TAG = "dataio:sink-processing";
+    private DocumentBuilder documentBuilder;
+    private Transformer transformer;
 
     @EJB
     EsThrottlerBean esThrottler;
@@ -56,6 +62,19 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducer;
+
+    @PostConstruct
+    public void setup() {
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        try {
+            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            transformer = transformerFactory.newTransformer();
+        } catch (ParserConfigurationException | TransformerConfigurationException e) {
+            throw new EJBException(e.getMessage());
+        }
+    }
 
     /**
      * Generates ES workload from given processor result, ensures that ES processing
@@ -116,35 +135,18 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final List<AddiRecord> addiRecords = new ArrayList<>(numberOfItems);
         final ExternalChunk incompleteDeliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
+        final StopWatch stopWatch = new StopWatch();
 
         for(ChunkItem chunkItem : processedChunk) {
             switch (chunkItem.getStatus()) {
                 case SUCCESS:
                     try {
-                        AddiRecord addiRecordFromChunkItem = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding());
-                        Document metaDataDocument = getDocument(addiRecordFromChunkItem.getMetaData());
-
-                        NodeList nodeList = metaDataDocument.getElementsByTagName(PROCESSING_TAG);
-                        final AddiRecord processedAddiRecord;
-
-                        if(nodeList.getLength() == 1) { // The specific tag has been located
-                            if (do2709Encoding(nodeList)) {
-                                Document contentDataDocument = getDocument(addiRecordFromChunkItem.getContentData());
-                                byte[] as2709 = Iso2709Packer.create2709FromMarcXChangeRecord(contentDataDocument, new DanMarc2Charset());
-                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList.item(0), contentDataDocument);
-                                processedAddiRecord = new AddiRecord(newMetaData, as2709);
-                            } else {
-                                byte[] newMetaData = RemoveProcessingTagFromDom(nodeList.item(0), metaDataDocument);
-                                processedAddiRecord = new AddiRecord(newMetaData, addiRecordFromChunkItem.getContentData());
-                            }
-                            addiRecords.remove(addiRecordFromChunkItem);
-                            addiRecords.add(processedAddiRecord);
-                        } else {
-                            addiRecords.add(ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding()));
-                        }
+                        addiRecords.add(buildAddiRecord(chunkItem, processedChunk));
                         incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), "Empty slot", ChunkItem.Status.SUCCESS));
                     } catch (RuntimeException | IOException | SAXException | TransformerException e) {
                         incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), e.getMessage(), ChunkItem.Status.FAILURE));
+                    } finally {
+                        LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
                     }
                     break;
                 case FAILURE:
@@ -161,19 +163,66 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     /**
-     * This method removes the processing tag from the dom
+     * This method determines builds an addi record following the below rules:
+     *
+     * If the processing tag(dataio:sink-processing) is not found within the meta data, the addi-record is extracted from given chunk item.
+     *
+     * If processing tag is found with value FALSE: the tag is removed from the meta data.
+     *                                              new addi-record is created  -> containing meta data without processing tag and content data from given chunkItem.
+     *
+     * If processing tag is found with value TRUE:  the tag is removed from the meta data.
+     *                                              the content data from the chunk item converted to iso2709.
+     *                                              new addi-record is created -> containing meta data without processing tag and content data as 2709.
+     * @param chunkItem chunk item
+     * @param processedChunk external chunk
+     * @return the processed addi-record
+     * @throws IOException if an error occurs during reading of the addi-data
+     * @throws SAXException on failure to parse document
+     * @throws TransformerException on failure to transform to byte array
+     */
+     AddiRecord buildAddiRecord(ChunkItem chunkItem, ExternalChunk processedChunk) throws IOException, SAXException, TransformerException {
+        AddiRecord addiRecordFromChunkItem = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding());
+        Document metaDataDocument = getDocument(addiRecordFromChunkItem.getMetaData());
+        NodeList nodeList = metaDataDocument.getElementsByTagName(PROCESSING_TAG);
+        final AddiRecord processedAddiRecord;
+
+        if(nodeList.getLength() == 1) { // The specific tag has been located
+            if (do2709Encoding(nodeList)) {
+                Document contentDataDocument = getDocument(addiRecordFromChunkItem.getContentData());
+                byte[] as2709 = Iso2709Packer.create2709FromMarcXChangeRecord(contentDataDocument, new DanMarc2Charset());
+                removeNodeFromDom(nodeList.item(0));
+                byte[] newMetaData = domToByteArray(metaDataDocument);
+                processedAddiRecord = new AddiRecord(newMetaData, as2709);
+            } else {
+                removeNodeFromDom(nodeList.item(0));
+                byte[] newMetaData = domToByteArray(metaDataDocument);
+                processedAddiRecord = new AddiRecord(newMetaData, addiRecordFromChunkItem.getContentData());
+            }
+        } else {
+            processedAddiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding());
+        }
+         return processedAddiRecord;
+    }
+
+    /**
+     * This method removes a child node from the dom
      * @param node the node to remove
-     * @param document the document
-     * @return a new byte array representing meta data without the processing tag
+     */
+    void removeNodeFromDom(Node node) {
+        node.getParentNode().removeChild(node); // Remove node from dom
+    }
+
+    /**
+     * This method converts a document to a byte array
+     * @param document the document to convert
+     * @return a new byte array
      * @throws TransformerException
      */
-    byte[] RemoveProcessingTagFromDom(Node node, Document document) throws TransformerException {
-        node.getParentNode().removeChild(node); // Remove node from dom
+    byte[] domToByteArray(Document document) throws TransformerException {
         Source source = new DOMSource(document);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         Result result = new StreamResult(byteArrayOutputStream);
-        TransformerFactory factory = TransformerFactory.newInstance();
-        Transformer transformer = factory.newTransformer();
+        transformer.reset();
         transformer.transform(source, result);
         return byteArrayOutputStream.toByteArray();
     }
@@ -189,18 +238,9 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     Document getDocument(byte[] byteArray) throws IOException, SAXException {
-        final DocumentBuilder builder = getDocumentBuilder();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
-        return builder.parse(byteArrayInputStream);
+        documentBuilder.reset();
+        return documentBuilder.parse(byteArrayInputStream);
     }
 
-    private DocumentBuilder getDocumentBuilder() {
-        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        try {
-            return documentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 }

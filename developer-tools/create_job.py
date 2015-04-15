@@ -12,7 +12,7 @@ import json
 def parse_arguments():
     global args
     parser = argparse.ArgumentParser("")
-    parser.add_argument("filename", help="datafile" )
+    parser.add_argument("filename", help="datafile")
     parser.add_argument("jobspecification", help="job specifcation file in json")
     parser.add_argument("--host", help="host file til dataio systemet dataio-be-s01:1080 for staging", required=True)
 
@@ -20,34 +20,32 @@ def parse_arguments():
 
 
 def post_file(dataFileName):
-
-    data=open(dataFileName,'rb')
-    response = requests.post("http://"+args.host+"/dataio/file-store-service/files", data=data)
+    data = open(dataFileName, 'rb')
+    response = requests.post("http://" + args.host + "/dataio/file-store-service/files", data=data)
 
     if response.status_code == requests.codes.CREATED:
         return response.headers['location'].split("/")[-1]
 
     raise Exception("Error Unable to create File in fileStore")
 
-def load_specificification(specificationFileName) :
+
+def load_specification(specificationFileName):
     with open(specificationFileName) as json_data:
-        data=json_data.read()
-    return json.loads( data )
+        data = json_data.read()
+    return json.loads(data)
 
 
-
-def create_job(fileId, specifiction):
-
-    specifiction['dataFile']="urn:dataio-fs:" + str(fileId)
+def create_job(fileId, specification):
+    specification['dataFile'] = "urn:dataio-fs:" + str(fileId)
     # "dataFile": "urn:dataio-fs:" + str(fileId),
-    specifiction = {"jobSpecification": specifiction , "isEndOfJob": True, "partNumber": 0}
+    specification = {"jobSpecification": specification, "isEndOfJob": True, "partNumber": 0}
 
-    createJobUrl = "http://"+args.host+"/dataio-job-store-service-war-1.0-SNAPSHOT/jobs"
-    r = requests.post(createJobUrl, json.dumps(specifiction))
+    createJobUrl = "http://" + args.host + "/dataio-job-store-service-war-1.0-SNAPSHOT/jobs"
+    r = requests.post(createJobUrl, json.dumps(specification))
 
     if r.status_code == requests.codes.CREATED:
-        job=json.loads(str(r.content))
-        print("job "+str(job['jobId'])+" er oprettet")
+        job = json.loads(str(r.content))
+        print("job " + str(job['jobId']) + " er oprettet")
         return r.headers['location']
 
     raise Exception("error creating job")
@@ -55,9 +53,9 @@ def create_job(fileId, specifiction):
 
 parse_arguments()
 
-post_file( args.filename )
-fileStoreId = post_file( args.filename)
-create_job(fileStoreId, load_specificification( args.jobspecification))
+post_file(args.filename)
+fileStoreId = post_file(args.filename)
+create_job(fileStoreId, load_specification(args.jobspecification))
 
 
 

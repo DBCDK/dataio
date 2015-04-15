@@ -27,6 +27,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected int itemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
+    protected boolean isInitPopulating;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory, Texts texts) {
         this.clientFactory = clientFactory;
@@ -41,6 +42,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.itemCounter = Integer.parseInt(showPlace.getItemCounter());
         this.failedItemCounter = Integer.parseInt(showPlace.getFailedItemCounter());
         this.ignoredItemCounter = Integer.parseInt(showPlace.getIgnoredItemCounter());
+        this.isInitPopulating = true;
     }
 
     /**
@@ -57,7 +59,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.setPresenter(this);
         view.jobHeader.setText(constructJobHeaderText());
         containerWidget.setWidget(view.asWidget());
-        view.failedItemsButton.setValue(true);
         view.pager.setPageSize(PAGE_SIZE);
         getItems();
     }
@@ -69,28 +70,34 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
-     * The method checks, whether to fetch All items, only Failed items or only Ignored items, and sets
-     * the ItemListCriteria according to that.
+     * For the initial population of the view:
+     *      Failed items will be shown if any failed items exists.
+     *      Ignored items will be shown only if no failed items exist and one or more items were ignored.
+     *      All items will be shown if no failed or ignored items exists.
+     *
+     * After the initial population, the method checks, whether to fetch All items, only Failed items or only Ignored items
+     * (based on the user selection), and sets the ItemListCriteria according to that.
      */
     protected void getItems() {
         final ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
         final GetItemsCallback getItemsCallback;
         final int offset = view.itemsTable.getVisibleRange().getStart();
 
-        view.setSelectionEnabled(false);
-        view.tabPanel.setVisible(false);
-        view.tabPanel.clear();
-        if (view.failedItemsButton.getValue()) {
-            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
-            getItemsCallback = new GetItemsCallback(failedItemCounter, offset);
-        } else if (view.ignoredItemsButton.getValue()) {
-            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
-            getItemsCallback = new GetItemsCallback(ignoredItemCounter, offset);
-        } else {
-            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
-            getItemsCallback = new GetItemsCallback(itemCounter, offset);
-        }
+        if (isInitPopulating) {
+            getItemsCallback = initialPopulationOfView(itemListCriteriaModel, offset);
 
+        } else {
+            if (view.failedItemsButton.getValue()) {
+                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
+                getItemsCallback = new GetItemsCallback(failedItemCounter, offset);
+            } else if (view.ignoredItemsButton.getValue()) {
+                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
+                getItemsCallback = new GetItemsCallback(ignoredItemCounter, offset);
+            } else {
+                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
+                getItemsCallback = new GetItemsCallback(itemCounter, offset);
+            }
+        }
         itemListCriteriaModel.setJobId(this.jobId);
         itemListCriteriaModel.setLimit(view.pager.getPageSize());
         itemListCriteriaModel.setOffset(offset);
@@ -104,6 +111,31 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         return texts.text_JobId() + " " + jobId + ", "
                 + texts.text_Submitter() + " " + submitterNumber + ", "
                 + texts.text_Sink() + " " + sinkName;
+    }
+
+    private GetItemsCallback initialPopulationOfView(ItemListCriteriaModel itemListCriteriaModel, int offset) {
+        view.setSelectionEnabled(false);
+        view.tabPanel.setVisible(false);
+        view.tabPanel.clear();
+        isInitPopulating = false;
+
+        final GetItemsCallback getItemsCallback;
+        if(failedItemCounter != 0) {
+            view.failedItemsButton.setValue(true);
+            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
+            getItemsCallback = new GetItemsCallback(failedItemCounter, offset);
+        } else {
+            if(ignoredItemCounter != 0) {
+                view.ignoredItemsButton.setValue(true);
+                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
+                getItemsCallback = new GetItemsCallback(ignoredItemCounter, offset);
+            } else {
+                view.allItemsButton.setValue(true);
+                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
+                getItemsCallback = new GetItemsCallback(itemCounter, offset);
+            }
+        }
+        return getItemsCallback;
     }
 
     /*

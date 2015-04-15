@@ -162,31 +162,33 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void start_callStart_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
-        presenterImpl.jobId = "1234";
-        presenterImpl.submitterNumber = "Submi";
-        presenterImpl.sinkName = "Sinki";
-        when(mockedFailedItemsButton.getValue()).thenReturn(true);
+    public void start_callStart_initialPopulationOfViewSetsAllItems() {
+        setupSpecificMockedItemCounters("4", "0", "0");
+        genericStart_callStart_ok();
 
-        // Test Subject Under Test
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        verify(mockedAllItemsButton).setValue(true);
+        verifyZeroInteractions(mockedFailedItemsButton);
+        verifyZeroInteractions(mockedIgnoredItemsButton);
+    }
 
-        // Verify Test
-        verify(mockedClientFactory).getItemsShowView();
-        verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");
-        verify(mockedContainerWidget).setWidget(mockedViewWidget);
+    @Test
+    public void start_callStart_initialPopulationOfViewSetsIgnoredItems() {
+        setupSpecificMockedItemCounters("4", "0", "1");
+        genericStart_callStart_ok();
+
+        verify(mockedIgnoredItemsButton).setValue(true);
+        verifyZeroInteractions(mockedFailedItemsButton);
+        verifyZeroInteractions(mockedAllItemsButton);
+    }
+
+    @Test
+    public void start_callStart_initialPopulationOfViewSetsFailedItems() {
+        setupSpecificMockedItemCounters("4", "4", "2");
+        genericStart_callStart_ok();
+
         verify(mockedFailedItemsButton).setValue(true);
-        verify(mockedView).setSelectionEnabled(false);
-        verify(mockedView.tabPanel).setVisible(false);
-        verify(mockedView.tabPanel).clear();
-        verify(mockedFailedItemsButton).getValue();
         verifyZeroInteractions(mockedIgnoredItemsButton);
         verifyZeroInteractions(mockedAllItemsButton);
-        verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
-        verify(mockedTabPanel).clear();
-        verify(mockedTabPanel).setVisible(false);
     }
 
     @Test
@@ -199,10 +201,10 @@ public class PresenterImplTest {
 
         // Verify Test
         // Two invocations: One during call to start, one during filterItems()
-        verify(mockedTabPanel, times(2)).setVisible(false);
-        verify(mockedTabPanel, times(2)).clear();
-        verify(mockedFailedItemsButton, times(2)).getValue();
-        verify(mockedFailedItemsButton, times(2)).getValue();
+        verify(mockedTabPanel, times(1)).setVisible(false);
+        verify(mockedTabPanel, times(1)).clear();
+        verify(mockedFailedItemsButton, times(1)).getValue();
+        verify(mockedIgnoredItemsButton, times(1)).getValue();
         verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
 
@@ -217,10 +219,9 @@ public class PresenterImplTest {
         presenterImpl.filterItems();
 
         // Verify Test
-        verify(mockedTabPanel, times(2)).setVisible(false);
-        verify(mockedTabPanel, times(2)).clear();
-        verify(mockedFailedItemsButton, times(2)).getValue();
-        verify(mockedIgnoredItemsButton).getValue();
+        verify(mockedTabPanel, times(1)).setVisible(false);
+        verify(mockedTabPanel, times(1)).clear();
+        verify(mockedFailedItemsButton, times(1)).getValue();
         verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
 
@@ -235,10 +236,10 @@ public class PresenterImplTest {
         presenterImpl.filterItems();
 
         // Verify Test
-        verify(mockedTabPanel, times(2)).setVisible(false);
-        verify(mockedTabPanel, times(2)).clear();
-        verify(mockedFailedItemsButton, times(2)).getValue();
-        verify(mockedIgnoredItemsButton, times(2)).getValue();
+        verify(mockedTabPanel, times(1)).setVisible(false);
+        verify(mockedTabPanel, times(1)).clear();
+        verify(mockedFailedItemsButton, times(1)).getValue();
+        verify(mockedIgnoredItemsButton, times(1)).getValue();
         verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
 
@@ -265,6 +266,34 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedView).setItems(testModels, OFFSET, ROW_COUNT);
         verify(mockedView).setSelectionEnabled(true);
+    }
+
+    private void genericStart_callStart_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory, mockedText);
+        presenterImpl.jobId = "1234";
+        presenterImpl.submitterNumber = "Submi";
+        presenterImpl.sinkName = "Sinki";
+
+        // Test Subject Under Test
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Verify Test
+        verify(mockedClientFactory).getItemsShowView();
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");
+        verify(mockedContainerWidget).setWidget(mockedViewWidget);
+        verify(mockedView).setSelectionEnabled(false);
+        verify(mockedView.tabPanel).setVisible(false);
+        verify(mockedView.tabPanel).clear();
+        verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+        verify(mockedTabPanel).clear();
+        verify(mockedTabPanel).setVisible(false);
+    }
+
+    private void setupSpecificMockedItemCounters(String itemCounter, String failedItemCounter, String ignoredItemCounter) {
+        when(mockedPlace.getItemCounter()).thenReturn(itemCounter);
+        when(mockedPlace.getFailedItemCounter()).thenReturn(failedItemCounter);
+        when(mockedPlace.getIgnoredItemCounter()).thenReturn(ignoredItemCounter);
     }
 
 }

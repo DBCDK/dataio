@@ -27,7 +27,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected int itemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
-    protected boolean isInitPopulating;
+    protected boolean isInitialPopulatingOfView;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory, Texts texts) {
         this.clientFactory = clientFactory;
@@ -42,7 +42,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.itemCounter = Integer.parseInt(showPlace.getItemCounter());
         this.failedItemCounter = Integer.parseInt(showPlace.getFailedItemCounter());
         this.ignoredItemCounter = Integer.parseInt(showPlace.getIgnoredItemCounter());
-        this.isInitPopulating = true;
+        this.isInitialPopulatingOfView = true;
     }
 
     /**
@@ -83,7 +83,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         final GetItemsCallback getItemsCallback;
         final int offset = view.itemsTable.getVisibleRange().getStart();
 
-        if (isInitPopulating) {
+        if (isInitialPopulatingOfView) {
             getItemsCallback = initialPopulationOfView(itemListCriteriaModel, offset);
 
         } else {
@@ -117,7 +117,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.setSelectionEnabled(false);
         view.tabPanel.setVisible(false);
         view.tabPanel.clear();
-        isInitPopulating = false;
+        isInitialPopulatingOfView = false;
 
         final GetItemsCallback getItemsCallback;
         if(failedItemCounter != 0) {

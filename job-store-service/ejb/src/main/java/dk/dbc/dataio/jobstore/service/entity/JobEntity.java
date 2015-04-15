@@ -43,7 +43,7 @@ public class JobEntity {
     private int numberOfItems;
 
     @Column(insertable = false, updatable = false)
-    private Timestamp timeOfCreation;
+    protected Timestamp timeOfCreation;
     @Column(insertable = false, updatable = false)
     private Timestamp timeOfLastModification;
     private Timestamp timeOfCompletion;

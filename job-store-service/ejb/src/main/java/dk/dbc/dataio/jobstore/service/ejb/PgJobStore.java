@@ -133,6 +133,8 @@ public class PgJobStore {
             updateJobEntityState(jobEntity, jobStateChange);
             entityManager.flush();
 
+            logTimerMessage(jobEntity);
+
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
@@ -190,6 +192,7 @@ public class PgJobStore {
                 final State jobState = updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
                 if (jobState.allPhasesAreDone()) {
                     jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                    logTimerMessage(jobEntity);
                 }
                 entityManager.flush();
                 entityManager.refresh(jobEntity);
@@ -671,6 +674,23 @@ public class PgJobStore {
         itemState.updateState(stateChange);
         itemEntity.setState(itemState);
         return itemState;
+    }
+
+    private void logTimerMessage(JobEntity jobEntity) {
+        if (LOGGER.isInfoEnabled()) {
+            final List<Object> logArguments = new ArrayList<>(6);
+            logArguments.add(jobEntity.getId());
+            logArguments.add(jobEntity.getNumberOfItems());
+            logArguments.add(jobEntity.getNumberOfChunks());
+            logArguments.add(jobEntity.getSpecification().getSubmitterId());
+            logArguments.add(jobEntity.getTimeOfCreation().getTime());
+            String logPattern = "TIMER jobId={} numberOfItems={} numberOfChunks={} submitterNumber={} timeOfCreation={}";
+            if (jobEntity.getTimeOfCompletion() != null) {
+                logPattern += " timeOfCompletion={}";
+                logArguments.add(jobEntity.getTimeOfCompletion().getTime());
+            }
+            LOGGER.info(logPattern, logArguments.toArray());
+        }
     }
 
     /* Chunk item entities compound class

@@ -47,6 +47,7 @@ import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -163,9 +164,11 @@ public class PgJobStoreTest {
     @Test
     public void addJob_allArgsAreValid_returnsJobInformationSnapshot() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
-        final JobEntity jobEntity = new JobEntity();
+        final TestableJobEntity jobEntity = new TestableJobEntity();
+        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
         jobEntity.setState(new State());
         jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
+        jobEntity.setSpecification(new JobSpecificationBuilder().build());
         when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
@@ -919,7 +922,7 @@ public class PgJobStoreTest {
     }
 
     private JobEntity getJobEntity(int numberOfItems, List<State.Phase> phasesDone) {
-        final JobEntity jobEntity = new JobEntity();
+        final TestableJobEntity jobEntity = new TestableJobEntity();
         jobEntity.setNumberOfItems(numberOfItems);
         final StateChange jobStateChange = new StateChange();
         final State jobState = new State();
@@ -934,6 +937,7 @@ public class PgJobStoreTest {
         jobEntity.setState(jobState);
         jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         jobEntity.setSpecification(new JobSpecificationBuilder().build());
+        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
         return jobEntity;
     }
 
@@ -1053,6 +1057,12 @@ public class PgJobStoreTest {
             sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
             maxChunkSize = 10;
             dataFileId = "datafile";
+        }
+    }
+
+    private static class TestableJobEntity extends JobEntity {
+        public void setTimeOfCreation(Timestamp timeOfCreation) {
+            this.timeOfCreation = timeOfCreation;
         }
     }
 }

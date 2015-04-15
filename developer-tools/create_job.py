@@ -13,8 +13,8 @@ def parse_arguments():
     global args
     parser = argparse.ArgumentParser("")
     parser.add_argument("filename", help="datafile")
-    parser.add_argument("jobspecification", help="job specifcation file in json")
-    parser.add_argument("--host", help="host file til dataio systemet dataio-be-s01:1080 for staging", required=True)
+    parser.add_argument("jobspecification", help="job specification file in json")
+    parser.add_argument("--host", help="host for the dataio system, choose dataio-be-s01:1080 for staging or dataio-be-p01:1080 for prod", required=True)
 
     args = parser.parse_args()
 

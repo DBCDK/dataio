@@ -1,5 +1,6 @@
 package dk.dbc.rawrepo;
 
+import java.util.Arrays;
 import java.util.Date;
 
 public class MockedRecord implements Record {
@@ -111,5 +112,58 @@ public class MockedRecord implements Record {
     @Override
     public void setModified(Date date) {
         modified = new Date(date.getTime());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        MockedRecord that = (MockedRecord) o;
+
+        if (isOriginal != that.isOriginal) {
+            return false;
+        }
+        if (isDeleted != that.isDeleted) {
+            return false;
+        }
+        if (isEnriched != that.isEnriched) {
+            return false;
+        }
+        if (!recordId.equals(that.recordId)) {
+            return false;
+        }
+        if (!Arrays.equals(content, that.content)) {
+            return false;
+        }
+        if (created != null ? !created.equals(that.created) : that.created != null) {
+            return false;
+        }
+        if (modified != null ? !modified.equals(that.modified) : that.modified != null) {
+            return false;
+        }
+        if (mimeType != null ? !mimeType.equals(that.mimeType) : that.mimeType != null) {
+            return false;
+        }
+        return !(enrichmentTrail != null ? !enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = recordId.hashCode();
+        result = 31 * result + (isOriginal ? 1 : 0);
+        result = 31 * result + (isDeleted ? 1 : 0);
+        result = 31 * result + (isEnriched ? 1 : 0);
+        result = 31 * result + (content != null ? Arrays.hashCode(content) : 0);
+        result = 31 * result + (created != null ? created.hashCode() : 0);
+        result = 31 * result + (modified != null ? modified.hashCode() : 0);
+        result = 31 * result + (mimeType != null ? mimeType.hashCode() : 0);
+        result = 31 * result + (enrichmentTrail != null ? enrichmentTrail.hashCode() : 0);
+        return result;
     }
 }

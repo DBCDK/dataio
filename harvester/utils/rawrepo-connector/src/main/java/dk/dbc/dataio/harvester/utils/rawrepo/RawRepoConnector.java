@@ -17,6 +17,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -52,14 +53,30 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                // This new'ing is expensive but I don't trust reuse due to
-                // internal Transformer and DocumentBuilder
-                final MarcXMerger marcXMerger = new MarcXMerger();
-                return RawRepoDAO.newInstance(connection)
-                        .fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId(), marcXMerger);
+                return getStringRecordMap(id, RawRepoDAO.newInstance(connection));
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
+        }
+    }
+
+    Map<String, Record> getStringRecordMap(RecordId id, RawRepoDAO rawRepoDAO) throws RawRepoException, MarcXMergerException {
+        // This new'ing is expensive but I don't trust reuse due to
+        // internal Transformer and DocumentBuilder
+        final MarcXMerger marcXMerger = new MarcXMerger();
+
+        final String bibliographicRecordId = id.getBibliographicRecordId();
+        final int agencyId = id.getAgencyId();
+
+        // We handle delete records as suggested by the RawRepoDAO author (MB).
+        if (rawRepoDAO.recordExistsMabyDeleted(bibliographicRecordId, agencyId)
+                && !rawRepoDAO.recordExists(bibliographicRecordId, agencyId)) {
+            final Map<String, Record> deletedRecordMap = new HashMap<>(1);
+            deletedRecordMap.put(bibliographicRecordId,
+                    rawRepoDAO.fetchMergedRecord(bibliographicRecordId, agencyId, marcXMerger, true));
+            return deletedRecordMap;
+        } else {
+            return rawRepoDAO.fetchRecordCollection(bibliographicRecordId, agencyId, marcXMerger);
         }
     }
 

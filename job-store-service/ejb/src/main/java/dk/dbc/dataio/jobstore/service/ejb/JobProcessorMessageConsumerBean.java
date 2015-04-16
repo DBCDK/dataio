@@ -5,8 +5,8 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +24,7 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     @EJB
     PgJobStore jobStoreBean;
 
-    @EJB
-    JSONBBean jsonbBean;
+    JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Handles consumed message by storing contained result payload in the underlying data store
@@ -38,7 +37,7 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, JobStoreException {
         try {
-            final ExternalChunk externalChunk = jsonbBean.getContext().unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            final ExternalChunk externalChunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
             LOGGER.info("Received chunk {} with chunk type {} for job {}", externalChunk.getChunkId(), externalChunk.getType(), externalChunk.getJobId());
             jobStoreBean.addChunk(externalChunk);
         } catch (JSONBException e) {

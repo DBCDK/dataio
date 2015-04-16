@@ -30,7 +30,6 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -387,11 +386,9 @@ public class JobStoreBeanTest {
 
     private void initializeBean(){
         jobStoreBean = new JobStoreBean();
-        jobStoreBean.jsonbBean = new JSONBBean();
         jobStoreBean.jobStore = mockedJobStore;
         jobStoreBean.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
         jobStoreBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
-        jobStoreBean.jsonbBean.initialiseContext();
     }
 
     private void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{

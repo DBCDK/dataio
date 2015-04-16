@@ -12,8 +12,8 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +42,7 @@ import java.util.List;
 public class JobsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobsBean.class);
 
-    @EJB
-    JSONBBean jsonbBean;
+    JSONBContext jsonbContext = new JSONBContext();
 
     @EJB
     JobStoreBean jobStoreBean;
@@ -78,19 +77,19 @@ public class JobsBean {
         JobInfoSnapshot jobInfoSnapshot;
 
         try {
-            jobInputStream = jsonbBean.getContext().unmarshall(jobInputStreamData, JobInputStream.class);
+            jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
             jobInfoSnapshot = jobStoreBean.addAndScheduleJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
-                    .entity(jsonbBean.getContext().marshall(jobInfoSnapshot))
+                    .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();
 
         } catch (JSONBException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         } catch(InvalidInputException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(e.getJobError()))
+                    .entity(jsonbContext.marshall(e.getJobError()))
                     .build();
         }
     }
@@ -166,16 +165,16 @@ public class JobsBean {
     public Response listJobs(String jobListCriteriaData) throws JSONBException {
         try {
             final JobListCriteria jobListCriteria =
-                    jsonbBean.getContext().unmarshall(jobListCriteriaData, JobListCriteria.class);
+                    jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
             final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreBean.listJobs(jobListCriteria);
             return Response.ok()
-                    .entity(jsonbBean.getContext().marshall(jobInfoSnapshots))
+                    .entity(jsonbContext.marshall(jobInfoSnapshots))
                     .build();
 
         } catch (JSONBException e) {
             LOGGER.warn("Bad request: {}", e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(
+                    .entity(jsonbContext.marshall(
                             new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         }
@@ -195,16 +194,16 @@ public class JobsBean {
     public Response listItems(String itemListCriteriaData) throws JSONBException {
         try {
             final ItemListCriteria itemListCriteria =
-                    jsonbBean.getContext().unmarshall(itemListCriteriaData, ItemListCriteria.class);
+                    jsonbContext.unmarshall(itemListCriteriaData, ItemListCriteria.class);
             final List<ItemInfoSnapshot> itemInfoSnapshots = jobStoreBean.listItems(itemListCriteria);
             return Response.ok()
-                    .entity(jsonbBean.getContext().marshall(itemInfoSnapshots))
+                    .entity(jsonbContext.marshall(itemInfoSnapshots))
                     .build();
 
         } catch (JSONBException e) {
             LOGGER.warn("Bad request: {}", e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(
+                    .entity(jsonbContext.marshall(
                             new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         }
@@ -217,7 +216,6 @@ public class JobsBean {
      * @return a HTTP 200 OK response with resource bundle as JSON,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve job
      *
-     * @return resource bundle as JSON
      * @throws JSONBException on marshalling failure
      */
     @GET
@@ -227,11 +225,11 @@ public class JobsBean {
         try {
             ResourceBundle resourceBundle = jobStoreBean.getResourceBundle(jobId);
             return Response.ok()
-                    .entity(jsonbBean.getContext().marshall(resourceBundle))
+                    .entity(jsonbContext.marshall(resourceBundle))
                     .build();
         } catch (InvalidInputException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(e.getJobError()))
+                    .entity(jsonbContext.marshall(e.getJobError()))
                     .build();
         }
     }
@@ -253,10 +251,10 @@ public class JobsBean {
 
         final ExternalChunk chunk;
         try {
-            chunk = jsonbBean.getContext().unmarshall(externalChunkData, ExternalChunk.class);
+            chunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
         } catch (JSONBException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         }
 
@@ -265,17 +263,17 @@ public class JobsBean {
             if(jobError == null) {
                 JobInfoSnapshot jobInfoSnapshot = jobStoreBean.addChunk(chunk);
                 return Response.created(getUri(uriInfo, Long.toString(chunk.getChunkId())))
-                        .entity(jsonbBean.getContext().marshall(jobInfoSnapshot))
+                        .entity(jsonbContext.marshall(jobInfoSnapshot))
                         .build();
             } else {
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(jsonbBean.getContext().marshall(jobError))
+                        .entity(jsonbContext.marshall(jobError))
                         .build();
             }
 
         } catch(InvalidInputException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbBean.getContext().marshall(e.getJobError()))
+                    .entity(jsonbContext.marshall(e.getJobError()))
                     .build();
         }
     }

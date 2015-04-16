@@ -39,8 +39,8 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,11 +75,10 @@ public class PgJobStore {
     @EJB
     JobSchedulerBean jobSchedulerBean;
 
-    @EJB
-    JSONBBean jsonbBean;
-
     @PersistenceContext(unitName = "jobstorePU")
     EntityManager entityManager;
+
+    JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
@@ -470,7 +469,7 @@ public class PgJobStore {
                     final JobError jobError = new JobError(
                             JobError.Code.INVALID_DATA, e.getMessage(), ServiceUtil.stackTraceToString(e));
                     itemData = new ItemData(
-                            Base64Util.base64encode(jsonbBean.getContext().marshall(jobError)), StandardCharsets.UTF_8);
+                            Base64Util.base64encode(jsonbContext.marshall(jobError)), StandardCharsets.UTF_8);
                 } catch (JSONBException ex) {
                     throw new JobStoreException("Exception caught during error handling", ex);
                 }
@@ -608,7 +607,7 @@ public class PgJobStore {
         try {
             InvariantUtil.checkNotNullOrThrow(sink, "sink");
             final Query storedProcedure = entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE);
-            storedProcedure.setParameter("checksum", Md5.asHex(jsonbBean.getContext().marshall(sink).getBytes(StandardCharsets.UTF_8)));
+            storedProcedure.setParameter("checksum", Md5.asHex(jsonbContext.marshall(sink).getBytes(StandardCharsets.UTF_8)));
             storedProcedure.setParameter("sink", new SinkConverter().convertToDatabaseColumn(sink));
             return (SinkCacheEntity) storedProcedure.getSingleResult();
         } catch (JSONBException e) {
@@ -632,7 +631,7 @@ public class PgJobStore {
         try {
             InvariantUtil.checkNotNullOrThrow(flow, "flow");
             final Query storedProcedure = entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE);
-            storedProcedure.setParameter("checksum", Md5.asHex(jsonbBean.getContext().marshall(flow).getBytes(StandardCharsets.UTF_8)));
+            storedProcedure.setParameter("checksum", Md5.asHex(jsonbContext.marshall(flow).getBytes(StandardCharsets.UTF_8)));
             storedProcedure.setParameter("flow", new FlowConverter().convertToDatabaseColumn(flow));
             return (FlowCacheEntity) storedProcedure.getSingleResult();
         } catch (JSONBException e) {

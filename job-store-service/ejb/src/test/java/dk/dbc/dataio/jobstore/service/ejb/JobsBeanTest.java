@@ -24,7 +24,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -376,8 +375,6 @@ public class JobsBeanTest {
 
     private void initializeJobsBean() {
         jobsBean = new JobsBean();
-        jobsBean.jsonbBean = new JSONBBean();
-        jobsBean.jsonbBean.initialiseContext();
         jobsBean.jobStoreBean = mock(JobStoreBean.class);
     }
 

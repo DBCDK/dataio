@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,8 +66,6 @@ public class JobProcessorMessageConsumerBeanTest {
 
     private void initializeJobProcessorMessageConsumerBean() {
         jobProcessorMessageConsumerBean = new TestableJobProcessorMessageConsumerBean();
-        jobProcessorMessageConsumerBean.jsonbBean = new JSONBBean();
-        jobProcessorMessageConsumerBean.jsonbBean.initialiseContext();
         jobProcessorMessageConsumerBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
         jobProcessorMessageConsumerBean.jobStoreBean = mock(PgJobStore.class);
     }

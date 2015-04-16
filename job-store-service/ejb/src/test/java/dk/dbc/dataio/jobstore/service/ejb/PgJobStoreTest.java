@@ -34,7 +34,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.Before;
@@ -891,12 +890,8 @@ public class PgJobStoreTest {
      */
 
     private PgJobStore newPgJobStore() {
-        final JSONBBean jsonbBean = new JSONBBean();
-        jsonbBean.initialiseContext();
-
         final PgJobStore pgJobStore = new PgJobStore();
         pgJobStore.jobSchedulerBean = jobSchedulerBean;
-        pgJobStore.jsonbBean = jsonbBean;
         pgJobStore.entityManager = entityManager;
         pgJobStore.sessionContext = sessionContext;
         return pgJobStore;

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+   <resources>
+    <admin-object-resource res-adapter="jmsra" res-type="javax.jms.Queue" jndi-name="jms/dataio/sinks">
+      <property name="Name" value="jmsDataioSinks"/>
+    </admin-object-resource>
+    <admin-object-resource res-adapter="jmsra" res-type="javax.jms.Queue" jndi-name="jms/dataio/processor">
+      <property name="Name" value="jmsDataioProcessor"/>
+    </admin-object-resource>
+    </resources>

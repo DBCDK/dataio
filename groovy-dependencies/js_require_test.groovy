@@ -1,18 +1,14 @@
 
+
 import dk.dbc.dataio.commons.types.Flow
 import dk.dbc.dataio.commons.utils.service.Base64Util
+import dk.dbc.dataio.gui.server.JavaScriptProjectFetcherImpl
 import dk.dbc.dataio.jobprocessor.ejb.ChunkProcessorBean
 import dk.dbc.dataio.jobstore.fsjobstore.JsonFileUtil
 import dk.dbc.dataio.jobstore.types.Chunk
 
-import dk.dbc.dataio.jsonb.ejb.JSONBBean
-import dk.dbc.dataio.jsonb.JSONBContext
-
-import dk.dbc.dataio.gui.server.JavaScriptProjectFetcherImpl
-
 import java.nio.charset.Charset
 import java.nio.file.Paths
-
 // To run this file:
 //    groovysh -cp target/groovy-dependencies-1.0-SNAPSHOT.jar js_require_test.groovy
 // I'm (jda) using groovy 2.4.0 and java 1.8.0_25
@@ -64,9 +60,6 @@ flow.content.components[0].content.javascripts = javascripts
 
 // Creating and initializing the chunk-processor:
 chunkProcessor = new ChunkProcessorBean()
-jsonbbean = new JSONBBean()
-jsonbbean.initialiseContext()
-chunkProcessor.jsonBinding = jsonbbean
 
 // Running the processor on our item:
 processedChunk = chunkProcessor.process(partitionedChunk, flow, supplementaryProcessData)

@@ -9,10 +9,8 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
@@ -67,10 +65,10 @@ public class SinkMessageProducerBeanTest {
 
     @Test
     public void send_createMessageThrowsJsonException_throws() throws JobProcessorException, JSONBException {
-        final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
         final JSONBContext jsonbContext = mock(JSONBContext.class);
-        when(sinkMessageProducerBean.jsonBinding.getContext()).thenReturn(jsonbContext);
         when(jsonbContext.marshall(anyObject())).thenThrow(new JSONBException("JsonException"));
+        final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
+        sinkMessageProducerBean.jsonbContext = jsonbContext;
         try {
             sinkMessageProducerBean.send(processedChunk, sink);
             fail("No Exception thrown");
@@ -91,8 +89,6 @@ public class SinkMessageProducerBeanTest {
     private SinkMessageProducerBean getInitializedBean() {
         final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
         sinkMessageProducerBean.sinksQueueConnectionFactory = jmsConnectionFactory;
-        sinkMessageProducerBean.jsonBinding = Mockito.spy(new JSONBBean());
-        sinkMessageProducerBean.jsonBinding.initialiseContext();
         return sinkMessageProducerBean;
     }
 }

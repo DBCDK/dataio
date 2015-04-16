@@ -17,7 +17,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -215,10 +214,7 @@ public class ChunkProcessorBeanTest {
     }
 
     private ChunkProcessorBean getInitializedBean() {
-        final ChunkProcessorBean chunkProcessorBean = new ChunkProcessorBean();
-        chunkProcessorBean.jsonBinding = new JSONBBean();
-        chunkProcessorBean.jsonBinding.initialiseContext();
-        return chunkProcessorBean;
+        return new ChunkProcessorBean();
     }
 
     Flow getFlow(ScriptWrapper... scriptWrappers) throws Exception {

@@ -19,7 +19,6 @@ import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -234,9 +233,7 @@ public class EsMessageProcessorBeanIT {
     }
 
     private SinkMessageProducerBean getSinkMessageProducerBean() {
-        final JSONBBean jsonbBean = new JSONBBean();
-        jsonbBean.initialiseContext();
-        return new SinkMessageProducerBean(jsonbBean);
+        return new SinkMessageProducerBean();
     }
 
     public ExternalChunk assertSinkMessageForProcessor(MockedJmsTextMessage message) throws JMSException, JsonException {

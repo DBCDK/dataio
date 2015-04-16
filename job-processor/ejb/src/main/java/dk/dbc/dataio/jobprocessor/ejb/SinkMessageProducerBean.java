@@ -4,13 +4,12 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.jms.ConnectionFactory;
@@ -34,14 +33,7 @@ public class SinkMessageProducerBean {
     @Resource(name="sinksJmsQueue") // this resource gets its jndi name mapping from xml-deploy-descriptors
     Queue sinksQueue;
 
-    @EJB
-    JSONBBean jsonBinding;
-
-    public SinkMessageProducerBean() {}
-
-    public SinkMessageProducerBean(JSONBBean jsonBinding) {
-        this.jsonBinding = jsonBinding;
-    }
+    JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Sends given processor result instance as JMS message with JSON payload to sink queue destination
@@ -84,7 +76,7 @@ public class SinkMessageProducerBean {
      * @throws JMSException when unable to create JMS message
      */
     public TextMessage createMessage(JMSContext context, ExternalChunk processedChunk, Sink destination) throws JMSException, JSONBException {
-        final TextMessage message = context.createTextMessage(jsonBinding.getContext().marshall(processedChunk));
+        final TextMessage message = context.createTextMessage(jsonbContext.marshall(processedChunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());

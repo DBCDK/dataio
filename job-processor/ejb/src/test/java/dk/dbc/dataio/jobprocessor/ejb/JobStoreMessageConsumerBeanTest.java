@@ -21,7 +21,6 @@ import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,7 +49,7 @@ public class JobStoreMessageConsumerBeanTest {
     private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
     private JMSContext jmsContext = mock(JMSContext.class);
     private MockedJmsProducer jmsProducer = new MockedJmsProducer();
-    private JSONBBean jsonBinding = new JSONBBean();
+    private JSONBContext jsonbContext = new JSONBContext();
 
     @Before
     public void setupMocks() {
@@ -159,7 +158,7 @@ public class JobStoreMessageConsumerBeanTest {
         assertThat("processor JMS msg", message, is(notNullValue()));
         assertThat("processor JMS msg source", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat("processor JMS msg payload", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
-        return jsonBinding.getContext().unmarshall(message.getText(), ExternalChunk.class);
+        return jsonbContext.unmarshall(message.getText(), ExternalChunk.class);
     }
 
     private ExternalChunk assertProcessorMessageForSink(MockedJmsTextMessage message, String resource) throws JMSException, JSONBException {
@@ -167,7 +166,7 @@ public class JobStoreMessageConsumerBeanTest {
         assertThat("sink JMS msg source", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat("sink JMS msg payload", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
         assertThat("sink JMS msg resource", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(resource));
-        return jsonBinding.getContext().unmarshall(message.getText(), ExternalChunk.class);
+        return jsonbContext.unmarshall(message.getText(), ExternalChunk.class);
     }
 
     private void assertChunk(ExternalChunk in, ExternalChunk out) {
@@ -184,19 +183,13 @@ public class JobStoreMessageConsumerBeanTest {
     private TestableJobStoreMessageConsumerBean getInitializedBean() {
         final TestableJobStoreMessageConsumerBean jobStoreMessageConsumerBean = new TestableJobStoreMessageConsumerBean();
         jobStoreMessageConsumerBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
-        jsonBinding.initialiseContext();
-        jobStoreMessageConsumerBean.jsonBinding = jsonBinding;
         jobStoreMessageConsumerBean.jobStoreServiceConnector = jobStoreServiceConnectorBean;
-        final ChunkProcessorBean chunkProcessorBean = new ChunkProcessorBean();
-        chunkProcessorBean.jsonBinding = jsonBinding;
-        jobStoreMessageConsumerBean.chunkProcessor = chunkProcessorBean;
+        jobStoreMessageConsumerBean.chunkProcessor = new ChunkProcessorBean();
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = new JobStoreMessageProducerBean();
         jobStoreMessageProducerBean.jobStoreQueueConnectionFactory = jmsConnectionFactory;
-        jobStoreMessageProducerBean.jsonBinding = jsonBinding;
         jobStoreMessageConsumerBean.jobStoreMessageProducer = jobStoreMessageProducerBean;
         final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
         sinkMessageProducerBean.sinksQueueConnectionFactory = jmsConnectionFactory;
-        sinkMessageProducerBean.jsonBinding = jsonBinding;
         jobStoreMessageConsumerBean.sinkMessageProducer = sinkMessageProducerBean;
         return jobStoreMessageConsumerBean;
     }

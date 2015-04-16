@@ -5,8 +5,8 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,8 +23,7 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     @EJB
     JobStoreMessageProducerBean jobStoreMessageProducer;
 
-    @EJB
-    JSONBBean jsonBinding;
+    JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Handles consumed message by forwarding sink result payload from
@@ -38,7 +37,7 @@ public class SinkMessageConsumerBean extends AbstractMessageConsumerBean {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final ExternalChunk deliveredChunk = jsonBinding.getContext().unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            final ExternalChunk deliveredChunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
             confirmLegalChunkTypeOrThrow(deliveredChunk, ExternalChunk.Type.DELIVERED);
             LOGGER.info("Received sink result for jobId={}, chunkId={}", deliveredChunk.getJobId(), deliveredChunk.getChunkId());
             jobStoreMessageProducer.sendSink(deliveredChunk);

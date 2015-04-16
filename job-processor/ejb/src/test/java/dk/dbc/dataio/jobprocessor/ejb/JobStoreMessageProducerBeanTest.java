@@ -7,10 +7,8 @@ import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
@@ -69,10 +67,10 @@ public class JobStoreMessageProducerBeanTest {
 
     @Test
     public void send_createMessageWithSinkResultPayloadThrowsJsonException_throws() throws JobProcessorException, JSONBException {
-        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
         final JSONBContext jsonbContext = mock(JSONBContext.class);
-        when(jobStoreMessageProducerBean.jsonBinding.getContext()).thenReturn(jsonbContext);
         when(jsonbContext.marshall(anyObject())).thenThrow(new JSONBException("JsonException"));
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        jobStoreMessageProducerBean.jsonbContext = jsonbContext;
         try {
             jobStoreMessageProducerBean.sendSink(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
             fail("No Exception thrown");
@@ -105,10 +103,10 @@ public class JobStoreMessageProducerBeanTest {
 
     @Test
     public void send_createMessageWithProcessorResultPayloadThrowsJsonException_throws() throws JobProcessorException, JSONBException {
-        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
         final JSONBContext jsonbContext = mock(JSONBContext.class);
-        when(jobStoreMessageProducerBean.jsonBinding.getContext()).thenReturn(jsonbContext);
         when(jsonbContext.marshall(anyObject())).thenThrow(new JSONBException("JsonException"));
+        final JobStoreMessageProducerBean jobStoreMessageProducerBean = getInitializedBean();
+        jobStoreMessageProducerBean.jsonbContext = jsonbContext;
         try {
             jobStoreMessageProducerBean.sendProc(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
             fail("No Exception thrown");
@@ -139,8 +137,6 @@ public class JobStoreMessageProducerBeanTest {
     private JobStoreMessageProducerBean getInitializedBean() {
         final JobStoreMessageProducerBean jobStoreMessageProducerBean = new JobStoreMessageProducerBean();
         jobStoreMessageProducerBean.jobStoreQueueConnectionFactory = jmsConnectionFactory;
-        jobStoreMessageProducerBean.jsonBinding = Mockito.spy(new JSONBBean());
-        jobStoreMessageProducerBean.jsonBinding.initialiseContext();
         return jobStoreMessageProducerBean;
     }
 }

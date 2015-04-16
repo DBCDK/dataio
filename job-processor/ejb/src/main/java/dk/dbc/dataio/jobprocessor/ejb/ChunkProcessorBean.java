@@ -11,15 +11,13 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import java.io.ByteArrayOutputStream;
@@ -49,8 +47,7 @@ public class ChunkProcessorBean {
                     return size() > CACHE_MAX_ENTRIES;
             }};
 
-    @EJB
-    JSONBBean jsonBinding;
+    JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Processes given chunk with business logic dictated by given flow
@@ -219,7 +216,7 @@ public class ChunkProcessorBean {
         // Something about why you need parentheses in the string around the json
         // when trying to evaluate the json in javascript (rhino):
         // http://rayfd.me/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
-        final String jsonStr = "(" + jsonBinding.getContext().marshall(supplementaryProcessData) + ")"; // notice the parentheses!
+        final String jsonStr = "(" + jsonbContext.marshall(supplementaryProcessData) + ")"; // notice the parentheses!
         return scriptWrapper.eval(jsonStr);
     }
 

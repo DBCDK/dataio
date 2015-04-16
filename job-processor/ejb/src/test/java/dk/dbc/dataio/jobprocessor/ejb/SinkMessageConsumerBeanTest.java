@@ -12,7 +12,6 @@ import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jsonb.ejb.JSONBBean;
 import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
@@ -95,8 +94,6 @@ public class SinkMessageConsumerBeanTest {
         final TestableSinkMessageConsumerBean sinkMessageConsumerBean = new TestableSinkMessageConsumerBean();
         sinkMessageConsumerBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
         sinkMessageConsumerBean.jobStoreMessageProducer = jobStoreMessageProducer;
-        sinkMessageConsumerBean.jsonBinding = new JSONBBean();
-        sinkMessageConsumerBean.jsonBinding.initialiseContext();
         return sinkMessageConsumerBean;
     }
 

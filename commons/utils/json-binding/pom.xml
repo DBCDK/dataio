@@ -12,15 +12,8 @@
 
   <artifactId>dataio-commons-utils-json-binding</artifactId>
   <name>dataio-commons-utils-json-binding</name>
-  <packaging>ejb</packaging>
 
   <dependencies>
-    <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.api.version}</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-invariant</artifactId>
@@ -32,18 +25,4 @@
       <version>${jackson.version}</version>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-ejb-plugin</artifactId>
-        <version>2.3</version>
-        <configuration>
-          <ejbVersion>${ejb.version}</ejbVersion>
-          <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

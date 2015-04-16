@@ -6,9 +6,6 @@
     <ejb>dataio-commons-utils-binary-file-store-${project.version}.jar</ejb>
   </module>
   <module>
-    <ejb>dataio-commons-utils-json-binding-${project.version}.jar</ejb>
-  </module>
-  <module>
     <ejb>dataio-commons-utils-file-store-service-connector-${project.version}.jar</ejb>
   </module>
   <module>

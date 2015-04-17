@@ -60,6 +60,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.jobHeader.setText(constructJobHeaderText());
         containerWidget.setWidget(view.asWidget());
         view.pager.setPageSize(PAGE_SIZE);
+        view.itemsTable.setRowCount(0); //clear table on startup
         getItems();
     }
 
@@ -165,6 +166,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getItems();
     }
 
+    @Override
+    public void filterItemsAndClearTable() {
+        view.itemsTable.setRowCount(0);
+        getItems();
+    }
+
     /*
      * Private classes
      */
@@ -186,6 +193,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onSuccess(List<ItemModel> itemModels) {
             view.setItems(itemModels, offset, rowCount);
             view.setSelectionEnabled(true);
+
+            if(itemModels.size() > 0) {
+                view.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
+            } else {
+                view.tabPanel.clear();
+                view.tabPanel.setVisible(false);
+            }
         }
     }
 

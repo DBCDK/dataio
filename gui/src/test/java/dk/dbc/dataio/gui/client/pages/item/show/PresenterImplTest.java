@@ -12,10 +12,12 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +50,7 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock Throwable mockedException;
     @Mock Place mockedPlace;
+    @Mock LogStoreProxyAsync mockedLogStoreProxy;
 
     @Mock Label mockedJobHeader;
     @Mock CellTable mockedItemsTable;
@@ -56,6 +59,7 @@ public class PresenterImplTest {
     @Mock RadioButton mockedAllItemsButton;
     @Mock RadioButton mockedFailedItemsButton;
     @Mock RadioButton mockedIgnoredItemsButton;
+    @Mock SingleSelectionModel<ItemModel> mockedSelectionModel;
 
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
@@ -65,6 +69,7 @@ public class PresenterImplTest {
     public void setupMockedData() {
         when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
         when(mockedClientFactory.getItemsShowView()).thenReturn(mockedView);
+        when(mockedClientFactory.getLogStoreProxyAsync()).thenReturn(mockedLogStoreProxy);
         mockedView.jobHeader = mockedJobHeader;
         mockedView.itemsTable = mockedItemsTable;
         mockedView.tabPanel = mockedTabPanel;
@@ -80,6 +85,8 @@ public class PresenterImplTest {
         when(mockedPlace.getFailedItemCounter()).thenReturn("0");
         when(mockedPlace.getIgnoredItemCounter()).thenReturn("0");
         when(mockedView.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
+        mockedView.selectionModel = mockedSelectionModel;
+        when(mockedView.itemsTable.getSelectionModel()).thenReturn(mockedSelectionModel);
     }
 
     // Mocked Texts
@@ -101,6 +108,7 @@ public class PresenterImplTest {
     final static String MOCKED_LIFECYCLE_DELIVERING = "Mocked Delivering";
     final static String MOCKED_LIFECYCLE_DONE = "Mocked Done";
     final static String MOCKED_LIFECYCLE_UNKNOWN = "Mocked Ukendt Lifecycle";
+
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedText.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
@@ -197,15 +205,17 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Subject under test
-        presenterImpl.filterItems();
+        presenterImpl.filterItemsAndClearTable();
 
         // Verify Test
-        // Two invocations: One during call to start, one during filterItems()
+        // Verify two invocations: One during call to start, one during filterItemsAndClearTable()
+        verify(mockedItemsTable, times(2)).setRowCount(0);
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+
         verify(mockedTabPanel, times(1)).setVisible(false);
         verify(mockedTabPanel, times(1)).clear();
         verify(mockedFailedItemsButton, times(1)).getValue();
         verify(mockedIgnoredItemsButton, times(1)).getValue();
-        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
     }
 
     @Test
@@ -216,13 +226,17 @@ public class PresenterImplTest {
         when(mockedIgnoredItemsButton.getValue()).thenReturn(false);
 
         // Subject under test
-        presenterImpl.filterItems();
+        presenterImpl.filterItemsAndClearTable();
 
         // Verify Test
+        // Verify two invocations: One during call to start, one during filterItemsAndClearTable()
+        verify(mockedItemsTable, times(2)).setRowCount(0);
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+
         verify(mockedTabPanel, times(1)).setVisible(false);
         verify(mockedTabPanel, times(1)).clear();
         verify(mockedFailedItemsButton, times(1)).getValue();
-        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+
     }
 
     @Test
@@ -233,14 +247,18 @@ public class PresenterImplTest {
         when(mockedIgnoredItemsButton.getValue()).thenReturn(true);
 
         // Subject under test
-        presenterImpl.filterItems();
+        presenterImpl.filterItemsAndClearTable();
 
         // Verify Test
+        // Verify two invocations: One during call to start, one during filterItemsAndClearTable()
+        verify(mockedItemsTable, times(2)).setRowCount(0);
+        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+
         verify(mockedTabPanel, times(1)).setVisible(false);
         verify(mockedTabPanel, times(1)).clear();
         verify(mockedFailedItemsButton, times(1)).getValue();
         verify(mockedIgnoredItemsButton, times(1)).getValue();
-        verify(mockedJobStoreProxy, times(2)).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
+
     }
 
     @Test
@@ -253,6 +271,7 @@ public class PresenterImplTest {
 
         // Verify Test
         verify(mockedView).setErrorText(any(String.class));
+        verify(mockedView).setSelectionEnabled(false);
     }
 
     @Test
@@ -266,6 +285,7 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedView).setItems(testModels, OFFSET, ROW_COUNT);
         verify(mockedView).setSelectionEnabled(true);
+        verify(mockedSelectionModel).setSelected(testModels.get(0), true);
     }
 
     private void genericStart_callStart_ok() {
@@ -278,6 +298,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
+        verify(mockedView.itemsTable).setRowCount(0);
         verify(mockedClientFactory).getItemsShowView();
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");

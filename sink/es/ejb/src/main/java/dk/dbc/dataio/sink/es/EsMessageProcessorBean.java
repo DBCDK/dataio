@@ -72,7 +72,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             documentBuilder = documentBuilderFactory.newDocumentBuilder();
             transformer = transformerFactory.newTransformer();
         } catch (ParserConfigurationException | TransformerConfigurationException e) {
-            throw new EJBException(e.getMessage());
+            throw new EJBException(e);
         }
     }
 

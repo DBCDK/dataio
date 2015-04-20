@@ -3,9 +3,14 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.NoSelectionModel;
+import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.view.client.SelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.Format;
@@ -18,6 +23,7 @@ import java.util.List;
  */
 public class View extends ViewWidget {
     ListDataProvider<FlowBinderModel> dataProvider;
+    NoSelectionModel<FlowBinderModel> selectionModel;
 
     /**
      * Default constructor
@@ -67,6 +73,8 @@ public class View extends ViewWidget {
         flowBindersTable.addColumn(constructFlowColumn(), texts.columnHeader_Flow());
         flowBindersTable.addColumn(constructSinkColumn(), texts.columnHeader_Sink());
         flowBindersTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
+        flowBindersTable.setSelectionModel(constructSelectionModel());
+        flowBindersTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
 
     /**
@@ -245,6 +253,44 @@ public class View extends ViewWidget {
             }
         });
     return column;
+    }
+
+    /**
+     * This method constructs a Selection Model, and attaches an event handler to the table,
+     * reacting on selection events.
+     * @return A Selection Model for the table
+     */
+    private SelectionModel constructSelectionModel() {
+        selectionModel = new NoSelectionModel<FlowBinderModel>();
+        selectionModel.addSelectionChangeHandler(new FlowBinderSelectionModel());
+        return selectionModel;
+    }
+
+    /**
+     * This method constructs a double click event handler. On double click event, the method calls
+     * the presenter with the selection model selected value.
+     * @return the double click handler
+     */
+    private DoubleClickHandler getDoubleClickHandler(){
+        DoubleClickHandler handler = new DoubleClickHandler() {
+            @Override
+            public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
+                FlowBinderModel selected = selectionModel.getLastSelectedObject();
+                if(selected != null) {
+                    presenter.editFlowBinder(selected);
+                }
+            }
+        };
+        return handler;
+    }
+
+    /*
+    * Private classes
+    */
+    class FlowBinderSelectionModel implements SelectionChangeEvent.Handler {
+        public void onSelectionChange(SelectionChangeEvent event) {
+            selectionModel.getLastSelectedObject();
+        }
     }
 
 }

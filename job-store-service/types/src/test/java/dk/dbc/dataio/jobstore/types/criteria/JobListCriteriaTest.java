@@ -124,4 +124,19 @@ public class JobListCriteriaTest {
         final JSONBContext jsonbContext = new JSONBContext();
         jsonbContext.unmarshall(jsonbContext.marshall(new JobListCriteria()), JobListCriteria.class);
     }
+
+    @Test
+    public void instance_whenVerbatimFieldConstruct_canBeMarshalAndUnmarshalled() throws JSONBException {
+        final List<ListFilter<JobListCriteria.Field>> filters = new ArrayList<>();
+        filters.add(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED));
+        filters.add(new ListFilter<>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
+
+        final ListCriteria jobListCriteria = new JobListCriteria()
+                .where(filters.get(0))
+                .and(filters.get(1))
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC));
+
+        final JSONBContext jsonbContext = new JSONBContext();
+        jsonbContext.unmarshall(jsonbContext.marshall(jobListCriteria), JobListCriteria.class);
+    }
 }

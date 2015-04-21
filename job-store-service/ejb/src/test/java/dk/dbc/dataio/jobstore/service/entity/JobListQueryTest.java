@@ -166,4 +166,21 @@ public class JobListQueryTest {
         final JobListCriteria jobListCriteria = new JobListCriteria().offset(0);
         assertThat(jobListQuery.buildQueryString(JobListQuery.QUERY_BASE, jobListCriteria), is(expectedQuery));
     }
+
+    @Test
+    public void buildQueryString_SingleWhereClauseSingleFiltersSingleOrderByClauses_returnsQueryString() {
+        final String expectedQuery = JobListQuery.QUERY_BASE +
+                " WHERE timeOfCreation>?1 " +
+                "AND (state->'states'->'PROCESSING'->>'failed' != '0') " +
+                "OR (state->'states'->'DELIVERING'->>'failed' != '0') " +
+                "ORDER BY timeOfCreation DESC";
+
+        final JobListQuery jobListQuery = new JobListQuery(ENTITY_MANAGER);
+        final JobListCriteria jobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN, 42))
+                .and(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED))
+                .or(new ListFilter<>(JobListCriteria.Field.STATE_DELIVERING_FAILED))
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC));
+        assertThat(jobListQuery.buildQueryString(JobListQuery.QUERY_BASE, jobListCriteria), is(expectedQuery));
+    }
 }

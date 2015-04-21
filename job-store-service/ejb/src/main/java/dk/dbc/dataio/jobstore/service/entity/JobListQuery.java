@@ -36,6 +36,8 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
         fieldMap.put(JobListCriteria.Field.JOB_ID, new BinaryOpField("id", new ObjectValue()));
         fieldMap.put(JobListCriteria.Field.TIME_OF_CREATION, new BinaryOpField("timeOfCreation", new TimestampValue()));
         fieldMap.put(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, new BinaryOpField("timeOfLastModification", new TimestampValue()));
+        fieldMap.put(JobListCriteria.Field.STATE_PROCESSING_FAILED, new VerbatimField("(state->'states'->'PROCESSING'->>'failed' != '0')"));
+        fieldMap.put(JobListCriteria.Field.STATE_DELIVERING_FAILED, new VerbatimField("(state->'states'->'DELIVERING'->>'failed' != '0')"));
     }
 
     /**

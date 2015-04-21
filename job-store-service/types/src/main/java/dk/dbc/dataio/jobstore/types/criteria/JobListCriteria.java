@@ -26,7 +26,15 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
         /**
          * job last modification time
          */
-        TIME_OF_LAST_MODIFICATION
+        TIME_OF_LAST_MODIFICATION,
+         /*
+         * jobs failed while processing
+         */
+        STATE_PROCESSING_FAILED,
+        /*
+         * jobs failed while delivering
+         */
+        STATE_DELIVERING_FAILED
     }
 
     private LinkedList<ListFilterGroup<JobListCriteria.Field>> filtering;

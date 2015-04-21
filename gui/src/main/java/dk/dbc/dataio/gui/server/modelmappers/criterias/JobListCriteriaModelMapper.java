@@ -12,13 +12,18 @@ public final class JobListCriteriaModelMapper {
      */
     private JobListCriteriaModelMapper() {}
 
-    public static JobListCriteria toJobListCriteria(JobListCriteriaModel model) throws IllegalArgumentException {
-        //TODO - dummy context - should be removed once implemented in GUI.
-        ListFilter jobIdGreaterThanCondition = new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, Long.valueOf(model.getJobId()).intValue());
+    public static JobListCriteria toJobListCriteria(JobListCriteriaModel model) {
+        JobListCriteria jobListCriteria = new JobListCriteria();
+        switch (model.getSearchType()) {
+            case PROCESSING_FAILED:
+                jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_PROCESSING_FAILED));
+                break;
+            case DELIVERING_FAILED:
+                jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
+                break;
+        }
         ListOrderBy descendingTimeOfCreation = new ListOrderBy<JobListCriteria.Field>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC);
-
-        return new JobListCriteria().where(jobIdGreaterThanCondition).orderBy(descendingTimeOfCreation);
+        jobListCriteria.orderBy(descendingTimeOfCreation);
+        return jobListCriteria;
     }
-
-
 }

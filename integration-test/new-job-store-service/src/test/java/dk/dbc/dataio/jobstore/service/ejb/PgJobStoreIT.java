@@ -237,16 +237,10 @@ public class PgJobStoreIT {
     public void addChunk() throws JobStoreException, SQLException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(false); // The params define that the job is created with 2 chunks.
         final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
         final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
 
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-
-        final JobInfoSnapshot jobInfoSnapshotNewJob = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
-        jobTransaction.commit();
+        final JobInfoSnapshot jobInfoSnapshotNewJob = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshotNewJob, not(nullValue()));
 
@@ -269,7 +263,7 @@ public class PgJobStoreIT {
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
         final JobInfoSnapshot jobInfoSnapShotUpdatedJob = pgJobStore.addChunk(chunk);
-        jobTransaction.commit();
+        chunkTransaction.commit();
 
         // Then...
         assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
@@ -297,22 +291,7 @@ public class PgJobStoreIT {
     public void listJobs() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
-        final List<JobInfoSnapshot> snapshots = new ArrayList<>();
-
-        for (int i = 0; i < 4; i++) {
-            final EntityTransaction jobTransaction = entityManager.getTransaction();
-            jobTransaction.begin();
-            snapshots.add(pgJobStore.addJob(
-                    params.jobInputStream,
-                    params.dataPartitioner,
-                    params.sequenceAnalyserKeyGenerator,
-                    params.flow,
-                    params.sink,
-                    params.flowStoreReferences));
-            jobTransaction.commit();
-        }
-
+        final List<JobInfoSnapshot> snapshots = addJobs(4, pgJobStore);
         final List<JobInfoSnapshot> expectedSnapshots = snapshots.subList(1, snapshots.size() - 1);
 
         // When...
@@ -329,6 +308,90 @@ public class PgJobStoreIT {
     }
 
     /**
+     * Given    : a job store containing a number of jobs, where one has failed during delivering
+     * When     : requesting a job listing with a criteria selecting only jobs failed in processing
+     * Then     : no snapshots are returned.
+     * And when : requesting a job listen with a criteria selecting only jobs failed in delivering
+     * Then     : one filtered snapshot is returned
+     */
+    @Test
+    public void listDeliveringFailedJobs() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final int CHUNK_ID = 0;
+        final short FAILED_ITEM_ID = 3;
+
+        final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
+        final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
+
+        final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
+
+        ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
+                10, snapshots.get(0).getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.DELIVERED);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
+
+        // When...
+        final List<JobInfoSnapshot> returnedSnapshotsProcessingFailed = pgJobStore.listJobs(jobListCriteriaProcessingFailed);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshotsProcessingFailed.size(), is(0));
+
+        // And when...
+        final List<JobInfoSnapshot> returnedSnapshotsDeliveringFailed = pgJobStore.listJobs(jobListCriteriaDeliveringFailed);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshotsDeliveringFailed.size(), is(1));
+        JobInfoSnapshot jobInfoSnapshot = returnedSnapshotsDeliveringFailed.get(0);
+        assertThat(jobInfoSnapshot.getJobId(), is(snapshots.get(0).getJobId()));
+    }
+
+    /**
+     * Given    : a job store containing a number of jobs, where one has failed during processing
+     * When     : requesting a job listing with a criteria selecting only jobs failed in processing
+     * Then     : one filtered snapshot is returned.
+     * And when : requesting a job listen with a criteria selecting only jobs failed in delivering
+     * Then     : no snapshots are returned.
+     */
+    @Test
+    public void listProcessingFailedJobs() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final int CHUNK_ID = 0;
+        final short FAILED_ITEM_ID = 3;
+
+        final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
+        final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
+
+        final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
+
+        ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
+                10, snapshots.get(0).getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.PROCESSED);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
+
+        // When...
+        final List<JobInfoSnapshot> returnedSnapshotsProcessingFailed = pgJobStore.listJobs(jobListCriteriaProcessingFailed);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshotsProcessingFailed.size(), is(1));
+        JobInfoSnapshot jobInfoSnapshot = returnedSnapshotsProcessingFailed.get(0);
+        assertThat(jobInfoSnapshot.getJobId(), is(snapshots.get(0).getJobId()));
+
+        // And when...
+        final List<JobInfoSnapshot> returnedSnapshotsDeliveringFailed = pgJobStore.listJobs(jobListCriteriaDeliveringFailed);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshotsDeliveringFailed.size(), is(0));
+    }
+
+    /**
      * Given   : a job store containing a number of jobs
      * When    : requesting an item listing with a criteria selecting failed items from a specific job
      * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
@@ -337,20 +400,10 @@ public class PgJobStoreIT {
     public void listFailedItemsForJob() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);  // The params define that the job is created with 2 chunks.
         final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
         final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
 
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(
-                params.jobInputStream,
-                params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator,
-                params.flow,
-                params.sink,
-                params.flowStoreReferences);
-        jobTransaction.commit();
+        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
                 10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.PROCESSED);
@@ -381,21 +434,11 @@ public class PgJobStoreIT {
     public void listIgnoredItemsForJob() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);  // The params define that the job is created with 2 chunks.
         final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
         final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
         final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
 
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(
-                params.jobInputStream,
-                params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator,
-                params.flow,
-                params.sink,
-                params.flowStoreReferences);
-        jobTransaction.commit();
+        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
                 10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
@@ -426,21 +469,11 @@ public class PgJobStoreIT {
     public void listAllItemsForJob() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);  // The params define that the job is created with 2 chunks.
         final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
         final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
         final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
 
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(
-                params.jobInputStream,
-                params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator,
-                params.flow,
-                params.sink,
-                params.flowStoreReferences);
-        jobTransaction.commit();
+        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingChunkItemArray(
                 10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
@@ -581,6 +614,24 @@ public class PgJobStoreIT {
         return pgJobStore;
     }
 
+    private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
+        List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
+        final Params params = new Params(true);
+        for (int i = 0; i < numberOfJobs; i++) {
+            final EntityTransaction jobTransaction = entityManager.getTransaction();
+            jobTransaction.begin();
+            snapshots.add(pgJobStore.addJob(
+                    params.jobInputStream,
+                    params.dataPartitioner,
+                    params.sequenceAnalyserKeyGenerator,
+                    params.flow,
+                    params.sink,
+                    params.flowStoreReferences));
+            jobTransaction.commit();
+        }
+        return snapshots;
+    }
+
     private Connection newConnection() throws SQLException {
         try {
             Class.forName("org.postgresql.Driver");
@@ -646,6 +697,12 @@ public class PgJobStoreIT {
                     break;
             }
         }
+    }
+
+    private JobListCriteria buildJobListCriteria(JobListCriteria.Field jobStateValue) {
+        return new JobListCriteria()
+                .where(new ListFilter<>(jobStateValue))
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC));
     }
 
     private ExternalChunk buildExternalChunk(long jobId, long chunkId, long itemId, ExternalChunk.Type type, ChunkItem.Status status) {

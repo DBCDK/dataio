@@ -1,14 +1,14 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.ImageResourceCell;
+import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.ListDataProvider;
-import com.google.gwt.view.client.NoSelectionModel;
-import com.google.gwt.view.client.SelectionChangeEvent;
-import com.google.gwt.view.client.SelectionModel;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.helpers.SortHelper;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -28,7 +28,7 @@ public class View extends ViewWidget {
     ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
     Column jobCreationTimeColumn;
     ListDataProvider<JobModel> dataProvider;
-    NoSelectionModel<JobModel> selectionModel;
+    SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<JobModel>();;
 
     // Enums
     enum JobStatus {
@@ -72,7 +72,6 @@ public class View extends ViewWidget {
         jobsTable.setRowCount(jobs.size());
     }
 
-
     /**
      * Private methods
      */
@@ -109,10 +108,11 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructFailedCounterColumn(), texts.columnHeader_FailureCounter());
         jobsTable.addColumn(constructIgnoredCounterColumn(), texts.columnHeader_IgnoredCounter());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
+        jobsTable.setSelectionModel(selectionModel);
+        jobsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
+
         pagerTop.setDisplay(jobsTable);
         pagerBottom.setDisplay(jobsTable);
-
-        jobsTable.setSelectionModel(constructSelectionModel());
     }
 
     /**
@@ -362,7 +362,6 @@ public class View extends ViewWidget {
         return column;
     }
 
-
     /**
      * This method constructs the JobState column
      * Should have been private, but is package-private to enable unit test
@@ -374,27 +373,14 @@ public class View extends ViewWidget {
         return new StatusColumn(resources, statusCell);
     }
 
-    /**
-     * This method constructs a Selection Model, and attaches an event handler to the table,
-     * reacting on selection events.
-     * @return A Selection Model for the table
-     */
-    private SelectionModel constructSelectionModel() {
-        selectionModel = new NoSelectionModel<JobModel>();
-        selectionModel.addSelectionChangeHandler(new JobSelectionModel());
-        return selectionModel;
-    }
-
-
-    /*
-     * Private classes
-     */
-    class JobSelectionModel implements SelectionChangeEvent.Handler {
-        public void onSelectionChange(SelectionChangeEvent event) {
-            JobModel selected = selectionModel.getLastSelectedObject();
-            if (selected != null) {
-                presenter.itemSelected(selected);
+    class CellPreviewHandlerClass implements CellPreviewEvent.Handler<JobModel> {
+        @Override
+        public void onCellPreview(CellPreviewEvent<JobModel> cellPreviewEvent) {
+            if(BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType())) {
+                selectionModel.setSelected(cellPreviewEvent.getValue(), true);
+                presenter.itemSelected(selectionModel.getSelectedObject());
             }
         }
     }
+
 }

@@ -1,9 +1,12 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.ImageResourceCell;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent;
+import com.google.gwt.view.client.CellPreviewEvent;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -24,6 +27,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -40,6 +44,10 @@ public class ViewTest {
     Presenter mockedPresenter;
     @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
+    @Mock SingleSelectionModel mockedSelectionModel;
+    @Mock JobModel mockedJobModel;
+    @Mock CellPreviewEvent<JobModel> mockedCellPreviewEvent;
+    @Mock NativeEvent mockedNativeEvent;
 
 
     // Test Data
@@ -379,6 +387,53 @@ public class ViewTest {
         StatusColumn column = (StatusColumn) view.constructJobStateColumn();
         assertThat(column.getCell(), is(notNullValue()));
         assertThat(column.getCell() instanceof ImageResourceCell, is(true));
+    }
+
+    class ConcreteView extends View {
+        CellPreviewHandlerClass cellPreviewHandler = new CellPreviewHandlerClass();
+
+        public ConcreteView(String header, Texts texts, Resources resources) {
+            super(header, texts, resources);
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void cellPreviewHandlerClass_callEventHandler_notClickEventVerify() {
+        // Test setup
+        ConcreteView concreteView = new ConcreteView("Header", mockedTexts, mockedResources);
+        concreteView.selectionModel = mockedSelectionModel;
+        concreteView.setPresenter(mockedPresenter);
+
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedJobModel);
+        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
+
+        // Subject Under Test
+        concreteView.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
+
+        // Verification
+        verifyZeroInteractions(mockedPresenter);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void cellPreviewHandlerClass_callEventHandler_clickEventVerify() {
+        // Test setup
+        ConcreteView concreteView = new ConcreteView("Header", mockedTexts, mockedResources);
+        concreteView.selectionModel = mockedSelectionModel;
+        concreteView.setPresenter(mockedPresenter);
+
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedJobModel);
+        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
+        when(mockedNativeEvent.getType()).thenReturn("click");
+        when(mockedCellPreviewEvent.getValue()).thenReturn(mockedJobModel);
+
+        // Subject Under Test
+        concreteView.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
+
+        // Verification
+        verify(mockedSelectionModel).setSelected(mockedJobModel, true);
+        verify(mockedPresenter).itemSelected(mockedJobModel);
     }
 
 }

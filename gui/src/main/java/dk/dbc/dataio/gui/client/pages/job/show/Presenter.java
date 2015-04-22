@@ -4,6 +4,6 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
-    void itemSelected(JobModel itemModel);
+    void itemSelected(JobModel jobModel);
     void fetchSelectedJobs();
 }

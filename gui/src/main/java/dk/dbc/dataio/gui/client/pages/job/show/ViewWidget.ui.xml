@@ -3,7 +3,17 @@
              xmlns:c="urn:import:com.google.gwt.user.cellview.client">
     <ui:with type="dk.dbc.dataio.gui.client.pages.job.show.Texts" field="txt"/>
 
+    <ui:style>
+        .radio-buttons {
+        }
+    </ui:style>
     <g:HTMLPanel styleName="jobs-show-table">
+
+        <span class="{style.radio-buttons}">
+            <g:RadioButton ui:field="processingFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_ProcessingFailedJobs}" />
+            <g:RadioButton ui:field="deliveringFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_DeliveringFailedJobs}" />
+            <g:RadioButton ui:field="allJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_AllJobs}" />
+        </span>
 
         <c:SimplePager ui:field="pagerTop" />
         <c:CellTable pageSize='20' ui:field='jobsTable' />

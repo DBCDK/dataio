@@ -1,12 +1,15 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -27,6 +30,9 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField CellTable jobsTable;
     @UiField SimplePager pagerTop;
     @UiField SimplePager pagerBottom;
+    @UiField RadioButton allJobsButton;
+    @UiField RadioButton processingFailedJobsButton;
+    @UiField RadioButton deliveringFailedJobsButton;
 
 
     @UiFactory SimplePager makeSimplePager() {
@@ -34,6 +40,12 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         // the pager with a location, and we do also want to enable the "Show Last Page" Button and we also want to
         // set the Fast Forward button to scroll 100 items (10 pages) at a time.
         return new SimplePager(SimplePager.TextLocation.CENTER, true, FAST_FORWARD_PAGES * PAGE_SIZE, true);
+    }
+
+    @UiHandler(value={"allJobsButton", "processingFailedJobsButton", "deliveringFailedJobsButton"})
+    void filterItemsRadioButtonPressed(ClickEvent event) {
+        pagerTop.firstPage();
+        presenter.fetchSelectedJobs();
     }
 
     /**
@@ -45,6 +57,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         super(header);
         this.texts = texts;
         add(uiBinder.createAndBindUi(this));
+        this.processingFailedJobsButton.setValue(true);
     }
 
     /**

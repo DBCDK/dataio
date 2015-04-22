@@ -6,6 +6,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
@@ -22,7 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -39,10 +42,12 @@ public class PresenterImplTest {
     @Mock PlaceController mockedPlaceController;
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
-    @Mock
-    View mockedView;
+    @Mock View mockedView;
     @Mock Widget mockedViewWidget;
     @Mock Throwable mockedException;
+    @Mock RadioButton mockedAllJobsButton;
+    @Mock RadioButton mockedProcessingFailedJobsButton;
+    @Mock RadioButton mockedDeliveringFailedJobsButton;
 
     // Setup mocked data
     @Before
@@ -51,8 +56,11 @@ public class PresenterImplTest {
         when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
         when(mockedClientFactory.getJobsShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
-    }
 
+        mockedView.allJobsButton = mockedAllJobsButton;
+        mockedView.processingFailedJobsButton = mockedProcessingFailedJobsButton;
+        mockedView.deliveringFailedJobsButton = mockedDeliveringFailedJobsButton;
+    }
 
     // Subject Under Test
     private PresenterImpl presenterImpl;
@@ -102,6 +110,56 @@ public class PresenterImplTest {
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedJobStore).listJobs(any(JobListCriteriaModel.class),any(AsyncCallback.class));
+    }
+
+    @Test
+    public void filterJobs_processingFailedSelected_jobsFailedInProcessingRequested() {
+        presenterImpl = new PresenterImpl(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedProcessingFailedJobsButton.getValue()).thenReturn(true);
+
+        // Subject under test
+        presenterImpl.fetchSelectedJobs();
+
+        // Verify Test
+        // Verify two invocations: One during call to start, one during fetchSelectedJobs()
+        verify(mockedJobStore, times(2)).listJobs(any(JobListCriteriaModel.class), any(AsyncCallback.class));
+        verify(mockedProcessingFailedJobsButton, times(2)).getValue();
+    }
+
+    @Test
+    public void filterJobs_deliveringFailedSelected_jobsFailedInDeliveringRequested() {
+        presenterImpl = new PresenterImpl(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedProcessingFailedJobsButton.getValue()).thenReturn(false);
+        when(mockedDeliveringFailedJobsButton.getValue()).thenReturn(true);
+
+        // Subject under test
+        presenterImpl.fetchSelectedJobs();
+
+        // Verify Test
+        // Verify two invocations: One during call to start, one during fetchSelectedJobs()
+        verify(mockedJobStore, times(2)).listJobs(any(JobListCriteriaModel.class), any(AsyncCallback.class));
+        verify(mockedProcessingFailedJobsButton, times(2)).getValue();
+        verify(mockedDeliveringFailedJobsButton, times(2)).getValue();
+    }
+
+    @Test
+    public void filterJobs_allJobsSelected_allJobsRequested() {
+        presenterImpl = new PresenterImpl(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedProcessingFailedJobsButton.getValue()).thenReturn(false);
+        when(mockedDeliveringFailedJobsButton.getValue()).thenReturn(false);
+
+        // Subject under test
+        presenterImpl.fetchSelectedJobs();
+
+        // Verify Test
+        // Verify two invocations: One during call to start, one during fetchSelectedJobs()
+        verify(mockedJobStore, times(2)).listJobs(any(JobListCriteriaModel.class), any(AsyncCallback.class));
+        verify(mockedProcessingFailedJobsButton, times(2)).getValue();
+        verify(mockedDeliveringFailedJobsButton, times(2)).getValue();
+        verifyZeroInteractions(mockedAllJobsButton);
     }
 
     @Test

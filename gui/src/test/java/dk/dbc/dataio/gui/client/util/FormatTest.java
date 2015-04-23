@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static dk.dbc.dataio.gui.client.util.Format.getDataioPatternMatches;
+import static dk.dbc.dataio.gui.client.util.Format.getPatternMatches;
 import static dk.dbc.dataio.gui.client.util.Format.inBracketsPairString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -57,4 +59,41 @@ public class FormatTest {
         assertThat(result, is("27 (name)"));
     }
 
+    @Test
+    public void getDataioPatternMatches_validInput_emptyListReturned() {
+        final String validInputStr = "VALid- String æ + ø å_Æ Ø Å+1-2 - 3 _";
+        final List<String> matchesFound = getDataioPatternMatches(validInputStr);
+        assertThat(matchesFound.size(), is(0));
+    }
+
+    @Test
+    public void getDataioPatternMatches_invalidInput_invalidCharactersReturned() {
+        final String invalidInputStr = ";,:.'§$!\"?´¨@#€%&/()=";
+        final List<String> matchesFound = getDataioPatternMatches(invalidInputStr);
+        char[] charArray = invalidInputStr.toCharArray();
+        assertThat(matchesFound.size(), is(charArray.length));
+        for(int i = 0; i < matchesFound.size(); i++) {
+            assertThat(matchesFound.get(i), is(String.valueOf(charArray[i])));
+        }
+    }
+
+    @Test
+    public void getPatternMatches_validInput_emptyListReturned() {
+        final String alphaNumericPattern = "[^a-zA-Z0-9 ]";
+        final String validInputStr = "Valid Input String 123";
+        final List<String> matchesFound = getPatternMatches(validInputStr, alphaNumericPattern);
+        assertThat(matchesFound.size(), is(0));
+    }
+
+    @Test
+    public void getPatternMatches_invalidInput_invalidCharactersReturned() {
+        final String alphaNumericPattern = "[^a-zA-Z0-9]";
+        final String invalidInputStr = "§$\"#€%&/()=?+`´^¨'*@_-.:,; ";
+        final List<String> matchesFound = getPatternMatches(invalidInputStr, alphaNumericPattern);
+        char[] charArray = invalidInputStr.toCharArray();
+        assertThat(matchesFound.size(), is(charArray.length));
+        for(int i = 0; i < matchesFound.size(); i++) {
+            assertThat(matchesFound.get(i), is(String.valueOf(charArray[i])));
+        }
+    }
 }

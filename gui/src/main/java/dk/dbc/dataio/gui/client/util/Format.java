@@ -7,7 +7,10 @@
 package dk.dbc.dataio.gui.client.util;
 
 import com.google.gwt.i18n.shared.DateTimeFormat;
+import com.google.gwt.regexp.shared.MatchResult;
+import com.google.gwt.regexp.shared.RegExp;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -18,6 +21,7 @@ import java.util.List;
  */
 public final class Format {
     public final static String LONG_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    private final static String DATAIO_GUI_VALID_INPUT_PATTERN = "[^ÆØÅæøåa-zA-z0-9+ _-]";
 
     // Private constructor to avoid instantiation
     private Format() {
@@ -71,6 +75,30 @@ public final class Format {
         return parseDate(date, LONG_DATE_TIME_FORMAT);
     }
 
+    /**
+     * Matches an input string towards a predefined dataio pattern:
+     * A-Å, 0-9, - (minus), + (plus), _(underscore)
+     * @param input the string to match
+     * @return a list containing the matches found, empty list if no matches found
+     */
+    public static List<String> getDataioPatternMatches(String input) {
+        return getPatternMatches(input, DATAIO_GUI_VALID_INPUT_PATTERN);
+    }
+
+    /**
+     * Matches an input string with the string pattern given as input
+     * @param input the string to match
+     * @param pattern the pattern to which the string is matched
+     * @return a list containing the matches found, empty list if no matches found
+     */
+    public static List<String> getPatternMatches(String input, String pattern) {
+        final List<String> matches = new ArrayList<String>();
+        RegExp regExp = RegExp.compile(pattern, "g");
+        for (MatchResult matcher = regExp.exec(input); matcher != null; matcher = regExp.exec(input)) {
+            matches.add(matcher.getGroup(0));
+        }
+        return matches;
+    }
 
     /*
      * Private methods

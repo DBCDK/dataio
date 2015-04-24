@@ -72,6 +72,12 @@ CREATE INDEX item_stateIgnored_index ON item(jobId, chunkId, id) WHERE
     OR state->'states'->'PROCESSING'->>'ignored' != '0'
     OR state->'states'->'DELIVERING'->>'ignored' != '0';
 
+CREATE INDEX job_processingFailed_index ON job(id) WHERE
+       state->'states'->'PROCESSING'->>'failed' != '0';
+
+CREATE INDEX job_deliveringFailed_index ON job(id) WHERE
+       state->'states'->'DELIVERING'->>'failed' != '0';
+
 CREATE OR REPLACE FUNCTION set_flowcache(the_checksum TEXT, the_flow JSON)
     RETURNS flow_cacheline AS
     $BODY$

@@ -116,7 +116,6 @@ public class FlowModelMapperTest {
             FlowModelMapper.toFlowContent(model, Arrays.asList(flowComponent));
             fail("Illegal flow name not detected");
         } catch(IllegalArgumentException e) {
-            System.out.println(e.getMessage());
             assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
         }
     }

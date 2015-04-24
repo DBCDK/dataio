@@ -130,6 +130,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (model != null) {
             if (model.isInputFieldsEmpty()) {
                 view.setErrorText(texts.error_InputFieldValidationError());
+            } else if (!model.getDataioPatternMatches().isEmpty()) {
+                view.setErrorText(texts.error_NameFormatValidationError());
             } else {
                 saveModel();
             }

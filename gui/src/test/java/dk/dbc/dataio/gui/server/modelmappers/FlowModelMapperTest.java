@@ -6,8 +6,8 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * FlowModelMapper unit tests
@@ -100,6 +101,24 @@ public class FlowModelMapperTest {
         // Build a FlowModel containing no flow components
         FlowModel model = new FlowModel(ID, VERSION, NAME, DESCRIPTION, new ArrayList<FlowComponentModel>());
         FlowModelMapper.toFlowContent(model, Arrays.asList(new FlowComponentBuilder().build()));
+    }
+
+    @Test
+    public void toFlowContent_invalidFlowName_throwsIllegalArgumentException() {
+        FlowComponentModel flowComponentModel = getValidFlowComponentModel();
+        FlowComponent flowComponent = getValidFlowComponent();
+
+        final String flowName = "*%(Illegal)_&Name - €";
+        final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
+        FlowModel model = new FlowModel(ID, VERSION, flowName, DESCRIPTION, Arrays.asList(flowComponentModel));
+
+        try {
+            FlowModelMapper.toFlowContent(model, Arrays.asList(flowComponent));
+            fail("Illegal flow name not detected");
+        } catch(IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        }
     }
 
     @Test
@@ -252,6 +271,31 @@ public class FlowModelMapperTest {
                 assertThat(javaScripts.get(i).getJavascript(), is(javaScript));
             }
         }
+    }
+
+    private FlowComponentModel getValidFlowComponentModel() {
+        return new FlowComponentModel(
+                FLOW_COMPONENT_ID_1,
+                FLOW_COMPONENT_VERSION_1,
+                NAME,
+                "svn projekt",
+                Long.toString(89),
+                "invocation navn",
+                "invocation method",
+                Arrays.asList("JavaScript"));
+    }
+
+    private FlowComponent getValidFlowComponent() {
+        return new FlowComponentBuilder().setId(FLOW_COMPONENT_ID_1).setVersion(FLOW_COMPONENT_VERSION_1)
+                .setContent(new FlowComponentContentBuilder()
+                        .setName("content navn")
+                        .setSvnProjectForInvocationJavascript("svn projekt")
+                        .setSvnRevision(89)
+                        .setInvocationJavascriptName("invocation navn")
+                        .setInvocationMethod("invocation method")
+                        .setJavascripts(Arrays.asList(new JavaScript("Javascript", "Javascript 1")))
+                        .build())
+                .build();
     }
 
 }

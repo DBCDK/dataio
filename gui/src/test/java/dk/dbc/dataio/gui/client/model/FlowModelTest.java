@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -47,6 +48,26 @@ public class FlowModelTest {
     public void isInputFieldsEmpty_allInputFieldsSet_returnsFalse() {
         FlowModel model = getTestModel();
         assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void getDataioPatternMatches_validFlowNameInput_returnsEmptyList() {
+        FlowModel model = getTestModel();
+        model.setFlowName("Valid flow name + 1_2_3");
+        assertThat(model.getDataioPatternMatches().size(), is(0));
+    }
+
+    @Test
+    public void getDataioPatternMatches_invalidFlowNameInput_returnsList() {
+        final FlowModel model = getTestModel();
+        final String expectedInvalidValues = "*<>*(#€)";
+        model.setFlowName("Invalid flow name" + expectedInvalidValues);
+
+        final List<String> matches = model.getDataioPatternMatches();
+        assertThat(matches.size(), is(expectedInvalidValues.length()));
+        for (int i = 0; i < matches.size(); i++) {
+            assertThat(matches.get(i), is(String.valueOf(expectedInvalidValues.charAt(i))));
+        }
     }
 
     private FlowModel getTestModel() {

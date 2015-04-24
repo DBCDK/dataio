@@ -234,6 +234,16 @@ public class PresenterImplTest {
     }
 
     @Test
+    public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl.model.setFlowName("*(Flow name)*_%€");
+
+        presenterImpl.saveButtonPressed();
+
+        verify(mockedTexts).error_NameFormatValidationError();
+    }
+
+    @Test
     public void saveButtonPressed_callSaveButtonPressedWithValidData_SaveModelIsCalled() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
 

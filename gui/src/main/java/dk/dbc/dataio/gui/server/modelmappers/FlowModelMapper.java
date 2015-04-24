@@ -41,6 +41,11 @@ public final class FlowModelMapper {
             throw new IllegalArgumentException("model.name, model.description, model.flowcomponents cannot be empty");
         }
 
+        List<String> matches = model.getDataioPatternMatches();
+        if(!matches.isEmpty()) {
+           throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
+        }
+
         return new FlowContent(
                 model.getFlowName(),
                 model.getDescription(),
@@ -61,5 +66,18 @@ public final class FlowModelMapper {
         }
         return flowModels;
     }
+
+    /*
+     * private helper methods
+     */
+
+    private static String buildPatternMatchesErrorMsg(List<String> matches) {
+        StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flow name:");
+        for(String match : matches) {
+            stringBuilder.append(" [").append(match).append("],");
+        }
+        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
+    }
+
 
 }

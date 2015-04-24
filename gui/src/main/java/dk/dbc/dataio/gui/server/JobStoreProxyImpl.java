@@ -63,7 +63,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } catch (JobStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e) {
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return JobModelMapper.toModel(jobInfoSnapshotList);
     }

@@ -72,7 +72,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
     }
         return FlowModelMapper.toModel(flow);
     }
@@ -97,7 +97,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return FlowModelMapper.toModel(flow);
     }
@@ -144,7 +144,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         } catch (JavaScriptProjectFetcherException e) {
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
         }
@@ -164,7 +164,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         } catch (JavaScriptProjectFetcherException e) {
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
         }
@@ -252,7 +252,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
     }
@@ -322,7 +322,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SubmitterModelMapper.toModel(submitter);
     }
@@ -337,7 +337,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SubmitterModelMapper.toModel(submitter);
     }
@@ -383,7 +383,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SinkModelMapper.toModel(sink);
     }
@@ -398,7 +398,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
-            throw new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SinkModelMapper.toModel(sink);
     }

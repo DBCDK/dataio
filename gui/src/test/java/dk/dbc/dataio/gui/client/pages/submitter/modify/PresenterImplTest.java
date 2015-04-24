@@ -172,7 +172,7 @@ public class PresenterImplTest {
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (String) null)), is(nullValue()));
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (String) null)), is(nullValue()));
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, (String) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, (String) null)), is(nullValue()));
 
         // Proxy Exception instantiated with null Throwable
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, (Throwable) null)), is(nullValue()));
@@ -181,7 +181,7 @@ public class PresenterImplTest {
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (Throwable) null)), is(nullValue()));
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (Throwable) null)), is(nullValue()));
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, (Throwable) null)), is(nullValue()));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, (Throwable) null)), is(nullValue()));
     }
 
     @Test
@@ -200,7 +200,7 @@ public class PresenterImplTest {
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
         assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_EMPTY_FIELDS, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
+        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
     }
 
     @Test

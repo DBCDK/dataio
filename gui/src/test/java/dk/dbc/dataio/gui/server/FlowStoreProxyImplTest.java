@@ -171,7 +171,7 @@ public class FlowStoreProxyImplTest {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         SinkModel model = getDefaultSinkModel(0, 0);
         model.setSinkName("");
-        createSink_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        createSink_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
 
@@ -296,7 +296,7 @@ public class FlowStoreProxyImplTest {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         SinkModel model = getDefaultSinkModel(1, 1);
         model.setResourceName("");
-        updateSink_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        updateSink_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
     private SinkModel getDefaultSinkModel(long id, long version) {
@@ -379,7 +379,7 @@ public class FlowStoreProxyImplTest {
     public void updateSubmitter_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         SubmitterModel model = new SubmitterModel(1, 1, "42", "", "test");
-        updateSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        updateSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
     private SubmitterModel getDefaultSubmitterModel(long id, long version) {
@@ -480,7 +480,7 @@ public class FlowStoreProxyImplTest {
     public void createSubmitter_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         SubmitterModel model = new SubmitterModel(1, 1, "42", "", "test");
-        createSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        createSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
 
@@ -594,7 +594,7 @@ public class FlowStoreProxyImplTest {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         FlowModel model = getDefaultFlowModel(0, 0);
         model.setFlowName("");
-        createFlow_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        createFlow_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
 
@@ -1013,7 +1013,7 @@ public class FlowStoreProxyImplTest {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         FlowBinderModel model = getDefaultFlowBinderModel(1, 1);
         model.setSinkModel(new SinkModel());
-        updateFlowBinder_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        updateFlowBinder_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
     private FlowBinderModel getDefaultFlowBinderModel(long id, long version) {
@@ -1209,7 +1209,7 @@ public class FlowStoreProxyImplTest {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         FlowModel model = getDefaultFlowModel(new FlowBuilder().build());
         model.setFlowName("");
-        updateFlow_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        updateFlow_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
 
@@ -1297,7 +1297,7 @@ public class FlowStoreProxyImplTest {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         FlowComponentModel model = getDefaultFlowComponentModel();
         model.setName("");
-        createFlowComponent_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        createFlowComponent_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
     private void createFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
@@ -1423,7 +1423,7 @@ public class FlowStoreProxyImplTest {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         FlowComponentModel model = getDefaultFlowComponentModel();
         model.setName("");
-        updateFlowComponent_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_EMPTY_FIELDS, "MODEL_MAPPER_EMPTY_FIELDS");
+        updateFlowComponent_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
 

@@ -5,7 +5,9 @@ import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
-    void itemSelected(ItemModel itemModel);
-    void filterItems();
-    void filterItemsAndClearTable();
+    void itemSelected(ItemsListView listView, ItemModel itemModel);
+    void allItemsTabSelected();
+    void failedItemsTabSelected();
+    void ignoredItemsTabSelected();
+    void jobInfoTabSelected();
 }

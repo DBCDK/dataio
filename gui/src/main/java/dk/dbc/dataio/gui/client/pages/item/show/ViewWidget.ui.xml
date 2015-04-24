@@ -1,24 +1,13 @@
 <ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
              xmlns:g='urn:import:com.google.gwt.user.client.ui'
-             xmlns:c="urn:import:com.google.gwt.user.cellview.client">
+             xmlns:c="urn:import:com.google.gwt.user.cellview.client"
+             xmlns:dio='urn:import:dk.dbc.dataio.gui.client.pages.item.show'>
     <ui:with type="dk.dbc.dataio.gui.client.pages.item.show.Texts" field="txt"/>
 
     <ui:style>
         .header {
             font-size: 20px;
             margin-bottom: 0.5em;
-        }
-        .radio-buttons {
-        }
-        .content-area {
-            border: gray solid 2px;
-            margin-top: 0.3em;
-        }
-        .horizontal-element {
-            padding: 0.5em;
-            text-align: left;
-        }
-        .items-content {
         }
         .tab-content {
         }
@@ -28,23 +17,24 @@
 
         <g:Label ui:field="jobHeader" addStyleNames="{style.header}" />
 
-        <span class="{style.radio-buttons}">
-            <g:RadioButton ui:field="allItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_AllItems}" />
-            <g:RadioButton ui:field="failedItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_FailedItems}" />
-            <g:RadioButton ui:field="ignoredItemsButton" name="itemsButton" value="false" enabled="true" text="{txt.button_IgnoredItems}" />
-        </span>
-
-        <g:HorizontalPanel addStyleNames="{style.content-area}" verticalAlignment="top" horizontalAlignment="left" width="100%" >
-            <g:cell>
-                <c:CellTable ui:field='itemsTable' width="16em" addStyleNames="{style.horizontal-element} {style.items-content}"/>
-            </g:cell>
-
-            <g:cell width="100%">
-                <g:DecoratedTabPanel ui:field="tabPanel" visible="false" animationEnabled="true" width="100%" addStyleNames="{style.horizontal-element} {style.tab-content}" />
-            </g:cell>
-        </g:HorizontalPanel>
-
-        <c:SimplePager ui:field="pager" />
+        <g:DecoratedTabPanel ui:field="tabPanel" animationEnabled="false" width="100%" addStyleNames="{style.tab-content}">
+            <g:Tab text="{txt.tab_AllItems}">
+                <g:HTMLPanel>
+                    <dio:ItemsListView ui:field="allItemsList"/>
+                </g:HTMLPanel>
+            </g:Tab>
+            <g:Tab text="{txt.tab_FailedItems}">
+                <g:HTMLPanel>
+                    <dio:ItemsListView ui:field="failedItemsList"/>
+                </g:HTMLPanel>
+            </g:Tab>
+            <g:Tab text="{txt.tab_IgnoredItems}">
+                <dio:ItemsListView ui:field="ignoredItemsList"/>
+            </g:Tab>
+            <!--<g:Tab text="{txt.tab_JobInfo}">-->
+                <!--<g:HTMLPanel>Transfil data tbd.</g:HTMLPanel>-->
+            <!--</g:Tab>-->
+        </g:DecoratedTabPanel>
 
         <g:Button ui:field="backButton" text="{txt.label_Back}" />
 

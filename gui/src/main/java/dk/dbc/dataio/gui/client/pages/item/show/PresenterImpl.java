@@ -14,7 +14,8 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.List;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    private static final int PAGE_SIZE = 20;
+    protected static final int PAGE_SIZE = 20;
+
     protected ClientFactory clientFactory;
     protected Texts texts;
     protected View view;
@@ -24,10 +25,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected String jobId;
     protected String submitterNumber;
     protected String sinkName;
-    protected int itemCounter;
+    protected int allItemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
-    protected boolean isInitialPopulatingOfView;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory, Texts texts) {
         this.clientFactory = clientFactory;
@@ -39,10 +39,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.jobId = showPlace.getJobId();
         this.submitterNumber = showPlace.getSubmitterNumber();
         this.sinkName = showPlace.getSinkName();
-        this.itemCounter = Integer.parseInt(showPlace.getItemCounter());
+        this.allItemCounter = Integer.parseInt(showPlace.getItemCounter());
         this.failedItemCounter = Integer.parseInt(showPlace.getFailedItemCounter());
         this.ignoredItemCounter = Integer.parseInt(showPlace.getIgnoredItemCounter());
-        this.isInitialPopulatingOfView = true;
     }
 
     /**
@@ -59,10 +58,21 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.setPresenter(this);
         view.jobHeader.setText(constructJobHeaderText());
         containerWidget.setWidget(view.asWidget());
-        view.pager.setPageSize(PAGE_SIZE);
-        view.itemsTable.setRowCount(0); //clear table on startup
-        getItems();
+        view.allItemsList.itemsPager.setPageSize(PAGE_SIZE);
+        view.failedItemsList.itemsPager.setPageSize(PAGE_SIZE);
+        view.ignoredItemsList.itemsPager.setPageSize(PAGE_SIZE);
+        view.allItemsList.itemsTable.setRowCount(0); //clear table on startup
+        view.failedItemsList.itemsTable.setRowCount(0); //clear table on startup
+        view.ignoredItemsList.itemsTable.setRowCount(0); //clear table on startup
+        if (failedItemCounter != 0) {
+            view.tabPanel.selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
+        } else if (ignoredItemCounter != 0) {
+            view.tabPanel.selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+        } else {
+            view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
+        }
     }
+
 
     /*
      * Protected methods
@@ -71,73 +81,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
-     * For the initial population of the view:
-     *      Failed items will be shown if any failed items exists.
-     *      Ignored items will be shown only if no failed items exist and one or more items were ignored.
-     *      All items will be shown if no failed or ignored items exists.
      *
-     * After the initial population, the method checks, whether to fetch All items, only Failed items or only Ignored items
-     * (based on the user selection), and sets the ItemListCriteria according to that.
+     * @param itemSearchType The search type (ALL, FAILED or IGNORED)
+     * @param rowCount The number of rows in the data
+     * @param listView The list view in question
      */
-    protected void getItems() {
+    protected void getItems(ItemListCriteriaModel.ItemSearchType itemSearchType, int rowCount, ItemsListView listView) {
         final ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
-        final GetItemsCallback getItemsCallback;
-        final int offset = view.itemsTable.getVisibleRange().getStart();
+        final int offset = listView.itemsTable.getVisibleRange().getStart();
+        ItemsCallback callback = new ItemsCallback(listView, rowCount, offset);
 
-        if (isInitialPopulatingOfView) {
-            getItemsCallback = initialPopulationOfView(itemListCriteriaModel, offset);
-
-        } else {
-            if (view.failedItemsButton.getValue()) {
-                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
-                getItemsCallback = new GetItemsCallback(failedItemCounter, offset);
-            } else if (view.ignoredItemsButton.getValue()) {
-                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
-                getItemsCallback = new GetItemsCallback(ignoredItemCounter, offset);
-            } else {
-                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
-                getItemsCallback = new GetItemsCallback(itemCounter, offset);
-            }
-        }
-        itemListCriteriaModel.setJobId(this.jobId);
-        itemListCriteriaModel.setLimit(view.pager.getPageSize());
-        itemListCriteriaModel.setOffset(offset);
-        jobStoreProxy.listItems(itemListCriteriaModel, getItemsCallback);
-    }
-
-    /*
-     * Private methods
-     */
-    private String constructJobHeaderText() {
-        return texts.text_JobId() + " " + jobId + ", "
-                + texts.text_Submitter() + " " + submitterNumber + ", "
-                + texts.text_Sink() + " " + sinkName;
-    }
-
-    private GetItemsCallback initialPopulationOfView(ItemListCriteriaModel itemListCriteriaModel, int offset) {
         view.setSelectionEnabled(false);
-        view.tabPanel.setVisible(false);
-        view.tabPanel.clear();
-        isInitialPopulatingOfView = false;
-
-        final GetItemsCallback getItemsCallback;
-        if(failedItemCounter != 0) {
-            view.failedItemsButton.setValue(true);
-            itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.FAILED);
-            getItemsCallback = new GetItemsCallback(failedItemCounter, offset);
-        } else {
-            if(ignoredItemCounter != 0) {
-                view.ignoredItemsButton.setValue(true);
-                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
-                getItemsCallback = new GetItemsCallback(ignoredItemCounter, offset);
-            } else {
-                view.allItemsButton.setValue(true);
-                itemListCriteriaModel.setItemSearchType(ItemListCriteriaModel.ItemSearchType.ALL);
-                getItemsCallback = new GetItemsCallback(itemCounter, offset);
-            }
-        }
-        return getItemsCallback;
+        listView.detailedTabs.clear();
+        listView.detailedTabs.setVisible(false);
+        itemListCriteriaModel.setItemSearchType(itemSearchType);
+        itemListCriteriaModel.setJobId(this.jobId);
+        itemListCriteriaModel.setLimit(listView.itemsPager.getPageSize());
+        itemListCriteriaModel.setOffset(offset);
+        jobStoreProxy.listItems(itemListCriteriaModel, callback);
     }
+
 
     /*
      * Overridden methods
@@ -148,40 +111,69 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param itemModel The model for the selected item
      */
     @Override
-    public void itemSelected(ItemModel itemModel) {
-        view.tabPanel.clear();
-        view.addTab(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
-        if (view.tabPanel.getWidgetCount() > 0) {
-            view.tabPanel.selectTab(0);
-            view.tabPanel.setVisible(true);
+    public void itemSelected(ItemsListView listView, ItemModel itemModel) {
+        listView.detailedTabs.clear();
+        listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
+        if (listView.detailedTabs.getWidgetCount() > 0) {
+            listView.detailedTabs.selectTab(0);
+            listView.detailedTabs.setVisible(true);
         }
     }
 
     /**
-     * This method filters the shown posts, so that the items as requested by the
-     * Radio Buttons are shown
+     * This method is called by the view, whenever the All Items tab has been selected
      */
     @Override
-    public void filterItems() {
-        getItems();
+    public void allItemsTabSelected() {
+        getItems(ItemListCriteriaModel.ItemSearchType.ALL, allItemCounter, view.allItemsList);
     }
 
+    /**
+     * This method is called by the view, whenever the Failed Items tab has been selected
+     */
     @Override
-    public void filterItemsAndClearTable() {
-        view.itemsTable.setRowCount(0);
-        getItems();
+    public void failedItemsTabSelected() {
+        getItems(ItemListCriteriaModel.ItemSearchType.FAILED, failedItemCounter, view.failedItemsList);
     }
+
+    /**
+     * This method is called by the view, whenever the Ignored Items tab has been selected
+     */
+    @Override
+    public void ignoredItemsTabSelected() {
+        getItems(ItemListCriteriaModel.ItemSearchType.IGNORED, ignoredItemCounter, view.ignoredItemsList);
+    }
+
+    /**
+     * This method is called by the view, whenever the Job Info tab has been selected
+     */
+    @Override
+    public void jobInfoTabSelected() {
+        // Stuff to be put in here...
+    }
+
 
     /*
+   * Private methods
+   */
+    private String constructJobHeaderText() {
+        return texts.text_JobId() + " " + jobId + ", "
+                + texts.text_Submitter() + " " + submitterNumber + ", "
+                + texts.text_Sink() + " " + sinkName;
+    }
+
+
+  /*
      * Private classes
      */
 
-    class GetItemsCallback implements AsyncCallback<List<ItemModel>> {
-
+    class ItemsCallback implements AsyncCallback<List<ItemModel>> {
+        private final ItemsListView listView;
         private final int rowCount;
         private final int offset;
 
-        public GetItemsCallback(int rowCount, int offset) {
+        public ItemsCallback(ItemsListView listView, int rowCount, int offset) {
+            this.listView = listView;
             this.rowCount = rowCount;
             this.offset = offset;
         }
@@ -191,14 +183,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<ItemModel> itemModels) {
-            view.setItems(itemModels, offset, rowCount);
+            listView.itemsTable.setRowCount(rowCount);
+            listView.itemsTable.setRowData(offset, itemModels);
             view.setSelectionEnabled(true);
-
             if(itemModels.size() > 0) {
-                view.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
-            } else {
-                view.tabPanel.clear();
-                view.tabPanel.setVisible(false);
+                listView.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
             }
         }
     }

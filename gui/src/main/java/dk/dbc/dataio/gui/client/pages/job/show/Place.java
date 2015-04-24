@@ -18,7 +18,7 @@ public class Place extends com.google.gwt.place.shared.Place {
         return jobsShowName;
     }
 
-    @Prefix("NewShowJobs")
+    @Prefix("ShowJobs")
     public static class Tokenizer implements PlaceTokenizer<Place> {
         @Override
         public String getToken(Place place) {

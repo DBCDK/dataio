@@ -37,8 +37,9 @@ public class PresenterEditImplTest {
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
     @Mock EditPlace mockedEditPlace;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
-    private View view;
+    private EditView editView;
 
     private PresenterEditImpl presenterEditImpl;
 
@@ -57,13 +58,15 @@ public class PresenterEditImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowEditView()).thenReturn(view);
+        when(mockedClientFactory.getFlowEditView()).thenReturn(editView);
         when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
     }
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_FlowEdit()).thenReturn("Header Text");
+        editView = new EditView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -123,13 +126,13 @@ public class PresenterEditImplTest {
         assertFlowComponentModelsEquals(presenterEditImplConcrete.model.getFlowComponents(), model.getFlowComponents());
 
         // Assert that the view is displaying the correct values
-        verify(view.name).setText(model.getFlowName());
-        verify(view.name).setEnabled(true);
-        verify(view.description).setText(model.getDescription());
-        verify(view.description).setEnabled(true);
-        verify(view.flowComponents, times(2)).clear();
-        verify(view.flowComponents).addValue("name", "4");
-        verify(view.flowComponents).setEnabled(false);
+        verify(editView.name).setText(model.getFlowName());
+        verify(editView.name).setEnabled(true);
+        verify(editView.description).setText(model.getDescription());
+        verify(editView.description).setEnabled(true);
+        verify(editView.flowComponents, times(2)).clear();
+        verify(editView.flowComponents).addValue("name", "4");
+        verify(editView.flowComponents).setEnabled(false);
     }
 
     @Test

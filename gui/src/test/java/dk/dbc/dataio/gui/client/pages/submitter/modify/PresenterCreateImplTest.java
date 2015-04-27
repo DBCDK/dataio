@@ -36,7 +36,9 @@ public class PresenterCreateImplTest {
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private Exception mockedException;
-    private View view;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+
+    private CreateView createView;
 
     private PresenterCreateImpl presenterCreateImpl;
 
@@ -45,13 +47,15 @@ public class PresenterCreateImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getSubmitterCreateView()).thenReturn(view);
+        when(mockedClientFactory.getSubmitterCreateView()).thenReturn(createView);
         when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
     }
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_SubmitterCreation()).thenReturn("Header Text");
+        createView = new CreateView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
 

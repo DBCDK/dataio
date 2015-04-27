@@ -33,7 +33,9 @@ public class PresenterCreateImplTest {
     @Mock private Texts mockedTexts;
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
-    private View view;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+
+    private CreateView createView;
 
     private PresenterCreateImpl presenterCreateImpl;
 
@@ -45,7 +47,7 @@ public class PresenterCreateImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowBinderCreateView()).thenReturn(view);
+        when(mockedClientFactory.getFlowBinderCreateView()).thenReturn(createView);
         when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
         when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
@@ -53,7 +55,9 @@ public class PresenterCreateImplTest {
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in th view
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_FlowBinderCreation()).thenReturn("Header Text");
+        createView = new CreateView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in th view
     }
 
     //------------------------------------------------------------------------------------------------------------------

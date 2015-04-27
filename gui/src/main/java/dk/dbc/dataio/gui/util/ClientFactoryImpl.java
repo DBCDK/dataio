@@ -55,16 +55,16 @@ public class ClientFactoryImpl implements ClientFactory {
     private final LogStoreProxyAsync logStoreProxyAsync = LogStoreProxy.Factory.getAsyncInstance();
 
     // Views
-    private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowCreateView = new dk.dbc.dataio.gui.client.pages.flow.modify.View(menuTexts.menu_FlowCreation());
-    private final dk.dbc.dataio.gui.client.pages.flow.modify.View flowEditView = new dk.dbc.dataio.gui.client.pages.flow.modify.View(menuTexts.menu_FlowEdit());
-    private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View flowComponentCreateView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View(menuTexts.menu_FlowComponentCreation());
-    private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View flowComponentEditView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View(menuTexts.menu_FlowComponentEdit());
-    private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.View flowBinderCreateView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.View(menuTexts.menu_FlowBinderCreation());
-    private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.View flowBinderEditView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.View(menuTexts.menu_FlowBinderEdit());
-    private final dk.dbc.dataio.gui.client.pages.sink.modify.View sinkCreateView = new dk.dbc.dataio.gui.client.pages.sink.modify.View(menuTexts.menu_SinkCreation());
-    private final dk.dbc.dataio.gui.client.pages.sink.modify.View sinkEditView = new dk.dbc.dataio.gui.client.pages.sink.modify.View(menuTexts.menu_SinkEdit());
-    private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterCreation());
-    private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterEdit());
+    private final dk.dbc.dataio.gui.client.pages.flow.modify.CreateView flowCreateView = new dk.dbc.dataio.gui.client.pages.flow.modify.CreateView(this);
+    private final dk.dbc.dataio.gui.client.pages.flow.modify.EditView flowEditView = new dk.dbc.dataio.gui.client.pages.flow.modify.EditView(this);
+    private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView flowComponentCreateView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView(this);
+    private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView flowComponentEditView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView(this);
+    private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView flowBinderCreateView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView(this);
+    private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView flowBinderEditView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView(this);
+    private final dk.dbc.dataio.gui.client.pages.sink.modify.CreateView sinkCreateView = new dk.dbc.dataio.gui.client.pages.sink.modify.CreateView(this);
+    private final dk.dbc.dataio.gui.client.pages.sink.modify.EditView sinkEditView = new dk.dbc.dataio.gui.client.pages.sink.modify.EditView(this);
+    private final dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView(this);
+    private final dk.dbc.dataio.gui.client.pages.submitter.modify.EditView submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.EditView(this);
 
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.show.View flowComponentsShowView = new dk.dbc.dataio.gui.client.pages.flowcomponent.show.View(this);
     private final dk.dbc.dataio.gui.client.pages.flow.show.View flowsShowView = new dk.dbc.dataio.gui.client.pages.flow.show.View(this);
@@ -181,52 +181,52 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Views
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView() {
+    public dk.dbc.dataio.gui.client.pages.flow.modify.CreateView getFlowCreateView() {
         return flowCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowEditView() {
+    public dk.dbc.dataio.gui.client.pages.flow.modify.EditView getFlowEditView() {
         return flowEditView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentCreateView() {
+    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView getFlowComponentCreateView() {
         return flowComponentCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentEditView() {
+    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView getFlowComponentEditView() {
         return flowComponentEditView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.submitter.modify.View getSubmitterCreateView() {
+    public dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView getSubmitterCreateView() {
         return submitterCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.submitter.modify.View getSubmitterEditView() {
+    public dk.dbc.dataio.gui.client.pages.submitter.modify.EditView getSubmitterEditView() {
         return submitterEditView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.modify.View getFlowBinderCreateView() {
+    public dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView getFlowBinderCreateView() {
         return flowBinderCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.modify.View getFlowBinderEditView() {
+    public dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView getFlowBinderEditView() {
         return flowBinderEditView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.sink.modify.View getSinkCreateView() {
+    public dk.dbc.dataio.gui.client.pages.sink.modify.CreateView getSinkCreateView() {
         return sinkCreateView;
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.sink.modify.View getSinkEditView() {
+    public dk.dbc.dataio.gui.client.pages.sink.modify.EditView getSinkEditView() {
         return sinkEditView;
     }
 

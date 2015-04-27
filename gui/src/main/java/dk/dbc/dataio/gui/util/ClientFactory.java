@@ -34,16 +34,16 @@ public interface ClientFactory {
     LogStoreProxyAsync getLogStoreProxyAsync();
 
     // Views
-    dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowCreateView();
-    dk.dbc.dataio.gui.client.pages.flow.modify.View getFlowEditView();
-    dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentCreateView();
-    dk.dbc.dataio.gui.client.pages.flowcomponent.modify.View getFlowComponentEditView();
-    dk.dbc.dataio.gui.client.pages.submitter.modify.View getSubmitterCreateView();
-    dk.dbc.dataio.gui.client.pages.submitter.modify.View getSubmitterEditView();
-    dk.dbc.dataio.gui.client.pages.flowbinder.modify.View getFlowBinderCreateView();
-    dk.dbc.dataio.gui.client.pages.flowbinder.modify.View getFlowBinderEditView();
-    dk.dbc.dataio.gui.client.pages.sink.modify.View getSinkCreateView();
-    dk.dbc.dataio.gui.client.pages.sink.modify.View getSinkEditView();
+    dk.dbc.dataio.gui.client.pages.flow.modify.CreateView getFlowCreateView();
+    dk.dbc.dataio.gui.client.pages.flow.modify.EditView getFlowEditView();
+    dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView getFlowComponentCreateView();
+    dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView getFlowComponentEditView();
+    dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView getSubmitterCreateView();
+    dk.dbc.dataio.gui.client.pages.submitter.modify.EditView getSubmitterEditView();
+    dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView getFlowBinderCreateView();
+    dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView getFlowBinderEditView();
+    dk.dbc.dataio.gui.client.pages.sink.modify.CreateView getSinkCreateView();
+    dk.dbc.dataio.gui.client.pages.sink.modify.EditView getSinkEditView();
     dk.dbc.dataio.gui.client.pages.flowcomponent.show.View getFlowComponentsShowView();
     dk.dbc.dataio.gui.client.pages.flow.show.View getFlowsShowView();
     dk.dbc.dataio.gui.client.pages.submitter.show.View getSubmittersShowView();

@@ -41,7 +41,7 @@ public class PresenterImplTest {
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
 
-    private View view;
+    private ViewWidget viewWidget;
 
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
@@ -64,7 +64,7 @@ public class PresenterImplTest {
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {
             super(clientFactory);
-            view = PresenterImplTest.this.view;
+            view = PresenterImplTest.this.viewWidget;
             flowStoreProxy = mockedFlowStoreProxy;
             model = new FlowModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NAME, DEFAULT_DESCRIPTION, selectedFlowComponentModelList);
             availableFlowComponentModels = availableFlowComponentModelList;
@@ -121,7 +121,7 @@ public class PresenterImplTest {
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        viewWidget = new ViewWidget("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -139,13 +139,13 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-        verify(view.name).clearText();
-        verify(view.name).setEnabled(false);
-        verify(view.description).clearText();
-        verify(view.description).setEnabled(false);
-        verify(view.flowComponents).clear();
-        verify(view.flowComponents).setEnabled(false);
-        verify(view.status).setText("");
+        verify(viewWidget.name).clearText();
+        verify(viewWidget.name).setEnabled(false);
+        verify(viewWidget.description).clearText();
+        verify(viewWidget.description).setEnabled(false);
+        verify(viewWidget.flowComponents).clear();
+        verify(viewWidget.flowComponents).setEnabled(false);
+        verify(viewWidget.status).setText("");
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
         verify(mockedFlowStoreProxy).findAllFlowComponents(any(PresenterImpl.FindAllFlowComponentsAsyncCallback.class));
     }
@@ -201,7 +201,7 @@ public class PresenterImplTest {
 
         presenterImpl.keyPressed();
 
-        verify(view.status).setText("");
+        verify(viewWidget.status).setText("");
     }
 
     @Test
@@ -264,19 +264,19 @@ public class PresenterImplTest {
 
         presenterImpl.findAllFlowComponentsCallback.onSuccess(flowComponentModels);
 
-        verify(view.name).setText(DEFAULT_NAME);
-        verify(view.name).setEnabled(true);
-        verify(view.description).setText(DEFAULT_DESCRIPTION);
-        verify(view.description).setEnabled(true);
-        verify(view.flowComponents).clear();
+        verify(viewWidget.name).setText(DEFAULT_NAME);
+        verify(viewWidget.name).setEnabled(true);
+        verify(viewWidget.description).setText(DEFAULT_DESCRIPTION);
+        verify(viewWidget.description).setEnabled(true);
+        verify(viewWidget.flowComponents).clear();
 
         ArgumentCaptor<String> textCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
-        verify(view.flowComponents, times(2)).addValue(textCaptor.capture(), keyCaptor.capture());
+        verify(viewWidget.flowComponents, times(2)).addValue(textCaptor.capture(), keyCaptor.capture());
         List<String> texts = textCaptor.getAllValues();
         List<String> keys = keyCaptor.getAllValues();
 
-        verify(view.flowComponents).setEnabled(true);
+        verify(viewWidget.flowComponents).setEnabled(true);
 
         assertThat(texts.size(), is(2));
         assertThat(keys.size(), is(2));
@@ -306,7 +306,7 @@ public class PresenterImplTest {
 
         presenterImpl.saveFlowCallback.onSuccess(model);
 
-        verify(view.status).setText(STATUS_MESSAGE);
+        verify(viewWidget.status).setText(STATUS_MESSAGE);
     }
 
     @Test

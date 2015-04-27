@@ -29,8 +29,9 @@ public class PresenterEditImplTest {
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private EditPlace mockedPlace;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
-    private View view;
+    private EditView editView;
 
     private PresenterEditImpl presenterEditImpl;
 
@@ -51,7 +52,7 @@ public class PresenterEditImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowBinderEditView()).thenReturn(view);
+        when(mockedClientFactory.getFlowBinderEditView()).thenReturn(editView);
         when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
         when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
@@ -60,7 +61,9 @@ public class PresenterEditImplTest {
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_FlowBinderEdit()).thenReturn("Header Text");
+        editView = new EditView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -140,7 +143,7 @@ public class PresenterEditImplTest {
 
         presenterEditImpl.callback.onSuccess(flowBinderModel);
 
-        verify(view.name).setText(FLOW_BINDER_MODEL_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
+        verify(editView.name).setText(FLOW_BINDER_MODEL_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
     }
 
 

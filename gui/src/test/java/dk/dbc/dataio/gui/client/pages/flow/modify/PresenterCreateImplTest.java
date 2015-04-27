@@ -40,8 +40,9 @@ public class PresenterCreateImplTest {
     @Mock Texts mockedTexts;
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
-    private View view;
+    private CreateView createView;
 
     private PresenterCreateImpl presenterCreateImpl;
 
@@ -52,13 +53,15 @@ public class PresenterCreateImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowCreateView()).thenReturn(view);
+        when(mockedClientFactory.getFlowCreateView()).thenReturn(createView);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
     }
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_FlowCreation()).thenReturn("Header Text");
+        createView = new CreateView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -85,13 +88,13 @@ public class PresenterCreateImplTest {
         assertThat(presenterCreateImpl.model.getFlowComponents().size(), is(0));
 
         // Verify, that the view is updated accordingly
-        verify(view.name).setText("");
-        verify(view.name).setEnabled(true);
-        verify(view.description).setText("");
-        verify(view.description).setEnabled(true);
-        verify(view.flowComponents, times(2)).clear();
-        verify(view.flowComponents).setEnabled(false);
-        verifyNoMoreInteractions(view.flowComponents);  // To make sure, that there are no addValue() calls
+        verify(createView.name).setText("");
+        verify(createView.name).setEnabled(true);
+        verify(createView.description).setText("");
+        verify(createView.description).setEnabled(true);
+        verify(createView.flowComponents, times(2)).clear();
+        verify(createView.flowComponents).setEnabled(false);
+        verifyNoMoreInteractions(createView.flowComponents);  // To make sure, that there are no addValue() calls
     }
 
     @Test

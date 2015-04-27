@@ -38,8 +38,9 @@ public class PresenterEditImplTest {
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private EditPlace mockedPlace;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
-    private View view;
+    private EditView editView;
 
     private PresenterEditImpl presenterEditImpl;
     private final static long DEFAULT_FLOW_COMPONENT_ID = 426L;
@@ -57,14 +58,16 @@ public class PresenterEditImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getJavaScriptProjectFetcherAsync()).thenReturn(mockedJavaScriptProjectFetcher);
-        when(mockedClientFactory.getFlowComponentEditView()).thenReturn(view);
+        when(mockedClientFactory.getFlowComponentEditView()).thenReturn(editView);
         when(mockedClientFactory.getFlowComponentModifyTexts()).thenReturn(mockedTexts);
         when(mockedPlace.getFlowComponentId()).thenReturn(DEFAULT_FLOW_COMPONENT_ID);
     }
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_FlowComponentEdit()).thenReturn("Header Text");
+        editView = new EditView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
 
@@ -133,7 +136,7 @@ public class PresenterEditImplTest {
 
         presenterEditImpl.callback.onSuccess(flowComponentModel);
 
-        verify(view.name).setText(FLOW_COMPONENT_MODEL_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
+        verify(editView.name).setText(FLOW_COMPONENT_MODEL_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
     }
 
 }

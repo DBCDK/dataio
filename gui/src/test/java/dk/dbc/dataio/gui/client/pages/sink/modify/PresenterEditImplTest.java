@@ -28,8 +28,9 @@ public class PresenterEditImplTest {
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private EditPlace mockedEditPlace;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
-    private View view;
+    private EditView editView;
     private PresenterEditImpl presenterEditImpl;
     private final static long DEFAULT_SINK_ID = 433L;
 
@@ -45,14 +46,16 @@ public class PresenterEditImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getSinkEditView()).thenReturn(view);
+        when(mockedClientFactory.getSinkEditView()).thenReturn(editView);
         when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
         when(mockedEditPlace.getSinkId()).thenReturn(DEFAULT_SINK_ID);
     }
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_SinkEdit()).thenReturn("Header Text");
+        editView = new EditView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
 
@@ -106,7 +109,7 @@ public class PresenterEditImplTest {
         assertThat(presenterEditImpl.model.getSinkName(), is(sinkModel.getSinkName()));
 
         // Assert that the view is displaying the correct values
-        verify(view.name).setText(SINK_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
+        verify(editView.name).setText(SINK_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
     }
 
     @Test

@@ -12,6 +12,7 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     protected Texts texts;
@@ -37,12 +38,11 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Constructor with header and text
-     * @param header Header text
-     * @param texts Texts
+     * @param clientFactory, the client factory
      */
-    public ViewWidget(String header, Texts texts) {
-        super(header);
-        this.texts = texts;
+    public ViewWidget(ClientFactory clientFactory) {
+        super(clientFactory.getItemsShowTexts().menu_Items());
+        texts = clientFactory.getItemsShowTexts();
         add(uiBinder.createAndBindUi(this));
         allItemsList.itemsPager.firstPage();
         failedItemsList.itemsPager.firstPage();

@@ -8,6 +8,7 @@ import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
 
 class Context {
@@ -33,11 +34,10 @@ public class View extends ViewWidget {
     /**
      * Default constructor
      *
-     * @param header The header text for the View
-     * @param texts  The I8n texts for this view
+     * @param clientFactory, the client factory
      */
-    public View(String header, Texts texts) {
-        super(header, texts);
+    public View(ClientFactory clientFactory) {
+        super(clientFactory);
         setupColumns(allItemsList);
         setupColumns(failedItemsList);
         setupColumns(ignoredItemsList);

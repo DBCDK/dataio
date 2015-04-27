@@ -5,6 +5,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,8 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
     @Mock Presenter mockedPresenter;
+    @Mock ClientFactory mockedClientFactory;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock static ClickEvent mockedClickEvent;
 
 
@@ -52,6 +55,10 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: columnHeader_Action";
     @Before
     public void setupMockedTextsBehaviour() {
+        when(mockedClientFactory.getSinksShowTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_Sinks()).thenReturn("Header Text");
+
         when(mockedTexts.label_Sinks()).thenReturn(MOCKED_LABEL_SINKS);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
@@ -67,7 +74,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Verify invocations
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
@@ -77,7 +84,7 @@ public class ViewTest {
 
     @Test
     public void constructor_setupData_dataSetupCorrect() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         List<SinkModel> models = view.dataProvider.getList();
 
@@ -95,7 +102,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSinkNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructNameColumn();
@@ -107,7 +114,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructResourceNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructResourceNameColumn();
@@ -119,7 +126,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructActionColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructActionColumn();

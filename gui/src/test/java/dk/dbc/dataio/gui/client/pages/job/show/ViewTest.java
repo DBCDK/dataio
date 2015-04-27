@@ -10,6 +10,7 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,14 +41,15 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock
-    Presenter mockedPresenter;
+    @Mock Presenter mockedPresenter;
     @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
     @Mock SingleSelectionModel mockedSelectionModel;
     @Mock JobModel mockedJobModel;
     @Mock CellPreviewEvent<JobModel> mockedCellPreviewEvent;
     @Mock NativeEvent mockedNativeEvent;
+    @Mock ClientFactory mockedClientFactory;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
 
     // Test Data
@@ -84,6 +86,10 @@ public class ViewTest {
     final static String MOCKED_COLUMN_HEADER_JOB_STATUS = "Mocked Column Header Job Status";
     @Before
     public void setupMockedTextsBehaviour() {
+        when(mockedClientFactory.getJobsShowTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_Jobs()).thenReturn("Header Text");
+
         when(mockedTexts.label_Jobs()).thenReturn(MOCKED_LABEL_JOBS);
         when(mockedTexts.columnHeader_JobCreationTime()).thenReturn(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME);
         when(mockedTexts.columnHeader_JobId()).thenReturn(MOCKED_COLUMN_HEADER_JOB_ID);
@@ -106,7 +112,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Verify invocations
         verify(view.jobsTable).addColumnSortHandler(isA(ColumnSortEvent.ListHandler.class));
@@ -129,7 +135,7 @@ public class ViewTest {
 
     @Test
     public void constructor_setupData_dataSetupCorrect() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         view.setJobs(testModels);
@@ -142,7 +148,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructJobCreationTimeColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructJobCreationTimeColumn();
@@ -166,7 +172,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructJobIdColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructJobIdColumn();
@@ -190,7 +196,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFileNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructFileNameColumn();
@@ -214,7 +220,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSubmitterNumberColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructSubmitterNumberColumn();
@@ -238,7 +244,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSubmitterNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructSubmitterNameColumn();
@@ -262,7 +268,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFlowBinderNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructFlowBinderNameColumn();
@@ -286,7 +292,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSinkNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructSinkNameColumn();
@@ -310,7 +316,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSuccessCounterColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructSuccessCounterColumn();
@@ -334,7 +340,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFailedCounterColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructFailedCounterColumn();
@@ -358,7 +364,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructIgnoredCounterColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructIgnoredCounterColumn();
@@ -381,7 +387,7 @@ public class ViewTest {
 
     @Test
     public void constructJobStateColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts, mockedResources);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         StatusColumn column = (StatusColumn) view.constructJobStateColumn();
@@ -393,7 +399,7 @@ public class ViewTest {
         CellPreviewHandlerClass cellPreviewHandler = new CellPreviewHandlerClass();
 
         public ConcreteView(String header, Texts texts, Resources resources) {
-            super(header, texts, resources);
+            super(mockedClientFactory);
         }
     }
 

@@ -7,6 +7,7 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
@@ -22,12 +23,11 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Default constructor
-     * @param header The header text for the View
-     * @param texts The I8n texts for this view
+     * @param clientFactory, the client factory
      */
-    public ViewWidget(String header, Texts texts) {
-        super(header);
-        this.texts = texts;
+    public ViewWidget(ClientFactory clientFactory) {
+        super(clientFactory.getMenuTexts().menu_Submitters());
+        texts = clientFactory.getSubmittersShowTexts();
         add(uiBinder.createAndBindUi(this));
     }
 

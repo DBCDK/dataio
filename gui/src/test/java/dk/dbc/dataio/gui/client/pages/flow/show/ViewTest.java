@@ -5,6 +5,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,8 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
     @Mock Presenter mockedPresenter;
+    @Mock ClientFactory mockedClientFactory;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
 
     // Test Data
@@ -57,6 +60,10 @@ public class ViewTest {
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
     @Before
     public void setupMockedTextsBehaviour() {
+        when(mockedClientFactory.getFlowsShowTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedMenuTexts.menu_Flows()).thenReturn("Header Text");
+
         when(mockedTexts.label_Flows()).thenReturn(MOCKED_LABEL_FLOWS);
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
         when(mockedTexts.columnHeader_Description()).thenReturn(MOCKED_COLUMNHEADER_DESCRIPTION);
@@ -74,7 +81,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Verify invocations
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
@@ -87,7 +94,7 @@ public class ViewTest {
 
     @Test
     public void setFlows_callSetupFlows_dataSetupCorrect() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         List<FlowModel> models = view.dataProvider.getList();
         assertThat(models.isEmpty(), is(true));
@@ -103,7 +110,7 @@ public class ViewTest {
 
     @Test
     public void setFlows_callSetupFlowsTwice_dataSetupCorrect() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
         List<FlowModel> models = view.dataProvider.getList();
 
         // Subject Under Test
@@ -118,7 +125,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructNameColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructNameColumn();
@@ -130,7 +137,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructDescriptionColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructDescriptionColumn();
@@ -142,7 +149,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFlowComponentsColumn_oneFlowComponent_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructFlowComponentsColumn();
@@ -155,7 +162,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFlowComponentsColumn_twoFlowComponents_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructFlowComponentsColumn();
@@ -170,7 +177,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructRefreshActionColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructRefreshActionColumn();
@@ -188,7 +195,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructEditActionColumn_call_correctlySetup() {
-        view = new View("Header Text", mockedTexts);
+        view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructEditActionColumn();

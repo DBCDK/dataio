@@ -12,6 +12,7 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.helpers.SortHelper;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,12 +40,11 @@ public class View extends ViewWidget {
     /**
      * Default constructor
      *
-     * @param header The header text for the View
-     * @param texts  The I8n texts for this view
+     * @param clientFactory, the client factory
      */
-    public View(String header, Texts texts, Resources resources) {
-        super(header, texts);
-        View.resources = resources;
+    public View(ClientFactory clientFactory) {
+        super(clientFactory);
+        View.resources = clientFactory.getImageResources();
         setupColumns();
     }
 

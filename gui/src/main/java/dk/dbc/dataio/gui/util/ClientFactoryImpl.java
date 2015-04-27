@@ -63,15 +63,16 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.View flowBinderEditView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.View(menuTexts.menu_FlowBinderEdit());
     private final dk.dbc.dataio.gui.client.pages.sink.modify.View sinkCreateView = new dk.dbc.dataio.gui.client.pages.sink.modify.View(menuTexts.menu_SinkCreation());
     private final dk.dbc.dataio.gui.client.pages.sink.modify.View sinkEditView = new dk.dbc.dataio.gui.client.pages.sink.modify.View(menuTexts.menu_SinkEdit());
-    private final dk.dbc.dataio.gui.client.pages.flowcomponent.show.View flowComponentsShowView = new dk.dbc.dataio.gui.client.pages.flowcomponent.show.View(menuTexts.menu_FlowComponents(), flowComponentsShowTexts);
-    private final dk.dbc.dataio.gui.client.pages.flow.show.View flowsShowView = new dk.dbc.dataio.gui.client.pages.flow.show.View(menuTexts.menu_Flows(), flowsShowTexts);
-    private final dk.dbc.dataio.gui.client.pages.submitter.show.View submittersShowView = new dk.dbc.dataio.gui.client.pages.submitter.show.View(menuTexts.menu_Submitters(), submittersShowTexts);
-    private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(menuTexts.menu_Jobs(), jobsShowTexts, RESOURCES);
-    private final dk.dbc.dataio.gui.client.pages.sink.show.View sinksShowView = new dk.dbc.dataio.gui.client.pages.sink.show.View(menuTexts.menu_Sinks(), sinksShowTexts);
-    private final dk.dbc.dataio.gui.client.pages.flowbinder.show.View flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.show.View(menuTexts.menu_FlowBinders(), flowBindersShowTexts);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterCreation());
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.View submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.View(menuTexts.menu_SubmitterEdit());
-    private final dk.dbc.dataio.gui.client.pages.item.show.View itemsShowView = new dk.dbc.dataio.gui.client.pages.item.show.View(itemsShowTexts.menu_Items(), itemsShowTexts);
+
+    private final dk.dbc.dataio.gui.client.pages.flowcomponent.show.View flowComponentsShowView = new dk.dbc.dataio.gui.client.pages.flowcomponent.show.View(this);
+    private final dk.dbc.dataio.gui.client.pages.flow.show.View flowsShowView = new dk.dbc.dataio.gui.client.pages.flow.show.View(this);
+    private final dk.dbc.dataio.gui.client.pages.submitter.show.View submittersShowView = new dk.dbc.dataio.gui.client.pages.submitter.show.View(this);
+    private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.View(this);
+    private final dk.dbc.dataio.gui.client.pages.sink.show.View sinksShowView = new dk.dbc.dataio.gui.client.pages.sink.show.View(this);
+    private final dk.dbc.dataio.gui.client.pages.flowbinder.show.View flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.show.View(this);
+    private final dk.dbc.dataio.gui.client.pages.item.show.View itemsShowView = new dk.dbc.dataio.gui.client.pages.item.show.View(this);
 
     public ClientFactoryImpl() {
     }
@@ -265,6 +266,13 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
 
+    // Menu text
+    @Override
+    public dk.dbc.dataio.gui.client.pages.navigation.Texts getMenuTexts() {
+        return menuTexts;
+    }
+
+
     // Texts
     @Override
     public dk.dbc.dataio.gui.client.pages.submitter.modify.Texts getSubmitterModifyTexts() {
@@ -294,6 +302,43 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts() {
         return itemsShowTexts;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.submitter.show.Texts getSubmittersShowTexts() {
+        return submittersShowTexts;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.flow.show.Texts getFlowsShowTexts() {
+        return flowsShowTexts;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts getFlowComponentsShowTexts() {
+        return flowComponentsShowTexts;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts getFlowBindersShowTexts() {
+        return flowBindersShowTexts;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.sink.show.Texts getSinksShowTexts() {
+        return sinksShowTexts;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.job.show.Texts getJobsShowTexts() {
+        return jobsShowTexts;
+    }
+
+
+    // Image resources
+    @Override
+    public Resources getImageResources() {
+        return RESOURCES;
     }
 
 }

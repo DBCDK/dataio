@@ -29,9 +29,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected int failedItemCounter;
     protected int ignoredItemCounter;
 
-    public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory, Texts texts) {
+    public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
-        this.texts = texts;
+        texts = clientFactory.getItemsShowTexts();
         placeController = clientFactory.getPlaceController();
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
         logStoreProxy = clientFactory.getLogStoreProxyAsync();

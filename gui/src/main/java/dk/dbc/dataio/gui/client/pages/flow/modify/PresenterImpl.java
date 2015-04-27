@@ -40,10 +40,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Put code, utilizing view in the start method
      *
      * @param clientFactory clientFactory
-     * @param texts         the texts for flow modify
      */
-    public PresenterImpl(ClientFactory clientFactory, Texts texts) {
-        this.texts = texts;
+    public PresenterImpl(ClientFactory clientFactory) {
+        this.texts = clientFactory.getFlowModifyTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 

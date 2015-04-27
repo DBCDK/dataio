@@ -39,8 +39,8 @@ public class PresenterEditImplTest {
     private final static long DEFAULT_FLOWBINDER_ID = 776L;
 
     class PresenterEditImplConcrete extends PresenterEditImpl {
-        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory, Texts constants) {
-            super(place, clientFactory, constants);
+        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory) {
+            super(place, clientFactory);
         }
 
         public GetFlowBinderModelFilteredAsyncCallback callback = new GetFlowBinderModelFilteredAsyncCallback();
@@ -52,6 +52,7 @@ public class PresenterEditImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowBinderEditView()).thenReturn(view);
+        when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
         when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
         when(mockedPlace.getFlowBinderId()).thenReturn(DEFAULT_FLOWBINDER_ID);
@@ -67,7 +68,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
         // The instanitation of presenterEditImpl instantiates the "Edit version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Edit specific stuff, which basically is to assert, that the view attribute has been initialized correctly
 
@@ -77,7 +78,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
         assertThat(presenterEditImpl.model, is(notNullValue()));
         assertThat(presenterEditImpl.model.getName(), is(""));
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
@@ -105,7 +106,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void saveModel_callSaveModel_updateFlowBinderMethodInFlowStoreCalled() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         final String FLOW_BINDER_MODEL_NAME = "Completely New Flow Binder Model Name";
         FlowBinderModel flowBinderModel = new FlowBinderModel();
@@ -121,7 +122,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void getFlowBinderModelFilteredAsyncCallback_unSuccessfullCalback_errorMessage() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory, mockedTexts);
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
 
         presenterEditImpl.callback.onFilteredFailure(new Throwable());
@@ -131,7 +132,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void getFlowBinderModelFilteredAsyncCallback_successfullCalback_modelUpdated() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory, mockedTexts);
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         final String FLOW_BINDER_MODEL_NAME = "New Flow Binder Model Name";
         FlowBinderModel flowBinderModel = new FlowBinderModel();

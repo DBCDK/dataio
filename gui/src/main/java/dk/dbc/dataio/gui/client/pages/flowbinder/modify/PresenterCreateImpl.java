@@ -12,10 +12,9 @@ public class PresenterCreateImpl extends PresenterImpl {
     /**
      * Constructor
      * @param clientFactory, clientFactory
-     * @param constants, the constants for submitter modify
      */
-    public PresenterCreateImpl(ClientFactory clientFactory, Texts constants) {
-        super(clientFactory, constants);
+    public PresenterCreateImpl(ClientFactory clientFactory) {
+        super(clientFactory);
         view = clientFactory.getFlowBinderCreateView();
     }
 

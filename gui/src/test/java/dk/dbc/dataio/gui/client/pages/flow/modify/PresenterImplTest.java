@@ -62,8 +62,8 @@ public class PresenterImplTest {
     private final static String FLOW_COMPONENT_NAME_4 = "FlowComponentName4";
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory, Texts texts) {
-            super(clientFactory, texts);
+        public PresenterImplConcrete(ClientFactory clientFactory) {
+            super(clientFactory);
             view = PresenterImplTest.this.view;
             flowStoreProxy = mockedFlowStoreProxy;
             model = new FlowModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NAME, DEFAULT_DESCRIPTION, selectedFlowComponentModelList);
@@ -116,6 +116,7 @@ public class PresenterImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
+        when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
     }
 
     @Before
@@ -128,14 +129,14 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getFlowModifyConstants(), is(mockedTexts));
     }
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(view.name).clearText();
@@ -153,7 +154,7 @@ public class PresenterImplTest {
     public void nameChanged_callNameChanged_nameIsChangedAccordingly() {
         final String CHANGED_NAME = "UpdatedName";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         presenterImpl.nameChanged(CHANGED_NAME);
 
@@ -164,7 +165,7 @@ public class PresenterImplTest {
     public void descriptionChanged_callDescriptionChanged_descriptionIsChangedAccordingly() {
         final String CHANGED_DESCRIPTION = "UpdatedDescription";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         presenterImpl.descriptionChanged(CHANGED_DESCRIPTION);
 
@@ -175,7 +176,7 @@ public class PresenterImplTest {
     public void flowComponentsChanged_callFlowComponentsChangedWithUnknownFlowComponent_flowComponentsAreChangedAccordingly() {
         final String NEW_AND_UNKNOWN_FLOW_COMPONENT = "UpdatedFlowComponent";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         HashMap<String, String> changedFlowComponentsMap = new HashMap<String, String>();
         changedFlowComponentsMap.put("123", NEW_AND_UNKNOWN_FLOW_COMPONENT);
@@ -184,7 +185,7 @@ public class PresenterImplTest {
 
     @Test
     public void flowComponentsChanged_callFlowComponentsChangedWithKnownFlowComponent_flowComponentsAreChangedAccordingly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         HashMap<String, String> changedFlowComponentsMap = new HashMap<String, String>();
         changedFlowComponentsMap.put(String.valueOf(FLOW_COMPONENT_ID_4), FLOW_COMPONENT_NAME_4);
@@ -196,7 +197,7 @@ public class PresenterImplTest {
 
     @Test
     public void keyPressed_callKeyPressed_statusFieldIsCleared() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         presenterImpl.keyPressed();
 
@@ -205,7 +206,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.model.setFlowName("");
 
         presenterImpl.saveButtonPressed();
@@ -215,7 +216,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.model.setDescription("");
 
         presenterImpl.saveButtonPressed();
@@ -225,7 +226,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithFlowComponentListEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.model.setFlowComponents(new ArrayList<FlowComponentModel>());
 
         presenterImpl.saveButtonPressed();
@@ -235,7 +236,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.model.setFlowName("*(Flow name)*_%€");
 
         presenterImpl.saveButtonPressed();
@@ -245,7 +246,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithValidData_SaveModelIsCalled() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         presenterImpl.saveButtonPressed();
 
@@ -256,7 +257,7 @@ public class PresenterImplTest {
     public void findAllFlowComponentsAsyncCallback_successfulCallback_FlowComponentsAddedAndModelUpdated() {
         final long EXTRA_ID = 127;
         final String EXTRA_NAME = "Extra Name";
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>(availableFlowComponentModelList);
         flowComponentModels.add(newFlowComponentModel(EXTRA_ID, EXTRA_NAME));
@@ -287,7 +288,7 @@ public class PresenterImplTest {
 
     @Test
     public void findAllFlowComponentsAsyncCallback_unsuccessfulCallback_errorMessageDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         IllegalArgumentException mockedIllegalArgumentException = mock(IllegalArgumentException.class);
 
         presenterImpl.findAllFlowComponentsCallback.onFailure(mockedIllegalArgumentException);
@@ -299,7 +300,7 @@ public class PresenterImplTest {
     @Test
     public void saveFlowModelAsyncCallback_successfullCallback_statusMessageDisplayed() {
         final String STATUS_MESSAGE = "Success Message";
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         FlowModel model = new FlowModel();
         when(mockedTexts.status_FlowSuccessfullySaved()).thenReturn(STATUS_MESSAGE);
 
@@ -310,7 +311,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveFlowModelAsyncCallback_unsuccessfullCallback_errorMessageDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         IllegalArgumentException mockedIllegalArgumentException = mock(IllegalArgumentException.class);
 
         presenterImpl.saveFlowCallback.onFailure(mockedIllegalArgumentException);

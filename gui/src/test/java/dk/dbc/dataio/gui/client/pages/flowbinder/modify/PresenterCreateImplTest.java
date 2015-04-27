@@ -46,6 +46,7 @@ public class PresenterCreateImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowBinderCreateView()).thenReturn(view);
+        when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
         when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
     }
@@ -60,7 +61,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
 
@@ -69,7 +70,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         assertThat(presenterCreateImpl.model, is(notNullValue()));
         assertThat(presenterCreateImpl.model.getName(), is(""));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
@@ -92,7 +93,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void saveModel_flowBinderOk_createFlowBinderCalled() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
         presenterCreateImpl.model = new FlowBinderModel();
         presenterCreateImpl.saveModel();

@@ -14,10 +14,9 @@ public class PresenterEditImpl extends PresenterImpl {
     /**
      * Constructor
      * @param clientFactory the clientFactory
-     * @param texts The text String used by flow component
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory, Texts texts) {
-        super(clientFactory, texts);
+    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
+        super(clientFactory);
         view = clientFactory.getFlowComponentEditView();
         EditPlace editPlace = (EditPlace) place;
         id = editPlace.getFlowComponentId();

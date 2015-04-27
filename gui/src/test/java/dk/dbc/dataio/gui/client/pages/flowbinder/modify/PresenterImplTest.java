@@ -67,8 +67,8 @@ public class PresenterImplTest {
     private final SinkModel sinkModel3 = new SinkModel(303L, 100L, "Snm3", "Rsc");
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory, Texts texts) {
-            super(clientFactory, texts);
+        public PresenterImplConcrete(ClientFactory clientFactory) {
+            super(clientFactory);
             flowStoreProxy = mockedFlowStoreProxy;
             view = PresenterImplTest.this.view;
             model = new FlowBinderModel(321L, 432L, "name", "desc", "pack", "form", "char", "dest", "recs", true, flowModel1, Arrays.asList(submitterModel1), sinkModel1);
@@ -125,6 +125,7 @@ public class PresenterImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
+        when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
     }
 
@@ -138,14 +139,14 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getFlowModifyConstants(), is(mockedTexts));
     }
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
@@ -408,7 +409,7 @@ public class PresenterImplTest {
      */
 
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
 

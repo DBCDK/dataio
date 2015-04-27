@@ -54,8 +54,8 @@ public class PresenterImplTest {
     private final SinkModel sinkModel = new SinkModel(23, 4, "sinkName", "SinkResourceName");
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory, Texts texts) {
-            super(clientFactory, texts);
+        public PresenterImplConcrete(ClientFactory clientFactory) {
+            super(clientFactory);
             view = PresenterImplTest.this.view;
             model = sinkModel;
         }
@@ -95,6 +95,7 @@ public class PresenterImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSinkServiceProxyAsync()).thenReturn(mockedSinkServiceProxy);
+        when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
         mock(ContentPanel.class);
 
     }
@@ -109,7 +110,7 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getSinkServiceProxy(), is(mockedSinkServiceProxy));
         assertThat(presenterImpl.getSinkModifyConstants(), is(mockedTexts));
@@ -117,7 +118,7 @@ public class PresenterImplTest {
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         verify(mockedContainerWidget).setWidget(Matchers.any(IsWidget.class));
         assertThat(initializeModelHasBeenCalled, is(true));
@@ -265,7 +266,7 @@ public class PresenterImplTest {
      * Private methods
      */
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
 

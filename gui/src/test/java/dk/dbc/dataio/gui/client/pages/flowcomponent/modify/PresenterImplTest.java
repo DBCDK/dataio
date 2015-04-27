@@ -62,8 +62,8 @@ public class PresenterImplTest {
     private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, NAME, PROJECT, REVISION, JAVA_SCRIPT_NAME, INVOCATION_METHOD, javaScriptNames);
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory, Texts texts) {
-            super(clientFactory, texts);
+        public PresenterImplConcrete(ClientFactory clientFactory) {
+            super(clientFactory);
             flowStoreProxy = mockedFlowStoreProxy;
             javaScriptProjectFetcher = mockedJavaScriptProjectFetcher;
             view = PresenterImplTest.this.view;
@@ -110,6 +110,7 @@ public class PresenterImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getJavaScriptProjectFetcherAsync()).thenReturn(mockedJavaScriptProjectFetcher);
+        when(mockedClientFactory.getFlowComponentModifyTexts()).thenReturn(mockedTexts);
     }
 
     @Before
@@ -120,7 +121,7 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getProjectFetcher(), is(mockedJavaScriptProjectFetcher));
         assertThat(presenterImpl.getFlowComponentModifyConstants(), is(mockedTexts));
@@ -128,7 +129,7 @@ public class PresenterImplTest {
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
@@ -337,7 +338,7 @@ public class PresenterImplTest {
      */
 
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
 

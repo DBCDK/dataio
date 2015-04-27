@@ -11,10 +11,9 @@ public class PresenterCreateImpl extends PresenterImpl {
     /**
      * Constructor
      * @param clientFactory, clientFactory
-     * @param texts, the constants for submitter modify
      */
-    public PresenterCreateImpl(ClientFactory clientFactory, Texts texts) {
-        super(clientFactory, texts);
+    public PresenterCreateImpl(ClientFactory clientFactory) {
+        super(clientFactory);
         view = clientFactory.getSinkCreateView();
     }
     /**

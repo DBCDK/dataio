@@ -66,7 +66,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
 
@@ -75,7 +75,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
         // Verify, that the model is cleared and updated accordingly
@@ -101,7 +101,7 @@ public class PresenterCreateImplTest {
         final long FLOW_COMPONENT_ID = 534;
         final String FLOW_COMPONENT_NAME = "flow component name";
 
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
 
         presenterCreateImpl.nameChanged(FLOW_NAME);

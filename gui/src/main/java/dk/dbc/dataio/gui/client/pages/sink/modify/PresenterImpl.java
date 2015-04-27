@@ -24,8 +24,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     // Application Models
     protected SinkModel model = new SinkModel();
 
-    public PresenterImpl(ClientFactory clientFactory, Texts texts) {
-        this.texts = texts;
+    public PresenterImpl(ClientFactory clientFactory) {
+        texts = clientFactory.getSinkModifyTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
         sinkServiceProxy = clientFactory.getSinkServiceProxyAsync();
     }

@@ -46,6 +46,7 @@ public class PresenterCreateImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSubmitterCreateView()).thenReturn(view);
+        when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
     }
 
     @Before
@@ -58,7 +59,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
         verify(mockedClientFactory).getSubmitterCreateView();
@@ -66,7 +67,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         assertThat(presenterCreateImpl.model, is(notNullValue()));
         assertThat(presenterCreateImpl.model.getName(), is(""));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
@@ -79,7 +80,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void saveModel_submitterContentOk_createSubmitterCalled() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
         presenterCreateImpl.model = new SubmitterModel(1, 1, "34343", "name", "description");
         presenterCreateImpl.saveModel();
@@ -88,7 +89,7 @@ public class PresenterCreateImplTest {
 
     @Test
     public void saveModel_submitterContentInvalidNumber_createSubmitterNotCalled() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, mockedTexts);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
         presenterCreateImpl.model = new SubmitterModel(1, 1, "notANumber", "name", "description");
         presenterCreateImpl.saveModel();

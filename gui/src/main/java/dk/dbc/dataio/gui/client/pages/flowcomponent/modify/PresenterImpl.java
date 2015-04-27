@@ -37,10 +37,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method.
      * @param clientFactory, clientFactory
-     * @param texts,         the texts for flow component modify
      */
-    public PresenterImpl(ClientFactory clientFactory, Texts texts) {
-        this.texts = texts;
+    public PresenterImpl(ClientFactory clientFactory) {
+        texts = clientFactory.getFlowComponentModifyTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
         javaScriptProjectFetcher = clientFactory.getJavaScriptProjectFetcherAsync();
         isInitialPopulationOfView = true;

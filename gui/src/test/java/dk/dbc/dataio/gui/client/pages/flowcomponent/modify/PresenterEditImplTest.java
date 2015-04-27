@@ -46,8 +46,8 @@ public class PresenterEditImplTest {
 
 
     class PresenterEditImplConcrete extends PresenterEditImpl {
-        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory, Texts constants) {
-            super(place, clientFactory, constants);
+        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory) {
+            super(place, clientFactory);
         }
 
         public GetFlowComponentModelFilteredAsyncCallback callback = new GetFlowComponentModelFilteredAsyncCallback();
@@ -58,6 +58,7 @@ public class PresenterEditImplTest {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getJavaScriptProjectFetcherAsync()).thenReturn(mockedJavaScriptProjectFetcher);
         when(mockedClientFactory.getFlowComponentEditView()).thenReturn(view);
+        when(mockedClientFactory.getFlowComponentModifyTexts()).thenReturn(mockedTexts);
         when(mockedPlace.getFlowComponentId()).thenReturn(DEFAULT_FLOW_COMPONENT_ID);
     }
 
@@ -69,7 +70,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
         // The instantiation of presenterEditImpl instantiates the "Edit version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Edit specific stuff, which basically is to assert, that the view attribute has been initialized correctly
 
@@ -79,7 +80,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
         assertThat(presenterEditImpl.model, is(notNullValue()));
         assertThat(presenterEditImpl.model.getName(), is(""));
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
@@ -98,7 +99,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void saveModel_callSaveModel_updateFlowComponentInFlowStoreCalled() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         final String FLOW_COMPONENT_MODEL_NAME = "Flow Component Model Name";
         FlowComponentModel flowComponentModel = new FlowComponentModel();
@@ -114,7 +115,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void getFlowComponentModelFilteredAsyncCallback_unSuccessfulCallback_errorMessage() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory, mockedTexts);
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
 
         presenterEditImpl.callback.onFilteredFailure(new Throwable());
@@ -124,7 +125,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void getFlowComponentModelFilteredAsyncCallback_successfulCallback_modelUpdated() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory, mockedTexts);
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         final String FLOW_COMPONENT_MODEL_NAME = "New Flow Component Model Name";
         FlowComponentModel flowComponentModel = new FlowComponentModel();

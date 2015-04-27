@@ -24,7 +24,7 @@ public class View extends ViewWidget {
      * @param header The header text for the View
      * @param texts  The I8n texts for this view
      */
-    public View(String header, dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts texts) {
+    public View(String header, Texts texts) {
         super(header, texts);
         setupColumns();
     }

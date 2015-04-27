@@ -48,8 +48,8 @@ public class PresenterImplTest {
     private final SubmitterModel submitterModel = new SubmitterModel(45, 2, NUMBER, NAME, DESCRIPTION);
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory, Texts texts) {
-            super(clientFactory, texts);
+        public PresenterImplConcrete(ClientFactory clientFactory) {
+            super(clientFactory);
             view = PresenterImplTest.this.view;
             model = submitterModel;
         }
@@ -72,7 +72,7 @@ public class PresenterImplTest {
         }
 
         // Test method for reading constants
-        public Texts getSubmitterModifyConstants() {
+        public Texts getSubmitterModifyTexts() {
             return texts;
         }
     }
@@ -82,6 +82,7 @@ public class PresenterImplTest {
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
+        when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
     }
 
     @Before
@@ -94,14 +95,14 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
-        assertThat(presenterImpl.getSubmitterModifyConstants(), is(mockedTexts));
+        assertThat(presenterImpl.getSubmitterModifyTexts(), is(mockedTexts));
     }
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(mockedContainerWidget).setWidget(Matchers.any(IsWidget.class));
@@ -235,7 +236,7 @@ public class PresenterImplTest {
      */
 
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, mockedTexts);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
 

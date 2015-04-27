@@ -45,8 +45,8 @@ public class PresenterEditImplTest {
     private PresenterEditImplConcrete presenterEditImplConcrete;
 
     class PresenterEditImplConcrete extends PresenterEditImpl {
-        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory, Texts constants) {
-            super(place, clientFactory, constants);
+        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory) {
+            super(place, clientFactory);
         }
 
         public GetFlowModelAsyncCallback callback = new GetFlowModelAsyncCallback();
@@ -58,6 +58,7 @@ public class PresenterEditImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowEditView()).thenReturn(view);
+        when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
     }
 
     @Before
@@ -69,21 +70,21 @@ public class PresenterEditImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
         verify(mockedEditPlace).getFlowId();
         verify(mockedClientFactory).getFlowEditView();
     }
 
     @Test
     public void initializeModel_callPresenterStart_getFlowIsInvoked() {
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
         verify(mockedFlowStoreProxy).getFlow(any(Long.class), any(PresenterEditImpl.SaveFlowModelAsyncCallback.class));
     }
 
     @Test
     public void saveModel_flowContentOk_updateFlowCalled() {
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory, mockedTexts);
+        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         presenterEditImpl.model = new FlowModel();
 
@@ -105,7 +106,7 @@ public class PresenterEditImplTest {
     @Test
     @SuppressWarnings("unchecked")
     public void getFlowModelFilteredAsyncCallback_successfulCallback_modelIsInitializedCorrectly() {
-        presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, mockedTexts);
+        presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
         FlowModel model = getValidFlowModel(4, 5);
         assertThat(presenterEditImplConcrete.model, is(nullValue()));
@@ -133,7 +134,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void getFlowModelFilteredAsyncCallback_unsuccessfulCallback_setErrorTextCalledInView() {
-        presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, mockedTexts);
+        presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
 
         // Emulate an unsuccessful callback from flowstore

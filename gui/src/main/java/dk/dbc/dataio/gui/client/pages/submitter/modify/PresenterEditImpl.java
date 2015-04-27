@@ -14,10 +14,9 @@ public class PresenterEditImpl extends PresenterImpl {
     /**
      * Constructor
      * @param clientFactory
-     * @param texts
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory, Texts texts) {
-        super(clientFactory, texts);
+    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
+        super(clientFactory);
         view = clientFactory.getSubmitterEditView();
         EditPlace editPlace = (EditPlace) place;
         id = editPlace.getSubmitterId();

@@ -6,13 +6,14 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private SelectFlowComponentDialogBox selectFlowComponentDialogBox;
 
     protected final Texts texts;
+    protected final ProxyErrorTexts proxyErrorTexts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected ViewWidget view;
 
@@ -42,7 +44,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param clientFactory clientFactory
      */
     public PresenterImpl(ClientFactory clientFactory) {
-        this.texts = clientFactory.getFlowModifyTexts();
+        texts = clientFactory.getFlowModifyTexts();
+        proxyErrorTexts = clientFactory.getProxyErrorTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
@@ -203,10 +206,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         flowStoreProxy.findAllFlowComponents(new FindAllFlowComponentsAsyncCallback());
     }
 
-    private void onFailureSendExceptionToView(Throwable e) {
-        view.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
-    }
-
     private List<FlowComponentModel> getNonSelectedFlowComponents() {
         List<FlowComponentModel> nonSelectedFlowComponents = new ArrayList<FlowComponentModel>();
         List<Long> selectedFlowComponentIds = new ArrayList<Long>();
@@ -257,7 +256,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FindAllFlowComponentsAsyncCallback implements AsyncCallback<List<FlowComponentModel>> {
         @Override
         public void onFailure(Throwable e) {
-            onFailureSendExceptionToView(e);
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
         @Override
         public void onSuccess(List<FlowComponentModel> result) {
@@ -272,7 +271,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveFlowModelAsyncCallback implements AsyncCallback<FlowModel> {
         @Override
         public void onFailure(Throwable e) {
-            onFailureSendExceptionToView(e);
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
 
         @Override

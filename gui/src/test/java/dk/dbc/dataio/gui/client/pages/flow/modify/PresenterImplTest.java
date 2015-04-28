@@ -4,6 +4,9 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -27,12 +30,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * PresenterImpl unit tests
- *
- * The test methods of this class uses the following naming convention:
- *
- *  unitOfWork_stateUnderTest_expectedBehavior
- */
+* PresenterImpl unit tests
+*
+* The test methods of this class uses the following naming convention:
+*
+*  unitOfWork_stateUnderTest_expectedBehavior
+*/
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
     @Mock ClientFactory mockedClientFactory;
@@ -40,6 +43,7 @@ public class PresenterImplTest {
     @Mock Texts mockedTexts;
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
+    @Mock ProxyErrorTexts mockedPoxyErrorTexts;
 
     private ViewWidget viewWidget;
 
@@ -93,6 +97,10 @@ public class PresenterImplTest {
         public Texts getFlowModifyConstants() {
             return texts;
         }
+
+        public ProxyErrorTexts getProxyErrorTexts() {
+            return proxyErrorTexts;
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -117,6 +125,7 @@ public class PresenterImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedPoxyErrorTexts);
     }
 
     @Before
@@ -132,6 +141,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getFlowModifyConstants(), is(mockedTexts));
+        assertThat(presenterImpl.getProxyErrorTexts(), is(mockedPoxyErrorTexts));
     }
 
     @Test
@@ -287,18 +297,19 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void findAllFlowComponentsAsyncCallback_unsuccessfulCallback_errorMessageDisplayed() {
+    public void findAllFlowComponentsAsyncCallback_unsuccessfulCallbackNotFoundError_errorMessageDisplayed() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        IllegalArgumentException mockedIllegalArgumentException = mock(IllegalArgumentException.class);
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.ENTITY_NOT_FOUND);
 
-        presenterImpl.findAllFlowComponentsCallback.onFailure(mockedIllegalArgumentException);
+        presenterImpl.findAllFlowComponentsCallback.onFailure(mockedProxyException);
 
-        verify(mockedIllegalArgumentException).getMessage();
-        verify(mockedIllegalArgumentException).getStackTrace();
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedPoxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
     @Test
-    public void saveFlowModelAsyncCallback_successfullCallback_statusMessageDisplayed() {
+    public void saveFlowModelAsyncCallback_successfulCallback_statusMessageDisplayed() {
         final String STATUS_MESSAGE = "Success Message";
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         FlowModel model = new FlowModel();
@@ -310,14 +321,15 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void saveFlowModelAsyncCallback_unsuccessfullCallback_errorMessageDisplayed() {
+    public void saveFlowModelAsyncCallback_unsuccessfulCallbackConflictError_errorMessageDisplayed() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        IllegalArgumentException mockedIllegalArgumentException = mock(IllegalArgumentException.class);
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.CONFLICT_ERROR);
 
-        presenterImpl.saveFlowCallback.onFailure(mockedIllegalArgumentException);
+        presenterImpl.saveFlowCallback.onFailure(mockedProxyException);
 
-        verify(mockedIllegalArgumentException).getMessage();
-        verify(mockedIllegalArgumentException).getStackTrace();
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedPoxyErrorTexts).flowStoreProxy_conflictError();
     }
 
 

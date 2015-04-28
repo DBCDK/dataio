@@ -43,7 +43,7 @@ public class PresenterImplTest {
     @Mock Texts mockedTexts;
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
-    @Mock ProxyErrorTexts mockedPoxyErrorTexts;
+    @Mock ProxyErrorTexts mockedProxyErrorTexts;
 
     private ViewWidget viewWidget;
 
@@ -125,7 +125,7 @@ public class PresenterImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedPoxyErrorTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
@@ -141,7 +141,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getFlowModifyConstants(), is(mockedTexts));
-        assertThat(presenterImpl.getProxyErrorTexts(), is(mockedPoxyErrorTexts));
+        assertThat(presenterImpl.getProxyErrorTexts(), is(mockedProxyErrorTexts));
     }
 
     @Test
@@ -305,7 +305,7 @@ public class PresenterImplTest {
         presenterImpl.findAllFlowComponentsCallback.onFailure(mockedProxyException);
 
         verify(mockedProxyException).getErrorCode();
-        verify(mockedPoxyErrorTexts).flowStoreProxy_notFoundError();
+        verify(mockedProxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
     @Test
@@ -329,7 +329,7 @@ public class PresenterImplTest {
         presenterImpl.saveFlowCallback.onFailure(mockedProxyException);
 
         verify(mockedProxyException).getErrorCode();
-        verify(mockedPoxyErrorTexts).flowStoreProxy_conflictError();
+        verify(mockedProxyErrorTexts).flowStoreProxy_conflictError();
     }
 
 

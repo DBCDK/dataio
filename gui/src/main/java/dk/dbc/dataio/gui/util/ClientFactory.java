@@ -68,6 +68,7 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts getFlowBindersShowTexts();
     dk.dbc.dataio.gui.client.pages.sink.show.Texts getSinksShowTexts();
     dk.dbc.dataio.gui.client.pages.job.show.Texts getJobsShowTexts();
+    dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts getProxyErrorTexts();
 
     // Resources
     Resources getImageResources();

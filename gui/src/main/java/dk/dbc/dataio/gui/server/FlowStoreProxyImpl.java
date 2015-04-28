@@ -3,23 +3,35 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.types.*;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.*;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
-import dk.dbc.dataio.gui.server.modelmappers.*;
+import dk.dbc.dataio.gui.server.modelmappers.FlowBinderModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +80,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             flowComponents = getFlowComponentsLatestVersion(model.getFlowComponents());
             flow = flowStoreServiceConnector.createFlow(FlowModelMapper.toFlowContent(model, flowComponents));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -93,7 +105,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                 flow = flowStoreServiceConnector.updateFlow(FlowModelMapper.toFlowContent(model, flowComponents), model.getId(), model.getVersion());
             }
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -108,7 +120,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             flows = flowStoreServiceConnector.findAllFlows();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -121,7 +133,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             flow = flowStoreServiceConnector.getFlow(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -140,7 +152,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
             flowComponent = flowStoreServiceConnector.createFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -160,7 +172,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                     FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult), model.getId(), model.getVersion());
 
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -177,7 +189,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -190,7 +202,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             result = flowStoreServiceConnector.findAllFlowComponents();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -203,7 +215,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             result = flowStoreServiceConnector.getFlowComponent(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -226,7 +238,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                     getSubmitterModelsLatestVersion(model.getSubmitterModels()),
                     getSinkModelLatestVersion(model.getSinkModel()));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -248,7 +260,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
             sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -279,7 +291,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                 );
             }
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -300,7 +312,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             }
             sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-            throw new ProxyException(translateToProxyError(e.getStatusCode()), e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -318,7 +330,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             submitter = flowStoreServiceConnector.createSubmitter(SubmitterModelMapper.toSubmitterContent(model));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -333,7 +345,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             submitter = flowStoreServiceConnector.updateSubmitter(SubmitterModelMapper.toSubmitterContent(model), model.getId(), model.getVersion());
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -348,7 +360,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             submitters = flowStoreServiceConnector.findAllSubmitters();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -361,7 +373,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             submitter = flowStoreServiceConnector.getSubmitter(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -379,7 +391,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             sink = flowStoreServiceConnector.createSink(SinkModelMapper.toSinkContent(model));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -394,7 +406,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             sink = flowStoreServiceConnector.updateSink(SinkModelMapper.toSinkContent(model), model.getId(), model.getVersion());
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e){
@@ -409,7 +421,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             sinks = flowStoreServiceConnector.findAllSinks();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -422,7 +434,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         try {
             sink = flowStoreServiceConnector.getSink(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(translateToProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
@@ -539,27 +551,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                 Long.valueOf(model.getSvnRevision()),
                 model.getInvocationJavascript(),
                 model.getInvocationMethod());
-    }
-
-    private ProxyError translateToProxyError(int statusCode)throws ProxyException {
-        final Response.Status status = Response.Status.fromStatusCode(statusCode);
-
-        final ProxyError errorCode;
-        switch (status){
-            case NOT_FOUND: errorCode = ProxyError.ENTITY_NOT_FOUND;
-                break;
-            case CONFLICT: errorCode = ProxyError.CONFLICT_ERROR;
-                break;
-            case NOT_ACCEPTABLE: errorCode = ProxyError.NOT_ACCEPTABLE;
-                break;
-            case PRECONDITION_FAILED: errorCode = ProxyError.PRECONDITION_FAILED;
-                break;
-            case BAD_REQUEST: errorCode = ProxyError.BAD_REQUEST;
-                break;
-            default:
-                errorCode = ProxyError.INTERNAL_SERVER_ERROR;
-        }
-        return errorCode;
     }
 
 }

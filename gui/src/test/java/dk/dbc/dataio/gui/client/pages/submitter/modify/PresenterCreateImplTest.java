@@ -17,7 +17,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -89,16 +88,6 @@ public class PresenterCreateImplTest {
         presenterCreateImpl.model = new SubmitterModel(1, 1, "34343", "name", "description");
         presenterCreateImpl.saveModel();
         verify(mockedFlowStoreProxy).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
-    }
-
-    @Test
-    public void saveModel_submitterContentInvalidNumber_createSubmitterNotCalled() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
-        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterCreateImpl.model = new SubmitterModel(1, 1, "notANumber", "name", "description");
-        presenterCreateImpl.saveModel();
-        assertThat(presenterCreateImpl.model.isNumberValid(), is(false));
-        verify(mockedFlowStoreProxy, times(0)).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
     }
 
 }

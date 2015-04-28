@@ -2,6 +2,8 @@ package dk.dbc.dataio.gui.client.model;
 
 import org.junit.Test;
 
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -57,6 +59,26 @@ public class SubmitterModelTest {
     public void isInputFieldsEmpty_allInputFieldsSet_returnsFalse() {
         SubmitterModel model = getTestModel();
         assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void getDataioPatternMatches_validFlowNameInput_returnsEmptyList() {
+        SubmitterModel model = getTestModel();
+        model.setName("Valid flow name + 1_2_3");
+        assertThat(model.getDataioPatternMatches().size(), is(0));
+    }
+
+    @Test
+    public void getDataioPatternMatches_invalidSubmitterNameInput_returnsList() {
+        final SubmitterModel model = getTestModel();
+        final String expectedInvalidValues = "*<>*(#€)";
+        model.setName("Invalid submitter name" + expectedInvalidValues);
+
+        final List<String> matches = model.getDataioPatternMatches();
+        assertThat(matches.size(), is(expectedInvalidValues.length()));
+        for (int i = 0; i < matches.size(); i++) {
+            assertThat(matches.get(i), is(String.valueOf(expectedInvalidValues.charAt(i))));
+        }
     }
 
     private SubmitterModel getTestModel() {

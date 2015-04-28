@@ -7,6 +7,7 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -17,7 +18,6 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,9 +34,10 @@ public class PresenterImplTest {
     @Mock private ClientFactory mockedClientFactory;
     @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
     @Mock private Texts mockedTexts;
+    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
-    @Mock private Exception mockedException;
+    @Mock private ProxyException mockedProxyException;
 
     private View view;
     private PresenterImplConcrete presenterImpl;
@@ -75,6 +76,10 @@ public class PresenterImplTest {
         public Texts getSubmitterModifyTexts() {
             return texts;
         }
+
+        public ProxyErrorTexts getProxyErrorTexts() {
+            return proxyErrorTexts;
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -83,6 +88,7 @@ public class PresenterImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
@@ -98,6 +104,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getSubmitterModifyTexts(), is(mockedTexts));
+        assertThat(presenterImpl.getProxyErrorTexts(), is(mockedProxyErrorTexts));
     }
 
     @Test
@@ -148,67 +155,53 @@ public class PresenterImplTest {
         assertThat(saveModelHasBeenCalled, is(true));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void getErrorText_callGetErrorTextWithNullException_throwsNullPointerException() {
-        initializeAndStartPresenter();
-        presenterImpl.getErrorText(null);
+    @Test
+    public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.model.setName("");
+
+        presenterImpl.saveButtonPressed();
+
+        verify(mockedTexts).error_InputFieldValidationError();
     }
 
     @Test
-    public void getErrorText_callGetErrorTextWithNotAcceptableProxyException_returnsErrorStringOrNullString() {
-        final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
-        final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
-        initializeAndStartPresenter();
+    public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.model.setDescription("");
 
-        when(mockedTexts.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
-        when(mockedTexts.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
+        presenterImpl.saveButtonPressed();
 
-        // Empty Proxy Exception
-        assertThat(presenterImpl.getErrorText(new ProxyException()), is(nullValue()));
-
-        // Proxy Exception instantiated with null String
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, (String) null)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, (String) null)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, (String) null)), is(nullValue()));
-
-        // Proxy Exception instantiated with null Throwable
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, (Throwable) null)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, (Throwable) null)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, (Throwable) null)), is(nullValue()));
+        verify(mockedTexts).error_InputFieldValidationError();
     }
 
     @Test
-    public void getErrorText_callGetErrorTextWithProxyExceptionWithCorrectProxyError_returnsPredefinedErrorTexts() {
-        final String PROXY_ERROR_TEXT = "Proxy Error Text";
-        final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
-        final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
-        initializeAndStartPresenter();
+    public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.model.setName("*(Flow name)*_%€");
 
-        when(mockedTexts.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
-        when(mockedTexts.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
+        presenterImpl.saveButtonPressed();
 
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, PROXY_ERROR_TEXT)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, PROXY_ERROR_TEXT)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
+        verify(mockedTexts).error_NameFormatValidationError();
     }
 
     @Test
-    public void getErrorText_callGetErrorTextWithNonProxyException_returnsExceptionErrorText() {
-        final String EXCEPTION_ERROR_TEXT = "Exception Error Text";
-        initializeAndStartPresenter();
-        assertThat(presenterImpl.getErrorText(new IllegalArgumentException(EXCEPTION_ERROR_TEXT)), is(EXCEPTION_ERROR_TEXT));
+    public void saveButtonPressed_callSaveButtonPressedWithInvalidNumberFormatInNameField_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.model.setNumber("Not a number");
+
+        presenterImpl.saveButtonPressed();
+
+        verify(mockedTexts).error_NumberInputFieldValidationError();
+    }
+
+    @Test
+    public void saveButtonPressed_callSaveButtonPressedWithValidData_SaveModelIsCalled() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        presenterImpl.saveButtonPressed();
+
+        assertThat(saveModelHasBeenCalled, is(true));
     }
 
     @Test
@@ -225,10 +218,14 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void submitterModelFilteredAsyncCallback_unsuccessfulCallback_setErrorTextCalledInView() {
+    public void submitterModelFilteredAsyncCallback_unsuccessfulCallbackNotAcceptableError_setErrorTextCalledInView() {
         initializeAndStartPresenter();
-        presenterImpl.saveSubmitterModelFilteredAsyncCallback.onFailure(mockedException);  // Emulate an unsuccessful callback from flowstore
-        verify(mockedException).getMessage();  // Is called before calling view.setErrorText, which we cannot verify, since view is not mocked
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.NOT_ACCEPTABLE);
+
+        presenterImpl.saveSubmitterModelFilteredAsyncCallback.onFailure(mockedProxyException);  // Emulate an unsuccessful callback from flowstore
+        verify(mockedProxyException).getErrorCode();
+
+        verify(mockedProxyErrorTexts).flowStoreProxy_keyViolationError();
     }
 
      /*

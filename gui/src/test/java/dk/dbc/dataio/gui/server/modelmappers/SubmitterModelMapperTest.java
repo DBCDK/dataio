@@ -12,6 +12,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * SubmitterModelMapper unit tests
@@ -92,6 +93,20 @@ public class SubmitterModelMapperTest {
         assertThat(submitterModels.size(), is(2));
         assertThat(submitterModels.get(0).getId(), is(3333L));
         assertThat(submitterModels.get(1).getId(), is(5555L));
+    }
+
+    @Test
+    public void toSubmitterContent_invalidSubmitterName_throwsIllegalArgumentException() {
+        final String submitterName = "*%(Illegal)_&Name - €";
+        final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
+        SubmitterModel model = defaultSubmitterModel1;
+        model.setName(submitterName);
+        try {
+            SubmitterModelMapper.toSubmitterContent(model);
+            fail("Illegal submitter name not detected");
+        } catch(IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        }
     }
 
 }

@@ -12,10 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,30 +80,8 @@ public class PresenterEditImplTest {
         presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         presenterEditImpl.model = new SubmitterModel();
-
-        presenterEditImpl.numberChanged("1");                 // Number is ok
-        presenterEditImpl.nameChanged("a");                   // Name is ok
-        presenterEditImpl.descriptionChanged("description");  // Description is ok
-
-        presenterEditImpl.saveModel();
-
-        verify(mockedFlowStoreProxy).updateSubmitter(eq(presenterEditImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
     }
 
-    @Test
-    public void saveModel_submitterContentInvalidNumber_updateSubmitterNotCalled() {
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
-        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.model = new SubmitterModel();
-
-        presenterEditImpl.numberChanged("notANumber");            // Number is not ok
-        presenterEditImpl.nameChanged("aNewName");                // Name is ok
-        presenterEditImpl.descriptionChanged("aNewDescription");  // Description is ok
-
-        presenterEditImpl.saveModel();
-        assertThat(presenterEditImpl.model.isNumberValid(), is(false));
-        verify(mockedFlowStoreProxy, times(0)).updateSubmitter(eq(presenterEditImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
-    }
 
     @Test
     public void getSubmitterModelFilteredAsyncCallback_successfulCallback_modelUpdated() {

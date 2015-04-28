@@ -4,8 +4,8 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -14,8 +14,9 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    protected Texts texts;
-    protected FlowStoreProxyAsync flowStoreProxy;
+    protected final Texts texts;
+    protected final FlowStoreProxyAsync flowStoreProxy;
+    protected final ProxyErrorTexts proxyErrorTexts;
     protected View view;
 
     // Application Models
@@ -31,6 +32,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public PresenterImpl(ClientFactory clientFactory) {
         texts = clientFactory.getSubmitterModifyTexts();
+        proxyErrorTexts = clientFactory.getProxyErrorTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
@@ -85,7 +87,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that the save button has been pressed
      */
     public void saveButtonPressed() {
-        saveModel();
+        if (model != null) {
+            if (model.isInputFieldsEmpty()) {
+                view.setErrorText(texts.error_InputFieldValidationError());
+            } else if (!model.isNumberValid()) {
+               view.setErrorText(texts.error_NumberInputFieldValidationError());
+            } else if (!model.getDataioPatternMatches().isEmpty()) {
+                view.setErrorText(texts.error_NameFormatValidationError());
+            } else {
+                saveModel();
+            }
+        }
     }
 
     /*
@@ -128,33 +140,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.model = model;
     }
 
-    /**
-     * A local method to be used to translate an exception to a readable text
-     * @param e Exception
-     * @return errorMessage, the error text
-     */
-    protected String getErrorText(Throwable e) {
-        ProxyError errorCode = null;
-        if (e instanceof ProxyException) {
-            errorCode = ((ProxyException) e).getErrorCode();
-        }
-        final String errorMessage;
-        if (errorCode == null) {
-            errorMessage = e.getMessage();
-        } else {
-            switch (errorCode) {
-                case NOT_ACCEPTABLE: errorMessage = texts.error_ProxyKeyViolationError();
-                    break;
-                case BAD_REQUEST: errorMessage = texts.error_ProxyDataValidationError();
-                    break;
-                default: errorMessage = e.getMessage();
-                    break;
-            }
-        }
-        return errorMessage;
-    }
-
-
     /*
      * Local class
      */
@@ -165,7 +150,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(getErrorText(e));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
 
         @Override

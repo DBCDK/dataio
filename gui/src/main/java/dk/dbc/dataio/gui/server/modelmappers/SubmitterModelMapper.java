@@ -40,6 +40,11 @@ public final class SubmitterModelMapper {
             throw new IllegalArgumentException("model.number, model.name, model.description cannot be empty");
         }
 
+        List<String> matches = model.getDataioPatternMatches();
+        if(!matches.isEmpty()) {
+            throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
+        }
+
         return new SubmitterContent(
                 Long.parseLong(model.getNumber()),
                 model.getName(),
@@ -58,6 +63,18 @@ public final class SubmitterModelMapper {
             submitterModels.add(toModel(submitter));
         }
         return submitterModels;
+    }
+
+     /*
+     * private helper methods
+     */
+
+    private static String buildPatternMatchesErrorMsg(List<String> matches) {
+        StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flow name:");
+        for(String match : matches) {
+            stringBuilder.append(" [").append(match).append("],");
+        }
+        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
     }
 
 }

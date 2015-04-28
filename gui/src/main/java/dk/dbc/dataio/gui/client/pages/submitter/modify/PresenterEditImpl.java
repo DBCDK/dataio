@@ -39,11 +39,7 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        if (!model.isNumberValid()) {
-            view.setErrorText(texts.error_NumberInputFieldValidationError());
-        } else {
-            flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
-        }
+        flowStoreProxy.createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
     }
 
     // Private methods

@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
@@ -55,10 +55,10 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             jobInfoSnapshotList = jobStoreServiceConnector.listJobs(JobListCriteriaModelMapper.toJobListCriteria(model));
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if(e.getJobError() != null) {
-                throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
             }
             else {
-                throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
@@ -90,10 +90,10 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             }
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if(e.getJobError() != null) {
-                throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
             }
             else {
-                throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);

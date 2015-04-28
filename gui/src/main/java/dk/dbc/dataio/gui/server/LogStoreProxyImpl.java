@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
@@ -41,7 +41,7 @@ public class LogStoreProxyImpl implements LogStoreProxy {
         } catch (IllegalArgumentException e) {
             throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } catch (LogStoreServiceConnectorUnexpectedStatusCodeException e) {
-            throw new ProxyException(ProxyErrorTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (LogStoreServiceConnectorException e) {
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }

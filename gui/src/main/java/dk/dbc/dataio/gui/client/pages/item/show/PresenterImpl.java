@@ -75,50 +75,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
 
     /*
-     * Protected methods
-     *
-     */
-
-    /**
-     * This method fetches items from the job store, and instantiates a callback class to take further action
-     *
-     * @param itemSearchType The search type (ALL, FAILED or IGNORED)
-     * @param rowCount The number of rows in the data
-     * @param listView The list view in question
-     */
-    protected void getItems(ItemListCriteriaModel.ItemSearchType itemSearchType, int rowCount, ItemsListView listView) {
-        final ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
-        final int offset = listView.itemsTable.getVisibleRange().getStart();
-        ItemsCallback callback = new ItemsCallback(listView, rowCount, offset);
-
-        view.setSelectionEnabled(false);
-        listView.detailedTabs.clear();
-        listView.detailedTabs.setVisible(false);
-        itemListCriteriaModel.setItemSearchType(itemSearchType);
-        itemListCriteriaModel.setJobId(this.jobId);
-        itemListCriteriaModel.setLimit(listView.itemsPager.getPageSize());
-        itemListCriteriaModel.setOffset(offset);
-        jobStoreProxy.listItems(itemListCriteriaModel, callback);
-    }
-
-
-    /*
      * Overridden methods
      */
-
-    /**
-     * An indication from the view, that an item has been selected
-     * @param itemModel The model for the selected item
-     */
-    @Override
-    public void itemSelected(ItemsListView listView, ItemModel itemModel) {
-        listView.detailedTabs.clear();
-        listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
-        if (listView.detailedTabs.getWidgetCount() > 0) {
-            listView.detailedTabs.selectTab(0);
-            listView.detailedTabs.setVisible(true);
-        }
-    }
 
     /**
      * This method is called by the view, whenever the All Items tab has been selected
@@ -152,10 +110,51 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         // Stuff to be put in here...
     }
 
+    /**
+     * An indication from the view, that an item has been selected
+     * @param itemModel The model for the selected item
+     */
+    @Override
+    public void itemSelected(ItemsListView listView, ItemModel itemModel) {
+        listView.detailedTabs.clear();
+        listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
+        if (listView.detailedTabs.getWidgetCount() > 0) {
+            listView.detailedTabs.selectTab(0);
+            listView.detailedTabs.setVisible(true);
+        }
+    }
+
 
     /*
-   * Private methods
-   */
+     * Private methods
+     */
+
+    /**
+     * This method fetches items from the job store, and instantiates a callback class to take further action
+     *
+     * @param itemSearchType The search type (ALL, FAILED or IGNORED)
+     * @param rowCount The number of rows in the data
+     * @param listView The list view in question
+     */
+    private void getItems(ItemListCriteriaModel.ItemSearchType itemSearchType, int rowCount, ItemsListView listView) {
+        final ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
+        final int offset = listView.itemsTable.getVisibleRange().getStart();
+        ItemsCallback callback = new ItemsCallback(listView, rowCount, offset);
+
+        view.setSelectionEnabled(false);
+        listView.detailedTabs.clear();
+        listView.detailedTabs.setVisible(false);
+        itemListCriteriaModel.setItemSearchType(itemSearchType);
+        itemListCriteriaModel.setJobId(this.jobId);
+        itemListCriteriaModel.setLimit(listView.itemsPager.getPageSize());
+        itemListCriteriaModel.setOffset(offset);
+        jobStoreProxy.listItems(itemListCriteriaModel, callback);
+    }
+
+    /**
+     * This method constructs a Job Header Text from a Job Id, a Submitter Number and a Sink Name
+     * @return The resulting Job Header Text
+     */
     private String constructJobHeaderText() {
         return texts.text_JobId() + " " + jobId + ", "
                 + texts.text_Submitter() + " " + submitterNumber + ", "
@@ -163,7 +162,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
 
-  /*
+    /*
      * Private classes
      */
 

@@ -5,6 +5,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -93,7 +94,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchFlowsCallback extends FilteredAsyncCallback<List<FlowModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts()));
         }
 
         @Override
@@ -105,7 +106,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class RefreshFlowComponentsCallback extends FilteredAsyncCallback<FlowModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts()));
         }
 
         @Override

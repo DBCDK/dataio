@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.exceptions;
 
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 
-public abstract class ProxyErrorTranslator {
+public class ProxyErrorTranslator {
 
     public static String toClientErrorFromFlowStoreProxy(Throwable e, ProxyErrorTexts text) {
         final String errorMessage;
@@ -24,6 +24,8 @@ public abstract class ProxyErrorTranslator {
                 case BAD_REQUEST: errorMessage = text.flowStoreProxy_dataValidationError();
                     break;
                 case PRECONDITION_FAILED: errorMessage = text.flowStoreProxy_preconditionFailedError();
+                    break;
+                case SERVICE_NOT_FOUND: errorMessage = text.flowStoreProxy_serviceError();
                     break;
                 case MODEL_MAPPER_INVALID_FIELD_VALUE: errorMessage = text.flowStoreProxy_modelMapperInvalidFieldValue();
                     break;

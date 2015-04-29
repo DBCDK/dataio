@@ -8,6 +8,9 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace;
@@ -43,7 +46,8 @@ public class PresenterImplTest {
     @Mock EventBus mockedEventBus;
     @Mock View mockedView;
     @Mock Widget mockedViewWidget;
-    @Mock Throwable mockedException;
+    @Mock ProxyException mockedProxyException;
+    @Mock ProxyErrorTexts mockedProxyErrorTexts;
 
     // Setup mocked data
     @Before
@@ -52,6 +56,7 @@ public class PresenterImplTest {
         when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
         when(mockedClientFactory.getFlowsShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     // Subject Under Test
@@ -129,12 +134,16 @@ public class PresenterImplTest {
     public void fetchFlows_callbackWithError_errorMessageInView() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.SERVICE_NOT_FOUND);
 
         // Test Subject Under Test
-        presenterImpl.fetchFlowsCallback.onFilteredFailure(mockedException);
+        presenterImpl.fetchFlowsCallback.onFilteredFailure(mockedProxyException);
 
         // Verify Test
-        verify(mockedView).setErrorText(any(String.class));
+        verify(mockedClientFactory).getProxyErrorTexts();
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_serviceError();
+        verify(mockedView).setErrorText(mockedProxyErrorTexts.flowStoreProxy_serviceError());
     }
 
     @Test
@@ -153,12 +162,16 @@ public class PresenterImplTest {
     public void refreshFlowComponents_callbackWithError_errorMessageInView() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.CONFLICT_ERROR);
 
         // Test Subject Under Test
-        presenterImpl.refreshFlowComponentsCallback.onFilteredFailure(mockedException);
+        presenterImpl.refreshFlowComponentsCallback.onFilteredFailure(mockedProxyException);
 
         // Verify Test
-        verify(mockedView).setErrorText(any(String.class));
+        verify(mockedClientFactory).getProxyErrorTexts();
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_conflictError();
+        verify(mockedView).setErrorText(mockedProxyErrorTexts.flowStoreProxy_conflictError());
     }
 
     @Test

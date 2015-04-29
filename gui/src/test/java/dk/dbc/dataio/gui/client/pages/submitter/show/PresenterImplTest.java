@@ -8,6 +8,9 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -41,7 +44,8 @@ public class PresenterImplTest {
     @Mock EventBus mockedEventBus;
     @Mock View mockedView;
     @Mock Widget mockedViewWidget;
-    @Mock Throwable mockedException;
+    @Mock ProxyException mockedProxyException;
+    @Mock ProxyErrorTexts mockedProxyErrorTexts;
 
     // Setup mocked data
     @Before
@@ -50,6 +54,7 @@ public class PresenterImplTest {
         when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
         when(mockedClientFactory.getSubmittersShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
 
@@ -115,11 +120,16 @@ public class PresenterImplTest {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.SERVICE_NOT_FOUND);
+
         // Test Subject Under Test
-        presenterImpl.fetchSubmittersCallback.onFilteredFailure(mockedException);
+        presenterImpl.fetchSubmittersCallback.onFilteredFailure(mockedProxyException);
 
         // Verify Test
-        verify(mockedView).setErrorText(any(String.class));
+        verify(mockedClientFactory).getProxyErrorTexts();
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_serviceError();
+        verify(mockedView).setErrorText(mockedProxyErrorTexts.flowStoreProxy_serviceError());
     }
 
     @Test

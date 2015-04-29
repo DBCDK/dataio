@@ -22,6 +22,9 @@ public interface ProxyErrorTexts extends Constants {
     String flowStoreProxy_notFoundError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String flowStoreProxy_serviceError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String flowStoreProxy_generalServerError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

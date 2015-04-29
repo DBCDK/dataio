@@ -2,7 +2,7 @@ package dk.dbc.dataio.gui.client.exceptions;
 
 import javax.ws.rs.core.Response;
 
-public abstract class StatusCodeTranslator {
+public class StatusCodeTranslator {
 
     public static ProxyError toProxyError(int statusCode) throws ProxyException {
         final Response.Status status = Response.Status.fromStatusCode(statusCode);

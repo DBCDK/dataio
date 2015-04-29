@@ -25,7 +25,6 @@ class Context {
  * This class is the View class for the Items Show View
  */
 public class View extends ViewWidget {
-    Column itemNumberColumn;
     Context allContext = new Context(allItemsList);
     Context failedContext = new Context(failedItemsList);
     Context ignoredContext = new Context(ignoredItemsList);
@@ -85,7 +84,7 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns(final ItemsListView listView) {
-        listView.itemsTable.addColumn(itemNumberColumn = constructItemColumn(), texts.column_Item());
+        listView.itemsTable.addColumn(constructItemColumn(), texts.column_Item());
         listView.itemsTable.addColumn(constructStatusColumn(), texts.column_Status());
         listView.itemsTable.addRangeChangeHandler(new RangeChangeEvent.Handler() {
             @Override

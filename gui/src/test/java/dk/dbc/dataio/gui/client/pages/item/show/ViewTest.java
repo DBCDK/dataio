@@ -1,20 +1,36 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.SimplePager;
+import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
+import com.google.gwtmockito.GwtMock;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.Arrays;
-import java.util.List;
-
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.nullValue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -27,6 +43,7 @@ import static org.mockito.Mockito.when;
 */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
+    @Mock ClientFactory mockedClientFactory;
     @Mock Presenter mockedPresenter;
     @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
@@ -34,13 +51,33 @@ public class ViewTest {
     @Mock SelectionChangeEvent mockedSelectionChangeEvent;
     @Mock SingleSelectionModel mockedSelectionModel;
     @Mock ItemModel mockedItemModel;
+    @Mock HandlerRegistration mockedHandlerRegistration;
 
     // Test Data
-    private ItemModel testModel1 = new ItemModel("11", "ItemId1", "ChunkId1", "JobId1", ItemModel.LifeCycle.DELIVERING);
-    private ItemModel testModel2 = new ItemModel("12", "ItemId2", "ChunkId2", "JobId2", ItemModel.LifeCycle.DONE);
-    private ItemModel testModel3 = new ItemModel("13", "ItemId3", "ChunkId3", "JobId3", ItemModel.LifeCycle.PARTITIONING);
-    private ItemModel testModel4 = new ItemModel("14", "ItemId4", "ChunkId4", "JobId4", ItemModel.LifeCycle.PROCESSING);
-    private List<ItemModel> testModels = Arrays.asList(testModel1, testModel2, testModel3, testModel4);
+    private ItemModel testModel = new ItemModel("11", "ItemId1", "ChunkId1", "JobId1", ItemModel.LifeCycle.DELIVERING);
+
+    /*
+     * The tested view contains nested UiBinder views: ViewWidget (a UiBinder view) instantiates three ItemsListView
+     * (also UiBinder views).
+     * Normally, GwtMockito assures, that all @UiField's will be mocked, but for some reason, the three ItemsListView
+     * objects are not mocked ???
+     * Therefore, we will manually mock the ItemsListView objects so we know, that they for sure are instantiated, whenever
+     * ViewWidget is instantiated (ViewWidget calls methods in ItemsListView in its constructor)
+     * But when instantiating ItemsListView manually, we also have to manually mock it's three UiFields: itemsTable,
+     * itemsPager and detailedTabs.
+     * This is done in the following:
+     */
+    @GwtMock ItemsListView mockedItemsList;
+    @Mock CellTable mockedItemsTable;
+    @Mock SimplePager mockedItemsPager;
+    @Mock DecoratedTabPanel mockedDetailedTabs;
+    @Before
+    public void setupMockedUiFields() {
+        mockedItemsList.itemsTable = mockedItemsTable;
+        mockedItemsList.itemsPager = mockedItemsPager;
+        mockedItemsList.detailedTabs = mockedDetailedTabs;
+    }
+
 
     // Subject Under Test
     private View view;
@@ -61,9 +98,9 @@ public class ViewTest {
     final static String MOCKED_LIFECYCLE_DELIVERING = "Mocked Delivering";
     final static String MOCKED_LIFECYCLE_DONE = "Mocked Done";
     final static String MOCKED_LIFECYCLE_UNKNOWN = "Mocked Ukendt Lifecycle";
-
     @Before
     public void setupMockedTextsBehaviour() {
+        when(mockedClientFactory.getItemsShowTexts()).thenReturn(mockedTexts);
         when(mockedTexts.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
         when(mockedTexts.column_Item()).thenReturn(MOCKED_COLUMN_ITEM);
         when(mockedTexts.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
@@ -81,152 +118,137 @@ public class ViewTest {
     }
 
 
+    /*
+     * Testing starts here...
+     */
     @Test
-    public void testsToBeAdded() {
-        assert(true);
+    @SuppressWarnings("unchecked")
+    public void constructor_instantiate_objectCorrectInitialized() {
+        // Subject Under Test
+        view = new View(mockedClientFactory);
+
+        // Verify invocations
+        verify(mockedItemsPager, times(3)).firstPage();
+        verify(mockedItemsTable, times(3)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_ITEM));
+        verify(mockedItemsTable, times(3)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_STATUS));
+        verify(mockedItemsTable, times(3)).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
+        verify(mockedItemsPager, times(3)).setDisplay(mockedItemsTable);
+        verifyNoMoreInteractions(mockedItemsList);
+        verifyNoMoreInteractions(mockedItemsTable);
+        verifyNoMoreInteractions(mockedItemsPager);
+        verifyNoMoreInteractions(mockedDetailedTabs);
     }
 
-//    /*
-//     * Testing starts here...
-//     */
-//    @Test
-//    @SuppressWarnings("unchecked")
-//    public void constructor_instantiate_objectCorrectInitialized() {
-//        // Subject Under Test
-//        view = new View("Header Text", mockedTexts);
-//
-//        // Verify invocations
-//        verify(view.itemsTable).addColumn(view.itemNumberColumn, MOCKED_COLUMN_ITEM);
-//        verify(view.itemsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_STATUS));
-//        verify(view.itemsTable).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
-//        verify(view.pager).setDisplay(view.itemsTable);
-//    }
-//
-//    @Test
-//    public void setItems_setItemsValidData_dataSetupCorrect() {
-//        // Test setup
-//        view = new View("Header Text", mockedTexts);
-//        final int OFFSET = 0;
-//
-//        // Subject Under Test
-//        view.setItems(testModels, OFFSET, testModels.size());
-//
-//        // Verification
-//        verify(view.itemsTable).setRowCount(testModels.size());
-//        verify(view.itemsTable).setRowData(OFFSET, testModels);
-//    }
-//
-//    @Test
-//    public void addTab_addTabCalledWithValidWidget_tabSetupCorrectly() {
-//        // Test setup
-//        view = new View("Header Text", mockedTexts);
-//        final String TITLE = "Title";
-//
-//        // Subject Under Test
-//        view.addTab(mockedWidget, TITLE);
-//
-//        // Verification
-//        verify(view.tabPanel).add(mockedWidget, TITLE);
-//    }
-//
-//    @Test
-//    public void addTab_addTabCalledWithInvalidWidget_tabNotSet() {
-//        // Test setup
-//        view = new View("Header Text", mockedTexts);
-//        final String TITLE = "Title";
-//
-//        // Subject Under Test
-//        view.addTab(null, TITLE);
-//
-//        // Verification
-//        verifyZeroInteractions(view.tabPanel);
-//    }
-//
-//    @Test
-//    public void enableSelection_setSelectionEnabled_selectionEnabled() {
-//        // Test setup
-//        view = new View("Header Text", mockedTexts);
-//
-//        // Subject Under Test
-//        view.setSelectionEnabled(true);
-//
-//        // Verification
-//        verify(view.itemsTable).setSelectionModel(view.selectionModel);
-//    }
-//
-//    @Test
-//    public void disableSelection_setSelectionEnabled_selectionDisabled() {
-//        // Test setup
-//        view = new View("Header Text", mockedTexts);
-//
-//        // Subject Under Test
-//        view.setSelectionEnabled(false);
-//
-//        // Verification
-//        verify(view.itemsTable).setSelectionModel(null);
-//    }
-//
-//    class ConcreteView extends View {
-//        SelectionChangeHandlerClass selectionChangeHandler = new SelectionChangeHandlerClass();
-//
-//        public ConcreteView(String header, Texts texts) {
-//            super(header, texts);
-//        }
-//    }
-//
-//    @Test
-//    public void selectionChangeHandlerClass_callEventHandler_verify() {
-//        // Test setup
-//        ConcreteView concreteView = new ConcreteView("Header", mockedTexts);
-//        concreteView.selectionModel = mockedSelectionModel;
-//        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedItemModel);
-//        concreteView.setPresenter(mockedPresenter);
-//
-//        // Subject Under Test
-//        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
-//
-//        // Verification
-//        verify(mockedPresenter).itemSelected(mockedItemModel);
-//    }
-//
-//    @Test
-//    public void selectionChangeHandlerClass_callEventHandlerWithEmptySelection_verifyNoSelectionSetToPresenter() {
-//        // Test setup
-//        ConcreteView concreteView = new ConcreteView("Header", mockedTexts);
-//        concreteView.selectionModel = mockedSelectionModel;
-//        when(mockedSelectionModel.getSelectedObject()).thenReturn(null);
-//        concreteView.setPresenter(mockedPresenter);
-//
-//        // Subject Under Test
-//        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
-//
-//        // Verification
-//        verifyZeroInteractions(mockedPresenter);
-//    }
-//
-//    @Test
-//    @SuppressWarnings("unchecked")
-//    public void constructItemColumn_call_correctlySetup() {
-//        // Test setup
-//        view = new View("Header Text", mockedTexts);
-//
-//        // Subject Under Test
-//        Column column = view.constructItemColumn();
-//
-//        // Test that correct getValue handler has been setup
-//        assertThat((String) column.getValue(testModel1), is(MOCKED_TEXT_ITEM + " " + testModel1.getItemNumber()));
-//    }
-//
-//    @Test
-//    @SuppressWarnings("unchecked")
-//    public void constructStatusColumn_call_correctlySetup() {
-//        view = new View("Header Text", mockedTexts);
-//
-//        // Subject Under Test
-//        Column column = view.constructStatusColumn();
-//
-//        // Test that correct getValue handler has been setup
-//        assertThat((String) column.getValue(testModel1), is(MOCKED_LIFECYCLE_DELIVERING));
-//    }
+    @Test
+    public void enableSelection_enableSelectionTrue_selectionEnabled() {
+        // Test setup
+        view = new View(mockedClientFactory);
+        Context context = new Context(mockedItemsList);
+        context.selectionModel = mockedSelectionModel;
+
+        // Subject Under Test
+        view.enableSelection(true, context);
+
+        // Verification
+        assertThat(context.listView, is(mockedItemsList));
+        assertThat(context.selectionModel, is(not(nullValue())));
+        verify(mockedSelectionModel).addSelectionChangeHandler(any(View.SelectionChangeHandlerClass.class));
+        verify(mockedItemsList.itemsTable).setSelectionModel(context.selectionModel);
+    }
+
+    @Test
+    public void enableSelection_enableSelectionFalse_selectionDisabled() {
+        // Test setup
+        view = new View(mockedClientFactory);
+        Context context = new Context(mockedItemsList);
+        context.handlerRegistration = mockedHandlerRegistration;
+
+        // Subject Under Test
+        view.enableSelection(false, context);
+
+        // Verification
+        verify(mockedHandlerRegistration).removeHandler();
+        verify(mockedItemsList.itemsTable).setSelectionModel(null);
+    }
+
+
+
+    @Test
+    public void setSelectionEnabled_setSelectionEnabled_selectionsEnabled() {
+        // Test setup
+        view = new View(mockedClientFactory);
+
+        // Subject Under Test
+        view.setSelectionEnabled(true);
+
+        // Verification
+        verify(mockedItemsTable).setSelectionModel(view.allContext.selectionModel);
+        verify(mockedItemsTable).setSelectionModel(view.failedContext.selectionModel);
+        verify(mockedItemsTable).setSelectionModel(view.ignoredContext.selectionModel);
+    }
+
+    class ConcreteView extends View {
+        Context context = new Context(mockedItemsList);
+        SelectionChangeHandlerClass selectionChangeHandler = new SelectionChangeHandlerClass(context);
+
+        public ConcreteView(ClientFactory clientFactory) {
+            super(clientFactory);
+            context.handlerRegistration = mockedHandlerRegistration;
+            context.selectionModel = mockedSelectionModel;
+        }
+    }
+
+    @Test
+    public void selectionChangeHandlerClass_callEventHandler_verify() {
+        // Test setup
+        ConcreteView concreteView = new ConcreteView(mockedClientFactory);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedItemModel);
+        concreteView.setPresenter(mockedPresenter);
+
+        // Subject Under Test
+        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
+
+        // Verification
+        verify(mockedPresenter).itemSelected(mockedItemsList, mockedItemModel);
+    }
+
+    @Test
+    public void selectionChangeHandlerClass_callEventHandlerWithEmptySelection_verifyNoSelectionSetToPresenter() {
+        // Test setup
+        ConcreteView concreteView = new ConcreteView(mockedClientFactory);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(null);
+        concreteView.setPresenter(mockedPresenter);
+
+        // Subject Under Test
+        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
+
+        // Verification
+        verifyZeroInteractions(mockedPresenter);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructItemColumn_call_correctlySetup() {
+        // Test setup
+        view = new View(mockedClientFactory);
+
+        // Subject Under Test
+        Column column = view.constructItemColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat((String) column.getValue(testModel), is(MOCKED_TEXT_ITEM + " " + testModel.getItemNumber()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructStatusColumn_call_correctlySetup() {
+        view = new View(mockedClientFactory);
+
+        // Subject Under Test
+        Column column = view.constructStatusColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat((String) column.getValue(testModel), is(MOCKED_LIFECYCLE_DELIVERING));
+    }
 
 }

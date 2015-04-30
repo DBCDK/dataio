@@ -72,6 +72,26 @@ public class FlowComponentModelTest {
         assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
+    @Test
+    public void getDataioPatternMatches_validFlowComponentNameInput_returnsEmptyList() {
+        FlowComponentModel model = getTestModel();
+        model.setName("Valid flow component name + 1_2_3");
+        assertThat(model.getDataioPatternMatches().size(), is(0));
+    }
+
+    @Test
+    public void getDataioPatternMatches_invalidFlowComponentNameInput_returnsList() {
+        final FlowComponentModel model = getTestModel();
+        final String expectedInvalidValues = "*<>*(#€)";
+        model.setName("Invalid flow component name" + expectedInvalidValues);
+
+        final List<String> matches = model.getDataioPatternMatches();
+        assertThat(matches.size(), is(expectedInvalidValues.length()));
+        for (int i = 0; i < matches.size(); i++) {
+            assertThat(matches.get(i), is(String.valueOf(expectedInvalidValues.charAt(i))));
+        }
+    }
+
     private FlowComponentModel getTestModel() {
         List<String> javaScripts = new ArrayList<String>();
         javaScripts.add("Javascript");

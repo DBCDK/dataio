@@ -6,6 +6,9 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
@@ -24,6 +27,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +48,7 @@ public class PresenterImplTest {
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private Exception mockedException;
+    @Mock ProxyErrorTexts mockedProxyErrorTexts;
 
     private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
@@ -111,6 +116,7 @@ public class PresenterImplTest {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getJavaScriptProjectFetcherAsync()).thenReturn(mockedJavaScriptProjectFetcher);
         when(mockedClientFactory.getFlowComponentModifyTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
@@ -315,10 +321,13 @@ public class PresenterImplTest {
     @Test
     public void saveFlowComponentModelFilteredAsyncCallback_unsuccessfulCallback_errorMessageDisplayed() {
         initializeAndStartPresenter();
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.CONFLICT_ERROR);
 
-        presenterImpl.saveFlowComponentModelFilteredAsyncCallback.onFilteredFailure(mockedException);
+        presenterImpl.saveFlowComponentModelFilteredAsyncCallback.onFilteredFailure(mockedProxyException);
 
-        verify(mockedException).getMessage();  // Is called before calling view.setErrorText, which we cannot verify, since view is not mocked
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_conflictError();
     }
 
     @Test

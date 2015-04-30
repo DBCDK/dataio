@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.gui.client.util.Format;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -140,6 +142,15 @@ public class FlowComponentModel extends GenericBackendModel {
                 svnRevision.isEmpty() ||
                 invocationJavascript.isEmpty() ||
                 invocationMethod.isEmpty();
+    }
+
+    /**
+     * Checks if the flow binder name contains illegal characters.
+     * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     * @return a list containing illegal characters found. Empty list if none found.
+     */
+    public List<String> getDataioPatternMatches() {
+        return Format.getDataioPatternMatches(name);
     }
 
 }

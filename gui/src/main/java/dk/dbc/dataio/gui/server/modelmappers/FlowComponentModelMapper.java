@@ -73,6 +73,12 @@ public final class FlowComponentModelMapper {
         if (requiredJavaScripts.javaScripts == null || requiredJavaScripts.javaScripts.isEmpty()) {
             throw new IllegalArgumentException("The list of java scripts cannot be null or empty");
         }
+
+        List<String> matches = model.getDataioPatternMatches();
+        if(!matches.isEmpty()) {
+            throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
+        }
+
         return new FlowComponentContent(
                 model.getName(),
                 model.getSvnProject(),
@@ -82,6 +88,18 @@ public final class FlowComponentModelMapper {
                 model.getInvocationMethod(),
                 requiredJavaScripts.requireCache);
         //TODO handle require
+    }
+
+    /*
+     * private helper methods
+     */
+
+    private static String buildPatternMatchesErrorMsg(List<String> matches) {
+        StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flowComponent name:");
+        for(String match : matches) {
+            stringBuilder.append(" [").append(match).append("],");
+        }
+        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
     }
 
 }

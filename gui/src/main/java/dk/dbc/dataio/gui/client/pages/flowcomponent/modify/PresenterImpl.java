@@ -7,6 +7,8 @@ import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
@@ -22,6 +24,7 @@ import java.util.List;
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     protected Texts texts;
+    protected final ProxyErrorTexts proxyErrorTexts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
     protected View view;
@@ -40,6 +43,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public PresenterImpl(ClientFactory clientFactory) {
         texts = clientFactory.getFlowComponentModifyTexts();
+        proxyErrorTexts = clientFactory.getProxyErrorTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
         javaScriptProjectFetcher = clientFactory.getJavaScriptProjectFetcherAsync();
         isInitialPopulationOfView = true;
@@ -132,6 +136,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void saveButtonPressed() {
         if (model.isInputFieldsEmptyModulesExcluded()) {
             view.setErrorText(texts.error_InputFieldValidationError());
+        } else if (!model.getDataioPatternMatches().isEmpty()) {
+            view.setErrorText(texts.error_NameFormatValidationError());
         } else {
             view.status.setText(texts.status_SavingFlowComponent());
             saveModel();
@@ -362,7 +368,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if(e instanceof JavaScriptProjectFetcherException) {
             translateJavaScriptProjectFetcherError(e);
         } else {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
     }
 

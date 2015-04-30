@@ -7,7 +7,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 import org.junit.Test;
 
@@ -163,6 +162,21 @@ public class FlowComponentModelMapperTest {
         FlowComponentModel model = getDefaultFlowComponentModel();
         model.setName("");
         FlowComponentModelMapper.toFlowComponentContent(model, createTestFetchRequiredJavaScriptResult());
+    }
+
+    @Test
+    public void toFlowComponentContent_invalidFlowComponentName_throwsIllegalArgumentException() {
+        final String flowComponentName = "*%(Illegal)_&Name - €";
+        final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
+
+        final FlowComponentModel flowComponentModel = getDefaultFlowComponentModel();
+        flowComponentModel.setName(flowComponentName);
+
+        try {
+            FlowComponentModelMapper.toFlowComponentContent(flowComponentModel, createTestFetchRequiredJavaScriptResult());
+        } catch(IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        }
     }
 
     @Test

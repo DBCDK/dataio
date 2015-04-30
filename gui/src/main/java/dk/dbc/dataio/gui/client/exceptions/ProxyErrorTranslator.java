@@ -1,9 +1,8 @@
 package dk.dbc.dataio.gui.client.exceptions;
 
-import com.google.gwt.i18n.client.Messages;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 
-public class ProxyErrorTranslator implements Messages {
+public class ProxyErrorTranslator {
 
     public static String toClientErrorFromFlowStoreProxy(Throwable e, ProxyErrorTexts text, String clientMessage) {
         final String errorMessage;

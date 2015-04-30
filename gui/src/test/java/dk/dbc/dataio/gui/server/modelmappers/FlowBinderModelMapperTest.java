@@ -99,7 +99,7 @@ public class FlowBinderModelMapperTest {
     }
 
     @Test
-    public void toFlowContent_invalidFlowBinderName_throwsIllegalArgumentException() {
+    public void toFlowBinderContent_invalidFlowBinderName_throwsIllegalArgumentException() {
         final String flowBinderName = "*%(Illegal)_&Name - €";
         final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
 

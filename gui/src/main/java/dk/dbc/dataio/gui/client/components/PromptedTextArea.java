@@ -9,27 +9,28 @@ import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.TextArea;
 
-public class TextAreaEntry extends DataEntry implements HasValue<String> {
+public class PromptedTextArea extends PromptedData implements HasValue<String> {
     public static final int DEFAULT_CHARACTER_WIDTH = 40;
     public static final int DEFAULT_VISIBLE_LINES = 4;
     
     private final TextArea textArea = new TextArea();
 
     
-    public TextAreaEntry(String guiId, String prompt, int maxLength) {
+    public PromptedTextArea(String guiId, String prompt, int maxLength) {
         this(guiId, prompt);
         textArea.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
     }
     
-    public TextAreaEntry(String guiId, String prompt) {
+    public PromptedTextArea(String guiId, String prompt) {
         super(guiId, prompt);
         setCharacterWidth(DEFAULT_CHARACTER_WIDTH);
         setVisibleLines(DEFAULT_VISIBLE_LINES);
-        textArea.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        textArea.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
         add(textArea);
     }
 
-    public @UiConstructor TextAreaEntry(String guiId, String prompt, String maxLength) {
+    public @UiConstructor
+    PromptedTextArea(String guiId, String prompt, String maxLength) {
         this(guiId, prompt);
         if (!maxLength.isEmpty()) {
             textArea.getElement().setAttribute("Maxlength", maxLength);

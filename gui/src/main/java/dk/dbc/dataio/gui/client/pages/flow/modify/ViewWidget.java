@@ -11,9 +11,9 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Label;
-import dk.dbc.dataio.gui.client.components.MultiListEntry;
-import dk.dbc.dataio.gui.client.components.TextAreaEntry;
-import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.components.PromptedMultiList;
+import dk.dbc.dataio.gui.client.components.PromptedTextArea;
+import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Map;
@@ -31,9 +31,10 @@ public class ViewWidget extends ContentPanel<Presenter> {
     public void init() {
     }
 
-    @UiField TextEntry name;
-    @UiField TextAreaEntry description;
-    @UiField MultiListEntry flowComponents;
+    @UiField
+    PromptedTextBox name;
+    @UiField PromptedTextArea description;
+    @UiField PromptedMultiList flowComponents;
     @UiField Label status;
 
 

@@ -8,7 +8,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HasValue;
 
-public class CheckBoxEntry extends DataEntry implements HasValue<Boolean> {
+public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> {
 
     @UiField final CheckBox checkBox = new CheckBox();
 
@@ -19,9 +19,9 @@ public class CheckBoxEntry extends DataEntry implements HasValue<Boolean> {
      * @param prompt The prompt text
      */
     public @UiConstructor
-    CheckBoxEntry(String guiId, String prompt) {
+    PromptedCheckBox(String guiId, String prompt) {
         super(guiId, prompt);
-        checkBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        checkBox.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
         add(checkBox);
     }
 

@@ -11,23 +11,24 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.TextBox;
 
-public class TextEntry extends DataEntry implements HasValue<String> {
+public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     @UiField final TextBox textBox = new TextBox();
 
     
-    public TextEntry(String guiId, String prompt, int maxLength) {
+    public PromptedTextBox(String guiId, String prompt, int maxLength) {
         this(guiId, prompt);
         textBox.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
     }
     
-    public TextEntry(String guiId, String prompt) {
+    public PromptedTextBox(String guiId, String prompt) {
         super(guiId, prompt);
-        textBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        textBox.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
         add(textBox);
     }
 
-    public @UiConstructor TextEntry(String guiId, String prompt, String maxLength, String toolTip) {
+    public @UiConstructor
+    PromptedTextBox(String guiId, String prompt, String maxLength, String toolTip) {
         this(guiId, prompt);
         if (!maxLength.isEmpty()) {
             textBox.getElement().setAttribute("Maxlength", maxLength);

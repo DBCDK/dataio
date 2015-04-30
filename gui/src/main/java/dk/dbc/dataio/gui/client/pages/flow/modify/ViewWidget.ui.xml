@@ -5,9 +5,9 @@
 
     <g:HTMLPanel>
 
-        <li><dio:TextEntry ui:field="name" guiId="flownamepanel" prompt="{txt.label_FlowName}" maxLength="160" toolTip=""/></li>
-        <li><dio:TextAreaEntry ui:field="description" guiId="flowdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
-        <li><dio:MultiListEntry ui:field="flowComponents" guiId="flowcomponentslistpanel" prompt="{txt.label_FlowComponents}" /></li>
+        <li><dio:PromptedTextBox ui:field="name" guiId="flownamepanel" prompt="{txt.label_FlowName}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextArea ui:field="description" guiId="flowdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
+        <li><dio:PromptedMultiList ui:field="flowComponents" guiId="flowcomponentslistpanel" prompt="{txt.label_FlowComponents}" /></li>
         <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
         <li><g:Label ui:field="status"/></li>
 

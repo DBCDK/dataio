@@ -12,11 +12,11 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
-import dk.dbc.dataio.gui.client.components.CheckBoxEntry;
-import dk.dbc.dataio.gui.client.components.DualListEntry;
-import dk.dbc.dataio.gui.client.components.ListEntry;
-import dk.dbc.dataio.gui.client.components.TextAreaEntry;
-import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
+import dk.dbc.dataio.gui.client.components.PromptedDualList;
+import dk.dbc.dataio.gui.client.components.PromptedList;
+import dk.dbc.dataio.gui.client.components.PromptedTextBox;
+import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Collection;
@@ -34,17 +34,23 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     public void init() {
     }
 
-    @UiField TextEntry name;
-    @UiField TextAreaEntry description;
-    @UiField TextEntry frame;
-    @UiField TextEntry format;
-    @UiField TextEntry charset;
-    @UiField TextEntry destination;
-    @UiField TextEntry recordSplitter;
-    @UiField CheckBoxEntry sequenceAnalysis;
-    @UiField DualListEntry submitters;
-    @UiField ListEntry flow;
-    @UiField ListEntry sink;
+    @UiField
+    PromptedTextBox name;
+    @UiField PromptedTextArea description;
+    @UiField
+    PromptedTextBox frame;
+    @UiField
+    PromptedTextBox format;
+    @UiField
+    PromptedTextBox charset;
+    @UiField
+    PromptedTextBox destination;
+    @UiField
+    PromptedTextBox recordSplitter;
+    @UiField PromptedCheckBox sequenceAnalysis;
+    @UiField PromptedDualList submitters;
+    @UiField PromptedList flow;
+    @UiField PromptedList sink;
     @UiField Label status;
 
     @UiHandler("name")

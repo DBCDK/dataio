@@ -10,8 +10,8 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
-import dk.dbc.dataio.gui.client.components.ListEntry;
-import dk.dbc.dataio.gui.client.components.TextEntry;
+import dk.dbc.dataio.gui.client.components.PromptedList;
+import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
@@ -27,11 +27,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @Override
     public void init() {}
 
-    @UiField TextEntry name;
-    @UiField TextEntry project;
-    @UiField ListEntry revision;
-    @UiField ListEntry script;
-    @UiField ListEntry method;
+    @UiField
+    PromptedTextBox name;
+    @UiField
+    PromptedTextBox project;
+    @UiField PromptedList revision;
+    @UiField PromptedList script;
+    @UiField PromptedList method;
     @UiField Label status;
     @UiField Label busy;
 

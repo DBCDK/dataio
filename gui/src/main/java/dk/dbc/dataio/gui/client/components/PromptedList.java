@@ -13,19 +13,19 @@ import com.google.gwt.user.client.ui.ListBox;
 import java.util.List;
 
 
-public class ListEntry extends DataEntry implements HasValue<String> {
+public class PromptedList extends PromptedData implements HasValue<String> {
     private boolean valueChangeHandlerInitialized;
 
     @UiField final ListBox listBox;
 
 
     public @UiConstructor
-    ListEntry(String guiId, String prompt, boolean multiSelect, int visibleItems) {
+    PromptedList(String guiId, String prompt, boolean multiSelect, int visibleItems) {
         super(guiId, prompt);
         listBox = new ListBox();
         listBox.setMultipleSelect(multiSelect);
         listBox.setVisibleItemCount(visibleItems);
-        listBox.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        listBox.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
         if (visibleItems > 1) {
             listBox.setWidth("300px");
         }
@@ -123,7 +123,7 @@ public class ListEntry extends DataEntry implements HasValue<String> {
             valueChangeHandlerInitialized = true;
             addChangeHandler(new ChangeHandler() {
                 public void onChange(ChangeEvent event) {
-                    ValueChangeEvent.fire(ListEntry.this, getValue());
+                    ValueChangeEvent.fire(PromptedList.this, getValue());
                 }
             });
         }

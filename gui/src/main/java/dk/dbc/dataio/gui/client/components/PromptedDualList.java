@@ -16,15 +16,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class DualListEntry extends DataEntry implements HasValue<Collection<String>>, HasValueChangeHandlers<Collection<String>> {
+public class PromptedDualList extends PromptedData implements HasValue<Collection<String>>, HasValueChangeHandlers<Collection<String>> {
     private boolean valueChangeHandlerInitialized;
 
     @UiField final DualList dualList = new DualList();
 
     
-    public @UiConstructor DualListEntry(String guiId, String prompt) {
+    public @UiConstructor
+    PromptedDualList(String guiId, String prompt) {
         super(guiId, prompt);
-        dualList.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        dualList.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
         setEnabled(false);  // When empty, disable dualList box
         add(dualList);
     }
@@ -113,7 +114,7 @@ public class DualListEntry extends DataEntry implements HasValue<Collection<Stri
             valueChangeHandlerInitialized = true;
             addChangeHandler(new ChangeHandler() {
                 public void onChange(ChangeEvent event) {
-                    ValueChangeEvent.fire(DualListEntry.this, getValue());
+                    ValueChangeEvent.fire(PromptedDualList.this, getValue());
                 }
             });
         }

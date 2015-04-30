@@ -12,26 +12,26 @@ import dk.dbc.dataio.gui.client.components.MultiList.MultiList;
 
 import java.util.Map;
 
-public class MultiListEntry extends DataEntry implements HasValue<Map<String, String>>, HasClickHandlers {
+public class PromptedMultiList extends PromptedData implements HasValue<Map<String, String>>, HasClickHandlers {
 
     @UiField final MultiList multiList = new MultiList();
 
     /**
-     * Constructor for the MultiListEntry component
+     * Constructor for the PromptedMultiList component
      * @param guiId The Gui Id
      * @param prompt A prompt text, to be displayed for the Multi List component
      */
     @UiConstructor
-    public MultiListEntry(String guiId, String prompt) {
+    public PromptedMultiList(String guiId, String prompt) {
         super(guiId, prompt);
-        multiList.addStyleName(DataEntry.DATA_ENTRY_INPUT_BOX_CLASS);
+        multiList.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
         setEnabled(false);  // When empty, disable multiList box
         add(multiList);
     }
 
     /**
-     * Enables og disables the MultiListEntry component
-     * @param enabled True: Enables the MultiListEntry Component, False: Disables the MultiListEntry Component
+     * Enables og disables the PromptedMultiList component
+     * @param enabled True: Enables the PromptedMultiList Component, False: Disables the PromptedMultiList Component
      */
     public void setEnabled(boolean enabled) {
         multiList.setEnabled(enabled);

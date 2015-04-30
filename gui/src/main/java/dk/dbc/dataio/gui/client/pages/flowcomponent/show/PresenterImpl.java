@@ -84,7 +84,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchFlowComponentsCallback extends FilteredAsyncCallback<List<FlowComponentModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts()));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
 
         @Override

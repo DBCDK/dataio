@@ -381,7 +381,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableSubmittersCallback extends FilteredAsyncCallback<List<SubmitterModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<SubmitterModel> submitters) {
@@ -396,7 +396,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableFlowsCallback extends FilteredAsyncCallback<List<FlowModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<FlowModel> flows) {
@@ -411,7 +411,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<SinkModel> sinks) {
@@ -426,7 +426,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveFlowBinderModelFilteredAsyncCallback extends FilteredAsyncCallback<FlowBinderModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
         }
         @Override
         public void onSuccess(FlowBinderModel model) {

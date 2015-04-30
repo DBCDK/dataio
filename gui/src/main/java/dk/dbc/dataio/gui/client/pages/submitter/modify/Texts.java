@@ -29,15 +29,6 @@ public interface Texts extends Constants {
     String error_NumberInputFieldValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_ProxyKeyViolationError();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_ProxyDataValidationError();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_CannotFetchSubmitter();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NameFormatValidationError();
 
     // Status messages

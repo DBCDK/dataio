@@ -245,7 +245,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         throw new IllegalArgumentException("FlowComponent not found");
     }
 
-
     /*
      * Local classes
      */
@@ -256,7 +255,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FindAllFlowComponentsAsyncCallback implements AsyncCallback<List<FlowComponentModel>> {
         @Override
         public void onFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<FlowComponentModel> result) {
@@ -271,7 +270,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveFlowModelAsyncCallback implements AsyncCallback<FlowModel> {
         @Override
         public void onFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
         }
 
         @Override

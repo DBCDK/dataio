@@ -40,9 +40,6 @@ public interface Texts extends Constants {
     String error_JavaScriptReferenceError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_CannotFetchFlowComponent();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NameFormatValidationError();
 
 

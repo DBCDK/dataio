@@ -4,6 +4,9 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -17,6 +20,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +29,7 @@ public class PresenterEditImplTest {
     @Mock private ClientFactory mockedClientFactory;
     @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
     @Mock private Texts mockedTexts;
+    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private EditPlace mockedEditPlace;
@@ -48,6 +53,7 @@ public class PresenterEditImplTest {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSinkEditView()).thenReturn(editView);
         when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedEditPlace.getSinkId()).thenReturn(DEFAULT_SINK_ID);
     }
 
@@ -116,10 +122,13 @@ public class PresenterEditImplTest {
     public void getSinkModelFilteredAsyncCallback_unsuccessfulCallback_errorMessage() {
         PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.ENTITY_NOT_FOUND);
 
         // Emulate an unsuccessful callback from flowstore
-        presenterEditImpl.getSinkModelFilteredAsyncCallback.onFailure(new Throwable());
-        verify(mockedTexts).error_CannotFetchSink(); // We cannot verify view, since it is not mocked - however, we know, that the error text shall be fetched - and we therefore verify on that
+        presenterEditImpl.getSinkModelFilteredAsyncCallback.onFailure(mockedProxyException);
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
 }

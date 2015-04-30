@@ -1,10 +1,11 @@
 package dk.dbc.dataio.gui.client.exceptions;
 
+import com.google.gwt.i18n.client.Messages;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 
-public class ProxyErrorTranslator {
+public class ProxyErrorTranslator implements Messages {
 
-    public static String toClientErrorFromFlowStoreProxy(Throwable e, ProxyErrorTexts text) {
+    public static String toClientErrorFromFlowStoreProxy(Throwable e, ProxyErrorTexts text, String clientMessage) {
         final String errorMessage;
         ProxyError errorCode = null;
 
@@ -14,51 +15,34 @@ public class ProxyErrorTranslator {
         if (errorCode == null) {
             errorMessage = e.getMessage();
         } else {
+            final StringBuilder stringBuilder = new StringBuilder();
             switch (errorCode) {
-                case ENTITY_NOT_FOUND: errorMessage = text.flowStoreProxy_notFoundError();
+                case ENTITY_NOT_FOUND: stringBuilder.append(text.flowStoreProxy_notFoundError());
                     break;
-                case CONFLICT_ERROR: errorMessage = text.flowStoreProxy_conflictError();
+                case CONFLICT_ERROR: stringBuilder.append(text.flowStoreProxy_conflictError());
                     break;
-                case NOT_ACCEPTABLE: errorMessage = text.flowStoreProxy_keyViolationError();
+                case NOT_ACCEPTABLE: stringBuilder.append(text.flowStoreProxy_keyViolationError());
                     break;
-                case BAD_REQUEST: errorMessage = text.flowStoreProxy_dataValidationError();
+                case BAD_REQUEST: stringBuilder.append(text.flowStoreProxy_dataValidationError());
                     break;
-                case PRECONDITION_FAILED: errorMessage = text.flowStoreProxy_preconditionFailedError();
+                case PRECONDITION_FAILED: stringBuilder.append(text.flowStoreProxy_preconditionFailedError());
                     break;
-                case SERVICE_NOT_FOUND: errorMessage = text.flowStoreProxy_serviceError();
+                case SERVICE_NOT_FOUND: stringBuilder.append(text.flowStoreProxy_serviceError());
                     break;
-                case MODEL_MAPPER_INVALID_FIELD_VALUE: errorMessage = text.flowStoreProxy_modelMapperInvalidFieldValue();
+                case MODEL_MAPPER_INVALID_FIELD_VALUE: stringBuilder.append(text.flowStoreProxy_modelMapperInvalidFieldValue());
                     break;
-                case INTERNAL_SERVER_ERROR: errorMessage = text.flowStoreProxy_generalServerError();
+                case INTERNAL_SERVER_ERROR: stringBuilder.append(text.flowStoreProxy_generalServerError());
                     break;
                 default:
-                    errorMessage = e.getMessage();
+                    stringBuilder.append(e.getMessage());
             }
+
+            if(clientMessage != null) {
+                stringBuilder.append(" {").append(clientMessage).append("}.");
+            }
+            errorMessage = stringBuilder.toString();
         }
         return errorMessage;
     }
 
-    public static String toClientErrorFromLogStoreProxy(Throwable e, ProxyErrorTexts texts) {
-        final String errorMessage;
-        ProxyError errorCode = null;
-
-        if (e instanceof ProxyException) {
-            errorCode = ((ProxyException) e).getErrorCode();
-        }
-        if (errorCode == null) {
-            errorMessage = e.getMessage();
-        } else {
-            switch (errorCode) {
-                case ENTITY_NOT_FOUND:
-                    errorMessage = texts.logStoreProxy_notFoundError();
-                    break;
-                case INTERNAL_SERVER_ERROR:
-                    errorMessage = texts.logStoreProxy_generalServerError();
-                    break;
-                default:
-                    errorMessage = e.getMessage();
-            }
-        }
-        return errorMessage;
-    }
 }

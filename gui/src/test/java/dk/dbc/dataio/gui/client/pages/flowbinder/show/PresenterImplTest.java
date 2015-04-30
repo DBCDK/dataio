@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -132,7 +133,7 @@ public class PresenterImplTest {
         verify(mockedClientFactory).getProxyErrorTexts();
         verify(mockedProxyException).getErrorCode();
         verify(mockedProxyErrorTexts).flowStoreProxy_serviceError();
-        verify(mockedView).setErrorText(mockedProxyErrorTexts.flowStoreProxy_serviceError());
+        verify(mockedView).setErrorText(anyString());
     }
 
     @Test

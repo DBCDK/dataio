@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -52,8 +53,9 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     class GetSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
         @Override
-        public void onFilteredFailure(Throwable caught) {
-            view.setErrorText(texts.error_CannotFetchSubmitter());
+        public void onFilteredFailure(Throwable e) {
+            String msg = "Submitter.id: " + id;
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
         }
 
         @Override

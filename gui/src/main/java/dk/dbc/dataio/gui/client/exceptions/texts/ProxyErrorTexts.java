@@ -29,13 +29,5 @@ public interface ProxyErrorTexts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String flowStoreProxy_modelMapperInvalidFieldValue();
-
-
-    // Error messages log store
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String logStoreProxy_notFoundError();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String logStoreProxy_generalServerError();
 }
 

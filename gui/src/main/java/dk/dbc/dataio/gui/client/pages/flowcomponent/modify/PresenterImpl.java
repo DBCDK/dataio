@@ -368,7 +368,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if(e instanceof JavaScriptProjectFetcherException) {
             translateJavaScriptProjectFetcherError(e);
         } else {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
         }
     }
 

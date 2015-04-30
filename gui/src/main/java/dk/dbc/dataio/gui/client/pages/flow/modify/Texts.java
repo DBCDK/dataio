@@ -37,9 +37,6 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NameFormatValidationError();
 
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_CannotFetchFlow();
-
 
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

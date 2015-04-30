@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -50,8 +51,9 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     class GetFlowModelAsyncCallback extends FilteredAsyncCallback<FlowModel> {
         @Override
-        public void onFilteredFailure(Throwable caught) {
-            view.setErrorText(texts.error_CannotFetchFlow());
+        public void onFilteredFailure(Throwable e) {
+            String msg = "Flow.id: " + id;
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
         }
         @Override
         public void onSuccess(FlowModel model) {

@@ -84,7 +84,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchFlowBindersCallback extends FilteredAsyncCallback<List<FlowBinderModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts()));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<FlowBinderModel> models) {

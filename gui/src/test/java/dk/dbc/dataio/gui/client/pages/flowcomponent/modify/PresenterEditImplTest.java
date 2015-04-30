@@ -4,6 +4,9 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
@@ -19,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +39,7 @@ public class PresenterEditImplTest {
     @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
     @Mock private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
     @Mock private Texts mockedTexts;
+    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private EditPlace mockedPlace;
@@ -60,6 +65,7 @@ public class PresenterEditImplTest {
         when(mockedClientFactory.getJavaScriptProjectFetcherAsync()).thenReturn(mockedJavaScriptProjectFetcher);
         when(mockedClientFactory.getFlowComponentEditView()).thenReturn(editView);
         when(mockedClientFactory.getFlowComponentModifyTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedPlace.getFlowComponentId()).thenReturn(DEFAULT_FLOW_COMPONENT_ID);
     }
 
@@ -120,10 +126,13 @@ public class PresenterEditImplTest {
     public void getFlowComponentModelFilteredAsyncCallback_unSuccessfulCallback_errorMessage() {
         PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.ENTITY_NOT_FOUND);
 
-        presenterEditImpl.callback.onFilteredFailure(new Throwable());
+        presenterEditImpl.callback.onFilteredFailure(mockedProxyException);
 
-        verify(mockedTexts).error_CannotFetchFlowComponent();  // We cannot verify view, since it is not mocked - however, we know, that the error text shall be fetched - and we therefore verify on that
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
     @Test

@@ -4,6 +4,9 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -25,6 +28,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,6 +42,7 @@ public class PresenterEditImplTest {
     @Mock EventBus mockedEventBus;
     @Mock EditPlace mockedEditPlace;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock ProxyErrorTexts mockedProxyErrorTexts;
 
     private EditView editView;
 
@@ -60,6 +65,7 @@ public class PresenterEditImplTest {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowEditView()).thenReturn(editView);
         when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
@@ -140,10 +146,14 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
 
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.ENTITY_NOT_FOUND);
+
         // Emulate an unsuccessful callback from flowstore
-        presenterEditImplConcrete.callback.onFilteredFailure(new Throwable("Fejl"));
+        presenterEditImplConcrete.callback.onFilteredFailure(mockedProxyException);
         // Expect the error text to be set in View
-        verify(mockedTexts).error_CannotFetchFlow();
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
     private FlowComponentModel getValidFlowComponentModel(long id, long version) {

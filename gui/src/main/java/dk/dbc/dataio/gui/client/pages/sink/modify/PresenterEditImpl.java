@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -49,8 +50,9 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     class GetSinkModelFilteredAsyncCallback extends FilteredAsyncCallback<SinkModel> {
         @Override
-        public void onFilteredFailure(Throwable caught) {
-            view.setErrorText(texts.error_CannotFetchSink());
+        public void onFilteredFailure(Throwable e) {
+            String msg = "Sink.id: " + id;
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
         }
 
         @Override

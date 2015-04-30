@@ -62,7 +62,7 @@ public class SubmitterModelTest {
     }
 
     @Test
-    public void getDataioPatternMatches_validFlowNameInput_returnsEmptyList() {
+    public void getDataioPatternMatches_validSubmitterNameInput_returnsEmptyList() {
         SubmitterModel model = getTestModel();
         model.setName("Valid flow name + 1_2_3");
         assertThat(model.getDataioPatternMatches().size(), is(0));

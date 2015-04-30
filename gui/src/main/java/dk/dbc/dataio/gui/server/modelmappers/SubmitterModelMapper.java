@@ -70,7 +70,7 @@ public final class SubmitterModelMapper {
      */
 
     private static String buildPatternMatchesErrorMsg(List<String> matches) {
-        StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flow name:");
+        StringBuilder stringBuilder = new StringBuilder("Illegal characters found in submitter name:");
         for(String match : matches) {
             stringBuilder.append(" [").append(match).append("],");
         }

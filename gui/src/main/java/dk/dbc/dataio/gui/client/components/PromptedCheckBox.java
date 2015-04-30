@@ -21,7 +21,7 @@ public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> 
     public @UiConstructor
     PromptedCheckBox(String guiId, String prompt) {
         super(guiId, prompt);
-        checkBox.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
+        checkBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(checkBox);
     }
 

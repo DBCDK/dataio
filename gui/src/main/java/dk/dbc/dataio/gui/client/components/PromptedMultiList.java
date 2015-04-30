@@ -24,7 +24,7 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
     @UiConstructor
     public PromptedMultiList(String guiId, String prompt) {
         super(guiId, prompt);
-        multiList.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
+        multiList.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         setEnabled(false);  // When empty, disable multiList box
         add(multiList);
     }

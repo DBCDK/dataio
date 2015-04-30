@@ -23,7 +23,7 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
     
     public PromptedTextBox(String guiId, String prompt) {
         super(guiId, prompt);
-        textBox.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
+        textBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(textBox);
     }
 

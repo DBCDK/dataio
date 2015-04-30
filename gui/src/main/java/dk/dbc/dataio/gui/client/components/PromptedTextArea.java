@@ -25,7 +25,7 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
         super(guiId, prompt);
         setCharacterWidth(DEFAULT_CHARACTER_WIDTH);
         setVisibleLines(DEFAULT_VISIBLE_LINES);
-        textArea.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
+        textArea.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(textArea);
     }
 

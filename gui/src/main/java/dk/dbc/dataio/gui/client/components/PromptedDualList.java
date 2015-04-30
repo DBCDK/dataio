@@ -25,7 +25,7 @@ public class PromptedDualList extends PromptedData implements HasValue<Collectio
     public @UiConstructor
     PromptedDualList(String guiId, String prompt) {
         super(guiId, prompt);
-        dualList.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
+        dualList.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         setEnabled(false);  // When empty, disable dualList box
         add(dualList);
     }

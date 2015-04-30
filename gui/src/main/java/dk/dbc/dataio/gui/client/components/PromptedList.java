@@ -25,7 +25,7 @@ public class PromptedList extends PromptedData implements HasValue<String> {
         listBox = new ListBox();
         listBox.setMultipleSelect(multiSelect);
         listBox.setVisibleItemCount(visibleItems);
-        listBox.addStyleName(PromptedData.PROMPTED_DATA_INPUT_BOX_CLASS);
+        listBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         if (visibleItems > 1) {
             listBox.setWidth("300px");
         }

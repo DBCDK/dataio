@@ -1,5 +1,9 @@
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.gui.client.util.Format;
+
+import java.util.List;
+
 public class SinkModel extends GenericBackendModel {
 
     private String sinkName;
@@ -54,4 +58,12 @@ public class SinkModel extends GenericBackendModel {
         return sinkName.isEmpty() || resource.isEmpty();
     }
 
+    /**
+     * Checks if the sink name contains illegal characters.
+     * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
+     * @return a list containing illegal characters found. Empty list if none found.
+     */
+    public List<String> getDataioPatternMatches() {
+        return Format.getDataioPatternMatches(sinkName);
+    }
 }

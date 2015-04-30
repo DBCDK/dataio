@@ -7,6 +7,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
@@ -21,7 +22,6 @@ import org.mockito.Mock;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -44,6 +44,7 @@ public class PresenterImplTest {
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private Exception mockedException;
+    @Mock ProxyErrorTexts mockedProxyErrorTexts;
 
     private View view;
 
@@ -96,6 +97,7 @@ public class PresenterImplTest {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSinkServiceProxyAsync()).thenReturn(mockedSinkServiceProxy);
         when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         mock(ContentPanel.class);
 
     }
@@ -141,6 +143,26 @@ public class PresenterImplTest {
     }
 
     @Test
+    public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.model.setSinkName("");
+
+        presenterImpl.saveButtonPressed();
+
+        verify(mockedTexts).error_InputFieldValidationError();
+    }
+
+    @Test
+    public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.model.setResourceName("");
+
+        presenterImpl.saveButtonPressed();
+
+        verify(mockedTexts).error_InputFieldValidationError();
+    }
+
+    @Test
     public void keyPressed_callKeyPressed_statusFieldIsCleared() {
         initializeAndStartPresenter();
         presenterImpl.keyPressed();
@@ -152,71 +174,6 @@ public class PresenterImplTest {
         initializeAndStartPresenter();
         presenterImpl.saveButtonPressed();
         verify(mockedSinkServiceProxy).ping(any(SinkModel.class), any(PresenterImpl.PingSinkServiceFilteredAsyncCallback.class));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getErrorText_callGetErrorTextWithNullException_throwsNullPointerException() {
-        initializeAndStartPresenter();
-        presenterImpl.getErrorText(null);
-    }
-
-    @Test
-    public void getErrorText_callGetErrorTextWithNotAcceptableProxyException_returnsErrorStringOrNullString() {
-        final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
-        final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
-
-        initializeAndStartPresenter();
-
-        when(mockedTexts.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
-        when(mockedTexts.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
-
-        // Empty Proxy Exception
-        assertThat(presenterImpl.getErrorText(new ProxyException()), is(nullValue()));
-
-        // Proxy Exception instantiated with null String
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, (String) null)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, (String) null)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (String) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, (String) null)), is(nullValue()));
-
-        // Proxy Exception instantiated with null Throwable
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, (Throwable) null)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, (Throwable) null)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, (Throwable) null)), is(nullValue()));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, (Throwable) null)), is(nullValue()));
-    }
-
-    @Test
-    public void getErrorText_callGetErrorTextWithProxyExceptionWithCorrectProxyError_returnsPredefinedErrorTexts() {
-        final String PROXY_ERROR_TEXT = "Proxy Error Text";
-        final String PROXY_KEY_VIOLATION_ERROR_TEXT = "Proxy Key Violation Error Text";
-        final String PROXY_DATA_VALIDATION_ERROR_TEXT = "Proxy Data Validation Error Text";
-
-        initializeAndStartPresenter();
-
-        when(mockedTexts.error_ProxyKeyViolationError()).thenReturn(PROXY_KEY_VIOLATION_ERROR_TEXT);
-        when(mockedTexts.error_ProxyDataValidationError()).thenReturn(PROXY_DATA_VALIDATION_ERROR_TEXT);
-
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.SERVICE_NOT_FOUND, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.BAD_REQUEST, PROXY_ERROR_TEXT)), is(PROXY_DATA_VALIDATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.NOT_ACCEPTABLE, PROXY_ERROR_TEXT)), is(PROXY_KEY_VIOLATION_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.ENTITY_NOT_FOUND, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.CONFLICT_ERROR, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.INTERNAL_SERVER_ERROR, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-        assertThat(presenterImpl.getErrorText(new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, PROXY_ERROR_TEXT)), is(PROXY_ERROR_TEXT));
-    }
-
-    @Test
-    public void getErrorText_callGetErrorTextWithNonProxyException_returnsExceptionErrorText() {
-        final String EXCEPTION_ERROR_TEXT = "Exception Error Text";
-        initializeAndStartPresenter();
-        assertThat(presenterImpl.getErrorText(new IllegalArgumentException(EXCEPTION_ERROR_TEXT)), is(EXCEPTION_ERROR_TEXT));
     }
 
     @Test
@@ -249,6 +206,7 @@ public class PresenterImplTest {
         when(mockedTexts.status_SinkSuccessfullySaved()).thenReturn(SUCCESS_TEXT);
 
         presenterImpl.saveSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
+
         verify(view.status).setText(SUCCESS_TEXT);  // Expect the status text to be set in View
         assertThat(presenterImpl.model, is(sinkModel));
 
@@ -257,8 +215,13 @@ public class PresenterImplTest {
     @Test
     public void sinkModelFilteredAsyncCallback_unsuccessfulCallback_setErrorTextCalledInView() {
         initializeAndStartPresenter();
-        presenterImpl.saveSinkModelFilteredAsyncCallback.onFailure(mockedException); // Emulate an unsuccessful callback from flowstore
-        verify(mockedException).getMessage();
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.CONFLICT_ERROR);
+
+        presenterImpl.saveSinkModelFilteredAsyncCallback.onFailure(mockedProxyException); // Emulate an unsuccessful callback from flowstore
+
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_conflictError();
     }
 
 

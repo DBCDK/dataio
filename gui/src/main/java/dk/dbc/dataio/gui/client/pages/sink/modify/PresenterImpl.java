@@ -5,8 +5,8 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
@@ -17,6 +17,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     protected Texts texts;
+    protected final ProxyErrorTexts proxyErrorTexts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected SinkServiceProxyAsync sinkServiceProxy;
     protected View view;
@@ -26,6 +27,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     public PresenterImpl(ClientFactory clientFactory) {
         texts = clientFactory.getSinkModifyTexts();
+        proxyErrorTexts = clientFactory.getProxyErrorTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
         sinkServiceProxy = clientFactory.getSinkServiceProxyAsync();
     }
@@ -73,7 +75,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that the save button has been pressed
      */
     public void saveButtonPressed() {
-        doPingAndSaveSink();
+        if (model.isInputFieldsEmpty()) {
+            view.setErrorText(texts.error_InputFieldValidationError());
+        } else if (!model.getDataioPatternMatches().isEmpty()) {
+            view.setErrorText(texts.error_NameFormatValidationError());
+        } else {
+            doPingAndSaveSink();
+        }
     }
 
     /*
@@ -86,32 +94,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     protected void setSinkModel(SinkModel model) {
         this.model = model;
-    }
-
-    /**
-     * A local method to be used to translate an exception to a readable text
-     * @param e Exception
-     * @return errorMessage, the error text
-     */
-    protected String getErrorText(Throwable e) {
-        ProxyError errorCode = null;
-        if (e instanceof ProxyException) {
-            errorCode = ((ProxyException) e).getErrorCode();
-        }
-        final String errorMessage;
-        if (errorCode == null) {
-            errorMessage = e.getMessage();
-        } else {
-            switch (errorCode) {
-                case NOT_ACCEPTABLE: errorMessage = texts.error_ProxyKeyViolationError();
-                    break;
-                case BAD_REQUEST: errorMessage = texts.error_ProxyDataValidationError();
-                    break;
-                default: errorMessage = e.getMessage();
-                    break;
-            }
-        }
-        return errorMessage;
     }
 
     /*
@@ -150,7 +132,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveSinkModelFilteredAsyncCallback extends FilteredAsyncCallback<SinkModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(getErrorText(e));
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
 
         @Override

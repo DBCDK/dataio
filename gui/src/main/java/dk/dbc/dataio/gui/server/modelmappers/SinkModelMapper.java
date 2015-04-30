@@ -39,6 +39,11 @@ public class SinkModelMapper {
             throw new IllegalArgumentException("model.name, model.resource cannot be empty");
         }
 
+        List<String> matches = model.getDataioPatternMatches();
+        if(!matches.isEmpty()) {
+            throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
+        }
+
         return new SinkContent(
             model.getSinkName(),
             model.getResourceName());
@@ -56,6 +61,18 @@ public class SinkModelMapper {
             sinkModels.add(toModel(sink));
         }
         return sinkModels;
+    }
+
+    /*
+     * private helper methods
+     */
+
+    private static String buildPatternMatchesErrorMsg(List<String> matches) {
+        StringBuilder stringBuilder = new StringBuilder("Illegal characters found in sink name:");
+        for(String match : matches) {
+            stringBuilder.append(" [").append(match).append("],");
+        }
+        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
     }
 
 }

@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * SinkModelMapper unit tests
@@ -90,6 +91,19 @@ public class SinkModelMapperTest {
         assertThat(sinkModels.size(), is(2));
         assertThat(sinkModels.get(0).getId(), is(111L));
         assertThat(sinkModels.get(1).getId(), is(333L));
+    }
+
+    @Test
+    public void toSinkContent_invalidSinkName_throwsIllegalArgumentException() {
+        final String sinkName = "*%(Illegal)_&Name - €";
+        final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
+        SinkModel model = new SinkModel(555L, 666L, sinkName, "Sink Model Resource 1");
+        try {
+            SinkModelMapper.toSinkContent(model);
+            fail("Illegal sink name not detected");
+        } catch(IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        }
     }
 
 }

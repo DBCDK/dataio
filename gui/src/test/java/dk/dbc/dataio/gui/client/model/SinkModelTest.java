@@ -2,6 +2,8 @@ package dk.dbc.dataio.gui.client.model;
 
 import org.junit.Test;
 
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -36,6 +38,26 @@ public class SinkModelTest {
     public void isInputFieldsEmpty_allInputFieldsSet_returnsFalse() {
         SinkModel model = getTestModel();
         assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void getDataioPatternMatches_validSinkNameInput_returnsEmptyList() {
+        SinkModel model = getTestModel();
+        model.setSinkName("Valid sink name + 1_2_3");
+        assertThat(model.getDataioPatternMatches().size(), is(0));
+    }
+
+    @Test
+    public void getDataioPatternMatches_invalidSinkNameInput_returnsList() {
+        final SinkModel model = getTestModel();
+        final String expectedInvalidValues = "*<>*(#€)";
+        model.setSinkName("Invalid sink name" + expectedInvalidValues);
+
+        final List<String> matches = model.getDataioPatternMatches();
+        assertThat(matches.size(), is(expectedInvalidValues.length()));
+        for (int i = 0; i < matches.size(); i++) {
+            assertThat(matches.get(i), is(String.valueOf(expectedInvalidValues.charAt(i))));
+        }
     }
 
     private SinkModel getTestModel() {

@@ -5,6 +5,9 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -26,6 +29,7 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,6 +50,7 @@ public class PresenterImplTest {
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
     @Mock private Exception mockedException;
+    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
 
     private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
@@ -107,6 +112,10 @@ public class PresenterImplTest {
         public Texts getFlowModifyConstants() {
             return texts;
         }
+
+        public ProxyErrorTexts getProxyErrorTexts() {
+            return proxyErrorTexts;
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -127,6 +136,7 @@ public class PresenterImplTest {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
+        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
@@ -142,6 +152,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getFlowModifyConstants(), is(mockedTexts));
+        assertThat(presenterImpl.getProxyErrorTexts(), is(mockedProxyErrorTexts));
     }
 
     @Test
@@ -324,12 +335,25 @@ public class PresenterImplTest {
     }
 
     @Test
+    public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.model.setName("*(Flow binder name)*_%€");
+
+        presenterImpl.saveButtonPressed();
+
+        verify(mockedTexts).error_NameFormatValidationError();
+    }
+
+    @Test
     public void fetchAvailableSubmittersCallback_unsuccessfulCallback_errorMessageDisplayed() {
         initializeAndStartPresenter();
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.SERVICE_NOT_FOUND);
 
-        presenterImpl.fetchAvailableSubmittersCallback.onFilteredFailure(mockedException);
+        presenterImpl.fetchAvailableSubmittersCallback.onFilteredFailure(mockedProxyException);
 
-        verify(mockedException).getMessage();  // Is called before calling view.setErrorText, which we cannot verify, since view is not mocked
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_serviceError();
     }
 
     @Test
@@ -364,10 +388,13 @@ public class PresenterImplTest {
     @Test
     public void fetchAvailableSinksCallback_unsuccessfulCallback_errorMessageDisplayed() {
         initializeAndStartPresenter();
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.BAD_REQUEST);
 
-        presenterImpl.fetchAvailableSinksCallback.onFilteredFailure(mockedException);
+        presenterImpl.fetchAvailableSinksCallback.onFilteredFailure(mockedProxyException);
 
-        verify(mockedException).getMessage();  // Is called before calling view.setErrorText, which we cannot verify, since view is not mocked
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_dataValidationError();
     }
 
     @Test
@@ -384,10 +411,12 @@ public class PresenterImplTest {
     @Test
     public void saveFlowBinderModelCallback_unsuccessfulCallback_errorMessageDisplayed() {
         initializeAndStartPresenter();
+        ProxyException mockedProxyException = mock(ProxyException.class);
+        when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.CONFLICT_ERROR);
+        presenterImpl.saveFlowBinderCallback.onFilteredFailure(mockedProxyException);
 
-        presenterImpl.saveFlowBinderCallback.onFilteredFailure(mockedException);
-
-        verify(mockedException).getMessage();  // Is called before calling view.setErrorText, which we cannot verify, since view is not mocked
+        verify(mockedProxyException).getErrorCode();
+        verify(mockedProxyErrorTexts).flowStoreProxy_conflictError();
     }
 
     @Test

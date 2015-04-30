@@ -61,6 +61,12 @@ public final class FlowBinderModelMapper {
         if (model.isInputFieldsEmpty()) {
             throw new IllegalArgumentException("The fields in the Flow Binder Model cannot be empty");
         }
+
+        List<String> matches = model.getDataioPatternMatches();
+        if(!matches.isEmpty()) {
+            throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
+        }
+
         return new FlowBinderContent(
                 model.getName(),
                 model.getDescription(),
@@ -82,5 +88,17 @@ public final class FlowBinderModelMapper {
             submitterIds.add(model.getId());
         }
         return submitterIds;
+    }
+
+    /*
+     * private helper methods
+     */
+
+    private static String buildPatternMatchesErrorMsg(List<String> matches) {
+        StringBuilder stringBuilder = new StringBuilder("Illegal characters found in flowbinder name:");
+        for(String match : matches) {
+            stringBuilder.append(" [").append(match).append("],");
+        }
+        return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
     }
 }

@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -131,6 +132,26 @@ public class FlowBinderModelTest {
     public void isInputFieldsEmpty_allInputFieldsSetAndSequenceAnalysisIsFalse_returnsFalse() {
         FlowBinderModel model = getTestModel(false);
         assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void getDataioPatternMatches_validFlowBinderNameInput_returnsEmptyList() {
+        FlowBinderModel model = getTestModel();
+        model.setName("Valid flow binder name + 1_2_3");
+        assertThat(model.getDataioPatternMatches().size(), is(0));
+    }
+
+    @Test
+    public void getDataioPatternMatches_invalidFlowBinderNameInput_returnsList() {
+        final FlowBinderModel model = getTestModel();
+        final String expectedInvalidValues = "*<>*(#€)";
+        model.setName("Invalid flow binder name" + expectedInvalidValues);
+
+        final List<String> matches = model.getDataioPatternMatches();
+        assertThat(matches.size(), is(expectedInvalidValues.length()));
+        for (int i = 0; i < matches.size(); i++) {
+            assertThat(matches.get(i), is(String.valueOf(expectedInvalidValues.charAt(i))));
+        }
     }
 
     private FlowBinderModel getTestModel() {

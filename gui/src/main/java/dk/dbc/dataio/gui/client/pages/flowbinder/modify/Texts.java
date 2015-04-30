@@ -62,7 +62,7 @@ public interface Texts extends Constants {
     String error_InputFieldValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_FlowbinderAlreadyExistsError();
+    String error_NameFormatValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_CannotFetchFlowBinder();

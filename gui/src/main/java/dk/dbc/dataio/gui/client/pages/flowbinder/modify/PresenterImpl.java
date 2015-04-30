@@ -4,6 +4,8 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -23,6 +25,7 @@ import java.util.Map;
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     private final static String EMPTY = "";
     protected final Texts texts;
+    protected final ProxyErrorTexts proxyErrorTexts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected View view;
 
@@ -42,6 +45,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public PresenterImpl(ClientFactory clientFactory) {
         texts = clientFactory.getFlowBinderModifyTexts();
+        proxyErrorTexts = clientFactory.getProxyErrorTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
     }
 
@@ -226,6 +230,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void saveButtonPressed() {
         if (model.isInputFieldsEmpty()) {
             view.setErrorText(texts.error_InputFieldValidationError());
+        } else if (!model.getDataioPatternMatches().isEmpty()) {
+            view.setErrorText(texts.error_NameFormatValidationError());
         } else {
             saveModel();
         }
@@ -375,7 +381,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableSubmittersCallback extends FilteredAsyncCallback<List<SubmitterModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
         @Override
         public void onSuccess(List<SubmitterModel> submitters) {
@@ -390,7 +396,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableFlowsCallback extends FilteredAsyncCallback<List<FlowModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
         @Override
         public void onSuccess(List<FlowModel> flows) {
@@ -405,7 +411,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
         @Override
         public void onSuccess(List<SinkModel> sinks) {
@@ -420,7 +426,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveFlowBinderModelFilteredAsyncCallback extends FilteredAsyncCallback<FlowBinderModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts));
         }
         @Override
         public void onSuccess(FlowBinderModel model) {

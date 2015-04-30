@@ -2,9 +2,9 @@ package dk.dbc.dataio.gui.server.modelmappers;
 
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import org.junit.Test;
@@ -79,7 +79,7 @@ public class FlowBinderModelMapperTest {
         FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 0L, Arrays.asList(4L), 5L);
         FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
 
-        FlowBinderModel model = FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
     }
 
     @Test(expected = NullPointerException.class)
@@ -87,7 +87,7 @@ public class FlowBinderModelMapperTest {
         FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 3L, null, 5L);
         FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
 
-        FlowBinderModel model = FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -95,7 +95,27 @@ public class FlowBinderModelMapperTest {
         FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 3L, Arrays.asList(4L), 0L);
         FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
 
-        FlowBinderModel model = FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+    }
+
+    @Test
+    public void toFlowContent_invalidFlowBinderName_throwsIllegalArgumentException() {
+        final String flowBinderName = "*%(Illegal)_&Name - €";
+        final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
+
+        final FlowBinderModel flowBinderModel = new FlowBinderModel(
+                DEFAULT_FLOW_BINDER_ID,
+                DEFAULT_FLOW_BINDER_VERSION,
+                flowBinderName, "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true,
+                defaultFlowModel,
+                Arrays.asList(defaultSubmitterModel),
+                defaultSinkModel);
+
+        try {
+            FlowBinderModelMapper.toFlowBinderContent(flowBinderModel);
+        } catch(IllegalArgumentException e) {
+            assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
+        }
     }
 
     @Test

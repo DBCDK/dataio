@@ -1,0 +1,20 @@
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+             xmlns:g='urn:import:com.google.gwt.user.client.ui'
+             xmlns:c="urn:import:com.google.gwt.user.cellview.client"
+             xmlns:dio='urn:import:dk.dbc.dataio.gui.client.pages.item.show'
+             xmlns:comp='urn:import:dk.dbc.dataio.gui.client.components'>
+    <ui:with type="dk.dbc.dataio.gui.client.pages.item.show.Texts" field="txt"/>
+
+    <g:HTMLPanel>
+
+        <li><comp:PromptedLabel ui:field="packaging" guiId="jobinfoPackagingPanel" prompt="{txt.prompt_Packaging}" /></li>
+        <li><comp:PromptedLabel ui:field="format" guiId="jobinfoFormatPanel" prompt="{txt.prompt_Format}" /></li>
+        <li><comp:PromptedLabel ui:field="charset" guiId="jobinfoCharsetPanel" prompt="{txt.prompt_Charset}" /></li>
+        <li><comp:PromptedLabel ui:field="destination" guiId="jobinfoDestinationPanel" prompt="{txt.prompt_Destination}" /></li>
+        <li><comp:PromptedLabel ui:field="mailForNotificationAboutVerification" guiId="jobinfoMailForNotificationAboutVerificationPanel" prompt="{txt.prompt_MailForNotificationAboutVerification}" /></li>
+        <li><comp:PromptedLabel ui:field="mailForNotificationAboutProcessing" guiId="jobinfoMailForNotificationAboutProcessingPanel" prompt="{txt.prompt_MailForNotificationAboutProcessing}" /></li>
+        <li><comp:PromptedLabel ui:field="resultMailInitials" guiId="jobinfoResultMailInitialsPanel" prompt="{txt.prompt_ResultMailInitials}" /></li>
+
+    </g:HTMLPanel>
+
+</ui:UiBinder>

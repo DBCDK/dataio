@@ -31,9 +31,9 @@
             <g:Tab text="{txt.tab_IgnoredItems}">
                 <dio:ItemsListView ui:field="ignoredItemsList"/>
             </g:Tab>
-            <!--<g:Tab text="{txt.tab_JobInfo}">-->
-                <!--<g:HTMLPanel>Transfil data tbd.</g:HTMLPanel>-->
-            <!--</g:Tab>-->
+            <g:Tab text="{txt.tab_JobInfo}">
+                <dio:JobInfoTabContent ui:field="jobInfoTabContent"/>
+            </g:Tab>
         </g:DecoratedTabPanel>
 
         <g:Button ui:field="backButton" text="{txt.label_Back}" />

@@ -14,6 +14,9 @@ public final class JobListCriteriaModelMapper {
 
     public static JobListCriteria toJobListCriteria(JobListCriteriaModel model) {
         JobListCriteria jobListCriteria = new JobListCriteria();
+        if(model.getId() != 0) {
+            jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, model.getId()));
+        }
         switch (model.getSearchType()) {
             case PROCESSING_FAILED:
                 jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_PROCESSING_FAILED));

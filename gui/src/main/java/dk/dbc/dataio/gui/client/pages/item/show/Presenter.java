@@ -9,5 +9,4 @@ public interface Presenter extends GenericPresenter {
     void allItemsTabSelected();
     void failedItemsTabSelected();
     void ignoredItemsTabSelected();
-    void jobInfoTabSelected();
 }

@@ -13,8 +13,11 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
+import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -23,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -66,6 +70,14 @@ public class PresenterImplTest {
     @Mock DecoratedTabPanel mockedIgnoredDetailedTabs;
     @Mock DecoratedTabPanel mockedTabPanel;
     @Mock SingleSelectionModel<ItemModel> mockedSelectionModel;
+    @Mock JobInfoTabContent mockedJobInfoTabContent;
+    @Mock PromptedLabel mockedPackaging;
+    @Mock PromptedLabel mockedFormat;
+    @Mock PromptedLabel mockedCharset;
+    @Mock PromptedLabel mockedDestination;
+    @Mock PromptedLabel mockedMailForNotificationAboutVerification;
+    @Mock PromptedLabel mockedMailForNotificationAboutProcessing;
+    @Mock PromptedLabel mockedResultMailInitials;
 
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
@@ -92,15 +104,20 @@ public class PresenterImplTest {
         mockedView.ignoredItemsList = mockedIgnoredItemsListView;
         mockedView.tabPanel = mockedTabPanel;
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
-        when(mockedPlace.getItemCounter()).thenReturn("4");
-        when(mockedPlace.getFailedItemCounter()).thenReturn("0");
-        when(mockedPlace.getIgnoredItemCounter()).thenReturn("0");
         when(mockedView.allItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
         when(mockedView.failedItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
         when(mockedView.ignoredItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
         when(mockedView.allItemsList.itemsTable.getSelectionModel()).thenReturn(mockedSelectionModel);
         when(mockedView.failedItemsList.itemsTable.getSelectionModel()).thenReturn(mockedSelectionModel);
         when(mockedView.ignoredItemsList.itemsTable.getSelectionModel()).thenReturn(mockedSelectionModel);
+        mockedView.jobInfoTabContent = mockedJobInfoTabContent;
+        mockedView.jobInfoTabContent.packaging = mockedPackaging;
+        mockedView.jobInfoTabContent.format = mockedFormat;
+        mockedView.jobInfoTabContent.charset = mockedCharset;
+        mockedView.jobInfoTabContent.destination = mockedDestination;
+        mockedView.jobInfoTabContent.mailForNotificationAboutVerification = mockedMailForNotificationAboutVerification;
+        mockedView.jobInfoTabContent.mailForNotificationAboutProcessing = mockedMailForNotificationAboutProcessing;
+        mockedView.jobInfoTabContent.resultMailInitials = mockedResultMailInitials;
     }
 
     // Mocked Texts
@@ -109,6 +126,7 @@ public class PresenterImplTest {
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
     final static String MOCKED_COLUMN_STATUS = "Mocked Status";
     final static String MOCKED_ERROR_COULDNOTFETCHITEMS = "Mocked Det var ikke muligt at hente poster fra Job Store";
+    final static String MOCKED_ERROR_COULDNOTFETCHJOB = "Mocked Det var ikke muligt at hente jobbet fra Job Store";
     final static String MOCKED_ERROR_CANNOTNOTFETCHJAVASCRIPTLOG = "Mocked Det var ikke muligt at hente java script loggen";
     final static String MOCKED_LABEL_BACK = "Mocked Tilbage til Joboversigten";
     final static String MOCKED_TEXT_ITEM = "Mocked Post";
@@ -132,6 +150,7 @@ public class PresenterImplTest {
         when(mockedText.column_Item()).thenReturn(MOCKED_COLUMN_ITEM);
         when(mockedText.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
         when(mockedText.error_CouldNotFetchItems()).thenReturn(MOCKED_ERROR_COULDNOTFETCHITEMS);
+        when(mockedText.error_CouldNotFetchJob()).thenReturn(MOCKED_ERROR_COULDNOTFETCHJOB);
         when(mockedText.error_CannotFetchJavaScriptLog()).thenReturn(MOCKED_ERROR_CANNOTNOTFETCHJAVASCRIPTLOG);
         when(mockedText.label_Back()).thenReturn(MOCKED_LABEL_BACK);
         when(mockedText.text_Item()).thenReturn(MOCKED_TEXT_ITEM);
@@ -158,11 +177,13 @@ public class PresenterImplTest {
     class PresenterImplConcrete extends PresenterImpl {
         ItemsListView itemsListView;
         public ItemsCallback getItemsCallback;
+        public JobCallback getJobCallback;
 
         public PresenterImplConcrete(Place place, ClientFactory clientFactory, ItemsListView itemsListView) {
             super(place, clientFactory);
             this.itemsListView = itemsListView;
             this.getItemsCallback = new ItemsCallback(itemsListView, ROW_COUNT, OFFSET);
+            this.getJobCallback = new JobCallback();
         }
     }
 
@@ -173,6 +194,30 @@ public class PresenterImplTest {
     private ItemModel testModel3 = new ItemModel("13", "ItemId3", "ChunkId3", "JobId3", ItemModel.LifeCycle.PARTITIONING);
     private ItemModel testModel4 = new ItemModel("14", "ItemId4", "ChunkId4", "JobId4", ItemModel.LifeCycle.PROCESSING);
     private List<ItemModel> testModels = Arrays.asList(testModel1, testModel2, testModel3, testModel4);
+    private JobModel testJobModelSucceeded = new JobModel("2014-12-16 08:51:17", "1418716277429",
+            "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
+            "FlowBinderName1", "SinkName1",
+            true, 20, 20, 0, 0,
+            "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
+    private JobModel testJobModelFailed = new JobModel("2014-12-16 08:51:17", "1418716277429",
+            "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
+            "FlowBinderName1", "SinkName1",
+            true, 20, 20, 1, 0,
+            "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
+    private JobModel testJobModelIgnored = new JobModel("2014-12-16 08:51:17", "1418716277429",
+            "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
+            "FlowBinderName1", "SinkName1",
+            true, 20, 20, 0, 1,
+            "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
+    private JobModel testJobModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
+            "urn:dataio-fs:46551", "424242", "SubmitterName2", "FlowBinderName2", "SinkName2",
+            true, 10, 10, 0, 5,
+            "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
+    private List<JobModel> testJobModels0 = new ArrayList<JobModel>();
+    private List<JobModel> testJobModelsSucceeded = new ArrayList<JobModel>(Arrays.asList(testJobModelSucceeded));
+    private List<JobModel> testJobModelsFailed = new ArrayList<JobModel>(Arrays.asList(testJobModelFailed));
+    private List<JobModel> testJobModelsIgnored = new ArrayList<JobModel>(Arrays.asList(testJobModelIgnored));
+    private List<JobModel> testJobModels2 = new ArrayList<JobModel>(Arrays.asList(testJobModel2, testJobModelSucceeded));
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
@@ -187,42 +232,34 @@ public class PresenterImplTest {
         verify(mockedClientFactory).getLogStoreProxyAsync();
         verifyNoMoreInteractions(mockedClientFactory);
         verify(mockedPlace).getJobId();
-        verify(mockedPlace).getSubmitterNumber();
-        verify(mockedPlace).getSinkName();
-        verify(mockedPlace).getItemCounter();
-        verify(mockedPlace).getFailedItemCounter();
-        verify(mockedPlace).getIgnoredItemCounter();
         verifyNoMoreInteractions(mockedPlace);
     }
 
     @Test
-    public void start_callStart_initialPopulationOfViewSetsAllItems() {
-        setupSpecificMockedItemCounters("4", "0", "0");
-        genericStart_callStart_ok();
+    public void start_callStart_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
 
-        verify(mockedView.tabPanel).selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
+        // Test Subject Under Test
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-    }
-
-    @Test
-    public void start_callStart_initialPopulationOfViewSetsIgnoredItems() {
-        setupSpecificMockedItemCounters("4", "0", "1");
-        genericStart_callStart_ok();
-
-        verify(mockedView.tabPanel).selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
-    }
-
-    @Test
-    public void start_callStart_initialPopulationOfViewSetsFailedItems() {
-        setupSpecificMockedItemCounters("4", "4", "2");
-        genericStart_callStart_ok();
-
-        verify(mockedView.tabPanel).selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
+        // Verify Test
+        verify(mockedClientFactory).getItemsShowView();
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedContainerWidget).setWidget(mockedViewWidget);
+        verify(mockedAllPager).setPageSize(PresenterImpl.PAGE_SIZE);
+        verify(mockedFailedPager).setPageSize(PresenterImpl.PAGE_SIZE);
+        verify(mockedIgnoredPager).setPageSize(PresenterImpl.PAGE_SIZE);
+        verify(mockedAllItemsTable).setRowCount(0);
+        verify(mockedFailedItemsTable).setRowCount(0);
+        verify(mockedIgnoredItemsTable).setRowCount(0);
+        verify(mockedJobStoreProxy).listJobs(any(JobListCriteriaModel.class), any(PresenterImpl.JobCallback.class));
     }
 
     @Test
     public void allItemsTabSelected_callAllItemsTabSelected_allItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Subject under test
@@ -255,6 +292,7 @@ public class PresenterImplTest {
     @Test
     public void failedItemsTabSelected_callFailedItemsTabSelected_failedItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Subject under test
@@ -287,6 +325,7 @@ public class PresenterImplTest {
     @Test
     public void ignoredItemsTabSelected_callIgnoredItemsTabSelected_ignoredItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Subject under test
@@ -319,6 +358,7 @@ public class PresenterImplTest {
     @Test
     public void itemSelected_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         when(mockedAllDetailedTabs.getWidgetCount()).thenReturn(3); // Simulate not empty
 
@@ -337,6 +377,7 @@ public class PresenterImplTest {
     @Test
     public void fetchJob_callbackWithError_errorMessageInView() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -349,6 +390,7 @@ public class PresenterImplTest {
     @Test
     public void fetchAllJobs_callbackWithSuccess_allJobsAreFetched() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -371,6 +413,7 @@ public class PresenterImplTest {
     @Test
     public void fetchFailedJobs_callbackWithSuccess_failedJobsAreFetched() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedFailedItemsListView);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -393,6 +436,7 @@ public class PresenterImplTest {
     @Test
     public void fetchIgnoredJobs_callbackWithSuccess_ignoredJobsAreFetched() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedIgnoredItemsListView);
+        presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -412,38 +456,179 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedFailedItemsTable);
     }
 
-
-
-    /*
-     * Private methods
-     */
-
-    private void genericStart_callStart_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+    @Test
+    public void getJob_callbackWithError_errorMessageInView() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
         presenterImpl.jobId = "1234";
-        presenterImpl.submitterNumber = "Submi";
-        presenterImpl.sinkName = "Sinki";
-
-        // Test Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
+        // Test Subject Under Test
+        presenterImpl.getJobCallback.onFailure(mockedException);
+
         // Verify Test
-        verify(mockedClientFactory).getItemsShowView();
-        verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedJobHeader).setText("Mocked Job Id: 1234, Mocked Submitter: Submi, Mocked Sink: Sinki");
-        verify(mockedContainerWidget).setWidget(mockedViewWidget);
-        verify(mockedAllPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedFailedPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedIgnoredPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedAllItemsTable).setRowCount(0);
-        verify(mockedFailedItemsTable).setRowCount(0);
-        verify(mockedIgnoredItemsTable).setRowCount(0);
+        verify(mockedView).setErrorText(MOCKED_ERROR_COULDNOTFETCHJOB);
     }
 
-    private void setupSpecificMockedItemCounters(String allItemCounter, String failedItemCounter, String ignoredItemCounter) {
-        when(mockedPlace.getItemCounter()).thenReturn(allItemCounter);
-        when(mockedPlace.getFailedItemCounter()).thenReturn(failedItemCounter);
-        when(mockedPlace.getIgnoredItemCounter()).thenReturn(ignoredItemCounter);
+    @Test
+    public void getJob_callbackWithSuccessAndFailedJobs_jobFetchedCorrectly() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobCallback.onSuccess(testJobModelsFailed);
+
+        // Verify Test
+        verify(mockedView.jobHeader).setText("Mocked Job Id: 1418716277429, Mocked Submitter: 150014, Mocked Sink: SinkName1");
+        verify(mockedTabPanel).selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
+        verify(mockedPackaging).setText("packagingA");
+        verify(mockedFormat).setText("formatA");
+        verify(mockedCharset).setText("charsetA");
+        verify(mockedDestination).setText("destinationA");
+        verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
+        verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
+        verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verifyNoMoreInteractions(mockedView.jobHeader);
+        verifyNoMoreInteractions(mockedTabPanel);
+        verifyNoMoreInteractions(mockedPackaging);
+        verifyNoMoreInteractions(mockedFormat);
+        verifyNoMoreInteractions(mockedCharset);
+        verifyNoMoreInteractions(mockedDestination);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
+        verifyNoMoreInteractions(mockedResultMailInitials);
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndIgnoredJobs_jobFetchedCorrectly() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobCallback.onSuccess(testJobModelsIgnored);
+
+        // Verify Test
+        verify(mockedView.jobHeader).setText("Mocked Job Id: 1418716277429, Mocked Submitter: 150014, Mocked Sink: SinkName1");
+        verify(mockedTabPanel).selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedPackaging).setText("packagingA");
+        verify(mockedFormat).setText("formatA");
+        verify(mockedCharset).setText("charsetA");
+        verify(mockedDestination).setText("destinationA");
+        verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
+        verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
+        verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verifyNoMoreInteractions(mockedView.jobHeader);
+        verifyNoMoreInteractions(mockedTabPanel);
+        verifyNoMoreInteractions(mockedPackaging);
+        verifyNoMoreInteractions(mockedFormat);
+        verifyNoMoreInteractions(mockedCharset);
+        verifyNoMoreInteractions(mockedDestination);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
+        verifyNoMoreInteractions(mockedResultMailInitials);
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndSuccessfulJobs_jobFetchedCorrectly() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobCallback.onSuccess(testJobModelsSucceeded);
+
+        // Verify Test
+        verify(mockedView.jobHeader).setText("Mocked Job Id: 1418716277429, Mocked Submitter: 150014, Mocked Sink: SinkName1");
+        verify(mockedTabPanel).selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
+        verify(mockedPackaging).setText("packagingA");
+        verify(mockedFormat).setText("formatA");
+        verify(mockedCharset).setText("charsetA");
+        verify(mockedDestination).setText("destinationA");
+        verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
+        verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
+        verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verifyNoMoreInteractions(mockedView.jobHeader);
+        verifyNoMoreInteractions(mockedTabPanel);
+        verifyNoMoreInteractions(mockedPackaging);
+        verifyNoMoreInteractions(mockedFormat);
+        verifyNoMoreInteractions(mockedCharset);
+        verifyNoMoreInteractions(mockedDestination);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
+        verifyNoMoreInteractions(mockedResultMailInitials);
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndMultipleJobs_firstJobFetchedCorrectly() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobCallback.onSuccess(testJobModels2);
+
+        // Verify Test
+        verify(mockedView.jobHeader).setText("Mocked Job Id: 1418773068083, Mocked Submitter: 424242, Mocked Sink: SinkName2");
+        verify(mockedTabPanel).selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedPackaging).setText("packagingB");
+        verify(mockedFormat).setText("formatB");
+        verify(mockedCharset).setText("charsetB");
+        verify(mockedDestination).setText("destinationB");
+        verify(mockedMailForNotificationAboutVerification).setText("mailNotificationB");
+        verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingB");
+        verify(mockedResultMailInitials).setText("resultMailInitialsB");
+        verifyNoMoreInteractions(mockedView.jobHeader);
+        verifyNoMoreInteractions(mockedTabPanel);
+        verifyNoMoreInteractions(mockedPackaging);
+        verifyNoMoreInteractions(mockedFormat);
+        verifyNoMoreInteractions(mockedCharset);
+        verifyNoMoreInteractions(mockedDestination);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
+        verifyNoMoreInteractions(mockedResultMailInitials);
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndNoJobs_noJobFetched() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobCallback.onSuccess(testJobModels0);
+
+        // Verify Test
+        verifyNoMoreInteractions(mockedView.jobHeader);
+        verifyNoMoreInteractions(mockedTabPanel);
+        verifyNoMoreInteractions(mockedPackaging);
+        verifyNoMoreInteractions(mockedFormat);
+        verifyNoMoreInteractions(mockedCharset);
+        verifyNoMoreInteractions(mockedDestination);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
+        verifyNoMoreInteractions(mockedResultMailInitials);
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndNullJobsList_noJobFetched() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobCallback.onSuccess(null);
+
+        // Verify Test
+        verifyNoMoreInteractions(mockedView.jobHeader);
+        verifyNoMoreInteractions(mockedTabPanel);
+        verifyNoMoreInteractions(mockedPackaging);
+        verifyNoMoreInteractions(mockedFormat);
+        verifyNoMoreInteractions(mockedCharset);
+        verifyNoMoreInteractions(mockedDestination);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
+        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
+        verifyNoMoreInteractions(mockedResultMailInitials);
     }
 
 }

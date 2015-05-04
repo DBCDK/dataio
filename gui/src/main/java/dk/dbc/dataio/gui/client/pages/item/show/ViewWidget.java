@@ -34,7 +34,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiField ItemsListView allItemsList;
     @UiField ItemsListView failedItemsList;
     @UiField ItemsListView ignoredItemsList;
-
+    @UiField JobInfoTabContent jobInfoTabContent;
 
     /**
      * Constructor with header and text
@@ -74,9 +74,6 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
                 break;
             case IGNORED_ITEMS_TAB_INDEX:
                 presenter.ignoredItemsTabSelected();
-                break;
-            case JOB_INFO_TAB_INDEX:
-                presenter.jobInfoTabSelected();
                 break;
         }
     }

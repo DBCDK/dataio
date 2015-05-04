@@ -20,9 +20,9 @@
 @external .gwt-Tree, .gwt-TreeItem, .gwt-Button;
 @external .gwtQuery-draggable-dragging;
 @external .dual-list-removeitem-class, .dual-list-additem-class, .fixed-empty-listbox-width, .dual-list-selection-buttons-pane-class;
-@external .dio-DataEntry, .dio-DataEntry-PromptLabelClass, .dio-SaveButton-ResultLabel;
+@external .dio-PromptedData, .dio-PromptedData-PromptClass, .dio-SaveButton-ResultLabel;
 @external .dio-DualList, .dio-DualPanesPanel-WidgetRightClass, .dio-DualPanesPanel-WidgetLeftClass, .dio-flow-element;
-@external .dio-DataEntry-InputBoxClass, .dio-SortableList;
+@external .dio-PromptedData-DataClass, .dio-SortableList;
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 
 /*
@@ -101,17 +101,17 @@ li {
     display: block;
 }
 
-.dio-DataEntry {
+.dio-PromptedData {
     margin-bottom: 0.5em;
 }
 
-.dio-DataEntry-PromptLabelClass {
+.dio-PromptedData-PromptClass {
     width: 9.8em;
     display: inline-block;
     vertical-align: top;
 }
 
-.dio-DataEntry-InputBoxClass {
+.dio-PromptedData-DataClass {
     display: inline-block;
 }
 

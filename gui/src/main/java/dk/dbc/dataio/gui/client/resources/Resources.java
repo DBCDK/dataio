@@ -17,7 +17,7 @@ public interface Resources extends ClientBundle {
         @ClassName("dual-list-additem-class")
         String dualListAdditemClass();
 
-        @ClassName("dio-DataEntry-PromptLabelClass")
+        @ClassName("dio-PromptedData-PromptClass")
         String dioDataEntryPromptLabelClass();
 
         @ClassName("dio-DualList")
@@ -32,7 +32,7 @@ public interface Resources extends ClientBundle {
         @ClassName("status-popup")
         String statusPopup();
 
-        @ClassName("dio-DataEntry")
+        @ClassName("dio-PromptedData")
         String dioDataEntry();
 
         @ClassName("fixed-empty-listbox-width")
@@ -65,7 +65,7 @@ public interface Resources extends ClientBundle {
         @ClassName("gwt-TreeItem")
         String gwtTreeItem();
 
-        @ClassName("dio-DataEntry-InputBoxClass")
+        @ClassName("dio-PromptedData-DataClass")
         String dioDataEntryInputBoxClass();
 
         @ClassName("sortable-widget-entry-deselected")

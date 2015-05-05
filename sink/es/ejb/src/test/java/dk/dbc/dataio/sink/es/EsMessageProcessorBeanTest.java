@@ -83,8 +83,12 @@ public class EsMessageProcessorBeanTest {
         when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenThrow(new SinkException("TEST"));
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord);
-        esMessageProcessorBean.onMessage(textMessage);
-        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(true));
+        try {
+            esMessageProcessorBean.onMessage(textMessage);
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+        }
+        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
     }
 
@@ -93,8 +97,12 @@ public class EsMessageProcessorBeanTest {
         when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenThrow(new RuntimeException("TEST"));
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord);
-        esMessageProcessorBean.onMessage(textMessage);
-        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(true));
+        try {
+            esMessageProcessorBean.onMessage(textMessage);
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+        }
+        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
     }
 
@@ -104,8 +112,12 @@ public class EsMessageProcessorBeanTest {
         doThrow(new RuntimeException("TEST")).when(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord);
-        esMessageProcessorBean.onMessage(textMessage);
-        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(true));
+        try {
+            esMessageProcessorBean.onMessage(textMessage);
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+        }
+        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
         assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
     }
 

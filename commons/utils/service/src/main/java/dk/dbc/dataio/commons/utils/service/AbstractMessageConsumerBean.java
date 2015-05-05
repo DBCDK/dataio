@@ -5,7 +5,6 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-//import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,6 @@ import javax.jms.TextMessage;
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
     private static final String DELIVERY_COUNT_PROPERTY = "JMSXDeliveryCount";
-    private static final long EXPONENTIAL_BACKOFF_CUTOFF_POINT_IN_MS = 3600000; // 1 hour
 
     @Resource
     protected MessageDrivenContext messageDrivenContext;
@@ -79,25 +77,28 @@ public abstract class AbstractMessageConsumerBean {
      *
      * Subsequently the message is handled by calling the handleConsumedMessage()
      * method. Any exception (checked or unchecked) thrown after the validation step
-     * that is not an InvalidMessageJobProcessorException causes the message to be put
-     * back on the queue.
+     * that is not an InvalidMessageException result in a IllegalStateException
+     * causing the message to be put back on the queue.
      *
      * @param message message received
      */
-    public void onMessage(Message message) {
+    public void onMessage(Message message) throws IllegalStateException {
         String messageId = null;
         try {
             final ConsumedMessage consumedMessage = validateMessage(message);
             messageId = consumedMessage.getMessageId();
             message.getIntProperty(DELIVERY_COUNT_PROPERTY);
             handleConsumedMessage(consumedMessage);
+            if (messageDrivenContext.getRollbackOnly()) {
+                throw new IllegalStateException("Message processing marked the transaction for rollback");
+            }
         } catch (InvalidMessageException e) {
             LOGGER.error("Message rejected", e);
         } catch (Throwable t) {
-            // Ensure that this container-managed transaction can never commit
+            // Ensure that this container-managed transaction can not commit
             // and therefore that this message subsequently will be re-delivered.
-            messageDrivenContext.setRollbackOnly();
-            LOGGER.error("Exception caught while processing message<{}>", messageId, t);
+            throw new IllegalStateException(String.format(
+                    "Exception caught while processing message<%s>", messageId), t);
         }
     }
 

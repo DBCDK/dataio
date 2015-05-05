@@ -86,8 +86,12 @@ public class SinkMessageConsumerBeanTest {
         final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         final String deliveredChunkJson = new JSONBContext().marshall(deliveredChunk);
         textMessage.setText(deliveredChunkJson);
-        sinkMessageConsumerBean.onMessage(textMessage);
-        assertThat("RollbackOnly", sinkMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(true));
+        try {
+            sinkMessageConsumerBean.onMessage(textMessage);
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+        }
+        assertThat("RollbackOnly", sinkMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
     }
 
     private TestableSinkMessageConsumerBean getInitializedBean() {

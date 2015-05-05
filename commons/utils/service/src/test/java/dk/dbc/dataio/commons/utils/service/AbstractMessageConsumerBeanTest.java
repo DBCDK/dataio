@@ -14,6 +14,7 @@ import javax.jms.JMSException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class AbstractMessageConsumerBeanTest {
     protected enum HandleConsumedMessageReaction { ACCEPT, INVALID, THROW }
@@ -82,7 +83,24 @@ public class AbstractMessageConsumerBeanTest {
     @Test
     public void onMessage_consumedMessageHandlingThrowsServiceException_transactionRollback() throws JMSException {
         final TestableMessageConsumerBean messageConsumerBean = getInitializedBean();
-        messageConsumerBean.onMessage(getMockedJmsTextMessage(HandleConsumedMessageReaction.THROW.toString(), PAYLOAD));
+        try {
+            messageConsumerBean.onMessage(getMockedJmsTextMessage(HandleConsumedMessageReaction.THROW.toString(), PAYLOAD));
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+        }
+        assertThat("handleConsumedMessage() called", messageConsumerBean.handleConsumedMessageCalled, is(true));
+        assertThat("rollback", messageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+    }
+
+    @Test
+    public void onMessage_consumedMessageHandlingSetsRollbackOnly_transactionRollback() throws JMSException {
+        final TestableMessageConsumerBean messageConsumerBean = getInitializedBean();
+        messageConsumerBean.messageDrivenContext.setRollbackOnly();
+        try {
+            messageConsumerBean.onMessage(getMockedJmsTextMessage(HandleConsumedMessageReaction.THROW.toString(), PAYLOAD));
+            fail("No exception thrown");
+        } catch (IllegalStateException e) {
+        }
         assertThat("handleConsumedMessage() called", messageConsumerBean.handleConsumedMessageCalled, is(true));
         assertThat("rollback", messageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(true));
     }

@@ -40,7 +40,7 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
+        flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
     }
 
     // Private methods

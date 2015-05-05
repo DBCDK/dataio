@@ -18,7 +18,11 @@
         </activation-config-property>
         <activation-config-property>
           <activation-config-property-name>sendUndeliverableMsgsToDMQ</activation-config-property-name>
-          <activation-config-property-value>false</activation-config-property-value>
+          <activation-config-property-value>true</activation-config-property-value>
+        </activation-config-property>
+        <activation-config-property>
+          <activation-config-property-name>endpointExceptionRedeliveryAttempts</activation-config-property-name>
+          <activation-config-property-value>60</activation-config-property-value>
         </activation-config-property>
         <activation-config-property>
           <activation-config-property-name>endpointExceptionRedeliveryInterval</activation-config-property-name>

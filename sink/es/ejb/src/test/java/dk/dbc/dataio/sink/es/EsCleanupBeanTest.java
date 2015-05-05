@@ -6,6 +6,8 @@ import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -21,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
@@ -158,6 +162,65 @@ public class EsCleanupBeanTest {
         verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
         verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
         verify(jobProcessorMessageProducerBean, times(1)).sendAll(anyListOf(ExternalChunk.class));
+    }
+
+    @Test
+    public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JMSException, JSONBException {
+        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight43_1));
+        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(new ArrayList());
+
+        cleanupBean.cleanup();
+
+        verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
+        verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
+        verify(esThrottler).releaseRecordSlots(esInFlight43_1.getRecordSlots());
+        verify(jobProcessorMessageProducerBean, times(1)).sendAll(anyListOf(ExternalChunk.class));
+    }
+
+    @Test
+    public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedAndNoTargetReferencedAreCleanedUp() throws SinkException, JMSException {
+        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
+        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_122, taskStatus_123, taskStatus_124));
+        final ArrayList<ChunkItem> esItems = new ArrayList<>();
+        esItems.add(new ChunkItemBuilder()
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .setData("succeeded")
+                .build());
+        when(esConnector.getResultingItemsFromSinkForTaskPackage(anyInt())).thenReturn(esItems);
+
+        cleanupBean.cleanup();
+
+        verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
+        verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
+        verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
+        verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
+        verify(esThrottler).releaseRecordSlots(esInFlight43_1.getRecordSlots());
+        verify(jobProcessorMessageProducerBean, times(2)).sendAll(anyListOf(ExternalChunk.class));
+    }
+
+    @Test
+    public void createLostChunk_fillsOutValuesCorrectly() throws JSONBException, SinkException {
+        String originalChunkString = esInFlight43_1.getIncompleteDeliveredChunk();
+        ExternalChunk originalExternalChunk = new JSONBContext().unmarshall(originalChunkString, ExternalChunk.class);
+
+        ExternalChunk lostExternalChunk = cleanupBean.createLostChunk(esInFlight43_1);
+        assertThat("ModifiedExternalChunk not null", lostExternalChunk, not(nullValue()));
+        assertThat("ModifiedExternalChunk.jobId, is OriginalExternalChunk.jobId", lostExternalChunk.getJobId(), is(originalExternalChunk.getJobId()));
+        assertThat("ModifiedExternalChunk.chunkId, is OriginalExternalChunk.chunkId", lostExternalChunk.getChunkId(), is(originalExternalChunk.getChunkId()));
+        assertThat("ModifiedExternalChunk.type, is OriginalExternalChunk.type", lostExternalChunk.getType(), is(originalExternalChunk.getType()));
+        assertThat("ModifiedExternalChunk.encoding, is OriginalExternalChunk.encoding", lostExternalChunk.getEncoding(), is(originalExternalChunk.getEncoding()));
+
+        assertThat("OriginalExternalChunk.chunkItems.size", originalExternalChunk.size(), is(1));
+        Iterator<ChunkItem> originalChunkItemIterator = originalExternalChunk.iterator();
+        ChunkItem originalChunkItem = originalChunkItemIterator.next();
+        assertThat("OriginalExternalChunk.ChunkItem.Status", originalChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+
+        assertThat(lostExternalChunk.size(), is(originalExternalChunk.size()));
+        Iterator<ChunkItem> modifiedChunkItemIterator = lostExternalChunk.iterator();
+        ChunkItem modifiedChunkItem = modifiedChunkItemIterator.next();
+        assertThat("ModifiedExternalChunk.ChunkItem.id, is OriginalExternalChunk.ChunkItem.id", modifiedChunkItem.getId(), is(originalChunkItem.getId()));
+        assertThat("ModifiedExternalChunk.ChunkItem.data, is OriginalExternalChunk.ChunkItem.data", modifiedChunkItem.getData(), is(originalChunkItem.getData()));
+        assertThat("ModifiedExternalChunk.ChunkItem.Status", modifiedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     @Test

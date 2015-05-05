@@ -682,8 +682,9 @@ public class PgJobStore {
             logArguments.add(jobEntity.getNumberOfItems());
             logArguments.add(jobEntity.getNumberOfChunks());
             logArguments.add(jobEntity.getSpecification().getSubmitterId());
+            logArguments.add(jobEntity.getSpecification().getDestination());
             logArguments.add(jobEntity.getTimeOfCreation().getTime());
-            String logPattern = "TIMER jobId={} numberOfItems={} numberOfChunks={} submitterNumber={} timeOfCreation={}";
+            String logPattern = "TIMER jobId={} numberOfItems={} numberOfChunks={} submitterNumber={} destination={} timeOfCreation={}";
             if (jobEntity.getTimeOfCompletion() != null) {
                 logPattern += " timeOfCompletion={}";
                 logArguments.add(jobEntity.getTimeOfCompletion().getTime());

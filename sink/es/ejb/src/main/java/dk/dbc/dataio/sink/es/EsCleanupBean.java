@@ -183,7 +183,7 @@ public class EsCleanupBean {
 
     private ChunkItem buildChunkItem(ChunkItem chunkItem) {
       final ChunkItem lostChunkItem;
-            if(chunkItem.getStatus() != ChunkItem.Status.FAILURE) {
+            if(chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
                 final String data = "Item status set to failed due to taskpackage lost in ES";
                 lostChunkItem = new ChunkItem(chunkItem.getId(), data, ChunkItem.Status.FAILURE);
             } else {

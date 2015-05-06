@@ -48,8 +48,8 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             for (ListFilterGroup.Member<U> member : filterGroup) {
                 final ListFilter<U> filter = member.getFilter();
                 FieldMapping fieldMapping = fieldMap.get(filter.getField());
-                if(fieldMapping instanceof BinaryOpField) {
-                    final ParameterValue value = ((BinaryOpField)fieldMapping).getValue();
+                if(fieldMapping instanceof BooleanOpField) {
+                    final ParameterValue value = ((BooleanOpField)fieldMapping).getValue();
                     value.set(query, parameterIndex, filter.getValue());
                     parameterIndex++;
                 }
@@ -94,7 +94,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             final ListFilter<U> filter = member.getFilter();
             FieldMapping fieldMapping = fieldMap.get(filter.getField());
             final String columnName = fieldMap.get(filter.getField()).getName();
-            if(fieldMapping instanceof BinaryOpField) {
+            if(fieldMapping instanceof BooleanOpField) {
 
 
                 // add column name, operator and value triplets to query
@@ -171,9 +171,9 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         }
     }
 
-    public static class BinaryOpField extends FieldMapping {
+    public static class BooleanOpField extends FieldMapping {
         private final ParameterValue value;
-        public BinaryOpField(String name, ParameterValue value) {
+        public BooleanOpField(String name, ParameterValue value) {
             super(name);
             this.value = value;
         }

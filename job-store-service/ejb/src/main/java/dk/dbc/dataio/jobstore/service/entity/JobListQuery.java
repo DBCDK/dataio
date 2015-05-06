@@ -33,9 +33,9 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
     public JobListQuery(EntityManager entityManager) throws NullPointerException {
         this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
         // Build list of available fields with associated field mappings
-        fieldMap.put(JobListCriteria.Field.JOB_ID, new BinaryOpField("id", new ObjectValue()));
-        fieldMap.put(JobListCriteria.Field.TIME_OF_CREATION, new BinaryOpField("timeOfCreation", new TimestampValue()));
-        fieldMap.put(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, new BinaryOpField("timeOfLastModification", new TimestampValue()));
+        fieldMap.put(JobListCriteria.Field.JOB_ID, new BooleanOpField("id", new ObjectValue()));
+        fieldMap.put(JobListCriteria.Field.TIME_OF_CREATION, new BooleanOpField("timeOfCreation", new TimestampValue()));
+        fieldMap.put(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, new BooleanOpField("timeOfLastModification", new TimestampValue()));
         fieldMap.put(JobListCriteria.Field.STATE_PROCESSING_FAILED, new VerbatimField("(state->'states'->'PROCESSING'->>'failed' != '0')"));
         fieldMap.put(JobListCriteria.Field.STATE_DELIVERING_FAILED, new VerbatimField("(state->'states'->'DELIVERING'->>'failed' != '0')"));
     }

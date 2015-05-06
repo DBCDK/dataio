@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -81,8 +82,9 @@ public class EsCleanupBean {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void cleanup() {
-        LOGGER.info("Cleaning up ES-base");
+        final StopWatch stopWatch = new StopWatch();
         try {
+            LOGGER.info("Cleaning up ES-base");
             Map<Integer, EsInFlight> esInFlightMap = createEsInFlightMap(esInFlightAdmin.listEsInFlight());
             if (esInFlightMap.isEmpty()) {
                 LOGGER.info("No records in ES InFlight.");
@@ -101,6 +103,8 @@ public class EsCleanupBean {
 
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -121,26 +125,30 @@ public class EsCleanupBean {
     }
 
     private List<ExternalChunk> findLostChunks(Map<Integer, EsInFlight> esInFlightMap) throws SinkException {
-        List<ExternalChunk> lostExternalChunks = new ArrayList<>();
-        List<EsInFlight> lostEsInFlight = new ArrayList<>();
-        List<TaskStatus> taskStatusList = getTaskStatusForESTaskpackages(esInFlightMap);
-        LOGGER.info("Number of [taskstatus/esInFlight] : [{}/{}]", taskStatusList.size(), esInFlightMap.size());
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            List<ExternalChunk> lostExternalChunks = new ArrayList<>();
+            List<EsInFlight> lostEsInFlight = new ArrayList<>();
+            List<TaskStatus> taskStatusList = getTaskStatusForESTaskpackages(esInFlightMap);
+            LOGGER.info("Number of [taskstatus/esInFlight] : [{}/{}]", taskStatusList.size(), esInFlightMap.size());
 
-        for(Map.Entry<Integer, EsInFlight> esInFlightEntry : esInFlightMap.entrySet()) {
-            if(!hasTargetReference(taskStatusList, esInFlightEntry.getKey())) {
-                // The entry did not have a target reference -> create lost chunk and add it to the list
-                lostExternalChunks.add(createLostChunk(esInFlightEntry.getValue()));
-                lostEsInFlight.add(esInFlightEntry.getValue());
+            for (Map.Entry<Integer, EsInFlight> esInFlightEntry : esInFlightMap.entrySet()) {
+                if (!hasTargetReference(taskStatusList, esInFlightEntry.getKey())) {
+                    // The entry did not have a target reference -> create lost chunk and add it to the list
+                    lostExternalChunks.add(createLostChunk(esInFlightEntry.getValue()));
+                    lostEsInFlight.add(esInFlightEntry.getValue());
+                }
             }
+            if (!lostEsInFlight.isEmpty()) {
+                LOGGER.info("Number of lost taskpackages in ES : {}.", esInFlightMap.size());
+                removeEsInFlights(lostEsInFlight);
+                int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(lostEsInFlight);
+                esThrottler.releaseRecordSlots(recordSlotsToRelease);
+            }
+            return lostExternalChunks;
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
-        if(lostEsInFlight.isEmpty()) {
-            LOGGER.info("No lost taskpackages in ES.");
-        } else {
-            removeEsInFlights(lostEsInFlight);
-            int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(lostEsInFlight);
-            esThrottler.releaseRecordSlots(recordSlotsToRelease);
-        }
-        return lostExternalChunks;
     }
 
     private boolean hasTargetReference(List<TaskStatus>taskStatusList, Integer esInFlightReference) {
@@ -168,13 +176,24 @@ public class EsCleanupBean {
 
         while (it.hasNext()) {
             ChunkItem chunkItem = it.next();
-            // Add items and set their status to failed.
-            lostExternalChunk.insertItem(new ChunkItem(chunkItem.getId(), chunkItem.getData(), ChunkItem.Status.FAILURE));
+            lostExternalChunk.insertItem(buildChunkItem(chunkItem));
         }
         return lostExternalChunk;
     }
 
+    private ChunkItem buildChunkItem(ChunkItem chunkItem) {
+      final ChunkItem lostChunkItem;
+            if(chunkItem.getStatus() != ChunkItem.Status.FAILURE) {
+                final String data = "Item status set to failed due to taskpackage lost in ES";
+                lostChunkItem = new ChunkItem(chunkItem.getId(), data, ChunkItem.Status.FAILURE);
+            } else {
+                lostChunkItem = chunkItem;
+        }
+        return lostChunkItem;
+    }
+
     private List<ExternalChunk> findDeliveredChunks(Map<Integer, EsInFlight> esInFlightMap) {
+        final StopWatch stopWatch = new StopWatch();
         List<ExternalChunk> deliveredChunks = new ArrayList<>();
         try {
             List<TaskStatus> taskStatusList = getTaskStatusForESTaskpackages(esInFlightMap);
@@ -192,8 +211,11 @@ public class EsCleanupBean {
             }
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
         return deliveredChunks;
+
     }
 
     private List<ExternalChunk> createDeliveredChunks(List<EsInFlight> finishedEsInFlight) throws SinkException {

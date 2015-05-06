@@ -1,0 +1,107 @@
+package dk.dbc.dataio.jobstore.service.ejb;
+
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
+import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jsonb.JSONBException;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import javax.ejb.MessageDrivenContext;
+import javax.jms.JMSException;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+public class DmqMessageConsumerBeanTest {
+    private TestableDmqMessageConsumerBean dmqMessageConsumerBean;
+
+    @Before
+    public void setup() {
+        initializeDmqMessageConsumerBean();
+    }
+
+    @Test
+    public void onMessage_messageArgPayloadIsInvalid_noTransactionRollback() throws JMSException, JobStoreException {
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+        textMessage.setText("{'invalid': 'instance'}");
+        dmqMessageConsumerBean.onMessage(textMessage);
+        assertThat(dmqMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+        verify(dmqMessageConsumerBean.jobStoreBean, times(0)).addChunk(any(ExternalChunk.class));
+    }
+
+    @Test(expected = InvalidMessageException.class)
+    public void handleConsumedMessage_messageArgPayloadIsInvalid_throws() throws JobStoreException, JMSException, InvalidMessageException {
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, "{'invalid': 'instance'}");
+        dmqMessageConsumerBean.handleConsumedMessage(consumedMessage);
+    }
+
+    @Test(expected = InvalidMessageException.class)
+    public void handleConsumedMessage_messageArgPayloadIsUnknown_throws() throws JobStoreException, JMSException, InvalidMessageException {
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", "Unknown", "{'unknown': 'instance'}");
+        dmqMessageConsumerBean.handleConsumedMessage(consumedMessage);
+    }
+
+    @Test
+    public void onMessage_deadPartitionedChunk_twoChunksAdded() throws JMSException, JobStoreException, JSONBException {
+        final ExternalChunk originalChunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
+        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+        textMessage.setText(dmqMessageConsumerBean.jsonbContext.marshall(originalChunk));
+        dmqMessageConsumerBean.onMessage(textMessage);
+        assertThat(dmqMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+
+        final ArgumentCaptor<ExternalChunk> chunkCaptor = ArgumentCaptor.forClass(ExternalChunk.class);
+        verify(dmqMessageConsumerBean.jobStoreBean, times(2)).addChunk(chunkCaptor.capture());
+        final List<ExternalChunk> capturedChunks = chunkCaptor.getAllValues();
+        assertThat("1st dead chunk size", capturedChunks.get(0).size(), is(originalChunk.size()));
+        assertThat("1st dead chunk type", capturedChunks.get(0).getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat("2nd dead chunk size", capturedChunks.get(1).size(), is(originalChunk.size()));
+        assertThat("2nd dead chunk type", capturedChunks.get(1).getType(), is(ExternalChunk.Type.DELIVERED));
+    }
+
+    @Test
+    public void onMessage_deadProcessedChunk_singleChunkAdded() throws JMSException, JobStoreException, JSONBException {
+        final ExternalChunk originalChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
+        textMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
+        textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+        textMessage.setText(dmqMessageConsumerBean.jsonbContext.marshall(originalChunk));
+        dmqMessageConsumerBean.onMessage(textMessage);
+        assertThat(dmqMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
+
+        final ArgumentCaptor<ExternalChunk> chunkCaptor = ArgumentCaptor.forClass(ExternalChunk.class);
+        verify(dmqMessageConsumerBean.jobStoreBean, times(1)).addChunk(chunkCaptor.capture());
+        final List<ExternalChunk> capturedChunks = chunkCaptor.getAllValues();
+        assertThat("dead chunk size", capturedChunks.get(0).size(), is(originalChunk.size()));
+        assertThat("dead chunk type", capturedChunks.get(0).getType(), is(ExternalChunk.Type.DELIVERED));
+    }
+
+    private static class TestableDmqMessageConsumerBean extends DmqMessageConsumerBean {
+        public MessageDrivenContext getMessageDrivenContext() {
+            return messageDrivenContext;
+        }
+        public void setMessageDrivenContext(MessageDrivenContext messageDrivenContext) {
+            this.messageDrivenContext = messageDrivenContext;
+        }
+    }
+
+    private void initializeDmqMessageConsumerBean() {
+        dmqMessageConsumerBean = new TestableDmqMessageConsumerBean();
+        dmqMessageConsumerBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
+        dmqMessageConsumerBean.jobStoreBean = mock(PgJobStore.class);
+    }
+}

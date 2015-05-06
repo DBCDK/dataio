@@ -9,9 +9,11 @@ import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import javax.persistence.Query;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract listing query class
@@ -20,6 +22,12 @@ import java.util.Map;
  */
 public abstract class ListQuery<T extends ListCriteria, U extends ListFilterField> {
     protected final Map<U, FieldMapping> fieldMap = new HashMap<>();
+
+    private static Set<ListFilter.Op> unaryOpFieldSet = new HashSet<>();
+    static {
+        unaryOpFieldSet.add(ListFilter.Op.IS_NOT_NULL);
+        unaryOpFieldSet.add(ListFilter.Op.IS_NULL);
+    }
 
     /**
      * Creates and executes listing query with given criteria
@@ -94,17 +102,18 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             final ListFilter<U> filter = member.getFilter();
             FieldMapping fieldMapping = fieldMap.get(filter.getField());
             final String columnName = fieldMap.get(filter.getField()).getName();
+
             if(fieldMapping instanceof BooleanOpField) {
-
-
-                // add column name, operator and value triplets to query
-
-                queryString.append(" ").append(columnName).append(filterOpToString(filter.getOperator())).append("?").append(nextParameterIndex);
-                nextParameterIndex++;
+                if (unaryOpFieldSet.contains(filter.getOperator())) {
+                    queryString.append(" ").append(columnName).append(filterOpToString(filter.getOperator()));
+                } else {
+                    // add column name, operator and value triplets to query
+                    queryString.append(" ").append(columnName).append(filterOpToString(filter.getOperator())).append("?").append(nextParameterIndex);
+                    nextParameterIndex++;
+                }
             } else {
                 queryString.append(" ").append(columnName);
             }
-
         }
     }
 
@@ -145,6 +154,8 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             case LESS_THAN:                 return "<";
             case LESS_THAN_OR_EQUAL_TO:     return "<=";
             case NOT_EQUAL:                 return "!=";
+            case IS_NULL:                   return " IS NULL";
+            case IS_NOT_NULL:               return " IS NOT NULL";
             default: throw new IllegalArgumentException("Unknown filter operator " + op);
         }
     }
@@ -203,12 +214,14 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
     public static class TimestampValue implements ParameterValue {
         @Override
         public void set(Query query, int parameterIndex, Object value) {
-            if (value instanceof Long) {
-                // When value is taken from criteria unmarshalled from
-                // JSON the Date type information is lost
-                query.setParameter(parameterIndex, new Date((long) value));
-            } else {
-                query.setParameter(parameterIndex, value);
+            if (value != null) {
+                if (value instanceof Long) {
+                    // When value is taken from criteria unmarshalled from
+                    // JSON the Date type information is lost
+                    query.setParameter(parameterIndex, new Date((long) value));
+                } else {
+                    query.setParameter(parameterIndex, value);
+                }
             }
         }
     }

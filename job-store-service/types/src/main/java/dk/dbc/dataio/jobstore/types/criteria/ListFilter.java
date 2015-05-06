@@ -19,7 +19,9 @@ public class ListFilter<T extends ListFilterField> {
         GREATER_THAN_OR_EQUAL_TO,
         EQUAL,
         NOT_EQUAL,
-        NOOP
+        NOOP,
+        IS_NULL,
+        IS_NOT_NULL
     }
 
     private final T field;
@@ -44,6 +46,11 @@ public class ListFilter<T extends ListFilterField> {
     @JsonIgnore
     public ListFilter(@JsonProperty("field") T field) {
         this(field, Op.NOOP, null);
+    }
+
+    @JsonIgnore
+    public ListFilter(@JsonProperty("field") T field, @JsonProperty("operator") Op operator) {
+        this(field, operator, null);
     }
 
     public T getField() {

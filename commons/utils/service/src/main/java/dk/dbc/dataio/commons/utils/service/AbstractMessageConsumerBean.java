@@ -95,6 +95,7 @@ public abstract class AbstractMessageConsumerBean {
         } catch (InvalidMessageException e) {
             LOGGER.error("Message rejected", e);
         } catch (Throwable t) {
+            LOGGER.error("Transaction rollback", t);
             // Ensure that this container-managed transaction can not commit
             // and therefore that this message subsequently will be re-delivered.
             throw new IllegalStateException(String.format(

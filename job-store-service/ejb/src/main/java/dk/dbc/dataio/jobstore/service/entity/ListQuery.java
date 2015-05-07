@@ -23,10 +23,10 @@ import java.util.Set;
 public abstract class ListQuery<T extends ListCriteria, U extends ListFilterField> {
     protected final Map<U, FieldMapping> fieldMap = new HashMap<>();
 
-    private static Set<ListFilter.Op> unaryOpFieldSet = new HashSet<>();
+    private static Set<ListFilter.Op> unaryOpSet = new HashSet<>();
     static {
-        unaryOpFieldSet.add(ListFilter.Op.IS_NOT_NULL);
-        unaryOpFieldSet.add(ListFilter.Op.IS_NULL);
+        unaryOpSet.add(ListFilter.Op.IS_NOT_NULL);
+        unaryOpSet.add(ListFilter.Op.IS_NULL);
     }
 
     /**
@@ -104,11 +104,12 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             final String columnName = fieldMap.get(filter.getField()).getName();
 
             if(fieldMapping instanceof BooleanOpField) {
-                if (unaryOpFieldSet.contains(filter.getOperator())) {
-                    queryString.append(" ").append(columnName).append(filterOpToString(filter.getOperator()));
+                ListFilter.Op operator = filter.getOperator();
+                if (unaryOpSet.contains(operator)) {
+                    queryString.append(" ").append(columnName).append(filterOpToString(operator));
                 } else {
                     // add column name, operator and value triplets to query
-                    queryString.append(" ").append(columnName).append(filterOpToString(filter.getOperator())).append("?").append(nextParameterIndex);
+                    queryString.append(" ").append(columnName).append(filterOpToString(operator)).append("?").append(nextParameterIndex);
                     nextParameterIndex++;
                 }
             } else {

@@ -7,7 +7,6 @@ import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -47,52 +46,6 @@ public class JobsBean {
     @EJB
     JobStoreBean jobStoreBean;
 
-    @GET
-    public Response iOnlyExistForSanityTest() throws JobStoreException {
-        LOGGER.debug("some debug information");
-        jobStoreBean.testAddJob();
-        return Response.ok().build();
-    }
-
-    /**
-     * Adds new job based on POSTed job input stream, and persists it in the underlying data store
-     *
-     * @param uriInfo application and request URI information
-     * @param jobInputStreamData job input stream data as json
-     *
-     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
-     *         a HTTP 400 BAD_REQUEST response on invalid json content,
-     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
-     *
-     * @throws JSONBException on marshalling failure
-     * @throws JobStoreException on failure to add job
-     */
-    @POST
-    @Path(JobStoreServiceConstants.JOB_COLLECTION)
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
-        LOGGER.trace("JobInputStream: {}", jobInputStreamData);
-        final JobInputStream jobInputStream;
-        JobInfoSnapshot jobInfoSnapshot;
-
-        try {
-            jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
-            jobInfoSnapshot = jobStoreBean.addAndScheduleJob(jobInputStream);
-            return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
-                    .entity(jsonbContext.marshall(jobInfoSnapshot))
-                    .build();
-
-        } catch (JSONBException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
-                    .build();
-        } catch(InvalidInputException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbContext.marshall(e.getJobError()))
-                    .build();
-        }
-    }
 
     /**
      * Adds chunk with type: PROCESSED (updates existing job by adding external chunk)

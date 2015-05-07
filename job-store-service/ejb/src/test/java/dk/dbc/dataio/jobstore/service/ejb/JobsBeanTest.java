@@ -3,12 +3,10 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
@@ -17,7 +15,6 @@ import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -49,7 +46,6 @@ import static org.mockito.Mockito.when;
 
 public class JobsBeanTest {
     private final static String LOCATION = "location";
-    private final static int PART_NUMBER = 2535678;
     private final static int JOB_ID = 42;
     private final static int CHUNK_ID = 10;
     private UriInfo mockedUriInfo;
@@ -69,70 +65,6 @@ public class JobsBeanTest {
 
         final URI uri = new URI(LOCATION);
         when(mockedUriBuilder.build()).thenReturn(uri);
-    }
-
-    // ************************************* ADD JOB TESTS **************************************************************
-
-    @Test(expected = JobStoreException.class)
-    public void addJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
-        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
-        final String jobInputStreamJson = asJson(jobInputStream);
-
-        when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenThrow(new JobStoreException("Error"));
-
-        jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
-    }
-
-    @Test
-    public void addJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
-        final Response response = jobsBean.addJob(mockedUriInfo, "invalid JSON");
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
-        assertThat(jobErrorReturned.getCode(), is(JobError.Code.INVALID_JSON));
-    }
-
-    @Test
-    public void addJob_invalidInput_returnsResponseWithHttpStatusBadRequest() throws Exception {
-        final JobError jobError = new JobError(JobError.Code.INVALID_DATAFILE, "datafile is invalid", "stack trace");
-        final InvalidInputException invalidInputException = new InvalidInputException("error message", jobError);
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
-        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
-        final String jobInputStreamJson = asJson(jobInputStream);
-
-        when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenThrow(invalidInputException);
-
-        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
-        assertThat(jobErrorReturned.getCode(), is(jobError.getCode()));
-    }
-
-    @Test
-    public void addJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
-        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
-        final JobInputStream jobInputStream = new JobInputStream(jobInfoSnapshot.getSpecification(), false, PART_NUMBER);
-        final String jobInputStreamJson = asJson(jobInputStream);
-
-        when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
-
-        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
-        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-        assertThat(response.getLocation().toString(), is(LOCATION));
-        assertThat(response.hasEntity(), is(true));
-
-        final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
-        assertThat(returnedJobInfoSnapshot, is(notNullValue()));
-        assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat(returnedJobInfoSnapshot.getSpecification(), is(jobInfoSnapshot.getSpecification()));
-        assertThat(returnedJobInfoSnapshot.getState(), is(jobInfoSnapshot.getState()));
-        assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
     }
 
     // ************************************* ADD CHUNK TESTS **************************************************************

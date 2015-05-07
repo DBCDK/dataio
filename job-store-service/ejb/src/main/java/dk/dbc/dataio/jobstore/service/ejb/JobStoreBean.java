@@ -12,11 +12,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
@@ -41,11 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -62,35 +55,6 @@ public class JobStoreBean {
 
     @EJB
     FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-
-    public void testAddJob() throws JobStoreException {
-        final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<records>"
-                + "<record>first</record>"
-                + "<record>second</record>"
-                + "<record>third</record>"
-                + "<record>fourth</record>"
-                + "<record>fifth</record>"
-                + "<record>sixth</record>"
-                + "<record>seventh</record>"
-                + "<record>eighth</record>"
-                + "<record>ninth</record>"
-                + "<record>tenth</record>"
-                + "<record>eleventh</record>"
-                + "</records>";
-
-        final FlowBinder flowBinder = new FlowBinderBuilder().build();
-        final Flow flow = new FlowBuilder().build();
-        final Sink sink = new SinkBuilder().build();
-        final Submitter submitter = new SubmitterBuilder().build();
-        final JobInputStream jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), true, 0);
-        final DataPartitionerFactory.DataPartitioner dataPartitioner =
-                new DefaultXmlDataPartitionerFactory().createDataPartitioner(
-                        new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
-        final SequenceAnalyserSinkKeyGenerator keyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
-        final FlowStoreReferences flowStoreReferences = createFlowStoreReferences(flowBinder, flow, sink, submitter);
-        jobStore.addJob(jobInputStream, dataPartitioner, keyGenerator, flow, sink, flowStoreReferences);
-    }
 
     /**
      * Adds new job in the underlying data store from given job input stream.

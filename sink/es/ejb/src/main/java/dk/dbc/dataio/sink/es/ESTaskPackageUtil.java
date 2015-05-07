@@ -7,6 +7,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.service.Base64Util;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -276,9 +277,9 @@ public class ESTaskPackageUtil {
                         failureMsg = String.format("An unknown completion.status [%d] for taskpackage [%d/%d] was found - accepting as failed.", data.recordstatus, targetReference, data.lbnr);
                         LOGGER.error(failureMsg);
                 }
-                String recordIdData = data.record_id == null ? "" : data.record_id;
+                String recordIdData = data.record_id == null ? "unknown record ID" : data.record_id;
                 String itemData = status == ChunkItem.Status.SUCCESS ? recordIdData : failureMsg;
-                chunkItems.add(new ChunkItem(data.lbnr, itemData, status));
+                chunkItems.add(new ChunkItem(data.lbnr, Base64Util.base64encode(itemData), status));
             }
             return chunkItems;
         } finally {

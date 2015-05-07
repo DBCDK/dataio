@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
@@ -13,6 +14,7 @@ import javax.ejb.Startup;
 
 @Singleton
 @Startup
+@DependsOn("StartupDBMigrator")
 public class BootstrapBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);
 

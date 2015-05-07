@@ -63,9 +63,6 @@
                 </goals>
                 <configuration>
                   <pgDbName>jobstore</pgDbName>
-                  <pgDbScripts>
-                    <param>${basedir}/../../job-store-service/resources/schema/jobstore_schema_pg.sql</param>
-                  </pgDbScripts>
                 </configuration>
               </execution>
               <execution>

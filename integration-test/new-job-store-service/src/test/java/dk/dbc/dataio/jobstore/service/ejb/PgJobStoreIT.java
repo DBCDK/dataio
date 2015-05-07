@@ -35,7 +35,9 @@ import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,6 @@ import javax.persistence.Persistence;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,7 +81,24 @@ public class PgJobStoreIT {
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
     private static final String DATA = "this is some test data";
     private static final State.Phase PROCESSING = State.Phase.PROCESSING;
+    private static final PGSimpleDataSource datasource;
     private EntityManager entityManager;
+
+    static {
+        datasource = new PGSimpleDataSource();
+        datasource.setDatabaseName(DATABASE_NAME);
+        datasource.setServerName("localhost");
+        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port")));
+        datasource.setUser(System.getProperty("user.name"));
+        datasource.setPassword(System.getProperty("user.name"));
+    }
+
+    @BeforeClass
+    public static void createDb() {
+        final StartupDBMigrator dbMigrator = new StartupDBMigrator();
+        dbMigrator.dataSource = datasource;
+        dbMigrator.onStartup();
+    }
 
     /**
      * Given: a jobstore with empty flowcache
@@ -633,15 +651,7 @@ public class PgJobStoreIT {
     }
 
     private Connection newConnection() throws SQLException {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e);
-        }
-        final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",
-                System.getProperty("postgresql.port"), DATABASE_NAME);
-        final Connection connection = DriverManager.getConnection(dbUrl,
-                System.getProperty("user.name"), System.getProperty("user.name"));
+        final Connection connection = datasource.getConnection();
         connection.setAutoCommit(false);
         return connection;
     }

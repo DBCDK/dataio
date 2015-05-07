@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.service.rs;
 
-import dk.dbc.dataio.jobstore.service.ejb.AddJobsBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class JobStoreApplication extends Application {
     public Set<Class<?>> getClasses() {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(JobsBean.class);
-        classes.add(AddJobsBean.class);
         for (Class<?> clazz : classes) {
             log.info("Registered {} resource", clazz.getName());
         }

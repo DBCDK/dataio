@@ -31,6 +31,9 @@ import static org.junit.Assert.fail;
 
 /**
  * Integration tests for the flow binders collection part of the flow store service
+ *
+ * TODO: Rethink Flowstore integrationtest to avoid id number clashes due to JPA caching
+ *
  */
 public class FlowBindersIT {
     private static Client restClient;
@@ -526,7 +529,7 @@ public class FlowBindersIT {
         try{
             // When...
             final FlowBinderContent newFlowBinderContent = new FlowBinderContentBuilder().build();
-            flowStoreServiceConnector.updateFlowBinder(newFlowBinderContent, 1234, 1L);
+            flowStoreServiceConnector.updateFlowBinder(newFlowBinderContent, 73528, 1L);
 
             fail("Wrong flow binder Id was not detected as input to updateFlowBinder().");
 

@@ -72,7 +72,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_chunkArgIsNull_throws() throws JobStoreException {
+    public void scheduleChunk2arg_chunkArgIsNull_throws() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         try {
             jobSchedulerBean.scheduleChunk(null, sink);
@@ -82,7 +82,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_sinkArgIsNull_throws() throws JobStoreException {
+    public void scheduleChunk2arg_sinkArgIsNull_throws() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         try {
             jobSchedulerBean.scheduleChunk(chunkCDE, null);
@@ -92,7 +92,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_givenValidCDE_addsToSequenceAnalysis() throws JobStoreException {
+    public void scheduleChunk2arg_givenValidCDE_addsToSequenceAnalysis() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean);
 
@@ -101,7 +101,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_givenValidCDE_publishesWorkload() throws JobStoreException {
+    public void scheduleChunk2arg_givenValidCDE_publishesWorkload() throws JobStoreException {
         final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
         whenGetChunk().thenReturn(chunk);
 
@@ -113,7 +113,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_onFailureToRetrieveWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
+    public void scheduleChunk2arg_onFailureToRetrieveWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
         final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
         whenGetChunk()
                 .thenReturn(chunk)
@@ -130,7 +130,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_onFailureToSendWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
+    public void scheduleChunk2arg_onFailureToSendWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
         final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
         whenGetChunk().thenReturn(chunk);
         doNothing().
@@ -147,7 +147,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_sinkNotSeenBefore_createsSequenceAnalyserAndMaintainsToSinkMapping() throws JobStoreException {
+    public void scheduleChunk2arg_sinkNotSeenBefore_createsSequenceAnalyserAndMaintainsToSinkMapping() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
         assertThat("sequenceAnalysers.size(),", jobSchedulerBean.sequenceAnalysers.size(), is(1));
@@ -157,7 +157,7 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_sequenceAnalyserMonitorBeanThrowsIllegalStateException_throws() throws JobStoreException {
+    public void scheduleChunk2arg_sequenceAnalyserMonitorBeanThrowsIllegalStateException_throws() throws JobStoreException {
         doThrow(new IllegalStateException()).when(sequenceAnalyserMonitorBean).registerInJmx(anyString());
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
@@ -169,9 +169,136 @@ public class JobSchedulerBeanTest {
     }
 
     @Test
-    public void scheduleChunk_givenValidCDE_updatesMonitor() throws JobStoreException {
+    public void scheduleChunk2arg_givenValidCDE_updatesMonitor() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
+        final SequenceAnalyserMonitorMXBean mxBean = getMXBean(jobSchedulerBean);
+
+        // Inject recognizable timestamp into monitor sample
+        final long oldTimestamp = 42;
+        mxBean.setSample(new SequenceAnalyserMonitorSample(1, oldTimestamp));
+
+        jobSchedulerBean.scheduleChunk(new CollisionDetectionElement(
+                new ChunkIdentifier(chunk.getJobId()+1, chunk.getChunkId()+1), Collections.<String>emptySet()), sink);
+
+        // Verify that monitor sample has correct "queue" size and has retained timestamp from "queue" head
+        assertThat(mxBean.getSample().getQueued(), is(2L));
+        assertThat(mxBean.getSample().getHeadOfQueueMonitoringStartTime(), is(oldTimestamp));
+    }
+
+    @Test
+    public void scheduleChunk3arg_chunkArgIsNull_throws() throws JobStoreException {
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        try {
+            jobSchedulerBean.scheduleChunk(null, sink, false);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void scheduleChunk3arg_sinkArgIsNull_throws() throws JobStoreException {
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        try {
+            jobSchedulerBean.scheduleChunk(chunkCDE, null, false);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void scheduleChunk3arg_givenValidCDE_addsToSequenceAnalysis() throws JobStoreException {
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        injectSequenceAnalyserComposite(jobSchedulerBean);
+
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+        verify(sequenceAnalyser).addChunk(any(CollisionDetectionElement.class));
+    }
+
+    @Test
+    public void scheduleChunk3arg_doPublishWorkloadArgIsTrue_publishesWorkload() throws JobStoreException {
+        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
+        whenGetChunk().thenReturn(chunk);
+
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        injectSequenceAnalyserComposite(jobSchedulerBean);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
+        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+    }
+
+    @Test
+    public void scheduleChunk3arg_doPublishWorkloadArgIsFalse_noWorkloadPublished() throws JobStoreException {
+        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
+        whenGetChunk().thenReturn(chunk);
+
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        injectSequenceAnalyserComposite(jobSchedulerBean);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+        verify(jobStoreBean, times(0)).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(0)).send(chunk);
+    }
+
+    @Test
+    public void scheduleChunk3arg_onFailureToRetrieveWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
+        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        whenGetChunk()
+                .thenReturn(chunk)
+                .thenThrow(new NullPointerException("died in getChunk()"))
+                .thenReturn(chunk)
+                .thenReturn(chunk);
+        doNothing().when(jobProcessorMessageProducerBean).send(chunk);
+
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        injectSequenceAnalyserComposite(jobSchedulerBean);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
+        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(identifiers.size()-1)).send(chunk);
+    }
+
+    @Test
+    public void scheduleChunk3arg_onFailureToSendWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
+        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        whenGetChunk().thenReturn(chunk);
+        doNothing().
+        doThrow(new JobStoreException("died in send()")).
+        doNothing().
+        doNothing().
+                when(jobProcessorMessageProducerBean).send(chunk);
+
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        injectSequenceAnalyserComposite(jobSchedulerBean);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
+        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+    }
+
+    @Test
+    public void scheduleChunk3arg_sinkNotSeenBefore_createsSequenceAnalyserAndMaintainsToSinkMapping() throws JobStoreException {
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+        assertThat("sequenceAnalysers.size(),", jobSchedulerBean.sequenceAnalysers.size(), is(1));
+        assertThat("sequenceAnalysers.get(),", getMXBean(jobSchedulerBean), is(notNullValue()));
+        assertThat("toSinkMapping.size()", jobSchedulerBean.toSinkMapping.size(), is(1));
+        assertThat("toSinkMapping.get(),", jobSchedulerBean.toSinkMapping.get(chunkIdentifier), is(sink));
+    }
+
+    @Test
+    public void scheduleChunk3arg_sequenceAnalyserMonitorBeanThrowsIllegalStateException_throws() throws JobStoreException {
+        doThrow(new IllegalStateException()).when(sequenceAnalyserMonitorBean).registerInJmx(anyString());
+
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        try {
+            jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+            fail("No exception thrown");
+        } catch (JobStoreException e) {
+        }
+    }
+
+    @Test
+    public void scheduleChunk3arg_givenValidCDE_updatesMonitor() throws JobStoreException {
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
         final SequenceAnalyserMonitorMXBean mxBean = getMXBean(jobSchedulerBean);
 
         // Inject recognizable timestamp into monitor sample

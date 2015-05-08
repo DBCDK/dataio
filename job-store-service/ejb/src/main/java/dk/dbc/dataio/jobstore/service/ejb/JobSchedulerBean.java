@@ -21,6 +21,7 @@ import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,20 @@ public class JobSchedulerBean {
      * @throws JobStoreException if unable to setup monitoring
      */
     public void scheduleChunk(CollisionDetectionElement chunkCDE, Sink sink) throws NullPointerException, JobStoreException {
+        scheduleChunk(chunkCDE, sink, true);
+    }
+
+    /**
+     * Passes given chunk collision detection element and sink on to the
+     * sequence analyser. If doPublishWorkload flag is true the pipeline
+     * is also notified of next available workload (if any)
+     * @param chunkCDE next chunk collision detection element to enter into sequence analysis
+     * @param sink sink associated with chunk
+     * @param doPublishWorkload publish next available workload flag
+     * @throws NullPointerException if given any null-valued argument
+     * @throws JobStoreException if unable to setup monitoring
+     */
+    public void scheduleChunk(CollisionDetectionElement chunkCDE, Sink sink, boolean doPublishWorkload) throws NullPointerException, JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(chunkCDE, "cde");
@@ -71,7 +86,11 @@ public class JobSchedulerBean {
                 final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
                 sac.sequenceAnalyser.addChunk(chunkCDE);
                 updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
-                workload = sac.sequenceAnalyser.getInactiveIndependentChunks();
+                if (doPublishWorkload) {
+                    workload = sac.sequenceAnalyser.getInactiveIndependentChunks();
+                } else {
+                    workload = Collections.emptyList();
+                }
             }
             publishWorkload(workload);
         } finally {

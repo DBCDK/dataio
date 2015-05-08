@@ -137,6 +137,21 @@ public class JobSchedulerBean {
         }
     }
 
+    /**
+     * Attempts to release a single chunk from each sequence analyser to jump
+     * start the pipeline
+     */
+    public void jumpStart() {
+        LOGGER.info("Jump starting pipeline");
+        List<ChunkIdentifier> workload;
+        for (Map.Entry<String, SequenceAnalyserComposite> entry : sequenceAnalysers.entrySet()) {
+            synchronized (entry.getKey()) {
+                workload = entry.getValue().sequenceAnalyser.getInactiveIndependentChunks(1);
+            }
+            publishWorkload(workload);
+        }
+    }
+
     String getLockObject(String id) {
         // Add namespace to given string to avoid global locking issues.
         // Use intern() method to get reference from String pool, so

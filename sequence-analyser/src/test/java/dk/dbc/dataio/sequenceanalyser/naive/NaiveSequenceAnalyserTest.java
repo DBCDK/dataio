@@ -45,7 +45,7 @@ public class NaiveSequenceAnalyserTest {
         sa.addChunk(element);
         // THEN:
         // verify that chunk is independent
-        assertElements(sa.getInactiveIndependentChunks(), element);
+        assertElements(sa.getInactiveIndependentChunks(100), element);
     }
 
     /*
@@ -63,7 +63,7 @@ public class NaiveSequenceAnalyserTest {
         // remove chunk
         sa.deleteAndReleaseChunk(new ChunkIdentifier(1L, 2L));
         // verify that there are no independent chunks left
-        assertElements(sa.getInactiveIndependentChunks());
+        assertElements(sa.getInactiveIndependentChunks(100));
         // verify that the sequenceanalyser is empty
         assertThat(sa.size(), is(0));
     }
@@ -90,7 +90,7 @@ public class NaiveSequenceAnalyserTest {
         sa.addChunk(element4);
         // THEN:
         // verify that chunks are independent and inactive
-        assertElements(sa.getInactiveIndependentChunks(), element1, element2, element3, element4);
+        assertElements(sa.getInactiveIndependentChunks(100), element1, element2, element3, element4);
         // verify number of elements in Sequenceanalyser
         assertThat(sa.size(), is(4));
     }
@@ -116,7 +116,7 @@ public class NaiveSequenceAnalyserTest {
         assertThat(sa.size(), is(2));
         // THEN:
         // verify that only the first chunk is independent
-        assertElements(sa.getInactiveIndependentChunks(), element1);
+        assertElements(sa.getInactiveIndependentChunks(100), element1);
     }
 
     /*
@@ -133,7 +133,7 @@ public class NaiveSequenceAnalyserTest {
         sa.addChunk(element1);
         sa.addChunk(element2);
         // verify that only the first chunk is independent
-        assertElements(sa.getInactiveIndependentChunks(), element1);
+        assertElements(sa.getInactiveIndependentChunks(100), element1);
         // verify that the seqence analyser contains two chunks
         assertThat(sa.size(), is(2));
         // wHEN
@@ -143,7 +143,7 @@ public class NaiveSequenceAnalyserTest {
         assertThat(sa.size(), is(1));
         // THEN
         // verify that chunk2 is now independent
-        assertElements(sa.getInactiveIndependentChunks(), element2);
+        assertElements(sa.getInactiveIndependentChunks(100), element2);
     }
 
     /*
@@ -164,12 +164,12 @@ public class NaiveSequenceAnalyserTest {
         assertThat(sa.size(), is(2));
         // WHEN
         // verify that chunks are dependent
-        assertElements(sa.getInactiveIndependentChunks(), element1);
+        assertElements(sa.getInactiveIndependentChunks(100), element1);
         // verify that the Sequenceanalyser still contains two elements
         assertThat(sa.size(), is(2));
         // THEN
         // verify that chunk2 has not become independent
-        assertElements(sa.getInactiveIndependentChunks());
+        assertElements(sa.getInactiveIndependentChunks(100));
         // verify that the Sequenceanalyser still contains one element
         assertThat(sa.size(), is(2));
     }
@@ -193,19 +193,37 @@ public class NaiveSequenceAnalyserTest {
         // verify that the sequence analyser contains three chunks
         assertThat(sa.size(), is(3));
         // verify that chunks are dependent
-        assertElements(sa.getInactiveIndependentChunks(), element1);
+        assertElements(sa.getInactiveIndependentChunks(100), element1);
         // remove chunk1
         sa.deleteAndReleaseChunk(new ChunkIdentifier(1L, 2L));
         // verify that the sequence analyser now contains two chunks
         assertThat(sa.size(), is(2));
         // verify that chunk2 is now present
-        assertElements(sa.getInactiveIndependentChunks(), element2);
+        assertElements(sa.getInactiveIndependentChunks(100), element2);
         // remove chunk2
         sa.deleteAndReleaseChunk(new ChunkIdentifier(1L, 3L));
         // verify that the sequence analyser now contains one chunk
         assertThat(sa.size(), is(1));
         // verify that chunk3 is now present
-        assertElements(sa.getInactiveIndependentChunks(), element3);
+        assertElements(sa.getInactiveIndependentChunks(100), element3);
+    }
+
+    /*
+     * Given a sequence analyser with three independent chunks
+     * When retrieving independent with a max limit of two
+     * Then only the first two chunks are returned
+     */
+    @Test
+    public void testOfMaxLimitForIndependentChunksRetrieval() {
+        CollisionDetectionElement element1 = createCollisionDetectionElement(1L, 1L, "one");
+        CollisionDetectionElement element2 = createCollisionDetectionElement(1L, 2L, "two");
+        CollisionDetectionElement element3 = createCollisionDetectionElement(1L, 3L, "three");
+        // add chunks
+        sa.addChunk(element1);
+        sa.addChunk(element2);
+        sa.addChunk(element3);
+        // verify that chunks are dependent
+        assertElements(sa.getInactiveIndependentChunks(2), element1, element2);
     }
 
     @Test
@@ -243,7 +261,7 @@ public class NaiveSequenceAnalyserTest {
         ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
 
         assertThat(sa.isHead(cid), is(false));
-        assertElements(sa.getInactiveIndependentChunks(), element1, element2);
+        assertElements(sa.getInactiveIndependentChunks(100), element1, element2);
         assertThat(sa.isHead(cid), is(false));
         sa.deleteAndReleaseChunk(new ChunkIdentifier(7L, 9L));
         assertThat(sa.isHead(cid), is(true));
@@ -261,11 +279,11 @@ public class NaiveSequenceAnalyserTest {
         ChunkIdentifier cid = new ChunkIdentifier(11L, 13L);
 
         assertThat(sa.isHead(cid), is(false));
-        assertElements(sa.getInactiveIndependentChunks(), element1);
+        assertElements(sa.getInactiveIndependentChunks(100), element1);
         assertThat(sa.isHead(cid), is(false));
         sa.deleteAndReleaseChunk(new ChunkIdentifier(7L, 9L));
         assertThat(sa.isHead(cid), is(true));
-        assertElements(sa.getInactiveIndependentChunks(), element2);
+        assertElements(sa.getInactiveIndependentChunks(100), element2);
         assertThat(sa.isHead(cid), is(true));
         sa.deleteAndReleaseChunk(cid);
         assertThat(sa.isHead(cid), is(false));

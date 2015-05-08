@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
+    private static final int MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD = 100;
 
     ConcurrentHashMap<String, SequenceAnalyserComposite> sequenceAnalysers = new ConcurrentHashMap<>(16, 0.9F, 1);
     ConcurrentHashMap<ChunkIdentifier, Sink> toSinkMapping = new ConcurrentHashMap<>(16, 0.9F, 1);
@@ -87,7 +88,7 @@ public class JobSchedulerBean {
                 sac.sequenceAnalyser.addChunk(chunkCDE);
                 updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
                 if (doPublishWorkload) {
-                    workload = sac.sequenceAnalyser.getInactiveIndependentChunks();
+                    workload = sac.sequenceAnalyser.getInactiveIndependentChunks(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
                 } else {
                     workload = Collections.emptyList();
                 }
@@ -190,7 +191,7 @@ public class JobSchedulerBean {
         final boolean isHead = sac.sequenceAnalyser.isHead(chunkIdentifier);
         sac.sequenceAnalyser.deleteAndReleaseChunk(chunkIdentifier);
         updateMonitor(sac, isHead);
-        return sac.sequenceAnalyser.getInactiveIndependentChunks();
+        return sac.sequenceAnalyser.getInactiveIndependentChunks(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
     }
 
     private void updateMonitor(SequenceAnalyserComposite sac, boolean isHead) {

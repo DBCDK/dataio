@@ -21,8 +21,8 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
     }
 
     @Override
-    public List<ChunkIdentifier> getInactiveIndependentChunks() {
-        return dependencyGraph.getInactiveIndependentChunksAndActivate();
+    public List<ChunkIdentifier> getInactiveIndependentChunks(int max) {
+        return dependencyGraph.getInactiveIndependentChunksAndActivate(max);
     }
 
     // Number of elements in internal data-structure.

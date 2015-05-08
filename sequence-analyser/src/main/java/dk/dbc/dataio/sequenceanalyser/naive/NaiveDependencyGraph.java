@@ -72,24 +72,29 @@ class NaiveDependencyGraph {
     }
 
     /**
-     * Retrieves all independent chunks which are also inactive. When returned,
-     * the chunks will be changed to active.
+     * Retrieves no more than max independent chunks which are also inactive. W
+     * hen returned, the chunks will be changed to active.
      * <p>
      * An independent Chunk, is a in a Node with no outgoing edges. Incoming
      * edges are allowed since this only indicates that another node depends on
      * the current node.
-     *
+     * @param max maximum number of free chunks to return
      * @return A list of independent chunks which are now flagged as active.
      */
-    public List<ChunkIdentifier> getInactiveIndependentChunksAndActivate() {
-        List<ChunkIdentifier> result = new ArrayList<>();
+    public List<ChunkIdentifier> getInactiveIndependentChunksAndActivate(int max) {
+        int inactiveNodesFound = 0;
+        List<ChunkIdentifier> result = new ArrayList<>(max);
         for (Node node : nodes) {
+            if (inactiveNodesFound == max) {
+                break;
+            }
             if (node.isActivated()) {
                 continue;
             }
             if (!doesNodeContainOutgoingEdges(node)) {
                 result.add(node.getChunkIdentifier());
                 node.activate();
+                inactiveNodesFound++;
             }
         }
         return result;

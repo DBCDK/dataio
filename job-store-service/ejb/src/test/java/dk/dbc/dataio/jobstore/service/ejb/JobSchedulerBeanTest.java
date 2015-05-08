@@ -28,6 +28,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -67,7 +68,7 @@ public class JobSchedulerBeanTest {
     @Before
     public void setupExpectations() {
         doNothing().when(sequenceAnalyser).addChunk(any(CollisionDetectionElement.class));
-        when(sequenceAnalyser.getInactiveIndependentChunks()).thenReturn(Collections.<ChunkIdentifier>emptyList());
+        when(sequenceAnalyser.getInactiveIndependentChunks(anyInt())).thenReturn(Collections.<ChunkIdentifier>emptyList());
         when(sequenceAnalyserMonitorBean.getMBeans()).thenReturn(mBeans);
     }
 
@@ -455,7 +456,7 @@ public class JobSchedulerBeanTest {
         while (numIdentifiers-- > 0) {
             identifiers.add(chunkIdentifier);
         }
-        when(sequenceAnalyser.getInactiveIndependentChunks()).thenReturn(identifiers);
+        when(sequenceAnalyser.getInactiveIndependentChunks(anyInt())).thenReturn(identifiers);
         return identifiers;
     }
 

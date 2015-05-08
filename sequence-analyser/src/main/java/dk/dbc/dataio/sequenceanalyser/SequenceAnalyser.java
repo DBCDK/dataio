@@ -40,15 +40,15 @@ public interface SequenceAnalyser {
     void deleteAndReleaseChunk(ChunkIdentifier identifier);
 
     /**
-     * Returns a list of all independent chunks, which was not already flagged
-     * as active. When the list is returned, all the returned ChunkIdentifiers
+     * Returns a list of no more than max independent chunks, which are not already
+     * flagged as active. When the list is returned, all the returned ChunkIdentifiers
      * are flagged as active. Only ChunkIdentifiers that - previous to the call
      * - was independent and inactive are returned.
-     *
+     * @param max maximum number of free chunks to return
      * @return A list of independent ChunkIdentifiers which are now flagged as
      * active.
      */
-    List<ChunkIdentifier> getInactiveIndependentChunks();
+    List<ChunkIdentifier> getInactiveIndependentChunks(int max);
 
     /**
      * Number of elements in internal data-structure.

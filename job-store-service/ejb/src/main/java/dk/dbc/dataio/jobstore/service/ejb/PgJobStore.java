@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ChunkListQuery;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowConverter;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -35,12 +36,14 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,6 +229,27 @@ public class PgJobStore {
     }
 
     /**
+     * Creates chunk collision detection element listing based on given criteria
+     * @param criteria chunk listing criteria
+     * @return list of collision detection elements
+     * @throws NullPointerException if given null-valued criteria argument
+     */
+    public List<CollisionDetectionElement> listChunksCollisionDetectionElements(ChunkListCriteria criteria) throws NullPointerException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+            final List<ChunkEntity> chunkEntities = new ChunkListQuery(entityManager).execute(criteria);
+            final List<CollisionDetectionElement> collisionDetectionElements = new ArrayList<>(chunkEntities.size());
+            for(ChunkEntity chunkEntity : chunkEntities) {
+                collisionDetectionElements.add(chunkEntity.toCollisionDetectionElement());
+            }
+            return collisionDetectionElements;
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Creates item listing based on given criteria
      * @param criteria item listing criteria
      * @return list of information snapshots of selected items
@@ -364,7 +388,7 @@ public class PgJobStore {
      * @throws InvalidInputException on failure to retrieve job
      * @throws NullPointerException on null valued input when creating new resource bundle
      */
-    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, NullPointerException {
+    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, NullPointerException { 
         final StopWatch stopWatch = new StopWatch();
         try {
             final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);

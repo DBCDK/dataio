@@ -30,10 +30,12 @@ import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
+import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.Before;
@@ -813,6 +815,54 @@ public class PgJobStoreTest {
                 itemInfoSnapshots.get(1).getJobId(), is(itemEntity2.getKey().getJobId()));
         assertThat("List of ItemInfoSnapshot second element itemNumber",
                 itemInfoSnapshots.get(1).getItemNumber(), is(2));
+    }
+
+    @Test
+    public void listChunksCollisionDetectionElements_criteriaArgIsNull_throws() {
+        final PgJobStore pgJobStore = newPgJobStore();
+        try {
+            pgJobStore.listChunksCollisionDetectionElements(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void listChunksCollisionDetectionElements_queryReturnsEmptyList_returnsEmptyCollisionDetectionElementList() {
+        final Query query = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString(), eq(ChunkEntity.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStore.listChunksCollisionDetectionElements(new ChunkListCriteria());
+        assertThat("List of CollisionDetectionElement", collisionDetectionElements, is(notNullValue()));
+        assertThat("List of CollisionDetectionElement is empty", collisionDetectionElements.isEmpty(), is(true));
+    }
+
+    @Test
+    public void listChunksCollisionDetectionElements_queryReturnsNonEmptyList_returnsCollisionDetectionElementList() {
+        final Query query = mock(Query.class);
+        final SequenceAnalysisData mockedSequenceAnalysisData = mock(SequenceAnalysisData.class);
+        final ChunkEntity chunkEntity1 = new ChunkEntity();
+        chunkEntity1.setKey(new ChunkEntity.Key(1, 1));
+        chunkEntity1.setSequenceAnalysisData(mockedSequenceAnalysisData);
+
+        final ChunkEntity chunkEntity2 = new ChunkEntity();
+        chunkEntity2.setKey(new ChunkEntity.Key(0, 1));
+        chunkEntity2.setSequenceAnalysisData(mockedSequenceAnalysisData);
+
+        when(entityManager.createNativeQuery(anyString(), eq(ChunkEntity.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(chunkEntity1, chunkEntity2));
+
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStore.listChunksCollisionDetectionElements(new ChunkListCriteria());
+        assertThat("List of CollisionDetectionElement", collisionDetectionElements, is(notNullValue()));
+        assertThat("List of CollisionDetectionElement size", collisionDetectionElements.size(), is(2));
+        assertThat("List of CollisionDetectionElement first element numberOfItems",
+                collisionDetectionElements.get(0).getIdentifier().getChunkId(), is(Long.valueOf(chunkEntity1.getKey().getId())));
+        assertThat("List of CollisionDetectionElement second element numberOfItems",
+                collisionDetectionElements.get(1).getIdentifier().getChunkId(), is(Long.valueOf(chunkEntity2.getKey().getId())));
     }
 
     @Test

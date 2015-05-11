@@ -27,10 +27,12 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.After;
@@ -50,6 +52,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -202,7 +205,7 @@ public class PgJobStoreIT {
     public void addJob() throws JobStoreException, SQLException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
+        final Params params = new Params(true, false);
         final int expectedNumberOfChunks = 2;
         final int expectedNumberOfItems = 11;
 
@@ -519,6 +522,45 @@ public class PgJobStoreIT {
         }
     }
 
+    /**
+     * Given   : a job store containing job
+     * When    : requesting a chunk collision detection element listing with a criteria selecting all chunks that has not finished
+     * Then    : the expected filtered chunk collision detection elements are returned, sorted by creation time ASC
+     */
+    @Test
+    public void listChunksCollisionDetectionElements() throws JobStoreException {
+        // Given...
+        Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
+        final PgJobStore pgJobStore = newPgJobStore();
+        for(int i = 0; i < 4; i++) {
+            final Params params = new Params(true, true); // 1 chunk in each job to secure different millisecond timestamps
+            final EntityTransaction transaction = entityManager.getTransaction();
+            transaction.begin();
+            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
+                    params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+            transaction.commit();
+        }
+
+        // When...
+        final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
+                .where(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))
+                .orderBy(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
+
+        // Then ...
+        List<CollisionDetectionElement> returnedChunkCollisionDetectionElements = pgJobStore.listChunksCollisionDetectionElements(chunkListCriteria);
+        assertThat(returnedChunkCollisionDetectionElements, not(nullValue()));
+        assertThat(returnedChunkCollisionDetectionElements.size(), is(4));
+
+        for(CollisionDetectionElement cde : returnedChunkCollisionDetectionElements) {
+            ChunkEntity.Key chunkEntityKey = new ChunkEntity.Key(Long.valueOf(cde.getIdentifier().getChunkId()).intValue(), Long.valueOf(cde.getIdentifier().getJobId()).intValue());
+            ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkEntityKey);
+            assertThat("Time of completion is null", chunkEntity.getTimeOfCompletion(), is(nullValue())); // no end date
+            assertThat("Previous collisionDetectionElement.timeOfCreation: {" + timeOfCreation + "} is before next collisionDetectionElement.timeOfCreation: {" + chunkEntity.getTimeOfCreation() +"}.",
+                    timeOfCreation.before(chunkEntity.getTimeOfCreation()), is(true)); // oldest first
+            timeOfCreation = chunkEntity.getTimeOfCreation();
+        }
+    }
+
 
     /**
      * Given: a job store where a job exists
@@ -529,7 +571,7 @@ public class PgJobStoreIT {
     public void getResourceBundle() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
+        final Params params = new Params(true, false);
 
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
@@ -570,7 +612,7 @@ public class PgJobStoreIT {
     public void getChunk() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
+        final Params params = new Params(true, false);
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
@@ -634,7 +676,7 @@ public class PgJobStoreIT {
 
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
-        final Params params = new Params(true);
+        final Params params = new Params(true, false);
         for (int i = 0; i < numberOfJobs; i++) {
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
@@ -756,7 +798,21 @@ public class PgJobStoreIT {
     /* Helper class for parameter values (with defaults)
      */
     private static class Params {
-        final String xml =
+        final String xml1Chunk =
+                "<records>"
+                        + "<record>first</record>"
+                        + "<record>second</record>"
+                        + "<record>third</record>"
+                        + "<record>fourth</record>"
+                        + "<record>fifth</record>"
+                        + "<record>sixth</record>"
+                        + "<record>seventh</record>"
+                        + "<record>eighth</record>"
+                        + "<record>ninth</record>"
+                        + "<record>tenth</record>"
+                        + "</records>";
+
+        final String xml2Chunks =
                 "<records>"
                         + "<record>first</record>"
                         + "<record>second</record>"
@@ -771,6 +827,7 @@ public class PgJobStoreIT {
                         + "<record>eleventh</record>"
                         + "</records>";
 
+
         public JobInputStream jobInputStream;
         public DataPartitionerFactory.DataPartitioner dataPartitioner;
         public SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
@@ -781,10 +838,16 @@ public class PgJobStoreIT {
         public String dataFileId;
         public short maxChunkSize;
 
-        public Params(boolean isEOJ) {
-            jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), isEOJ, 0);
+        public Params(boolean isEOJ, boolean isOneChunk) {
+            byte[] byteArray;
+            if(isOneChunk) {
+                byteArray = xml1Chunk.getBytes(StandardCharsets.UTF_8);
+            } else {
+                byteArray = xml2Chunks.getBytes(StandardCharsets.UTF_8);
+            }
             dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(
-                    new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
+                    new ByteArrayInputStream(byteArray), StandardCharsets.UTF_8.name());
+            jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), isEOJ, 0);
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
             flowBinder = new FlowBinderBuilder().build();

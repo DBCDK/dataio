@@ -269,10 +269,10 @@ public class PgJobStoreIT {
         assertThat(jobInfoSnapshotNewJob.getState().getPhase(PROCESSING).getSucceeded(), is(0));
 
         // Validate that nothing has been processed on chunk level
-        assertChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, PROCESSING, false);
+        assertAndReturnChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, PROCESSING, false);
 
         // Validate that nothing has been processed on item level
-        assertItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, PROCESSING, false);
+        assertAndReturnItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, PROCESSING, false);
 
         ExternalChunk chunk = buildExternalChunk(
                 jobInfoSnapshotNewJob.getJobId(),
@@ -297,10 +297,90 @@ public class PgJobStoreIT {
         // And...
 
         // Validate that one external chunk has been processed on chunk level
-        assertChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
+        assertAndReturnChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
 
         // Validate that one external chunk has been processed on item level
-        assertItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
+        assertAndReturnItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
+    }
+
+    /**
+     * Given: a job store where a job is added
+     * When : an external chunk is added 10 times
+     * Then : the job info snapshot is updated
+     * And  : the referenced entities are updated
+     */
+    @Test
+    public void addChunkMultipleTimes() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
+        final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
+
+        JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
+
+        assertThat(jobInfoSnapshot, not(nullValue()));
+
+        // Validate that nothing has been processed on job level
+        assertThat(jobInfoSnapshot.getState().getPhase(PROCESSING).getSucceeded(), is(0));
+
+        // Validate that nothing has been processed on chunk level
+        State chunkState = assertAndReturnChunkState(jobInfoSnapshot.getJobId(), chunkId, 0, PROCESSING, false);
+
+        // Validate that nothing has been processed on item level
+        State itemState = assertAndReturnItemState(jobInfoSnapshot.getJobId(), chunkId, itemId, 0, PROCESSING, false);
+
+        ExternalChunk chunk = buildExternalChunk(
+                jobInfoSnapshot.getJobId(),
+                chunkId, itemId,
+                ExternalChunk.Type.PROCESSED,
+                ChunkItem.Status.SUCCESS);
+
+        // When...
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        for(int i = 0; i < 10; i++) {
+            chunkTransaction.begin();
+            final JobInfoSnapshot jobInfoSnapShotUpdatedJob = pgJobStore.addChunk(chunk);
+            chunkTransaction.commit();
+            assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
+
+            if(i == 0) {
+                // Validate that one external chunk has been processed on JOB level
+                assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(PROCESSING).getSucceeded(), is(1));
+                LOGGER.info("new-job: {} updated-job: {}", jobInfoSnapshot.getTimeOfLastModification().getTime(), jobInfoSnapShotUpdatedJob.getTimeOfLastModification().getTime());
+                assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshot.getTimeOfLastModification()), is(true));
+
+                // verified that job has ben updated. Set jobInfoSnapshot to the updated jobInfoSnapshot
+                jobInfoSnapshot = jobInfoSnapShotUpdatedJob;
+
+                // Validate that one external chunk has been processed on CHUNK level
+                State updatedChunkState = assertAndReturnChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
+                assertThat(updatedChunkState, not(chunkState));
+
+                // verified that chunk has ben updated. Set chunkState to the updated chunkState
+                chunkState = updatedChunkState;
+
+                // Validate that one external chunk has been processed on ITEM level
+                State updatedItemState = assertAndReturnItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
+                assertThat(updatedItemState, not(itemState));
+
+                // verified that item has ben updated. Set itemState to the updated itemState
+                itemState = updatedItemState;
+            }
+            // Validate that only the first add chunk call made any changes.
+            else {
+                // Validate no further changes on JOB level
+                assertThat(jobInfoSnapShotUpdatedJob.getState(), is(jobInfoSnapshot.getState()));
+                assertThat(jobInfoSnapShotUpdatedJob.getTimeOfCompletion(), is(nullValue()));
+                assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification(), is(jobInfoSnapshot.getTimeOfLastModification()));
+
+                // Validate no further changes on CHUNK level
+                State updatedChunkState = assertAndReturnChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
+                assertThat(updatedChunkState, is(chunkState));
+
+                // Validate no further changes on ITEM level
+                State updatedItemState = assertAndReturnItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
+                assertThat(updatedItemState, is(itemState));
+            }
+        }
     }
 
     /**
@@ -762,6 +842,14 @@ public class PgJobStoreIT {
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(Arrays.asList(chunkItem)).build();
     }
 
+    private ExternalChunk buildExternalChunkWithSpecifiedNumberOfItems(long jobId, long chunkId, int numberOfItems, ExternalChunk.Type type, ChunkItem.Status status) {
+        List<ChunkItem> items = new ArrayList<>();
+        for(long i = 0; i < numberOfItems; i++) {
+            items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(status).build());
+        }
+        return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
+    }
+
     private ExternalChunk buildExternalChunkContainingChunkItemArray(int numberOfItems, long jobId, long chunkId, long failedItemId, long ignoredItemId, ExternalChunk.Type type) {
         List<ChunkItem> items = new ArrayList<>(numberOfItems);
         for(int i = 0; i < numberOfItems; i++) {
@@ -776,15 +864,16 @@ public class PgJobStoreIT {
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
     }
 
-    private void assertChunkState(int jobId, int chunkId, int succeeded, State.Phase phase, boolean isPhaseDone) {
+    private State assertAndReturnChunkState(int jobId, int chunkId, int succeeded, State.Phase phase, boolean isPhaseDone) {
         final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobId);
         final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
         State chunkState = chunkEntity.getState();
         assertThat(chunkState.getPhase(phase).getSucceeded(), is(succeeded));
         assertThat(chunkState.phaseIsDone(phase), is(isPhaseDone));
+        return chunkState;
     }
 
-    private void assertItemState(int jobId, int chunkId, short itemId, int succeeded, State.Phase phase, boolean isPhaseDone) {
+    private State assertAndReturnItemState(int jobId, int chunkId, short itemId, int succeeded, State.Phase phase, boolean isPhaseDone) {
         final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
         State itemState = itemEntity.getState();
@@ -793,6 +882,7 @@ public class PgJobStoreIT {
         if(isPhaseDone) {
             assertThat(itemEntity.getProcessingOutcome().getData(), is(DATA));
         }
+        return itemState;
     }
 
     /* Helper class for parameter values (with defaults)

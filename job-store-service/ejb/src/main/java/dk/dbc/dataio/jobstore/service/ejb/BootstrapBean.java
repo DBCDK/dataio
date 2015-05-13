@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import java.util.LinkedHashMap;
@@ -47,7 +48,7 @@ public class BootstrapBean {
             restoreSystemState();
             jobSchedulerBean.jumpStart();
         } catch (JobStoreException e) {
-            throw new IllegalArgumentException(e);
+            throw new EJBException(e);
         } finally {
             LOGGER.debug("job-store initialization took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -70,7 +71,7 @@ public class BootstrapBean {
             long jobId = collisionDetectionElement.getIdentifier().getJobId();
 
             if (!cache.containsKey(jobId)) {
-                ResourceBundle resourceBundle = jobStore.getResourceBundle(Long.valueOf(jobId).intValue());
+                ResourceBundle resourceBundle = jobStore.getResourceBundle((int)jobId);
                 cache.put(jobId, resourceBundle.getSink());
             }
             jobSchedulerBean.scheduleChunk(collisionDetectionElement, cache.get(jobId), false);

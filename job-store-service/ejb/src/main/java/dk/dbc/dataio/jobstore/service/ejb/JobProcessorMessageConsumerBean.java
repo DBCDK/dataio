@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -39,7 +40,11 @@ public class JobProcessorMessageConsumerBean extends AbstractMessageConsumerBean
         try {
             final ExternalChunk externalChunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
             LOGGER.info("Received chunk {} with chunk type {} for job {}", externalChunk.getChunkId(), externalChunk.getType(), externalChunk.getJobId());
-            jobStoreBean.addChunk(externalChunk);
+            try {
+                jobStoreBean.addChunk(externalChunk);
+            } catch (DuplicateChunkException e) {
+                LOGGER.warn("Caught exception trying to add already existing chunk: {}", e.getMessage());
+            }
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s result type",
                     consumedMessage.getMessageId(), consumedMessage.getMessagePayload()), e);

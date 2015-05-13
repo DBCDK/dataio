@@ -41,6 +41,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -185,6 +187,22 @@ public class JobStoreServiceConnectorTest {
         }
     }
 
+    @Test
+    public void addChunk_acceptedRequestResponse_throws() throws JobStoreServiceConnectorException {
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        try {
+            addChunk_mockedHttpWithSpecifiedReturnErrorCode(
+                    chunk,
+                    chunk.getJobId(),
+                    chunk.getChunkId(),
+                    JobStoreServiceConstants.JOB_CHUNK_PROCESSED,
+                    Response.Status.ACCEPTED.getStatusCode(),
+                    null);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.ACCEPTED.getStatusCode()));
+        }
+    }
+
     @Test(expected = JobStoreServiceConnectorException.class)
     public void addChunk_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
@@ -195,6 +213,86 @@ public class JobStoreServiceConnectorTest {
                 JobStoreServiceConstants.JOB_CHUNK_DELIVERED,
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
                 null);
+    }
+
+    // ************************************* add chunk ignore duplicates tests **************************************
+
+    @Test
+    public void addChunkIgnoreDuplicates_externalChunkArgIsNull_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.addChunkIgnoreDuplicates(null, JOB_ID, CHUNK_ID);
+            fail();
+        } catch (NullPointerException e) {}
+    }
+
+    @Test
+    public void addChunkIgnoreDuplicates_chunkTypeIsNull_throws() throws JobStoreServiceConnectorException {
+        final ExternalChunk chunk = new ExternalChunkBuilder(null).build();
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, JOB_ID, CHUNK_ID);
+            fail();
+        } catch (NullPointerException e) {}
+    }
+
+    @Test
+    public void addChunkIgnoreDuplicates_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
+            fail();
+        } catch (IllegalArgumentException e) {}
+    }
+
+    @Test
+    public void addChunkIgnoreDuplicates_acceptedRequestResponse_lookupJobInfoSnapshot() throws JobStoreServiceConnectorException {
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final JobInfoSnapshot jobInfoSnapshot = addChunkIgnoreDuplicates_mockedHttpWithSpecifiedReturnErrorCode(
+                chunk,
+                chunk.getJobId(),
+                chunk.getChunkId(),
+                JobStoreServiceConstants.JOB_CHUNK_PROCESSED,
+                Response.Status.ACCEPTED.getStatusCode(),
+                new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
+
+        assertThat(jobInfoSnapshot, is(notNullValue()));
+        assertThat((long) jobInfoSnapshot.getJobId(), is(chunk.getJobId()));
+    }
+
+    @Test
+    public void addChunkIgnoreDuplicates_badRequestResponse_throws() throws JobStoreServiceConnectorException {
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
+        try {
+            addChunkIgnoreDuplicates_mockedHttpWithSpecifiedReturnErrorCode(
+                    chunk,
+                    chunk.getJobId(),
+                    chunk.getChunkId(),
+                    JobStoreServiceConstants.JOB_CHUNK_PROCESSED,
+                    Response.Status.BAD_REQUEST.getStatusCode(),
+                    jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
+    }
+
+    @Test
+    public void addChunkIgnoreDuplicates_noneDuplicateChunk_chunkIsAdded() throws JobStoreServiceConnectorException {
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final JobInfoSnapshot jobInfoSnapshot = addChunkIgnoreDuplicates_mockedHttpWithSpecifiedReturnErrorCode(
+                chunk,
+                chunk.getJobId(),
+                chunk.getChunkId(),
+                JobStoreServiceConstants.JOB_CHUNK_PROCESSED,
+                Response.Status.CREATED.getStatusCode(),
+                new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
+
+        assertThat(jobInfoSnapshot, is(notNullValue()));
+        assertThat((long) jobInfoSnapshot.getJobId(), is(chunk.getJobId()));
     }
 
     // ******************************************* listJobs() tests *******************************************
@@ -348,6 +446,17 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.addChunk(chunk, jobId, chunkId);
+    }
+
+    private JobInfoSnapshot addChunkIgnoreDuplicates_mockedHttpWithSpecifiedReturnErrorCode(ExternalChunk chunk, long jobId, long chunkId, String pathString, int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
+        when(HttpClient.doPostWithJson(CLIENT, chunk, JOB_STORE_URL, buildAddChunkPath(jobId, chunkId, pathString)))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        when(HttpClient.doPostWithJson(any(Client.class), any(JobListCriteria.class), anyString(), anyString()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), Arrays.asList(returnValue)));
+
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.addChunkIgnoreDuplicates(chunk, jobId, chunkId);
     }
 
     private List<JobInfoSnapshot> listJobsWithMockedHttpResponse(

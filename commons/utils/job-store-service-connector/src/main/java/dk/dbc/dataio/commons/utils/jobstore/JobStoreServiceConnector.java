@@ -13,6 +13,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,37 @@ public class JobStoreServiceConnector {
         } finally {
             LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
         }
+    }
+
+    /**
+     * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
+     * If attempting to re-add a previously added chunk, the method locates and returns the stored job information without updating.
+     * @param chunk external chunk
+     * @param jobId job id
+     * @param chunkId chunk id
+     * @return JobInfoSnapshot displaying job information from one exact moment in time.
+     * @throws NullPointerException if given null-valued external chunk argument
+     * @throws JobStoreServiceConnectorException on general failure to update job
+     * @throws IllegalArgumentException on invalid external chunk type
+     */
+    public JobInfoSnapshot addChunkIgnoreDuplicates(ExternalChunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        JobInfoSnapshot jobInfoSnapshot;
+        try {
+            jobInfoSnapshot = addChunk(chunk, jobId, chunkId);
+        } catch(JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if(e.getStatusCode() == Response.Status.ACCEPTED.getStatusCode()) {
+                LOGGER.info("Ignoring duplicate chunk.id = {}. Retrieving existing jobInfoSnapShot for job.id = {}", chunkId, jobId);
+                final JobListCriteria jobListCriteria = new JobListCriteria()
+                        .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+                jobInfoSnapshot = listJobs(jobListCriteria).get(0);
+            } else {
+                throw e;
+            }
+        } finally {
+            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+        return jobInfoSnapshot;
     }
 
     /**

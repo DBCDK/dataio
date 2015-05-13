@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -96,6 +97,7 @@ public class JobsBean {
      * @param chunkId chunk id
      *
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
+     *         a HTTP 202 ACCEPTED response when attempting to add already existing chunk
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
      *         a HTTP 400 BAD_REQUEST response on referenced items not found,
@@ -125,6 +127,7 @@ public class JobsBean {
      * @param chunkId chunk id
      *
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
+     *         a HTTP 202 ACCEPTED response when attempting to add already existing chunk
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 400 BAD_REQUEST response on illegal number of items (not matching that of the internal chunk entity),
      *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
@@ -239,7 +242,7 @@ public class JobsBean {
      * @throws JSONBException on marshalling failure
      * @throws JobStoreException on referenced entities not found
      */
-    private Response addChunk(UriInfo uriInfo, long jobId, long chunkId, ExternalChunk.Type type, String externalChunkData)
+    Response addChunk(UriInfo uriInfo, long jobId, long chunkId, ExternalChunk.Type type, String externalChunkData)
             throws JobStoreException, JSONBException {
 
         final ExternalChunk chunk;
@@ -266,6 +269,10 @@ public class JobsBean {
 
         } catch(InvalidInputException e) {
             return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(jsonbContext.marshall(e.getJobError()))
+                    .build();
+        } catch(DuplicateChunkException e) {
+            return Response.status(Response.Status.ACCEPTED)
                     .entity(jsonbContext.marshall(e.getJobError()))
                     .build();
         }

@@ -24,6 +24,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DataException;
+import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -148,6 +149,7 @@ public class PgJobStore {
      * @param chunk external chunk
      * @return information snapshot of updated job
      * @throws NullPointerException if given null-valued chunk argument
+     * @throws DuplicateChunkException if attempting to update already existing chunk
      * @throws InvalidInputException if unable to find referenced items, if external chunk belongs to PARTITIONING phase
      * or if external chunk contains a number of items not matching that of the internal chunk entity
      * @throws JobStoreException if unable to find referenced chunk or job entities
@@ -519,6 +521,7 @@ public class PgJobStore {
      * Updates item entities for given chunk
      * @param chunk external chunk
      * @return item entities compound object
+     * @throws DuplicateChunkException if attempting to update already existing chunk
      * @throws InvalidInputException if unable to find referenced items or if external chunk belongs to PARTITIONING
      * phase
      * @throws JobStoreException
@@ -541,12 +544,14 @@ public class PgJobStore {
                     throw new InvalidInputException(errMsg, jobError);
                 }
 
-                chunkItemEntities.entities.add(itemEntity);
-
                 if (itemEntity.getState().phaseIsDone(phase)) {
-                    LOGGER.warn("Aborted attempt to add item {} to already finished {} phase", itemEntity.getKey(), phase);
-                    break;
+                    final String errMsg = String.format("Aborted attempt to add item %s to already finished %s phase",
+                            itemEntity.getKey(), phase);
+                    final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, errMsg, null);
+                    throw new DuplicateChunkException(errMsg, jobError);
                 }
+
+                chunkItemEntities.entities.add(itemEntity);
 
                 final ItemData itemData = new ItemData(ci.getData(), StandardCharsets.UTF_8);   // ToDo: ExternalChunk type must contain encoding
 

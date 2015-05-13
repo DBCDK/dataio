@@ -17,6 +17,7 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -194,7 +195,7 @@ public class PgJobStoreTest {
         assertThat("First chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("First chunk: number of items", chunkItemEntities.size(), is((short) 10));
         assertThat("First chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
-        assertChunkItemEntities(chunkItemEntities, State.Phase.PARTITIONING, EXPECTED_DATA_ENTRIES.subList(0,10), StandardCharsets.UTF_8);
+        assertChunkItemEntities(chunkItemEntities, State.Phase.PARTITIONING, EXPECTED_DATA_ENTRIES.subList(0, 10), StandardCharsets.UTF_8);
 
         chunkItemEntities = pgJobStore.createChunkItemEntities(1, 1, params.maxChunkSize, params.dataPartitioner);
         assertThat("Second chunk: items", chunkItemEntities, is(notNullValue()));
@@ -219,7 +220,7 @@ public class PgJobStoreTest {
                 + "</records>";
 
         params.dataPartitioner =  new DefaultXmlDataPartitionerFactory().createDataPartitioner(
-                    new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
+                new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
 
         final PgJobStore.ChunkItemEntities chunkItemEntities =
                 pgJobStore.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
@@ -336,6 +337,35 @@ public class PgJobStoreTest {
             pgJobStore.addChunk(chunk);
             fail("No exception thrown");
         } catch (JobStoreException e) {
+        }
+    }
+
+    @Test
+    public void addChunk_attemptToOverwriteExistingChunk_throws() throws JobStoreException {
+        PgJobStore pgJobStore = null;
+        ExternalChunk chunk = null;
+        try {
+            final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
+            chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
+                    Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
+            setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+
+            final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
+            final JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
+
+            when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
+            when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+
+            pgJobStore = newPgJobStore();
+            pgJobStore.addChunk(chunk);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+
+        try {
+            pgJobStore.addChunk(chunk);
+            fail("No exception thrown");
+        } catch (DuplicateChunkException e) {
         }
     }
 
@@ -575,7 +605,7 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void updateChunkItemEntities_attemptToOverwriteAlreadyAddedChunk() throws JobStoreException {
+    public void updateChunkItemEntities_attemptToOverwriteAlreadyAddedChunk_throws() throws JobStoreException {
         final List<String> chunkData = Arrays.asList("itemData0");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS));
@@ -588,23 +618,12 @@ public class PgJobStoreTest {
         final PgJobStore pgJobStore = newPgJobStore();
         // add original chunk
         pgJobStore.updateChunkItemEntities(chunk);
-        // try to overwrite already added chunk - assert that no state change is returned
-        final PgJobStore.ChunkItemEntities chunkItemEntities = pgJobStore.updateChunkItemEntities(chunkOverwrite);
-        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) chunk.size()));
-        assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(0));
-        assertThat("Chunk: number of ignored items", chunkItemEntities.chunkStateChange.getIgnored(), is(0));
-        assertThat("Chunk: number of succeeded items", chunkItemEntities.chunkStateChange.getSucceeded(), is(0));
 
-        // assert that item entity retains original state
-        assertChunkItemEntities(chunkItemEntities, State.Phase.PROCESSING, chunkData, StandardCharsets.UTF_8);
-        final StateElement entityStateElement = entities.get(0).getState().getPhase(State.Phase.PROCESSING);
-        assertThat(String.format("%s failed counter", entities.get(0).getKey()),
-                entityStateElement.getFailed(), is(0));
-        assertThat(String.format("%s ignored counter", entities.get(0).getKey()),
-                entityStateElement.getIgnored(), is(0));
-        assertThat(String.format("%s succeeded counter", entities.get(0).getKey()),
-                entityStateElement.getSucceeded(), is(1));
+        try {
+            pgJobStore.updateChunkItemEntities(chunkOverwrite);
+            fail("No exception thrown");
+        } catch (DuplicateChunkException e) {
+        }
     }
 
     @Test

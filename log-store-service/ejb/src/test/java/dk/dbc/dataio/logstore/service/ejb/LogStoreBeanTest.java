@@ -33,15 +33,29 @@ public class LogStoreBeanTest {
     }
 
     @Test
-    public void getItemLog_logEntriesFound_returnsLog() {
+    public void getItemLog_multipleLogEntriesFound_returnsLog() {
         final LogEntryEntity logEntryEntity = new LogEntryEntity();
         logEntryEntity.setTimestamp(new Timestamp(new Date().getTime()));
+        when(entityManager.createNamedQuery(LogEntryEntity.QUERY_FIND_ITEM_ENTRIES)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(logEntryEntity, logEntryEntity));
+
+        final LogStoreBean logStoreBean = newLogStoreBean();
+        final String itemLog = logStoreBean.getItemLog(jobId, chunkId, itemId);
+        assertThat(itemLog.isEmpty(), is(false));
+    }
+
+    @Test
+    public void getItemLog_singleLogEntriesFound_returnsLog() {
+        final LogEntryEntity logEntryEntity = new LogEntryEntity();
+        logEntryEntity.setTimestamp(new Timestamp(new Date().getTime()));
+        logEntryEntity.setFormattedMessage("message");
         when(entityManager.createNamedQuery(LogEntryEntity.QUERY_FIND_ITEM_ENTRIES)).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(logEntryEntity));
 
         final LogStoreBean logStoreBean = newLogStoreBean();
         final String itemLog = logStoreBean.getItemLog(jobId, chunkId, itemId);
         assertThat(itemLog.isEmpty(), is(false));
+        assertThat(itemLog, is(logEntryEntity.getFormattedMessage()));
     }
 
     private LogStoreBean newLogStoreBean() {

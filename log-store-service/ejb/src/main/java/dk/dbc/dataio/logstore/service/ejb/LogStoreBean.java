@@ -32,11 +32,15 @@ import java.util.List;
          if (logentryEntities.isEmpty()) {
              return "";
          }
-         final StringBuilder sb = new StringBuilder();
-         for (LogEntryEntity logEntryEntity : logentryEntities) {
-             sb.append(format(logEntryEntity));
+         if (logentryEntities.size() == 1) {
+             return logentryEntities.get(0).getFormattedMessage();
+         } else {
+             final StringBuilder sb = new StringBuilder();
+             for (LogEntryEntity logEntryEntity : logentryEntities) {
+                 sb.append(format(logEntryEntity));
+             }
+             return sb.toString();
          }
-         return sb.toString();
      }
 
      private List<LogEntryEntity> getLogEntryEntities(String jobId, long chunkId, long itemId) {

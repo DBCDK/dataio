@@ -7,10 +7,9 @@
     <jta-data-source>jdbc/dataio/logstore</jta-data-source>
     <class>dk.dbc.dataio.logstore.service.entity.LogEntryEntity</class>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
-    <!--properties>
-      <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
-      <property name="eclipselink.logging.level" value="FINE"/>
-    </properties-->
+    <properties>
+      <property name="javax.persistence.schema-generation.database.action" value="none"/>
+    </properties>
   </persistence-unit>
 
 </persistence>

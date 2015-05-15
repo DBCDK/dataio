@@ -73,9 +73,6 @@
                 </goals>
                 <configuration>
                   <pgDbName>logstore</pgDbName>
-                  <pgDbScripts>
-                    <param>${basedir}/../../log-store-service/dbhelper/src/main/resources/logstore-schema.sql</param>
-                  </pgDbScripts>
                 </configuration>
               </execution>
               <execution>

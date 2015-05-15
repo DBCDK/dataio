@@ -2,6 +2,7 @@ package dk.dbc.dataio.commons.types.jndi;
 
 public class JndiConstants {
     public static final String JDBC_RESOURCE_JOBSTORE = "jdbc/dataio/jobstore";
+    public static final String JDBC_RESOURCE_LOGSTORE = "jdbc/dataio/logstore";
 
     public static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
     public static final String URL_RESOURCE_FILESTORE_RS = "url/dataio/filestore/rs";

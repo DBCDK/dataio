@@ -62,19 +62,32 @@ public class BootstrapBean {
      */
     private void restoreSystemState() throws JobStoreException{
         LOGGER.info("Restoring job-store state");
-        ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
-                .where(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))
-                .orderBy(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
 
-        List<CollisionDetectionElement> collisionDetectionElements = jobStore.listChunksCollisionDetectionElements(chunkListCriteria);
-        for (CollisionDetectionElement collisionDetectionElement : collisionDetectionElements) {
-            long jobId = collisionDetectionElement.getIdentifier().getJobId();
+        final int limit = 1000;
+        int offset = 0;
+        while (true) {
+            final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
+                    .where(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))
+                    .orderBy(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC))
+                    .limit(limit)
+                    .offset(offset);
 
-            if (!cache.containsKey(jobId)) {
-                ResourceBundle resourceBundle = jobStore.getResourceBundle((int)jobId);
-                cache.put(jobId, resourceBundle.getSink());
+            final List<CollisionDetectionElement> collisionDetectionElements =
+                    jobStore.listChunksCollisionDetectionElements(chunkListCriteria);
+            for (CollisionDetectionElement collisionDetectionElement : collisionDetectionElements) {
+                long jobId = collisionDetectionElement.getIdentifier().getJobId();
+
+                if (!cache.containsKey(jobId)) {
+                    ResourceBundle resourceBundle = jobStore.getResourceBundle((int) jobId);
+                    cache.put(jobId, resourceBundle.getSink());
+                }
+                jobSchedulerBean.scheduleChunk(collisionDetectionElement, cache.get(jobId), false);
             }
-            jobSchedulerBean.scheduleChunk(collisionDetectionElement, cache.get(jobId), false);
+
+            if (collisionDetectionElements.size() != limit) {
+                break;
+            }
+            offset += limit;
         }
     }
 }

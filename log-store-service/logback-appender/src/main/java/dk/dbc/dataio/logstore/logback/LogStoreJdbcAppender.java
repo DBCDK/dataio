@@ -8,7 +8,6 @@ import ch.qos.logback.core.db.DBAppenderBase;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import dk.dbc.dataio.logstore.db.LogStoreDbHelper;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
 
 import java.lang.reflect.Method;

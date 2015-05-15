@@ -5,7 +5,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.db.DBAppenderBase;
-import dk.dbc.dataio.logstore.db.LogStoreDbHelper;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
 
 import java.lang.reflect.Method;

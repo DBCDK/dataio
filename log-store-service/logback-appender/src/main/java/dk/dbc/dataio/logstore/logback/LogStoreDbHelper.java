@@ -1,4 +1,4 @@
-package dk.dbc.dataio.logstore.db;
+package dk.dbc.dataio.logstore.logback;
 
 public class LogStoreDbHelper {
     public static final int TIMESTAMP = 1;

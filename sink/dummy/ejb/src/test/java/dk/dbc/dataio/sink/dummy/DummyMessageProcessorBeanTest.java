@@ -6,11 +6,14 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
-import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -19,24 +22,31 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DummyMessageProcessorBeanTest {
-    private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
+    private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+    private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+
+    @Before
+    public void setupMocks() {
+        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+    }
 
     @Test
-    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JsonException {
+    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JsonException, JobStoreServiceConnectorException {
         final String messageId = "id";
         final String payloadType = JmsConstants.CHUNK_PAYLOAD_TYPE;
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
         final String payload = JsonUtil.toJson(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, payload);
         getDummyMessageProcessorBean().handleConsumedMessage(consumedMessage);
-        
-        verify(jobProcessorMessageProducerBean, times(1)).send(any(ExternalChunk.class));
+
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
     @Test
@@ -67,7 +77,7 @@ public class DummyMessageProcessorBeanTest {
 
     private DummyMessageProcessorBean getDummyMessageProcessorBean() {
         final DummyMessageProcessorBean dummyMessageProcessorBean = new DummyMessageProcessorBean();
-        dummyMessageProcessorBean.jobProcessorMessageProducer = jobProcessorMessageProducerBean;
+        dummyMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return dummyMessageProcessorBean;
     }
 }

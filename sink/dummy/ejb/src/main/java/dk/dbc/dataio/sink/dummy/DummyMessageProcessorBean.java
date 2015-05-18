@@ -5,22 +5,29 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 
 @MessageDriven
 public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
+
     @EJB
-    JobProcessorMessageProducerBean jobProcessorMessageProducer;
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
         ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
         final ExternalChunk deliveredChunk = processPayload(processedChunk);
-        jobProcessorMessageProducer.send(deliveredChunk);
+        try {
+            jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getJobId());
+        } catch (JobStoreServiceConnectorException e) {
+            throw new EJBException(e);
+        }
     }
 
     ExternalChunk processPayload(ExternalChunk processedChunk) {

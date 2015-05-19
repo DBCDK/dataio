@@ -20,7 +20,6 @@
     <module>fbs</module>
     <module>testutil</module>
     <module>types</module>
-    <module>utils</module>
   </modules>
 
 </project>

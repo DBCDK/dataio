@@ -2,6 +2,9 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -11,11 +14,9 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.jms.JMSException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,8 +27,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -38,11 +41,11 @@ import static org.powermock.api.mockito.PowerMockito.when;
  * This is a simple white-box test of the EsCleanupBean.cleanup() method.
  */
 public class EsCleanupBeanTest {
-    private EsCleanupBean cleanupBean;
     private EsInFlightBean esInFlightAdmin;
     private EsConnectorBean esConnector;
     private EsThrottlerBean esThrottler;
-    private JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
+    private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    private JobStoreServiceConnector jobStoreServiceConnector;
     private EsInFlight esInFlight41_1;
     private EsInFlight esInFlight42_1;
     private EsInFlight esInFlight42_2;
@@ -55,20 +58,6 @@ public class EsCleanupBeanTest {
 
     @Before
     public void setup() throws JsonException {
-
-        cleanupBean = new EsCleanupBean();
-
-        esInFlightAdmin = mock(EsInFlightBean.class);
-        cleanupBean.esInFlightAdmin = esInFlightAdmin;
-
-        esConnector = mock(EsConnectorBean.class);
-        cleanupBean.esConnector = esConnector;
-
-        esThrottler = mock(EsThrottlerBean.class);
-        cleanupBean.esThrottler = esThrottler;
-
-        jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
-        cleanupBean.jobProcessorMessageProducer = jobProcessorMessageProducerBean;
 
         final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setItems(
                     Arrays.asList(new ChunkItemBuilder().setStatus(ChunkItem.Status.SUCCESS).build())).build();
@@ -112,11 +101,22 @@ public class EsCleanupBeanTest {
         taskStatus_125 = new TaskStatus(0, 125);
     }
 
+    @Before
+    public void setupMocks() {
+        esInFlightAdmin = mock(EsInFlightBean.class);
+        esConnector = mock(EsConnectorBean.class);
+        esThrottler = mock(EsThrottlerBean.class);
+        jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+        jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+
+        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+    }
+
     @Test
     public void startup_elementsInFlight_throtlerIsCountedDown() throws IllegalArgumentException, InterruptedException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
 
-        cleanupBean.startup();
+        getEsCleanupBean().startup();
 
         verify(esThrottler).acquireRecordSlots(esInFlight41_1.getRecordSlots() + esInFlight42_1.getRecordSlots() + esInFlight42_2.getRecordSlots() + esInFlight43_1.getRecordSlots());
     }
@@ -125,7 +125,7 @@ public class EsCleanupBeanTest {
     public void startup_noElementsInFlight_throtlerIsNotCountedDown() throws IllegalArgumentException, InterruptedException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(emptyEsInFlightList);
 
-        cleanupBean.startup();
+        getEsCleanupBean().startup();
 
         verify(esThrottler).acquireRecordSlots(0);
     }
@@ -134,7 +134,7 @@ public class EsCleanupBeanTest {
     public void cleanup_emptyEsInFlight_nothingHappens() {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(emptyEsInFlightList);
 
-        cleanupBean.cleanup();
+        getEsCleanupBean().cleanup();
     }
 
     @Test
@@ -142,11 +142,11 @@ public class EsCleanupBeanTest {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight42_2));
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_124));
 
-        cleanupBean.cleanup();
+        getEsCleanupBean().cleanup();
     }
 
     @Test
-    public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedIsCleanedUp() throws SinkException, JMSException {
+    public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedIsCleanedUp() throws SinkException, JobStoreServiceConnectorException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_122, taskStatus_123, taskStatus_124, taskStatus_125));
         final ArrayList<ChunkItem> esItems = new ArrayList<>();
@@ -156,29 +156,29 @@ public class EsCleanupBeanTest {
                 .build());
         when(esConnector.getResultingItemsFromSinkForTaskPackage(anyInt())).thenReturn(esItems);
 
-        cleanupBean.cleanup();
+        getEsCleanupBean().cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
         verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
-        verify(jobProcessorMessageProducerBean, times(1)).sendAll(anyListOf(ExternalChunk.class));
+        verify(jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
     @Test
-    public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JMSException, JSONBException {
+    public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JSONBException, JobStoreServiceConnectorException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight43_1));
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(new ArrayList());
 
-        cleanupBean.cleanup();
+        getEsCleanupBean().cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
         verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
         verify(esThrottler).releaseRecordSlots(esInFlight43_1.getRecordSlots());
-        verify(jobProcessorMessageProducerBean, times(1)).sendAll(anyListOf(ExternalChunk.class));
+        verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
     @Test
-    public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedAndNoTargetReferencedAreCleanedUp() throws SinkException, JMSException {
+    public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedAndNoTargetReferencedAreCleanedUp() throws SinkException, JobStoreServiceConnectorException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_122, taskStatus_123, taskStatus_124));
         final ArrayList<ChunkItem> esItems = new ArrayList<>();
@@ -188,14 +188,14 @@ public class EsCleanupBeanTest {
                 .build());
         when(esConnector.getResultingItemsFromSinkForTaskPackage(anyInt())).thenReturn(esItems);
 
-        cleanupBean.cleanup();
+        getEsCleanupBean().cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
         verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
         verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
         verify(esThrottler).releaseRecordSlots(esInFlight43_1.getRecordSlots());
-        verify(jobProcessorMessageProducerBean, times(2)).sendAll(anyListOf(ExternalChunk.class));
+        verify(jobStoreServiceConnector, times(3)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class EsCleanupBeanTest {
         String originalChunkString = esInFlight43_1.getIncompleteDeliveredChunk();
         ExternalChunk originalExternalChunk = new JSONBContext().unmarshall(originalChunkString, ExternalChunk.class);
 
-        ExternalChunk lostExternalChunk = cleanupBean.createLostChunk(esInFlight43_1);
+        ExternalChunk lostExternalChunk = getEsCleanupBean().createLostChunk(esInFlight43_1);
         assertThat("ModifiedExternalChunk not null", lostExternalChunk, not(nullValue()));
         assertThat("ModifiedExternalChunk.jobId, is OriginalExternalChunk.jobId", lostExternalChunk.getJobId(), is(originalExternalChunk.getJobId()));
         assertThat("ModifiedExternalChunk.chunkId, is OriginalExternalChunk.chunkId", lostExternalChunk.getChunkId(), is(originalExternalChunk.getChunkId()));
@@ -263,7 +263,7 @@ public class EsCleanupBeanTest {
 
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
 
-        final ExternalChunk deliveredChunk = cleanupBean.createDeliveredChunk(esInFlight);
+        final ExternalChunk deliveredChunk = getEsCleanupBean().createDeliveredChunk(esInFlight);
         assertThat(deliveredChunk.getType(), is(ExternalChunk.Type.DELIVERED));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
@@ -317,7 +317,7 @@ public class EsCleanupBeanTest {
 
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
 
-        cleanupBean.createDeliveredChunk(esInFlight);
+        getEsCleanupBean().createDeliveredChunk(esInFlight);
     }
     
     @Test
@@ -354,7 +354,7 @@ public class EsCleanupBeanTest {
         
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
 
-        final ExternalChunk deliveredChunk = cleanupBean.createDeliveredChunk(esInFlight);
+        final ExternalChunk deliveredChunk = getEsCleanupBean().createDeliveredChunk(esInFlight);
         assertThat(deliveredChunk.getType(), is(ExternalChunk.Type.DELIVERED));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
@@ -406,6 +406,15 @@ public class EsCleanupBeanTest {
 
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
 
-        cleanupBean.createDeliveredChunk(esInFlight);
+        getEsCleanupBean().createDeliveredChunk(esInFlight);
+    }
+
+    private EsCleanupBean getEsCleanupBean() {
+        final EsCleanupBean esCleanupBean = new EsCleanupBean();
+        esCleanupBean.esInFlightAdmin = esInFlightAdmin;
+        esCleanupBean.esConnector = esConnector;
+        esCleanupBean.esThrottler = esThrottler;
+        esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        return esCleanupBean;
     }
 }

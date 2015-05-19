@@ -3,18 +3,20 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
@@ -42,7 +44,7 @@ public class EsCleanupBean {
     EsThrottlerBean esThrottler;
 
     @EJB
-    JobProcessorMessageProducerBean jobProcessorMessageProducer;
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -93,18 +95,28 @@ public class EsCleanupBean {
 
             final List<ExternalChunk> lostChunks = findLostChunks(esInFlightMap);
             if(!lostChunks.isEmpty()) {
-                jobProcessorMessageProducer.sendAll(lostChunks);
+                addChunks(lostChunks);
             }
 
             final List<ExternalChunk> deliveredChunks = findDeliveredChunks(esInFlightMap);
             if(!deliveredChunks.isEmpty()) {
-                jobProcessorMessageProducer.sendAll(deliveredChunks);
+                addChunks(deliveredChunks);
             }
 
         } catch (SinkException ex) {
             LOGGER.error("A SinkException was thrown during cleanup of ES/inFlight", ex);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    private void addChunks(List<ExternalChunk> externalChunks) {
+        for(ExternalChunk chunk : externalChunks) {
+            try {
+                jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
+            } catch (JobStoreServiceConnectorException e) {
+                throw new EJBException(e);
+            }
         }
     }
 

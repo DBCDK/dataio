@@ -6,11 +6,12 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     EsSinkConfigurationBean configuration;
 
     @EJB
-    JobProcessorMessageProducerBean jobProcessorMessageProducer;
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @PostConstruct
     public void setup() {
@@ -88,6 +89,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
         final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
         final EsWorkload workload = getEsWorkloadFromChunkResult(processedChunk);
+        final ExternalChunk deliveredChunk = workload.getDeliveredChunk();
 
         if (!esThrottler.acquireRecordSlots(workload.getAddiRecords().size())) {
             LOGGER.warn("Unable to acquire needed record slots - forcing rollback");
@@ -96,23 +98,27 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         }
         try {
             if (workload.getAddiRecords().isEmpty()) {
-                jobProcessorMessageProducer.send(workload.getDeliveredChunk());
+                try {
+                    jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
+                } catch (JobStoreServiceConnectorException e) {
+                    throw new EJBException(e);
+                }
 
                 LOGGER.info("chunk {} of job {} contained no Addi records - sending result",
-                        workload.getDeliveredChunk().getChunkId(), workload.getDeliveredChunk().getJobId());
+                        deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             } else {
                 final int targetReference = esConnector.insertEsTaskPackage(workload);
                 final EsInFlight esInFlight = new EsInFlight();
                 esInFlight.setResourceName(configuration.getEsResourceName());
-                esInFlight.setJobId(workload.getDeliveredChunk().getJobId());
-                esInFlight.setChunkId(workload.getDeliveredChunk().getChunkId());
+                esInFlight.setJobId(deliveredChunk.getJobId());
+                esInFlight.setChunkId(deliveredChunk.getChunkId());
                 esInFlight.setRecordSlots(workload.getAddiRecords().size());
                 esInFlight.setTargetReference(targetReference);
-                esInFlight.setIncompleteDeliveredChunk(JsonUtil.toJson(workload.getDeliveredChunk()));
+                esInFlight.setIncompleteDeliveredChunk(JsonUtil.toJson(deliveredChunk));
                 esInFlightAdmin.addEsInFlight(esInFlight);
 
                 LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
-                        targetReference, workload.getDeliveredChunk().getChunkId(), workload.getDeliveredChunk().getJobId());
+                        targetReference, deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             }
         } catch (Exception e) {
             esThrottler.releaseRecordSlots(workload.getAddiRecords().size());

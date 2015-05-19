@@ -4,6 +4,9 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
@@ -13,7 +16,7 @@ import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
+import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -42,6 +45,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -63,19 +67,30 @@ public class EsMessageProcessorBeanTest {
     private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private static final String PROCESSING_TAG = "dataio:sink-processing";
     private final String chunkResultWithOneValidAddiRecord = generateChunkResultJsonWithResource("/1record.addi");
-    private final EsConnectorBean esConnector = mock(EsConnectorBean.class);
-    private final EsInFlightBean esInFlightAdmin = mock(EsInFlightBean.class);
-    private final JobProcessorMessageProducerBean jobProcessorMessageProducer = mock(JobProcessorMessageProducerBean.class);
+    private EsConnectorBean esConnector;
+    private EsInFlightBean esInFlightAdmin;
+    private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    private JobStoreServiceConnector jobStoreServiceConnector;
+
+    @Before
+    public void setupMocks() {
+        esConnector = mock(EsConnectorBean.class);
+        esInFlightAdmin = mock(EsInFlightBean.class);
+        jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
+        jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+
+        when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+    }
 
     @Test
-    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkSentToQueue() throws JMSException, SinkException, JsonException {
+    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkAdded() throws JMSException, SinkException, JsonException, JobStoreServiceConnectorException {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
         final String processedChunkJson = JsonUtil.toJson(processedChunk);
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        verify(jobProcessorMessageProducer, times(1)).send(any(ExternalChunk.class));
+        verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
     @Test
@@ -267,7 +282,8 @@ public class EsMessageProcessorBeanTest {
         }
         testableMessageConsumerBean.esConnector = esConnector;
         testableMessageConsumerBean.esInFlightAdmin = esInFlightAdmin;
-        testableMessageConsumerBean.jobProcessorMessageProducer = jobProcessorMessageProducer;
+
+        testableMessageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         testableMessageConsumerBean.setup();
         return testableMessageConsumerBean;
     }

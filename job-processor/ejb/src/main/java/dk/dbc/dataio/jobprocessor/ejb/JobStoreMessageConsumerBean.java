@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 
 /**
@@ -28,7 +29,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     JobStoreServiceConnectorBean jobStoreServiceConnector;
 
     @EJB
-    JobStoreMessageProducerBean jobStoreMessageProducer;
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @EJB
     SinkMessageProducerBean sinkMessageProducer;
@@ -59,7 +60,11 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     private void process(ExternalChunk chunk) throws JobProcessorException {
         final ResourceBundle resourceBundle = getResourceBundle(chunk);
         final ExternalChunk processedChunk = chunkProcessor.process(chunk, resourceBundle.getFlow(), resourceBundle.getSupplementaryProcessData());
-        jobStoreMessageProducer.sendProc(processedChunk);
+        try {
+            jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(processedChunk, processedChunk.getJobId(), processedChunk.getChunkId());
+        } catch(JobStoreServiceConnectorException e) {
+            throw new EJBException(e);
+        }
         sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
     }
 

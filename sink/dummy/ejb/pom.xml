@@ -36,7 +36,6 @@
       <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
       <version>${project.version}</version>
       <type>ejb</type>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

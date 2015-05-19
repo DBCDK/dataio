@@ -3,11 +3,12 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.dataio.sink.utils.messageproducer.JobProcessorMessageProducerBean;
 
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 
 @MessageDriven
@@ -16,11 +17,15 @@ public class JobProcessorMessageConsumerBean extends AbstractSinkMessageConsumer
     FbsPusherBean fbsPusher;
 
     @EJB
-    JobProcessorMessageProducerBean jobProcessorMessageProducer;
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
-        final ExternalChunk deliverdChunk = fbsPusher.push(unmarshallPayload(consumedMessage));
-        jobProcessorMessageProducer.send(deliverdChunk);
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException {
+        final ExternalChunk deliveredChunk = fbsPusher.push(unmarshallPayload(consumedMessage));
+        try {
+            jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
+        } catch (JobStoreServiceConnectorException e) {
+            throw new EJBException(e);
+        }
     }
 }

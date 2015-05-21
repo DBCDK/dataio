@@ -18,7 +18,7 @@ public class EsScheduledCleanupBean {
     @EJB
     EsCleanupBean esCleanupBean;
 
-    @Schedule(second = "*/30", minute = "*", hour = "*", persistent = false)
+    @Schedule(second = "*/15", minute = "*", hour = "*", persistent = false)
     public void cleanup() {
         try {
             esCleanupBean.cleanup();

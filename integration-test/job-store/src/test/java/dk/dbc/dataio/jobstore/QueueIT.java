@@ -89,7 +89,6 @@ public class QueueIT extends AbstractJobStoreTest {
                 new ChunkItemBuilder().setId(8).build(),
                 new ChunkItemBuilder().setId(9).build());
 
-        // Put 1st sink result on queue
         ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(0L)
@@ -97,7 +96,6 @@ public class QueueIT extends AbstractJobStoreTest {
                 .build();
         jobStoreServiceConnector.addChunk(deliveredChunk, jobInfoSnapshot.getJobId(), 0);
 
-        // Put 1st processor result on queue
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(0L)
@@ -115,14 +113,12 @@ public class QueueIT extends AbstractJobStoreTest {
         assertThat("Delivering phase complete", jobInfoSnapshot.getState().phaseIsDone(State.Phase.DELIVERING), is(false));
         assertThat("Delivering phase succeeded", jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getSucceeded(), is(deliveredChunk.size()));
 
-        // Put 2nd processor result on queue
         processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(1L)
                 .build();
         jobStoreServiceConnector.addChunk(processedChunk, jobInfoSnapshot.getJobId(), 1);
 
-        // Put 2nd sink result on queue
         deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(1L)

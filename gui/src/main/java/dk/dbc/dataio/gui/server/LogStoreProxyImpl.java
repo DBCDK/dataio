@@ -9,11 +9,14 @@ import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnector;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorException;
 import dk.dbc.dataio.logstore.service.connector.LogStoreServiceConnectorUnexpectedStatusCodeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 
 public class LogStoreProxyImpl implements LogStoreProxy {
+    private static final Logger log = LoggerFactory.getLogger(LogStoreProxyImpl.class);
     final Client client;
     final String baseUrl;
     LogStoreServiceConnector logStoreServiceConnector;
@@ -34,15 +37,20 @@ public class LogStoreProxyImpl implements LogStoreProxy {
     @Override
     public String getItemLog(String jobId, Long chunkId, Long itemId) throws ProxyException {
         final String itemLog;
+        log.trace("LogStoreProxy: getItemLog({}, {}, {});", jobId, chunkId, itemId);
         try {
             itemLog = logStoreServiceConnector.getItemLog(jobId, chunkId, itemId);
         } catch (NullPointerException e) {
+            log.error("LogStoreProxy: getItemLog - Null Pointer Exception", e);
             throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } catch (IllegalArgumentException e) {
+            log.error("LogStoreProxy: getItemLog - Illegal Argument Exception", e);
             throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } catch (LogStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("LogStoreProxy: getItemLog - Unexpected Status Code Exception", e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (LogStoreServiceConnectorException e) {
+            log.error("LogStoreProxy: getItemLog - Service Connector Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return itemLog;

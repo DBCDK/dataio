@@ -17,6 +17,7 @@
         <gwt.version>2.7.0</gwt.version>
         <runTarget>gui.html</runTarget>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <logback.jndi.resource>${jndi.url.gui.logback}</logback.jndi.resource>
     </properties>
 
     <profiles>
@@ -221,6 +222,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-logback</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -288,7 +295,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
+                <version>${maven.war.plugin.version}</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <webResources>
+                        <resource>
+                            <directory>${basedir}/../commons/utils/logback/src/main/resources</directory>
+                            <targetPath>WEB-INF/classes</targetPath>
+                            <filtering>true</filtering>
+                            <includes>
+                                <include>logback.xml</include>
+                            </includes>
+                        </resource>
+                    </webResources>
+                </configuration>
             </plugin>
 
             <!-- We need to force reuseForks to false to avoid suspected GwtMockito memory leak -->

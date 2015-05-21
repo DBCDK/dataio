@@ -71,6 +71,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
     @Override
     public List<RevisionInfo> fetchRevisions(String projectName)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
+        log.trace("JavaScriptProjectFetcher: fetchRevisions(\"{}\");", projectName);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         final String projectUrl = buildProjectUrl(projectName);
         final String errorMessage = "Unable to retrieve revisions from project '{}'";
@@ -99,6 +100,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
      */
     @Override
     public List<String> fetchJavaScriptFileNames(String projectName, long revision) throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
+        log.trace("JavaScriptProjectFetcher: fetchJavaScriptFileNames(\"{}\", {});", projectName, revision);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         final String projectUrl = buildProjectUrl(projectName);
         final String errorMessage = "Unable to retrieve javaScript file names from revision {} of project '{}'";
@@ -136,6 +138,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
     @Override
     public List<String> fetchJavaScriptInvocationMethods(String projectName, long revision, String javaScriptFileName)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
+        log.trace("JavaScriptProjectFetcher: fetchJavaScriptInvocationMethods(\"{}\", {}, \"{}\");", projectName, revision, javaScriptFileName);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
         final String errorMessage = "Unable to retrieve method names from file '{}' in revision {} of project '{}'";
@@ -180,6 +183,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
     @Override
     public fetchRequiredJavaScriptResult fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
+        log.trace("JavaScriptProjectFetcher: fetchRequiredJavaScript(\"{}\", {}, \"{}\", \"{}\");", projectName, revision, javaScriptFileName, javaScriptFunction);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFunction, "javaScriptFunction");

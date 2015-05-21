@@ -11,12 +11,15 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 
 public class SinkServiceProxyImpl implements SinkServiceProxy {
+    private static final Logger log = LoggerFactory.getLogger(SinkServiceProxyImpl.class);
     private Client client = null;
 
     public SinkServiceProxyImpl() {
@@ -26,6 +29,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
 
     @Override
     public PingResponse ping(SinkModel model) throws ProxyException {
+        log.trace("SinkServiceProxy: ping({}, \"{}\");", model.getId(), model.getSinkName());
         InvariantUtil.checkNotNullOrThrow(model, "model");
 
         final Response response;
@@ -34,6 +38,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
             response = HttpClient.doPostWithJson(client, SinkModelMapper.toSinkContent(model),
                     ServletUtil.getSinkServiceEndpoint(), SinkServiceConstants.PING);
         } catch (ServletException e) {
+            log.error("SinkServiceProxy: ping - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         try {
@@ -48,6 +53,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
 
     @Override
     public void close() {
+        log.trace("SinkServiceProxy: close();");
         HttpClient.closeClient(client);
     }
 
@@ -63,6 +69,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
                 default:
                     errorCode = ProxyError.INTERNAL_SERVER_ERROR;
             }
+            log.error("SinkServiceProxy: assertStatusCode Error({})", errorCode);
             throw new ProxyException(errorCode, response.readEntity(String.class));
         }
     }

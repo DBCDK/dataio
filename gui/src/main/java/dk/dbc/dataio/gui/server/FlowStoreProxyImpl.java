@@ -29,6 +29,8 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
+    private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     final Client client;
     final String baseUrl;
     final String subversionScmEndpoint;
@@ -76,14 +79,18 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException {
         Flow flow;
         List<FlowComponent> flowComponents;
+        log.trace("FlowStoreProxy: createFlow(\"{}\");", model.getFlowName());
         try {
             flowComponents = getFlowComponentsLatestVersion(model.getFlowComponents());
             flow = flowStoreServiceConnector.createFlow(FlowModelMapper.toFlowContent(model, flowComponents));
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: createFlow - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: createFlow - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: createFlow - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
     }
         return FlowModelMapper.toModel(flow);
@@ -92,23 +99,28 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowModel updateFlow(FlowModel model) throws NullPointerException, ProxyException {
         Flow flow;
         List<FlowComponent> flowComponents;
+        log.trace("FlowStoreProxy: updateFlow({});", model.getId(), model.getVersion());
         try {
             // Retrieve the currently saved version of the flow
             Flow flowOpenedForUpdate = flowStoreServiceConnector.getFlow(model.getId());
 
             // If the flow has been updated by another user: Throw proxyException - conflict error
-            if(model.getVersion() != flowOpenedForUpdate.getVersion()) {
+            if (model.getVersion() != flowOpenedForUpdate.getVersion()) {
+                log.error("FlowStoreProxy: updateFlow - Concurrent Update Error");
                 throw new ProxyException(ProxyError.CONFLICT_ERROR, "Concurrent Update Error");
             }
             else {
                 flowComponents = getFlowComponents(flowOpenedForUpdate, model.getFlowComponents());
                 flow = flowStoreServiceConnector.updateFlow(FlowModelMapper.toFlowContent(model, flowComponents), model.getId(), model.getVersion());
             }
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: updateFlow - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: updateFlow - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: updateFlow - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return FlowModelMapper.toModel(flow);
@@ -117,11 +129,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<FlowModel> findAllFlows() throws ProxyException {
         final List<Flow> flows;
+        log.trace("FlowStoreProxy: findAllFlows();");
         try {
             flows = flowStoreServiceConnector.findAllFlows();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: findAllFlows - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: findAllFlows - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return FlowModelMapper.toListOfFlowModels(flows);
@@ -130,11 +145,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowModel getFlow(Long id) throws ProxyException {
         final Flow flow;
+        log.trace("Trace - FlowStoreProxy: getFlow({});", id);
         try {
             flow = flowStoreServiceConnector.getFlow(id);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: getFlow - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: getFlow - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return FlowModelMapper.toModel(flow);
@@ -148,16 +166,21 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
+        log.trace("FlowStoreProxy: createFlowComponent(\"{}\");", model.getName());
         try {
             fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
             flowComponent = flowStoreServiceConnector.createFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+            log.error("FlowStoreProxy: createFlowComponent - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: createFlowComponent - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: createFlowComponent - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         } catch (JavaScriptProjectFetcherException e) {
+            log.error("FlowStoreProxy: createFlowComponent - Subversion Lookup Failed Exception", e);
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
         }
         return FlowComponentModelMapper.toModel(flowComponent);
@@ -166,18 +189,23 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
+        log.trace("FlowStoreProxy: updateFlowComponent({}, {});", model.getId(), model.getVersion());
         try {
             fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
             flowComponent = flowStoreServiceConnector.updateFlowComponent(
                     FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult), model.getId(), model.getVersion());
 
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+            log.error("FlowStoreProxy: updateFlowComponent - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: updateFlowComponent - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: updateFlowComponent - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         } catch (JavaScriptProjectFetcherException e) {
+            log.error("FlowStoreProxy: updateFlowComponent - Subversion Lookup Failed Exception", e);
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
         }
         return FlowComponentModelMapper.toModel(flowComponent);
@@ -186,11 +214,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
         Flow flow;
+        log.trace("FlowStoreProxy: refreshFlowComponent({}, {});", id, version);
         try {
             flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: refreshFlowComponent - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: refreshFlowComponent - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return FlowModelMapper.toModel(flow);
@@ -199,11 +230,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<FlowComponentModel> findAllFlowComponents() throws ProxyException {
         final List<FlowComponent> result;
+        log.trace("FlowStoreProxy: findAllFlowComponents();");
         try {
             result = flowStoreServiceConnector.findAllFlowComponents();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: findAllFlowComponents - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: findAllFlowComponents - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return FlowComponentModelMapper.toListOfFlowComponentModels(result);
@@ -212,11 +246,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowComponentModel getFlowComponent(Long id) throws ProxyException {
         final FlowComponent result;
+        log.trace("FlowStoreProxy: getFlowComponent({});", id);
         try {
             result = flowStoreServiceConnector.getFlowComponent(id);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: getFlowComponent - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: getFlowComponent - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return FlowComponentModelMapper.toModel(result);
@@ -231,15 +268,18 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException {
         FlowBinderModel flowBinderModel;
         FlowBinder flowBinder;
+        log.trace("FlowStoreProxy: createFlowBinder(\"{}\");", model.getName());
         try {
             flowBinder = flowStoreServiceConnector.createFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model));
             flowBinderModel = FlowBinderModelMapper.toModel(flowBinder,
                     getFlowModelLatestVersion(model.getFlowModel()),
                     getSubmitterModelsLatestVersion(model.getSubmitterModels()),
                     getSinkModelLatestVersion(model.getSinkModel()));
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: createFlowBinder - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: createFlowBinder - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return flowBinderModel;
@@ -251,6 +291,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         List<SubmitterModel> submitterModels;
         FlowModel flowModel;
         SinkModel sinkModel;
+        log.trace("FlowStoreProxy: updateFlowBinder({}, {});", model.getId(), model.getVersion());
         try {
             flowBinder = flowStoreServiceConnector.updateFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model), model.getId(), model.getVersion());
             submitterModels = new ArrayList<SubmitterModel>(flowBinder.getContent().getSubmitterIds().size());
@@ -259,11 +300,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             }
             flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
             sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: updateFlowBinder - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: updateFlowBinder - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: updateFlowBinder - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
@@ -274,6 +318,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final List<FlowBinder> flowBinders;
         final List<FlowBinderModel> flowBinderModels = new ArrayList<FlowBinderModel>();
         List<SubmitterModel> submitterModels;
+        log.trace("FlowStoreProxy: findAllFlowBinders();");
         try {
             flowBinders = flowStoreServiceConnector.findAllFlowBinders();
             for (FlowBinder flowBinder: flowBinders) {
@@ -290,9 +335,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                                 )
                 );
             }
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: findAllFlowBinders - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: findAllFlowBinders - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return flowBinderModels;
@@ -304,6 +351,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final FlowModel flowModel;
         final List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
         final SinkModel sinkModel;
+        log.trace("FlowStoreProxy: getFlowBinder({});", id);
         try {
             flowBinder = flowStoreServiceConnector.getFlowBinder(id);
             flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
@@ -312,8 +360,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             }
             sinkModel = SinkModelMapper.toModel(flowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId()));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: getFlowBinder - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: getFlowBinder - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
@@ -327,13 +377,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
         Submitter submitter;
+        log.trace("FlowStoreProxy: createSubmitter({}, \"{}\");", model.getNumber(), model.getName());
         try {
             submitter = flowStoreServiceConnector.createSubmitter(SubmitterModelMapper.toSubmitterContent(model));
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: createSubmitter - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: createSubmitter - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: createSubmitter - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SubmitterModelMapper.toModel(submitter);
@@ -342,13 +396,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException, IllegalArgumentException {
         Submitter submitter;
+        log.trace("FlowStoreProxy: updateSubmitter({}, {});", model.getId(), model.getVersion());
         try {
             submitter = flowStoreServiceConnector.updateSubmitter(SubmitterModelMapper.toSubmitterContent(model), model.getId(), model.getVersion());
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: updateSubmitter - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: updateSubmitter - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: updateSubmitter - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SubmitterModelMapper.toModel(submitter);
@@ -357,11 +415,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         final List<Submitter> submitters;
+        log.trace("FlowStoreProxy: findAllSubmitters();");
         try {
             submitters = flowStoreServiceConnector.findAllSubmitters();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: findAllSubmitters - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: findAllSubmitters - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return SubmitterModelMapper.toListOfSubmitterModels(submitters);
@@ -370,11 +431,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public SubmitterModel getSubmitter(Long id) throws ProxyException {
         final Submitter submitter;
+        log.trace("FlowStoreProxy: getSubmitter({});", id);
         try {
             submitter = flowStoreServiceConnector.getSubmitter(id);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: getSubmitter - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: getSubmitter - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return SubmitterModelMapper.toModel(submitter);
@@ -388,13 +452,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException {
         Sink sink;
+        log.trace("FlowStoreProxy: createSink({});", model.getSinkName());
         try {
             sink = flowStoreServiceConnector.createSink(SinkModelMapper.toSinkContent(model));
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: createSink - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: createSink - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: createSink - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SinkModelMapper.toModel(sink);
@@ -403,13 +471,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException {
         Sink sink;
+        log.trace("FlowStoreProxy: updateSink({}, {});", model.getId(), model.getVersion());
         try {
             sink = flowStoreServiceConnector.updateSink(SinkModelMapper.toSinkContent(model), model.getId(), model.getVersion());
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: updateSink - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: updateSink - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            log.error("FlowStoreProxy: updateSink - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return SinkModelMapper.toModel(sink);
@@ -418,11 +490,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public List<SinkModel> findAllSinks() throws ProxyException {
         final List<Sink> sinks;
+        log.trace("FlowStoreProxy: findAllSinks();");
         try {
             sinks = flowStoreServiceConnector.findAllSinks();
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: findAllSinks - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: findAllSinks - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return SinkModelMapper.toListOfSinkModels(sinks);
@@ -431,11 +506,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public SinkModel getSink(Long id) throws ProxyException {
         final Sink sink;
+        log.trace("FlowStoreProxy: getSink({});", id);
         try {
             sink = flowStoreServiceConnector.getSink(id);
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            log.error("FlowStoreProxy: getSink - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getMessage());
         } catch (FlowStoreServiceConnectorException e) {
+            log.error("FlowStoreProxy: getSink - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return SinkModelMapper.toModel(sink);
@@ -528,7 +606,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         for (FlowComponentModel flowComponentModel : model) {
             int counter = 0;
             boolean isNewFlowComponent = true;
-            while(isNewFlowComponent && counter < flow.getContent().getComponents().size()){
+            while(isNewFlowComponent && counter < flow.getContent().getComponents().size()) {
                 if (flowComponentModel.getId() == flow.getContent().getComponents().get(counter).getId()) {
                     // The flow component lave been located within the existing flow. Re-use the flow component
                     flowComponents.add(flow.getContent().getComponents().get(counter));

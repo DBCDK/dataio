@@ -22,6 +22,8 @@ import dk.dbc.dataio.gui.server.modelmappers.criterias.JobListCriteriaModelMappe
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import org.glassfish.jersey.client.ClientConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
+    private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     Client client;
     String endpoint;
     JobStoreServiceConnector jobStoreServiceConnector;
@@ -51,18 +54,23 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     @Override
     public List<JobModel> listJobs(JobListCriteriaModel model) throws ProxyException {
         List<JobInfoSnapshot> jobInfoSnapshotList;
+        log.trace("JobStoreProxy: listJobs(\"{}\");", model.getSearchType());
         try {
             jobInfoSnapshotList = jobStoreServiceConnector.listJobs(JobListCriteriaModelMapper.toJobListCriteria(model));
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
-            if(e.getJobError() != null) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: listJobs - Unexpcted Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
             }
             else {
+                log.error("JobStoreProxy: listJobs - Unexpcted Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: listJobs - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e) {
+            log.error("JobStoreProxy: listJobs - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         }
         return JobModelMapper.toModel(jobInfoSnapshotList);
@@ -73,6 +81,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         List<ItemInfoSnapshot> itemInfoSnapshotList;
         List<ItemModel> itemModels = new ArrayList<ItemModel>();
 
+        log.trace("JobStoreProxy: listItems(\"{}\", \"{}\", \"{}\", {}, {}, {});", model.getItemId(), model.getChunkId(), model.getJobId(), model.getItemSearchType(), model.getLimit(), model.getOffset());
         try {
             switch (model.getItemSearchType()) {
                 case FAILED:
@@ -89,13 +98,16 @@ public class JobStoreProxyImpl implements JobStoreProxy {
                     break;
             }
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
-            if(e.getJobError() != null) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: listItems - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
             }
             else {
+                log.error("JobStoreProxy: listItems - Unexpected Status Code Exception", e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: listItems - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         }
         return itemModels;

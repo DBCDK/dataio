@@ -7,9 +7,11 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.marc.DanMarc2Charset;
@@ -101,7 +103,12 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 try {
                     jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
                 } catch (JobStoreServiceConnectorException e) {
-                    throw new EJBException(e);
+                    if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                        final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                        if (jobError != null) {
+                            LOGGER.error("job-store returned error: {}", jobError.getDescription());
+                        }
+                    }
                 }
 
                 LOGGER.info("chunk {} of job {} contained no Addi records - sending result",

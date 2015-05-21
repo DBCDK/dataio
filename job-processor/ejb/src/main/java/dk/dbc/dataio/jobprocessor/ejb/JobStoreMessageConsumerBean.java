@@ -5,9 +5,11 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -63,6 +65,12 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         try {
             jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(processedChunk, processedChunk.getJobId(), processedChunk.getChunkId());
         } catch(JobStoreServiceConnectorException e) {
+            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                if (jobError != null) {
+                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
+                }
+            }
             throw new EJBException(e);
         }
         sinkMessageProducer.send(processedChunk, resourceBundle.getSink());

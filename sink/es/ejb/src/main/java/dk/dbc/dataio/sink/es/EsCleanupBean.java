@@ -3,8 +3,11 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
@@ -111,10 +114,17 @@ public class EsCleanupBean {
     }
 
     private void addChunks(List<ExternalChunk> externalChunks) {
+        JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
         for(ExternalChunk chunk : externalChunks) {
             try {
-                jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
+                jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
             } catch (JobStoreServiceConnectorException e) {
+                if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                    final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                    if (jobError != null) {
+                        LOGGER.error("job-store returned error: {}", jobError.getDescription());
+                    }
+                }
                 throw new EJBException(e);
             }
         }

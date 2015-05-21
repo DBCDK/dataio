@@ -152,14 +152,15 @@ public class JobStoreMessageConsumerBeanTest {
         jobStoreMessageConsumerBean.handleConsumedMessage(message);
 
         assertThat("Number of JMS messages", jmsProducer.messages.size(), is(1));
-        assertChunk(chunk, assertProcessorMessageForJobStore(jmsProducer.messages.pop()));
+        assertChunk(chunk, assertProcessorMessageForSink(jmsProducer.messages.pop(), sink.getContent().getResource()));
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
-    private ExternalChunk assertProcessorMessageForJobStore(MockedJmsTextMessage message) throws JMSException, JSONBException {
-        assertThat("processor JMS msg", message, is(notNullValue()));
-        assertThat("processor JMS msg source", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
-        assertThat("processor JMS msg payload", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
+    private ExternalChunk assertProcessorMessageForSink(MockedJmsTextMessage message, String resource) throws JMSException, JSONBException {
+        assertThat("sink JMS msg", message, is(notNullValue()));
+        assertThat("sink JMS msg source", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
+        assertThat("sink JMS msg payload", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
+        assertThat("sink JMS msg resource", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(resource));
         return jsonbContext.unmarshall(message.getText(), ExternalChunk.class);
     }
 

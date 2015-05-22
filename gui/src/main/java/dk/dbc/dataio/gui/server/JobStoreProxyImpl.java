@@ -40,6 +40,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
         endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
+        log.info("JobStoreProxy: Using Endpoint {}", endpoint);
         jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
     }
 
@@ -48,6 +49,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
         endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
+        log.info("JobStoreProxy: Using Endpoint {}", endpoint);
         this.jobStoreServiceConnector = jobStoreServiceConnector;
     }
 

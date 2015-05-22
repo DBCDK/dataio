@@ -49,6 +49,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
         subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
         javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl(subversionScmEndpoint);
@@ -61,6 +62,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         subversionScmEndpoint = null;
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
     }
     //This constructor is intended for test purpose only with reference to dependency injection.
     FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptProjectFetcherImpl javaScriptProjectFetcher) throws NamingException{
@@ -69,6 +71,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         this.javaScriptProjectFetcher = javaScriptProjectFetcher;
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
+        log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
         this.subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
     }
 

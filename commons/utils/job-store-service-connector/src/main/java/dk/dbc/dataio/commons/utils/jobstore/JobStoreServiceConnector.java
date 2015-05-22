@@ -71,7 +71,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("JobStoreConnector addJob took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -101,7 +101,7 @@ public class JobStoreServiceConnector {
                 throw e;
             }
         } finally {
-            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("JobStoreConnector addChunkIgnoreDuplicates took {} milliseconds", stopWatch.getElapsedTime());
         }
         return jobInfoSnapshot;
     }
@@ -131,7 +131,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("JobStoreConnector addChunk took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -154,7 +154,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("JobStoreConnector listJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -177,7 +177,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("JobStoreConnector listItems took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -202,7 +202,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("JobStoreConnector getResourceBundle took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

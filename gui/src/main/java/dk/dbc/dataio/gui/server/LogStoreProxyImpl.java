@@ -24,6 +24,7 @@ public class LogStoreProxyImpl implements LogStoreProxy {
     public LogStoreProxyImpl() throws NamingException {
         client = HttpClient.newClient();
         baseUrl = ServiceUtil.getLogStoreServiceEndpoint();
+        log.info("LogStoreProxy: Using Base URL {}", baseUrl);
         logStoreServiceConnector = new LogStoreServiceConnector(client, baseUrl);
     }
 
@@ -32,6 +33,7 @@ public class LogStoreProxyImpl implements LogStoreProxy {
         this.logStoreServiceConnector = logStoreServiceConnector;
         client = HttpClient.newClient();
         baseUrl = ServiceUtil.getLogStoreServiceEndpoint();
+        log.info("LogStoreProxy: Using Base URL {}", baseUrl);
     }
 
     @Override

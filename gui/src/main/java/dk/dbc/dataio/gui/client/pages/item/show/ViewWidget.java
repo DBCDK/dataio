@@ -1,12 +1,10 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -19,7 +17,6 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     static final int ALL_ITEMS_TAB_INDEX = 0;
     static final int FAILED_ITEMS_TAB_INDEX = 1;
     static final int IGNORED_ITEMS_TAB_INDEX = 2;
-    static final int JOB_INFO_TAB_INDEX = 3;
 
     @Override
     public void init() {
@@ -48,16 +45,6 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
         failedItemsList.itemsPager.firstPage();
         ignoredItemsList.itemsPager.firstPage();
     }
-
-    /**
-     * Ui Handler to catch click events on the Back button
-     * @param event Clicked event
-     */
-    @UiHandler("backButton")
-    void backButtonPressed(ClickEvent event) {
-        History.back();
-    }
-
 
     /**
      * Ui Handler to catch selection events on the tabs in the tab panel

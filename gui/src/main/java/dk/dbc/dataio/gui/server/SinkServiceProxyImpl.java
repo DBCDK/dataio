@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -31,6 +32,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
     public PingResponse ping(SinkModel model) throws ProxyException {
         log.trace("SinkServiceProxy: ping({}, \"{}\");", model.getId(), model.getSinkName());
         InvariantUtil.checkNotNullOrThrow(model, "model");
+        final StopWatch stopWatch = new StopWatch();
 
         final Response response;
         final PingResponse result;
@@ -46,6 +48,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
             result = response.readEntity(PingResponse.class);
         } finally {
             response.close();
+            log.debug("SinkServiceProxy: ping took {} milliseconds", stopWatch.getElapsedTime());
         }
         return result;
     }

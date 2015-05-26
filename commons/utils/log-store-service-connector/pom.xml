@@ -58,6 +58,11 @@
       <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-stopwatch</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.server;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -40,6 +41,7 @@ public class LogStoreProxyImpl implements LogStoreProxy {
     public String getItemLog(String jobId, Long chunkId, Long itemId) throws ProxyException {
         final String itemLog;
         log.trace("LogStoreProxy: getItemLog({}, {}, {});", jobId, chunkId, itemId);
+        final StopWatch stopWatch = new StopWatch();
         try {
             itemLog = logStoreServiceConnector.getItemLog(jobId, chunkId, itemId);
         } catch (NullPointerException e) {

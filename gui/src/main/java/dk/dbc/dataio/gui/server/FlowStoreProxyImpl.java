@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -83,6 +84,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         Flow flow;
         List<FlowComponent> flowComponents;
         log.trace("FlowStoreProxy: createFlow(\"{}\");", model.getFlowName());
+        final StopWatch stopWatch = new StopWatch();
         try {
             flowComponents = getFlowComponentsLatestVersion(model.getFlowComponents());
             flow = flowStoreServiceConnector.createFlow(FlowModelMapper.toFlowContent(model, flowComponents));
@@ -95,7 +97,9 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("FlowStoreProxy: createFlow - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
-    }
+        } finally {
+            log.debug("FlowStoreProxy: createFlow took {} milliseconds", stopWatch.getElapsedTime());
+        }
         return FlowModelMapper.toModel(flow);
     }
 
@@ -103,6 +107,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         Flow flow;
         List<FlowComponent> flowComponents;
         log.trace("FlowStoreProxy: updateFlow({});", model.getId(), model.getVersion());
+        final StopWatch stopWatch = new StopWatch();
         try {
             // Retrieve the currently saved version of the flow
             Flow flowOpenedForUpdate = flowStoreServiceConnector.getFlow(model.getId());
@@ -125,6 +130,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("FlowStoreProxy: updateFlow - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("FlowStoreProxy: updateFlow took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowModelMapper.toModel(flow);
     }
@@ -133,6 +140,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public List<FlowModel> findAllFlows() throws ProxyException {
         final List<Flow> flows;
         log.trace("FlowStoreProxy: findAllFlows();");
+        final StopWatch stopWatch = new StopWatch();
         try {
             flows = flowStoreServiceConnector.findAllFlows();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -141,6 +149,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: findAllFlows - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: findAllFlows took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowModelMapper.toListOfFlowModels(flows);
     }
@@ -149,6 +159,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowModel getFlow(Long id) throws ProxyException {
         final Flow flow;
         log.trace("Trace - FlowStoreProxy: getFlow({});", id);
+        final StopWatch stopWatch = new StopWatch();
         try {
             flow = flowStoreServiceConnector.getFlow(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -157,6 +168,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: getFlow - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: getFlow took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowModelMapper.toModel(flow);
     }
@@ -170,6 +183,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
         log.trace("FlowStoreProxy: createFlowComponent(\"{}\");", model.getName());
+        final StopWatch stopWatch = new StopWatch();
         try {
             fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
             flowComponent = flowStoreServiceConnector.createFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult));
@@ -185,6 +199,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (JavaScriptProjectFetcherException e) {
             log.error("FlowStoreProxy: createFlowComponent - Subversion Lookup Failed Exception", e);
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
+        } finally {
+            log.debug("FlowStoreProxy: createFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowComponentModelMapper.toModel(flowComponent);
     }
@@ -193,6 +209,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException {
         FlowComponent flowComponent;
         log.trace("FlowStoreProxy: updateFlowComponent({}, {});", model.getId(), model.getVersion());
+        final StopWatch stopWatch = new StopWatch();
         try {
             fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
             flowComponent = flowStoreServiceConnector.updateFlowComponent(
@@ -210,6 +227,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (JavaScriptProjectFetcherException e) {
             log.error("FlowStoreProxy: updateFlowComponent - Subversion Lookup Failed Exception", e);
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, e);
+        } finally {
+            log.debug("FlowStoreProxy: updateFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowComponentModelMapper.toModel(flowComponent);
     }
@@ -217,6 +236,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException {
         Flow flow;
+        final StopWatch stopWatch = new StopWatch();
         log.trace("FlowStoreProxy: refreshFlowComponent({}, {});", id, version);
         try {
             flow = flowStoreServiceConnector.refreshFlowComponents(id, version);
@@ -226,6 +246,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: refreshFlowComponent - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: refreshFlowComponents took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowModelMapper.toModel(flow);
     }
@@ -234,6 +256,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public List<FlowComponentModel> findAllFlowComponents() throws ProxyException {
         final List<FlowComponent> result;
         log.trace("FlowStoreProxy: findAllFlowComponents();");
+        final StopWatch stopWatch = new StopWatch();
         try {
             result = flowStoreServiceConnector.findAllFlowComponents();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -242,6 +265,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: findAllFlowComponents - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: findAllFlowComponents took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowComponentModelMapper.toListOfFlowComponentModels(result);
     }
@@ -250,6 +275,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public FlowComponentModel getFlowComponent(Long id) throws ProxyException {
         final FlowComponent result;
         log.trace("FlowStoreProxy: getFlowComponent({});", id);
+        final StopWatch stopWatch = new StopWatch();
         try {
             result = flowStoreServiceConnector.getFlowComponent(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -258,6 +284,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: getFlowComponent - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: getFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowComponentModelMapper.toModel(result);
     }
@@ -272,6 +300,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         FlowBinderModel flowBinderModel;
         FlowBinder flowBinder;
         log.trace("FlowStoreProxy: createFlowBinder(\"{}\");", model.getName());
+        final StopWatch stopWatch = new StopWatch();
         try {
             flowBinder = flowStoreServiceConnector.createFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model));
             flowBinderModel = FlowBinderModelMapper.toModel(flowBinder,
@@ -284,6 +313,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: createFlowBinder - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: createFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
         return flowBinderModel;
     }
@@ -295,6 +326,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         FlowModel flowModel;
         SinkModel sinkModel;
         log.trace("FlowStoreProxy: updateFlowBinder({}, {});", model.getId(), model.getVersion());
+        final StopWatch stopWatch = new StopWatch();
         try {
             flowBinder = flowStoreServiceConnector.updateFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model), model.getId(), model.getVersion());
             submitterModels = new ArrayList<SubmitterModel>(flowBinder.getContent().getSubmitterIds().size());
@@ -312,6 +344,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("FlowStoreProxy: updateFlowBinder - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("FlowStoreProxy: updateFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
     }
@@ -322,6 +356,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final List<FlowBinderModel> flowBinderModels = new ArrayList<FlowBinderModel>();
         List<SubmitterModel> submitterModels;
         log.trace("FlowStoreProxy: findAllFlowBinders();");
+        final StopWatch stopWatch = new StopWatch();
         try {
             flowBinders = flowStoreServiceConnector.findAllFlowBinders();
             for (FlowBinder flowBinder: flowBinders) {
@@ -344,6 +379,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: findAllFlowBinders - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: findAllFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
         }
         return flowBinderModels;
     }
@@ -355,6 +392,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
         final SinkModel sinkModel;
         log.trace("FlowStoreProxy: getFlowBinder({});", id);
+        final StopWatch stopWatch = new StopWatch();
         try {
             flowBinder = flowStoreServiceConnector.getFlowBinder(id);
             flowModel = FlowModelMapper.toModel(flowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId()));
@@ -368,6 +406,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: getFlowBinder - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
         return FlowBinderModelMapper.toModel(flowBinder, flowModel, submitterModels, sinkModel);
     }
@@ -381,6 +421,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public SubmitterModel createSubmitter(SubmitterModel model) throws NullPointerException, ProxyException {
         Submitter submitter;
         log.trace("FlowStoreProxy: createSubmitter({}, \"{}\");", model.getNumber(), model.getName());
+        final StopWatch stopWatch = new StopWatch();
         try {
             submitter = flowStoreServiceConnector.createSubmitter(SubmitterModelMapper.toSubmitterContent(model));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -392,6 +433,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("FlowStoreProxy: createSubmitter - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("FlowStoreProxy: createSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SubmitterModelMapper.toModel(submitter);
     }
@@ -400,6 +443,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public SubmitterModel updateSubmitter(SubmitterModel model) throws NullPointerException, ProxyException, IllegalArgumentException {
         Submitter submitter;
         log.trace("FlowStoreProxy: updateSubmitter({}, {});", model.getId(), model.getVersion());
+        final StopWatch stopWatch = new StopWatch();
         try {
             submitter = flowStoreServiceConnector.updateSubmitter(SubmitterModelMapper.toSubmitterContent(model), model.getId(), model.getVersion());
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -411,6 +455,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("FlowStoreProxy: updateSubmitter - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("FlowStoreProxy: updateSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SubmitterModelMapper.toModel(submitter);
     }
@@ -419,6 +465,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         final List<Submitter> submitters;
         log.trace("FlowStoreProxy: findAllSubmitters();");
+        final StopWatch stopWatch = new StopWatch();
         try {
             submitters = flowStoreServiceConnector.findAllSubmitters();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -427,6 +474,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: findAllSubmitters - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: findAllSubmitters took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SubmitterModelMapper.toListOfSubmitterModels(submitters);
     }
@@ -435,6 +484,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public SubmitterModel getSubmitter(Long id) throws ProxyException {
         final Submitter submitter;
         log.trace("FlowStoreProxy: getSubmitter({});", id);
+        final StopWatch stopWatch = new StopWatch();
         try {
             submitter = flowStoreServiceConnector.getSubmitter(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -443,6 +493,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: getSubmitter - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: getSubmitter took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SubmitterModelMapper.toModel(submitter);
     }
@@ -455,7 +507,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     @Override
     public SinkModel createSink(SinkModel model) throws NullPointerException, ProxyException {
         Sink sink;
-        log.trace("FlowStoreProxy: createSink({});", model.getSinkName());
+        log.trace("FlowStoreProxy: createSink(\"{}\");", model.getSinkName());
+        final StopWatch stopWatch = new StopWatch();
         try {
             sink = flowStoreServiceConnector.createSink(SinkModelMapper.toSinkContent(model));
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -467,6 +520,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("FlowStoreProxy: createSink - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("FlowStoreProxy: createSink took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SinkModelMapper.toModel(sink);
     }
@@ -475,6 +530,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public SinkModel updateSink(SinkModel model) throws NullPointerException, ProxyException {
         Sink sink;
         log.trace("FlowStoreProxy: updateSink({}, {});", model.getId(), model.getVersion());
+        final StopWatch stopWatch = new StopWatch();
         try {
             sink = flowStoreServiceConnector.updateSink(SinkModelMapper.toSinkContent(model), model.getId(), model.getVersion());
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -486,6 +542,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("FlowStoreProxy: updateSink - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("FlowStoreProxy: updateSink took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SinkModelMapper.toModel(sink);
     }
@@ -494,6 +552,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public List<SinkModel> findAllSinks() throws ProxyException {
         final List<Sink> sinks;
         log.trace("FlowStoreProxy: findAllSinks();");
+        final StopWatch stopWatch = new StopWatch();
         try {
             sinks = flowStoreServiceConnector.findAllSinks();
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -502,6 +561,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: findAllSinks - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: findAllSinks took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SinkModelMapper.toListOfSinkModels(sinks);
     }
@@ -510,6 +571,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public SinkModel getSink(Long id) throws ProxyException {
         final Sink sink;
         log.trace("FlowStoreProxy: getSink({});", id);
+        final StopWatch stopWatch = new StopWatch();
         try {
             sink = flowStoreServiceConnector.getSink(id);
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -518,6 +580,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         } catch (FlowStoreServiceConnectorException e) {
             log.error("FlowStoreProxy: getSink - Service Not Found", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("FlowStoreProxy: getSink took {} milliseconds", stopWatch.getElapsedTime());
         }
         return SinkModelMapper.toModel(sink);
     }

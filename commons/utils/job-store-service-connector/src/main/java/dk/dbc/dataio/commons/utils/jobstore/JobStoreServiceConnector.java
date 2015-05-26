@@ -34,7 +34,7 @@ import java.util.List;
  * </p>
  */
 public class JobStoreServiceConnector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobStoreServiceConnector.class);
+    private static final Logger log = LoggerFactory.getLogger(JobStoreServiceConnector.class);
 
     private final Client httpClient;
     private final String baseUrl;
@@ -60,6 +60,7 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to create job
      */
     public JobInfoSnapshot addJob(JobInputStream jobInputStream) throws NullPointerException, ProcessingException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: addJob();");
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
@@ -71,7 +72,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector addJob took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: addJob took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -87,13 +88,14 @@ public class JobStoreServiceConnector {
      * @throws IllegalArgumentException on invalid external chunk type
      */
     public JobInfoSnapshot addChunkIgnoreDuplicates(ExternalChunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: addChunkIgnoreDuplicates({}, {});", jobId, chunkId);
         final StopWatch stopWatch = new StopWatch();
         JobInfoSnapshot jobInfoSnapshot;
         try {
             jobInfoSnapshot = addChunk(chunk, jobId, chunkId);
         } catch(JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if(e.getStatusCode() == Response.Status.ACCEPTED.getStatusCode()) {
-                LOGGER.info("Ignoring duplicate chunk.id = {}. Retrieving existing jobInfoSnapShot for job.id = {}", chunkId, jobId);
+                log.info("Ignoring duplicate chunk.id = {}. Retrieving existing jobInfoSnapShot for job.id = {}", chunkId, jobId);
                 final JobListCriteria jobListCriteria = new JobListCriteria()
                         .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
                 jobInfoSnapshot = listJobs(jobListCriteria).get(0);
@@ -101,7 +103,7 @@ public class JobStoreServiceConnector {
                 throw e;
             }
         } finally {
-            LOGGER.debug("JobStoreConnector addChunkIgnoreDuplicates took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: addChunkIgnoreDuplicates took {} milliseconds", stopWatch.getElapsedTime());
         }
         return jobInfoSnapshot;
     }
@@ -117,6 +119,7 @@ public class JobStoreServiceConnector {
      * @throws IllegalArgumentException on invalid external chunk type
      */
     public JobInfoSnapshot addChunk(ExternalChunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: addChunk({}, {});", jobId, chunkId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
@@ -131,7 +134,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector addChunk took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: addChunk took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -143,6 +146,7 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
     public List<JobInfoSnapshot> listJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: listJobs();");
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
@@ -154,7 +158,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector listJobs took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: listJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -166,6 +170,7 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to produce items listing
      */
     public List<ItemInfoSnapshot> listItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: listItems();");
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
@@ -177,7 +182,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector listItems took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: listItems took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -189,6 +194,7 @@ public class JobStoreServiceConnector {
      * @throws IllegalArgumentException on job id less than bound value
      */
     public ResourceBundle getResourceBundle(int jobId) throws JobStoreServiceConnectorException , IllegalArgumentException{
+        log.trace("JobStoreServiceConnector: getResourceBundle({});", jobId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
@@ -202,7 +208,7 @@ public class JobStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("JobStoreConnector getResourceBundle took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: getResourceBundle took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -228,7 +234,7 @@ public class JobStoreServiceConnector {
                 try {
                     exception.setJobError(readResponseEntity(response, JobError.class));
                 } catch (JobStoreServiceConnectorException e) {
-                    LOGGER.warn("Unable to extract job-store error from response", e);
+                    log.warn("Unable to extract job-store error from response", e);
                 }
             }
             throw exception;

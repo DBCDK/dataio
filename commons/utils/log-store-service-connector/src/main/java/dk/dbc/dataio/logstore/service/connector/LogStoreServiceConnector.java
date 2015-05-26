@@ -4,6 +4,9 @@ import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -20,6 +23,7 @@ import javax.ws.rs.core.Response;
  * </p>
  */
 public class LogStoreServiceConnector {
+    private static final Logger log = LoggerFactory.getLogger(LogStoreServiceConnector.class);
     private final Client httpClient;
     private final String baseUrl;
 
@@ -48,7 +52,9 @@ public class LogStoreServiceConnector {
      */
     public String getItemLog(final String jobId, final long chunkId, final long itemId)
             throws NullPointerException, IllegalArgumentException, ProcessingException, LogStoreServiceConnectorException {
+        log.trace("LogStoreServiceConnector: getItemLog({});", jobId);
         InvariantUtil.checkNotNullNotEmptyOrThrow(jobId, "jobId");
+        final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(LogStoreServiceConstants.ITEM_LOG_ENTRY_COLLECTION)
                 .bind(LogStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                 .bind(LogStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
@@ -59,6 +65,7 @@ public class LogStoreServiceConnector {
             return readResponseEntity(response, String.class);
         } finally {
             response.close();
+            log.debug("LogStoreServiceConnector: getItemLog took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

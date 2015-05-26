@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.server;
 
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -57,6 +58,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     public List<JobModel> listJobs(JobListCriteriaModel model) throws ProxyException {
         List<JobInfoSnapshot> jobInfoSnapshotList;
         log.trace("JobStoreProxy: listJobs(\"{}\");", model.getSearchType());
+        final StopWatch stopWatch = new StopWatch();
         try {
             jobInfoSnapshotList = jobStoreServiceConnector.listJobs(JobListCriteriaModelMapper.toJobListCriteria(model));
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -74,8 +76,11 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } catch (IllegalArgumentException e) {
             log.error("JobStoreProxy: listJobs - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("JobStoreProxy: listJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return JobModelMapper.toModel(jobInfoSnapshotList);
+        List<JobModel> result = JobModelMapper.toModel(jobInfoSnapshotList);
+        return result;
     }
 
     @Override
@@ -84,6 +89,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         List<ItemModel> itemModels = new ArrayList<ItemModel>();
 
         log.trace("JobStoreProxy: listItems(\"{}\", \"{}\", \"{}\", {}, {}, {});", model.getItemId(), model.getChunkId(), model.getJobId(), model.getItemSearchType(), model.getLimit(), model.getOffset());
+        final StopWatch stopWatch = new StopWatch();
         try {
             switch (model.getItemSearchType()) {
                 case FAILED:
@@ -111,6 +117,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } catch (JobStoreServiceConnectorException e) {
             log.error("JobStoreProxy: listItems - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("JobStoreProxy: listItems took {} milliseconds", stopWatch.getElapsedTime());
         }
         return itemModels;
     }

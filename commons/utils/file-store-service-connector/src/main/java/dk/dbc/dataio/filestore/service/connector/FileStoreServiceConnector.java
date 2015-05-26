@@ -33,7 +33,7 @@ import java.util.List;
  * </p>
  */
 public class FileStoreServiceConnector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileStoreServiceConnector.class);
+    private static final Logger log = LoggerFactory.getLogger(FileStoreServiceConnector.class);
 
     private final Client httpClient;
     private final String baseUrl;
@@ -61,6 +61,7 @@ public class FileStoreServiceConnector {
      */
     public String addFile(final InputStream is)
             throws NullPointerException, ProcessingException, FileStoreServiceConnectorException {
+        log.trace("FileStoreServiceConnector: addFile();");
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(is, "is");
@@ -77,7 +78,7 @@ public class FileStoreServiceConnector {
                 response.close();
             }
         } finally {
-            LOGGER.debug("FileStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("FileStoreServiceConnector: addFile took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -97,6 +98,7 @@ public class FileStoreServiceConnector {
      */
     public InputStream getFile(final String fileId)
             throws NullPointerException, IllegalArgumentException, ProcessingException, FileStoreServiceConnectorException {
+        log.trace("FileStoreServiceConnector: getFile(\"{}\");", fileId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
@@ -107,7 +109,7 @@ public class FileStoreServiceConnector {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
             return readResponseEntity(response, InputStream.class);
         } finally {
-            LOGGER.debug("FileStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("FileStoreServiceConnector: getFile took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -121,6 +123,7 @@ public class FileStoreServiceConnector {
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public long getByteSize(final String fileId) throws NullPointerException, IllegalArgumentException, FileStoreServiceConnectorException {
+        log.trace("FileStoreServiceConnector: getByteSize(\"{}\");", fileId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
@@ -132,7 +135,7 @@ public class FileStoreServiceConnector {
             return readResponseEntity(response, Long.class);
 
         } finally {
-            LOGGER.debug("FileStoreConnector operation took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("FileStoreServiceConnector: getByteSize took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

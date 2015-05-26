@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.javascript.JavascriptUtil;
 import dk.dbc.dataio.commons.javascript.SpecializedFileSchemeHandler;
 import dk.dbc.dataio.commons.svn.SvnConnector;
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -22,7 +23,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +78,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
         log.trace("JavaScriptProjectFetcher: fetchRevisions(\"{}\");", projectName);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
+        final StopWatch stopWatch = new StopWatch();
         final String projectUrl = buildProjectUrl(projectName);
         final String errorMessage = "Unable to retrieve revisions from project '{}'";
         List<RevisionInfo> revisions;
@@ -84,6 +90,8 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         } catch (URISyntaxException e) {
             log.error(errorMessage, projectName, e);
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+        } finally {
+            log.debug("JavaScriptProjectFetcher: fetchRevisions took {} milliseconds", stopWatch.getElapsedTime());
         }
         return revisions;
     }
@@ -102,6 +110,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
     public List<String> fetchJavaScriptFileNames(String projectName, long revision) throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
         log.trace("JavaScriptProjectFetcher: fetchJavaScriptFileNames(\"{}\", {});", projectName, revision);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
+        final StopWatch stopWatch = new StopWatch();
         final String projectUrl = buildProjectUrl(projectName);
         final String errorMessage = "Unable to retrieve javaScript file names from revision {} of project '{}'";
         final List<String> fileNames = new ArrayList<String>();
@@ -119,6 +128,8 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         } catch (URISyntaxException e) {
             log.error(errorMessage, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+        } finally {
+            log.debug("JavaScriptProjectFetcher: fetchJavaScriptFileNames took {} milliseconds", stopWatch.getElapsedTime());
         }
         return fileNames;
     }
@@ -141,6 +152,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         log.trace("JavaScriptProjectFetcher: fetchJavaScriptInvocationMethods(\"{}\", {}, \"{}\");", projectName, revision, javaScriptFileName);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
+        final StopWatch stopWatch = new StopWatch();
         final String errorMessage = "Unable to retrieve method names from file '{}' in revision {} of project '{}'";
         final String projectUrl = buildProjectUrl(projectName);
         final List<String> methodNames;
@@ -164,7 +176,8 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             log.error(errorMessage, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
         }  finally {
-           deleteFolder(exportFolder);
+            deleteFolder(exportFolder);
+            log.debug("JavaScriptProjectFetcher: fetchJavaScriptInvocationMethods took {} milliseconds", stopWatch.getElapsedTime());
         }
         return methodNames;
     }
@@ -187,6 +200,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFunction, "javaScriptFunction");
+        final StopWatch stopWatch = new StopWatch();
         final String errorMessage = "Unable to retrieve required javaScript for function '{}' in script in file '{}' in revision {} of project '{}'";
         final String projectUrl = buildProjectUrl(projectName);
         final List<JavaScript> javaScripts = new ArrayList<JavaScript>();
@@ -225,6 +239,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR, e);
         } finally {
             deleteFolder(exportFolder);
+            log.debug("JavaScriptProjectFetcher: fetchRequiredJavaScript took {} milliseconds", stopWatch.getElapsedTime());
         }
         return new fetchRequiredJavaScriptResult(javaScripts, requireCache );
     }

@@ -56,6 +56,8 @@ public class LogStoreProxyImpl implements LogStoreProxy {
         } catch (LogStoreServiceConnectorException e) {
             log.error("LogStoreProxy: getItemLog - Service Connector Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("LogStoreProxy: getItemLog took {} milliseconds", stopWatch.getElapsedTime());
         }
         return itemLog;
     }

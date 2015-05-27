@@ -15,8 +15,6 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>ear</module>
-    <module>ejb</module>
     <module>war</module>
   </modules>
 

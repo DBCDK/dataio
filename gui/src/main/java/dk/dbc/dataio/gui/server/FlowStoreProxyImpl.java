@@ -10,12 +10,11 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -30,6 +29,7 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     JavaScriptProjectFetcher javaScriptProjectFetcher;
 
     public FlowStoreProxyImpl() throws NamingException{
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
@@ -58,7 +58,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     //This constructor is intended for test purpose only with reference to dependency injection.
     FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) throws NamingException{
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         subversionScmEndpoint = null;
         client = HttpClient.newClient(clientConfig);
@@ -67,7 +67,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
     //This constructor is intended for test purpose only with reference to dependency injection.
     FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptProjectFetcherImpl javaScriptProjectFetcher) throws NamingException{
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;
         this.javaScriptProjectFetcher = javaScriptProjectFetcher;
         client = HttpClient.newClient(clientConfig);

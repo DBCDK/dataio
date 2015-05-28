@@ -3,14 +3,13 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
@@ -23,6 +22,7 @@ import dk.dbc.dataio.gui.server.modelmappers.criterias.JobListCriteriaModelMappe
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     JobStoreServiceConnector jobStoreServiceConnector;
 
     public JobStoreProxyImpl() throws NamingException {
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
         endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
         log.info("JobStoreProxy: Using Endpoint {}", endpoint);
@@ -47,7 +47,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
 
     // This constructor is intended for test purpose only (new job store) with reference to dependency injection.
     public JobStoreProxyImpl(JobStoreServiceConnector jobStoreServiceConnector) throws NamingException {
-        final ClientConfig clientConfig = new ClientConfig().register(new Jackson2xFeature());
+        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
         endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
         log.info("JobStoreProxy: Using Endpoint {}", endpoint);

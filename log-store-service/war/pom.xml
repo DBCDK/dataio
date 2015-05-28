@@ -2,6 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -14,23 +15,23 @@
   <name>dataio-log-store-service-war</name>
   <packaging>war</packaging>
 
-  <dependencies>
-    <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.api.version}</version>
-      <type>jar</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-log-store-service-ejb</artifactId>
-      <version>${project.version}</version>
-      <type>ejb</type>
-    </dependency>
-  </dependencies>
+  <properties>
+    <logback.staging.directory>${project.build.directory}/logback</logback.staging.directory>
+    <logback.jndi.resource>${jndi.url.logstore.logback}</logback.jndi.resource>
+  </properties>
 
   <build>
+    <resources>
+      <resource>
+        <directory>${logback.staging.directory}</directory>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -38,6 +39,16 @@
         <version>${maven.war.plugin.version}</version>
         <configuration>
           <failOnMissingWebXml>false</failOnMissingWebXml>
+          <webResources>
+            <resource>
+              <directory>${basedir}/../../commons/utils/logback/src/main/resources</directory>
+              <targetPath>WEB-INF/classes</targetPath>
+              <filtering>true</filtering>
+              <includes>
+                <include>logback.xml</include>
+              </includes>
+            </resource>
+          </webResources>
         </configuration>
       </plugin>
 
@@ -52,6 +63,11 @@
             <artifactId>deployment-client</artifactId>
             <version>${glassfish.version}</version>
           </dependency>
+          <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-logback</artifactId>
+            <version>${project.version}</version>
+          </dependency>
         </dependencies>
         <configuration>
           <skip>true</skip>
@@ -59,5 +75,37 @@
       </plugin>
     </plugins>
   </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>${javaee.api.version}</version>
+      <type>jar</type>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-types</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>${flyway.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
 </project>

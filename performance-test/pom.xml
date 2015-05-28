@@ -75,7 +75,7 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-log-store-service-ear</artifactId>
+      <artifactId>dataio-log-store-service-war</artifactId>
       <version>${project.version}</version>
       <type>ear</type>
     </dependency>

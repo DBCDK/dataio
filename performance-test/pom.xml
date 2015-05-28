@@ -110,12 +110,6 @@
       <version>${jersey.version}</version>
       <scope>test</scope>
     </dependency>
-<!--    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
-      <scope>test</scope>
-    </dependency>-->
     <dependency>
       <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>

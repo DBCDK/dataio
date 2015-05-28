@@ -21,11 +21,17 @@
           <version>${jersey.version}</version>
 	  <scope>provided</scope>
       </dependency>
-      <dependency>
-          <groupId>dk.dbc</groupId>
-          <artifactId>dataio-commons-utils-jersey-media-json-jackson2x</artifactId>
-          <version>${project.version}</version>
-      </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>2.10.2</version>
+    </dependency>
+<!--    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-jersey-media-json-jackson2x</artifactId>
+      <version>${project.version}</version>
+    </dependency>-->
+
       <dependency>
           <groupId>dk.dbc</groupId>
           <artifactId>dataio-commons-utils-service</artifactId>

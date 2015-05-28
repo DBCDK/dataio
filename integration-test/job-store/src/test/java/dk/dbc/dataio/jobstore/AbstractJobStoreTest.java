@@ -8,6 +8,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -23,9 +24,11 @@ public abstract class AbstractJobStoreTest {
     public static void setupClass() throws ClassNotFoundException {
         final Client httpClient = HttpClient.newClient(new ClientConfig()
                 .register(new Jackson2xFeature()));
+        final Client httpClient2 = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
 
         fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, ITUtil.FILE_STORE_BASE_URL);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient2, ITUtil.FLOW_STORE_BASE_URL);
         jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
     }
 

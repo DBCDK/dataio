@@ -13,9 +13,9 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +29,8 @@ import javax.ejb.Singleton;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.List;
+
+//import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 
 /**
  * Created by sma on 29/04/14.
@@ -46,7 +48,8 @@ public class FlowStoreServiceConnectorBean {
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
-        client = HttpClient.newClient(new ClientConfig().register(new Jackson2xFeature()));
+        //client = HttpClient.newClient(new ClientConfig().register(new Jackson2xFeature()));
+        client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
     }
 
     @Lock(LockType.READ)

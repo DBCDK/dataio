@@ -66,6 +66,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>2.10.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
       <version>${project.version}</version>
@@ -113,7 +119,7 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>${jersey.version}</version>
+      <version>2.10.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>

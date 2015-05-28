@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -23,12 +22,10 @@ public abstract class AbstractJobStoreTest {
     @BeforeClass
     public static void setupClass() throws ClassNotFoundException {
         final Client httpClient = HttpClient.newClient(new ClientConfig()
-                .register(new Jackson2xFeature()));
-        final Client httpClient2 = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
 
         fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, ITUtil.FILE_STORE_BASE_URL);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient2, ITUtil.FLOW_STORE_BASE_URL);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
         jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
     }
 

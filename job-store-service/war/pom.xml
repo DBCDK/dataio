@@ -162,6 +162,7 @@
             WEB-INF/lib/dataio-commons-utils-flow-store-service-connector-${project.version}.jar,
             WEB-INF/lib/dataio-commons-utils-file-store-service-connector-${project.version}.jar
           </packagingExcludes>
+          <attachClasses>true</attachClasses>
           <webResources>
             <resource>
               <directory>${basedir}/../../commons/utils/logback/src/main/resources</directory>

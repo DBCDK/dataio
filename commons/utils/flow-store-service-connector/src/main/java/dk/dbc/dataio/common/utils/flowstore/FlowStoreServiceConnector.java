@@ -225,10 +225,6 @@ public class FlowStoreServiceConnector {
 
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-
-            //final String s = response.readEntity(String.class);
-            //log.info("RESPONSE: {}", s);
-
             return readResponseEntity(response, Submitter.class);
         } finally {
             response.close();

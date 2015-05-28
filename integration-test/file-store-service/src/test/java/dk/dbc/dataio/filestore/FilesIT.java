@@ -5,7 +5,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.glassfish.jersey.apache.connector.ApacheConnector;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.AfterClass;
@@ -152,9 +152,7 @@ public class FilesIT {
 
     private static Client newRestClient() {
         final ClientConfig config = new ClientConfig();
-        //config.connectorProvider(new ApacheConnectorProvider());  // jersey 2.7+ only
-        final ApacheConnector connector = new ApacheConnector(config);
-        config.connector(connector);
+        config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, BUFFER_SIZE);
         return HttpClient.newClient(config);
     }

@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnector;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.slf4j.Logger;
@@ -58,9 +58,7 @@ public class FileStoreServiceConnectorBean {
         poolingClientConnectionManager.setDefaultMaxPerRoute(MAX_HTTP_CONNECTIONS);
         config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingClientConnectionManager);
 
-        //config.connectorProvider(new ApacheConnectorProvider());     //jersey v2.7 only
-        final ApacheConnector connector = new ApacheConnector(config);
-        config.connector(connector);
+        config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
         client = HttpClient.newClient(config);
     }

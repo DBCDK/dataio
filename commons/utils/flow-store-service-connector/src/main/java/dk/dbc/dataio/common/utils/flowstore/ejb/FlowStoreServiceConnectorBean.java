@@ -48,7 +48,6 @@ public class FlowStoreServiceConnectorBean {
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
-        //client = HttpClient.newClient(new ClientConfig().register(new Jackson2xFeature()));
         client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
     }
 

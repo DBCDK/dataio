@@ -2,10 +2,10 @@ package dk.dbc.dataio.commons.utils.jobstore.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class JobStoreServiceConnectorBean {
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
         final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new Jackson2xFeature()));
+                .register(new JacksonFeature()));
         try {
             final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
             jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);

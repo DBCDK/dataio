@@ -14,7 +14,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jersey.jackson.Jackson2xFeature;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
@@ -31,6 +30,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.apache.commons.codec.binary.Base64;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -85,7 +85,7 @@ public class PerformanceIT {
     @BeforeClass
     public static void setupClass() throws ClassNotFoundException {
         final Client httpClient = HttpClient.newClient(new ClientConfig()
-                .register(new Jackson2xFeature()));
+                .register(new JacksonFeature()));
 
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
         jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);

@@ -15,7 +15,6 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>ejb</module>
     <module>test</module>
     <module>types</module>
     <module>war</module>

@@ -28,6 +28,8 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserNoOrderKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
@@ -66,10 +68,16 @@ public class JobStoreBean {
     public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
+            final Submitter submitter = getSubmitterOrThrow(jobInputStream.getJobSpecification().getSubmitterId());
+            final JSONBContext jsonbContext = new JSONBContext();
+            try {
+                LOGGER.debug("SUBMITTER: {}", jsonbContext.marshall(submitter));
+            } catch (JSONBException e) {
+                LOGGER.error("Marshalling error", e);
+            }
             final FlowBinder flowBinder = getFlowBinderOrThrow(jobInputStream.getJobSpecification());
             final Flow flow = getFlowOrThrow(flowBinder.getContent().getFlowId());
             final Sink sink = getSinkOrThrow(flowBinder.getContent().getSinkId());
-            final Submitter submitter = getSubmitterOrThrow(jobInputStream.getJobSpecification().getSubmitterId());
 
             FlowStoreReferences flowStoreReferences = createFlowStoreReferences(flowBinder, flow, sink, submitter);
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator = getSequenceAnalyserKeyGenerator(flowBinder, sink);

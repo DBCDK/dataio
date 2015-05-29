@@ -66,36 +66,9 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-ejbs</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>dk.dbc</groupId>
-                  <artifactId>dataio-commons-utils-binary-file-store</artifactId>
-                  <type>ejb</type>
-                  <overWrite>false</overWrite>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
         <version>${maven.war.plugin.version}</version>
         <configuration>
-          <packagingExcludes>WEB-INF/lib/dataio-commons-utils-binary-file-store-${project.version}.jar</packagingExcludes>
           <webResources>
             <resource>
               <directory>${basedir}/src/main/webapp/WEB-INF</directory>

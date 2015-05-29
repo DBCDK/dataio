@@ -10,6 +10,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
+import javax.management.JMX;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -53,20 +54,32 @@ public class SequenceAnalyserMonitorBean {
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(localName, "localName");
         try {
-            final SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean = new SequenceAnalyserMonitorMXBean() {
-                private SequenceAnalyserMonitorSample sample;
-                @Override
-                public SequenceAnalyserMonitorSample getSample() {
-                    return sample;
-                }
-                @Override
-                public void setSample(SequenceAnalyserMonitorSample sample) {
-                    this.sample = sample;
-                }
-            };
+            SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean;
             final ObjectName objectName = getObjectName(localName);
-            LOGGER.info("Registering {} in JMX", objectName);
-            mBeanServer.registerMBean(sequenceAnalyserMonitorMXBean, objectName);
+            if (mBeanServer.isRegistered(objectName)) {
+                // Under GF 4.1 isRegistered() returns true even though
+                // unregisterMBean() was called during previous undeploy
+                // - seems like a bug
+                LOGGER.info("Already registered in JMX: {}", objectName);
+                sequenceAnalyserMonitorMXBean = JMX.newMXBeanProxy(
+                        mBeanServer, objectName, SequenceAnalyserMonitorMXBean.class);
+                sequenceAnalyserMonitorMXBean.setSample(new SequenceAnalyserMonitorSample(0,0));
+            } else {
+                LOGGER.info("Registering {} in JMX", objectName);
+                mBeanServer.registerMBean(new SequenceAnalyserMonitorMXBean() {
+                    private SequenceAnalyserMonitorSample sample;
+                    @Override
+                    public SequenceAnalyserMonitorSample getSample() {
+                        return sample;
+                    }
+                    @Override
+                    public void setSample(SequenceAnalyserMonitorSample sample) {
+                        this.sample = sample;
+                    }
+                }, objectName);
+                sequenceAnalyserMonitorMXBean = JMX.newMXBeanProxy(
+                        mBeanServer, objectName, SequenceAnalyserMonitorMXBean.class);
+            }
             mBeans.put(localName, sequenceAnalyserMonitorMXBean);
         } catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
             throw new IllegalStateException("Unable to register monitor for " + localName, e);

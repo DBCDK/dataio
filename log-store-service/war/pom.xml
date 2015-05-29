@@ -48,6 +48,11 @@
                 <include>logback.xml</include>
               </includes>
             </resource>
+            <resource>
+              <directory>${basedir}/src/main/webapp/WEB-INF</directory>
+              <filtering>true</filtering>
+              <targetPath>WEB-INF</targetPath>
+            </resource>
           </webResources>
         </configuration>
       </plugin>

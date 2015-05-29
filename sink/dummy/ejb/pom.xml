@@ -60,22 +60,6 @@
   <build>
     <plugins>
       <plugin>
-        <!-- Move to dev-profile -->
-        <groupId>org.codehaus.cargo</groupId>
-        <artifactId>cargo-maven2-plugin</artifactId>
-        <version>${cargo.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.glassfish.main.deployment</groupId>
-            <artifactId>deployment-client</artifactId>
-            <version>${glassfish.version}</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-ejb-plugin</artifactId>
         <version>${maven.ejb.plugin.version}</version>

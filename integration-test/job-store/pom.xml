@@ -170,9 +170,6 @@
               <groupId>dk.dbc</groupId>
               <artifactId>dataio-job-store-service-war</artifactId>
               <type>war</type>
-              <properties>
-                <context>${job-store-service.context}</context>
-              </properties>
             </deployable>
             <deployable>
               <groupId>dk.dbc</groupId>

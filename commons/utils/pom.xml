@@ -20,7 +20,6 @@
     <module>httpclient</module>
     <module>invariant</module>
     <module>javascript</module>
-    <module>jersey-media-json-jackson2x</module>
     <module>log-store-service-connector</module>
     <module>flow-store-service-connector</module>
     <module>job-store-service-connector</module>

@@ -4,7 +4,11 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -173,7 +177,35 @@ public class RawRepoHarvesterConfigTest {
         config.addEntry(configEntry);
         final String marshalled = jsonbContext.marshall(config);
         final RawRepoHarvesterConfig unmarshalled = jsonbContext.unmarshall(marshalled, RawRepoHarvesterConfig.class);
-        assertThat(unmarshalled.getEntries().contains(configEntry), is(true));
+        assertThat("entries", unmarshalled.getEntries().contains(configEntry), is(true));
+        for (RawRepoHarvesterConfig.Entry entry : unmarshalled.getEntries()) {
+            assertThat("openAgencyTarget", entry.getOpenAgencyTarget(), is(nullValue()));
+        }
+    }
+
+    @Test
+    public void nonEmptyConfigWithOpenAgencyTargetCanBeMarshalledAndUnmarshalled() throws JSONBException, MalformedURLException {
+        final JSONBContext jsonbContext = new JSONBContext();
+
+        final RawRepoHarvesterConfig.OpenAgencyTarget openAgencyTarget = new RawRepoHarvesterConfig.OpenAgencyTarget();
+        openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
+        openAgencyTarget.setGroup("groupId");
+        openAgencyTarget.setUser("userId");
+        openAgencyTarget.setPassword("passw0rd");
+
+        final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder().build();
+        configEntry.setFormatOverride(42, "format42");
+        configEntry.setOpenAgencyTarget(openAgencyTarget);
+
+        final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
+        config.addEntry(configEntry);
+
+        final String marshalled = jsonbContext.marshall(config);
+        final RawRepoHarvesterConfig unmarshalled = jsonbContext.unmarshall(marshalled, RawRepoHarvesterConfig.class);
+        assertThat("entries", unmarshalled.getEntries().contains(configEntry), is(true));
+        for (RawRepoHarvesterConfig.Entry entry : unmarshalled.getEntries()) {
+            assertThat("openAgencyTarget", entry.getOpenAgencyTarget(), is(openAgencyTarget));
+        }
     }
 
     @Test

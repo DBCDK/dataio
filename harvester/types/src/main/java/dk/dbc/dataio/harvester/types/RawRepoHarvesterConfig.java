@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.types;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -91,6 +92,8 @@ public class RawRepoHarvesterConfig {
         /** Harvest batch size (default 10000) */
         private int batchSize = 10000;
 
+        private OpenAgencyTarget openAgencyTarget;
+
         public Entry() {
             formatOverrides = new HashMap<>();
         }
@@ -168,6 +171,14 @@ public class RawRepoHarvesterConfig {
             return this;
         }
 
+        public OpenAgencyTarget getOpenAgencyTarget() {
+            return openAgencyTarget;
+        }
+
+        public void setOpenAgencyTarget(OpenAgencyTarget openAgencyTarget) {
+            this.openAgencyTarget = openAgencyTarget;
+        }
+
         @Override
         public String toString() {
             return "Entry{" +
@@ -179,6 +190,7 @@ public class RawRepoHarvesterConfig {
                     ", formatOverrides=" + formatOverrides +
                     ", includeRelations=" + includeRelations +
                     ", batchSize=" + batchSize +
+                    ", openAgencyConfig=" + openAgencyTarget +
                     '}';
         }
 
@@ -193,10 +205,16 @@ public class RawRepoHarvesterConfig {
 
             Entry entry = (Entry) o;
 
+            if (includeRelations != entry.includeRelations) {
+                return false;
+            }
             if (batchSize != entry.batchSize) {
                 return false;
             }
-            if (includeRelations != entry.includeRelations) {
+            if (id != null ? !id.equals(entry.id) : entry.id != null) {
+                return false;
+            }
+            if (resource != null ? !resource.equals(entry.resource) : entry.resource != null) {
                 return false;
             }
             if (consumerId != null ? !consumerId.equals(entry.consumerId) : entry.consumerId != null) {
@@ -211,14 +229,8 @@ public class RawRepoHarvesterConfig {
             if (formatOverrides != null ? !formatOverrides.equals(entry.formatOverrides) : entry.formatOverrides != null) {
                 return false;
             }
-            if (id != null ? !id.equals(entry.id) : entry.id != null) {
-                return false;
-            }
-            if (resource != null ? !resource.equals(entry.resource) : entry.resource != null) {
-                return false;
-            }
+            return !(openAgencyTarget != null ? !openAgencyTarget.equals(entry.openAgencyTarget) : entry.openAgencyTarget != null);
 
-            return true;
         }
 
         @Override
@@ -231,7 +243,93 @@ public class RawRepoHarvesterConfig {
             result = 31 * result + (formatOverrides != null ? formatOverrides.hashCode() : 0);
             result = 31 * result + (includeRelations ? 1 : 0);
             result = 31 * result + batchSize;
+            result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
             return result;
+        }
+    }
+
+    /**
+     * Configuration for an OpenAgency target
+     */
+    public static class OpenAgencyTarget {
+        private URL url;
+        private String group;
+        private String user;
+        private String password;
+
+        public URL getUrl() {
+            return url;
+        }
+
+        public void setUrl(URL url) {
+            this.url = url;
+        }
+
+        public String getGroup() {
+            return group;
+        }
+
+        public void setGroup(String group) {
+            this.group = group;
+        }
+
+        public String getUser() {
+            return user;
+        }
+
+        public void setUser(String user) {
+            this.user = user;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            OpenAgencyTarget that = (OpenAgencyTarget) o;
+
+            if (url != null ? !url.equals(that.url) : that.url != null) {
+                return false;
+            }
+            if (group != null ? !group.equals(that.group) : that.group != null) {
+                return false;
+            }
+            if (user != null ? !user.equals(that.user) : that.user != null) {
+                return false;
+            }
+            return !(password != null ? !password.equals(that.password) : that.password != null);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = url != null ? url.hashCode() : 0;
+            result = 31 * result + (group != null ? group.hashCode() : 0);
+            result = 31 * result + (user != null ? user.hashCode() : 0);
+            result = 31 * result + (password != null ? password.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "OpenAgencyTarget{" +
+                    "url=" + url +
+                    ", group='" + group + '\'' +
+                    ", user='" + user + '\'' +
+                    ", password='" + password + '\'' +
+                    '}';
         }
     }
 }

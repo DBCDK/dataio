@@ -3,7 +3,6 @@ package dk.dbc.dataio.sinkservice.ejb;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.sinkservice.ping.ResourcePing;
@@ -50,7 +49,7 @@ public class PingBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response ping(String sinkContentData) throws EJBException, JsonException {
         LOGGER.trace("SinkContent: {}", sinkContentData);
-        final SinkContent sinkContent = JsonUtil.fromJson(sinkContentData, SinkContent.class, MixIns.getMixIns());
+        final SinkContent sinkContent = JsonUtil.fromJson(sinkContentData, SinkContent.class);
         final InitialContext initialContext = getInitialContext();
         final PingResponse pingResponse;
         try {

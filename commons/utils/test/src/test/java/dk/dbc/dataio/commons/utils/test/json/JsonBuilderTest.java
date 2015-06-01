@@ -14,7 +14,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.junit.Test;
@@ -23,72 +22,72 @@ public class JsonBuilderTest {
 
     @Test
     public void ChunkItemJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new ChunkItemJsonBuilder().build(), ChunkItem.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new ChunkItemJsonBuilder().build(), ChunkItem.class);
     }
 
     @Test
     public void FlowBinderContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowBinderContentJsonBuilder().build(), FlowBinderContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new FlowBinderContentJsonBuilder().build(), FlowBinderContent.class);
     }
 
     @Test
     public void FlowBinderJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowBinderJsonBuilder().build(), FlowBinder.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new FlowBinderJsonBuilder().build(), FlowBinder.class);
     }
 
     @Test
     public void FlowComponentContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowComponentContentJsonBuilder().build(), FlowComponentContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new FlowComponentContentJsonBuilder().build(), FlowComponentContent.class);
     }
 
     @Test
     public void FlowComponentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowComponentJsonBuilder().build(), FlowComponent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new FlowComponentJsonBuilder().build(), FlowComponent.class);
     }
 
     @Test
     public void FlowContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowContentJsonBuilder().build(), FlowContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new FlowContentJsonBuilder().build(), FlowContent.class);
     }
 
     @Test
     public void FlowJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowJsonBuilder().build(), Flow.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new FlowJsonBuilder().build(), Flow.class);
     }
 
     @Test
     public void JavaScriptJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new JavaScriptJsonBuilder().build(), JavaScript.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new JavaScriptJsonBuilder().build(), JavaScript.class);
     }
 
     @Test
     public void JobSpecificationJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new JobSpecificationJsonBuilder().build(), JobSpecification.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new JobSpecificationJsonBuilder().build(), JobSpecification.class);
     }
 
     @Test
     public void SinkContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SinkContentJsonBuilder().build(), SinkContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new SinkContentJsonBuilder().build(), SinkContent.class);
     }
 
     @Test
     public void SinkJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SinkJsonBuilder().build(), Sink.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new SinkJsonBuilder().build(), Sink.class);
     }
 
     @Test
     public void SubmitterContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SubmitterContentJsonBuilder().build(), SubmitterContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new SubmitterContentJsonBuilder().build(), SubmitterContent.class);
     }
 
     @Test
     public void SubmitterJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SubmitterJsonBuilder().build(), Submitter.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new SubmitterJsonBuilder().build(), Submitter.class);
     }
 
     @Test
     public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class, MixIns.getMixIns());
+        JsonUtil.fromJson(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class);
     }
 
     @Test

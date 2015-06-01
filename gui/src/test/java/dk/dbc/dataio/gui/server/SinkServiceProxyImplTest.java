@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import org.junit.Before;
 import org.junit.Test;
@@ -113,11 +114,9 @@ public class SinkServiceProxyImplTest {
                 .thenReturn(new MockedHttpClientResponse<PingResponse>(Response.Status.OK.getStatusCode(), expectedPingResponse));
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
-        final PingResponse pingResponse = sinkServiceProxy.ping(getValidSinkModel());
-        assertThat(pingResponse, is(notNullValue()));
-        assertThat(pingResponse.getStatus(), is(expectedPingResponse.getStatus()));
-        assertThat(pingResponse.getLog().size(), is(1));
-        assertThat(pingResponse.getLog().get(0), is(expectedPingResponse.getLog().get(0)));
+        final PingResponseModel model = sinkServiceProxy.ping(getValidSinkModel());
+        assertThat(model, is(notNullValue()));
+        assertThat(model.getStatus().toString().equals(expectedPingResponse.getStatus().toString()), is(true));
     }
 
     private SinkModel getValidSinkModel() {

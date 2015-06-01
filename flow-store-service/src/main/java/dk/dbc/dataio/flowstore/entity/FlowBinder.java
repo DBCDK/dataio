@@ -3,7 +3,6 @@ package dk.dbc.dataio.flowstore.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -153,7 +152,7 @@ public class FlowBinder extends VersionedEntity {
      */
     @Override
     protected void preProcessContent(String data) throws JsonException {
-        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(data, FlowBinderContent.class, MixIns.getMixIns());
+        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(data, FlowBinderContent.class);
         nameIndexValue = flowBinderContent.getName();
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
         flowId = flowBinderContent.getFlowId();
@@ -172,14 +171,14 @@ public class FlowBinder extends VersionedEntity {
      */
     public static List<FlowBinderSearchIndexEntry> generateSearchIndexEntries(final FlowBinder flowBinder) throws JsonException {
         InvariantUtil.checkNotNullOrThrow(flowBinder, "flowBinder");
-        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(flowBinder.getContent(), FlowBinderContent.class, MixIns.getMixIns());
+        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(flowBinder.getContent(), FlowBinderContent.class);
         final String packaging = flowBinderContent.getPackaging();
         final String format = flowBinderContent.getFormat();
         final String charset = flowBinderContent.getCharset();
         final String destination = flowBinderContent.getDestination();
         final List<FlowBinderSearchIndexEntry> index = new ArrayList<>(flowBinder.getSubmitterIds().size());
         for (final Submitter submitter : flowBinder.submitters) {
-            final SubmitterContent submitterContent = JsonUtil.fromJson(submitter.getContent(), SubmitterContent.class, MixIns.getMixIns());
+            final SubmitterContent submitterContent = JsonUtil.fromJson(submitter.getContent(), SubmitterContent.class);
             final FlowBinderSearchIndexEntry entry = new FlowBinderSearchIndexEntry();
             entry.setPackaging(packaging);
             entry.setFormat(format);

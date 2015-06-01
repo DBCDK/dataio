@@ -5,9 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -50,50 +47,29 @@ public class JsonUtilTest {
 
     @Test(expected = NullPointerException.class)
     public void fromJson_jsonArgIsNull_throws() throws Exception {
-        JsonUtil.fromJson(null, SimpleBean.class, new HashMap<Class<?>, Class<?>>(0));
+        JsonUtil.fromJson(null, SimpleBean.class);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void fromJson_jsonArgIsEmpty_throws() throws Exception {
-        JsonUtil.fromJson("", SimpleBean.class, new HashMap<Class<?>, Class<?>>(0));
+        JsonUtil.fromJson("", SimpleBean.class);
     }
 
     @Test(expected = NullPointerException.class)
     public void fromJson_tClassArgIsNull_throws() throws Exception {
-        JsonUtil.fromJson("{}", null, new HashMap<Class<?>, Class<?>>(0));
+        JsonUtil.fromJson("{}", null);
     }
 
     @Test(expected = JsonException.class)
     public void fromJson_jsonArgCanNotBeUnmarshalled_throws() throws Exception {
-        JsonUtil.fromJson("{}", SimpleBeanWithoutDefaultConstructor.class, new HashMap<Class<?>, Class<?>>(0));
+        JsonUtil.fromJson("{}", SimpleBeanWithoutDefaultConstructor.class);
     }
 
     @Test
     public void fromJson_jsonArgCanBeUnmarshalled_returnsInstance() throws Exception {
         final int value = 42;
         final String jsonRepresentation = String.format("{\"value\":%d}", value);
-        final SimpleBean instance = JsonUtil.fromJson(jsonRepresentation, SimpleBean.class, new HashMap<Class<?>, Class<?>>(0));
-        assertThat(instance, is(notNullValue()));
-        assertThat(instance.getValue(), is(value));
-    }
-
-    @Test
-    public void fromJson_mixinsArgIsNull_returnsInstance() throws Exception {
-        final int value = 42;
-        final String jsonRepresentation = String.format("{\"value\":%d}", value);
-        final SimpleBean instance = JsonUtil.fromJson(jsonRepresentation, SimpleBean.class, null);
-        assertThat(instance, is(notNullValue()));
-        assertThat(instance.getValue(), is(value));
-    }
-
-    @Test
-    public void fromJson_mixinsArgNecessary_returnsInstance() throws Exception {
-        final int value = 42;
-        final String jsonRepresentation = String.format("{\"value\":%d}", value);
-        final Map<Class<?>, Class<?>> mixins = new HashMap<>(1);
-        mixins.put(SimpleBeanWithoutDefaultConstructor.class, SimpleBeanWithoutDefaultConstructorJsonMixin.class);
-        final SimpleBeanWithoutDefaultConstructor instance =
-                JsonUtil.fromJson(jsonRepresentation, SimpleBeanWithoutDefaultConstructor.class, mixins);
+        final SimpleBean instance = JsonUtil.fromJson(jsonRepresentation, SimpleBean.class);
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getValue(), is(value));
     }

@@ -8,31 +8,23 @@ import java.io.Serializable;
 
 /**
  * Job specification DTO class.
- *
- * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class JobSpecification implements Serializable {
     private static final long serialVersionUID = 731600708416455339L;
 
-    private /* final */ String packaging;
-    private /* final */ String format;
-    private /* final */ String charset;
-    private /* final */ String destination;
-    private /* final */ long submitterId;
-    private /* final */ String mailForNotificationAboutVerification;
-    private /* final */ String mailForNotificationAboutProcessing;
-    private /* final */ String resultmailInitials;
+    private final String packaging;
+    private final String format;
+    private final String charset;
+    private final String destination;
+    private final long submitterId;
+    private final String mailForNotificationAboutVerification;
+    private final String mailForNotificationAboutProcessing;
+    private final String resultmailInitials;
     // Due to GWT serialization issues we cannot use java.net.URI or java.net.URL
-    private /* final */ String dataFile;
-
-    private JobSpecification() { }
+    private final String dataFile;
 
     /**
      * Class constructor
-     *
-     * Attention: when changing the signature of this constructor
-     * remember to also change the signature in the corresponding *JsonMixIn class.
      *
      * @param packaging job packaging (rammeformat)
      * @param format  job format (indholdsformat)
@@ -58,6 +50,7 @@ public class JobSpecification implements Serializable {
                             @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
                             @JsonProperty("resultmailInitials") String resultmailInitials,
                             @JsonProperty("dataFile") String dataFile) throws NullPointerException, IllegalArgumentException {
+
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");

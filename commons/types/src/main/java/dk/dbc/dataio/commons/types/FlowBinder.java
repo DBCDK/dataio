@@ -1,29 +1,23 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
 
 /**
 * FlowBinder DTO class.
-*
-* In all essence objects of this class are immutable, but due to GWT serialization
-* issues we cannot have final fields and need a default no-arg constructor.
 */
 public class FlowBinder implements Serializable {
     private static final long serialVersionUID = 6196377900891717136L;
 
-    private /* final */ long id;
-    private /* final */ long version;
-    private /* final */ FlowBinderContent content;
-
-    private FlowBinder() { }
+    private final long id;
+    private final long version;
+    private final FlowBinderContent content;
 
     /**
      * Class constructor
-     *
-     * Attention: when changing the signature of this constructor
-     * remember to also change the signature in the corresponding *JsonMixIn class.
      *
      * @param id flow binder id (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param version flow binder version (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
@@ -32,7 +26,12 @@ public class FlowBinder implements Serializable {
      * @throws NullPointerException if given null-valued content
      * @throws IllegalArgumentException if value of id or version is less than lower bound
      */
-    public FlowBinder(long id, long version, FlowBinderContent content) {
+
+    @JsonCreator
+    public FlowBinder(@JsonProperty("id") long id,
+                      @JsonProperty("version") long version,
+                      @JsonProperty("content") FlowBinderContent content) {
+
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");

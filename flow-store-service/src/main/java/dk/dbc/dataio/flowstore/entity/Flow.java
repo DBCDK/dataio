@@ -1,7 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 
@@ -50,7 +49,7 @@ public class Flow extends VersionedEntity {
      */
     @Override
     protected void preProcessContent(String data) throws JsonException {
-        final FlowContent flowContent = JsonUtil.fromJson(data, FlowContent.class, MixIns.getMixIns());
+        final FlowContent flowContent = JsonUtil.fromJson(data, FlowContent.class);
         nameIndexValue = flowContent.getName();
     }
 }

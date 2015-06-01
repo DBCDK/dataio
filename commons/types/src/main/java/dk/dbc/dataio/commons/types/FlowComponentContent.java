@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -8,30 +10,21 @@ import java.util.List;
 
 /**
  * FlowComponentContent DTO class.
- *
- * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class FlowComponentContent implements Serializable {
     private static final long serialVersionUID = -290854497828809813L;
 
-    private /* final */ String name;
-    private /* final */ String svnProjectForInvocationJavascript;
-    private /* final */ long svnRevision;
-    private /* final */ String invocationJavascriptName;
-    private /* final */ List<JavaScript> javascripts;
-    private /* final */ String invocationMethod;
-    private /* final */ String requireCache;
-
-    private FlowComponentContent() { }
-
+    private final String name;
+    private final String svnProjectForInvocationJavascript;
+    private final long svnRevision;
+    private final String invocationJavascriptName;
+    private final List<JavaScript> javascripts;
+    private final String invocationMethod;
+    private String requireCache;
 
 
     /**
      * Class constructor
-     *
-     * Attention: when changing the signature of this constructor
-     * remember to also change the signature in the corresponding *JsonMixIn class.
      *
      * @param name name of flow component
      * @param svnProjectForInvocationJavascript name of the SVN Project
@@ -43,21 +36,22 @@ public class FlowComponentContent implements Serializable {
      * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
      */
-    public FlowComponentContent(String name, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javascripts, String invocationMethod )
-    {
+
+    public FlowComponentContent(String name,
+                                String svnProjectForInvocationJavascript,
+                                long svnRevision,String invocationJavascriptName,
+                                List<JavaScript> javascripts,
+                                String invocationMethod) {
+
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.svnProjectForInvocationJavascript = InvariantUtil.checkNotNullNotEmptyOrThrow(svnProjectForInvocationJavascript, "svnProjectForInvocationJavascript");
         this.svnRevision = InvariantUtil.checkLowerBoundOrThrow(svnRevision, "svnRevision", 1);
         this.invocationJavascriptName = InvariantUtil.checkNotNullNotEmptyOrThrow(invocationJavascriptName, "invocationJavascriptName");
         this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
-        this.javascripts = new ArrayList<JavaScript>(InvariantUtil.checkNotNullOrThrow(javascripts, "javascripts"));
-
+        this.javascripts = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(javascripts, "javascripts"));
     }
     /**
      * Class constructor
-     *
-     * Attention: when changing the signature of this constructor
-     * remember to also change the signature in the corresponding *JsonMixIn class.
      *
      * @param name name of flow component
      * @param svnProjectForInvocationJavascript name of the SVN Project
@@ -71,8 +65,14 @@ public class FlowComponentContent implements Serializable {
      * @throws IllegalArgumentException if given empty-valued name argument
      */
 
-    public FlowComponentContent(String name, String svnProjectForInvocationJavascript, long svnRevision, String invocationJavascriptName, List<JavaScript> javascripts, String invocationMethod,
-                                    String requireCache)
+    @JsonCreator
+    public FlowComponentContent(@JsonProperty("name") String name,
+                                @JsonProperty("svnProjectForInvocationJavascript") String svnProjectForInvocationJavascript,
+                                @JsonProperty("svnRevision") long svnRevision,
+                                @JsonProperty("invocationJavascriptName") String invocationJavascriptName,
+                                @JsonProperty("javascripts") List<JavaScript> javascripts,
+                                @JsonProperty("invocationMethod") String invocationMethod,
+                                @JsonProperty("requireCache") String requireCache)
     {
         this(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod);
         this.requireCache = requireCache;

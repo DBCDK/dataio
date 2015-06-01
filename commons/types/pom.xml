@@ -21,9 +21,6 @@
           <include>**/*.java</include>
           <include>**/*.gwt.xml</include>
         </includes>
-        <excludes>
-          <exclude>**/*JsonMixIn.java</exclude>
-        </excludes>
       </resource>
     </resources>
   </build>

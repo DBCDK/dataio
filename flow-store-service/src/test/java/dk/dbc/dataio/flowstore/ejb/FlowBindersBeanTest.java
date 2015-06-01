@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
@@ -30,7 +29,6 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -131,7 +129,7 @@ public class FlowBindersBeanTest {
         when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER)).thenReturn(query);
 
         String flowBinderStr = new FlowBinderJsonBuilder().build();
-        dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class, MixIns.getMixIns());
+        dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class);
 
         when(query.getResultList()).thenReturn(Arrays.asList(flowBinder));
         Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
@@ -148,7 +146,7 @@ public class FlowBindersBeanTest {
         when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class)).thenReturn(query);
 
         String flowBinderStr = new FlowBinderJsonBuilder().build();
-        dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class, MixIns.getMixIns());
+        dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class);
 
         when(query.getResultList()).thenReturn(Arrays.asList(flowBinder));
         Response response = fbb.findAllFlowBinders();
@@ -218,7 +216,7 @@ public class FlowBindersBeanTest {
         when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
         when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(null);
 
-        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class))).thenReturn(new FlowBinderContentBuilder().build());
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
@@ -240,7 +238,7 @@ public class FlowBindersBeanTest {
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
         when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(null);
 
-        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class))).thenReturn(new FlowBinderContentBuilder().build());
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
@@ -264,7 +262,7 @@ public class FlowBindersBeanTest {
         when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(new Sink());
         when(ENTITY_MANAGER.find(eq(Submitter.class), anyLong())).thenReturn(null);
 
-        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class))).thenReturn(new FlowBinderContentBuilder().build());
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
@@ -292,8 +290,8 @@ public class FlowBindersBeanTest {
         when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(new Sink());
         when(ENTITY_MANAGER.find(eq(Submitter.class), anyLong())).thenReturn(submitter);
 
-        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class), any(HashMap.class))).thenReturn(new FlowBinderContentBuilder().build());
-        when(JsonUtil.fromJson(eq(submitterContentJson), eq(SubmitterContent.class), any(HashMap.class))).thenReturn(new SubmitterContentBuilder().build());
+        when(JsonUtil.fromJson(eq(flowBinderContentJson), eq(FlowBinderContent.class))).thenReturn(new FlowBinderContentBuilder().build());
+        when(JsonUtil.fromJson(eq(submitterContentJson), eq(SubmitterContent.class))).thenReturn(new SubmitterContentBuilder().build());
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);

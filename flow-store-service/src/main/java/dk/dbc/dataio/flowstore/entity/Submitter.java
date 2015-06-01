@@ -1,7 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 
@@ -62,7 +61,7 @@ public class Submitter extends VersionedEntity {
      */
     @Override
     protected void preProcessContent(String data) throws JsonException {
-        final SubmitterContent submitterContent = JsonUtil.fromJson(data, SubmitterContent.class, MixIns.getMixIns());
+        final SubmitterContent submitterContent = JsonUtil.fromJson(data, SubmitterContent.class);
         nameIndexValue = submitterContent.getName();
         numberIndexValue = submitterContent.getNumber();
     }

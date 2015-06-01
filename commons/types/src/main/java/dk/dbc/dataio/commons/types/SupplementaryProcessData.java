@@ -1,16 +1,21 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 
 public class SupplementaryProcessData  implements Serializable {
 
-    private /* final */ long submitter;
-    private /* final */ String format;
+    private final long submitter;
+    private final String format;
 
-    private SupplementaryProcessData() {}
 
-    public SupplementaryProcessData(long submitter, String format) {
+    @JsonCreator
+    public SupplementaryProcessData(@JsonProperty("submitter") long submitter,
+                                    @JsonProperty("format") String format) {
+
         this.submitter = submitter;
         this.format = format;
     }

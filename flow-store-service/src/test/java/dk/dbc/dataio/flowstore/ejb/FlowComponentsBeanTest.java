@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
@@ -149,7 +148,7 @@ public class FlowComponentsBeanTest {
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         mockStatic(JsonUtil.class);
-        when(JsonUtil.fromJson(flowComponentContentString, FlowComponentContent.class, MixIns.getMixIns())).thenReturn(flowComponentContent);
+        when(JsonUtil.fromJson(flowComponentContentString, FlowComponentContent.class)).thenReturn(flowComponentContent);
         when(JsonUtil.toJson(any(FlowComponent.class))).thenReturn("flowComponent");
 
         final Response response = flowComponentsBean.createComponent(uriInfo, flowComponentContentString);

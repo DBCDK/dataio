@@ -4,10 +4,10 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
+import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
@@ -18,8 +18,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
-
-import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -180,7 +178,7 @@ public class PresenterImplTest {
     public void pingSinkServiceFilteredAsyncCallback_successfulCallbackStatusOk_saveModelIsCalled() {
         initializeAndStartPresenter();
         saveModelHasBeenCalled = false;
-        presenterImpl.pingSinkServiceFilteredAsyncCallback.onSuccess(new PingResponse(PingResponse.Status.OK, Arrays.asList("log")));
+        presenterImpl.pingSinkServiceFilteredAsyncCallback.onSuccess(new PingResponseModel(PingResponseModel.Status.OK));
         assertThat(saveModelHasBeenCalled, is(true));
     }
 
@@ -188,7 +186,7 @@ public class PresenterImplTest {
     public void pingSinkServiceFilteredAsyncCallback_successfulCallbackStatusFailed_saveModelNotCalled() {
         initializeAndStartPresenter();
         saveModelHasBeenCalled = false;
-        presenterImpl.pingSinkServiceFilteredAsyncCallback.onSuccess(new PingResponse(PingResponse.Status.FAILED, Arrays.asList("log")));
+        presenterImpl.pingSinkServiceFilteredAsyncCallback.onSuccess(new PingResponseModel(PingResponseModel.Status.FAILED));
         assertThat(saveModelHasBeenCalled, is(false));
     }
 

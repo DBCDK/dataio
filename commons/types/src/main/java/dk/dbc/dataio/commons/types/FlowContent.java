@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -8,24 +10,16 @@ import java.util.List;
 
 /**
  * FlowContent DTO class.
- *
- * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class FlowContent implements Serializable {
     private static final long serialVersionUID = 5520247158829273054L;
 
-    private /* final */ String name;
-    private /* final */ String description;
-    private /* final */ List<FlowComponent> components;
-
-    private FlowContent() { }
+    private final String name;
+    private final String description;
+    private final List<FlowComponent> components;
 
     /**
      * Class constructor
-     *
-     * Attention: when changing the signature of this constructor
-     * remember to also change the signature in the corresponding *JsonMixIn class.
      *
      * @param name flow name
      * @param description flow description
@@ -34,17 +28,21 @@ public class FlowContent implements Serializable {
      * @throws NullPointerException if given null-valued name, description or components argument
      * @throws IllegalArgumentException if given empty-valued name or description argument
      */
-    public FlowContent(String name, String description, List<FlowComponent> components) {
+    @JsonCreator
+    public FlowContent(@JsonProperty("name") String name,
+                       @JsonProperty("description") String description,
+                       @JsonProperty("components") List<FlowComponent> components) {
+
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
         // We're not making a deep-copy here, but since FlowComponent is immutable
         // (or as near as) this should be sufficient to ensure immutability of this
         // class.
-        this.components = new ArrayList<FlowComponent>(InvariantUtil.checkNotNullOrThrow(components, "components"));
+        this.components = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(components, "components"));
     }
 
     public List<FlowComponent> getComponents() {
-        return new ArrayList<FlowComponent>(components);
+        return new ArrayList<>(components);
     }
 
     public String getDescription() {

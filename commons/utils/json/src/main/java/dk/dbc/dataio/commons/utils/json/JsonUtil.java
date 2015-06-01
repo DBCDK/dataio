@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Map;
 
 /**
  * This utility class provides convenience methods for JSON document handling.
@@ -38,33 +37,21 @@ public class JsonUtil {
      *
      * @param json JSON representation of value type
      * @param tClass value type class
-     * @param mixIns Map of target class to mixin class. Mixin classes use annotations
-     *               to guide the serialization/deserialization process, Can be null
-     *               or empty.
      * @param <T> type parameter
      * @return value type instance
      * @throws JsonException if unable to unmarshall JSON representation to value type
      */
-    public static <T> T fromJson(String json, Class<T> tClass, Map<Class<?>, Class<?>> mixIns) throws JsonException {
+    public static <T> T fromJson(String json, Class<T> tClass) throws JsonException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(json, "json");
         InvariantUtil.checkNotNullOrThrow(tClass, "tClass");
         T object;
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
-            if (mixIns != null) {
-                for (Map.Entry<Class<?>, Class<?>> e : mixIns.entrySet()) {
-                    objectMapper.addMixInAnnotations(e.getKey(), e.getValue());
-                }
-            }
             object = objectMapper.readValue(json, tClass);
         } catch (IOException e) {
             throw new JsonException(String.format("Exception caught when trying to unmarshall JSON %s to %s object", json, tClass.getName()), e);
         }
         return object;
-    }
-
-    public static <T> T fromJson(String json, Class<T> tClass) throws JsonException {
-        return fromJson(json, tClass, null);
     }
 
     /**

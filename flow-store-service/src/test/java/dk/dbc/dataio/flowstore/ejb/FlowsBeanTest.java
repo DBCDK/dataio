@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
@@ -150,7 +149,7 @@ public class FlowsBeanTest {
         when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
         when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
         mockStatic(JsonUtil.class);
-        when(JsonUtil.fromJson(flowContentString, FlowContent.class, MixIns.getMixIns())).thenReturn(flowContent);
+        when(JsonUtil.fromJson(flowContentString, FlowContent.class)).thenReturn(flowContent);
         when(JsonUtil.toJson(any(Flow.class))).thenReturn("flow");
 
         final Response response = flowsBean.createFlow(uriInfo, flowContentString);

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 
@@ -42,7 +41,7 @@ public class Sink extends VersionedEntity {
      */
     @Override
     protected void preProcessContent(String data) throws JsonException {
-        final SinkContent sinkContent = JsonUtil.fromJson(data, SinkContent.class, MixIns.getMixIns());
+        final SinkContent sinkContent = JsonUtil.fromJson(data, SinkContent.class);
         nameIndexValue = sinkContent.getName();
     }
 }

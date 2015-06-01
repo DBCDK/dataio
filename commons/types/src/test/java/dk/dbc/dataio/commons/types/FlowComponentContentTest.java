@@ -1,6 +1,5 @@
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.types.json.mixins.MixIns;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.junit.Test;
 
@@ -124,7 +123,7 @@ public class FlowComponentContentTest {
                 "}"
                 ;
 
-        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class, MixIns.getMixIns());
+        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class);
         assertThat("fisk", flowComponentContent.getName(), is("test"));
         assertThat( flowComponentContent.getRequireCache(), is(nullValue()));
     }
@@ -150,7 +149,7 @@ public class FlowComponentContentTest {
                 "}"
                 ;
 
-        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class, MixIns.getMixIns());
+        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class);
         assertThat( flowComponentContent.getName(), is("test"));
         assertThat(flowComponentContent.getRequireCache(), is("RequireCacheString"));
     }

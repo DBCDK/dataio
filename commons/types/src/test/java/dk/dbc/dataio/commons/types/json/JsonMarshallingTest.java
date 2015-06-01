@@ -1,4 +1,4 @@
-package dk.dbc.dataio.commons.types.json.mixins;
+package dk.dbc.dataio.commons.types.json;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ChunkItemTest;
@@ -31,88 +31,87 @@ import dk.dbc.dataio.commons.types.SubmitterTest;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.junit.Test;
 
-public class MixInsTest {
+public class JsonMarshallingTest {
     @Test
-    public void verify_jsonMixInForSubmitter() throws Exception {
+    public void verify_jsonMarshallingForSubmitter() throws Exception {
         final String json = JsonUtil.toJson(SubmitterTest.newSubmitterInstance());
-        JsonUtil.fromJson(json, Submitter.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, Submitter.class);
     }
 
     @Test
-    public void verify_jsonMixInForSubmitterContent() throws Exception {
+    public void verify_jsonMarshallingForSubmitterContent() throws Exception {
         final String json = JsonUtil.toJson(SubmitterContentTest.newSubmitterContentInstance());
-        JsonUtil.fromJson(json, SubmitterContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, SubmitterContent.class);
     }
 
     @Test
-    public void verify_jsonMixInForJavaScript() throws Exception {
+    public void verify_jsonMarshallingForJavaScript() throws Exception {
         final String json = JsonUtil.toJson(JavaScriptTest.newJavaScriptInstance());
-        JsonUtil.fromJson(json, JavaScript.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, JavaScript.class);
     }
 
     @Test
-    public void verify_jsonMixInForFlow() throws Exception {
+    public void verify_jsonMarshallingForFlow() throws Exception {
         final String json = JsonUtil.toJson(FlowTest.newFlowInstance());
-        JsonUtil.fromJson(json, Flow.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, Flow.class);
     }
 
     @Test
-    public void verify_jsonMixInForFlowContent() throws Exception {
+    public void verify_jsonMarshallingForFlowContent() throws Exception {
         final String json = JsonUtil.toJson(FlowContentTest.newFlowContentInstance());
-        JsonUtil.fromJson(json, FlowContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, FlowContent.class);
     }
 
     @Test
-    public void verify_jsonMixInForFlowComponent() throws Exception {
+    public void verify_jsonMarshallingForFlowComponent() throws Exception {
         final String json = JsonUtil.toJson(FlowComponentTest.newFlowComponentInstance());
-        JsonUtil.fromJson(json, FlowComponent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, FlowComponent.class);
     }
-
     @Test
-    public void verify_jsonMixInForFlowComponentContent() throws Exception {
+        public void verify_jsonMarshallingForFlowComponentContent() throws Exception {
         final String json = JsonUtil.toJson(FlowComponentContentTest.newFlowComponentContentInstance());
-        JsonUtil.fromJson(json, FlowComponentContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, FlowComponentContent.class);
     }
 
     @Test
-    public void verify_jsonMixInForFlowBinder() throws Exception {
+    public void verify_jsonMarshallingForFlowBinder() throws Exception {
         final String json = JsonUtil.toJson(FlowBinderTest.newFlowBinderInstance());
-        JsonUtil.fromJson(json, FlowBinder.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, FlowBinder.class);
     }
 
     @Test
-    public void verify_jsonMixInForFlowBinderContent() throws Exception {
+    public void verify_jsonMarshallingForFlowBinderContent() throws Exception {
         final String json = JsonUtil.toJson(FlowBinderContentTest.newFlowBinderContentInstance());
-        JsonUtil.fromJson(json, FlowBinderContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, FlowBinderContent.class);
     }
 
     @Test
-    public void verify_jsonMixInForJobSpecification() throws Exception {
+    public void verify_jsonMarshallingForJobSpecification() throws Exception {
         final String json = JsonUtil.toJson(JobSpecificationTest.newJobSpecificationInstance());
-        JsonUtil.fromJson(json, JobSpecification.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, JobSpecification.class);
     }
 
     @Test
-    public void verify_jsonMixInForSink() throws Exception {
+    public void verify_jsonMarshallingForSink() throws Exception {
         final String json = JsonUtil.toJson(SinkTest.newSinkInstance());
-        JsonUtil.fromJson(json, Sink.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, Sink.class);
     }
 
     @Test
-    public void verify_jsonMixInForSinkContent() throws Exception {
+    public void verify_jsonMarshallingForSinkContent() throws Exception {
         final String json = JsonUtil.toJson(SinkContentTest.newSinkContentInstance());
-        JsonUtil.fromJson(json, SinkContent.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, SinkContent.class);
     }
 
     @Test
-    public void verify_jsonMixInForPingResponse() throws Exception {
+    public void verify_jsonMarshallingForPingResponse() throws Exception {
         final String json = JsonUtil.toJson(PingResponseTest.newPingResponse());
-        JsonUtil.fromJson(json, PingResponse.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, PingResponse.class);
     }
 
     @Test
-    public void verify_jsonMixInForChunkItem() throws Exception {
+    public void verify_jsonMarshallingForChunkItem() throws Exception {
         final String json = JsonUtil.toJson(ChunkItemTest.newChunkItemInstance());
-        JsonUtil.fromJson(json, ChunkItem.class, MixIns.getMixIns());
+        JsonUtil.fromJson(json, ChunkItem.class);
     }
 }

@@ -3,10 +3,10 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
+import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
@@ -142,16 +142,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
-    class PingSinkServiceFilteredAsyncCallback extends FilteredAsyncCallback<PingResponse> {
+    class PingSinkServiceFilteredAsyncCallback extends FilteredAsyncCallback<PingResponseModel> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             view.setErrorText(texts.error_PingCommunicationError());
         }
 
         @Override
-        public void onSuccess(PingResponse result) {
-            PingResponse.Status status = result.getStatus();
-            if (status == PingResponse.Status.OK) {
+        public void onSuccess(PingResponseModel result) {
+            if (result.getStatus() == PingResponseModel.Status.OK) {
                 saveModel();
             } else {
                 view.setErrorText(texts.error_ResourceNameNotValid());

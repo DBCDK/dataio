@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -8,32 +10,24 @@ import java.util.List;
 
 /**
  * FlowBinderContent DTO class.
- *
- * In all essence objects of this class are immutable, but due to GWT serialization
- * issues we cannot have final fields and need a default no-arg constructor.
  */
 public class FlowBinderContent implements Serializable {
     private static final long serialVersionUID = 1106844598199379043L;
 
-    private /* final */ String name;
-    private /* final */ String description;
-    private /* final */ String packaging;
-    private /* final */ String format;
-    private /* final */ String charset;
-    private /* final */ String destination;
-    private /* final */ String recordSplitter;
-    private /* final */ boolean sequenceAnalysis;
-    private /* final */ long flowId;
-    private /* final */ List<Long> submitterIds;
-    private /* final */ long sinkId;
-
-    private FlowBinderContent() { }
+    private final String name;
+    private final String description;
+    private final String packaging;
+    private final String format;
+    private final String charset;
+    private final String destination;
+    private final String recordSplitter;
+    private final boolean sequenceAnalysis;
+    private final long flowId;
+    private final List<Long> submitterIds;
+    private final long sinkId;
 
     /**
      * Class constructor
-     *
-     * Attention: when changing the signature of this constructor
-     * remember to also change the signature in the corresponding *JsonMixIn class.
      *
      * @param name flowbinder name
      * @param description flowbinder description
@@ -49,7 +43,20 @@ public class FlowBinderContent implements Serializable {
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String or List argument
      */
-    public FlowBinderContent(String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, boolean sequenceAnalysis, long flowId, List<Long> submitterIds, long sinkId) {
+
+    @JsonCreator
+    public FlowBinderContent(@JsonProperty("name") String name,
+                             @JsonProperty("description") String description,
+                             @JsonProperty("packaging") String packaging,
+                             @JsonProperty("format") String format,
+                             @JsonProperty("charset") String charset,
+                             @JsonProperty("destination") String destination,
+                             @JsonProperty("recordSplitter") String recordSplitter,
+                             @JsonProperty("sequenceAnalysis") boolean sequenceAnalysis,
+                             @JsonProperty("flowId") long flowId,
+                             @JsonProperty("submitterIds") List<Long> submitterIds,
+                             @JsonProperty("sinkId") long sinkId) {
+
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");

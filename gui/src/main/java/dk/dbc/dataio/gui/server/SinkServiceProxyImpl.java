@@ -7,8 +7,10 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
+import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxy;
+import dk.dbc.dataio.gui.server.modelmappers.PingResponseModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -29,7 +31,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
     }
 
     @Override
-    public PingResponse ping(SinkModel model) throws ProxyException {
+    public PingResponseModel ping(SinkModel model) throws ProxyException {
         log.trace("SinkServiceProxy: ping({}, \"{}\");", model.getId(), model.getSinkName());
         InvariantUtil.checkNotNullOrThrow(model, "model");
         final StopWatch stopWatch = new StopWatch();
@@ -50,7 +52,7 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
             response.close();
             log.debug("SinkServiceProxy: ping took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return result;
+        return PingResponseModelMapper.toModel(result);
     }
 
 

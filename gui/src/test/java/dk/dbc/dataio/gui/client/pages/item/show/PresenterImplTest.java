@@ -197,21 +197,21 @@ public class PresenterImplTest {
     private JobModel testJobModelSucceeded = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
             "FlowBinderName1", "SinkName1",
-            true, 20, 20, 0, 0,
+            true, 20, 20, 0, 0, 11, 12, 13,
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
     private JobModel testJobModelFailed = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
             "FlowBinderName1", "SinkName1",
-            true, 20, 20, 1, 0,
+            true, 20, 20, 1, 0, 14, 15, 16,
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
     private JobModel testJobModelIgnored = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
             "FlowBinderName1", "SinkName1",
-            true, 20, 20, 0, 1,
+            true, 20, 20, 0, 1, 17, 18, 19,
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
     private JobModel testJobModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
             "urn:dataio-fs:46551", "424242", "SubmitterName2", "FlowBinderName2", "SinkName2",
-            true, 10, 10, 0, 5,
+            true, 10, 10, 0, 5, 20, 21, 22,
             "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
     private List<JobModel> testJobModels0 = new ArrayList<JobModel>();
     private List<JobModel> testJobModelsSucceeded = new ArrayList<JobModel>(Arrays.asList(testJobModelSucceeded));

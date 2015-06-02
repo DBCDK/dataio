@@ -190,6 +190,9 @@ public class JobModelMapperTest {
         assertThat(jobModel.getSucceededCounter(), is(123L));
         assertThat(jobModel.getFailedCounter(), is(33L + 66L + 4L));
         assertThat(jobModel.getIgnoredCounter(), is(643L));
+        assertThat(jobModel.getPartitionedCounter(), is(565L - 1 + 5L - 1 + 568L - 1));
+        assertThat(jobModel.getProcessedCounter(), is(44L - 1 + 67L - 1 + 8324L - 1));
+        assertThat(jobModel.getDeliveredCounter(), is(124L - 1 + 34L - 1 + 644L - 1));
         assertThat(jobModel.getPackaging(), is("packaginG"));
         assertThat(jobModel.getFormat(), is("formaT"));
         assertThat(jobModel.getCharset(), is("charseT"));

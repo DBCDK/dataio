@@ -43,6 +43,9 @@ public class JobModelMapper {
                 getSucceeded(jobInfoSnapshot.getState()),
                 getFailed(jobInfoSnapshot.getState()),
                 getIgnored(jobInfoSnapshot.getState()),
+                getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING)),
+                getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING)),
+                getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING)),
                 jobInfoSnapshot.getSpecification().getPackaging(),
                 jobInfoSnapshot.getSpecification().getFormat(),
                 jobInfoSnapshot.getSpecification().getCharset(),
@@ -167,4 +170,18 @@ public class JobModelMapper {
         StateElement stateElement = state.getPhase(State.Phase.PARTITIONING);
         return stateElement.getSucceeded() + stateElement.getFailed() + stateElement.getIgnored();
     }
+
+    /**
+     * This method calculates the total number of items in the given state element
+     *
+     * @param element The state element for the state in question
+     * @return The total number of items in the give state
+     */
+    private static long getStateCount(StateElement element) {
+        long suc = element.getSucceeded();
+        long fai = element.getFailed();
+        long ign = element.getIgnored();
+        return element.getSucceeded() + element.getFailed() + element.getIgnored();
+    }
+
 }

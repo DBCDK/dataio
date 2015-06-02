@@ -63,11 +63,11 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             jobInfoSnapshotList = jobStoreServiceConnector.listJobs(JobListCriteriaModelMapper.toJobListCriteria(model));
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
-                log.error("JobStoreProxy: listJobs - Unexpcted Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
             }
             else {
-                log.error("JobStoreProxy: listJobs - Unexpcted Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {

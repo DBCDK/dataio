@@ -45,17 +45,17 @@ public class StatusColumnTest {
     private JobModel doneWithoutErrorModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
             "FlowBinderName", "SinkName",
-            true, 10, 10, 0, 0,
+            true, 10, 10, 0, 0, 41, 42, 43,
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
     private JobModel doneWithErrorModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
             "FlowBinderName", "SinkName",
-            true, 10, 10, 5, 5,
+            true, 10, 10, 5, 5, 44, 45, 46,
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
     private JobModel notDoneModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
             "FlowBinderName", "SinkName",
-            false, 10, 5, 0, 0,  // Job not done marks the model as Not Done
+            false, 10, 5, 0, 0, 47, 48, 49, // Job not done marks the model as Not Done
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
 
     // Subject Under Test

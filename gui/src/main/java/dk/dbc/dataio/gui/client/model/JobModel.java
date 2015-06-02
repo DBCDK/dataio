@@ -17,6 +17,9 @@ public class JobModel extends GenericBackendModel {
     private long succeededCounter;
     private long failedCounter;
     private long ignoredCounter;
+    private long partitionedCounter;
+    private long processedCounter;
+    private long deliveredCounter;
     private String packaging;
     private String format;
     private String charset;
@@ -41,6 +44,9 @@ public class JobModel extends GenericBackendModel {
      * @param succeededCounter                     The Succeeded Counter
      * @param failedCounter                        The Failed Counter
      * @param ignoredCounter                       The Ignored Counter
+     * @param partitionedCounter                   The number of Patitioned Items
+     * @param processedCounter                     The number of Processed Items
+     * @param deliveredCounter                     The number of Delivered Items
      * @param packaging                            The Packaging
      * @param format                               The Format
      * @param charset                              The Charset
@@ -61,6 +67,9 @@ public class JobModel extends GenericBackendModel {
                     long succeededCounter,
                     long failedCounter,
                     long ignoredCounter,
+                    long partitionedCounter,
+                    long processedCounter,
+                    long deliveredCounter,
                     String packaging,
                     String format,
                     String charset,
@@ -80,6 +89,9 @@ public class JobModel extends GenericBackendModel {
         this.succeededCounter = succeededCounter;
         this.failedCounter = failedCounter;
         this.ignoredCounter = ignoredCounter;
+        this.partitionedCounter = partitionedCounter;
+        this.processedCounter = processedCounter;
+        this.deliveredCounter = deliveredCounter;
         this.packaging = packaging;
         this.format = format;
         this.charset = charset;
@@ -93,7 +105,7 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", "", "", false, 0, 0, 0, 0, "", "", "", "", "", "", "");
+        this("", "", "", "", "", "", "", false, 0, 0, 0, 0, 0, 0, 0, "", "", "", "", "", "", "");
     }
 
 
@@ -311,6 +323,60 @@ public class JobModel extends GenericBackendModel {
      */
     public void setIgnoredCounter(long ignoredCounter) {
         this.ignoredCounter = ignoredCounter;
+    }
+
+    /**
+     * Gets the Partitioned Counter
+     *
+     * @return The Partitioned Counter
+     */
+    public long getPartitionedCounter() {
+        return partitionedCounter;
+    }
+
+    /**
+     * Sets the Partitioned Counter
+     *
+     * @param partitionedCounter The Partitioned Counter
+     */
+    public void setPartitionedCounter(long partitionedCounter) {
+        this.partitionedCounter = partitionedCounter;
+    }
+
+    /**
+     * Gets the Processed Counter
+     *
+     * @return The Processed Counter
+     */
+    public long getProcessedCounter() {
+        return processedCounter;
+    }
+
+    /**
+     * Sets the Processed Counter
+     *
+     * @param processedCounter The Processed Counter
+     */
+    public void setProcessedCounter(long processedCounter) {
+        this.processedCounter = processedCounter;
+    }
+
+    /**
+     * Gets the Delivered Counter
+     *
+     * @return The Delivered Counter
+     */
+    public long getDeliveredCounter() {
+        return deliveredCounter;
+    }
+
+    /**
+     * Sets the Delivered Counter
+     *
+     * @param deliveredCounter The Delivered Counter
+     */
+    public void setDeliveredCounter(long deliveredCounter) {
+        this.deliveredCounter = deliveredCounter;
     }
 
     /**

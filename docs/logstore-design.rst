@@ -56,7 +56,7 @@ job-chunk-item modellen).
 Drift beskrivelse
 ~~~~~~~~~~~~~~~~~
 
-Logstore komponenten pakkes og distribueres som et Java EE7 EAR arkiv.
+Logstore komponenten pakkes og distribueres som et Java EE7 WAR arkiv.
 
 For at kunne persistere log events fordrer denne komponent, at der i
 applikationsserveren forefindes en aktiv JDBC resource med nedenstående
@@ -64,8 +64,8 @@ JNDI navn, som peger på logstore databasen::
 
     jdbc/dataio/logstore
 
-Bemærk desuden at databasen skal være oprettet med tabeller (pt. en manuel
-process) inden processeringsmaskinen påbegynder sin logning.
+Bemærk desuden at databasen skal være oprettet med tabeller inden
+processeringsmaskinen påbegynder sin logning.
 
 For at konfigurere logstore servicens egen logning skal der i
 applikationsserveren eksistere en custom string resource med JNDI navn::

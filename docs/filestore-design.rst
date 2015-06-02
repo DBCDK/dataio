@@ -74,7 +74,7 @@ katalogstruktur::
 Drift beskrivelse
 ~~~~~~~~~~~~~~~~~
 
-Filestore komponenten pakkes og distribueres som et Java EE7 EAR arkiv.
+Filestore komponenten pakkes og distribueres som et Java EE7 WAR arkiv.
 
 Til at vedligeholde den interne mapning mellem tildelt ID og lagerplacering
 fordrer komponenten at der i applikationsserveren forefindes en aktiv JDBC

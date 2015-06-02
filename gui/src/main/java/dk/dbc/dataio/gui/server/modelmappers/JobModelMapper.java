@@ -178,9 +178,6 @@ public class JobModelMapper {
      * @return The total number of items in the give state
      */
     private static long getStateCount(StateElement element) {
-        long suc = element.getSucceeded();
-        long fai = element.getFailed();
-        long ign = element.getIgnored();
         return element.getSucceeded() + element.getFailed() + element.getIgnored();
     }
 

@@ -18,7 +18,6 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.naming.Context;
@@ -332,7 +331,6 @@ public class HarvestOperationTest {
         }
     }
 
-    @Ignore("Awaits resolution of: http://bugs.dbc.dk/show_bug.cgi?id=18667")
     @Test
     public void getRawRepoConnector_openAgencyTargetIsConfiguredWithAuthentication_usesShowOrderAgencySearchOrder() throws MalformedURLException {
         try {

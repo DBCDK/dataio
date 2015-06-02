@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
+import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
@@ -28,10 +29,12 @@ public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
 
     private final DataSource dataSource;
+    private final AgencySearchOrder agencySearchOrder;
 
-    public RawRepoConnector(String dataSourceResourceName)
+    public RawRepoConnector(String dataSourceResourceName, AgencySearchOrder agencySearchOrder)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
         dataSource = lookupDataSource(dataSourceResourceName);
+        this.agencySearchOrder = InvariantUtil.checkNotNullOrThrow(agencySearchOrder, "agencySearchOrder");
     }
 
     public Record fetchRecord(RecordId id) throws NullPointerException, SQLException, RawRepoException {
@@ -39,7 +42,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.newInstance(connection)
+                return RawRepoDAO.newInstance(connection, agencySearchOrder)
                         .fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
@@ -53,7 +56,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return getStringRecordMap(id, RawRepoDAO.newInstance(connection));
+                return getStringRecordMap(id, RawRepoDAO.newInstance(connection, agencySearchOrder));
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -86,7 +89,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.newInstance(connection).dequeue(consumerId);
+                return RawRepoDAO.newInstance(connection, agencySearchOrder).dequeue(consumerId);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -100,7 +103,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                RawRepoDAO.newInstance(connection).queueFail(queueJob, errorMessage);
+                RawRepoDAO.newInstance(connection, agencySearchOrder).queueFail(queueJob, errorMessage);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -109,6 +112,10 @@ public class RawRepoConnector {
 
     public DataSource getDataSource() {
         return dataSource;
+    }
+
+    public AgencySearchOrder getAgencySearchOrder() {
+        return agencySearchOrder;
     }
 
     private DataSource lookupDataSource(String dataSourceResourceName)

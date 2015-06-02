@@ -3,6 +3,7 @@ package dk.dbc.dataio.harvester.utils.rawrepo;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
+import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
@@ -32,6 +33,7 @@ public class RawRepoConnectorTest {
 
     private final DataSource dataSource = mock(DataSource.class);
     private final RawRepoDAO rawRepoDAO = mock(RawRepoDAO.class);
+    private final AgencySearchOrder agencySearchOrder = mock(AgencySearchOrder.class);
 
     @BeforeClass
     public static void setupClass() {
@@ -46,23 +48,28 @@ public class RawRepoConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataSourceResourceNameIsNull_throws() {
-        new RawRepoConnector(null);
+        new RawRepoConnector(null, agencySearchOrder);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_dataSourceResourceNameIsEmpty_throws() {
-        new RawRepoConnector("");
+        new RawRepoConnector("", agencySearchOrder);
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupThrowsNamingException_throws() {
-        new RawRepoConnector("noSuchResource");
+        new RawRepoConnector("noSuchResource", agencySearchOrder);
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupReturnsNonDataSourceObject_throws() {
         InMemoryInitialContextFactory.bind(DATA_SOURCE_RESOURCE_NAME, "notDataSource");
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_agencySearchOrderIsNull_throws() {
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, null);
     }
 
     @Test
@@ -164,6 +171,6 @@ public class RawRepoConnectorTest {
     }
 
     private RawRepoConnector getRawRepoConnector() {
-        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME);
+        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder);
     }
 }

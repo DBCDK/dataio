@@ -187,7 +187,7 @@ public class RawRepoHarvesterConfigTest {
     public void nonEmptyConfigWithOpenAgencyTargetCanBeMarshalledAndUnmarshalled() throws JSONBException, MalformedURLException {
         final JSONBContext jsonbContext = new JSONBContext();
 
-        final RawRepoHarvesterConfig.OpenAgencyTarget openAgencyTarget = new RawRepoHarvesterConfig.OpenAgencyTarget();
+        final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
         openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
         openAgencyTarget.setGroup("groupId");
         openAgencyTarget.setUser("userId");

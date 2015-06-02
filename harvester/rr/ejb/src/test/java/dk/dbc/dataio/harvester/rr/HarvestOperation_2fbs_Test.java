@@ -242,7 +242,8 @@ public class HarvestOperation_2fbs_Test {
         public ClassUnderTest(RawRepoHarvesterConfig.Entry config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
             super(config, harvesterJobBuilderFactory);
         }
-        RawRepoConnector getRawRepoConnector(String dataSourceName) {
+        @Override
+        RawRepoConnector getRawRepoConnector(RawRepoHarvesterConfig.Entry config) {
             return RAW_REPO_CONNECTOR;
         }
     }

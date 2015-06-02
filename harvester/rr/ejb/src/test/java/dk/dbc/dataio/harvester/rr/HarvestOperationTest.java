@@ -1,20 +1,30 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marcxmerge.MarcXMergerException;
+import dk.dbc.rawrepo.AgencySearchOrderFallback;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.naming.Context;
+import javax.sql.DataSource;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -46,6 +56,12 @@ public class HarvestOperationTest {
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
     private final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+
+    @BeforeClass
+    public static void setup() {
+        // sets up the InMemoryInitialContextFactory as default factory.
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
+    }
 
     @Before
     public void setupTest() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
@@ -284,6 +300,65 @@ public class HarvestOperationTest {
         assertThat(harvestOperation.getJobSpecificationTemplate(agencyId), is(expectedJobSpecificationTemplate));
     }
 
+    @Test
+    public void getRawRepoConnector_noOpenAgencyTargetIsConfigured_usesFallbackAgencySearchOrder() {
+        try {
+            final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
+            InMemoryInitialContextFactory.bind(config.getResource(), mock(DataSource.class));
+
+            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);
+            final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
+            assertThat(rawRepoConnector.getAgencySearchOrder() instanceof AgencySearchOrderFallback, is(true));
+        } finally {
+            InMemoryInitialContextFactory.clear();
+        }
+    }
+
+    @Test
+    public void getRawRepoConnector_openAgencyTargetIsConfigured_usesShowOrderAgencySearchOrder() throws MalformedURLException {
+        try {
+            final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
+            openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
+
+            final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
+            config.setOpenAgencyTarget(openAgencyTarget);
+            InMemoryInitialContextFactory.bind(config.getResource(), mock(DataSource.class));
+
+            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);
+            final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
+            assertThat(rawRepoConnector.getAgencySearchOrder() instanceof AgencySearchOrderFromShowOrder, is(true));
+        } finally {
+            InMemoryInitialContextFactory.clear();
+        }
+    }
+
+    @Ignore("Awaits resolution of: http://bugs.dbc.dk/show_bug.cgi?id=18667")
+    @Test
+    public void getRawRepoConnector_openAgencyTargetIsConfiguredWithAuthentication_usesShowOrderAgencySearchOrder() throws MalformedURLException {
+        try {
+            final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
+            openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
+            openAgencyTarget.setGroup("groupId");
+            openAgencyTarget.setUser("userId");
+            openAgencyTarget.setPassword("passw0rd");
+
+            final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
+            config.setOpenAgencyTarget(openAgencyTarget);
+            InMemoryInitialContextFactory.bind(config.getResource(), mock(DataSource.class));
+
+            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);
+            final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
+            assertThat(rawRepoConnector.getAgencySearchOrder() instanceof AgencySearchOrderFromShowOrder, is(true));
+        } finally {
+            InMemoryInitialContextFactory.clear();
+        }
+    }
+
+    @Test
+    public void test() throws MalformedURLException {
+        new AgencySearchOrderFromShowOrder("http://test.dbc.dk/");
+    }
+
     private HarvestOperation getHarvestOperation(RawRepoHarvesterConfig.Entry config) {
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }
@@ -327,7 +402,8 @@ public class HarvestOperationTest {
         public ClassUnderTest(RawRepoHarvesterConfig.Entry config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
             super(config, harvesterJobBuilderFactory);
         }
-        RawRepoConnector getRawRepoConnector(String dataSourceName) {
+        @Override
+        RawRepoConnector getRawRepoConnector(RawRepoHarvesterConfig.Entry config) {
             return rawRepoConnector;
         }
     }

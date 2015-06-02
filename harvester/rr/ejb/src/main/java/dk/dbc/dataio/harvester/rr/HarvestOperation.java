@@ -8,13 +8,17 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
+import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marcxmerge.MarcXMergerException;
+import dk.dbc.rawrepo.AgencySearchOrder;
+import dk.dbc.rawrepo.AgencySearchOrderFallback;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +28,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
+import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,7 +52,7 @@ public class HarvestOperation {
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         documentBuilder = getDocumentBuilder();
         transformer = getTransformer();
-        rawRepoConnector = getRawRepoConnector(config.getResource());
+        rawRepoConnector = getRawRepoConnector(config);
     }
 
     public int execute() throws HarvesterException {
@@ -212,9 +217,25 @@ public class HarvestOperation {
 
     /* Stand-alone methods to enable easy override during testing */
 
-    RawRepoConnector getRawRepoConnector(String dataSourceResourceName)
+    RawRepoConnector getRawRepoConnector(RawRepoHarvesterConfig.Entry config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        return new RawRepoConnector(dataSourceResourceName);
+        final OpenAgencyTarget openAgencyTarget = config.getOpenAgencyTarget();
+        final AgencySearchOrder agencySearchOrder;
+        if (openAgencyTarget == null) {
+            agencySearchOrder = new AgencySearchOrderFallback();
+        } else {
+            try {
+                if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
+                    agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyTarget.getUrl().toString());
+                } else {
+                    agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyTarget.getUrl().toString(),
+                            openAgencyTarget.getUser(), openAgencyTarget.getGroup(), openAgencyTarget.getPassword());
+                }
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+        return new RawRepoConnector(config.getResource(), agencySearchOrder);
     }
 
     private DocumentBuilder getDocumentBuilder() {

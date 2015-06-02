@@ -1,6 +1,6 @@
-===============================
-dataIO logstore design dokument
-===============================
+================================
+dataIO log-store design dokument
+================================
 
 .. |date| date::
 
@@ -50,7 +50,7 @@ hvis værdi skal antage følgende form::
     {jobId}-{chunkId}-{itemId}
 
 Dette gør det muligt i logstore at knytte en given log event til et item i
-en chunk i et job (se jobstore design dokument for en beskrivelse af
+en chunk i et job (se job-store design dokument for en beskrivelse af
 job-chunk-item modellen).
 
 Drift beskrivelse
@@ -67,14 +67,14 @@ JNDI navn, som peger på logstore databasen::
 Bemærk desuden at databasen skal være oprettet med tabeller inden
 processeringsmaskinen påbegynder sin logning.
 
-For at konfigurere logstore servicens egen logning skal der i
+For at konfigurere log-store servicens egen logning skal der i
 applikationsserveren eksistere en custom string resource med JNDI navn::
 
     url/dataio/logstore/logback
 
 hvis værdi skal være en URL, der peger på en logback *include* blok.
 
-Se desuden jobprocessor design dokument for eksempel på logback
+Se desuden **job-processor** design dokument for eksempel på logback
 konfiguration, som indeholder den særlige logstore appender.
 
 RESTful API

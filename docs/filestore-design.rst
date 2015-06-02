@@ -1,6 +1,6 @@
-================================
-dataIO filestore design dokument
-================================
+=================================
+dataIO file-store design dokument
+=================================
 
 .. |date| date::
 
@@ -54,7 +54,7 @@ afhængighed til server navn, portnummer og deslige kan undgås.
 Teknisk beskrivelse
 ~~~~~~~~~~~~~~~~~~~
 
-Det er filestore implementationens ansvar at Vedligeholde en mapning
+Det er filestore implementationens ansvar at vedligeholde en mapning
 mellem tildelt ID og faktisk lager placering på en sådan vis, at
 lagerteknologien problemfrit kan udskiftes uden at påvirke klienterne,
 og i den nuværende implementation håndteres dette ved hjælp af en metadata
@@ -115,4 +115,22 @@ Mulige returværdier:
     **HTTP 404 NOT_FOUND** i tilfælde af at fil ID'et ikke kunne findes
 
     **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
+
+.. code-block:: rst
+
+    GET files/{id}/attributes/bytesize
+
+Returnerer størrelsen af fil (i bytes) indeholdt i fil lageret.
+
+Mulige returværdier:
+
+    **HTTP 200 OK** svar med fil data størrelse i bytes
+
+    **HTTP 400 BAD_REQUEST** i tilfælde af at fil ID'et ikke kan omsættes til et tal
+
+    **HTTP 404 NOT_FOUND** i tilfælde af at fil ID'et ikke kunne findes
+
+    **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
+
+
 

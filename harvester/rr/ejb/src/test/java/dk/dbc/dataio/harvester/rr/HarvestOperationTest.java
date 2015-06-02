@@ -354,11 +354,6 @@ public class HarvestOperationTest {
         }
     }
 
-    @Test
-    public void test() throws MalformedURLException {
-        new AgencySearchOrderFromShowOrder("http://test.dbc.dk/");
-    }
-
     private HarvestOperation getHarvestOperation(RawRepoHarvesterConfig.Entry config) {
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }

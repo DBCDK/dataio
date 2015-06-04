@@ -83,7 +83,6 @@ public class PgJobStoreIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
     private static final SessionContext SESSION_CONTEXT = mock(SessionContext.class);
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
-    private static final String DATA = "this is some test data";
     private static final State.Phase PROCESSING = State.Phase.PROCESSING;
     private static final PGSimpleDataSource datasource;
     private EntityManager entityManager;
@@ -667,6 +666,187 @@ public class PgJobStoreIT {
         assertThat("chunk1.size()", chunk1.size(), is(1));
     }
 
+    /**
+     * Given: a job store where a job exists and where:
+     *          10 items have been successfully partitioned.
+     * When : requesting a chunk item for the existing job for phase: PARTITIONING
+     * Then : the chunk item is returned and contains the the correct id, data and status.SUCCESS
+     */
+    @Test
+    public void getChunkItemPartitioned() throws JobStoreException {
+        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short ITEM_ID = 3;
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
+
+        assertThat(jobInfoSnapshot, not(nullValue()));
+
+        final ItemEntity.Key itemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, ITEM_ID);
+        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
+
+        // When...
+        ChunkItem chunkItem = pgJobStore.getChunkItem(itemKey.getJobId(), itemKey.getChunkId(), itemKey.getId(), State.Phase.PARTITIONING);
+
+        // Then...
+        assertThat("chunkItem", chunkItem, not(nullValue()));
+        assertThat("chunkItem.Status", chunkItem.getStatus(), not(nullValue()));
+        assertThat("chunkItem.Status.SUCCESS", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem.data", chunkItem.getData(), is(itemEntity.getPartitioningOutcome().getData()));
+        assertThat("chunkItem.Key.id", chunkItem.getId(), is((long)itemKey.getId()));
+    }
+
+    /**
+     * Given: a job store where a job exists and where:
+     *          10 items have been successfully partitioned.
+     *          8 items have been successfully processed.
+     *          1 item has failed in processing
+     *          1 item has been ignored in processing.
+     *
+     * When : requesting the chunk item for the item failed in processing.
+     * Then : the chunk item returned contains the the correct id, data and status.FAILURE
+     *
+     * And when : requesting the chunk item for one of the successful items.
+     * Then : the chunk item returned contains the the correct id, data and status.SUCCESS
+     *
+     * And when : requesting the chunk item for the item ignored in processing.
+     * Then : the chunk item returned contains the the correct id, data and status.IGNORE
+     */
+    @Test
+    public void getChunkItemProcessed() throws JobStoreException {
+        // Given...
+        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
+        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
+        final short SUCCESSFUL_ITEM_ID = 0;
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
+
+        ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
+                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
+
+        // When...
+        final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID);
+        final ItemEntity failedItemEntity = entityManager.find(ItemEntity.class, failedItemKey);
+        ChunkItem failedChunkItem = pgJobStore.getChunkItem(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.PROCESSING);
+
+        // Then...
+        assertThat("chunkItem", failedChunkItem, not(nullValue()));
+        assertThat("chunkItem.Status", failedChunkItem.getStatus(), not(nullValue()));
+        assertThat("chunkItem.Status.FAILURE", failedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("chunkItem.data", failedChunkItem.getData(), is(failedItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem.Key.id", failedChunkItem.getId(), is((long)failedItemKey.getId()));
+
+        // And when...
+        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, SUCCESSFUL_ITEM_ID);
+        final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
+        ChunkItem successfulChunkItem = pgJobStore.getChunkItem(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.PROCESSING);
+
+        // Then...
+        assertThat("chunkItem", successfulItemEntity, not(nullValue()));
+        assertThat("chunkItem.Status", successfulChunkItem.getStatus(), not(nullValue()));
+        assertThat("chunkItem.Status.SUCCESS", successfulChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem.data", successfulChunkItem.getData(), is(successfulItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem.Key.id", successfulChunkItem.getId(), is((long)successfulItemKey.getId()));
+
+        // And when...
+        final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, IGNORED_ITEM_ID);
+        final ItemEntity ignoredItemEntity = entityManager.find(ItemEntity.class, ignoredItemKey);
+        ChunkItem ignoredChunkItem = pgJobStore.getChunkItem(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.PROCESSING);
+
+        // Then...
+        assertThat("chunkItem", ignoredItemEntity, not(nullValue()));
+        assertThat("chunkItem.Status", ignoredChunkItem.getStatus(), not(nullValue()));
+        assertThat("chunkItem.Status.IGNORE", ignoredChunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(ignoredItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem.Key.id", ignoredChunkItem.getId(), is((long) ignoredItemKey.getId()));
+    }
+
+    /**
+     * Given: a job store where a job exists and:
+     *          10 items have been successfully partitioned.
+     *          10 items have been successfully processed.
+     *          8 items have been successfully delivered.
+     *          1 item has failed in delivering.
+     *          1 item has been ignored in delivering.
+     *
+     * When : requesting the chunk item for the item failed in delivering.
+     * Then : the chunk item returned contains the the correct id, data and status.FAILURE
+     *
+     * And when : requesting the chunk item for one of the successful items.
+     * Then : the chunk item returned contains the the correct id, data and status.SUCCESS
+     *
+     * And when : requesting the chunk item for the item ignored in delivering.
+     * Then : the chunk item returned contains the the correct id, data and status.IGNORED
+     */
+    @Test
+    public void getChunkItemDelivered() throws JobStoreException {
+        // Given...
+        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
+        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
+        final short SUCCESSFUL_ITEM_ID = 0;
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
+
+        ExternalChunk processedChunk = buildExternalChunk(jobInfoSnapshot.getJobId(), CHUNK_ID, 10, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(processedChunk);
+        chunkTransaction.commit();
+
+        ExternalChunk deliveredChunk = buildExternalChunkContainingFailedAndIgnoredItem(
+                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.DELIVERED);
+
+        chunkTransaction.begin();
+        pgJobStore.addChunk(deliveredChunk);
+        chunkTransaction.commit();
+
+        // When...
+        final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID);
+        final ItemEntity failedItemEntity = entityManager.find(ItemEntity.class, failedItemKey);
+        ChunkItem failedChunkItem = pgJobStore.getChunkItem(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.DELIVERING);
+
+        // Then...
+        assertThat("chunkItem", failedChunkItem, not(nullValue()));
+        assertThat("chunkItem.Status", failedChunkItem.getStatus(), not(nullValue()));
+        assertThat("chunkItem.Status.FAILURE", failedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("chunkItem.data", failedChunkItem.getData(), is(failedItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem.Key.id", failedChunkItem.getId(), is((long)failedItemKey.getId()));
+
+        // When...
+        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, SUCCESSFUL_ITEM_ID);
+        final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
+        ChunkItem successfulChunkItem = pgJobStore.getChunkItem(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.DELIVERING);
+
+        // Then...
+        assertThat("chunkItem", successfulItemEntity, not(nullValue()));
+        assertThat("chunkItem.Status", successfulChunkItem.getStatus(), not(nullValue()));
+        assertThat("chunkItem.Status.SUCCESS", successfulChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem.data", successfulChunkItem.getData(), is(successfulItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem.Key.id", successfulChunkItem.getId(), is((long)successfulItemKey.getId()));
+
+        // When...
+        final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, IGNORED_ITEM_ID);
+        final ItemEntity ignoredItemEntity = entityManager.find(ItemEntity.class, ignoredItemKey);
+        ChunkItem ignoredChunkItem = pgJobStore.getChunkItem(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.DELIVERING);
+
+        // Then...
+        assertThat("chunkItem", ignoredItemEntity, not(nullValue()));
+        assertThat("chunkItem.Status", ignoredChunkItem.getStatus(), not(nullValue()));
+        assertThat("chunkItem.Status.IGNORE", ignoredChunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(ignoredItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem.Key.id", ignoredChunkItem.getId(), is((long) ignoredItemKey.getId()));
+    }
+
     @Before
     public void initialiseEntityManager() {
         final Map<String, String> properties = new HashMap<>();
@@ -799,7 +979,7 @@ public class PgJobStoreIT {
     private ExternalChunk buildExternalChunk(long jobId, long chunkId, int numberOfItems, ExternalChunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
         for(long i = 0; i < numberOfItems; i++) {
-            items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(status).build());
+            items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
     }
@@ -808,14 +988,25 @@ public class PgJobStoreIT {
         List<ChunkItem> items = new ArrayList<>(numberOfItems);
         for(int i = 0; i < numberOfItems; i++) {
             if(i == failedItemId) {
-                items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(ChunkItem.Status.FAILURE).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.FAILURE).build());
             } else if( i == ignoredItemId) {
-                items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(ChunkItem.Status.IGNORE).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.IGNORE).build());
             } else {
-                items.add(new ChunkItemBuilder().setId(i).setData(DATA).setStatus(ChunkItem.Status.SUCCESS).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.SUCCESS).build());
             }
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
+    }
+
+    private String getData(ExternalChunk.Type type) {
+        switch (type) {
+            case PARTITIONED:
+                return "partitioned test data";
+            case PROCESSED:
+                return "processed test data";
+            default:
+                return "delivered test data";
+        }
     }
 
     private State assertAndReturnChunkState(int jobId, int chunkId, int succeeded, State.Phase phase, boolean isPhaseDone) {
@@ -834,7 +1025,7 @@ public class PgJobStoreIT {
         assertThat(itemState.getPhase(phase).getSucceeded(), is(succeeded));
         assertThat(itemState.phaseIsDone(phase), is(isPhaseDone));
         if(isPhaseDone) {
-            assertThat(itemEntity.getProcessingOutcome().getData(), is(DATA));
+            assertThat(itemEntity.getProcessingOutcome().getData(), is(getData(ExternalChunk.Type.PROCESSED)));
         }
         return itemState;
     }

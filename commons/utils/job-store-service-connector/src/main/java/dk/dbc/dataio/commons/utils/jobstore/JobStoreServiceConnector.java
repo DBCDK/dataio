@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -11,6 +12,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -212,6 +214,28 @@ public class JobStoreServiceConnector {
         }
     }
 
+
+    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException{
+        log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {}, {});", jobId, chunkId, itemId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
+            final PathBuilder path = new PathBuilder(phaseToJobStorePath(phase))
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                    .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
+                    .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, ChunkItem.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: getChunkItem took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     public Client getHttpClient() {
         return httpClient;
     }
@@ -266,6 +290,15 @@ public class JobStoreServiceConnector {
             case PROCESSED:   return JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
             case DELIVERED:   return JobStoreServiceConstants.JOB_CHUNK_DELIVERED;
             case PARTITIONED: throw new IllegalArgumentException("PARTITIONED is not a valid type");
+            default:          throw new IllegalArgumentException("ExternalChunk.Type could not be identified");
+        }
+    }
+
+    private String phaseToJobStorePath(State.Phase phase) throws IllegalArgumentException {
+        switch (phase) {
+            case PARTITIONING:return JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED;
+            case PROCESSING:  return JobStoreServiceConstants.CHUNK_ITEM_PROCESSED;
+            case DELIVERING:  return JobStoreServiceConstants.CHUNK_ITEM_DELIVERED;
             default:          throw new IllegalArgumentException("ExternalChunk.Type could not be identified");
         }
     }

@@ -4,6 +4,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
@@ -20,12 +21,14 @@ import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFacto
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -147,6 +150,23 @@ public class JobStoreBean {
         final StopWatch stopWatch = new StopWatch();
         try {
             return jobStore.listItems(criteria);
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves chunk item
+     * @param jobId the job id
+     * @param chunkId the chunk id
+     * @param itemId the item id
+     * @return chunk item
+     * @throws JobStoreException on failure to retrieve itemEntity
+     */
+    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            return jobStore.getChunkItem(jobId, chunkId, itemId, phase);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

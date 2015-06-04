@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -10,6 +11,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -28,6 +30,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -51,6 +54,9 @@ import static org.mockito.Mockito.when;
 
 public class JobStoreBeanTest {
     private static final String FILE_STORE_URN_STRING = "urn:dataio-fs:67";
+    private static final int JOB_ID = 1;
+    private static final int CHUNK_ID = 0;
+    private static final short ITEM_ID = 0;
 
     private static FlowStoreServiceConnectorException flowStoreException;
     private static FlowStoreServiceConnectorUnexpectedStatusCodeException flowBinderNotFound;
@@ -378,6 +384,58 @@ public class JobStoreBeanTest {
         final ItemListCriteria itemListCriteria = new ItemListCriteria();
         jobStoreBean.listItems(itemListCriteria);
         verify(mockedJobStore).listItems(itemListCriteria);
+    }
+
+    @Test
+    public void getChunkItem_onFailureToFindItemEntity_throwsJobStoreException() throws JobStoreException {
+        JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, "msg", null);
+        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
+        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING)).thenThrow(invalidInputException);
+        try {
+            jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+            fail("No exception thrown by getChunkItem()");
+        } catch( JobStoreException e) {
+            assertThat(e instanceof InvalidInputException, is(true));
+        }
+    }
+
+    @Test
+    public void getChunkItem_chunkItemIsCreatedForPartitioningPhase_returnsChunkItem() throws Exception {
+        ChunkItem chunkItem = new ChunkItemBuilder().build();
+
+        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING)).thenReturn(chunkItem);
+        try {
+            ChunkItem chunkItemReturned = jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+            assertThat(chunkItemReturned, is(notNullValue()));
+        } catch(JobStoreException e) {
+            fail("Exception thrown by getChunkItem()");
+        }
+    }
+
+    @Test
+    public void getChunkItem_chunkItemIsCreatedForProcessingPhase_returnsChunkItem() throws Exception {
+        ChunkItem chunkItem = new ChunkItemBuilder().build();
+
+        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING)).thenReturn(chunkItem);
+        try {
+            ChunkItem chunkItemReturned = jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
+            assertThat(chunkItemReturned, is(notNullValue()));
+        } catch(JobStoreException e) {
+            fail("Exception thrown by getChunkItem()");
+        }
+    }
+
+    @Test
+    public void getChunkItem_chunkItemIsCreatedForDeliveringPhase_returnsChunkItem() throws Exception {
+        ChunkItem chunkItem = new ChunkItemBuilder().build();
+
+        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING)).thenReturn(chunkItem);
+        try {
+            ChunkItem chunkItemReturned = jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING);
+            assertThat(chunkItemReturned, is(notNullValue()));
+        } catch(JobStoreException e) {
+            fail("Exception thrown by getChunkItem()");
+        }
     }
 
     /*

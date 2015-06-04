@@ -6,7 +6,10 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
@@ -37,6 +40,7 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -59,6 +63,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -667,6 +677,45 @@ public class PgJobStore {
             throw new JobStoreException("Exception caught during job-store operation", e);
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws InvalidInputException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
+            final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
+            if (itemEntity == null) {
+                final String errMsg = String.format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId);
+                final JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, errMsg, null);
+                throw new InvalidInputException(errMsg, jobError);
+            }
+            return buildChunkItem(itemId, phase, itemEntity);
+        } finally {
+            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+
+    }
+
+    private ChunkItem buildChunkItem(short itemId, State.Phase phase, ItemEntity itemEntity) {
+        switch(phase) {
+            case PARTITIONING:
+                return new ChunkItem(itemId, itemEntity.getPartitioningOutcome().getData(), getChunkItemStatus(itemEntity, phase));
+            case PROCESSING:
+                return new ChunkItem(itemId, itemEntity.getProcessingOutcome().getData(), getChunkItemStatus(itemEntity, phase));
+            default:
+                return new ChunkItem(itemId, itemEntity.getDeliveringOutcome().getData(), getChunkItemStatus(itemEntity, phase));
+        }
+    }
+
+    private ChunkItem.Status getChunkItemStatus(ItemEntity itemEntity, State.Phase phase) {
+        StateElement stateElement = itemEntity.getState().getPhase(phase);
+        if(stateElement.getSucceeded() == 1) {
+            return ChunkItem.Status.SUCCESS;
+        } else if(stateElement.getIgnored() == 1) {
+            return ChunkItem.Status.IGNORE;
+        } else {
+            return ChunkItem.Status.FAILURE;
         }
     }
 

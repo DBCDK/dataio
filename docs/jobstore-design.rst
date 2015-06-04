@@ -219,3 +219,39 @@ Returnerer samlingen af flow resourcer for et givent job som **application/json*
     **HTTP 400 BAD_REQUEST** i tilfælde af at resourcer ikke kunne lokaliseres
 
     **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
+
+.. code-block: : rst
+
+    GET jobs/{jobId}/chunks/{chunkId}/items{itemId}/partitioned
+
+Returnerer item data samt item status for partitioneringsfasen for et givent item som **application/json**
+
+    **HTTP 200 OK** svar med **ChunkItem** som **application/json**
+
+    **HTTP 400 BAD_REQUEST** i tilfælde af at item ikke kunne lokaliseres
+
+    **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
+
+.. code-block: : rst
+
+    GET jobs/{jobId}/chunks/{chunkId}/items{itemId}/processed
+
+Returnerer item data samt item status for processeringsfasen for et givent item som **application/json**
+
+    **HTTP 200 OK** svar med **ChunkItem** som **application/json**
+
+    **HTTP 400 BAD_REQUEST** i tilfælde af at item ikke kunne lokaliseres
+
+    **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
+
+.. code-block: : rst
+
+    GET jobs/{jobId}/chunks/{chunkId}/items{itemId}/delivered
+
+Returnerer item data samt item status for afleveringsfasen for et givent item som **application/json**
+
+    **HTTP 200 OK** svar med **ChunkItem** som **application/json**
+
+    **HTTP 400 BAD_REQUEST** i tilfælde af at item ikke kunne lokaliseres
+
+    **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl

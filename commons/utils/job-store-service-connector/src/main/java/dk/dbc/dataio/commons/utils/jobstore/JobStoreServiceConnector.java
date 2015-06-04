@@ -299,7 +299,7 @@ public class JobStoreServiceConnector {
             case PARTITIONING:return JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED;
             case PROCESSING:  return JobStoreServiceConstants.CHUNK_ITEM_PROCESSED;
             case DELIVERING:  return JobStoreServiceConstants.CHUNK_ITEM_DELIVERED;
-            default:          throw new IllegalArgumentException("ExternalChunk.Type could not be identified");
+            default:          throw new IllegalArgumentException("State.Phase could not be identified");
         }
     }
 }

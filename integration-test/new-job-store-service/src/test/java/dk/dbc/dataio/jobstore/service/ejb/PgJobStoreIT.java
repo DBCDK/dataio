@@ -60,6 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.dataio.commons.utils.service.Base64Util.base64decode;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
@@ -692,7 +693,7 @@ public class PgJobStoreIT {
         assertThat("chunkItem", chunkItem, not(nullValue()));
         assertThat("chunkItem.Status", chunkItem.getStatus(), not(nullValue()));
         assertThat("chunkItem.Status.SUCCESS", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("chunkItem.data", chunkItem.getData(), is(itemEntity.getPartitioningOutcome().getData()));
+        assertThat("chunkItem.data", chunkItem.getData(), is(base64decode(itemEntity.getPartitioningOutcome().getData())));
         assertThat("chunkItem.Key.id", chunkItem.getId(), is((long)itemKey.getId()));
     }
 
@@ -740,7 +741,7 @@ public class PgJobStoreIT {
         assertThat("chunkItem", failedChunkItem, not(nullValue()));
         assertThat("chunkItem.Status", failedChunkItem.getStatus(), not(nullValue()));
         assertThat("chunkItem.Status.FAILURE", failedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("chunkItem.data", failedChunkItem.getData(), is(failedItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem.data", failedChunkItem.getData(), is(base64decode(failedItemEntity.getProcessingOutcome().getData())));
         assertThat("chunkItem.Key.id", failedChunkItem.getId(), is((long)failedItemKey.getId()));
 
         // And when...
@@ -752,7 +753,7 @@ public class PgJobStoreIT {
         assertThat("chunkItem", successfulItemEntity, not(nullValue()));
         assertThat("chunkItem.Status", successfulChunkItem.getStatus(), not(nullValue()));
         assertThat("chunkItem.Status.SUCCESS", successfulChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("chunkItem.data", successfulChunkItem.getData(), is(successfulItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem.data", successfulChunkItem.getData(), is(base64decode(successfulItemEntity.getProcessingOutcome().getData())));
         assertThat("chunkItem.Key.id", successfulChunkItem.getId(), is((long)successfulItemKey.getId()));
 
         // And when...
@@ -764,7 +765,7 @@ public class PgJobStoreIT {
         assertThat("chunkItem", ignoredItemEntity, not(nullValue()));
         assertThat("chunkItem.Status", ignoredChunkItem.getStatus(), not(nullValue()));
         assertThat("chunkItem.Status.IGNORE", ignoredChunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(ignoredItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(base64decode(ignoredItemEntity.getProcessingOutcome().getData())));
         assertThat("chunkItem.Key.id", ignoredChunkItem.getId(), is((long) ignoredItemKey.getId()));
     }
 
@@ -819,7 +820,7 @@ public class PgJobStoreIT {
         assertThat("chunkItem", failedChunkItem, not(nullValue()));
         assertThat("chunkItem.Status", failedChunkItem.getStatus(), not(nullValue()));
         assertThat("chunkItem.Status.FAILURE", failedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("chunkItem.data", failedChunkItem.getData(), is(failedItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem.data", failedChunkItem.getData(), is(base64decode(failedItemEntity.getDeliveringOutcome().getData())));
         assertThat("chunkItem.Key.id", failedChunkItem.getId(), is((long)failedItemKey.getId()));
 
         // When...
@@ -831,7 +832,7 @@ public class PgJobStoreIT {
         assertThat("chunkItem", successfulItemEntity, not(nullValue()));
         assertThat("chunkItem.Status", successfulChunkItem.getStatus(), not(nullValue()));
         assertThat("chunkItem.Status.SUCCESS", successfulChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("chunkItem.data", successfulChunkItem.getData(), is(successfulItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem.data", successfulChunkItem.getData(), is(base64decode(successfulItemEntity.getDeliveringOutcome().getData())));
         assertThat("chunkItem.Key.id", successfulChunkItem.getId(), is((long)successfulItemKey.getId()));
 
         // When...
@@ -843,7 +844,7 @@ public class PgJobStoreIT {
         assertThat("chunkItem", ignoredItemEntity, not(nullValue()));
         assertThat("chunkItem.Status", ignoredChunkItem.getStatus(), not(nullValue()));
         assertThat("chunkItem.Status.IGNORE", ignoredChunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(ignoredItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(base64decode(ignoredItemEntity.getDeliveringOutcome().getData())));
         assertThat("chunkItem.Key.id", ignoredChunkItem.getId(), is((long) ignoredItemKey.getId()));
     }
 

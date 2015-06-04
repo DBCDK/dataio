@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -58,6 +57,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.utils.service.Base64Util.base64decode;
+import static dk.dbc.dataio.commons.utils.service.Base64Util.base64encode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -83,17 +84,17 @@ public class PgJobStoreTest {
     private static final int DEFAULT_CHUNK_ID = 1;
     private static final short DEFAULT_ITEM_ID = 1;
     private static final List<String> EXPECTED_DATA_ENTRIES = Arrays.asList(
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>first</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>second</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>third</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fourth</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fifth</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>sixth</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>seventh</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eighth</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>ninth</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>tenth</record></records>"),
-            Base64Util.base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eleventh</record></records>"));
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>first</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>second</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>third</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fourth</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fifth</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>sixth</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>seventh</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eighth</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>ninth</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>tenth</record></records>"),
+            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eleventh</record></records>"));
     private static final int EXPECTED_NUMBER_OF_ITEMS = EXPECTED_DATA_ENTRIES.size();
 
     private final EntityManager entityManager = mock(EntityManager.class);
@@ -232,7 +233,7 @@ public class PgJobStoreTest {
         assertThat("First item: succeeded", chunkItemEntities.entities.get(0).getState().getPhase(State.Phase.PARTITIONING).getSucceeded(), is(1));
         assertThat("Second item: failed", chunkItemEntities.entities.get(1).getState().getPhase(State.Phase.PARTITIONING).getFailed(), is(1));
 
-        final JobError jobError = new JSONBContext().unmarshall(Base64Util.base64decode(
+        final JobError jobError = new JSONBContext().unmarshall(base64decode(
                 chunkItemEntities.entities.get(1).getPartitioningOutcome().getData()), JobError.class);
         assertThat(jobError.getCode(), is(JobError.Code.INVALID_DATA));
         assertThat(jobError.getDescription().isEmpty(), is(false));
@@ -975,8 +976,8 @@ public class PgJobStoreTest {
 
         final ChunkItem chunkItem = pgJobStore.getChunkItem(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
         assertThat("chunkItem not null", chunkItem, not(nullValue()));
-        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), itemEntity.getPartitioningOutcome().getData()),
-                chunkItem.getData(), is(itemEntity.getPartitioningOutcome().getData()));
+        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(),base64decode(itemEntity.getPartitioningOutcome().getData())),
+                chunkItem.getData(), is(base64decode(itemEntity.getPartitioningOutcome().getData())));
     }
 
 
@@ -989,8 +990,8 @@ public class PgJobStoreTest {
 
         final ChunkItem chunkItem = pgJobStore.getChunkItem(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PROCESSING);
         assertThat("chunkItem not null", chunkItem, not(nullValue()));
-        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), itemEntity.getProcessingOutcome().getData()),
-                chunkItem.getData(), is(itemEntity.getProcessingOutcome().getData()));
+        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), base64decode(itemEntity.getProcessingOutcome().getData())),
+                chunkItem.getData(), is(base64decode(itemEntity.getProcessingOutcome().getData())));
     }
 
     @Test
@@ -1002,8 +1003,8 @@ public class PgJobStoreTest {
 
         final ChunkItem chunkItem = pgJobStore.getChunkItem(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.DELIVERING);
         assertThat("chunkItem not null", chunkItem, not(nullValue()));
-        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), itemEntity.getDeliveringOutcome().getData()),
-                chunkItem.getData(), is(itemEntity.getDeliveringOutcome().getData()));
+        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), base64decode(itemEntity.getDeliveringOutcome().getData())),
+                chunkItem.getData(), is(base64decode(itemEntity.getDeliveringOutcome().getData())));
     }
 
     /*

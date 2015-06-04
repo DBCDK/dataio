@@ -67,6 +67,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.utils.service.Base64Util.base64decode;
+
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
  */
@@ -691,11 +693,11 @@ public class PgJobStore {
     private ChunkItem buildChunkItem(short itemId, State.Phase phase, ItemEntity itemEntity) {
         switch(phase) {
             case PARTITIONING:
-                return new ChunkItem(itemId, itemEntity.getPartitioningOutcome().getData(), getChunkItemStatus(itemEntity, phase));
+                return new ChunkItem(itemId, base64decode(itemEntity.getPartitioningOutcome().getData()), getChunkItemStatus(itemEntity, phase));
             case PROCESSING:
-                return new ChunkItem(itemId, itemEntity.getProcessingOutcome().getData(), getChunkItemStatus(itemEntity, phase));
+                return new ChunkItem(itemId, base64decode(itemEntity.getProcessingOutcome().getData()), getChunkItemStatus(itemEntity, phase));
             default:
-                return new ChunkItem(itemId, itemEntity.getDeliveringOutcome().getData(), getChunkItemStatus(itemEntity, phase));
+                return new ChunkItem(itemId, base64decode(itemEntity.getDeliveringOutcome().getData()), getChunkItemStatus(itemEntity, phase));
         }
     }
 

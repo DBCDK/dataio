@@ -40,7 +40,7 @@ def create_job(fileId, specification):
     # "dataFile": "urn:dataio-fs:" + str(fileId),
     specification = {"jobSpecification": specification, "isEndOfJob": True, "partNumber": 0}
 
-    createJobUrl = "http://" + args.host + "/dataio-job-store-service-war-1.0-SNAPSHOT/jobs"
+    createJobUrl = "http://" + args.host + "/dataio/job-store-service/jobs"
     r = requests.post(createJobUrl, json.dumps(specification))
 
     if r.status_code == requests.codes.CREATED:

@@ -46,6 +46,7 @@ public class InputPostTabContent extends HTML{
      * This method replaces:
      * \n with <br></br> (new line)
      * \t with 8 times &nbsp (non-breaking spaces.)
+     * \&amp with &
      * This is done in order to make the log easier readable when presented in the view.
      * It also escapes the tag brackets: "<" and ">" in order to display the text in xml format
      *

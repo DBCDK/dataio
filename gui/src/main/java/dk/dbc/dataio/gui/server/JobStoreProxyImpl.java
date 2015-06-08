@@ -142,7 +142,6 @@ public class JobStoreProxyImpl implements JobStoreProxy {
                 phase = State.Phase.DELIVERING;
                 break;
             }
-//            return prettyPrintXMLAsString(jobStoreServiceConnector.getItemData(jobId, chunkId, itemId, phase));
             return format(jobStoreServiceConnector.getItemData(jobId, chunkId, itemId, phase));
 
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -164,7 +163,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
 
 
     /**
-     * Adds tab and new line to a xml string
+     * Adds tabs and new lines to a xml string
      * @param xmlString
      * @return formatted string
      */

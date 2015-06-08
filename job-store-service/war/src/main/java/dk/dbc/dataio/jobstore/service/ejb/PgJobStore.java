@@ -37,7 +37,6 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -66,8 +65,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import static dk.dbc.dataio.commons.utils.service.Base64Util.base64decode;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
@@ -695,17 +692,6 @@ public class PgJobStore {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
 
-    }
-
-    private ChunkItem.Status getChunkItemStatus(ItemEntity itemEntity, State.Phase phase) {
-        StateElement stateElement = itemEntity.getState().getPhase(phase);
-        if(stateElement.getSucceeded() == 1) {
-            return ChunkItem.Status.SUCCESS;
-        } else if(stateElement.getIgnored() == 1) {
-            return ChunkItem.Status.IGNORE;
-        } else {
-            return ChunkItem.Status.FAILURE;
-        }
     }
 
     private <T> T getExclusiveAccessFor(Class<T> entityClass, Object primaryKey) {

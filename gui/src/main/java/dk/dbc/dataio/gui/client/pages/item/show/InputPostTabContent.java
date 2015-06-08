@@ -10,6 +10,7 @@ public class InputPostTabContent extends HTML{
     private Texts texts;
     private JobStoreProxyAsync jobStoreProxy;
     private final static String NBSP = new String(new char[8]).replace("\0", "\u00A0");
+    private final static String AMP = "\u0026";
 
     public InputPostTabContent(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
         this.texts = texts;
@@ -53,6 +54,7 @@ public class InputPostTabContent extends HTML{
      */
     private String formatXml(String data) {
         data = data.replace("\t", NBSP);
+        data = data.replace("&amp;", AMP);
         SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder().appendEscapedLines(data).appendEscaped("<").appendEscaped(">");
         return safeHtmlBuilder.toSafeHtml().asString();
     }

@@ -9,7 +9,7 @@ import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 public class InputPostTabContent extends HTML{
     private Texts texts;
     private JobStoreProxyAsync jobStoreProxy;
-    private final static String NBSP = new String(new char[8]).replace("\0", "\u00A0");
+    private final static String NBSP = new String(new char[4]).replace("\0", "\u00A0");
     private final static String AMP = "\u0026";
 
     public InputPostTabContent(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {

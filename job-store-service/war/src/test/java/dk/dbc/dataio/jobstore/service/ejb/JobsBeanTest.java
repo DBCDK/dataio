@@ -1,13 +1,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -17,6 +15,7 @@ import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -36,6 +35,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -388,36 +388,33 @@ public class JobsBeanTest {
         assertThat("JobError not null", jobErrorReturned, is(notNullValue()));
     }
 
-    // ************************************* getChunkItem() tests ***********************************************************
+    // ************************************* getItemData() tests ***********************************************************
 
     @Test
-    public void getChunkItem_itemEntityLocated_returnsStatusOkResponseWithChunkItem() throws JSONBException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItemBuilder().build();
+    public void getItemData_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
+        ItemData itemData = new ItemData("data", Charset.defaultCharset());
 
-        when(jobsBean.jobStoreBean.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(chunkItem);
+        when(jobsBean.jobStoreBean.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(itemData);
 
-        final Response response = jobsBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+        final Response response = jobsBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
         assertThat("Response not null", response, not(nullValue()));
         assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat("Response entity", response.hasEntity(), is(true));
-        final ChunkItem chunkItemReturned = jsonbContext.unmarshall((String) response.getEntity(), ChunkItem.class);
-        assertThat("ResourceBundle not null", chunkItemReturned, not(nullValue()));
+        assertThat("base64decodedDataString not null", response.getEntity().toString(), not(nullValue()));
     }
 
 
     @Test
-    public void getChunkItem_itemEntityNotFound_returnsStatusBadRequestResponseWithJobError() throws Exception {
+    public void getItemData_itemEntityNotFound_returnsStatusNotFoundResponse() throws Exception {
         JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
         InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
 
-        when(jobsBean.jobStoreBean.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
+        when(jobsBean.jobStoreBean.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
 
-        final Response response = jobsBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
+        final Response response = jobsBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
         assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat("JobError not null", jobErrorReturned, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(false));
     }
 
     /*

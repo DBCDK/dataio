@@ -4,7 +4,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
@@ -163,10 +162,10 @@ public class JobStoreBean {
      * @return chunk item
      * @throws JobStoreException on failure to retrieve itemEntity
      */
-    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException {
+    public ItemData getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            return jobStore.getChunkItem(jobId, chunkId, itemId, phase);
+            return jobStore.getItemData(jobId, chunkId, itemId, phase);
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -9,7 +8,6 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -61,7 +59,7 @@ public class JobStoreServiceConnectorTest {
     private static final int JOB_ID = 3;
     private static final int CHUNK_ID = 44;
     private static final short ITEM_ID = 0;
-    private static final String CHUNK_ITEM_DATA = "chunk item data";
+    private static final String ITEM_DATA = "item data";
 
     @Before
     public void setup() throws Exception {
@@ -433,86 +431,80 @@ public class JobStoreServiceConnectorTest {
         assertThat(String.format("ResourceBundle: %s, expected to match: %s", resourceBundle, expectedResourceBundle), resourceBundle, is(expectedResourceBundle));
     }
 
-    // ******************************************* getChunkItem() tests *******************************************
+    // ******************************************* getItemData() tests *******************************************
 
     @Test
-    public void getChunkItem_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
+    public void getItemData_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         try {
-            jobStoreServiceConnector.getChunkItem(-1, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+            jobStoreServiceConnector.getItemData(-1, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {}
     }
 
     @Test(expected = NullPointerException.class)
-    public void getChunkItem_phaseIsNull_throws() throws JobStoreServiceConnectorException {
+    public void getItemData_phaseIsNull_throws() throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
-        jobStoreServiceConnector.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, null);
+        jobStoreServiceConnector.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, null);
     }
 
     @Test
-    public void getChunkItem_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, "description", null);
+    public void getItemData_notFoundResponse_throws() throws JobStoreServiceConnectorException {
         try {
-            getChunkItem_mockedHttpWithSpecifiedReturnErrorCode(
+            getItemData_mockedHttpWithSpecifiedReturnErrorCode(
                     JOB_ID, CHUNK_ID, ITEM_ID,
                     JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED,
                     State.Phase.PARTITIONING,
-                    Response.Status.BAD_REQUEST.getStatusCode(),
-                    jobError);
+                    Response.Status.NOT_FOUND.getStatusCode(),
+                    null);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
-            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
-            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
         }
     }
 
     @Test
-    public void getChunkItem_partitioningPhase_chunkItemWithPartitionedDataReturned() throws JobStoreServiceConnectorException {
-        final ChunkItem chunkItem = getChunkItem_mockedHttpWithSpecifiedReturnErrorCode(
+    public void getItemData_partitioningPhase_partitionedDataReturned() throws JobStoreServiceConnectorException {
+        final String data = getItemData_mockedHttpWithSpecifiedReturnErrorCode(
                 JOB_ID,
                 CHUNK_ID,
                 ITEM_ID,
                 JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED,
                 State.Phase.PARTITIONING,
                 Response.Status.OK.getStatusCode(),
-                new ChunkItemBuilder().setId(0).setData("partitioned data").build());
+                ITEM_DATA);
 
-        assertThat(chunkItem, is(notNullValue()));
-        assertThat(chunkItem.getId(), is((long)ITEM_ID));
-        assertThat(chunkItem.getData(), is("partitioned data"));
+        assertThat(data, is(notNullValue()));
+        assertThat(data, is(ITEM_DATA));
     }
 
     @Test
-    public void getChunkItem_processingPhase_chunkItemWithProcessedDataReturned() throws JobStoreServiceConnectorException {
-        final ChunkItem chunkItem = getChunkItem_mockedHttpWithSpecifiedReturnErrorCode(
+    public void getItemData_processingPhase_processedDataReturned() throws JobStoreServiceConnectorException {
+        final String data = getItemData_mockedHttpWithSpecifiedReturnErrorCode(
                 JOB_ID,
                 CHUNK_ID,
                 ITEM_ID,
                 JobStoreServiceConstants.CHUNK_ITEM_PROCESSED,
                 State.Phase.PROCESSING,
                 Response.Status.OK.getStatusCode(),
-                new ChunkItemBuilder().setId(0).setData(CHUNK_ITEM_DATA).build());
+                ITEM_DATA);
 
-        assertThat(chunkItem, is(notNullValue()));
-        assertThat(chunkItem.getId(), is((long)ITEM_ID));
-        assertThat(chunkItem.getData(), is(CHUNK_ITEM_DATA));
+        assertThat(data, is(notNullValue()));
+        assertThat(data, is(ITEM_DATA));
     }
 
     @Test
-    public void getChunkItem_deliveredPhase_chunkItemWithDeliveredDataReturned() throws JobStoreServiceConnectorException {
-        final ChunkItem chunkItem = getChunkItem_mockedHttpWithSpecifiedReturnErrorCode(
+    public void getItemData_deliveredPhase_deliveredDataReturned() throws JobStoreServiceConnectorException {
+        final String data = getItemData_mockedHttpWithSpecifiedReturnErrorCode(
                 JOB_ID,
                 CHUNK_ID,
                 ITEM_ID,
                 JobStoreServiceConstants.CHUNK_ITEM_DELIVERED,
                 State.Phase.DELIVERING,
                 Response.Status.OK.getStatusCode(),
-                new ChunkItemBuilder().setId(0).setData(CHUNK_ITEM_DATA).build());
+                ITEM_DATA);
 
-        assertThat(chunkItem, is(notNullValue()));
-        assertThat(chunkItem.getId(), is((long)ITEM_ID));
-        assertThat(chunkItem.getData(), is(CHUNK_ITEM_DATA));
+        assertThat(data, is(notNullValue()));
+        assertThat(data, is(ITEM_DATA));
     }
 
     /*
@@ -577,11 +569,11 @@ public class JobStoreServiceConnectorTest {
 
     }
 
-    private ChunkItem getChunkItem_mockedHttpWithSpecifiedReturnErrorCode(int jobId, int chunkId, short itemId, String pathString, State.Phase phase, int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
+    private String getItemData_mockedHttpWithSpecifiedReturnErrorCode(int jobId, int chunkId, short itemId, String pathString, State.Phase phase, int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
         when(HttpClient.doGet(CLIENT, JOB_STORE_URL, buildAddChunkItemPath(jobId, chunkId, itemId, pathString)))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        return instance.getChunkItem(jobId, chunkId, itemId, phase);
+        return instance.getItemData(jobId, chunkId, itemId, phase);
     }
 
     private String[] buildAddChunkPath(long jobId, long chunkId, String pathString) {

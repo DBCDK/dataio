@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -234,63 +234,63 @@ public class JobsBean {
     }
 
     /**
-     * Retrieves chunk item containing partitioned data
+     * Retrieves partitioned item data, base64 decoded as String
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with itemData as JSON,
+     * @return a HTTP 200 OK response with base64 decoded data as String,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED)
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response getChunkItemPartitioned(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
-                                            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
-                                            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
-        return getChunkItem(jobId, chunkId, itemId, State.Phase.PARTITIONING);
+    @Produces({ MediaType.TEXT_PLAIN })
+    public Response getPartitionedResult(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+                                         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+                                         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+        return getItemData(jobId, chunkId, itemId, State.Phase.PARTITIONING);
     }
 
     /**
-     * Retrieves chunk item containing processed data
+     * Retrieves processed item data, base64 decoded as String
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with itemData as JSON,
+     * @return a HTTP 200 OK response with base64 decoded data as String,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.TEXT_PLAIN })
     public Response getProcessingResult(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
                                         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
                                         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
-        return getChunkItem(jobId, chunkId, itemId, State.Phase.PROCESSING);
+        return getItemData(jobId, chunkId, itemId, State.Phase.PROCESSING);
     }
 
     /**
-     * Retrieves chunk item containing delivered data
+     * Retrieves delivered item data, base64 decoded as String
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with itemData as JSON,
+     * @return a HTTP 200 OK response with base64 decoded data as String,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_DELIVERED)
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.TEXT_PLAIN })
     public Response getDeliveringResult(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
                                         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
                                         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
-        return getChunkItem(jobId, chunkId, itemId, State.Phase.DELIVERING);
+        return getItemData(jobId, chunkId, itemId, State.Phase.DELIVERING);
     }
 
 
@@ -298,21 +298,20 @@ public class JobsBean {
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the item id
-     * @param phase the phase of the chunk item (PARTITIONING, PROCESSING, DELIVERING)
-     * @return a HTTP 200 OK response with chunk item as JSON,
-     *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
+     * @param phase the phase of the item (PARTITIONING, PROCESSING, DELIVERING)
+     * @return a HTTP 200 OK response with base64 decoded data as String,
+     *         a HTTP 404 NOT_FOUND response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
      */
-    Response getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
+    Response getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
-            ChunkItem chunkItem = jobStoreBean.getChunkItem(jobId, chunkId, itemId, phase);
+            ItemData itemData = jobStoreBean.getItemData(jobId, chunkId, itemId, phase);
             return  Response.ok()
-                    .entity(jsonbContext.marshall(chunkItem))
+                    .entity(Base64Util.base64decode(itemData.getData()))
                     .build();
         } catch (InvalidInputException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(jsonbContext.marshall(e.getJobError()))
+            return Response.status(Response.Status.NOT_FOUND)
                     .build();
         }
     }

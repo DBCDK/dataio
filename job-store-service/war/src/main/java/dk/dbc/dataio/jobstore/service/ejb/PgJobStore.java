@@ -673,7 +673,7 @@ public class PgJobStore {
         }
     }
 
-    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws InvalidInputException {
+    public ItemData getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws InvalidInputException {
         final StopWatch stopWatch = new StopWatch();
         try {
             ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
@@ -683,22 +683,18 @@ public class PgJobStore {
                 final JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, errMsg, null);
                 throw new InvalidInputException(errMsg, jobError);
             }
-            return buildChunkItem(itemId, phase, itemEntity);
+            switch(phase) {
+                case PARTITIONING:
+                    return itemEntity.getPartitioningOutcome();
+                case PROCESSING:
+                    return itemEntity.getProcessingOutcome();
+                default:
+                    return itemEntity.getDeliveringOutcome();
+            }
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
 
-    }
-
-    private ChunkItem buildChunkItem(short itemId, State.Phase phase, ItemEntity itemEntity) {
-        switch(phase) {
-            case PARTITIONING:
-                return new ChunkItem(itemId, base64decode(itemEntity.getPartitioningOutcome().getData()), getChunkItemStatus(itemEntity, phase));
-            case PROCESSING:
-                return new ChunkItem(itemId, base64decode(itemEntity.getProcessingOutcome().getData()), getChunkItemStatus(itemEntity, phase));
-            default:
-                return new ChunkItem(itemId, base64decode(itemEntity.getDeliveringOutcome().getData()), getChunkItemStatus(itemEntity, phase));
-        }
     }
 
     private ChunkItem.Status getChunkItemStatus(ItemEntity itemEntity, State.Phase phase) {

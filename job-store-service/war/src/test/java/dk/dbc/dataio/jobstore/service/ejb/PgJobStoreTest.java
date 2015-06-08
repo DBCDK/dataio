@@ -958,53 +958,53 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void getChunkItem_itemEntityNotFound_throws() throws JobStoreException {
+    public void getItemData_itemEntityNotFound_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
         try {
-            pgJobStore.getChunkItem(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
+            pgJobStore.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
             fail("No exception thrown");
         } catch (JobStoreException e) {}
     }
 
     @Test
-    public void getChunkItem_phasePartitioning_returnsChunkItem() throws JobStoreException{
+    public void getItemData_phasePartitioning_returnsItemData() throws JobStoreException{
         final PgJobStore pgJobStore = newPgJobStore();
 
         ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
-        final ChunkItem chunkItem = pgJobStore.getChunkItem(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
-        assertThat("chunkItem not null", chunkItem, not(nullValue()));
-        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(),base64decode(itemEntity.getPartitioningOutcome().getData())),
-                chunkItem.getData(), is(base64decode(itemEntity.getPartitioningOutcome().getData())));
+        final ItemData itemData = pgJobStore.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
+        assertThat("itemData not null", itemData, not(nullValue()));
+        assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getPartitioningOutcome().getData()),
+                itemData.getData(), is(itemEntity.getPartitioningOutcome().getData()));
     }
 
 
     @Test
-    public void getChunkItem_phaseProcessing_returnsChunkItem() throws JobStoreException{
+    public void getItemData_phaseProcessing_returnsItemData() throws JobStoreException{
         final PgJobStore pgJobStore = newPgJobStore();
 
         ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
-        final ChunkItem chunkItem = pgJobStore.getChunkItem(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PROCESSING);
-        assertThat("chunkItem not null", chunkItem, not(nullValue()));
-        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), base64decode(itemEntity.getProcessingOutcome().getData())),
-                chunkItem.getData(), is(base64decode(itemEntity.getProcessingOutcome().getData())));
+        final ItemData itemData = pgJobStore.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PROCESSING);
+        assertThat("itemData not null", itemData, not(nullValue()));
+        assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getProcessingOutcome().getData()),
+                itemData.getData(), is(itemEntity.getProcessingOutcome().getData()));
     }
 
     @Test
-    public void getChunkItem_phaseDelivering_returnsChunkItem() throws JobStoreException{
+    public void getItemData_phaseDelivering_returnsItemData() throws JobStoreException{
         final PgJobStore pgJobStore = newPgJobStore();
 
         ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
-        final ChunkItem chunkItem = pgJobStore.getChunkItem(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.DELIVERING);
-        assertThat("chunkItem not null", chunkItem, not(nullValue()));
-        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), base64decode(itemEntity.getDeliveringOutcome().getData())),
-                chunkItem.getData(), is(base64decode(itemEntity.getDeliveringOutcome().getData())));
+        final ItemData itemData = pgJobStore.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.DELIVERING);
+        assertThat("itemData not null", itemData, not(nullValue()));
+        assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getDeliveringOutcome().getData()),
+                itemData.getData(), is(itemEntity.getDeliveringOutcome().getData()));
     }
 
     /*

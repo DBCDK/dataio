@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
@@ -11,7 +10,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -25,6 +23,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -40,6 +39,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -387,12 +387,12 @@ public class JobStoreBeanTest {
     }
 
     @Test
-    public void getChunkItem_onFailureToFindItemEntity_throwsJobStoreException() throws JobStoreException {
+    public void getItemData_onFailureToFindItemEntity_throwsJobStoreException() throws JobStoreException {
         JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, "msg", null);
         InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
-        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING)).thenThrow(invalidInputException);
+        when(mockedJobStore.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING)).thenThrow(invalidInputException);
         try {
-            jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+            jobStoreBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
             fail("No exception thrown by getChunkItem()");
         } catch( JobStoreException e) {
             assertThat(e instanceof InvalidInputException, is(true));
@@ -400,41 +400,41 @@ public class JobStoreBeanTest {
     }
 
     @Test
-    public void getChunkItem_chunkItemIsCreatedForPartitioningPhase_returnsChunkItem() throws Exception {
-        ChunkItem chunkItem = new ChunkItemBuilder().build();
+    public void getItemData_itemDataIsCreatedForPartitioningPhase_returnsItemData() throws Exception {
+        ItemData itemData = new ItemData("data", Charset.defaultCharset());
 
-        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING)).thenReturn(chunkItem);
+        when(mockedJobStore.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING)).thenReturn(itemData);
         try {
-            ChunkItem chunkItemReturned = jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
-            assertThat(chunkItemReturned, is(notNullValue()));
+            ItemData itemDataReturned = jobStoreBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+            assertThat(itemDataReturned, is(notNullValue()));
         } catch(JobStoreException e) {
-            fail("Exception thrown by getChunkItem()");
+            fail("Exception thrown by getItemData()");
         }
     }
 
     @Test
-    public void getChunkItem_chunkItemIsCreatedForProcessingPhase_returnsChunkItem() throws Exception {
-        ChunkItem chunkItem = new ChunkItemBuilder().build();
+    public void getItemData_itemDataIsCreatedForProcessingPhase_returnsItemData() throws Exception {
+        ItemData itemData = new ItemData("data", Charset.defaultCharset());
 
-        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING)).thenReturn(chunkItem);
+        when(mockedJobStore.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING)).thenReturn(itemData);
         try {
-            ChunkItem chunkItemReturned = jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
-            assertThat(chunkItemReturned, is(notNullValue()));
+            ItemData itemDataReturned = jobStoreBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
+            assertThat(itemDataReturned, is(notNullValue()));
         } catch(JobStoreException e) {
-            fail("Exception thrown by getChunkItem()");
+            fail("Exception thrown by getItemData()");
         }
     }
 
     @Test
-    public void getChunkItem_chunkItemIsCreatedForDeliveringPhase_returnsChunkItem() throws Exception {
-        ChunkItem chunkItem = new ChunkItemBuilder().build();
+    public void getItemData_itemDataIsCreatedForDeliveringPhase_returnsItemData() throws Exception {
+        ItemData itemData = new ItemData("data", Charset.defaultCharset());
 
-        when(mockedJobStore.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING)).thenReturn(chunkItem);
+        when(mockedJobStore.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING)).thenReturn(itemData);
         try {
-            ChunkItem chunkItemReturned = jobStoreBean.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING);
-            assertThat(chunkItemReturned, is(notNullValue()));
+            ItemData itemDataReturned = jobStoreBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING);
+            assertThat(itemDataReturned, is(notNullValue()));
         } catch(JobStoreException e) {
-            fail("Exception thrown by getChunkItem()");
+            fail("Exception thrown by getItemData()");
         }
     }
 

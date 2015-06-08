@@ -143,6 +143,7 @@ public class PresenterImplTest {
     final static String MOCKED_TAB_IGNOREDITEMS = "Mocked Ignorerede poster";
     final static String MOCKED_TAB_JOBINFO = "Mocked Job info";
     final static String MOCKED_TAB_JAVASCRIPTLOG = "Mocked Javascript log";
+    final static String MOCKED_TAB_INPUTPOST = "Mocked input post log";
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedClientFactory.getItemsShowTexts()).thenReturn(mockedText);
@@ -167,6 +168,7 @@ public class PresenterImplTest {
         when(mockedText.tab_IgnoredItems()).thenReturn(MOCKED_TAB_IGNOREDITEMS);
         when(mockedText.tab_JobInfo()).thenReturn(MOCKED_TAB_JOBINFO);
         when(mockedText.tab_JavascriptLog()).thenReturn(MOCKED_TAB_JAVASCRIPTLOG);
+        when(mockedText.tab_InputPost()).thenReturn(MOCKED_TAB_INPUTPOST);
     }
 
     // Subject Under Test
@@ -189,7 +191,7 @@ public class PresenterImplTest {
 
 
     // Test Data
-    private ItemModel testModel1 = new ItemModel("11", "1001", "1111", "JobId1", ItemModel.LifeCycle.DELIVERING);
+    private ItemModel testModel1 = new ItemModel("11", "1001", "1111", "1", ItemModel.LifeCycle.DELIVERING);
     private ItemModel testModel2 = new ItemModel("12", "ItemId2", "ChunkId2", "JobId2", ItemModel.LifeCycle.DONE);
     private ItemModel testModel3 = new ItemModel("13", "ItemId3", "ChunkId3", "JobId3", ItemModel.LifeCycle.PARTITIONING);
     private ItemModel testModel4 = new ItemModel("14", "ItemId4", "ChunkId4", "JobId4", ItemModel.LifeCycle.PROCESSING);
@@ -369,6 +371,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs).add(any(InputPostTabContent.class), eq(MOCKED_TAB_INPUTPOST));
         verify(mockedAllDetailedTabs).getWidgetCount();
         verify(mockedAllDetailedTabs).selectTab(0);
         verify(mockedAllDetailedTabs).setVisible(true);

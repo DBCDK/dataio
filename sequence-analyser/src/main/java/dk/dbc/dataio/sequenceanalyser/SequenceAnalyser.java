@@ -4,68 +4,62 @@ import java.util.List;
 
 /**
  * The sequence analyser is a mostly a data structure for finding dependencies
- * between chunks. Whenever a chunk is ready for processing, it should be given
- * to the sequence analyser which then put it into an internal data structure
- * where it will be analysed for dependencies on already inserted chunks. If
- * there is a dependency, the chunk will not be released for further processing
- * until all its dependencies are completed. A chunk is inactive if it has not
- * been given to further processing.
+ * between similar elements. Whenever an element is ready for processing, it should
+ * be given to the sequence analyser which will then put it into an internal data
+ * structure where it will be analysed for dependencies on already inserted elements.
+ * If there is a dependency, the element will not be released for further processing
+ * until all its dependencies are completed. An element is inactive if it has not
+ * been released for further processing.
  */
 public interface SequenceAnalyser {
-
     /**
-     * Inserts a chunk in the sequence analyser. While inserting all existing
-     * chunks in the sequence analyser that this chunk depends on is found, in
-     * order to ensure that these other chunks are released before this chunk
+     * Inserts an element into the sequence analyser. During the insert operation
+     * all existing elements that this new element depends on are found in
+     * order to ensure that these other elements are released before this element
      * can become active.
      * <p>
-     * When a chunk is inserted it is inactive.
+     * When an element is inserted it is inactive.
      * <p>
-     * If the chunk depends on other chunks it is a <it>dependent chunk<it>. If
-     * the chunk does not depend on other chunks, then it is an <it>independent
-     * chunk<it>.
+     * If the element depends on other elements it is a <it>dependent element<it>. If
+     * the element does not depend on other elements, then it is an <it>independent
+     * element<it>.
      * <p>
-     *
-     * @param element A CollisionDetectionElement containing chunk identification 
+     * @param element A CollisionDetectionElement containing element identification
      * and keys for comparison.
      */
-    void addChunk(CollisionDetectionElement element);
+    void add(CollisionDetectionElement element);
 
     /**
-     * Releases all chunks the depends on this ChunkIdentifier, and deletes
-     * internal representation of the ChunkIdentifier.
-     *
-     * @param identifier
+     * Releases all elements having a dependency on the element specified by given
+     * identifier and removes the corresponding element from the internal data structure
+     * @return number of item slots held by deleted element
      */
-    void deleteAndReleaseChunk(ChunkIdentifier identifier);
+    int deleteAndRelease(CollisionDetectionElementIdentifier identifier);
 
     /**
-     * Returns a list of no more than max independent chunks, which are not already
-     * flagged as active. When the list is returned, all the returned ChunkIdentifiers
-     * are flagged as active. Only ChunkIdentifiers that - previous to the call
-     * - was independent and inactive are returned.
-     * @param max maximum number of free chunks to return
-     * @return A list of independent ChunkIdentifiers which are now flagged as
-     * active.
+     * Returns a list of independent and inactive elements holding no more than
+     * maxSlotsSoftLimit items combined. When the list is returned, all the returned
+     * elements are flagged as active.
+     * @param maxSlotsSoftLimit maximum number of slots held by all released elements combined.
+     *                          Note that this is a soft limit since no guarantees are made
+     *                          that it will not be violated for shorter periods of time
+     * @return A list of independent elements which are now flagged as active
      */
-    List<ChunkIdentifier> getInactiveIndependentChunks(int max);
+    List<CollisionDetectionElement> getInactiveIndependent(int maxSlotsSoftLimit);
 
     /**
-     * Number of elements in internal data-structure.
-     *
+     * Number of elements in the sequence analyser
      * @return the number of elements in the internal data structure.
      */
     int size();
 
     /**
-     * Boolean for telling if a given ChunkIdentifier is the first or the
-     * top-most ChunkIdentifier in the SequenceAnalyser. This i mostly for
+     * Boolean for telling if a given identifier represents the first (or the
+     * top-most) element in the SequenceAnalyser. This is mostly for
      * monitoring/testing purposes.
-     *
-     * @param chunkIdentifier
-     * @return true if ChunkIdentifier is the first or top-most ChunkIdentifier
-     * in the SequenceAnalyser, false otherwise, and false if there are no
-     * ChunkIdentifiers in the SequenceAnalyser.
+     * @return true if identifier represents the first (or top-most) element
+     * in the SequenceAnalyser, false otherwise. Also returns false if there are no
+     * elements in the SequenceAnalyser.
      */
-    boolean isHead(ChunkIdentifier chunkIdentifier);
+    boolean isHead(CollisionDetectionElementIdentifier identifier);
 }

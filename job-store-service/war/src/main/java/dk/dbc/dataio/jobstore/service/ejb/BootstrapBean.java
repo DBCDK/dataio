@@ -7,6 +7,7 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,7 @@ public class BootstrapBean {
             final List<CollisionDetectionElement> collisionDetectionElements =
                     jobStore.listChunksCollisionDetectionElements(chunkListCriteria);
             for (CollisionDetectionElement collisionDetectionElement : collisionDetectionElements) {
-                long jobId = collisionDetectionElement.getIdentifier().getJobId();
+                long jobId = ((ChunkIdentifier) collisionDetectionElement.getIdentifier()).getJobId();
 
                 if (!cache.containsKey(jobId)) {
                     ResourceBundle resourceBundle = jobStore.getResourceBundle((int) jobId);

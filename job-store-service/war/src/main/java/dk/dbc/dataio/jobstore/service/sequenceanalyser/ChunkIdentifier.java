@@ -1,6 +1,8 @@
-package dk.dbc.dataio.sequenceanalyser;
+package dk.dbc.dataio.jobstore.service.sequenceanalyser;
 
-public class ChunkIdentifier {
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElementIdentifier;
+
+public class ChunkIdentifier implements CollisionDetectionElementIdentifier {
     public final long jobId;
     public final long chunkId;
 

@@ -1,8 +1,8 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
-import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
-import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElementIdentifier;
+import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 
 import java.util.List;
 
@@ -11,18 +11,18 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
     private NaiveDependencyGraph dependencyGraph = new NaiveDependencyGraph();
 
     @Override
-    public void addChunk(CollisionDetectionElement element) {
+    public void add(CollisionDetectionElement element) {
         dependencyGraph.insert(element);
     }
 
     @Override
-    public void deleteAndReleaseChunk(ChunkIdentifier identifier) {
-        dependencyGraph.deleteAndRelease(identifier);
+    public int deleteAndRelease(CollisionDetectionElementIdentifier identifier) {
+        return dependencyGraph.deleteAndRelease(identifier);
     }
 
     @Override
-    public List<ChunkIdentifier> getInactiveIndependentChunks(int max) {
-        return dependencyGraph.getInactiveIndependentChunksAndActivate(max);
+    public List<CollisionDetectionElement> getInactiveIndependent(int maxSlotsSoftLimit) {
+        return dependencyGraph.getInactiveIndependentChunksAndActivate(maxSlotsSoftLimit);
     }
 
     // Number of elements in internal data-structure.
@@ -32,8 +32,8 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
     }
 
     @Override
-    public boolean isHead(ChunkIdentifier chunkIdentifier) {
-        return dependencyGraph.isHead(chunkIdentifier);
+    public boolean isHead(CollisionDetectionElementIdentifier identifier) {
+        return dependencyGraph.isHead(identifier);
     }
 
 }

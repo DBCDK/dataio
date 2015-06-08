@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 
@@ -22,10 +23,11 @@ public class ChunkEntityTest {
         chunkEntity.setSequenceAnalysisData(sequenceAnalysisData);
 
         final CollisionDetectionElement cde = chunkEntity.toCollisionDetectionElement();
+        final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) cde.getIdentifier();
         assertThat("CollisionDetectionElement", cde, is(notNullValue()));
         assertThat("CollisionDetectionElement.getIdentifier()", cde.getIdentifier(), is(notNullValue()));
-        assertThat("CollisionDetectionElement.getIdentifier().getJobId()", (int) cde.getIdentifier().getJobId(), is(jobId));
-        assertThat("CollisionDetectionElement.getIdentifier().getChunkId(),", (int) cde.getIdentifier().getChunkId(), is(chunkId));
+        assertThat("CollisionDetectionElement.getIdentifier().getJobId()", (int) chunkIdentifier.getJobId(), is(jobId));
+        assertThat("CollisionDetectionElement.getIdentifier().getChunkId(),", (int) chunkIdentifier.getChunkId(), is(chunkId));
         assertThat("CollisionDetectionElement.getKeys()", cde.getKeys(), is(sequenceAnalysisData.getData()));
     }
 

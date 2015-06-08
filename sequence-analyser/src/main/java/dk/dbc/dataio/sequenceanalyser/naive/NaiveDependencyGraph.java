@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sequenceanalyser.naive;
 
-import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElementIdentifier;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -42,22 +42,18 @@ class NaiveDependencyGraph {
      * DependencyGraph, false otherwise. If the DependencyGraph is empty, then
      * false will be returned.
      */
-    public boolean isHead(ChunkIdentifier identifier) {
-        if (!nodes.isEmpty()) {
-            return nodes.get(0).getChunkIdentifier().equals(identifier);
-        }
-        return false;
+    public boolean isHead(CollisionDetectionElementIdentifier identifier) {
+        return !nodes.isEmpty() && nodes.get(0).getIdentifier().equals(identifier);
     }
 
     /**
      * Remove all edges for dependent nodes, and deletes the node represented by
      * the ChunkIdentifier.
-     *
      * @param identifier
      */
-    public void deleteAndRelease(ChunkIdentifier identifier) {
+    public int deleteAndRelease(CollisionDetectionElementIdentifier identifier) {
         for (Node node : nodes) {
-            if (node.getChunkIdentifier().chunkId == identifier.chunkId && node.getChunkIdentifier().jobId == identifier.jobId) {
+            if (node.getIdentifier().equals(identifier)) {
                 for (Edge edge : node.getEdges()) {
                     if (edge.getHead() == node) {
                         edge.getTail().getEdges().remove(edge);
@@ -66,9 +62,10 @@ class NaiveDependencyGraph {
                     }
                 }
                 nodes.remove(node);
-                return;
+                return 1;
             }
         }
+        return 0;
     }
 
     /**
@@ -81,18 +78,18 @@ class NaiveDependencyGraph {
      * @param max maximum number of free chunks to return
      * @return A list of independent chunks which are now flagged as active.
      */
-    public List<ChunkIdentifier> getInactiveIndependentChunksAndActivate(int max) {
+    public List<CollisionDetectionElement> getInactiveIndependentChunksAndActivate(int maxItemsSoftLimit) {
         int inactiveNodesFound = 0;
-        List<ChunkIdentifier> result = new ArrayList<>(max);
+        List<CollisionDetectionElement> result = new ArrayList<>();
         for (Node node : nodes) {
-            if (inactiveNodesFound == max) {
+            if (inactiveNodesFound == maxItemsSoftLimit) {
                 break;
             }
             if (node.isActivated()) {
                 continue;
             }
             if (!doesNodeContainOutgoingEdges(node)) {
-                result.add(node.getChunkIdentifier());
+                result.add(new CollisionDetectionElement(node.getIdentifier(), node.getKeys()));
                 node.activate();
                 inactiveNodesFound++;
             }
@@ -132,23 +129,22 @@ class NaiveDependencyGraph {
     }
 
     private static class Node {
-
-        private final ChunkIdentifier chunkIdentifier;
+        private final CollisionDetectionElementIdentifier identifier;
         private final List<Edge> edges;
         private final Set<String> keys;
         private boolean activated = false;
 
-        public Node(ChunkIdentifier chunkIdentifier, Set<String> keys) {
-            this.chunkIdentifier = chunkIdentifier;
+        public Node(CollisionDetectionElementIdentifier identifier, Set<String> keys) {
+            this.identifier = identifier;
             this.edges = new ArrayList<>();
             this.keys = new HashSet<>(keys);
         }
 
         /**
-         * @return the chunkIdentifier
+         * @return the identifier
          */
-        public ChunkIdentifier getChunkIdentifier() {
-            return chunkIdentifier;
+        public CollisionDetectionElementIdentifier getIdentifier() {
+            return identifier;
         }
 
         /**
@@ -178,12 +174,11 @@ class NaiveDependencyGraph {
 
         @Override
         public String toString() {
-            return "[" + getChunkIdentifier() + ", " + Arrays.asList(getKeys()) + "]";
+            return "[" + getIdentifier() + ", " + Arrays.asList(getKeys()) + "]";
         }
     }
 
     private static class Edge {
-
         private final Node head;
         private final Node tail;
 

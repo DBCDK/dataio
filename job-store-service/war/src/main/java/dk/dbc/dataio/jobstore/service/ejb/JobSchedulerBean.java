@@ -8,7 +8,7 @@ import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorBean
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorMXBean;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorSample;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.naive.NaiveSequenceAnalyser;
@@ -78,17 +78,17 @@ public class JobSchedulerBean {
         try {
             InvariantUtil.checkNotNullOrThrow(chunkCDE, "cde");
             InvariantUtil.checkNotNullOrThrow(sink, "sink");
-            final ChunkIdentifier chunkIdentifier = chunkCDE.getIdentifier();
+            final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) chunkCDE.getIdentifier();
             LOGGER.info("Scheduling chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
             toSinkMapping.put(chunkIdentifier, sink);
             final String lockObject = getLockObject(String.valueOf(sink.getId()));
-            final List<ChunkIdentifier> workload;
+            final List<CollisionDetectionElement> workload;
             synchronized (lockObject) {
                 final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
-                sac.sequenceAnalyser.addChunk(chunkCDE);
+                sac.sequenceAnalyser.add(chunkCDE);
                 updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
                 if (doPublishWorkload) {
-                    workload = sac.sequenceAnalyser.getInactiveIndependentChunks(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
+                    workload = sac.sequenceAnalyser.getInactiveIndependent(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
                 } else {
                     workload = Collections.emptyList();
                 }
@@ -111,7 +111,7 @@ public class JobSchedulerBean {
         try {
             if (chunkIdentifier != null) {
                 LOGGER.info("Releasing chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
-                List<ChunkIdentifier> workload;
+                List<CollisionDetectionElement> workload;
                 final Sink sink = toSinkMapping.get(chunkIdentifier);
                 if (sink != null) {
                     final String lockObject = getLockObject(String.valueOf(sink.getId()));
@@ -143,10 +143,10 @@ public class JobSchedulerBean {
      */
     public void jumpStart() {
         LOGGER.info("Jump starting pipeline");
-        List<ChunkIdentifier> workload;
+        List<CollisionDetectionElement> workload;
         for (Map.Entry<String, SequenceAnalyserComposite> entry : sequenceAnalysers.entrySet()) {
             synchronized (entry.getKey()) {
-                workload = entry.getValue().sequenceAnalyser.getInactiveIndependentChunks(1);
+                workload = entry.getValue().sequenceAnalyser.getInactiveIndependent(1);
             }
             publishWorkload(workload);
         }
@@ -160,25 +160,26 @@ public class JobSchedulerBean {
         return (this.getClass().getName() + "." + id).intern();
     }
 
-    private void publishWorkload(List<ChunkIdentifier> chunkIdentifiers) {
-        for (final ChunkIdentifier chunkIdentifier : chunkIdentifiers) {
+    private void publishWorkload(List<CollisionDetectionElement> elements) {
+        for (final CollisionDetectionElement element : elements) {
+            final ChunkIdentifier identifier = (ChunkIdentifier) element.getIdentifier();
             try {
                 final ExternalChunk chunk = jobStoreBean.getChunk(ExternalChunk.Type.PARTITIONED,
-                        (int) chunkIdentifier.getJobId(), (int) chunkIdentifier.getChunkId());
+                        (int) identifier.getJobId(), (int) identifier.getChunkId());
                 if (chunk == null) {
                     LOGGER.error("Unable to locate chunk.id {} for job.id {}",
-                            chunkIdentifier.chunkId, chunkIdentifier.jobId);
+                            identifier.chunkId, identifier.jobId);
                 } else {
                     try {
                         jobProcessorMessageProducerBean.send(chunk);
                     } catch (JobStoreException e) {
                         LOGGER.error("Unable to send notification for chunk.id {} for job.id {}",
-                                chunkIdentifier.chunkId, chunkIdentifier.jobId, e);
+                                identifier.chunkId, identifier.jobId, e);
                     }
                 }
             } catch (NullPointerException e) {
                 LOGGER.error("Unable to retrieve chunk.id {} for job.id {}",
-                        chunkIdentifier.chunkId, chunkIdentifier.jobId, e);
+                        identifier.chunkId, identifier.jobId, e);
             }
         }
     }
@@ -202,11 +203,11 @@ public class JobSchedulerBean {
         return sequenceAnalyserComposite;
     }
 
-    private List<ChunkIdentifier> releaseAndReturnWorkload(SequenceAnalyserComposite sac, ChunkIdentifier chunkIdentifier) {
+    private List<CollisionDetectionElement> releaseAndReturnWorkload(SequenceAnalyserComposite sac, ChunkIdentifier chunkIdentifier) {
         final boolean isHead = sac.sequenceAnalyser.isHead(chunkIdentifier);
-        sac.sequenceAnalyser.deleteAndReleaseChunk(chunkIdentifier);
+        sac.sequenceAnalyser.deleteAndRelease(chunkIdentifier);
         updateMonitor(sac, isHead);
-        return sac.sequenceAnalyser.getInactiveIndependentChunks(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
+        return sac.sequenceAnalyser.getInactiveIndependent(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
     }
 
     private void updateMonitor(SequenceAnalyserComposite sac, boolean isHead) {

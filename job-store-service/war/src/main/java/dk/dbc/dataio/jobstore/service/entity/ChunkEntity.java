@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 import javax.persistence.Column;

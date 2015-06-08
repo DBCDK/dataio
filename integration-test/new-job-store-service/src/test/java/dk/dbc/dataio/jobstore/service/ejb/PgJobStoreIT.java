@@ -19,6 +19,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -586,7 +587,8 @@ public class PgJobStoreIT {
         assertThat(returnedChunkCollisionDetectionElements.size(), is(8));
 
         for(CollisionDetectionElement cde : returnedChunkCollisionDetectionElements) {
-            ChunkEntity.Key chunkEntityKey = new ChunkEntity.Key(Long.valueOf(cde.getIdentifier().getChunkId()).intValue(), Long.valueOf(cde.getIdentifier().getJobId()).intValue());
+            final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) cde.getIdentifier();
+            ChunkEntity.Key chunkEntityKey = new ChunkEntity.Key(Long.valueOf(chunkIdentifier.getChunkId()).intValue(), Long.valueOf(chunkIdentifier.getJobId()).intValue());
             ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkEntityKey);
 
             assertThat("Time of completion is null", chunkEntity.getTimeOfCompletion(), is(nullValue())); // no end date

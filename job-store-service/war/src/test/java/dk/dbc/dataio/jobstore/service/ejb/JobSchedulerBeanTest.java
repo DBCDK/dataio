@@ -8,7 +8,7 @@ import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorBean
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorMXBean;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorSample;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import org.junit.Before;
@@ -67,8 +67,8 @@ public class JobSchedulerBeanTest {
 
     @Before
     public void setupExpectations() {
-        doNothing().when(sequenceAnalyser).addChunk(any(CollisionDetectionElement.class));
-        when(sequenceAnalyser.getInactiveIndependentChunks(anyInt())).thenReturn(Collections.<ChunkIdentifier>emptyList());
+        doNothing().when(sequenceAnalyser).add(any(CollisionDetectionElement.class));
+        when(sequenceAnalyser.getInactiveIndependent(anyInt())).thenReturn(Collections.<CollisionDetectionElement>emptyList());
         when(sequenceAnalyserMonitorBean.getMBeans()).thenReturn(mBeans);
     }
 
@@ -98,24 +98,24 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
 
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
-        verify(sequenceAnalyser).addChunk(any(CollisionDetectionElement.class));
+        verify(sequenceAnalyser).add(any(CollisionDetectionElement.class));
     }
 
     @Test
     public void scheduleChunk2arg_givenValidCDE_publishesWorkload() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(2);
         whenGetChunk().thenReturn(chunk);
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
     @Test
     public void scheduleChunk2arg_onFailureToRetrieveWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(4);
         whenGetChunk()
                 .thenReturn(chunk)
                 .thenThrow(new NullPointerException("died in getChunk()"))
@@ -126,13 +126,13 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size()-1)).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size()-1)).send(chunk);
     }
 
     @Test
     public void scheduleChunk2arg_onFailureToSendWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(4);
         whenGetChunk().thenReturn(chunk);
         doNothing().
         doThrow(new JobStoreException("died in send()")).
@@ -143,8 +143,8 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
     @Test
@@ -213,24 +213,24 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
 
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
-        verify(sequenceAnalyser).addChunk(any(CollisionDetectionElement.class));
+        verify(sequenceAnalyser).add(any(CollisionDetectionElement.class));
     }
 
     @Test
     public void scheduleChunk3arg_doPublishWorkloadArgIsTrue_publishesWorkload() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(2);
         whenGetChunk().thenReturn(chunk);
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
     @Test
     public void scheduleChunk3arg_doPublishWorkloadArgIsFalse_noWorkloadPublished() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
+        whenGetWorkloadThenReturn(2);
         whenGetChunk().thenReturn(chunk);
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
@@ -242,7 +242,7 @@ public class JobSchedulerBeanTest {
 
     @Test
     public void scheduleChunk3arg_onFailureToRetrieveWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(4);
         whenGetChunk()
                 .thenReturn(chunk)
                 .thenThrow(new NullPointerException("died in getChunk()"))
@@ -253,13 +253,13 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size()-1)).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size()-1)).send(chunk);
     }
 
     @Test
     public void scheduleChunk3arg_onFailureToSendWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(4);
         whenGetChunk().thenReturn(chunk);
         doNothing().
         doThrow(new JobStoreException("died in send()")).
@@ -270,8 +270,8 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
     @Test
@@ -320,25 +320,25 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         injectSinkMapping(jobSchedulerBean);
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(sequenceAnalyser).deleteAndReleaseChunk(chunkIdentifier);
+        verify(sequenceAnalyser).deleteAndRelease(chunkIdentifier);
     }
 
     @Test
     public void releaseChunk_givenValidChunkIdentifier_publishesWorkload() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(2);
         whenGetChunk().thenReturn(chunk);
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         injectSinkMapping(jobSchedulerBean);
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
     @Test
     public void releaseChunk_onFailureToRetrieveWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(4);
         whenGetChunk()
                 .thenReturn(chunk)
                 .thenThrow(new NullPointerException("died in getChunk()"))
@@ -349,13 +349,13 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         injectSinkMapping(jobSchedulerBean);
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size()-1)).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size()-1)).send(chunk);
     }
 
     @Test
     public void releaseChunk_onFailureToSendWorkloadItem_proceedsToNextWorkloadItem() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(4);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(4);
         whenGetChunk().thenReturn(chunk);
         doNothing().
         doThrow(new JobStoreException("died in send()")).
@@ -367,8 +367,8 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         injectSinkMapping(jobSchedulerBean);
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
     @Test
@@ -420,14 +420,14 @@ public class JobSchedulerBeanTest {
 
     @Test
     public void releaseChunk_toSinkMappingIsMissing_publishesWorkload() throws JobStoreException {
-        final List<ChunkIdentifier> identifiers = whenGetWorkloadThenReturn(2);
+        final List<CollisionDetectionElement> elements = whenGetWorkloadThenReturn(2);
         whenGetChunk().thenReturn(chunk);
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(identifiers.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
-        verify(jobProcessorMessageProducerBean, times(identifiers.size())).send(chunk);
+        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
     @Test
@@ -464,13 +464,13 @@ public class JobSchedulerBeanTest {
         return when(jobStoreBean.getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId()));
     }
 
-    private List<ChunkIdentifier> whenGetWorkloadThenReturn(int numIdentifiers) {
-        final List<ChunkIdentifier> identifiers = new ArrayList<>();
-        while (numIdentifiers-- > 0) {
-            identifiers.add(chunkIdentifier);
+    private List<CollisionDetectionElement> whenGetWorkloadThenReturn(int numElements) {
+        final List<CollisionDetectionElement> elements = new ArrayList<>();
+        while (numElements-- > 0) {
+            elements.add(new CollisionDetectionElement(chunkIdentifier, Collections.<String>emptySet()));
         }
-        when(sequenceAnalyser.getInactiveIndependentChunks(anyInt())).thenReturn(identifiers);
-        return identifiers;
+        when(sequenceAnalyser.getInactiveIndependent(anyInt())).thenReturn(elements);
+        return elements;
     }
 
     private SequenceAnalyserMonitorMXBean getMXBean(JobSchedulerBean jobSchedulerBean) {

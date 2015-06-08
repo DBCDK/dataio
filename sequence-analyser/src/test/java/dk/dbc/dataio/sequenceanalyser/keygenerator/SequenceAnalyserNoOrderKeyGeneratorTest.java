@@ -2,8 +2,8 @@ package dk.dbc.dataio.sequenceanalyser.keygenerator;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
+import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElementIdentifier;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -16,7 +16,8 @@ import static org.junit.Assert.assertThat;
 
 public class SequenceAnalyserNoOrderKeyGeneratorTest {
     private final SequenceAnalyserKeyGenerator keyGenerator = new SequenceAnalyserNoOrderKeyGenerator();
-    private final CollisionDetectionElement element = new CollisionDetectionElement(new ChunkIdentifier(5L, 1L), new HashSet<String>());
+    private final CollisionDetectionElement element = new CollisionDetectionElement(
+            new CollisionDetectionElementIdentifier() {}, new HashSet<String>());
 
     @Test
     public void generateKeys_sinkArgIsNull_returnsEmptyKeySet() {

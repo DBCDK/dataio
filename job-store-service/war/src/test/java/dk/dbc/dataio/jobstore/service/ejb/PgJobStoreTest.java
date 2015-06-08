@@ -35,6 +35,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
@@ -882,9 +883,9 @@ public class PgJobStoreTest {
         assertThat("List of CollisionDetectionElement", collisionDetectionElements, is(notNullValue()));
         assertThat("List of CollisionDetectionElement size", collisionDetectionElements.size(), is(2));
         assertThat("List of CollisionDetectionElement first element numberOfItems",
-                collisionDetectionElements.get(0).getIdentifier().getChunkId(), is(Long.valueOf(chunkEntity1.getKey().getId())));
+                ((ChunkIdentifier) collisionDetectionElements.get(0).getIdentifier()).getChunkId(), is((long) chunkEntity1.getKey().getId()));
         assertThat("List of CollisionDetectionElement second element numberOfItems",
-                collisionDetectionElements.get(1).getIdentifier().getChunkId(), is(Long.valueOf(chunkEntity2.getKey().getId())));
+                ((ChunkIdentifier) collisionDetectionElements.get(1).getIdentifier()).getChunkId(), is((long) chunkEntity2.getKey().getId()));
     }
 
     @Test

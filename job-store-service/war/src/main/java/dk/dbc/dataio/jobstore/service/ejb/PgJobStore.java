@@ -44,6 +44,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
@@ -183,7 +184,7 @@ public class PgJobStore {
                 final State chunkState = updateChunkEntityState(chunkEntity, chunkStateChange);
                 if(chunkState.allPhasesAreDone()) {
                     chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-                    jobSchedulerBean.releaseChunk(chunkEntity.toCollisionDetectionElement().getIdentifier());
+                    jobSchedulerBean.releaseChunk((ChunkIdentifier) chunkEntity.toCollisionDetectionElement().getIdentifier());
                 }
 
                 // update job

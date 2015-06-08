@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.server;
 
-
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -21,6 +20,7 @@ import dk.dbc.dataio.gui.server.modelmappers.criterias.ItemListCriteriaModelMapp
 import dk.dbc.dataio.gui.server.modelmappers.criterias.JobListCriteriaModelMapper;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.State;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -30,6 +30,8 @@ import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
@@ -123,9 +125,93 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         return itemModels;
     }
 
-    /*
-     * private methods
+    @Override
+    public String getItemData (int jobId, int chunkId, short itemId, ItemModel.LifeCycle lifeCycle) throws ProxyException {
+        final State.Phase phase;
+        log.trace("JobStoreProxy: getChunkItem(\"{}\", \"{}\", \"{}\", {});", jobId, chunkId, itemId, lifeCycle);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+        switch (lifeCycle) {
+            case PARTITIONING:
+                phase = State.Phase.PARTITIONING;
+                break;
+            case PROCESSING:
+                phase = State.Phase.PROCESSING;
+                break;
+            default:
+                phase = State.Phase.DELIVERING;
+                break;
+            }
+//            return prettyPrintXMLAsString(jobStoreServiceConnector.getItemData(jobId, chunkId, itemId, phase));
+            return format(jobStoreServiceConnector.getItemData(jobId, chunkId, itemId, phase));
+
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: getChunkItem - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: getChunkItem - Unexpected Status Code Exception", e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: getChunkItem - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("JobStoreProxy: getChunkItem took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+
+    /**
+     * Adds tab and new line to a xml string
+     * @param xmlString
+     * @return formatted string
      */
+    static String format(String xmlString) {
+    /* Remove new lines */
+        final String LINE_BREAK = "\n";
+        xmlString = xmlString.replaceAll(LINE_BREAK, "");
+        StringBuffer prettyPrintXml = new StringBuffer();
+    /* Group the xml tags */
+        Pattern pattern = Pattern.compile("(<[^/][^>]+>)?([^<]*)(</[^>]+>)?(<[^/][^>]+/>)?");
+        Matcher matcher = pattern.matcher(xmlString);
+        int tabCount = 0;
+        while (matcher.find()) {
+            String str1 = (null == matcher.group(1) || "null".equals(matcher.group())) ? "" : matcher.group(1);
+            String str2 = (null == matcher.group(2) || "null".equals(matcher.group())) ? "" : matcher.group(2);
+            String str3 = (null == matcher.group(3) || "null".equals(matcher.group())) ? "" : matcher.group(3);
+            String str4 = (null == matcher.group(4) || "null".equals(matcher.group())) ? "" : matcher.group(4);
+
+            if (matcher.group() != null && !matcher.group().trim().equals("")) {
+                printTabs(tabCount, prettyPrintXml);
+                if (!str1.equals("") && str3.equals("")) {
+                    ++tabCount;
+                }
+                if (str1.equals("") && !str3.equals("")) {
+                    --tabCount;
+                    prettyPrintXml.deleteCharAt(prettyPrintXml.length() - 1);
+                }
+
+                prettyPrintXml.append(str1);
+                prettyPrintXml.append(str2);
+                prettyPrintXml.append(str3);
+                if (!str4.equals("")) {
+                    prettyPrintXml.append(LINE_BREAK);
+                    printTabs(tabCount, prettyPrintXml);
+                    prettyPrintXml.append(str4);
+                }
+                prettyPrintXml.append(LINE_BREAK);
+            }
+        }
+        return prettyPrintXml.toString();
+    }
+
+    private static void printTabs(int count, StringBuffer stringBuffer) {
+        for (int i = 0; i < count; i++) {
+            stringBuffer.append("\t");
+        }
+    }
 
     public void close() {
         HttpClient.closeClient(client);

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
@@ -34,6 +35,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyShort;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -155,6 +158,36 @@ public class JobStoreProxyImplTest {
             fail("Unexpected error when calling: listItems()");
         }
     }
+
+    @Test(expected = ProxyException.class)
+    public void getItemData_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PROCESSING);
+    }
+
+    @Test
+    public void getItemData_remoteServiceReturnsHttpStatusOk_returnsDataString() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(getXmlData());
+        try {
+            String data = jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PARTITIONING);
+            assertThat("data not null", data, not(nullValue()));
+            assertThat(data, is(JobStoreProxyImpl.format(getXmlData())));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getItemData()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void getChunkItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PARTITIONING);
+    }
+
     /*
      * private methods
      */
@@ -228,6 +261,50 @@ public class JobStoreProxyImplTest {
                 state.getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
         }
         return state;
+    }
+
+    private static String getXmlData() {
+        return "<?xml version='1.0'?><dataio-harvester-datafile><data-container>" +
+                "<data-supplementary><creationDate>20150601</creationDate>" +
+                "<enrichmentTrail>191919,870970</enrichmentTrail>" +
+                "</data-supplementary><data><collection xmlns=\"info:lc/xmlns/marcxchange-v1\">" +
+                "<record xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd\">" +
+                "<leader>00000n 2200000 4500</leader><datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                "<subfield code=\"a\">51761138</subfield>" +
+                "<subfield code=\"b\">870970</subfield>" +
+                "<subfield code=\"c\">20150601233812</subfield>" +
+                "<subfield code=\"d\">20150528</subfield>" +
+                "<subfield code=\"f\">a</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
+                "<subfield code=\"r\">n</subfield>" +
+                "<subfield code=\"a\">e</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"008\"><subfield code=\"t\">s</subfield>" +
+                "<subfield code=\"v\">7</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"009\">" +
+                "<subfield code=\"a\">s</subfield>" +
+                "<subfield code=\"g\">xc</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"032\">" +
+                "<subfield code=\"x\">ACM201522</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"110\">" +
+                "<subfield code=\"a\">Sun Kil Moon</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                "<subfield code=\"a\">Universal themes</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"300\">" +
+                "<subfield code=\"n\">1 cd</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"538\">" +
+                "<subfield code=\"f\">Rough Trade</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"652\">" +
+                "<subfield code=\"m\">NY TITEL</subfield>" +
+                "</datafield><datafield ind1=\"0\" ind2=\"0\" tag=\"996\">" +
+                "<subfield code=\"a\">DBC</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"d08\">" +
+                "<subfield code=\"o\">cfp</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"d70\">" +
+                "<subfield code=\"c\">20150601</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"s10\"><subfield code=\"a\">DBC</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"z98\"><subfield code=\"a\">Minus korrekturprint</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"z99\"><subfield code=\"a\">cfp</subfield></datafield>" +
+                "</record></collection></data></data-container></dataio-harvester-datafile>";
     }
 
 }

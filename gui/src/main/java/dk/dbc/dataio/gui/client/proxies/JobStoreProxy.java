@@ -17,6 +17,8 @@ public interface JobStoreProxy extends RemoteService {
 
     List<JobModel> listJobs(JobListCriteriaModel model) throws ProxyException;
     List<ItemModel> listItems(ItemListCriteriaModel model) throws ProxyException;
+//    ChunkItemModel getChunkItem(ItemModel model, ItemModel.LifeCycle lifeCycle) throws ProxyException;
+    String getItemData(int jobId, int chunkId, short itemId, ItemModel.LifeCycle lifeCycle) throws ProxyException;
     void close();
 
     class Factory {

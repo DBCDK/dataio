@@ -38,6 +38,16 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
         return jobStoreProxy.listItems(model);
     }
 
+//    @Override
+//    public ChunkItemModel getChunkItem(ItemModel model, ItemModel.LifeCycle lifeCycle) throws ProxyException {
+//        return jobStoreProxy.getChunkItem(model, lifeCycle);
+//    }
+
+    @Override
+    public String getItemData(int jobId, int chunkId, short itemId, ItemModel.LifeCycle lifeCycle) throws ProxyException {
+        return jobStoreProxy.getItemData(jobId, chunkId, itemId, lifeCycle);
+    }
+
     @Override
     public void close() {
         if (jobStoreProxy != null) {

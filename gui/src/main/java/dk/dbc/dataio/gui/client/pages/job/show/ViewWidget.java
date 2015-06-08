@@ -57,7 +57,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         super(clientFactory.getMenuTexts().menu_Jobs());
         texts = clientFactory.getJobsShowTexts();
         add(uiBinder.createAndBindUi(this));
-        this.processingFailedJobsButton.setValue(true);
+        this.allJobsButton.setValue(true);
     }
 
     /**

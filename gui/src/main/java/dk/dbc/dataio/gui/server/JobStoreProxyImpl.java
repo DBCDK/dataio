@@ -178,10 +178,10 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         Matcher matcher = pattern.matcher(xmlString);
         int tabCount = 0;
         while (matcher.find()) {
-            String str1 = (null == matcher.group(1) || "null".equals(matcher.group())) ? "" : matcher.group(1);
-            String str2 = (null == matcher.group(2) || "null".equals(matcher.group())) ? "" : matcher.group(2);
-            String str3 = (null == matcher.group(3) || "null".equals(matcher.group())) ? "" : matcher.group(3);
-            String str4 = (null == matcher.group(4) || "null".equals(matcher.group())) ? "" : matcher.group(4);
+            String str1 = null == matcher.group(1) || "null".equals(matcher.group()) ? "" : matcher.group(1);
+            String str2 = null == matcher.group(2) || "null".equals(matcher.group()) ? "" : matcher.group(2);
+            String str3 = null == matcher.group(3) || "null".equals(matcher.group()) ? "" : matcher.group(3);
+            String str4 = null == matcher.group(4) || "null".equals(matcher.group()) ? "" : matcher.group(4);
 
             if (matcher.group() != null && !matcher.group().trim().equals("")) {
                 printTabs(tabCount, prettyPrintXml);

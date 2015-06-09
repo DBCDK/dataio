@@ -4,6 +4,7 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
     void nameChanged(String name);
+    void descriptionChanged(String description);
     void projectChanged(String name);
     void revisionChanged(String selectedRevision);
     void scriptNameChanged(String selectedScriptName);

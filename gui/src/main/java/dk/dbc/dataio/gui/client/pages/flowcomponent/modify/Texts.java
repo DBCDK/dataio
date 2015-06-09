@@ -9,6 +9,9 @@ public interface Texts extends Constants {
     String label_ComponentName();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Description();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SvnProject();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

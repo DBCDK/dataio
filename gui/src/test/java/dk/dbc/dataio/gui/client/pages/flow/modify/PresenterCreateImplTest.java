@@ -111,7 +111,7 @@ public class PresenterCreateImplTest {
         presenterCreateImpl.descriptionChanged(DESCRIPTION);
         Map<String, String> flowComponents = new HashMap<String, String>();
         flowComponents.put(String.valueOf(FLOW_COMPONENT_ID), FLOW_COMPONENT_NAME);
-        presenterCreateImpl.availableFlowComponentModels = Arrays.asList(new FlowComponentModel(FLOW_COMPONENT_ID, 1L, FLOW_COMPONENT_NAME, "", "", "", "", new ArrayList<String>()));
+        presenterCreateImpl.availableFlowComponentModels = Arrays.asList(new FlowComponentModel(FLOW_COMPONENT_ID, 1L, FLOW_COMPONENT_NAME, "", "", "", "", new ArrayList<String>(), "description"));
         presenterCreateImpl.flowComponentsChanged(flowComponents);
 
         presenterCreateImpl.saveModel();

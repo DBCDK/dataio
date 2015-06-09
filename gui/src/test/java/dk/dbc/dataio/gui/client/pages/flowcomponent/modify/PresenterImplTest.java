@@ -57,6 +57,7 @@ public class PresenterImplTest {
     private PresenterImplConcrete presenterImpl;
 
     private final static String NAME = "FlowComponentName";
+    private final static String DESCRIPTION = "description";
     private final static String PROJECT = "datawell-convert";
     private final static String REVISION = "8779";
     private final static String JAVA_SCRIPT_NAME = "javaScriptName";
@@ -64,7 +65,7 @@ public class PresenterImplTest {
     private final RevisionInfo.ChangedItem changedItem = new RevisionInfo.ChangedItem("path", "type");
     private final RevisionInfo revisionInfo = new RevisionInfo(1L, "author", new Date(), "message", Arrays.asList(changedItem));
     private final List<String> javaScriptNames = new ArrayList<String>();
-    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, NAME, PROJECT, REVISION, JAVA_SCRIPT_NAME, INVOCATION_METHOD, javaScriptNames);
+    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, NAME, PROJECT, REVISION, JAVA_SCRIPT_NAME, INVOCATION_METHOD, javaScriptNames, DESCRIPTION);
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {

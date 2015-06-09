@@ -145,7 +145,8 @@ public class FlowModelMapperTest {
                         Long.toString(SVN_REVISION_1),
                         INVOCATION_NAME_1,
                         INVOCATION_METHOD_1,
-                        Arrays.asList(MODULE_NAME_1));
+                        Arrays.asList(MODULE_NAME_1),
+                        DESCRIPTION);
 
         FlowComponentModel flowComponentModel2 =
                 new FlowComponentModel(FLOW_COMPONENT_ID_2,
@@ -155,7 +156,8 @@ public class FlowModelMapperTest {
                         Long.toString(SVN_REVISION_2),
                         INVOCATION_NAME_2,
                         INVOCATION_METHOD_2,
-                        Arrays.asList(MODULE_NAME_2));
+                        Arrays.asList(MODULE_NAME_2),
+                        DESCRIPTION);
 
         components.add(flowComponentModel1);
         components.add(flowComponentModel2);
@@ -281,7 +283,8 @@ public class FlowModelMapperTest {
                 Long.toString(89),
                 "invocation navn",
                 "invocation method",
-                Arrays.asList("JavaScript"));
+                Arrays.asList("JavaScript"),
+                DESCRIPTION);
     }
 
     private FlowComponent getValidFlowComponent() {

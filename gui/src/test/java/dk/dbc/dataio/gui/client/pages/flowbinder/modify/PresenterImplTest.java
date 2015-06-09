@@ -59,7 +59,7 @@ public class PresenterImplTest {
     private View view;
     private PresenterImplConcrete presenterImpl;
 
-    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Arrays.asList("Script"));
+    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Arrays.asList("Script"), "description");
     private final FlowModel flowModel1 = new FlowModel(101L, 44L, "Nmm1", "Des", Arrays.asList(flowComponentModel));
     private final FlowModel flowModel2 = new FlowModel(102L, 44L, "Nmm1", "Des", Arrays.asList(flowComponentModel));
     private final FlowModel flowModel3 = new FlowModel(103L, 44L, "Nmm1", "Des", Arrays.asList(flowComponentModel));

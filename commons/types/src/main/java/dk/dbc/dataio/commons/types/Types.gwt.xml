@@ -3,6 +3,5 @@
 
   <source path="">
     <include name="**/*.java"/>
-    <exclude name="**/*JsonMixIn.java"/>
   </source>
 </module>

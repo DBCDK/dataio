@@ -95,7 +95,7 @@ public class FlowComponentModelTest {
     private FlowComponentModel getTestModel() {
         List<String> javaScripts = new ArrayList<String>();
         javaScripts.add("Javascript");
-        return new FlowComponentModel(12, 23, "Name", "SVN Project", "SVN Revision", "Invocation Javascript", "Invocation Method", javaScripts);
+        return new FlowComponentModel(12, 23, "Name", "SVN Project", "SVN Revision", "Invocation Javascript", "Invocation Method", javaScripts, "description");
     }
 
 }

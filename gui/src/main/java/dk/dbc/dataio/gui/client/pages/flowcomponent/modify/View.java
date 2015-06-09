@@ -11,6 +11,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PromptedList;
+import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -27,10 +28,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @Override
     public void init() {}
 
-    @UiField
-    PromptedTextBox name;
-    @UiField
-    PromptedTextBox project;
+    @UiField PromptedTextBox name;
+    @UiField PromptedTextArea description;
+    @UiField PromptedTextBox project;
     @UiField PromptedList revision;
     @UiField PromptedList script;
     @UiField PromptedList method;
@@ -45,6 +45,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("name")
     void nameChanged(ValueChangeEvent<String> event) {
         presenter.nameChanged(name.getText());
+    }
+
+    @UiHandler("description")
+    void descriptionChanged(ValueChangeEvent<String> event) {
+        presenter.descriptionChanged(description.getText());
+        presenter.keyPressed();
     }
 
     @UiHandler("project")

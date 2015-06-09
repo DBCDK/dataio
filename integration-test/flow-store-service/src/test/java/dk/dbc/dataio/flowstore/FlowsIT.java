@@ -28,10 +28,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.*;
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.createFlow;
+import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Integration tests for the flows collection part of the flow store service
@@ -257,7 +262,8 @@ public class FlowsIT {
                 flowComponent.getContent().getSvnRevision() + 1,
                 flowComponent.getContent().getInvocationJavascriptName(),
                 flowComponent.getContent().getJavascripts(),
-                flowComponent.getContent().getInvocationMethod());
+                flowComponent.getContent().getInvocationMethod(),
+                flowComponent.getContent().getDescription());
 
         flowStoreServiceConnector.updateFlowComponent(updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
 
@@ -360,7 +366,8 @@ public class FlowsIT {
                     flowComponent.getContent().getSvnRevision() + 1,
                     flowComponent.getContent().getInvocationJavascriptName(),
                     flowComponent.getContent().getJavascripts(),
-                    flowComponent.getContent().getInvocationMethod());
+                    flowComponent.getContent().getInvocationMethod(),
+                    flowComponent.getContent().getDescription());
 
             flowStoreServiceConnector.updateFlowComponent(updatedFlowComponentContent, flowComponent.getId(), flowComponent.getVersion());
 

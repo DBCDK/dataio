@@ -79,7 +79,8 @@ public class FlowModelTest {
                 "svnRevision",
                 "invocationJavascript",
                 "invocationMethod",
-                new ArrayList<String>());
+                new ArrayList<String>(),
+                "description");
 
         return new FlowModel(11, 22, "Name", "Description", Arrays.asList(flowComponentModel));
     }

@@ -26,7 +26,7 @@ public class FlowContent implements Serializable {
      * @param components flow components attached to this flow (can be empty)
      *
      * @throws NullPointerException if given null-valued name, description or components argument
-     * @throws IllegalArgumentException if given empty-valued name or description argument
+     * @throws IllegalArgumentException if given empty-valued name
      */
     @JsonCreator
     public FlowContent(@JsonProperty("name") String name,

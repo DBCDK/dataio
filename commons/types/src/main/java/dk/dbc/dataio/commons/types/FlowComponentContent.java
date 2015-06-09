@@ -21,6 +21,7 @@ public class FlowComponentContent implements Serializable {
     private final List<JavaScript> javascripts;
     private final String invocationMethod;
     private String requireCache;
+    private String description;
 
 
     /**
@@ -32,6 +33,7 @@ public class FlowComponentContent implements Serializable {
      * @param invocationJavascriptName name of the original javascript
      * @param javascripts list of attached JavaScripts (can be empty)
      * @param invocationMethod name of invocation method (can be empty)
+     * @param description description of flow component
      *
      * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
      * @throws IllegalArgumentException if given empty-valued name argument
@@ -39,16 +41,19 @@ public class FlowComponentContent implements Serializable {
 
     public FlowComponentContent(String name,
                                 String svnProjectForInvocationJavascript,
-                                long svnRevision,String invocationJavascriptName,
+                                long svnRevision,
+                                String invocationJavascriptName,
                                 List<JavaScript> javascripts,
-                                String invocationMethod) {
+                                String invocationMethod,
+                                String description) {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.svnProjectForInvocationJavascript = InvariantUtil.checkNotNullNotEmptyOrThrow(svnProjectForInvocationJavascript, "svnProjectForInvocationJavascript");
         this.svnRevision = InvariantUtil.checkLowerBoundOrThrow(svnRevision, "svnRevision", 1);
         this.invocationJavascriptName = InvariantUtil.checkNotNullNotEmptyOrThrow(invocationJavascriptName, "invocationJavascriptName");
-        this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
         this.javascripts = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(javascripts, "javascripts"));
+        this.invocationMethod = InvariantUtil.checkNotNullOrThrow(invocationMethod, "invocationMethod");
+        this.description = description;
     }
     /**
      * Class constructor
@@ -59,6 +64,7 @@ public class FlowComponentContent implements Serializable {
      * @param invocationJavascriptName name of the original javascript
      * @param javascripts list of attached JavaScripts (can be empty)
      * @param invocationMethod name of invocation method (can be empty)
+     * @param description description of flow component
      * @param requireCache the JSON string of the RequireCache ( can be empty )
      *
      * @throws NullPointerException if given null-valued name, javascripts or invocationMethod argument
@@ -72,9 +78,10 @@ public class FlowComponentContent implements Serializable {
                                 @JsonProperty("invocationJavascriptName") String invocationJavascriptName,
                                 @JsonProperty("javascripts") List<JavaScript> javascripts,
                                 @JsonProperty("invocationMethod") String invocationMethod,
+                                @JsonProperty("description") String description,
                                 @JsonProperty("requireCache") String requireCache)
     {
-        this(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod);
+        this(name, svnProjectForInvocationJavascript, svnRevision, invocationJavascriptName, javascripts, invocationMethod, description);
         this.requireCache = requireCache;
     }
 
@@ -99,13 +106,18 @@ public class FlowComponentContent implements Serializable {
     }
 
     public List<JavaScript> getJavascripts() {
-        return new ArrayList<JavaScript>(javascripts);
+        return new ArrayList<>(javascripts);
     }
+
+    public String getDescription() {
+        return description;
+    }
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof FlowComponentContent)) return false;
 
         FlowComponentContent that = (FlowComponentContent) o;
 
@@ -115,7 +127,8 @@ public class FlowComponentContent implements Serializable {
         if (!invocationJavascriptName.equals(that.invocationJavascriptName)) return false;
         if (!javascripts.equals(that.javascripts)) return false;
         if (!invocationMethod.equals(that.invocationMethod)) return false;
-        return !(requireCache != null ? !requireCache.equals(that.requireCache) : that.requireCache != null);
+        if (requireCache != null ? !requireCache.equals(that.requireCache) : that.requireCache != null) return false;
+        return !(description != null ? !description.equals(that.description) : that.description != null);
 
     }
 
@@ -128,6 +141,7 @@ public class FlowComponentContent implements Serializable {
         result = 31 * result + javascripts.hashCode();
         result = 31 * result + invocationMethod.hashCode();
         result = 31 * result + (requireCache != null ? requireCache.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }
 

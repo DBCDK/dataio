@@ -28,6 +28,7 @@ public class FlowComponentModelMapperTest {
     private static final long   ID = 434L;
     private static final long   VERSION = 215L;
     private static final String NAME = "Flow Component Model Navn";
+    private static final String DESCRIPTION = "description";
     private static final String SVN_PROJECT = "Svn Project";
     private static final long   SVN_REVISION_LONG = 747L;
     private static final String SVN_REVISION_STR = String.valueOf(SVN_REVISION_LONG);
@@ -46,7 +47,7 @@ public class FlowComponentModelMapperTest {
     @Test
     public void toModel_validInputNoJavascripts_returnsValidModelNoJavascripts() {
         // Build a FlowComponent containing no javascripts
-        FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, new ArrayList<JavaScript>(), INVOCATION_METHOD);
+        FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, new ArrayList<JavaScript>(), INVOCATION_METHOD, DESCRIPTION);
         FlowComponent flowComponent = new FlowComponent(ID, VERSION, flowComponentContent);
 
         FlowComponentModel model = FlowComponentModelMapper.toModel(flowComponent);
@@ -68,7 +69,7 @@ public class FlowComponentModelMapperTest {
         javaScriptList.add(new JavaScript(JAVASCRIPT_1, MODULE_NAME_1));
         javaScriptList.add(new JavaScript(JAVASCRIPT_2, MODULE_NAME_2));
 
-        FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, javaScriptList, INVOCATION_METHOD);
+        FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, javaScriptList, INVOCATION_METHOD, DESCRIPTION);
         FlowComponent flowComponent = new FlowComponent(ID, VERSION, flowComponentContent);
 
         FlowComponentModel model = FlowComponentModelMapper.toModel(flowComponent);
@@ -226,7 +227,8 @@ public class FlowComponentModelMapperTest {
                "3244",
                "javaScriptName",
                "invocationMethod",
-               Arrays.asList("javascript"));
+               Arrays.asList("javascript"),
+               "description");
 
     }
 

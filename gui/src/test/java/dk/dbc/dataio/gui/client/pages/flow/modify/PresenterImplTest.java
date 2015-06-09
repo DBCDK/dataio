@@ -338,7 +338,7 @@ public class PresenterImplTest {
      */
 
     private FlowComponentModel newFlowComponentModel(long id, String name) {
-        return new FlowComponentModel(id, 1L, name, "", "", "", "", new ArrayList<String>());
+        return new FlowComponentModel(id, 1L, name, "", "", "", "", new ArrayList<String>(), "");
     }
 
 }

@@ -157,7 +157,7 @@ public class PresenterEditImplTest {
     }
 
     private FlowComponentModel getValidFlowComponentModel(long id, long version) {
-        return new FlowComponentModel(id, version, "name", "svnProject", "34", "invocationJavaScript", "invocationMethod", Arrays.asList("JavaScriptModuleName"));
+        return new FlowComponentModel(id, version, "name", "svnProject", "34", "invocationJavaScript", "invocationMethod", Arrays.asList("JavaScriptModuleName"), "description");
     }
 
     private FlowModel getValidFlowModel(long id, long version) {

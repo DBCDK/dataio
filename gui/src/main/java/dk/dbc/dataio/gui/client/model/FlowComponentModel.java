@@ -13,8 +13,9 @@ public class FlowComponentModel extends GenericBackendModel {
     private String invocationJavascript;
     private String invocationMethod;
     private List<String> javascriptModules;
+    private String description;
 
-    public FlowComponentModel(long id, long version, String name, String svnProject, String svnRevision, String invocationJavascript, String invocationMethod, List<String> javascriptModules) {
+    public FlowComponentModel(long id, long version, String name, String svnProject, String svnRevision, String invocationJavascript, String invocationMethod, List<String> javascriptModules, String description) {
         super(id, version);
         this.name = name;
         this.svnProject = svnProject;
@@ -22,6 +23,7 @@ public class FlowComponentModel extends GenericBackendModel {
         this.invocationJavascript = invocationJavascript;
         this.invocationMethod = invocationMethod;
         this.javascriptModules = javascriptModules;
+        this.description = description;
     }
 
     public FlowComponentModel() {
@@ -32,6 +34,7 @@ public class FlowComponentModel extends GenericBackendModel {
         this.invocationJavascript = "";
         this.invocationMethod = "";
         this.javascriptModules = new ArrayList<String>();
+        this.description = "";
     }
 
     /**
@@ -125,6 +128,22 @@ public class FlowComponentModel extends GenericBackendModel {
     }
 
     /**
+     * @return description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Set description
+     * @param description Submitter description
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+
+    /**
      * Checks for empty String values
      */
     public boolean isInputFieldsEmpty() {
@@ -133,6 +152,7 @@ public class FlowComponentModel extends GenericBackendModel {
                 svnRevision.isEmpty() ||
                 invocationJavascript.isEmpty() ||
                 invocationMethod.isEmpty() ||
+                description.isEmpty() ||
                 javascriptModules.isEmpty();
     }
 
@@ -141,7 +161,8 @@ public class FlowComponentModel extends GenericBackendModel {
                 svnProject.isEmpty() ||
                 svnRevision.isEmpty() ||
                 invocationJavascript.isEmpty() ||
-                invocationMethod.isEmpty();
+                invocationMethod.isEmpty() ||
+                description.isEmpty();
     }
 
     /**

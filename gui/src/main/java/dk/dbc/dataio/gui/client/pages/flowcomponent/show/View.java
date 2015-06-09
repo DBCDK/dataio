@@ -56,6 +56,7 @@ public class View extends ViewWidget {
         dataProvider.addDataDisplay(flowComponentsTable);
 
         flowComponentsTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
+        flowComponentsTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         flowComponentsTable.addColumn(constructJavaScriptNameColumn(), texts.columnHeader_ScriptName());
         flowComponentsTable.addColumn(constructInvocationMethodColumn(), texts.columnHeader_InvocationMethod());
         flowComponentsTable.addColumn(constructSvnProjectColumn(), texts.columnHeader_Project());
@@ -77,6 +78,21 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowComponentModel model) {
                 return model.getName();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Description column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Description column
+     */
+    Column constructDescriptionColumn() {
+        return new TextColumn<FlowComponentModel>() {
+            @Override
+            public String getValue(FlowComponentModel model) {
+                return model.getDescription();
             }
         };
     }

@@ -600,7 +600,7 @@ public class FlowStoreProxyImplTest {
 
     private FlowModel getDefaultFlowModel(long id, long version) {
         FlowComponentModel flowComponentModel =
-                new FlowComponentModel(1, 1, "FlowComponentName", "svnProject", "1233", "invocationJavaScript", "invocationMethod", Arrays.asList("JavaScriptModuleName"));
+                new FlowComponentModel(1, 1, "FlowComponentName", "svnProject", "1233", "invocationJavaScript", "invocationMethod", Arrays.asList("JavaScriptModuleName"), "description");
         return new FlowModel(id, version, "FlowName", "description", Arrays.asList(flowComponentModel));
     }
 
@@ -1482,6 +1482,6 @@ public class FlowStoreProxyImplTest {
         javaScriptModules.add("javaScriptName1");
         javaScriptModules.add("javaScriptName2");
 
-        return new FlowComponentModel(ID, 1, "name", "project", "45", "invocationJavaScript", "invocationMethod", javaScriptModules);
+        return new FlowComponentModel(ID, 1, "name", "project", "45", "invocationJavaScript", "invocationMethod", javaScriptModules, "description");
     }
 }

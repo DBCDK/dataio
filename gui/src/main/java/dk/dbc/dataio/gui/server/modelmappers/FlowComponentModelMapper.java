@@ -31,7 +31,8 @@ public final class FlowComponentModelMapper {
                 String.valueOf(flowComponent.getContent().getSvnRevision()),
                 flowComponent.getContent().getInvocationJavascriptName(),
                 flowComponent.getContent().getInvocationMethod(),
-                getJavaScriptNames(flowComponent.getContent().getJavascripts())
+                getJavaScriptNames(flowComponent.getContent().getJavascripts()),
+                flowComponent.getContent().getDescription()
         );
     }
 
@@ -86,6 +87,7 @@ public final class FlowComponentModelMapper {
                 model.getInvocationJavascript(),
                 requiredJavaScripts.javaScripts,
                 model.getInvocationMethod(),
+                model.getDescription(),
                 requiredJavaScripts.requireCache);
         //TODO handle require
     }

@@ -27,6 +27,7 @@ public class FlowComponentContentTest {
     private static final String INVOCATION_METHOD = "method";
     private static final List<JavaScript> JAVASCRIPTS = Arrays.asList(JavaScriptTest.newJavaScriptInstance());
     private static final String REQUIRE_CACHE="";
+    private static final String DESCRIPTION = "description";
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
@@ -75,27 +76,46 @@ public class FlowComponentContentTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, DESCRIPTION, REQUIRE_CACHE);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_invocationMethodArgIsEmpty_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, "", REQUIRE_CACHE);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, "", DESCRIPTION, REQUIRE_CACHE);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_javascriptsArgIsEmpty_returnsNewInstance() {
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, new ArrayList<JavaScript>(0), INVOCATION_METHOD, REQUIRE_CACHE);
-        assertThat(instance, is(notNullValue()));
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, new ArrayList<JavaScript>(0), INVOCATION_METHOD, DESCRIPTION, REQUIRE_CACHE);
+    }
+
+    @Test
+    public void constructor_requireCacheArgIsEmpty_returnsNewInstance() {
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, DESCRIPTION, "");
+    }
+
+    @Test
+    public void constructor_requireCacheArgIsNull_returnsNewInstance() {
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, DESCRIPTION, null);
+    }
+
+    @Test
+    public void constructor_descriptionArgIsEmpty_returnsNewInstance() {
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, "", REQUIRE_CACHE);
+    }
+
+    @Test
+    public void constructor_descriptionArgIsNull_returnsNewInstance() {
+        new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, null, REQUIRE_CACHE);
     }
 
     @Test
     public void verify_defensiveCopyingOfJavascriptsList() {
         final List<JavaScript> javaScripts = new ArrayList<>();
         javaScripts.add(JavaScriptTest.newJavaScriptInstance());
-        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, javaScripts, INVOCATION_METHOD, REQUIRE_CACHE);
+        final FlowComponentContent instance = new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, javaScripts, INVOCATION_METHOD, DESCRIPTION, REQUIRE_CACHE);
         assertThat(instance.getJavascripts().size(), is(1));
         javaScripts.add(null);
         final List<JavaScript> returnedJavascripts = instance.getJavascripts();
@@ -119,13 +139,14 @@ public class FlowComponentContentTest {
                 "            }]," +
                 "        \"name\": \"test\",\n" +
                 "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
-                "        \"svnRevision\": 83597\n" +
+                "        \"svnRevision\": 83597" +
                 "}"
                 ;
 
         final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class);
         assertThat("fisk", flowComponentContent.getName(), is("test"));
         assertThat( flowComponentContent.getRequireCache(), is(nullValue()));
+        assertThat( flowComponentContent.getDescription(), is(nullValue()));
     }
 
     @Test
@@ -143,6 +164,7 @@ public class FlowComponentContentTest {
                 "                \"moduleName\": \"moduleName2\"\n" +
                 "            }]," +
                 "        \"name\": \"test\",\n" +
+                "        \"description\": \"description\",\n" +
                 "        \"svnProjectForInvocationJavascript\": \"dataio-js-test-projects\",\n" +
                 "        \"svnRevision\": 83597,\n" +
                 "        \"requireCache\": \"RequireCacheString\"" +
@@ -150,11 +172,12 @@ public class FlowComponentContentTest {
                 ;
 
         final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class);
-        assertThat( flowComponentContent.getName(), is("test"));
+        assertThat(flowComponentContent.getName(), is("test"));
         assertThat(flowComponentContent.getRequireCache(), is("RequireCacheString"));
+        assertThat(flowComponentContent.getDescription(), is("description"));
     }
 
     public static FlowComponentContent newFlowComponentContentInstance() {
-        return new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, REQUIRE_CACHE);
+        return new FlowComponentContent(NAME, SVN_PROJECT_FOR_INVOCATION_JAVASCRIPT, SVN_REVISION, JAVA_SCRIPT_NAME, JAVASCRIPTS, INVOCATION_METHOD, DESCRIPTION, REQUIRE_CACHE);
     }
 }

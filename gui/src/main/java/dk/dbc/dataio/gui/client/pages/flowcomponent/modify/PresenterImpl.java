@@ -74,6 +74,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the description field has been changed
+     * @param description, the new description value
+     */
+    public void descriptionChanged(String description) {
+        model.setDescription(description);
+    }
+
+    /**
      * A signal to the presenter, saying that the svn project field has been changed
      * @param projectName, the new svn project name value
      */
@@ -302,6 +310,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected void updateAllFieldsAccordingToCurrentState() {
         view.name.setText(model.getName());
         view.name.setEnabled(true);
+        view.description.setText(model.getDescription());
+        view.description.setEnabled(true);
         view.project.setText(model.getSvnProject());
         view.project.setEnabled(true);
         if(model.getId() != 0) {
@@ -319,6 +329,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private void initializeViewFields() {
         view.name.clearText();
         view.name.setEnabled(false);
+        view.description.clearText();
+        view.description.setEnabled(false);
         view.project.clearText();
         view.project.setEnabled(false);
         view.revision.clear();

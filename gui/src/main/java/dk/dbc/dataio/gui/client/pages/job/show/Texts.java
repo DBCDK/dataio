@@ -44,6 +44,9 @@ public interface Texts extends Constants {
     String columnHeader_IgnoredCounter();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_ProgressBar();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_JobStatus();
 
     // Button texts

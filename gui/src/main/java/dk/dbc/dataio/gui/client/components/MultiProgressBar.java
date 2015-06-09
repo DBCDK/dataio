@@ -32,9 +32,13 @@ public class MultiProgressBar extends Composite {
 
     private static MultiProgressBarUiBinder ourUiBinder = GWT.create(MultiProgressBarUiBinder.class);
 
-    @UiField Label textProgress;
-    @UiField Element firstProgress;
-    @UiField Element secondProgress;
+    @UiField public Label textProgress;      // Public to allow unit test
+    @UiField public Element firstProgress;   // Public to allow unit test
+    @UiField public Element secondProgress;  // Public to allow unit test
+
+    public MultiProgressBar() {
+        this("", "0", "0", "100");
+    }
 
     @UiConstructor
     public MultiProgressBar(String text, String firstValue, String secondValue, String max) {

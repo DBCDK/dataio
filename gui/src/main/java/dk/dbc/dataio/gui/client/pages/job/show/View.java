@@ -29,7 +29,7 @@ public class View extends ViewWidget {
     ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
     Column jobCreationTimeColumn;
     ListDataProvider<JobModel> dataProvider;
-    SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<JobModel>();;
+    SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<JobModel>();
 
     // Enums
     enum JobStatus {
@@ -107,6 +107,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructSuccessCounterColumn(), texts.columnHeader_SuccessCounter());
         jobsTable.addColumn(constructFailedCounterColumn(), texts.columnHeader_FailureCounter());
         jobsTable.addColumn(constructIgnoredCounterColumn(), texts.columnHeader_IgnoredCounter());
+        jobsTable.addColumn(constructProgressBarColumn(), texts.columnHeader_ProgressBar());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
         jobsTable.setSelectionModel(selectionModel);
         jobsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
@@ -360,6 +361,16 @@ public class View extends ViewWidget {
             }
         });
         return column;
+    }
+
+    /**
+     * This method constructs the progress bar column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed progress bar column
+     */
+    Column constructProgressBarColumn() {
+        return new ProgressColumn();
     }
 
     /**

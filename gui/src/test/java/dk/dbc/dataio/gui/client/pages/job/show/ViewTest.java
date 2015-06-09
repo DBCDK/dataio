@@ -83,6 +83,7 @@ public class ViewTest {
     final static String MOCKED_COLUMN_HEADER_SUCCEEDED = "Mocked Column Header Succeeded";
     final static String MOCKED_COLUMN_HEADER_FAILED = "Mocked Column Header Failed";
     final static String MOCKED_COLUMN_HEADER_IGNORED = "Mocked Column Header Ignored";
+    final static String MOCKED_COLUMN_HEADER_PROGRESS = "Mocked Column Header Progress";
     final static String MOCKED_COLUMN_HEADER_JOB_STATUS = "Mocked Column Header Job Status";
     @Before
     public void setupMockedTextsBehaviour() {
@@ -102,6 +103,7 @@ public class ViewTest {
         when(mockedTexts.columnHeader_SuccessCounter()).thenReturn(MOCKED_COLUMN_HEADER_SUCCEEDED);
         when(mockedTexts.columnHeader_FailureCounter()).thenReturn(MOCKED_COLUMN_HEADER_FAILED);
         when(mockedTexts.columnHeader_IgnoredCounter()).thenReturn(MOCKED_COLUMN_HEADER_IGNORED);
+        when(mockedTexts.columnHeader_ProgressBar()).thenReturn(MOCKED_COLUMN_HEADER_PROGRESS);
         when(mockedTexts.columnHeader_JobStatus()).thenReturn(MOCKED_COLUMN_HEADER_JOB_STATUS);
     }
 
@@ -127,6 +129,7 @@ public class ViewTest {
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUCCEEDED));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FAILED));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_IGNORED));
+        verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_PROGRESS));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_STATUS));
         verify(view.pagerTop).setDisplay(view.jobsTable);
         verify(view.pagerBottom).setDisplay(view.jobsTable);
@@ -393,6 +396,16 @@ public class ViewTest {
         StatusColumn column = (StatusColumn) view.constructJobStateColumn();
         assertThat(column.getCell(), is(notNullValue()));
         assertThat(column.getCell() instanceof ImageResourceCell, is(true));
+    }
+
+    @Test
+    public void constructProgressColumn_call_correctlySetup() {
+        view = new View(mockedClientFactory);
+
+        // Subject Under Test
+        ProgressColumn column = (ProgressColumn) view.constructProgressBarColumn();
+        assertThat(column.getCell(), is(notNullValue()));
+        assertThat(column.getCell() instanceof ProgressColumn.ProgressCell, is(true));
     }
 
     class ConcreteView extends View {

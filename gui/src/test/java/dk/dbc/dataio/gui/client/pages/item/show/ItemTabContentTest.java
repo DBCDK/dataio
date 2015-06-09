@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
-public class InputPostTabContentTest {
+public class ItemTabContentTest {
     final String CANNOT_FETCH_ITEM_DATA = "Mocked Cannot fetch chunk data";
     final ItemModel.LifeCycle LIFECYCLE = ItemModel.LifeCycle.PROCESSING;
     final ItemModel TEST_ITEM_MODEL = new ItemModel("284378745", "874784", "29", "656565", LIFECYCLE);
@@ -27,12 +27,12 @@ public class InputPostTabContentTest {
     @Mock Throwable mockedThrowable;
 
 
-    class InputPostTabContentConcrete extends InputPostTabContent {
+    class ItemTabContentConcrete extends ItemTabContent {
         GetItemDataAsyncCallback callback = new GetItemDataAsyncCallback();
         String text = "";
         String htmlText = "";
 
-        public InputPostTabContentConcrete(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
+        public ItemTabContentConcrete(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
             super(texts, jobStoreProxy, itemModel, lifeCycle);
         }
 
@@ -56,7 +56,7 @@ public class InputPostTabContentTest {
     public void instantiate_instantiate_logStoreIsCalled() {
 
         // Subject under test
-        new InputPostTabContent(mockedTexts, mockedJobStoreProxy, TEST_ITEM_MODEL, LIFECYCLE);
+        new ItemTabContent(mockedTexts, mockedJobStoreProxy, TEST_ITEM_MODEL, LIFECYCLE);
 
         // Test Verification
         verify(mockedJobStoreProxy).getItemData(
@@ -69,7 +69,7 @@ public class InputPostTabContentTest {
     @Test
     public void callback_callOnFailure_errorMessageIsGiven() {
         // Test preparation
-        InputPostTabContentConcrete inputPostTabContentConcrete = new InputPostTabContentConcrete(mockedTexts, mockedJobStoreProxy, TEST_ITEM_MODEL, LIFECYCLE);
+        ItemTabContentConcrete inputPostTabContentConcrete = new ItemTabContentConcrete(mockedTexts, mockedJobStoreProxy, TEST_ITEM_MODEL, LIFECYCLE);
 
         // Subject under test
         inputPostTabContentConcrete.callback.onFailure(mockedThrowable);
@@ -82,7 +82,7 @@ public class InputPostTabContentTest {
     @Test
     public void callback_callOnSuccess_formatIsCalled() {
         // Test preparation
-        InputPostTabContentConcrete inputPostTabContentConcrete = new InputPostTabContentConcrete(mockedTexts, mockedJobStoreProxy, TEST_ITEM_MODEL, LIFECYCLE);
+        ItemTabContentConcrete inputPostTabContentConcrete = new ItemTabContentConcrete(mockedTexts, mockedJobStoreProxy, TEST_ITEM_MODEL, LIFECYCLE);
 
         final String data = "chunk item data <datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
                 "<subfield code=\"r\">n</subfield>" +
@@ -95,9 +95,9 @@ public class InputPostTabContentTest {
         // Test verification
         assertThat(inputPostTabContentConcrete.htmlText, is(
                 "chunk item data &lt;datafield ind1=&quot;0&quot; " +
-                "ind2=&quot;0&quot; tag=&quot;004&quot;&gt;&lt;" +
-                        "subfield code=&quot;r&quot;&gt;n&lt;/subfield&gt;&lt;" +
-                        "subfield code=&quot;a&quot;&gt;e&lt;/subfield&gt;&lt;" +
-                        "/datafield&gt;&lt;&gt;"));
+                        "ind2=&quot;0&quot; tag=&quot;004&quot;&gt;&lt;subfield " +
+                        "code=&quot;r&quot;&gt;n&lt;/subfield&gt;&lt;subfield " +
+                        "code=&quot;a&quot;&gt;e&lt;/subfield&gt;&lt;/datafield&gt;"
+        ));
     }
 }

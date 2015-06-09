@@ -371,7 +371,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(InputPostTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
         verify(mockedAllDetailedTabs).getWidgetCount();
         verify(mockedAllDetailedTabs).selectTab(0);
         verify(mockedAllDetailedTabs).setVisible(true);

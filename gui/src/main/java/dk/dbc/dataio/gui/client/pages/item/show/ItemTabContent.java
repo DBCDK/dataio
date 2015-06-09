@@ -6,13 +6,13 @@ import com.google.gwt.user.client.ui.HTML;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 
-public class InputPostTabContent extends HTML{
+public class ItemTabContent extends HTML{
     private Texts texts;
     private JobStoreProxyAsync jobStoreProxy;
     private final static String NBSP = new String(new char[4]).replace("\0", "\u00A0");
     private final static String AMP = "\u0026";
 
-    public InputPostTabContent(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
+    public ItemTabContent(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
         this.texts = texts;
         this.jobStoreProxy = jobStoreProxy;
         getItemData(itemModel, lifeCycle);
@@ -48,7 +48,6 @@ public class InputPostTabContent extends HTML{
      * \t with 8 times &nbsp (non-breaking spaces.)
      * \&amp with &
      * This is done in order to make the log easier readable when presented in the view.
-     * It also escapes the tag brackets: "<" and ">" in order to display the text in xml format
      *
      * @param data The text to be formatted
      * @return the formatted data String
@@ -56,7 +55,7 @@ public class InputPostTabContent extends HTML{
     private String formatXml(String data) {
         data = data.replace("\t", NBSP);
         data = data.replace("&amp;", AMP);
-        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder().appendEscapedLines(data).appendEscaped("<").appendEscaped(">");
+        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder().appendEscapedLines(data);
         return safeHtmlBuilder.toSafeHtml().asString();
     }
 }

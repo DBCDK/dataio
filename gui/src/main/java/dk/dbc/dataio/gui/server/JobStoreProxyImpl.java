@@ -163,47 +163,53 @@ public class JobStoreProxyImpl implements JobStoreProxy {
 
 
     /**
-     * Adds tabs and new lines to a xml string
+     * Determines if a string is xml alike:
+     *  if TRUE : Adds tabs and new lines to a xml string
+     *  if FALSE: Returns the string without formatting
      * @param xmlString
-     * @return formatted string
+     * @return formatted string if it should be displayed as xml, unformatted string if not
      */
     static String format(String xmlString) {
-    /* Remove new lines */
-        final String LINE_BREAK = "\n";
-        xmlString = xmlString.replaceAll(LINE_BREAK, "");
-        StringBuffer prettyPrintXml = new StringBuffer();
-    /* Group the xml tags */
-        Pattern pattern = Pattern.compile("(<[^/][^>]+>)?([^<]*)(</[^>]+>)?(<[^/][^>]+/>)?");
-        Matcher matcher = pattern.matcher(xmlString);
-        int tabCount = 0;
-        while (matcher.find()) {
-            String str1 = null == matcher.group(1) || "null".equals(matcher.group()) ? "" : matcher.group(1);
-            String str2 = null == matcher.group(2) || "null".equals(matcher.group()) ? "" : matcher.group(2);
-            String str3 = null == matcher.group(3) || "null".equals(matcher.group()) ? "" : matcher.group(3);
-            String str4 = null == matcher.group(4) || "null".equals(matcher.group()) ? "" : matcher.group(4);
+        String formattedString = xmlString;
+        // Might be xml alike and should be displayed as xml even though the xml string starts with a number...
+        if(xmlString.contains("<?xml")) {
+            /* Remove new lines */
+            final String LINE_BREAK = "\n";
+            xmlString = xmlString.replaceAll(LINE_BREAK, "");
+            StringBuffer prettyPrintXml = new StringBuffer();
+            /* Group the xml tags */
+            Pattern pattern = Pattern.compile("(<[^/][^>]+>)?([^<]*)(</[^>]+>)?(<[^/][^>]+/>)?");
+            Matcher matcher = pattern.matcher(xmlString);
+            int tabCount = 0;
+            while (matcher.find()) {
+                String str1 = null == matcher.group(1) || "null".equals(matcher.group()) ? "" : matcher.group(1);
+                String str2 = null == matcher.group(2) || "null".equals(matcher.group()) ? "" : matcher.group(2);
+                String str3 = null == matcher.group(3) || "null".equals(matcher.group()) ? "" : matcher.group(3);
+                String str4 = null == matcher.group(4) || "null".equals(matcher.group()) ? "" : matcher.group(4);
 
-            if (matcher.group() != null && !matcher.group().trim().equals("")) {
-                printTabs(tabCount, prettyPrintXml);
-                if (!str1.equals("") && str3.equals("")) {
-                    ++tabCount;
-                }
-                if (str1.equals("") && !str3.equals("")) {
-                    --tabCount;
-                    prettyPrintXml.deleteCharAt(prettyPrintXml.length() - 1);
-                }
-
-                prettyPrintXml.append(str1);
-                prettyPrintXml.append(str2);
-                prettyPrintXml.append(str3);
-                if (!str4.equals("")) {
-                    prettyPrintXml.append(LINE_BREAK);
+                if (matcher.group() != null && !matcher.group().trim().equals("")) {
                     printTabs(tabCount, prettyPrintXml);
-                    prettyPrintXml.append(str4);
+                    if (!str1.equals("") && str3.equals("")) {
+                        ++tabCount;
+                    }
+                    if (str1.equals("") && !str3.equals("")) {
+                        --tabCount;
+                        prettyPrintXml.deleteCharAt(prettyPrintXml.length() - 1);
+                    }
+                    prettyPrintXml.append(str1);
+                    prettyPrintXml.append(str2);
+                    prettyPrintXml.append(str3);
+                    if (!str4.equals("")) {
+                        prettyPrintXml.append(LINE_BREAK);
+                        printTabs(tabCount, prettyPrintXml);
+                        prettyPrintXml.append(str4);
+                    }
+                    prettyPrintXml.append(LINE_BREAK);
                 }
-                prettyPrintXml.append(LINE_BREAK);
             }
+            formattedString = prettyPrintXml.toString();
         }
-        return prettyPrintXml.toString();
+        return formattedString;
     }
 
     private static void printTabs(int count, StringBuffer stringBuffer) {

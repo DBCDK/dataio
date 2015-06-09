@@ -88,6 +88,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_InputPost();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_OutputPost();
+
 
     // JobInfo Prompt Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

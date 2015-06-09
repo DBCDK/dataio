@@ -23,7 +23,7 @@ public class FlowComponentModel extends GenericBackendModel {
         this.invocationJavascript = invocationJavascript;
         this.invocationMethod = invocationMethod;
         this.javascriptModules = javascriptModules;
-        this.description = description;
+        this.description = description == null? "" : description;
     }
 
     public FlowComponentModel() {

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
  * <p/>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
-
+@SuppressWarnings("deprecation")  // Due to the fact, that com.google.gwt.user.client.Element is deprecated, and MultiProgressBar.getElement() returns this element, so I am forced to use it!
 @RunWith(GwtMockitoTestRunner.class)
 public class ProgressColumnTest {
     // Mocked data

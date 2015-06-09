@@ -7,7 +7,7 @@
     <g:HTMLPanel>
 
         <li><dio:PromptedTextBox ui:field="name" guiId="flowcomponentnamepanel" prompt="{txt.label_ComponentName}" maxLength="160" toolTip=""/></li>
-        <li><dio:PromptedTextArea ui:field="description" guiId="submitterdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
+        <li><dio:PromptedTextArea ui:field="description" guiId="flowcomponentdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
         <li><dio:PromptedTextBox ui:field="project" guiId="flowcomponentprojectpanel" prompt="{txt.label_SvnProject}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedList ui:field="revision" guiId="flowcomponentrevisionpanel" prompt="{txt.label_SvnRevision}" multiSelect="false" visibleItems="1"/></li>
         <li><dio:PromptedList ui:field="script" guiId="flowcomponentscriptnamepanel" prompt="{txt.label_ScriptName}" multiSelect="false" visibleItems="1"/></li>

@@ -41,7 +41,7 @@ public class FlowBinderModelMapperTest {
     // Default Flow Binder Model
     private static final FlowModel defaultFlowModel = new FlowModel(DEFAULT_FLOW_ID, 4L, "flow name", "flow description", Arrays.asList(new FlowComponentModel()));
     private static final SubmitterModel defaultSubmitterModel = new SubmitterModel(DEFAULT_SUBMITTER_ID, 6L, "submitter number", "submitter name", "submitter description");
-    private static final SinkModel defaultSinkModel = new SinkModel(DEFAULT_SINK_ID, 7L, "sink name", "sink resource");
+    private static final SinkModel defaultSinkModel = new SinkModel(DEFAULT_SINK_ID, 7L, "sink name", "sink resource", "sink description");
     private static final FlowBinderModel defaultFlowBinderModel = new FlowBinderModel(
             DEFAULT_FLOW_BINDER_ID,
             DEFAULT_FLOW_BINDER_VERSION,

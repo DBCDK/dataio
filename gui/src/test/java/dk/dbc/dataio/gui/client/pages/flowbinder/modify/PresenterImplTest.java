@@ -67,9 +67,9 @@ public class PresenterImplTest {
     private final SubmitterModel submitterModel2 = new SubmitterModel(202L, 1L, "2202", "SName 2", "Description");
     private final SubmitterModel submitterModel3 = new SubmitterModel(203L, 1L, "2203", "SName 3", "Description");
     private final SubmitterModel submitterModel4 = new SubmitterModel(204L, 1L, "2204", "SName 4", "Description");
-    private final SinkModel sinkModel1 = new SinkModel(301L, 100L, "Snm1", "Rsc");
-    private final SinkModel sinkModel2 = new SinkModel(302L, 100L, "Snm2", "Rsc");
-    private final SinkModel sinkModel3 = new SinkModel(303L, 100L, "Snm3", "Rsc");
+    private final SinkModel sinkModel1 = new SinkModel(301L, 100L, "Snm1", "Rsc", "description");
+    private final SinkModel sinkModel2 = new SinkModel(302L, 100L, "Snm2", "Rsc", "description");
+    private final SinkModel sinkModel3 = new SinkModel(303L, 100L, "Snm3", "Rsc", "description");
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {

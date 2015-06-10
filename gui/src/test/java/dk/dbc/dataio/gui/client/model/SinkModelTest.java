@@ -61,6 +61,6 @@ public class SinkModelTest {
     }
 
     private SinkModel getTestModel() {
-        return new SinkModel(1, 1, "Name", "Resource");
+        return new SinkModel(1, 1, "Name", "Resource", "Description");
     }
 }

@@ -73,13 +73,14 @@ public class PresenterCreateImplTest {
 
         assertThat(presenterCreateImpl.model.getSinkName(), is(""));
         assertThat(presenterCreateImpl.model.getResourceName(), is(""));
+        assertThat(presenterCreateImpl.model.getDescription(), is(""));
     }
 
     @Test
     public void saveModel_sinkContentOk_createSinkCalled() {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterCreateImpl.model = new SinkModel(1, 1, "Sink Name", "Sink Resource Name");
+        presenterCreateImpl.model = new SinkModel(1, 1, "Sink Name", "Sink Resource Name", "Sink Description");
         presenterCreateImpl.saveModel();
         verify(mockedFlowStoreProxy).createSink(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
     }

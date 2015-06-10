@@ -300,7 +300,7 @@ public class FlowStoreProxyImplTest {
     }
 
     private SinkModel getDefaultSinkModel(long id, long version) {
-        return new SinkModel(id, version, "sinkName", "resourceName");
+        return new SinkModel(id, version, "sinkName", "resourceName", "description");
     }
 
     private void updateSink_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {

@@ -45,7 +45,7 @@ public class ViewTest {
     private FlowComponentModel flowComponentModel1 = new FlowComponentModel(58L, 485L, "FCnam1", "FCspr1", "FCsrv1", "FCijs1", "FCmet1", Arrays.asList("Java Script 1"), "description");
     private FlowModel flowModel1 = new FlowModel(14L, 343L, "Fnam1", "Fdsc1", Arrays.asList(flowComponentModel1));
     private SubmitterModel submitterModel1 = new SubmitterModel(85L, 843957L, "SUnum1", "SUnam1", "SUdes1");
-    private SinkModel sinkModel1 = new SinkModel(543L, 352L, "SInam1", "SIres1");
+    private SinkModel sinkModel1 = new SinkModel(543L, 352L, "SInam1", "SIres1", "SIdescription1");
     private FlowBinderModel flowBinderModel1 = new FlowBinderModel(123L, 111L, "FBnam1", "FBdsc1", "FBpac1", "FBfor1", "FBchr1", "FBdes1", "FBrec1", true, flowModel1, Arrays.asList(submitterModel1), sinkModel1);
     private FlowBinderModel flowBinderModel2 = new FlowBinderModel(124L, 112L, "FBnam2", "FBdsc2", "FBpac2", "FBfor2", "FBchr2", "FBdes2", "FBrec2", true, flowModel1, Arrays.asList(submitterModel1), sinkModel1);
     private List<FlowBinderModel> flowBinderModels = Arrays.asList(flowBinderModel1, flowBinderModel2);

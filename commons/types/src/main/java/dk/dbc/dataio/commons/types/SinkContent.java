@@ -14,6 +14,7 @@ public class SinkContent implements Serializable {
 
     private final String name;
     private final String resource;
+    private String description;
 
     /**
      * Class constructor
@@ -26,10 +27,12 @@ public class SinkContent implements Serializable {
      */
     @JsonCreator
     public SinkContent(@JsonProperty("name") String name,
-                       @JsonProperty("resource") String resource) {
+                       @JsonProperty("resource") String resource,
+                       @JsonProperty("description") String description) {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.resource = InvariantUtil.checkNotNullNotEmptyOrThrow(resource, "resource");
+        this.description = description;
     }
 
     public String getName() {
@@ -38,6 +41,10 @@ public class SinkContent implements Serializable {
 
     public String getResource() {
         return resource;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     @Override
@@ -49,14 +56,16 @@ public class SinkContent implements Serializable {
 
         if (!name.equals(that.name)) return false;
         if (!resource.equals(that.resource)) return false;
+        return !(description != null ? !description.equals(that.description) : that.description != null);
 
-        return true;
     }
 
     @Override
     public int hashCode() {
         int result = name.hashCode();
         result = 31 * result + resource.hashCode();
+        result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }
+
 }

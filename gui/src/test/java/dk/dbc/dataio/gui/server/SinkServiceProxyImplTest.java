@@ -120,7 +120,7 @@ public class SinkServiceProxyImplTest {
     }
 
     private SinkModel getValidSinkModel() {
-        return new SinkModel(0, 0 , "name", "dataio/resource");
+        return new SinkModel(0, 0 , "name", "dataio/resource", "description");
     }
 
 }

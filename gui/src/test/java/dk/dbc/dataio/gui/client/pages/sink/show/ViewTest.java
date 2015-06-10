@@ -38,8 +38,8 @@ public class ViewTest {
 
 
     // Test Data
-    private SinkModel testModel1 = new SinkModel(8347L, 98345L, "SinkNam1", "SinkRes1");
-    private SinkModel testModel2 = new SinkModel(8348L, 98346L, "SinkNam2", "SinkRes2");
+    private SinkModel testModel1 = new SinkModel(8347L, 98345L, "SinkNam1", "SinkRes1", "SinkDescription1");
+    private SinkModel testModel2 = new SinkModel(8348L, 98346L, "SinkNam2", "SinkRes2", "SinkDescription2");
     private List<SinkModel> testModels = Arrays.asList(testModel1, testModel2);
 
 

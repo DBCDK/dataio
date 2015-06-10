@@ -24,7 +24,8 @@ public class SinkModelMapper {
                 sink.getId(),
                 sink.getVersion(),
                 sink.getContent().getName(),
-                sink.getContent().getResource());
+                sink.getContent().getResource(),
+                sink.getContent().getDescription());
     }
 
     /**
@@ -36,7 +37,7 @@ public class SinkModelMapper {
     public static SinkContent toSinkContent(SinkModel model) throws IllegalArgumentException {
 
         if(model.isInputFieldsEmpty()) {
-            throw new IllegalArgumentException("model.name, model.resource cannot be empty");
+            throw new IllegalArgumentException("model.name, model.resource, mode.description cannot be empty");
         }
 
         List<String> matches = model.getDataioPatternMatches();
@@ -45,8 +46,9 @@ public class SinkModelMapper {
         }
 
         return new SinkContent(
-            model.getSinkName(),
-            model.getResourceName());
+                model.getSinkName(),
+                model.getResourceName(),
+                model.getDescription());
     }
 
     /**

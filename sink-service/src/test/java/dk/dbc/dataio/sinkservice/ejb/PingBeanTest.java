@@ -84,7 +84,7 @@ public class PingBeanTest {
     }
 
     private String getValidSinkContent(String resourceName) throws JsonException {
-        final SinkContent sinkContent = new SinkContent("name", resourceName);
+        final SinkContent sinkContent = new SinkContent("name", resourceName, "description");
         return JsonUtil.toJson(sinkContent);
     }
 }

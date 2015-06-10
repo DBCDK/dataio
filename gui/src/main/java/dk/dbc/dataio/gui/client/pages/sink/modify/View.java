@@ -9,6 +9,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -29,6 +30,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     PromptedTextBox name;
     @UiField
     PromptedTextBox resource;
+    @UiField
+    PromptedTextArea description;
     @UiField Label status;
 
     @UiHandler("name")
@@ -42,6 +45,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     void resourceChanged(ValueChangeEvent<String> event) {
         presenter.resourceChanged(resource.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("description")
+    @SuppressWarnings("unused")
+    void descriptionChanged(ValueChangeEvent<String> event) {
+        presenter.descriptionChanged(description.getText());
         presenter.keyPressed();
     }
 

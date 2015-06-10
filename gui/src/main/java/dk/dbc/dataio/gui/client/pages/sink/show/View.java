@@ -60,6 +60,7 @@ public class View extends ViewWidget {
         dataProvider.addDataDisplay(sinksTable);
 
         sinksTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
+        sinksTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         sinksTable.addColumn(constructResourceNameColumn(), texts.columnHeader_ResourceName());
         sinksTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
         sinksTable.setSelectionModel(constructSelectionModel());
@@ -77,6 +78,21 @@ public class View extends ViewWidget {
             @Override
             public String getValue(SinkModel model) {
                 return model.getSinkName();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Resource Name column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Resource Name column
+     */
+    Column constructDescriptionColumn() {
+        return new TextColumn<SinkModel>() {
+            @Override
+            public String getValue(SinkModel model) {
+                return model.getDescription();
             }
         };
     }

@@ -50,7 +50,7 @@ public class PresenterImplTest {
     private static boolean saveModelHasBeenCalled;
     private static boolean initializeModelHasBeenCalled;
 
-    private final SinkModel sinkModel = new SinkModel(23, 4, "sinkName", "SinkResourceName");
+    private final SinkModel sinkModel = new SinkModel(23, 4, "sinkName", "SinkResourceName", "SinkDescription");
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {
@@ -138,6 +138,14 @@ public class PresenterImplTest {
         initializeAndStartPresenter();
         presenterImpl.resourceChanged(CHANGED_RESOURCE);
         assertThat(presenterImpl.model.getResourceName(), is(CHANGED_RESOURCE));
+    }
+
+    @Test
+    public void descriptionChanged_callDescriptionChanged_descriptionIsChangedAccordingly() {
+        final String CHANGED_DESCRIPTION = "UpdatedDescription";
+        initializeAndStartPresenter();
+        presenterImpl.descriptionChanged(CHANGED_DESCRIPTION);
+        assertThat(presenterImpl.model.getDescription(), is(CHANGED_DESCRIPTION));
     }
 
     @Test

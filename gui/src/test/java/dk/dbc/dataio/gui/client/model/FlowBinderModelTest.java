@@ -162,7 +162,7 @@ public class FlowBinderModelTest {
         FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Arrays.asList("Script"), "description");
         FlowModel flowModel = new FlowModel(33L, 44L, "Nmm", "Des", Arrays.asList(flowComponentModel));
         SubmitterModel submitterModel = new SubmitterModel(77L, 88L, "Num", "Nim", "Dis");
-        SinkModel sinkModel = new SinkModel(99L, 100L, "Snm", "Rsc");
+        SinkModel sinkModel = new SinkModel(99L, 100L, "Snm", "Rsc", "description");
         return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Arrays.asList(submitterModel), sinkModel);
     }
 

@@ -8,17 +8,20 @@ public class SinkModel extends GenericBackendModel {
 
     private String sinkName;
     private String resource;
+    private String description;
 
-    public SinkModel(long id, long version, String name, String resource) {
+    public SinkModel(long id, long version, String name, String resource, String description) {
         super(id, version);
         this.sinkName = name;
         this.resource = resource;
+        this.description = description == null? "" : description;
     }
 
     public SinkModel() {
         super(0L, 0L);
         this.sinkName = "";
         this.resource = "";
+        this.description = "";
     }
 
     /**
@@ -52,10 +55,25 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
+     * @return description
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Set sink description
+     * @param description Sink description
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
      * Checks for empty String values
      */
     public boolean isInputFieldsEmpty() {
-        return sinkName.isEmpty() || resource.isEmpty();
+        return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty();
     }
 
     /**

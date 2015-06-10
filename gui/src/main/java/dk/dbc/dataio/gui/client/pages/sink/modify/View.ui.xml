@@ -8,6 +8,7 @@
 
         <li><dio:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextArea ui:field="description" guiId="sinkdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
         <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
         <li><g:Label ui:field="status"></g:Label></li>
 

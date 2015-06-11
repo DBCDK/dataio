@@ -8,6 +8,7 @@
 
         <g:Tree ui:field="menu">
             <g:TreeItem text="{txt.menu_Jobs}" ui:field="jobs"/>
+            <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders"/>
             <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters">
                 <g:TreeItem text="{txt.menu_SubmitterCreation}" ui:field="submitterCreation"/>
             </g:TreeItem>
@@ -15,8 +16,6 @@
                 <g:TreeItem text="{txt.menu_FlowCreation}" ui:field="flowCreation"/>
                 <g:TreeItem text="{txt.menu_FlowComponentCreation}" ui:field="flowComponentCreation"/>
                 <g:TreeItem text="{txt.menu_FlowComponents}" ui:field="flowComponents"/>
-                <g:TreeItem text="{txt.menu_FlowBinderCreation}" ui:field="flowBinderCreation"/>
-                <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders"/>
             </g:TreeItem>
             <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks">
                 <g:TreeItem text="{txt.menu_SinkCreation}" ui:field="sinkCreation"/>

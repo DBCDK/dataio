@@ -35,9 +35,6 @@ public interface Texts extends Constants {
     String menu_FlowComponents();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_JavaScriptLogShow();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_Jobs();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -26,7 +26,6 @@ public class NavigationPanel extends FlowPanel {
     @UiField TreeItem flowCreation;
     @UiField TreeItem flowComponentCreation;
     @UiField TreeItem flowComponents;
-    @UiField TreeItem flowBinderCreation;
     @UiField TreeItem flowBinders;
     @UiField TreeItem sinks;
     @UiField TreeItem sinkCreation;
@@ -48,7 +47,6 @@ public class NavigationPanel extends FlowPanel {
         flowCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace());
         flowComponentCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace());
         flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());
-        flowBinderCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace());
         flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
         sinks.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.show.Place());
         sinkCreation.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace());

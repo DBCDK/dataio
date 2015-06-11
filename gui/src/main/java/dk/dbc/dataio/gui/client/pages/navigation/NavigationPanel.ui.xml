@@ -12,9 +12,7 @@
             <g:TreeItem text="{txt.menu_Flows}" ui:field="flows"/>
             <g:TreeItem text="{txt.menu_FlowComponents}" ui:field="flowComponents"/>
             <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters"/>
-            <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks">
-                <g:TreeItem text="{txt.menu_SinkCreation}" ui:field="sinkCreation"/>
-            </g:TreeItem>
+            <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks"/>
         </g:Tree>
 
     </g:HTMLPanel>

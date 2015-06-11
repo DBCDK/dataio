@@ -1,8 +1,10 @@
 package dk.dbc.dataio.gui.client.pages.sink.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
@@ -36,5 +38,14 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
      */
     @Override
     public void init() {}
+
+    /**
+     * Ui Handler to catch click events on the create button
+     * @param event Clicked event
+     */
+    @UiHandler("createButton")
+    void backButtonPressed(ClickEvent event) {
+        presenter.createSink();
+    }
 
 }

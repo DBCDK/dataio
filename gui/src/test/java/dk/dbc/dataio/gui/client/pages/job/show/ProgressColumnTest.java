@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
@@ -38,7 +37,7 @@ public class ProgressColumnTest {
     @Mock Resources mockedResources;
     @Mock Cell<ImageResource> mockedCell;
     @Mock Cell.Context mockedContext;
-    @Mock Element mockedElement;
+    @Mock com.google.gwt.user.client.Element mockedElement;
     @Mock static Event mockedBrowserClickEvent;
     @Mock MultiProgressBar mockedMultiProgressBar;
     @Mock SafeHtmlBuilder mockedHtmlBuilder;
@@ -100,7 +99,7 @@ public class ProgressColumnTest {
         // Setup Test
         final String INNERHTML = "<inner html>";
         ProgressColumn.ProgressCell progressCell = new ProgressColumn.ProgressCell();
-        Element mockedElement = mock(Element.class);
+        com.google.gwt.user.client.Element mockedElement = mock(com.google.gwt.user.client.Element.class);
         when(mockedMultiProgressBar.getElement()).thenReturn(mockedElement);
         when(mockedElement.getInnerHTML()).thenReturn(INNERHTML);
 

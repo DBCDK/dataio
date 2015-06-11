@@ -51,11 +51,14 @@ public class View extends ViewWidget {
      */
     public void enableSelection(boolean enable, Context context) {
         if (enable) {
-            context.handlerRegistration = context.selectionModel.addSelectionChangeHandler(new SelectionChangeHandlerClass(context));
+            if (context.handlerRegistration == null) {
+                context.handlerRegistration = context.selectionModel.addSelectionChangeHandler(new SelectionChangeHandlerClass(context));
+            }
             context.listView.itemsTable.setSelectionModel(context.selectionModel);
         } else {
-            if (context.handlerRegistration!= null) {
+            if (context.handlerRegistration != null) {
                 context.handlerRegistration.removeHandler();
+                context.handlerRegistration = null;
             }
             context.listView.itemsTable.setSelectionModel(null);
         }

@@ -12,6 +12,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -114,6 +115,18 @@ public class PresenterImplTest {
 
         // Verify Test
         verify(mockedPlaceController).goTo(any(EditPlace.class));
+    }
+
+    @Test
+    public void createSubmitter_call_gotoCreatePlace() {
+        presenterImpl = new PresenterImpl(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.createSubmitter();
+
+        // Verify Test
+        verify(mockedPlaceController).goTo(any(CreatePlace.class));
     }
 
     @Test

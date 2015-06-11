@@ -128,23 +128,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     void updateAllFieldsAccordingToCurrentState() {
         view.name.setText(model.getSinkName());
         view.name.setEnabled(true);
-        view.name.setFocus(true);
         view.resource.setText(model.getResourceName());
         view.resource.setEnabled(true);
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
         view.status.setText("");
     }
-
-//    public void onModuleLoad() {
-//
-//        Scheduler.get().scheduleDeferred(new Scheduler.ScheduledCommand () {
-//            public void execute () {
-//                view.name.setFocus(true);
-//            }
-//        });
-//        RootLayoutPanel.get().add(view.name);
-//    }
 
     /*
      * Local classes

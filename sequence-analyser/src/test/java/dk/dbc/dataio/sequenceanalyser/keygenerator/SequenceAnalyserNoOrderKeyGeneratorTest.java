@@ -17,7 +17,7 @@ import static org.junit.Assert.assertThat;
 public class SequenceAnalyserNoOrderKeyGeneratorTest {
     private final SequenceAnalyserKeyGenerator keyGenerator = new SequenceAnalyserNoOrderKeyGenerator();
     private final CollisionDetectionElement element = new CollisionDetectionElement(
-            new CollisionDetectionElementIdentifier() {}, new HashSet<String>());
+            new CollisionDetectionElementIdentifier() {}, new HashSet<String>(), 42);
 
     @Test
     public void generateKeys_sinkArgIsNull_returnsEmptyKeySet() {

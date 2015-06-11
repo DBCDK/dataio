@@ -37,7 +37,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
-    private static final int MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD = 100;
+    static final int MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK = 10000;
+    static final int MAX_NUMBER_OF_ITEMS_PER_WORKLOAD = 100;
 
     ConcurrentHashMap<String, SequenceAnalyserComposite> sequenceAnalysers = new ConcurrentHashMap<>(16, 0.9F, 1);
     ConcurrentHashMap<ChunkIdentifier, Sink> toSinkMapping = new ConcurrentHashMap<>(16, 0.9F, 1);
@@ -88,7 +89,7 @@ public class JobSchedulerBean {
                 sac.sequenceAnalyser.add(chunkCDE);
                 updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
                 if (doPublishWorkload) {
-                    workload = sac.sequenceAnalyser.getInactiveIndependent(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
+                    workload = getWorkload(sac);
                 } else {
                     workload = Collections.emptyList();
                 }
@@ -146,7 +147,7 @@ public class JobSchedulerBean {
         List<CollisionDetectionElement> workload;
         for (Map.Entry<String, SequenceAnalyserComposite> entry : sequenceAnalysers.entrySet()) {
             synchronized (entry.getKey()) {
-                workload = entry.getValue().sequenceAnalyser.getInactiveIndependent(1);
+                workload = getWorkload(entry.getValue(), 1);
             }
             publishWorkload(workload);
         }
@@ -158,6 +159,30 @@ public class JobSchedulerBean {
         // that the returned string can be used as a monitor object in
         // a synchronized block.
         return (this.getClass().getName() + "." + id).intern();
+    }
+
+    List<CollisionDetectionElement> getWorkload(SequenceAnalyserComposite sac, int maxNumberOfItems) {
+        // Creates workload (if available) of size maxNumberOfItems if less than
+        // the difference between MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK and actual number of
+        // items in progress, else difference between MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK
+        // and actual number of items in progress.
+        // If actual number of items in progress equals or exceeds MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK
+        // an empty workload is created.
+        final int optimalNumberOfItems = Math.min(maxNumberOfItems,
+                MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK - sac.itemsInProgress);
+        if (optimalNumberOfItems > 0) {
+            final List<CollisionDetectionElement> elements =
+                    sac.sequenceAnalyser.getInactiveIndependent(optimalNumberOfItems);
+            for (CollisionDetectionElement element : elements) {
+                sac.itemsInProgress += element.getSlotsConsumed();
+            }
+            return elements;
+        }
+        return Collections.emptyList();
+    }
+
+    private List<CollisionDetectionElement> getWorkload(SequenceAnalyserComposite sac) {
+        return getWorkload(sac, MAX_NUMBER_OF_ITEMS_PER_WORKLOAD);
     }
 
     private void publishWorkload(List<CollisionDetectionElement> elements) {
@@ -205,9 +230,9 @@ public class JobSchedulerBean {
 
     private List<CollisionDetectionElement> releaseAndReturnWorkload(SequenceAnalyserComposite sac, ChunkIdentifier chunkIdentifier) {
         final boolean isHead = sac.sequenceAnalyser.isHead(chunkIdentifier);
-        sac.sequenceAnalyser.deleteAndRelease(chunkIdentifier);
+        sac.itemsInProgress -= sac.sequenceAnalyser.deleteAndRelease(chunkIdentifier);
         updateMonitor(sac, isHead);
-        return sac.sequenceAnalyser.getInactiveIndependent(MAX_NUMBER_OF_CHUNKS_PER_WORKLOAD);
+        return getWorkload(sac);
     }
 
     private void updateMonitor(SequenceAnalyserComposite sac, boolean isHead) {
@@ -230,6 +255,7 @@ public class JobSchedulerBean {
     static class SequenceAnalyserComposite {
         public final SequenceAnalyser sequenceAnalyser;
         public final SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean;
+        public int itemsInProgress = 0;
 
         public SequenceAnalyserComposite(SequenceAnalyser sequenceAnalyser, SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean) {
             this.sequenceAnalyser = sequenceAnalyser;

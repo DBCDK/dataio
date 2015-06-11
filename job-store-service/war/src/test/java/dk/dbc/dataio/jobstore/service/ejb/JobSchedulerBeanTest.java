@@ -7,8 +7,8 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorBean;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorMXBean;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorSample;
-import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import org.junit.Before;
@@ -44,7 +44,7 @@ public class JobSchedulerBeanTest {
     private final SequenceAnalyserMonitorBean sequenceAnalyserMonitorBean = mock(SequenceAnalyserMonitorBean.class);
     private final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
     private final ChunkIdentifier chunkIdentifier = new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId());
-    private final CollisionDetectionElement chunkCDE = new CollisionDetectionElement(chunkIdentifier, new HashSet<>(Arrays.asList("key")));
+    private final CollisionDetectionElement chunkCDE = new CollisionDetectionElement(chunkIdentifier, new HashSet<>(Arrays.asList("key")), chunk.size());
     private final Sink sink = new SinkBuilder().build();
 
     private final SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean = new SequenceAnalyserMonitorMXBean() {
@@ -180,7 +180,7 @@ public class JobSchedulerBeanTest {
         mxBean.setSample(new SequenceAnalyserMonitorSample(1, oldTimestamp));
 
         jobSchedulerBean.scheduleChunk(new CollisionDetectionElement(
-                new ChunkIdentifier(chunk.getJobId()+1, chunk.getChunkId()+1), Collections.<String>emptySet()), sink);
+                new ChunkIdentifier(chunk.getJobId()+1, chunk.getChunkId()+1), Collections.<String>emptySet(), chunk.size()), sink);
 
         // Verify that monitor sample has correct "queue" size and has retained timestamp from "queue" head
         assertThat(mxBean.getSample().getQueued(), is(2L));
@@ -307,7 +307,7 @@ public class JobSchedulerBeanTest {
         mxBean.setSample(new SequenceAnalyserMonitorSample(1, oldTimestamp));
 
         jobSchedulerBean.scheduleChunk(new CollisionDetectionElement(
-                new ChunkIdentifier(chunk.getJobId()+1, chunk.getChunkId()+1), Collections.<String>emptySet()), sink);
+                new ChunkIdentifier(chunk.getJobId()+1, chunk.getChunkId()+1), Collections.<String>emptySet(), chunk.size()), sink);
 
         // Verify that monitor sample has correct "queue" size and has retained timestamp from "queue" head
         assertThat(mxBean.getSample().getQueued(), is(2L));
@@ -402,7 +402,7 @@ public class JobSchedulerBeanTest {
     public void releaseChunk_givenChunkIdentifierIsNotHeadOfQueue_updatesMonitor() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         jobSchedulerBean.scheduleChunk(new CollisionDetectionElement(
-                new ChunkIdentifier(chunk.getJobId()+1, chunk.getChunkId()+1), Collections.<String>emptySet()), sink);
+                new ChunkIdentifier(chunk.getJobId()+1, chunk.getChunkId()+1), Collections.<String>emptySet(), chunk.size()), sink);
 
         final SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean = getMXBean(jobSchedulerBean);
 
@@ -443,6 +443,63 @@ public class JobSchedulerBeanTest {
         verify(jobProcessorMessageProducerBean, times(2)).send(chunk);
     }
 
+    @Test
+    public void getWorkload2arg_maxNumberOfItemsExeedsAvailableSlots_returnsWorkload() {
+        final int expectedWorkloadSize = 5;
+        whenGetWorkloadPreciseMatchThenReturn(expectedWorkloadSize);
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        final String saId = String.valueOf(sink.getId());
+        injectSequenceAnalyserComposite(jobSchedulerBean, saId);
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
+                .get(jobSchedulerBean.getLockObject(saId));
+        sac.itemsInProgress = JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK - expectedWorkloadSize;
+        final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, 100);
+        assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));
+        assertThat("sac.itemsInProgress", sac.itemsInProgress, is(JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK));
+    }
+
+    @Test
+    public void getWorkload2arg_maxNumberOfItemsDoesNotExceedAvailableSlots_returnsWorkload() {
+        final int expectedWorkloadSize = 42;
+        whenGetWorkloadPreciseMatchThenReturn(expectedWorkloadSize);
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        final String saId = String.valueOf(sink.getId());
+        injectSequenceAnalyserComposite(jobSchedulerBean, saId);
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
+                .get(jobSchedulerBean.getLockObject(saId));
+        final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, expectedWorkloadSize);
+        assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));
+        assertThat("sac.itemsInProgress", sac.itemsInProgress, is(expectedWorkloadSize));
+    }
+
+    @Test
+    public void getWorkload2arg_zeroAvailableSlots_returnsEmptyWorkload() {
+        final int expectedWorkloadSize = 0;
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        final String saId = String.valueOf(sink.getId());
+        injectSequenceAnalyserComposite(jobSchedulerBean, saId);
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
+                .get(jobSchedulerBean.getLockObject(saId));
+        sac.itemsInProgress = JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK;
+        final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, 100);
+        assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));
+        assertThat("sac.itemsInProgress", sac.itemsInProgress, is(JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK));
+    }
+
+    @Test
+    public void getWorkload2arg_lessThanZeroAvailableSlots_returnsEmptyWorkload() {
+        final int expectedWorkloadSize = 0;
+        final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
+        final String saId = String.valueOf(sink.getId());
+        injectSequenceAnalyserComposite(jobSchedulerBean, saId);
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
+                .get(jobSchedulerBean.getLockObject(saId));
+        sac.itemsInProgress = JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK + 5;
+        final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, 100);
+        assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));
+        assertThat("sac.itemsInProgress", sac.itemsInProgress, is(JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK + 5));
+    }
+
     private JobSchedulerBean getJobSchedulerBean() {
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
         jobSchedulerBean.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
@@ -467,9 +524,19 @@ public class JobSchedulerBeanTest {
     private List<CollisionDetectionElement> whenGetWorkloadThenReturn(int numElements) {
         final List<CollisionDetectionElement> elements = new ArrayList<>();
         while (numElements-- > 0) {
-            elements.add(new CollisionDetectionElement(chunkIdentifier, Collections.<String>emptySet()));
+            elements.add(new CollisionDetectionElement(chunkIdentifier, Collections.<String>emptySet(), chunk.size()));
         }
         when(sequenceAnalyser.getInactiveIndependent(anyInt())).thenReturn(elements);
+        return elements;
+    }
+
+    private List<CollisionDetectionElement> whenGetWorkloadPreciseMatchThenReturn(int numElements) {
+        final List<CollisionDetectionElement> elements = new ArrayList<>();
+        int counter = numElements;
+        while (counter-- > 0) {
+            elements.add(new CollisionDetectionElement(chunkIdentifier, Collections.<String>emptySet(), chunk.size()));
+        }
+        when(sequenceAnalyser.getInactiveIndependent(numElements)).thenReturn(elements);
         return elements;
     }
 

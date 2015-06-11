@@ -27,11 +27,11 @@ public class NaiveSequenceAnalyserTest {
 
     /*
      * Given: An empty Sequence Analyser
-     * When : A single chunk is inserted
-     * Then : The chunk must be independent when retrieved.
+     * When : A single element is inserted
+     * Then : The element must be independent when retrieved.
      */
     @Test
-    public void insertionAndRetrievalOfSingleChunk() {
+    public void insertionAndRetrievalOfSingleElement() {
         // GIVEN:
         // Sequence analyser must be empty
         assertThat(sa.size(), is(0));
@@ -39,25 +39,25 @@ public class NaiveSequenceAnalyserTest {
         CollisionDetectionElement element = createCollisionDetectionElement(1, 2);
         sa.add(element);
         // THEN:
-        // verify that chunk is independent
+        // verify that element is independent
         assertElements(sa.getInactiveIndependent(100), element);
     }
 
     /*
-     * Given: A Sequence Analyser with a single chunk
-     * When : The chunk is released and deleted
-     * Then : No more independent chunks must exist in the sequence analyser,
+     * Given: A Sequence Analyser with a single element
+     * When : The element is released and deleted
+     * Then : No more independent elements must exist in the sequence analyser,
      *        and the sequence analyser must be empty.
      */
     @Test
-    public void deleteAndReleaseOfSingleChunk() {
+    public void deleteAndReleaseOfSingleElement() {
         // GIVEN:
         CollisionDetectionElement element = createCollisionDetectionElement(1, 2);
         sa.add(element);
         // WHEN:
-        // remove chunk
+        // remove element
         sa.deleteAndRelease(new NaiveIdentifier(1, 2));
-        // verify that there are no independent chunks left
+        // verify that there are no independent elements left
         assertElements(sa.getInactiveIndependent(100));
         // verify that the sequence analyser is empty
         assertThat(sa.size(), is(0));
@@ -65,12 +65,12 @@ public class NaiveSequenceAnalyserTest {
 
     /*
      * Given: An empty sequence.
-     * Given: A sequence analyser with four independent chunks.
-     * When : Four independent chunks are inserted
-     * Then : All chunks must be retrieved as inactive and independent.
+     * Given: A sequence analyser with four independent elements.
+     * When : Four independent elements are inserted
+     * Then : All elements must be retrieved as inactive and independent.
      */
     @Test
-    public void testInsertionAndRetrievalOfTwoIndependentChunks() {
+    public void testInsertionAndRetrievalOfTwoIndependentElements() {
         // GIVEN:
         assertThat(sa.size(), is(0));
         // WHEN:
@@ -78,92 +78,92 @@ public class NaiveSequenceAnalyserTest {
         CollisionDetectionElement element2 = createCollisionDetectionElement(2, 1, "horse");
         CollisionDetectionElement element3 = createCollisionDetectionElement(3, 1, "goat");
         CollisionDetectionElement element4 = createCollisionDetectionElement(4, 1);
-        // add chunk
+        // add element
         sa.add(element1);
         sa.add(element2);
         sa.add(element3);
         sa.add(element4);
         // THEN:
-        // verify that chunks are independent and inactive
+        // verify that elements are independent and inactive
         assertElements(sa.getInactiveIndependent(100), element1, element2, element3, element4);
         // verify number of elements in Sequence analyser
         assertThat(sa.size(), is(4));
     }
 
     /*
-     * Given: A sequence analyser with a single chunk
-     * When : A new chunk which depends on the existing chunk, is inserted,
-     * Then : Only the first chunk can be retrieved
+     * Given: A sequence analyser with a single element
+     * When : A new element which depends on the existing element, is inserted,
+     * Then : Only the first element can be retrieved
      */
     @Test
-    public void insertDependentChunkWhichDependsOnExistingChunk() {
+    public void insertDependentElementWhichDependsOnExistingElement() {
         // GIVEN:
-        // add first chunk
+        // add first element
         CollisionDetectionElement element1 = createCollisionDetectionElement(1, 2, "animal", "horse");
         sa.add(element1);
-        // verify that there is one chunk in the sequence analyser
+        // verify that there is one element in the sequence analyser
         assertThat(sa.size(), is(1));
         // WHEN
-        // add the second chunk
+        // add the second element
         CollisionDetectionElement element2 = createCollisionDetectionElement(3, 4, "animal", "goat");
         sa.add(element2);
-        // verify that there are two chunks in the sequence analyser
+        // verify that there are two elements in the sequence analyser
         assertThat(sa.size(), is(2));
         // THEN:
-        // verify that only the first chunk is independent
+        // verify that only the first element is independent
         assertElements(sa.getInactiveIndependent(100), element1);
     }
 
     /*
-     * Given: A seqeuce analyser with two chunks where one depends on the other.
-     * When : The first chunk is released
-     * Then : The second chunk can be retrieved.
+     * Given: A seqeuce analyser with two elements where one depends on the other.
+     * When : The first element is released
+     * Then : The second element can be retrieved.
      */
     @Test
-    public void deletionAndReleaseOfChunkMakesDependendChunkIndependent() {
+    public void deletionAndReleaseOfElementMakesDependendElementIndependent() {
         // GIVEN:
-        // add chunkS
+        // add elementS
         CollisionDetectionElement element1 = createCollisionDetectionElement(1, 2, "animal", "horse");
         CollisionDetectionElement element2 = createCollisionDetectionElement(3, 4, "animal", "goat");
         sa.add(element1);
         sa.add(element2);
-        // verify that only the first chunk is independent
+        // verify that only the first element is independent
         assertElements(sa.getInactiveIndependent(100), element1);
-        // verify that the seqence analyser contains two chunks
+        // verify that the seqence analyser contains two elements
         assertThat(sa.size(), is(2));
         // wHEN
-        // remove chunk1
+        // remove element1
         sa.deleteAndRelease(new NaiveIdentifier(1, 2));
-        // verify that the sequence analyser contains one chunk
+        // verify that the sequence analyser contains one element
         assertThat(sa.size(), is(1));
         // THEN
-        // verify that chunk2 is now independent
+        // verify that element2 is now independent
         assertElements(sa.getInactiveIndependent(100), element2);
     }
 
     /*
-     * Given: A sequence analyser with two dependent chunks
-     * When : a ChunkIdentifier is retrieved with getInactiveIndependentChunksAndActivate(),
-     * Then : subsequent calls to getInactiveIndependentChunksAndActivate() will not return the same ChunkIdentifier,
+     * Given: A sequence analyser with two dependent elements
+     * When : a ElementIdentifier is retrieved with getInactiveIndependentElementsAndActivate(),
+     * Then : subsequent calls to getInactiveIndependentElementsAndActivate() will not return the same ElementIdentifier,
      *        but the size of the internal dependency graph remains the same.
      */
     @Test
-    public void alreadyRetrievedChunkMustNotReappearAsIndependent() {
+    public void alreadyRetrievedElementMustNotReappearAsIndependent() {
         // GIVEN
         CollisionDetectionElement element1 = createCollisionDetectionElement(1, 2, "animal", "horse");
         CollisionDetectionElement element2 = createCollisionDetectionElement(3, 4, "animal", "goat");
-        // add chunks
+        // add elements
         sa.add(element1);
         sa.add(element2);
         // verify that the sequence analyser contains two elements
         assertThat(sa.size(), is(2));
         // WHEN
-        // verify that chunks are dependent
+        // verify that elements are dependent
         assertElements(sa.getInactiveIndependent(100), element1);
         // verify that the sequence analyser still contains two elements
         assertThat(sa.size(), is(2));
         // THEN
-        // verify that chunk2 has not become independent
+        // verify that element2 has not become independent
         assertElements(sa.getInactiveIndependent(100));
         // verify that the sequence analyser still contains one element
         assertThat(sa.size(), is(2));
@@ -171,53 +171,53 @@ public class NaiveSequenceAnalyserTest {
 
     /*
      * A more intervowen test:
-     * Given a sequence analyser with three interdependent chunks,
-     * i.e. chunk2 depends on chunk1, and chunk3 depends on chunk1 and chunk2.
-     * When chunk1 is released, only chunk2 must be independent.
-     * When chunk2 is released, chunk3 must be independent.
+     * Given a sequence analyser with three interdependent elements,
+     * i.e. element2 depends on element1, and element3 depends on element1 and element2.
+     * When element1 is released, only element2 must be independent.
+     * When element2 is released, element3 must be independent.
      */
     @Test
-    public void testOfDependencyBetweenThreeChunks() {
+    public void testOfDependencyBetweenThreeElements() {
         CollisionDetectionElement element1 = createCollisionDetectionElement(1, 2, "animal", "bird", "eagle");
         CollisionDetectionElement element2 = createCollisionDetectionElement(1, 3, "animal", "mammal", "goat");
         CollisionDetectionElement element3 = createCollisionDetectionElement(4, 5, "animal", "mammal", "horse");
-        // add chunks
+        // add elements
         sa.add(element1);
         sa.add(element2);
         sa.add(element3);
-        // verify that the sequence analyser contains three chunks
+        // verify that the sequence analyser contains three elements
         assertThat(sa.size(), is(3));
-        // verify that chunks are dependent
+        // verify that elements are dependent
         assertElements(sa.getInactiveIndependent(100), element1);
-        // remove chunk1
+        // remove element1
         sa.deleteAndRelease(new NaiveIdentifier(1, 2));
-        // verify that the sequence analyser now contains two chunks
+        // verify that the sequence analyser now contains two elements
         assertThat(sa.size(), is(2));
-        // verify that chunk2 is now present
+        // verify that element2 is now present
         assertElements(sa.getInactiveIndependent(100), element2);
-        // remove chunk2
+        // remove element2
         sa.deleteAndRelease(new NaiveIdentifier(1, 3));
-        // verify that the sequence analyser now contains one chunk
+        // verify that the sequence analyser now contains one element
         assertThat(sa.size(), is(1));
-        // verify that chunk3 is now present
+        // verify that element3 is now present
         assertElements(sa.getInactiveIndependent(100), element3);
     }
 
     /*
-     * Given a sequence analyser with three independent chunks
+     * Given a sequence analyser with three independent elements consuming one slot each
      * When retrieving independent with a max limit of two
-     * Then only the first two chunks are returned
+     * Then only the first two elements are returned
      */
     @Test
-    public void testOfMaxLimitForIndependentChunksRetrieval() {
+    public void testOfMaxLimitForIndependentElementsRetrieval() {
         CollisionDetectionElement element1 = createCollisionDetectionElement(1, 1, "one");
         CollisionDetectionElement element2 = createCollisionDetectionElement(1, 2, "two");
         CollisionDetectionElement element3 = createCollisionDetectionElement(1, 3, "three");
-        // add chunks
+        // add elements
         sa.add(element1);
         sa.add(element2);
         sa.add(element3);
-        // verify that chunks are dependent
+        // verify that elements are dependent
         assertElements(sa.getInactiveIndependent(2), element1, element2);
     }
 
@@ -247,7 +247,7 @@ public class NaiveSequenceAnalyserTest {
     }
 
     @Test
-    public void isHead_IndependentChunksHandled_isHeadReturnsCorrectValues() {
+    public void isHead_IndependentElementsHandled_isHeadReturnsCorrectValues() {
         CollisionDetectionElement element1 = createCollisionDetectionElement(7, 9, "a");
         CollisionDetectionElement element2 = createCollisionDetectionElement(11, 13, "b");
         sa.add(element1);
@@ -265,7 +265,7 @@ public class NaiveSequenceAnalyserTest {
     }
 
     @Test
-    public void isHead_dependentChunksHandled_isHeadReturnsCorrectValues() {
+    public void isHead_dependentElementsHandled_isHeadReturnsCorrectValues() {
         CollisionDetectionElement element1 = createCollisionDetectionElement(7, 9, "a");
         CollisionDetectionElement element2 = createCollisionDetectionElement(11, 13, "a");
         sa.add(element1);
@@ -285,13 +285,13 @@ public class NaiveSequenceAnalyserTest {
     }
     
     private CollisionDetectionElement createCollisionDetectionElement(int primary, int secondary, String... keys) {
-        return new CollisionDetectionElement(new NaiveIdentifier(primary, secondary), new HashSet<>(Arrays.asList(keys)));
+        return new CollisionDetectionElement(new NaiveIdentifier(primary, secondary), new HashSet<>(Arrays.asList(keys)), 1);
     }
 
-    private void assertElements(List<CollisionDetectionElement> inactiveIndependentChunks, CollisionDetectionElement... elements) {
-        assertThat("size of chunks arrays", inactiveIndependentChunks.size(), is(elements.length));
-        for (int i = 0; i < inactiveIndependentChunks.size(); i++) {
-            assertThat("assert matching identifier", inactiveIndependentChunks.get(i).getIdentifier(),
+    private void assertElements(List<CollisionDetectionElement> inactiveIndependentElements, CollisionDetectionElement... elements) {
+        assertThat("size of elements arrays", inactiveIndependentElements.size(), is(elements.length));
+        for (int i = 0; i < inactiveIndependentElements.size(); i++) {
+            assertThat("assert matching identifier", inactiveIndependentElements.get(i).getIdentifier(),
                     is(elements[i].getIdentifier()));
         }
     }

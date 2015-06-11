@@ -104,7 +104,7 @@ public class ChunkEntity {
     }
 
     public CollisionDetectionElement toCollisionDetectionElement() {
-        return new CollisionDetectionElement(key.toChunkIdentifier(), sequenceAnalysisData.getData());
+        return new CollisionDetectionElement(key.toChunkIdentifier(), sequenceAnalysisData.getData(), numberOfItems);
     }
 
     @Embeddable

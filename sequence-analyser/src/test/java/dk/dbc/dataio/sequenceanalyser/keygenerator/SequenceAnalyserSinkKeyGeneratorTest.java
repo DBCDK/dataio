@@ -17,7 +17,7 @@ import static org.junit.Assert.assertThat;
 public class SequenceAnalyserSinkKeyGeneratorTest {
     private final SequenceAnalyserKeyGenerator keyGenerator = new SequenceAnalyserSinkKeyGenerator();
     private final CollisionDetectionElement element = new CollisionDetectionElement(
-            new CollisionDetectionElementIdentifier() {}, new HashSet<String>());
+            new CollisionDetectionElementIdentifier() {}, new HashSet<String>(), 42);
     private final Sink sink = new SinkBuilder().build();
 
     @Test(expected = NullPointerException.class)

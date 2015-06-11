@@ -22,7 +22,7 @@ public class NaiveSequenceAnalyser implements SequenceAnalyser {
 
     @Override
     public List<CollisionDetectionElement> getInactiveIndependent(int maxSlotsSoftLimit) {
-        return dependencyGraph.getInactiveIndependentChunksAndActivate(maxSlotsSoftLimit);
+        return dependencyGraph.getInactiveIndependentElementsAndActivate(maxSlotsSoftLimit);
     }
 
     // Number of elements in internal data-structure.

@@ -32,20 +32,18 @@ public interface SequenceAnalyser {
     /**
      * Releases all elements having a dependency on the element specified by given
      * identifier and removes the corresponding element from the internal data structure
-     * @return number of item slots held by deleted element
+     * @return number of consumed slots held by deleted element
      */
     int deleteAndRelease(CollisionDetectionElementIdentifier identifier);
 
     /**
-     * Returns a list of independent and inactive elements holding no more than
-     * maxSlotsSoftLimit items combined. When the list is returned, all the returned
+     * Returns a list of independent and inactive elements consuming no more than
+     * maxSlotsSoftLimit slots combined. When the list is returned, all the returned
      * elements are flagged as active.
-     * @param maxSlotsSoftLimit maximum number of slots held by all released elements combined.
-     *                          Note that this is a soft limit since no guarantees are made
-     *                          that it will not be violated for shorter periods of time
+     * @param maxSlotsSoftLimit maximum number of slots consumed by all released elements combined
      * @return A list of independent elements which are now flagged as active
      */
-    List<CollisionDetectionElement> getInactiveIndependent(int maxSlotsSoftLimit);
+    List<CollisionDetectionElement> getInactiveIndependent(int maxSlots);
 
     /**
      * Number of elements in the sequence analyser

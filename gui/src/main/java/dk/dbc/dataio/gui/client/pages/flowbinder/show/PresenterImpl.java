@@ -64,7 +64,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     /**
-     * This method opens a new view, for creating a new submitter
+     * This method opens a new view, for creating a new Flowbinder.
      */
     @Override
     public void createFlowBinder() {

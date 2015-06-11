@@ -16,6 +16,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -118,6 +119,18 @@ public class PresenterImplTest {
 
         // Verify Test
         verify(mockedPlaceController).goTo(any(EditPlace.class));
+    }
+
+    @Test
+    public void createFlowBinder_call_gotoCreatePlace() {
+        presenterImpl = new PresenterImpl(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.createFlowBinder();
+
+        // Verify Test
+        verify(mockedPlaceController).goTo(any(CreatePlace.class));
     }
 
     @Test

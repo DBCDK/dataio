@@ -7,6 +7,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -60,6 +61,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void editFlowComponent(FlowComponentModel model) {
         placeController.goTo(new EditPlace(model));
+    }
+
+    /**
+     * This method opens a new view, for creating a new flow component
+     */
+    @Override
+    public void createFlowComponent() {
+        placeController.goTo(new CreatePlace());
     }
 
     /*

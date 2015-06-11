@@ -57,9 +57,8 @@ public class FlowComponent implements Serializable {
 
         if (id != that.id) return false;
         if (version != that.version) return false;
-        if (!content.equals(that.content)) return false;
+        return content.equals(that.content);
 
-        return true;
     }
 
     @Override

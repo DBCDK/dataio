@@ -57,9 +57,8 @@ import java.io.Serializable;
 
          if (id != flow.id) return false;
          if (version != flow.version) return false;
-         if (!content.equals(flow.content)) return false;
+         return content.equals(flow.content);
 
-         return true;
      }
 
      @Override

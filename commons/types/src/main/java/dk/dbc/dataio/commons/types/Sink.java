@@ -57,9 +57,8 @@ public class Sink implements Serializable {
 
         if (id != sink.id) return false;
         if (version != sink.version) return false;
-        if (!content.equals(sink.content)) return false;
+        return content.equals(sink.content);
 
-        return true;
     }
 
     @Override

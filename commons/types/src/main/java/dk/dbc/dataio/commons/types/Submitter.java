@@ -57,7 +57,7 @@ public class Submitter implements Serializable {
 
         if (id != submitter.id) return false;
         if (version != submitter.version) return false;
-        return !(content != null ? !content.equals(submitter.content) : submitter.content != null);
+        return content.equals(submitter.content);
 
     }
 
@@ -65,7 +65,7 @@ public class Submitter implements Serializable {
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (int) (version ^ (version >>> 32));
-        result = 31 * result + (content != null ? content.hashCode() : 0);
+        result = 31 * result + content.hashCode();
         return result;
     }
 }

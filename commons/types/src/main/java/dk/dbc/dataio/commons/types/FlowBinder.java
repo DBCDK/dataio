@@ -58,7 +58,7 @@ public class FlowBinder implements Serializable {
 
         if (id != that.id) return false;
         if (version != that.version) return false;
-        return !(content != null ? !content.equals(that.content) : that.content != null);
+        return content.equals(that.content);
 
     }
 
@@ -66,7 +66,7 @@ public class FlowBinder implements Serializable {
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (int) (version ^ (version >>> 32));
-        result = 31 * result + (content != null ? content.hashCode() : 0);
+        result = 31 * result + content.hashCode();
         return result;
     }
 }

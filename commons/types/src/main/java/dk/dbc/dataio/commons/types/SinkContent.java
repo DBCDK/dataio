@@ -47,6 +47,7 @@ public class SinkContent implements Serializable {
         return description;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -67,5 +68,4 @@ public class SinkContent implements Serializable {
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }
-
 }

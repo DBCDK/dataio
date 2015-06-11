@@ -47,7 +47,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -104,7 +103,6 @@ public class EsMessageProcessorBeanTest {
         } catch (IllegalStateException e) {
         }
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
     }
 
     @Test
@@ -118,7 +116,6 @@ public class EsMessageProcessorBeanTest {
         } catch (IllegalStateException e) {
         }
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
     }
 
     @Test
@@ -133,18 +130,6 @@ public class EsMessageProcessorBeanTest {
         } catch (IllegalStateException e) {
         }
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY));
-    }
-
-    @Test
-    public void onMessage_processingSucceeds_esThrottlerIsUpdated() throws JMSException, SinkException {
-        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenReturn(42);
-        doNothing().when(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord);
-        esMessageProcessorBean.onMessage(textMessage);
-        assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        assertThat(esMessageProcessorBean.esThrottler.getAvailableSlots(), is(RECORDS_CAPACITY - 1));
     }
 
     @Test
@@ -266,20 +251,13 @@ public class EsMessageProcessorBeanTest {
         assertThat(new String(metadata2, StandardCharsets.UTF_8).contains(PROCESSING_TAG), is(false));
     }
 
-    private TestableMessageConsumerBean getInitializedBean(EsThrottlerBean esThrottlerBean) {
+    private TestableMessageConsumerBean getInitializedBean() {
         final TestableMessageConsumerBean testableMessageConsumerBean = new TestableMessageConsumerBean();
         testableMessageConsumerBean.setMessageDrivenContext(new MockedMessageDrivenContext());
         final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
         configuration.esRecordsCapacity = RECORDS_CAPACITY;
         configuration.esDatabaseName = ES_DATABASE_NAME;
         testableMessageConsumerBean.configuration = configuration;
-        if (esThrottlerBean == null) {
-            testableMessageConsumerBean.esThrottler = new EsThrottlerBean();
-            testableMessageConsumerBean.esThrottler.configuration = configuration;
-            testableMessageConsumerBean.esThrottler.initialize();
-        } else {
-            testableMessageConsumerBean.esThrottler = esThrottlerBean;
-        }
         testableMessageConsumerBean.esConnector = esConnector;
         testableMessageConsumerBean.esInFlightAdmin = esInFlightAdmin;
 
@@ -396,10 +374,6 @@ public class EsMessageProcessorBeanTest {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = getDocument(addiRecord.getMetaData());
         assertThat(esMessageProcessorBean.domToByteArray(document), not(nullValue()));
-    }
-
-    private TestableMessageConsumerBean getInitializedBean() {
-        return getInitializedBean(null);
     }
 
     private ChunkItem getChunkItem(String validAddi, ChunkItem.Status status) {

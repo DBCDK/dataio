@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.LocalBean;
@@ -33,7 +32,6 @@ import java.util.Map;
 
 @LocalBean
 @Singleton
-@DependsOn("EsThrottlerBean")
 public class EsCleanupBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsCleanupBean.class);
 
@@ -42,9 +40,6 @@ public class EsCleanupBean {
 
     @EJB
     EsInFlightBean esInFlightAdmin;
-
-    @EJB
-    EsThrottlerBean esThrottler;
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
@@ -57,18 +52,7 @@ public class EsCleanupBean {
         List<EsInFlight> esInFlightList = esInFlightAdmin.listEsInFlight();
         LOGGER.info("The following targetreferences are inFlight in the sink at startup: {}",
                 Arrays.toString(createEsInFlightMap(esInFlightList).keySet().toArray()));
-        int slotsInFlight = sumRecordSlotsInEsInFlightList(esInFlightList);
-        LOGGER.info("Sum of recordSlots for inFlight Chunks: [{}]", slotsInFlight);
-        esThrottler.acquireRecordSlots(slotsInFlight);
         // Integrity-test is deferred to the first run of cleanup().
-    }
-
-    private int sumRecordSlotsInEsInFlightList(List<EsInFlight> esInFlightList) {
-        int res = 0;
-        for (EsInFlight esInFlight : esInFlightList) {
-            res += esInFlight.getRecordSlots();
-        }
-        return res;
     }
 
     /**
@@ -164,8 +148,6 @@ public class EsCleanupBean {
             if (!lostEsInFlight.isEmpty()) {
                 LOGGER.info("Number of lost taskpackages in ES : {}.", esInFlightMap.size());
                 removeEsInFlights(lostEsInFlight);
-                int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(lostEsInFlight);
-                esThrottler.releaseRecordSlots(recordSlotsToRelease);
             }
             return lostExternalChunks;
         } finally {
@@ -224,11 +206,9 @@ public class EsCleanupBean {
                 LOGGER.info("No finished taskpackages in ES.");
             } else {
                 List<EsInFlight> finishedEsInFlight = getEsInFlightsFromTargetReferences(esInFlightMap, finishedTargetReferences);
-                int recordSlotsToRelease = sumRecordSlotsInEsInFlightList(finishedEsInFlight);
                 deliveredChunks = createDeliveredChunks(finishedEsInFlight);
                 esConnector.deleteESTaskpackages(finishedTargetReferences);
                 removeEsInFlights(finishedEsInFlight);
-                esThrottler.releaseRecordSlots(recordSlotsToRelease);
                 return deliveredChunks;
             }
         } catch (SinkException ex) {

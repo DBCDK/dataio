@@ -52,9 +52,6 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private Transformer transformer;
 
     @EJB
-    EsThrottlerBean esThrottler;
-
-    @EJB
     EsConnectorBean esConnector;
 
     @EJB
@@ -93,11 +90,6 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final EsWorkload workload = getEsWorkloadFromChunkResult(processedChunk);
         final ExternalChunk deliveredChunk = workload.getDeliveredChunk();
 
-        if (!esThrottler.acquireRecordSlots(workload.getAddiRecords().size())) {
-            LOGGER.warn("Unable to acquire needed record slots - forcing rollback");
-            messageDrivenContext.setRollbackOnly();
-            return;
-        }
         try {
             if (workload.getAddiRecords().isEmpty()) {
                 try {
@@ -128,7 +120,6 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         targetReference, deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             }
         } catch (Exception e) {
-            esThrottler.releaseRecordSlots(workload.getAddiRecords().size());
             throw new SinkException("Exception caught during workload processing", e);
         }
     }

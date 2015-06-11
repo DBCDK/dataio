@@ -43,7 +43,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class EsCleanupBeanTest {
     private EsInFlightBean esInFlightAdmin;
     private EsConnectorBean esConnector;
-    private EsThrottlerBean esThrottler;
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     private JobStoreServiceConnector jobStoreServiceConnector;
     private EsInFlight esInFlight41_1;
@@ -105,29 +104,10 @@ public class EsCleanupBeanTest {
     public void setupMocks() {
         esInFlightAdmin = mock(EsInFlightBean.class);
         esConnector = mock(EsConnectorBean.class);
-        esThrottler = mock(EsThrottlerBean.class);
         jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
         jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
 
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-    }
-
-    @Test
-    public void startup_elementsInFlight_throtlerIsCountedDown() throws IllegalArgumentException, InterruptedException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
-
-        getEsCleanupBean().startup();
-
-        verify(esThrottler).acquireRecordSlots(esInFlight41_1.getRecordSlots() + esInFlight42_1.getRecordSlots() + esInFlight42_2.getRecordSlots() + esInFlight43_1.getRecordSlots());
-    }
-
-    @Test
-    public void startup_noElementsInFlight_throtlerIsNotCountedDown() throws IllegalArgumentException, InterruptedException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(emptyEsInFlightList);
-
-        getEsCleanupBean().startup();
-
-        verify(esThrottler).acquireRecordSlots(0);
     }
 
     @Test
@@ -160,7 +140,6 @@ public class EsCleanupBeanTest {
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
-        verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
         verify(jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
@@ -173,7 +152,6 @@ public class EsCleanupBeanTest {
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
         verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
-        verify(esThrottler).releaseRecordSlots(esInFlight43_1.getRecordSlots());
         verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
@@ -193,8 +171,6 @@ public class EsCleanupBeanTest {
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
         verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
-        verify(esThrottler).releaseRecordSlots(esInFlight42_1.getRecordSlots() + esInFlight41_1.getRecordSlots());
-        verify(esThrottler).releaseRecordSlots(esInFlight43_1.getRecordSlots());
         verify(jobStoreServiceConnector, times(3)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
 
@@ -413,7 +389,6 @@ public class EsCleanupBeanTest {
         final EsCleanupBean esCleanupBean = new EsCleanupBean();
         esCleanupBean.esInFlightAdmin = esInFlightAdmin;
         esCleanupBean.esConnector = esConnector;
-        esCleanupBean.esThrottler = esThrottler;
         esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return esCleanupBean;
     }

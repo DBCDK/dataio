@@ -47,4 +47,25 @@ public class Submitter implements Serializable {
     public SubmitterContent getContent() {
         return content;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Submitter)) return false;
+
+        Submitter submitter = (Submitter) o;
+
+        if (id != submitter.id) return false;
+        if (version != submitter.version) return false;
+        return !(content != null ? !content.equals(submitter.content) : submitter.content != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (int) (version ^ (version >>> 32));
+        result = 31 * result + (content != null ? content.hashCode() : 0);
+        return result;
+    }
 }

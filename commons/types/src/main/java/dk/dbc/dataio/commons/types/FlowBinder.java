@@ -48,4 +48,25 @@ public class FlowBinder implements Serializable {
     public FlowBinderContent getContent() {
         return content;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlowBinder)) return false;
+
+        FlowBinder that = (FlowBinder) o;
+
+        if (id != that.id) return false;
+        if (version != that.version) return false;
+        return !(content != null ? !content.equals(that.content) : that.content != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (int) (version ^ (version >>> 32));
+        result = 31 * result + (content != null ? content.hashCode() : 0);
+        return result;
+    }
 }

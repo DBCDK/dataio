@@ -76,7 +76,7 @@ public class FlowComponentsIT {
         assertNotNull(flowComponent.getContent());
         assertNotNull(flowComponent.getId());
         assertNotNull(flowComponent.getVersion());
-        assertThat(flowComponent.getContent().getName(), is(flowComponentContent.getName()));
+        assertThat(flowComponent.getContent(), is(flowComponentContent));
         // And ...
         final List<FlowComponent> flowComponents = flowStoreServiceConnector.findAllFlowComponents();
         assertThat(flowComponents.size(), is(1));

@@ -79,9 +79,7 @@ public class SubmittersIT {
         assertNotNull(submitter.getContent());
         assertNotNull(submitter.getId());
         assertNotNull(submitter.getVersion());
-        assertThat(submitter.getContent().getName(), is(submitterContent.getName()));
-        assertThat(submitter.getContent().getDescription(), is(submitterContent.getDescription()));
-        assertThat(submitter.getContent().getNumber(), is(submitterContent.getNumber()));
+        assertThat(submitter.getContent(), is(submitterContent));
         // And ...
         final List<Submitter> submitters = flowStoreServiceConnector.findAllSubmitters();
         assertThat(submitters.size(), is(1));
@@ -182,9 +180,7 @@ public class SubmittersIT {
         // And...
         assertNotNull(submitterToGet);
         assertNotNull(submitterToGet.getContent());
-        assertThat(submitterToGet.getContent().getName(), is(submitter.getContent().getName()));
-        assertThat(submitterToGet.getContent().getNumber(), is(submitter.getContent().getNumber()));
-        assertThat(submitterToGet.getContent().getDescription(), is(submitter.getContent().getDescription()));
+        assertThat(submitterToGet.getContent(), is(submitter.getContent()));
     }
 
     /**
@@ -228,9 +224,7 @@ public class SubmittersIT {
         // And...
         assertNotNull(submitterToGet);
         assertNotNull(submitterToGet.getContent());
-        assertThat(submitterToGet.getContent().getName(), is(submitter.getContent().getName()));
-        assertThat(submitterToGet.getContent().getNumber(), is(submitter.getContent().getNumber()));
-        assertThat(submitterToGet.getContent().getDescription(), is(submitter.getContent().getDescription()));
+        assertThat(submitterToGet.getContent(), is(submitter.getContent()));
     }
 
     /**
@@ -279,7 +273,7 @@ public class SubmittersIT {
 
         // Then...
         assertSubmitterNotNull(updatedSubmitter);
-        assertSubmitterContentEquals(updatedSubmitter.getContent(), newSubmitterContent);
+        assertThat(updatedSubmitter.getContent(), is(newSubmitterContent));
 
         // And...
         assertThat(updatedSubmitter.getId(), is(submitter.getId()));
@@ -290,7 +284,7 @@ public class SubmittersIT {
         // And...
         final List<Submitter> submitters = flowStoreServiceConnector.findAllSubmitters();
         assertThat(submitters.size(), is(1));
-        assertSubmitterEquals(submitters.get(0), updatedSubmitter);
+        assertThat(submitters.get(0) , is(updatedSubmitter));
     }
 
     /*
@@ -495,17 +489,5 @@ public class SubmittersIT {
         assertNotNull(submitter.getId());
         assertNotNull(submitter.getVersion());
 
-    }
-
-    private void assertSubmitterContentEquals(SubmitterContent content1, SubmitterContent content2) {
-        assertThat(content1.getName(), is(content2.getName()));
-        assertThat(content1.getNumber(), is(content2.getNumber()));
-        assertThat(content1.getDescription(), is(content2.getDescription()));
-    }
-
-    private void assertSubmitterEquals(Submitter submitter1, Submitter submitter2) {
-        assertThat(submitter1.getId(), is(submitter2.getId()));
-        assertThat(submitter1.getVersion(), is(submitter2.getVersion()));
-        assertSubmitterContentEquals(submitter1.getContent(), submitter2.getContent());
     }
 }

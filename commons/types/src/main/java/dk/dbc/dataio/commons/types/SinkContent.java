@@ -14,7 +14,7 @@ public class SinkContent implements Serializable {
 
     private final String name;
     private final String resource;
-    private String description;
+    private final String description;
 
     /**
      * Class constructor

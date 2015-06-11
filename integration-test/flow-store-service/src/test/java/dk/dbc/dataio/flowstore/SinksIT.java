@@ -73,9 +73,7 @@ public class SinksIT {
         assertNotNull(sink.getContent());
         assertNotNull(sink.getId());
         assertNotNull(sink.getVersion());
-        assertThat(sink.getContent().getName(), is(sinkContent.getName()));
-        assertThat(sink.getContent().getResource(), is(sinkContent.getResource()));
-        assertThat(sink.getContent().getDescription(), is(sinkContent.getDescription()));
+        assertThat(sink.getContent(), is(sinkContent));
         // And ...
         final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
         assertThat(sinks.size(), is(1));
@@ -144,9 +142,7 @@ public class SinksIT {
         // And...
         assertNotNull(sinkToGet);
         assertNotNull(sinkToGet.getContent());
-        assertThat(sinkToGet.getContent().getName(), is(sink.getContent().getName()));
-        assertThat(sinkToGet.getContent().getResource(), is(sink.getContent().getResource()));
-        assertThat(sinkToGet.getContent().getDescription(), is(sink.getContent().getDescription()));
+        assertThat(sinkToGet.getContent(), is(sink.getContent()));
     }
 
     /**
@@ -198,9 +194,7 @@ public class SinksIT {
         assertNotNull(updatedSink.getContent());
         assertNotNull(updatedSink.getId());
         assertNotNull(updatedSink.getVersion());
-        assertThat(updatedSink.getContent().getName(), is(newSinkContent.getName()));
-        assertThat(updatedSink.getContent().getResource(), is(newSinkContent.getResource()));
-        assertThat(updatedSink.getContent().getDescription(), is(newSinkContent.getDescription()));
+        assertThat(updatedSink.getContent(), is(newSinkContent));
 
         // And...
         assertThat(updatedSink.getId(), is(sink.getId()));

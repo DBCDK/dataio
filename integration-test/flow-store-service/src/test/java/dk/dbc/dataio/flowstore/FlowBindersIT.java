@@ -99,7 +99,7 @@ public class FlowBindersIT {
 
         // And ...
         assertFlowBinderNotNull(flowBinder);
-        assertFlowBinderContent(flowBinder, flowBinderContent);
+        assertThat(flowBinder.getContent(), is(flowBinderContent));
 
         // And ...
         final List<FlowBinder> flowBinders = flowStoreServiceConnector.findAllFlowBinders();
@@ -480,7 +480,7 @@ public class FlowBindersIT {
 
         // Then...
         assertFlowBinderNotNull(updatedFlowBinder);
-        assertFlowBinderContent(updatedFlowBinder, newFlowBinderContent);
+        assertThat(updatedFlowBinder.getContent(), is(newFlowBinderContent));
         assertFlowBinderEquals(updatedFlowBinder, flowBinder, 1);
 
         // And...
@@ -788,7 +788,7 @@ public class FlowBindersIT {
 
         // Then...
         assertFlowBinderNotNull(flowBinder);
-        assertFlowBinderContent(flowBinderToGet, flowBinder.getContent());
+        assertThat(flowBinderToGet, is(flowBinder));
     }
 
     /**
@@ -1082,22 +1082,6 @@ public class FlowBindersIT {
     private void assertFlowBinderEquals(FlowBinder flowBinderA, FlowBinder flowBinderB, int versionIncrement) {
         assertThat(flowBinderA.getId(), is(flowBinderB.getId()));
         assertThat(flowBinderA.getVersion(), is(flowBinderB.getVersion() + versionIncrement));
-    }
-
-    private void assertFlowBinderContent(FlowBinder flowBinder, FlowBinderContent flowBinderContent) {
-        assertThat(flowBinder.getContent().getName(), is(flowBinderContent.getName()));
-        assertThat(flowBinder.getContent().getDestination(), is(flowBinderContent.getDestination()));
-        assertThat(flowBinder.getContent().getPackaging(), is(flowBinderContent.getPackaging()));
-        assertThat(flowBinder.getContent().getFlowId(), is(flowBinder.getContent().getFlowId()));
-        assertThat(flowBinder.getContent().getSinkId(), is(flowBinder.getContent().getSinkId()));
-        assertSubmitters(flowBinder.getContent().getSubmitterIds(), flowBinderContent.getSubmitterIds());
-    }
-
-    private void assertSubmitters(List<Long> submitterIdsA, List<Long> submitterIdsB) {
-        assertThat(submitterIdsA.size(), is(submitterIdsB.size()));
-        for(int i = 0; i < submitterIdsA.size(); i++) {
-            assertThat(submitterIdsA.get(i), is(submitterIdsB.get(i)));
-        }
     }
 
     private FlowBinder createFlowBinder(String name, String destination, long flowId, long sinkId, List<Long> submitterIds) throws Exception {

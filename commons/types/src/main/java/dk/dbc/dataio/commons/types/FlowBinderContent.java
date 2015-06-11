@@ -116,4 +116,42 @@ public class FlowBinderContent implements Serializable {
     public List<Long> getSubmitterIds() {
         return new ArrayList<Long>(submitterIds);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlowBinderContent)) return false;
+
+        FlowBinderContent that = (FlowBinderContent) o;
+
+        if (sequenceAnalysis != that.sequenceAnalysis) return false;
+        if (flowId != that.flowId) return false;
+        if (sinkId != that.sinkId) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (packaging != null ? !packaging.equals(that.packaging) : that.packaging != null) return false;
+        if (format != null ? !format.equals(that.format) : that.format != null) return false;
+        if (charset != null ? !charset.equals(that.charset) : that.charset != null) return false;
+        if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
+        if (recordSplitter != null ? !recordSplitter.equals(that.recordSplitter) : that.recordSplitter != null)
+            return false;
+        return !(submitterIds != null ? !submitterIds.equals(that.submitterIds) : that.submitterIds != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (packaging != null ? packaging.hashCode() : 0);
+        result = 31 * result + (format != null ? format.hashCode() : 0);
+        result = 31 * result + (charset != null ? charset.hashCode() : 0);
+        result = 31 * result + (destination != null ? destination.hashCode() : 0);
+        result = 31 * result + (recordSplitter != null ? recordSplitter.hashCode() : 0);
+        result = 31 * result + (sequenceAnalysis ? 1 : 0);
+        result = 31 * result + (int) (flowId ^ (flowId >>> 32));
+        result = 31 * result + (submitterIds != null ? submitterIds.hashCode() : 0);
+        result = 31 * result + (int) (sinkId ^ (sinkId >>> 32));
+        return result;
+    }
 }

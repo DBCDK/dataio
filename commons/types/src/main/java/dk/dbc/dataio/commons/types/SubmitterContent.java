@@ -50,4 +50,25 @@ public class SubmitterContent implements Serializable {
     public long getNumber() {
         return number;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SubmitterContent)) return false;
+
+        SubmitterContent that = (SubmitterContent) o;
+
+        if (number != that.number) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        return !(description != null ? !description.equals(that.description) : that.description != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (number ^ (number >>> 32));
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        return result;
+    }
 }

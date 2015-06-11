@@ -613,7 +613,7 @@ public class FlowsIT {
     private void assertFlowComponents(List<FlowComponent> flowComponents1, List<FlowComponent> flowComponents2) {
         assertThat(flowComponents1.size(), is(flowComponents2.size()));
         for(int i = 0; i < flowComponents1.size(); i++) {
-            assertFlowComponentEquals(flowComponents1.get(i), flowComponents2.get(i));
+            assertThat(flowComponents1.get(i), is(flowComponents2.get(i)));
         }
     }
 
@@ -626,19 +626,6 @@ public class FlowsIT {
             }
         }
         assertThat(hasComponentsBeenUpdated, is(true));
-    }
-
-    private void assertFlowComponentEquals(FlowComponent flowComponent1, FlowComponent flowComponent2) {
-        assertThat(flowComponent1.getId(), is(flowComponent2.getId()));
-        assertFlowComponentContentEquals(flowComponent1.getContent(), flowComponent2.getContent());
-        assertThat(flowComponent1.getVersion(), is(flowComponent2.getVersion()));
-    }
-
-    private void assertFlowComponentContentEquals(FlowComponentContent flowComponentContent1, FlowComponentContent flowComponentContent2) {
-        assertThat(flowComponentContent1.getName(), is(flowComponentContent2.getName()));
-        assertThat(flowComponentContent1.getInvocationJavascriptName(), is(flowComponentContent2.getInvocationJavascriptName()));
-        assertThat(flowComponentContent1.getSvnRevision(), is(flowComponentContent2.getSvnRevision()));
-        assertThat(flowComponentContent1.getInvocationMethod(), is(flowComponentContent2.getInvocationMethod()));
     }
 
     private void assertFlowEquals(boolean isRefresh, Flow flow1, Flow flow2) {

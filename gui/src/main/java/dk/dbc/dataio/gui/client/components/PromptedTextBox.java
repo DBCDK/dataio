@@ -64,6 +64,10 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
         return textBox.addValueChangeHandler(handler);
     }
 
+    public void setFocus(boolean focused) {
+        textBox.setFocus(focused);
+    }
+
     public void clearText() {
         textBox.setText("");
     }

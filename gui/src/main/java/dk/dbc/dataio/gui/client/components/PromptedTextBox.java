@@ -13,7 +13,7 @@ import com.google.gwt.user.client.ui.TextBox;
 
 public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
-    public @UiField TextBox textBox = new TextBox();
+    @UiField final TextBox textBox = new TextBox();
 
     
     public PromptedTextBox(String guiId, String prompt, int maxLength) {
@@ -78,6 +78,14 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     public void setEnabled(boolean enabled) {
         textBox.setEnabled(enabled);
+    }
+
+    public boolean isEnabled() {
+        return textBox.isEnabled();
+    }
+
+    public void setFocus(boolean focused) {
+        textBox.setFocus(focused);
     }
 
     public void addToolTip(String toolTipText) {

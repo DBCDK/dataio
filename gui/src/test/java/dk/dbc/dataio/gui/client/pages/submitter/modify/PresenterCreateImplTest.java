@@ -50,8 +50,6 @@ public class PresenterCreateImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSubmitterCreateView()).thenReturn(createView);
-        createView.number.textBox = mockedNumber;
-        createView.name.textBox = mockedName;
         when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
     }
 

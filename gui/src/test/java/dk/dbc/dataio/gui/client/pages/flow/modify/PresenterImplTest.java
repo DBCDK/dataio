@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -45,7 +44,6 @@ public class PresenterImplTest {
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
-    @Mock TextBox mockedName;
 
     private ViewWidget viewWidget;
 
@@ -71,7 +69,6 @@ public class PresenterImplTest {
         public PresenterImplConcrete(ClientFactory clientFactory) {
             super(clientFactory);
             view = PresenterImplTest.this.viewWidget;
-            view.name.textBox = mockedName;
             flowStoreProxy = mockedFlowStoreProxy;
             model = new FlowModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NAME, DEFAULT_DESCRIPTION, selectedFlowComponentModelList);
             availableFlowComponentModels = availableFlowComponentModelList;
@@ -282,7 +279,7 @@ public class PresenterImplTest {
         verify(viewWidget.description).setText(DEFAULT_DESCRIPTION);
         verify(viewWidget.description).setEnabled(true);
         verify(viewWidget.flowComponents).clear();
-        verify(mockedName).setFocus(true);
+        verify(viewWidget.name).setFocus(true);
 
         ArgumentCaptor<String> textCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);

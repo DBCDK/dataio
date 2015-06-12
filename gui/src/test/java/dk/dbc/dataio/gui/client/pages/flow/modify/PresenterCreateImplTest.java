@@ -2,7 +2,6 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -42,7 +41,6 @@ public class PresenterCreateImplTest {
     @Mock AcceptsOneWidget mockedContainerWidget;
     @Mock EventBus mockedEventBus;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock TextBox mockedName;
 
     private CreateView createView;
 
@@ -56,7 +54,6 @@ public class PresenterCreateImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowCreateView()).thenReturn(createView);
-        createView.name.textBox = mockedName;
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
     }
 

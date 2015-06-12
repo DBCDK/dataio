@@ -21,6 +21,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -445,6 +446,56 @@ public class PgJobStoreIT {
 
         // Then...
         assertThat("Number of returned snapshots", returnedSnapshotsDeliveringFailed.size(), is(0));
+    }
+
+
+    /**
+     * Given: a job store containing 3 number of jobs all with reference to different sinks
+     * When : requesting a job listing with a criteria selecting jobs with reference to a specific sink
+     * Then : only one filtered snapshot is returned
+     */
+    @Test
+    public void listJobsForSpecificSink() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final int numberOfJobs = 3;
+        List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
+
+        // Create 3 jobs, each containing params with reference to different sinks.
+        for(int i = 0; i < numberOfJobs; i ++) {
+            final Params params = new Params(true);
+            FlowStoreReference flowStoreReference = new FlowStoreReference(i + 1, i + 1, "sinkName" + (i + 1));
+            params.flowStoreReferences = new FlowStoreReferencesBuilder().setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build();
+
+
+            final EntityTransaction jobTransaction = entityManager.getTransaction();
+            jobTransaction.begin();
+            snapshots.add(pgJobStore.addJob(
+                    params.jobInputStream,
+                    params.dataPartitioner,
+                    params.sequenceAnalyserKeyGenerator,
+                    params.flow,
+                    params.sink,
+                    params.flowStoreReferences));
+            jobTransaction.commit();
+        }
+
+        // When...
+        final JobListCriteria jobListCriteria = new JobListCriteria().where(new ListFilter<>(
+                JobListCriteria.Field.SINK_ID,
+                ListFilter.Op.EQUAL,
+                Long.valueOf(snapshots.get(1).getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId()).intValue()));
+
+        final List<JobInfoSnapshot> returnedSnapshotsForSink = pgJobStore.listJobs(jobListCriteria);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshotsForSink.size(), is(1));
+        JobInfoSnapshot jobInfoSnapshot = returnedSnapshotsForSink.get(0);
+        assertThat("jobInfoSnapshot.flowStoreReferences.Element.Sink.id: " + jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId(),
+                jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId(), is(2L));
+        assertThat("jobInfoSnapshot.flowStoreReferences.Element.Sink.name ",
+                jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getName(), is("sinkName2"));
+        assertThat("jobInfoSnapshot.jobId: " + jobInfoSnapshot.getJobId(), jobInfoSnapshot.getJobId(), is(snapshots.get(1).getJobId()));
     }
 
     /**
@@ -877,8 +928,8 @@ public class PgJobStoreIT {
 
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
-        final Params params = new Params(true);
         for (int i = 0; i < numberOfJobs; i++) {
+            final Params params = new Params(true);
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
             snapshots.add(pgJobStore.addJob(

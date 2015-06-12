@@ -51,9 +51,11 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
     }
 
     /**
-     * Abstract Initialization for the View
+     * Overridable Initialization for the View
      */
-    public abstract void init();
+    public void init() {
+        // Intentionally left empty - to be overriden by derived classes
+    }
 
     /**
      * Set the header text for the HeaderPanel

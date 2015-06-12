@@ -60,10 +60,4 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         this.allJobsButton.setValue(true);
     }
 
-    /**
-     * This method initializes the view
-     */
-    @Override
-    public void init() {}
-
 }

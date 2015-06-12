@@ -18,10 +18,6 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     static final int FAILED_ITEMS_TAB_INDEX = 1;
     static final int IGNORED_ITEMS_TAB_INDEX = 2;
 
-    @Override
-    public void init() {
-    }
-
     interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {}
 
     private static ViewUiBinder uiBinder = GWT.create(ViewUiBinder.class);

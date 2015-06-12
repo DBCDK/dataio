@@ -34,13 +34,6 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     }
 
     /**
-     * This method initalizes the view
-     */
-    @Override
-    public void init() {}
-
-
-    /**
      * Ui Handler to catch click events on the create button
      * @param event Clicked event
      */

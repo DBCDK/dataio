@@ -30,23 +30,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
-    @Override
-    public void init() {
-    }
-
-    @UiField
-    PromptedTextBox name;
+    @UiField PromptedTextBox name;
     @UiField PromptedTextArea description;
-    @UiField
-    PromptedTextBox frame;
-    @UiField
-    PromptedTextBox format;
-    @UiField
-    PromptedTextBox charset;
-    @UiField
-    PromptedTextBox destination;
-    @UiField
-    PromptedTextBox recordSplitter;
+    @UiField PromptedTextBox frame;
+    @UiField PromptedTextBox format;
+    @UiField PromptedTextBox charset;
+    @UiField PromptedTextBox destination;
+    @UiField PromptedTextBox recordSplitter;
     @UiField PromptedCheckBox sequenceAnalysis;
     @UiField PromptedDualList submitters;
     @UiField PromptedList flow;

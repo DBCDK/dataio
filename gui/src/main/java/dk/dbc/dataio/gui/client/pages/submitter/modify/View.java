@@ -23,9 +23,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
-    @Override
-    public void init() {}
-
     @UiField PromptedTextBox number;
     @UiField PromptedTextBox name;
     @UiField PromptedTextArea description;

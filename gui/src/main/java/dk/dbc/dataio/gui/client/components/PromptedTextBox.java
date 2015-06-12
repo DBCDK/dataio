@@ -13,7 +13,7 @@ import com.google.gwt.user.client.ui.TextBox;
 
 public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
-    @UiField final TextBox textBox = new TextBox();
+    public @UiField TextBox textBox = new TextBox();
 
     
     public PromptedTextBox(String guiId, String prompt, int maxLength) {

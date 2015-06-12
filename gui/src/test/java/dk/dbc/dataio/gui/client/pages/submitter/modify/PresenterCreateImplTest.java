@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -36,6 +37,8 @@ public class PresenterCreateImplTest {
     @Mock private EventBus mockedEventBus;
     @Mock private Exception mockedException;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock TextBox mockedNumber;
+    @Mock TextBox mockedName;
 
     private CreateView createView;
 
@@ -47,6 +50,8 @@ public class PresenterCreateImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getSubmitterCreateView()).thenReturn(createView);
+        createView.number.textBox = mockedNumber;
+        createView.name.textBox = mockedName;
         when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
     }
 

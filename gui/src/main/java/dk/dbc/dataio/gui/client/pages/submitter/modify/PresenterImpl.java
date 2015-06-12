@@ -125,6 +125,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
         view.status.setText("");
+        if (view.number.textBox.isEnabled()) {
+            view.number.textBox.setFocus(true);
+        } else if (view.name.textBox.isEnabled()) {
+            view.name.textBox.setFocus(true);
+        }
     }
 
 

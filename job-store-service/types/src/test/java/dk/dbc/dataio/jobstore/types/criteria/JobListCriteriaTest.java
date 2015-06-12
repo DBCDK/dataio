@@ -104,12 +104,14 @@ public class JobListCriteriaTest {
         filters.add(new ListFilter<>(JobListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN, 42));
         filters.add(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 43));
         filters.add(new ListFilter<>(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, ListFilter.Op.GREATER_THAN, 43));
+        filters.add(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, 42));
 
         final ListCriteria jobListCriteria = new JobListCriteria()
                 .where(filters.get(0))
                 .and(filters.get(1))
                 .where(filters.get(2))
                 .or(filters.get(3))
+                .and(filters.get(4))
                 .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.DESC))
                 .limit(10)
                 .offset(2);

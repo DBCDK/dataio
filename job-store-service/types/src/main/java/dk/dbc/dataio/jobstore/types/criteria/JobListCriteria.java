@@ -34,7 +34,12 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
         /*
          * jobs failed while delivering
          */
-        STATE_DELIVERING_FAILED
+        STATE_DELIVERING_FAILED,
+
+        /**
+         * sink id for sink referenced by job
+         */
+        SINK_ID
     }
 
     private LinkedList<ListFilterGroup<JobListCriteria.Field>> filtering;

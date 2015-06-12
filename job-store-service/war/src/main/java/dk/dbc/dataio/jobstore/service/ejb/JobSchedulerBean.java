@@ -170,12 +170,15 @@ public class JobSchedulerBean {
         // an empty workload is created.
         final int optimalNumberOfItems = Math.min(maxNumberOfItems,
                 MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK - sac.itemsInProgress);
+        LOGGER.debug("Optimal number of items to release is {} when {} currently in progress",
+                optimalNumberOfItems, sac.itemsInProgress);
         if (optimalNumberOfItems > 0) {
             final List<CollisionDetectionElement> elements =
                     sac.sequenceAnalyser.getInactiveIndependent(optimalNumberOfItems);
             for (CollisionDetectionElement element : elements) {
                 sac.itemsInProgress += element.getSlotsConsumed();
             }
+            LOGGER.debug("Number of items in progress is {}", sac.itemsInProgress);
             return elements;
         }
         return Collections.emptyList();

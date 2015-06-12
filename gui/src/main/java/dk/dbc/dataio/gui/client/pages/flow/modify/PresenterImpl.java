@@ -187,6 +187,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (availableFlowComponentModels != null) {
                 view.flowComponents.setEnabled(true);
             }
+            view.name.textBox.setFocus(true);
         }
     }
 

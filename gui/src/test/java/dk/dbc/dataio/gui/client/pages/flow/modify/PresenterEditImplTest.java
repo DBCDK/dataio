@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -43,6 +44,7 @@ public class PresenterEditImplTest {
     @Mock EditPlace mockedEditPlace;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock TextBox mockedName;
 
     private EditView editView;
 
@@ -64,6 +66,7 @@ public class PresenterEditImplTest {
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowEditView()).thenReturn(editView);
+        editView.name.textBox = mockedName;
         when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }

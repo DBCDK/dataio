@@ -928,8 +928,8 @@ public class PgJobStoreIT {
 
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
+        final Params params = new Params(true);
         for (int i = 0; i < numberOfJobs; i++) {
-            final Params params = new Params(true);
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
             snapshots.add(pgJobStore.addJob(

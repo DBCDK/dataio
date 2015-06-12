@@ -249,6 +249,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         model.setRecordSplitter(texts.label_DefaultRecordSplitter());
         view.name.setText(model.getName());
         view.name.setEnabled(true);
+        view.name.setFocus(true);
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
         view.frame.setText(model.getPackaging());

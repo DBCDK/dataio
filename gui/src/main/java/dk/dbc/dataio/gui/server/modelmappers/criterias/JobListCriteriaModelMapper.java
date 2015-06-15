@@ -14,16 +14,21 @@ public final class JobListCriteriaModelMapper {
 
     public static JobListCriteria toJobListCriteria(JobListCriteriaModel model) {
         JobListCriteria jobListCriteria = new JobListCriteria();
-        if(model.getId() != 0) {
-            jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, model.getId()));
+        if(Long.valueOf(model.getSinkId()).intValue() != 0) {
+            jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, model.getSinkId()));
         }
-        switch (model.getSearchType()) {
-            case PROCESSING_FAILED:
-                jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_PROCESSING_FAILED));
-                break;
-            case DELIVERING_FAILED:
-                jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
-                break;
+        else {
+            if (model.getId() != 0) {
+                jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, model.getId()));
+            }
+            switch (model.getSearchType()) {
+                case PROCESSING_FAILED:
+                    jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_PROCESSING_FAILED));
+                    break;
+                case DELIVERING_FAILED:
+                    jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
+                    break;
+            }
         }
         ListOrderBy descendingTimeOfCreation = new ListOrderBy<JobListCriteria.Field>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC);
         jobListCriteria.orderBy(descendingTimeOfCreation);

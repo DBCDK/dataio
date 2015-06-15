@@ -58,7 +58,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
 
     @Override
     public List<JobModel> listJobs(JobListCriteriaModel model) throws ProxyException {
-        List<JobInfoSnapshot> jobInfoSnapshotList;
+        final List<JobInfoSnapshot> jobInfoSnapshotList;
         log.trace("JobStoreProxy: listJobs(\"{}\");", model.getSearchType());
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -81,8 +81,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } finally {
             log.debug("JobStoreProxy: listJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
-        List<JobModel> result = JobModelMapper.toModel(jobInfoSnapshotList);
-        return result;
+        return JobModelMapper.toModel(jobInfoSnapshotList);
     }
 
     @Override

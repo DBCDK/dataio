@@ -74,7 +74,12 @@ public class FlowModel extends GenericBackendModel {
      * Checks for empty String values
      */
     public boolean isInputFieldsEmpty() {
-        return flowName.isEmpty() || description.isEmpty() || flowComponents.isEmpty();
+        return flowName == null
+                || flowName.isEmpty()
+                || description == null
+                || description.isEmpty()
+                || flowComponents == null
+                || flowComponents.isEmpty();
     }
 
     /**

@@ -299,11 +299,9 @@ public class FlowBinderModel extends GenericBackendModel {
                 || recordSplitter == null
                 || recordSplitter.isEmpty()
                 || flowModel == null
-                || flowModel.isInputFieldsEmpty()
                 || submitterModels == null
                 || submitterModels.isEmpty()
-                || sinkModel == null
-                || sinkModel.isInputFieldsEmpty();
+                || sinkModel == null;
     }
 
     /**

@@ -88,10 +88,10 @@ public class FlowBinderModelTest {
     }
 
     @Test
-    public void isInputFieldsEmpty_emptyFlowModelInput_returnsTrue() {
+    public void isInputFieldsEmpty_emptyFlowModelInput_returnsFalse() {
         FlowBinderModel model = getTestModel();
         model.setFlowModel(new FlowModel());
-        assertThat(model.isInputFieldsEmpty(), is(true));
+        assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
     @Test
@@ -116,10 +116,10 @@ public class FlowBinderModelTest {
     }
 
     @Test
-    public void isInputFieldsEmpty_emptySinkModelInput_returnsTrue() {
+    public void isInputFieldsEmpty_emptySinkModelInput_returnsFalse() {
         FlowBinderModel model = getTestModel();
         model.setSinkModel(new SinkModel());
-        assertThat(model.isInputFieldsEmpty(), is(true));
+        assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
     @Test

@@ -147,21 +147,34 @@ public class FlowComponentModel extends GenericBackendModel {
      * Checks for empty String values
      */
     public boolean isInputFieldsEmpty() {
-        return name.isEmpty() ||
+        return name == null ||
+                name.isEmpty() ||
+                svnProject == null ||
                 svnProject.isEmpty() ||
+                svnRevision == null ||
                 svnRevision.isEmpty() ||
+                invocationJavascript == null ||
                 invocationJavascript.isEmpty() ||
+                invocationMethod == null ||
                 invocationMethod.isEmpty() ||
+                description == null ||
                 description.isEmpty() ||
+                javascriptModules == null ||
                 javascriptModules.isEmpty();
     }
 
     public boolean isInputFieldsEmptyModulesExcluded() {
-        return name.isEmpty() ||
+        return name == null ||
+                name.isEmpty() ||
+                svnProject == null ||
                 svnProject.isEmpty() ||
+                svnRevision == null ||
                 svnRevision.isEmpty() ||
+                invocationJavascript == null ||
                 invocationJavascript.isEmpty() ||
+                invocationMethod == null ||
                 invocationMethod.isEmpty() ||
+                description == null ||
                 description.isEmpty();
     }
 

@@ -2,8 +2,10 @@ package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,6 +15,9 @@ public class State {
 
     @JsonProperty
     private final Map<Phase, StateElement> states;
+
+    @JsonProperty
+    private final List<Diagnostic> diagnostics = new ArrayList<>();
 
     public enum Phase { PARTITIONING, PROCESSING, DELIVERING }
 
@@ -78,6 +83,28 @@ public class State {
             }
         }
         return true;
+    }
+
+    /**
+     * Retrieves the list of diagnostics
+     * @return list of diagnostics, empty list if no diagnostic has been added.
+     */
+    public List<Diagnostic> getDiagnostics() {
+        return diagnostics;
+    }
+
+    /**
+     * Checks if a diagnostic with level: FATAL has been set on state
+     * @return true if the list of diagnostics contains any diagnostic with level: FATAL,
+     *         otherwise false.
+     */
+    public boolean fatalDiagnosticExists() {
+        for(Diagnostic diagnostic : diagnostics) {
+            if(diagnostic.getLevel() == Diagnostic.Level.FATAL) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /*
@@ -185,6 +212,7 @@ public class State {
         return new Date(System.currentTimeMillis());
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -193,12 +221,14 @@ public class State {
         State state = (State) o;
 
         if (!states.equals(state.states)) return false;
+        return diagnostics.equals(state.diagnostics);
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        return states.hashCode();
+        int result = states.hashCode();
+        result = 31 * result + diagnostics.hashCode();
+        return result;
     }
 }

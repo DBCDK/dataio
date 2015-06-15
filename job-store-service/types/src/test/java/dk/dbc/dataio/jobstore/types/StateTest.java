@@ -23,12 +23,14 @@ public class StateTest {
     private static final Random random = new Random();
 
     @Test
-    public void constructor_noArgs_returnsNewInstanceWithInitializedStateElements() {
+    public void constructor_noArgs_returnsNewInstanceWithInitializedElements() {
         State state = new State();
         assertState(state);
         assertNewStateElement(state.getPhase(State.Phase.PARTITIONING));
         assertNewStateElement(state.getPhase(State.Phase.PROCESSING));
         assertNewStateElement(state.getPhase(State.Phase.DELIVERING));
+        assertThat(state.getDiagnostics(), not(nullValue()));
+        assertThat(state.getDiagnostics().size(), is(0));
     }
 
     @Test
@@ -57,7 +59,6 @@ public class StateTest {
         assertPhaseCompletion(state, true, false, false, false);
     }
 
-
     @Test(expected = NullPointerException.class)
     public void updateState_changeStateIsNull_throws() {
         State state = new State();
@@ -71,7 +72,23 @@ public class StateTest {
         state.updateState(stateChange);
     }
 
+    //******************************************* DIAGNOSTICS ******************************************
+
+    @Test
+    public void fatalDiagnosticExists_fatalDiagnosticFound_returns() {
+        State state = new State();
+        final Diagnostic warningDiagnostic = new Diagnostic(Diagnostic.Level.WARNING, "WARNING msg", "WARNING stacktrace");
+        final Diagnostic fatalDiagnostic = new Diagnostic(Diagnostic.Level.FATAL, "FATAL msg", "FATAL stacktrace");
+
+        state.getDiagnostics().add(warningDiagnostic);
+        assertThat(state.fatalDiagnosticExists(), is(false));
+
+        state.getDiagnostics().add(fatalDiagnostic);
+        assertThat(state.fatalDiagnosticExists(), is(true));
+    }
+
     //******************************************* PARTITIONING ******************************************
+
     @Test
     public void updatePartitioning_noStartDate_starDateIsSet() {
         State state = new State();
@@ -332,7 +349,7 @@ public class StateTest {
     }
 
     @Test
-    public void updateDelivering_noStartDateGiven_deliveringStarDateIsSet() {
+    public void updateDelivering_noStartDateGiven_deliveringStartDateIsSet() {
         State state = new State();
         StateChange stateChangePartitioning = getStateChangeWithStartAndEndDate(PARTITIONING);
         StateChange stateChangeDelivering = getStateChangeWithoutDates(DELIVERING);

@@ -14,7 +14,7 @@ public class Diagnostic {
 
         this.level = InvariantUtil.checkNotNullOrThrow(level, "level");
         this.message = InvariantUtil.checkNotNullNotEmptyOrThrow(message, "message");
-        this.stacktrace = InvariantUtil.checkNotNullNotEmptyOrThrow(stacktrace, "stacktrace");
+        this.stacktrace = stacktrace;
     }
 
     public Level getLevel() {
@@ -38,7 +38,7 @@ public class Diagnostic {
 
         if (level != that.level) return false;
         if (!message.equals(that.message)) return false;
-        return stacktrace.equals(that.stacktrace);
+        return !(stacktrace != null ? !stacktrace.equals(that.stacktrace) : that.stacktrace != null);
 
     }
 
@@ -46,7 +46,7 @@ public class Diagnostic {
     public int hashCode() {
         int result = level.hashCode();
         result = 31 * result + message.hashCode();
-        result = 31 * result + stacktrace.hashCode();
+        result = 31 * result + (stacktrace != null ? stacktrace.hashCode() : 0);
         return result;
     }
 }

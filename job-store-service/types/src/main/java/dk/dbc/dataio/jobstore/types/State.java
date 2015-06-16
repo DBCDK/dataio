@@ -17,11 +17,12 @@ public class State {
     private final Map<Phase, StateElement> states;
 
     @JsonProperty
-    private final List<Diagnostic> diagnostics = new ArrayList<>();
+    private final List<Diagnostic> diagnostics;
 
     public enum Phase { PARTITIONING, PROCESSING, DELIVERING }
 
     public State() {
+        diagnostics = new ArrayList<>();
         states = new HashMap<>(Phase.values().length);
         for (Phase phase : Phase.values()) {
             states.put(phase, new StateElement());
@@ -29,6 +30,7 @@ public class State {
     }
 
     public State(State state) {
+        diagnostics = new ArrayList<>();
         states = new HashMap<>(state.states);
         for (Map.Entry<Phase, StateElement> entry : state.states.entrySet()) {
             states.put(entry.getKey(), new StateElement(entry.getValue()));

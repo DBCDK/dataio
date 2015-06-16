@@ -23,7 +23,8 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.flowbinder.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace.Tokenizer.class,
-        dk.dbc.dataio.gui.client.pages.job.show.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.item.show.Place.Tokenizer.class
 })
 

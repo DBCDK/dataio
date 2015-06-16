@@ -3,14 +3,14 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 
-public class Place extends com.google.gwt.place.shared.Place {
+public class ShowJobsPlace extends com.google.gwt.place.shared.Place {
     private String jobsShowName;
 
-    public Place() {
+    public ShowJobsPlace() {
         this.jobsShowName = "";
     }
 
-    public Place(String jobsShowName) {
+    public ShowJobsPlace(String jobsShowName) {
         this.jobsShowName = jobsShowName;
     }
 
@@ -19,14 +19,14 @@ public class Place extends com.google.gwt.place.shared.Place {
     }
 
     @Prefix("ShowJobs")
-    public static class Tokenizer implements PlaceTokenizer<Place> {
+    public static class Tokenizer implements PlaceTokenizer<ShowJobsPlace> {
         @Override
-        public String getToken(Place place) {
+        public String getToken(ShowJobsPlace place) {
             return place.getJobsShowName();
         }
            @Override
-        public Place getPlace(String token) {
-            return new Place(token);
+        public ShowJobsPlace getPlace(String token) {
+            return new ShowJobsPlace(token);
         }
     }
 }

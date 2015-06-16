@@ -8,6 +8,7 @@
 
         <g:Tree ui:field="menu">
             <g:TreeItem text="{txt.menu_Jobs}" ui:field="jobs"/>
+            <g:TreeItem text="{txt.menu_TestJobs}" ui:field="testJobs"/>
             <g:TreeItem text="{txt.menu_FlowBinders}" ui:field="flowBinders"/>
             <g:TreeItem text="{txt.menu_Flows}" ui:field="flows"/>
             <g:TreeItem text="{txt.menu_FlowComponents}" ui:field="flowComponents"/>

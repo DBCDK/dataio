@@ -5,6 +5,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.pages.item.show.Place;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -138,8 +140,11 @@ public class ClientFactoryImpl implements ClientFactory {
         if (place instanceof dk.dbc.dataio.gui.client.pages.submitter.show.Place) {
             return new dk.dbc.dataio.gui.client.pages.submitter.show.PresenterImpl(this);
         }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.job.show.Place) {
-            return new dk.dbc.dataio.gui.client.pages.job.show.PresenterImpl(this);
+        if (place instanceof ShowJobsPlace) {
+            return new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(this);
+        }
+        if (place instanceof ShowTestJobsPlace) {
+            return new dk.dbc.dataio.gui.client.pages.job.show.PresenterTestJobsImpl(this);
         }
         if (place instanceof dk.dbc.dataio.gui.client.pages.sink.show.Place) {
             return new dk.dbc.dataio.gui.client.pages.sink.show.PresenterImpl(this);

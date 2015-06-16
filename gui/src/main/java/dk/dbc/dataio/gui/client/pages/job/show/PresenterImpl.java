@@ -16,10 +16,10 @@ import java.util.List;
 /**
 * This class represents the show jobs presenter implementation
 */
-public class PresenterImpl extends AbstractActivity implements Presenter {
+public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     private ClientFactory clientFactory;
     private View view;
-    private JobStoreProxyAsync jobStoreProxy;
+    protected JobStoreProxyAsync jobStoreProxy;
     private PlaceController placeController;
 
     /**
@@ -64,6 +64,19 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(model.getJobId()));
     }
 
+    @Override
+    public void fetchSelectedJobs() {
+        view.selectionModel.clear();
+        fetchJobs();
+    }
+
+
+    /**
+     * Abstract Methods
+     */
+
+    protected abstract void fetchJobsFromJobStore(JobListCriteriaModel model);
+
 
     /*
      * Local methods
@@ -82,14 +95,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             } else {
                 jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.ALL);
             }
-            jobStoreProxy.listJobs(jobListCriteriaModel, new FetchJobsCallback());
+            fetchJobsFromJobStore(jobListCriteriaModel);
         }
-    }
-
-    @Override
-    public void fetchSelectedJobs() {
-        view.selectionModel.clear();
-        fetchJobs();
     }
 
     /*

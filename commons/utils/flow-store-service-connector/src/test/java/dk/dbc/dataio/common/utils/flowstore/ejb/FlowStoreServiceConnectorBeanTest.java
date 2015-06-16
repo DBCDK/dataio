@@ -1,4 +1,4 @@
-package dk.dbc.dataio.common.utils.flowstore.ejb;//package dk.dbc.dataio.common.utils.flowstore.ejb;
+package dk.dbc.dataio.common.utils.flowstore.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;

@@ -33,6 +33,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class is a parameter abstraction for the PgJobStore.addJob() method.
+ * <p>
+ * Parameter initialization failures will result in fatal diagnostics being added
+ * to the internal diagnostics list, and the corresponding parameter field being
+ * given a null value.
+ * </p>
+ */
 public class AddJobParam implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddJobParam.class);
 
@@ -40,16 +48,16 @@ public class AddJobParam implements AutoCloseable {
     protected final FileStoreServiceConnector fileStoreServiceConnector;
 
     protected final JobInputStream jobInputStream;
-    protected final List<Diagnostic> diagnostics;
-    protected final Submitter submitter;
-    protected final FlowBinder flowBinder;
-    protected final Flow flow;
-    protected final Sink sink;
-    protected final FlowStoreReferences flowStoreReferences;
-    protected final SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
-    protected final String dataFileId;
-    protected final InputStream dataFileInputStream;
-    protected final DataPartitionerFactory.DataPartitioner dataPartitioner;
+    protected List<Diagnostic> diagnostics;
+    protected Submitter submitter;
+    protected FlowBinder flowBinder;
+    protected Flow flow;
+    protected Sink sink;
+    protected FlowStoreReferences flowStoreReferences;
+    protected SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
+    protected String dataFileId;
+    protected InputStream dataFileInputStream;
+    protected DataPartitionerFactory.DataPartitioner dataPartitioner;
 
     public AddJobParam(JobInputStream jobInputStream, FlowStoreServiceConnector flowStoreServiceConnector,
                        FileStoreServiceConnector fileStoreServiceConnector) throws NullPointerException {

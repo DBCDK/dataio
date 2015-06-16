@@ -1,10 +1,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -12,12 +13,13 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
@@ -36,7 +38,6 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.After;
 import org.junit.Before;
@@ -53,6 +54,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import java.io.ByteArrayInputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -84,13 +86,22 @@ public class PgJobStoreIT {
     public static final String SINK_CACHE_TABLE_NAME = "sinkcache";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
+    private static final FileStoreUrn FILE_STORE_URN;
     private static final SessionContext SESSION_CONTEXT = mock(SessionContext.class);
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
+    private static final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private static final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+
     private static final State.Phase PROCESSING = State.Phase.PROCESSING;
     private static final PGSimpleDataSource datasource;
     private EntityManager entityManager;
 
     static {
+        try {
+            FILE_STORE_URN = FileStoreUrn.create("42");
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
         datasource = new PGSimpleDataSource();
         datasource.setDatabaseName(DATABASE_NAME);
         datasource.setServerName("localhost");
@@ -105,6 +116,42 @@ public class PgJobStoreIT {
         dbMigrator.dataSource = datasource;
         dbMigrator.onStartup();
     }
+
+    @Before
+    public void initialiseEntityManager() {
+        final Map<String, String> properties = new HashMap<>();
+        properties.put(JDBC_USER, System.getProperty("user.name"));
+        properties.put(JDBC_PASSWORD, System.getProperty("user.name"));
+        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/jobstore", System.getProperty("postgresql.port")));
+        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
+        properties.put("eclipselink.logging.level", "FINE");
+
+        final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", properties);
+        entityManager = entityManagerFactory.createEntityManager(properties);
+    }
+
+    @After
+    public void clearJobStore() throws SQLException {
+        try (final Connection connection = newConnection()) {
+            for (String tableName : Arrays.asList(
+                    JOB_TABLE_NAME, CHUNK_TABLE_NAME, ITEM_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME)) {
+                JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
+            }
+            connection.commit();
+        }
+    }
+
+    @Before
+    public void clearJobStoreBefore() throws SQLException {
+        clearJobStore();
+    }
+
+    @After
+    public void clearEntityManagerCache() {
+        entityManager.clear();
+        entityManager.getEntityManagerFactory().getCache().evictAll();
+    }
+
 
     /**
      * Given: a jobstore with empty flowcache
@@ -208,15 +255,16 @@ public class PgJobStoreIT {
     public void addJob() throws JobStoreException, SQLException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
         final int expectedNumberOfChunks = 2;
         final int expectedNumberOfItems = 11;
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam.getJobInputStream(), mockedAddJobParam.getDataPartitioner(),
+                mockedAddJobParam.getSequenceAnalyserKeyGenerator(), mockedAddJobParam.getFlow(), mockedAddJobParam.getSink(), mockedAddJobParam.getFlowStoreReferences());
+
         transaction.commit();
 
         // Then...
@@ -236,8 +284,8 @@ public class PgJobStoreIT {
 
         // And...
         for (int chunkId = 0; chunkId < expectedNumberOfChunks; chunkId++) {
-            final short expectedNumberOfChunkItems = expectedNumberOfItems / ((chunkId + 1) * params.maxChunkSize) > 0 ? params.maxChunkSize
-                    : (short) (expectedNumberOfItems - (chunkId * params.maxChunkSize));
+            final short expectedNumberOfChunkItems = expectedNumberOfItems / ((chunkId + 1) * mockedAddJobParam.MAX_CHUNK_SIZE) > 0 ? mockedAddJobParam.MAX_CHUNK_SIZE
+                    : (short) (expectedNumberOfItems - (chunkId * mockedAddJobParam.MAX_CHUNK_SIZE));
             final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobEntity.getId());
             final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
             assertChunkEntity(chunkEntity, chunkKey, expectedNumberOfChunkItems, Arrays.asList(State.Phase.PARTITIONING));
@@ -463,20 +511,20 @@ public class PgJobStoreIT {
 
         // Create 3 jobs, each containing params with reference to different sinks.
         for(int i = 0; i < numberOfJobs; i ++) {
-            final Params params = new Params(true);
+            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
             FlowStoreReference flowStoreReference = new FlowStoreReference(i + 1, i + 1, "sinkName" + (i + 1));
-            params.flowStoreReferences = new FlowStoreReferencesBuilder().setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build();
-
+            mockedAddJobParam.setFlowStoreReferences(new FlowStoreReferencesBuilder()
+                    .setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build());
 
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
             snapshots.add(pgJobStore.addJob(
-                    params.jobInputStream,
-                    params.dataPartitioner,
-                    params.sequenceAnalyserKeyGenerator,
-                    params.flow,
-                    params.sink,
-                    params.flowStoreReferences));
+                    mockedAddJobParam.getJobInputStream(),
+                    mockedAddJobParam.getDataPartitioner(),
+                    mockedAddJobParam.getSequenceAnalyserKeyGenerator(),
+                    mockedAddJobParam.getFlow(),
+                    mockedAddJobParam.getSink(),
+                    mockedAddJobParam.getFlowStoreReferences()));
             jobTransaction.commit();
         }
 
@@ -619,11 +667,11 @@ public class PgJobStoreIT {
         Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
         final PgJobStore pgJobStore = newPgJobStore();
         for(int i = 0; i < 4; i++) {
-            final Params params = new Params(false);
+            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(false);
             final EntityTransaction transaction = entityManager.getTransaction();
             transaction.begin();
-            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                    params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+            pgJobStore.addJob(mockedAddJobParam.getJobInputStream(), mockedAddJobParam.getDataPartitioner(),
+                    mockedAddJobParam.getSequenceAnalyserKeyGenerator(), mockedAddJobParam.getFlow(), mockedAddJobParam.getSink(), mockedAddJobParam.getFlowStoreReferences());
             transaction.commit();
         }
 
@@ -663,19 +711,19 @@ public class PgJobStoreIT {
     public void getResourceBundle() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
 
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
 
         final JobInfoSnapshot jobInfoSnapshot =
                 pgJobStore.addJob(
-                        params.jobInputStream,
-                        params.dataPartitioner,
-                        params.sequenceAnalyserKeyGenerator,
-                        params.flow,
-                        params.sink,
-                        params.flowStoreReferences);
+                        mockedAddJobParam.getJobInputStream(),
+                        mockedAddJobParam.getDataPartitioner(),
+                        mockedAddJobParam.getSequenceAnalyserKeyGenerator(),
+                        mockedAddJobParam.getFlow(),
+                        mockedAddJobParam.getSink(),
+                        mockedAddJobParam.getFlowStoreReferences());
 
         jobTransaction.commit();
         assertThat(jobInfoSnapshot, not(nullValue()));
@@ -686,14 +734,14 @@ public class PgJobStoreIT {
         // Then...
         assertThat("ResourceBundle", resourceBundle, not(nullValue()));
         assertThat("ResourceBundle.flow", resourceBundle.getFlow(), not(nullValue()));
-        assertThat(resourceBundle.getFlow(), is(params.flow));
+        assertThat(resourceBundle.getFlow(), is(mockedAddJobParam.getFlow()));
 
         assertThat("ResourceBundle.sink", resourceBundle.getSink(), not(nullValue()));
-        assertThat(resourceBundle.getSink(), is(params.sink));
+        assertThat(resourceBundle.getSink(), is(mockedAddJobParam.getSink()));
 
         assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), not(nullValue()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(params.jobInputStream.getJobSpecification().getSubmitterId()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(params.jobInputStream.getJobSpecification().getFormat()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(mockedAddJobParam.getJobInputStream().getJobSpecification().getSubmitterId()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(mockedAddJobParam.getJobInputStream().getJobSpecification().getFormat()));
     }
 
     /**
@@ -704,11 +752,11 @@ public class PgJobStoreIT {
     public void getChunk() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final Params params = new Params(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam.getJobInputStream(), mockedAddJobParam.getDataPartitioner(),
+                mockedAddJobParam.getSequenceAnalyserKeyGenerator(), mockedAddJobParam.getFlow(), mockedAddJobParam.getSink(), mockedAddJobParam.getFlowStoreReferences());
         transaction.commit();
 
         // Then...
@@ -880,40 +928,6 @@ public class PgJobStoreIT {
         assertThat("itemData.data", ignoredItemData.getData(), is(ignoredItemEntity.getDeliveringOutcome().getData()));
     }
 
-    @Before
-    public void initialiseEntityManager() {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(JDBC_USER, System.getProperty("user.name"));
-        properties.put(JDBC_PASSWORD, System.getProperty("user.name"));
-        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/jobstore", System.getProperty("postgresql.port")));
-        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        properties.put("eclipselink.logging.level", "FINE");
-
-        final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", properties);
-        entityManager = entityManagerFactory.createEntityManager(properties);
-    }
-
-    @After
-    public void clearJobStore() throws SQLException {
-        try (final Connection connection = newConnection()) {
-            for (String tableName : Arrays.asList(
-                    JOB_TABLE_NAME, CHUNK_TABLE_NAME, ITEM_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME)) {
-                JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
-            }
-            connection.commit();
-        }
-    }
-
-    @Before
-    public void clearJobStoreBefore() throws SQLException {
-        clearJobStore();
-    }
-
-    @After
-    public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
-    }
 
     private PgJobStore newPgJobStore() {
         final PgJobStore pgJobStore = new PgJobStore();
@@ -928,17 +942,17 @@ public class PgJobStoreIT {
 
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
-        final Params params = new Params(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
         for (int i = 0; i < numberOfJobs; i++) {
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
             snapshots.add(pgJobStore.addJob(
-                    params.jobInputStream,
-                    params.dataPartitioner,
-                    params.sequenceAnalyserKeyGenerator,
-                    params.flow,
-                    params.sink,
-                    params.flowStoreReferences));
+                    mockedAddJobParam.getJobInputStream(),
+                    mockedAddJobParam.getDataPartitioner(),
+                    mockedAddJobParam.getSequenceAnalyserKeyGenerator(),
+                    mockedAddJobParam.getFlow(),
+                    mockedAddJobParam.getSink(),
+                    mockedAddJobParam.getFlowStoreReferences()));
             jobTransaction.commit();
         }
         return snapshots;
@@ -1063,9 +1077,8 @@ public class PgJobStoreIT {
         return itemState;
     }
 
-    /* Helper class for parameter values (with defaults)
-     */
-    private static class Params {
+    private static class MockedAddJobParam extends AddJobParam {
+        public static final short MAX_CHUNK_SIZE = 10;
         final String xml =
                 "<records>"
                         + "<record>first</record>"
@@ -1081,27 +1094,22 @@ public class PgJobStoreIT {
                         + "<record>eleventh</record>"
                         + "</records>";
 
-        public JobInputStream jobInputStream;
-        public DataPartitionerFactory.DataPartitioner dataPartitioner;
-        public SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
-        public Flow flow;
-        public Sink sink;
-        public FlowBinder flowBinder;
-        public FlowStoreReferences flowStoreReferences;
-        public String dataFileId;
-        public short maxChunkSize;
-
-        public Params(boolean isEOJ) {
-            dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(
-                    new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
-            jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), isEOJ, 0);
+        public MockedAddJobParam(boolean isEOJ) {
+            super(new JobInputStream(new JobSpecificationBuilder()
+                    .setDataFile(FILE_STORE_URN.toString())
+                    .build(), isEOJ, 0), mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
             flowBinder = new FlowBinderBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
             sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
-            maxChunkSize = 10;
-            dataFileId = "datafile";
+            dataFileInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+            dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
+                    StandardCharsets.UTF_8.name());
+        }
+
+        public void setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
+            this.flowStoreReferences = flowStoreReferences;
         }
     }
 }

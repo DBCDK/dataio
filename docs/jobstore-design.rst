@@ -228,7 +228,7 @@ Returnerer item data samt item status for partitioneringsfasen for et givent ite
 
     **HTTP 200 OK** svar med **ChunkItem** som **application/json**
 
-    **HTTP 400 BAD_REQUEST** i tilfælde af at item ikke kunne lokaliseres
+    **HTTP 404 NOT_FOUND** i tilfælde af at item ikke kunne lokaliseres
 
     **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
 
@@ -240,7 +240,7 @@ Returnerer item data samt item status for processeringsfasen for et givent item 
 
     **HTTP 200 OK** svar med **ChunkItem** som **application/json**
 
-    **HTTP 400 BAD_REQUEST** i tilfælde af at item ikke kunne lokaliseres
+    **HTTP 404 NOT_FOUND** i tilfælde af at item ikke kunne lokaliseres
 
     **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
 
@@ -252,6 +252,6 @@ Returnerer item data samt item status for afleveringsfasen for et givent item so
 
     **HTTP 200 OK** svar med **ChunkItem** som **application/json**
 
-    **HTTP 400 BAD_REQUEST** i tilfælde af at item ikke kunne lokaliseres
+    **HTTP 404 NOT_FOUND** i tilfælde af at item ikke kunne lokaliseres
 
     **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl

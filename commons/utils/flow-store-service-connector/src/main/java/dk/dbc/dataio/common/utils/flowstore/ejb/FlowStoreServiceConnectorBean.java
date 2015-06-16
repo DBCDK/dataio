@@ -17,7 +17,7 @@ import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 
 /**
- *This Enterprise Java Bean (EJB) singleton is used as a connector
+ * This Enterprise Java Bean (EJB) singleton is used as a connector
  * to the flow-store REST interface.
  */
 @Singleton

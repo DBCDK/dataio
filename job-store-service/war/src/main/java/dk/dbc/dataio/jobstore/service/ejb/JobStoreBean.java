@@ -251,7 +251,7 @@ public class JobStoreBean {
     // Method is package-private for unit testing purposes
     long getByteSizeOrThrow(String fileId) throws JobStoreException {
         try {
-            return fileStoreServiceConnectorBean.getByteSize(fileId);
+            return fileStoreServiceConnectorBean.getConnector().getByteSize(fileId);
         } catch(FileStoreServiceConnectorException ex) {
             LOGGER.warn("Could not retrieve byte size for file with id: {}", fileId);
             throw new JobStoreException("Could not retrieve byte size", ex);
@@ -313,7 +313,7 @@ public class JobStoreBean {
                 inputStream = Files.newInputStream(Paths.get(dataFile));
             } else {
                 // The file can be looked up in file store
-                inputStream = fileStoreServiceConnectorBean.getFile(fileId);
+                inputStream = fileStoreServiceConnectorBean.getConnector().getFile(fileId);
             }
             return inputStream;
         } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {

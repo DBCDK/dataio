@@ -17,6 +17,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
@@ -70,6 +71,7 @@ public class JobStoreBeanTest {
     private FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean;
     private FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean;
     private FlowStoreServiceConnector mockedFlowStoreServiceConnector;
+    private FileStoreServiceConnector mockedFileStoreServiceConnector;
     private PgJobStore mockedJobStore;
 
 
@@ -88,6 +90,7 @@ public class JobStoreBeanTest {
         mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
         mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
+        mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
         mockedJobStore = mock(PgJobStore.class);
         initializeBean();
     }
@@ -189,8 +192,8 @@ public class JobStoreBeanTest {
         setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-        when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenReturn(byteArrayInputStream);
-        when(mockedFileStoreServiceConnectorBean.getByteSize(anyString())).thenThrow(jobDataFileNotFound);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenReturn(byteArrayInputStream);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getByteSize(anyString())).thenThrow(jobDataFileNotFound);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
             fail("No exception thrown by addAndScheduleJob()");
@@ -204,8 +207,8 @@ public class JobStoreBeanTest {
         setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-        when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenReturn(byteArrayInputStream);
-        when(mockedFileStoreServiceConnectorBean.getByteSize(anyString())).thenReturn(42L);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenReturn(byteArrayInputStream);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getByteSize(anyString())).thenReturn(42L);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
             fail("No exception thrown by addAndScheduleJob()");
@@ -219,8 +222,8 @@ public class JobStoreBeanTest {
         setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-        when(mockedFileStoreServiceConnectorBean.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
-        when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenReturn(byteArrayInputStream);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenReturn(byteArrayInputStream);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
             fail("No exception thrown by addAndScheduleJob()");
@@ -230,16 +233,16 @@ public class JobStoreBeanTest {
     @Test
     public void addAndScheduleJob_compareByteSize_byteSizesIdentical() throws IOException, FileStoreServiceConnectorException, JobStoreException {
         DataPartitionerFactory.DataPartitioner mockedDataPartitioner = mock(DataPartitionerFactory.DataPartitioner.class);
-        when(mockedFileStoreServiceConnectorBean.getByteSize(anyString())).thenReturn(Long.valueOf(getXml().getBytes().length).longValue());
-        when(mockedDataPartitioner.getBytesRead()).thenReturn(Long.valueOf(getXml().getBytes().length).longValue());
+        when(mockedFileStoreServiceConnectorBean.getConnector().getByteSize(anyString())).thenReturn((long) getXml().getBytes().length);
+        when(mockedDataPartitioner.getBytesRead()).thenReturn((long) getXml().getBytes().length);
         jobStoreBean.compareByteSize("42", mockedDataPartitioner);
     }
 
     @Test
     public void addAndScheduleJob_compareByteSize_byteSizesNotIdenticalThrowsIOException() throws IOException, JobStoreException, FileStoreServiceConnectorException {
         DataPartitionerFactory.DataPartitioner mockedDataPartitioner = mock(DataPartitionerFactory.DataPartitioner.class);
-        when(mockedFileStoreServiceConnectorBean.getByteSize(anyString())).thenReturn(Long.valueOf(getXml().getBytes().length).longValue());
-        when(mockedDataPartitioner.getBytesRead()).thenReturn(Long.valueOf(getXml().getBytes().length - 1).longValue());
+        when(mockedFileStoreServiceConnectorBean.getConnector().getByteSize(anyString())).thenReturn((long) getXml().getBytes().length);
+        when(mockedDataPartitioner.getBytesRead()).thenReturn((long) (getXml().getBytes().length - 1));
         try {
             jobStoreBean.compareByteSize("42", mockedDataPartitioner);
         } catch (IOException e) {}
@@ -252,11 +255,11 @@ public class JobStoreBeanTest {
         setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
         final String xml = getXml();
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-        when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenReturn(byteArrayInputStream);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenReturn(byteArrayInputStream);
         try {
             final JobInfoSnapshot jobInfoSnapshotReturned = jobStoreBean.addAndScheduleJob(jobInputStream);
             // Verify that the method getByteSize (used in compareByteSize) was invoked.
-            verify(mockedFileStoreServiceConnectorBean).getByteSize(anyString());
+            verify(mockedFileStoreServiceConnectorBean.getConnector()).getByteSize(anyString());
             assertThat(jobInfoSnapshotReturned, is(notNullValue()));
         } catch(JobStoreException e) {
             fail("Exception thrown by addAndScheduleJob()");
@@ -267,7 +270,7 @@ public class JobStoreBeanTest {
     public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorUnexpectedStatusCodeException() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenThrow(fileStoreUnexpectedException);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenThrow(fileStoreUnexpectedException);
 
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -283,7 +286,7 @@ public class JobStoreBeanTest {
     public void addAndScheduleJob_getInputStream_inputStreamNotFound() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenThrow(jobDataFileNotFound);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenThrow(jobDataFileNotFound);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
             fail("No exception thrown by addAndScheduleJob()");
@@ -298,7 +301,7 @@ public class JobStoreBeanTest {
     public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorException() throws Exception {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        when(mockedFileStoreServiceConnectorBean.getFile(anyString())).thenThrow(fileStoreException);
+        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenThrow(fileStoreException);
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
             fail("No exception thrown by addAndScheduleJob()");
@@ -451,6 +454,7 @@ public class JobStoreBeanTest {
         jobStoreBean.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
         jobStoreBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
         when(jobStoreBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
+        when(jobStoreBean.fileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
     }
 
     private void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{

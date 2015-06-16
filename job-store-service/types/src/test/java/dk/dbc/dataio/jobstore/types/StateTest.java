@@ -77,8 +77,8 @@ public class StateTest {
     @Test
     public void fatalDiagnosticExists_fatalDiagnosticFound_returns() {
         State state = new State();
-        final Diagnostic warningDiagnostic = new Diagnostic(Diagnostic.Level.WARNING, "WARNING msg", "WARNING stacktrace");
-        final Diagnostic fatalDiagnostic = new Diagnostic(Diagnostic.Level.FATAL, "FATAL msg", "FATAL stacktrace");
+        final Diagnostic warningDiagnostic = new Diagnostic(Diagnostic.Level.WARNING, "WARNING msg");
+        final Diagnostic fatalDiagnostic = new Diagnostic(Diagnostic.Level.FATAL, "FATAL msg");
 
         state.getDiagnostics().add(warningDiagnostic);
         assertThat(state.fatalDiagnosticExists(), is(false));

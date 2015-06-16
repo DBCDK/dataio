@@ -133,7 +133,7 @@ public class AddJobParam implements AutoCloseable {
             return flowStoreServiceConnector.getSubmitterBySubmitterNumber(submitterNumber);
         } catch(FlowStoreServiceConnectorException | ProcessingException e) {
             final String message = String.format("Could not retrieve Submitter with submitter number: %d", submitterNumber);
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, ""));
+            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
         }
         return null;
     }
@@ -149,7 +149,7 @@ public class AddJobParam implements AutoCloseable {
                     jobSpec.getDestination());
         } catch(FlowStoreServiceConnectorException | ProcessingException e) {
             final String message = String.format("Could not retrieve FlowBinder for specification: %s", jobSpec);
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, ""));
+            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
         }
         return null;
     }
@@ -161,7 +161,7 @@ public class AddJobParam implements AutoCloseable {
                 return flowStoreServiceConnector.getFlow(flowId);
             } catch(FlowStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not retrieve Flow with ID: %d", flowId);
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, ""));
+                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
             }
         }
         return null;
@@ -174,7 +174,7 @@ public class AddJobParam implements AutoCloseable {
                 return flowStoreServiceConnector.getSink(sinkId);
             } catch(FlowStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not retrieve Sink with ID: %d", sinkId);
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, ""));
+                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
             }
         }
         return null;
@@ -226,7 +226,7 @@ public class AddJobParam implements AutoCloseable {
         } catch (FileStoreServiceConnectorException | ProcessingException | IOException e) {
             final String message = String.format("Could not get input stream for data file: %s",
                     jobInputStream.getJobSpecification().getDataFile());
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, ""));
+            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
         }
         return null;
     }
@@ -246,7 +246,7 @@ public class AddJobParam implements AutoCloseable {
                 return new FileStoreUrn(dataFileURN).getFileId();
             } catch (URISyntaxException e) {
                 final String message = String.format("Invalid file-store service URN: %s", dataFileURN);
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, ""));
+                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
             }
         }
         return null;

@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.core.Is;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -13,6 +12,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ejb.EJBException;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -32,20 +32,20 @@ public class FileStoreServiceConnectorBeanTest {
     @Test
     public void setConnector_connectorIsSet_connectorIsReturned() {
         FileStoreServiceConnector fileStoreServiceConnector = Mockito.mock(FileStoreServiceConnector.class);
-        FileStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
-        flowStoreServiceConnectorBean.fileStoreServiceConnector = fileStoreServiceConnector;
+        FileStoreServiceConnectorBean fileStoreServiceConnectorBean = getInitializedBean();
+        fileStoreServiceConnectorBean.fileStoreServiceConnector = fileStoreServiceConnector;
 
-        MatcherAssert.assertThat(flowStoreServiceConnectorBean.getConnector(), Is.is(fileStoreServiceConnector));
+        MatcherAssert.assertThat(fileStoreServiceConnectorBean.getConnector(), is(fileStoreServiceConnector));
     }
 
     @Test
     public void initializeConnector_connectorIsInitialized_connectorIsNotNull() throws Exception{
         mockStatic(ServiceUtil.class);
         Mockito.when(ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_FILESTORE_RS)).thenReturn("fileStoreEndpoint");
-        FileStoreServiceConnectorBean flowStoreServiceConnectorBean = getInitializedBean();
-        flowStoreServiceConnectorBean.initializeConnector();
+        FileStoreServiceConnectorBean fileStoreServiceConnectorBean = getInitializedBean();
+        fileStoreServiceConnectorBean.initializeConnector();
 
-        MatcherAssert.assertThat(flowStoreServiceConnectorBean.getConnector(), not(nullValue()));
+        MatcherAssert.assertThat(fileStoreServiceConnectorBean.getConnector(), not(nullValue()));
     }
 
     /*

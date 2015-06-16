@@ -36,7 +36,7 @@ public class ServiceUtil {
      *
      * @throws NamingException if unable to lookup name
      */
-    public static String getNewJobStoreServiceEndpoint() throws NamingException {
+    public static String getJobStoreServiceEndpoint() throws NamingException {
         String jobStoreServiceEndpoint = System.getProperty(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
         if (jobStoreServiceEndpoint == null || jobStoreServiceEndpoint.isEmpty()) {
             jobStoreServiceEndpoint = getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS);

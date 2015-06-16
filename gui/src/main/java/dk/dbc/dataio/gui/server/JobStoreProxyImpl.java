@@ -42,7 +42,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     public JobStoreProxyImpl() throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
-        endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
+        endpoint = ServiceUtil.getJobStoreServiceEndpoint();
         log.info("JobStoreProxy: Using Endpoint {}", endpoint);
         jobStoreServiceConnector = new JobStoreServiceConnector(client, endpoint);
     }
@@ -51,7 +51,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     public JobStoreProxyImpl(JobStoreServiceConnector jobStoreServiceConnector) throws NamingException {
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
-        endpoint = ServiceUtil.getNewJobStoreServiceEndpoint();
+        endpoint = ServiceUtil.getJobStoreServiceEndpoint();
         log.info("JobStoreProxy: Using Endpoint {}", endpoint);
         this.jobStoreServiceConnector = jobStoreServiceConnector;
     }

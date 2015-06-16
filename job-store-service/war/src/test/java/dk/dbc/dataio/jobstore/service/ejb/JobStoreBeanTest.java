@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
@@ -68,6 +69,7 @@ public class JobStoreBeanTest {
     private JobStoreBean jobStoreBean;
     private FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean;
     private FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean;
+    private FlowStoreServiceConnector mockedFlowStoreServiceConnector;
     private PgJobStore mockedJobStore;
 
 
@@ -84,6 +86,7 @@ public class JobStoreBeanTest {
     @Before
     public void setup() {
         mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+        mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
         mockedJobStore = mock(PgJobStore.class);
         initializeBean();
@@ -144,7 +147,7 @@ public class JobStoreBeanTest {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
-        when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getContent().getFlowId())).thenThrow(flowStoreException);
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getFlow(flowBinder.getContent().getFlowId())).thenThrow(flowStoreException);
 
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -157,7 +160,7 @@ public class JobStoreBeanTest {
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
-        when(mockedFlowStoreServiceConnectorBean.getSubmitterBySubmitterNumber(jobInputStream.getJobSpecification().getSubmitterId())).thenThrow(flowStoreException);
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getSubmitterBySubmitterNumber(jobInputStream.getJobSpecification().getSubmitterId())).thenThrow(flowStoreException);
 
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -311,7 +314,7 @@ public class JobStoreBeanTest {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
-        when(mockedFlowStoreServiceConnectorBean.getSink(flowBinder.getContent().getSinkId())).thenThrow(flowStoreException);
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getSink(flowBinder.getContent().getSinkId())).thenThrow(flowStoreException);
 
         try {
             jobStoreBean.addAndScheduleJob(jobInputStream);
@@ -447,6 +450,7 @@ public class JobStoreBeanTest {
         jobStoreBean.jobStore = mockedJobStore;
         jobStoreBean.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
         jobStoreBean.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
+        when(jobStoreBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
     }
 
     private void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
@@ -456,9 +460,9 @@ public class JobStoreBeanTest {
         final Submitter submitter = new SubmitterBuilder().build();
 
         whenGetFlowBinderThenReturnFlowBinder(jobSpecification, flowBinder);
-        when(mockedFlowStoreServiceConnectorBean.getFlow(flowBinder.getContent().getFlowId())).thenReturn(flow);
-        when(mockedFlowStoreServiceConnectorBean.getSink(flowBinder.getContent().getSinkId())).thenReturn(sink);
-        when(mockedFlowStoreServiceConnectorBean.getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getFlow(flowBinder.getContent().getFlowId())).thenReturn(flow);
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getSink(flowBinder.getContent().getSinkId())).thenReturn(sink);
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
     }
 
     private void setupSuccessfulMockedReturnsFromJobStore(JobSpecification jobSpecification) throws JobStoreException {
@@ -481,7 +485,7 @@ public class JobStoreBeanTest {
     }
 
     private void whenGetFlowBinderThenThrow(JobSpecification jobSpecification, Exception e) throws FlowStoreServiceConnectorException{
-        when(mockedFlowStoreServiceConnectorBean.getFlowBinder(
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getFlowBinder(
                 jobSpecification.getPackaging(),
                 jobSpecification.getFormat(),
                 jobSpecification.getCharset(),
@@ -490,7 +494,7 @@ public class JobStoreBeanTest {
     }
 
     private void whenGetFlowBinderThenReturnFlowBinder(JobSpecification jobSpecification, FlowBinder flowBinder) throws FlowStoreServiceConnectorException {
-        when(mockedFlowStoreServiceConnectorBean.getFlowBinder(
+        when(mockedFlowStoreServiceConnectorBean.getConnector().getFlowBinder(
                 jobSpecification.getPackaging(),
                 jobSpecification.getFormat(),
                 jobSpecification.getCharset(),

@@ -59,13 +59,13 @@ public class JobStoreProxyImplTest {
         mockStatic(ServiceUtil.class);
         mockStatic(HttpClient.class);
         mockStatic(Format.class);
-        when(ServiceUtil.getNewJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
+        when(ServiceUtil.getJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
         when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
     }
 
     @Test
     public void noArgs_jobStoreProxyConstructorJobStoreService_EndpointCanNotBeLookedUp_throws() throws Exception{
-        when(ServiceUtil.getNewJobStoreServiceEndpoint()).thenThrow(new NamingException());
+        when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(new NamingException());
         try{
             new JobStoreProxyImpl();
             fail();

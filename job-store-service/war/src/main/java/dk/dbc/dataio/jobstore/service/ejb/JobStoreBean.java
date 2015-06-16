@@ -188,7 +188,7 @@ public class JobStoreBean {
     // Method is package-private for unit testing purposes
     FlowBinder getFlowBinderOrThrow(JobSpecification jobSpec) throws JobStoreException {
         try {
-            return flowStoreServiceConnectorBean.getFlowBinder(
+            return flowStoreServiceConnectorBean.getConnector().getFlowBinder(
                     jobSpec.getPackaging(),
                     jobSpec.getFormat(),
                     jobSpec.getCharset(),
@@ -212,7 +212,7 @@ public class JobStoreBean {
     // Method is package-private for unit testing purposes
     Flow getFlowOrThrow(long id) throws JobStoreException {
         try {
-            return flowStoreServiceConnectorBean.getFlow(id);
+            return flowStoreServiceConnectorBean.getConnector().getFlow(id);
         } catch(FlowStoreServiceConnectorException ex) {
             LOGGER.warn("Could not retrieve Flow for FlowBinder with id: {}", id);
             throw new JobStoreException("Could not retrieve Flow", ex);
@@ -222,7 +222,7 @@ public class JobStoreBean {
     // Method is package-private for unit testing purposes
     Sink getSinkOrThrow(long id) throws JobStoreException {
         try {
-            return flowStoreServiceConnectorBean.getSink(id);
+            return flowStoreServiceConnectorBean.getConnector().getSink(id);
         } catch(FlowStoreServiceConnectorException ex) {
             LOGGER.warn("Could not retrieve Sink for FlowBinder with id: {}", id);
             throw new JobStoreException("Could not retrieve Sink", ex);
@@ -241,7 +241,7 @@ public class JobStoreBean {
     // Method is package-private for unit testing purposes
     Submitter getSubmitterOrThrow(long submitterNumber) throws JobStoreException {
         try {
-            return flowStoreServiceConnectorBean.getSubmitterBySubmitterNumber(submitterNumber);
+            return flowStoreServiceConnectorBean.getConnector().getSubmitterBySubmitterNumber(submitterNumber);
         } catch(FlowStoreServiceConnectorException ex) {
             LOGGER.warn("Could not retrieve Submitter for jobInputStream with submitter number: {}", submitterNumber);
             throw new JobStoreException("Could not retrieve Submitter", ex);

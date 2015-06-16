@@ -96,6 +96,20 @@ public class JobStoreBean {
         }
     }
 
+/*    public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
+        final StopWatch stopWatch = new StopWatch();
+        try (AddJobParam param = new AddJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector(), fileStoreServiceConnectorBean.getConnector()) {
+            final JobInfoSnapshot jobInfoSnapshot = jobStore.addJob(param);
+            if (!jobInfoSnapshot.getState().fatalDiagnosticExists()) {
+                compareByteSize(param.getDataFileId(), param.getDataPartitioner());
+            }
+            return jobInfoSnapshot;
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }*/
+
+
     /**
      * Updates existing job in the underlying data by adding external chunk changes
      * @param chunk the chunk id

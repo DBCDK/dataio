@@ -17,7 +17,6 @@ import java.util.List;
 * This class represents the show jobs presenter implementation
 */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    private ClientFactory clientFactory;
     protected View view;
     protected JobStoreProxyAsync jobStoreProxy;
     private PlaceController placeController;
@@ -28,7 +27,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param clientFactory The client factory to be used
      */
     public PresenterImpl(ClientFactory clientFactory) {
-        this.clientFactory = clientFactory;
         placeController = clientFactory.getPlaceController();
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
     }

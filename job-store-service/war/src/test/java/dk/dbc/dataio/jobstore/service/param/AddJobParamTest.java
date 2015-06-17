@@ -1,0 +1,382 @@
+package dk.dbc.dataio.jobstore.service.param;
+
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.ws.rs.core.UriBuilder;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class AddJobParamTest {
+    private FlowStoreServiceConnector mockedFlowStoreServiceConnector;
+    private FileStoreServiceConnector mockedFileStoreServiceConnector;
+    private JobSpecification jobSpecification;
+    private static final String ERROR_MESSAGE = "Error Message";
+    private static final String DATA_FILE_ID = "42";
+    private static final FileStoreUrn FILE_STORE_URN;
+
+    static {
+        try {
+            FILE_STORE_URN = FileStoreUrn.create(DATA_FILE_ID);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Before
+    public void setup() {
+        jobSpecification = new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).build();
+
+        // Setup mocks
+        mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    }
+
+    @Test
+    public void constructor_inputStreamArgIsNull_throws() {
+        try {
+            new AddJobParam(null, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void constructor_flowStoreServiceConnectorArgIsNull_throws() {
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 2);
+        try {
+            new AddJobParam(jobInputStream, null, mockedFileStoreServiceConnector);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void constructor_fileStoreServiceConnectorArgIsNull_throws() {
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 2);
+        try {
+            new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector, null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void constructor_allArgsAreValid_returnsAddJobParam() {
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 2);
+        final AddJobParam addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
+        assertThat(addJobParam, is(notNullValue()));
+
+        assertThat(addJobParam.diagnostics, is(notNullValue()));
+        assertThat(addJobParam.diagnostics.size(), is(0));
+
+        assertThat(addJobParam.flowStoreReferences, is(notNullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+    }
+
+    @Test
+    public void extractDataFileIdFromURN_invalidUrn_diagnosticLevelFatalAddedForUrnAndDataFileInputStream() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final AddJobParam addJobParam = constructAddJobParam(false);
+
+        final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
+        assertThat(diagnostics.size(), is(2));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(addJobParam.jobInputStream.getJobSpecification().getDataFile()), is(true));
+
+        assertThat(diagnostics.get(1).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(1).getMessage().contains(addJobParam.jobInputStream.getJobSpecification().getDataFile()), is(true));
+
+        assertThat(addJobParam.dataFileId, is(nullValue()));
+        assertThat(addJobParam.dataFileInputStream, is(nullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+    }
+
+    @Test
+    public void extractDataFileIdFromURN_validUrnAndFileFound_dataFileIdAndDataFileInputStreamAndDataPartitionerSet() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+
+        InputStream mockedInputStream = mock(InputStream.class);
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mockedInputStream);
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        final List<Diagnostic> diagnostics = addJobParam.diagnostics;
+        assertThat(diagnostics.size(), is(0));
+        assertThat(addJobParam.dataFileId, is(notNullValue()));
+        assertThat(addJobParam.dataFileInputStream, is(notNullValue()));
+        assertThat(addJobParam.dataPartitioner, is(notNullValue()));
+    }
+
+    @Test
+    public void newDataFileInputStream_fileNotFound_diagnosticLevelFatalAddedForInputStream() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenThrow(new FileStoreServiceConnectorException(ERROR_MESSAGE));
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        final List<Diagnostic> diagnostics = addJobParam.diagnostics;
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(jobSpecification.getDataFile()), is(true));
+    }
+
+    @Test
+    public void lookupSubmitter_submitterNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(
+                eq(jobSpecification.getSubmitterId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        final List<Diagnostic> diagnostics = addJobParam.diagnostics;
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(Long.valueOf(jobSpecification.getSubmitterId()).toString()), is(true));
+        assertThat(addJobParam.submitter, is(nullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+    }
+
+    @Test
+    public void lookupSubmitter_submitterFound_submitterReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final Submitter submitter = new SubmitterBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(
+                eq(jobSpecification.getSubmitterId()))).thenReturn(submitter);
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        assertThat(addJobParam.diagnostics.size(), is(0));
+        assertThat(addJobParam.submitter, is(notNullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, true, false, false);
+    }
+
+    @Test
+    public void lookupFlowBinder_flowBinderNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        final List<Diagnostic> diagnostics = addJobParam.diagnostics;
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(jobSpecification.toString()), is(true));
+        assertThat(addJobParam.flowBinder, is(nullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+    }
+
+    @Test
+    public void lookupFlowBinder_flowBinderFound_flowBinderReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        FlowBinder flowBinder = new FlowBinderBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        assertThat(addJobParam.diagnostics.size(), is(0));
+        assertThat(addJobParam.flowBinder, is(notNullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, false);
+    }
+
+    @Test
+    public void lookupFlow_flowNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
+
+        when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(Long.valueOf(flowBinder.getContent().getFlowId()).toString()), is(true));
+
+        assertThat(addJobParam.flowBinder, is(notNullValue()));
+        assertThat(addJobParam.flow, is(nullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, false);
+    }
+
+    @Test
+    public void lookupFlow_flowFound_flowBinderAndFlowReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
+
+        when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenReturn(flow);
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        assertThat(addJobParam.diagnostics.size(), is(0));
+        assertThat(addJobParam.flowStoreReferences, is(notNullValue()));
+        assertThat(addJobParam.flow, is(notNullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, true, false);
+    }
+
+    @Test
+    public void lookupSink_sinkNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
+
+        when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+        final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(Long.valueOf(flowBinder.getContent().getSinkId()).toString()), is(true));
+
+        assertThat(addJobParam.flowBinder, is(notNullValue()));
+        assertThat(addJobParam.sink, is(nullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, false);
+    }
+
+    @Test
+    public void lookupSink_sinkFound_flowBinderAndSinkReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
+
+        when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenReturn(sink);
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+        assertThat(addJobParam.diagnostics.size(), is(0));
+
+        assertThat(addJobParam.flowBinder, is(notNullValue()));
+        assertThat(addJobParam.sink, is(notNullValue()));
+        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, true);
+    }
+
+    @Test
+    public void addJobParam_allReachableParametersSet_expectedValuesReturnedThroughGetters() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final Submitter submitter = new SubmitterBuilder().build();
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(eq(jobSpecification.getSubmitterId()))).thenReturn(submitter);
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
+
+        when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenReturn(flow);
+        when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenReturn(sink);
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        assertThat(addJobParam.getSequenceAnalyserKeyGenerator(), is(notNullValue()));
+        assertThat(addJobParam.getDataPartitioner(), is(notNullValue()));
+
+        assertThat(addJobParam.getDiagnostics().size(), is(0));
+        assertFlowStoreReferences(addJobParam.getFlowStoreReferences(), true, true, true, true);
+
+        assertThat(addJobParam.getDataFileId(), is(DATA_FILE_ID));
+        assertThat(addJobParam.getSubmitter(), is(submitter));
+        assertThat(addJobParam.getFlowBinder(), is(flowBinder));
+        assertThat(addJobParam.getFlow(), is(flow));
+        assertThat(addJobParam.getSink(), is(sink));
+    }
+
+    /*
+     * private methods
+     */
+
+    private AddJobParam constructAddJobParam(boolean isDataFileInputStreamMocked){
+        final AddJobParam addJobParam;
+        final JobInputStream jobInputStream;
+
+        if(isDataFileInputStreamMocked) {
+            jobInputStream = new JobInputStream(jobSpecification, true, 2);
+            addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
+            addJobParam.dataFileInputStream = mock(InputStream.class);
+            UriBuilder mockedUriBuilder = mock(UriBuilder.class);
+            when(mockedUriBuilder.path(jobInputStream.getJobSpecification().getDataFile())).thenReturn(mockedUriBuilder);
+        }
+        else {
+            JobSpecification jobSpecificationWithInvalidDataFile = new JobSpecificationBuilder().setDataFile(DATA_FILE_ID).build();
+            jobInputStream = new JobInputStream(jobSpecificationWithInvalidDataFile, true, 2);
+            addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
+        }
+        return addJobParam;
+    }
+
+    private void assertFlowStoreReferences(
+            FlowStoreReferences flowStoreReferences,
+            boolean hasFlowBinder,
+            boolean hasSubmitter,
+            boolean hasFlow,
+            boolean hasSink) {
+
+        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER) != null, is(hasFlowBinder));
+        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.SUBMITTER) != null, is(hasSubmitter));
+        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW) != null, is(hasFlow));
+        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK) != null, is(hasSink));
+    }
+}

@@ -31,9 +31,6 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     JobStoreServiceConnectorBean jobStoreServiceConnector;
 
     @EJB
-    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-
-    @EJB
     SinkMessageProducerBean sinkMessageProducer;
 
     @EJB

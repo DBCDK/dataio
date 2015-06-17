@@ -55,12 +55,12 @@ public class ViewTest {
     // Test Data
     private JobModel testModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014",
-            "SubmitterNameA", "FlowBinderNameA", "SinkNameA",
+            "SubmitterNameA", "FlowBinderNameA", 3456L, "SinkNameA",
             true, 12, 9, 2, 3, 51, 52, 53,
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
 
     private JobModel testModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
-            "urn:dataio-fs:46551", "424242", "SubmitterNameB", "FlowBinderNameB", "SinkNameB",
+            "urn:dataio-fs:46551", "424242", "SubmitterNameB", "FlowBinderNameB", 3457L, "SinkNameB",
             true, 5, 5, 0, 0, 54, 55, 56,
             "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
 

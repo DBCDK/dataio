@@ -37,6 +37,7 @@ public class JobModelMapper {
                 Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()),
                 getSubmitterName(jobInfoSnapshot.getFlowStoreReferences()) ,
                 getFlowBinderName(jobInfoSnapshot.getFlowStoreReferences()),
+                getSinkId(jobInfoSnapshot.getFlowStoreReferences()),
                 getSinkName(jobInfoSnapshot.getFlowStoreReferences()),
                 jobInfoSnapshot.getState().allPhasesAreDone(),
                 getTotal(jobInfoSnapshot.getState()),
@@ -98,6 +99,19 @@ public class JobModelMapper {
     private static String getFlowBinderName(FlowStoreReferences references) {
         FlowStoreReference flowBinderReference = references.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
         return flowBinderReference == null ? "" : flowBinderReference.getName();
+    }
+
+    /**
+     * This method retrieves the id of the sink.
+     * Due to a change in the database scheme it is necessary to check if the referenced sink exists.
+     * For jobs created before 02.03.2015 the reference will be null.
+     *
+     * @param references the referenced flow store elements
+     * @return id of the sink - zero if the referenced sink doesn't exist
+     */
+    private static long getSinkId(FlowStoreReferences references) {
+        FlowStoreReference sinkReference = references.getReference(FlowStoreReferences.Elements.SINK);
+        return sinkReference == null ? 0 : sinkReference.getId();
     }
 
     /**

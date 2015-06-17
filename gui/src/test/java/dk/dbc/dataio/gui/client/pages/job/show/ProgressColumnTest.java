@@ -51,17 +51,17 @@ public class ProgressColumnTest {
     // Test data
     private JobModel legalTestModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
-            "FlowBinderName", "SinkName",
+            "FlowBinderName", 6789L, "SinkName",
             true, 100, 10, 0, 0, 41, 23, 12,
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
     private JobModel illegalTestModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
-            "FlowBinderName", "SinkName",
+            "FlowBinderName", 6789L, "SinkName",
             true, 100, 10, 0, 0, 41, 23, 43,
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
     private JobModel illegalTestModel2 = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
-            "FlowBinderName", "SinkName",
+            "FlowBinderName", 6789L, "SinkName",
             true, 20, 10, 0, 0, 41, 23, 12,
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
 

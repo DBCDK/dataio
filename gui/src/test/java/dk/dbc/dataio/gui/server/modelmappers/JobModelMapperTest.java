@@ -103,6 +103,7 @@ public class JobModelMapperTest {
         when(mockedFlowStoreReferences.getReference(FlowStoreReferences.Elements.SUBMITTER)).thenReturn(mockedSubmitterFlowStoreReference);
         when(mockedFlowBinderFlowStoreReference.getName()).thenReturn("flowbindeR");
         when(mockedFlowFlowStoreReference.getName()).thenReturn("floW");
+        when(mockedSinkFlowStoreReference.getId()).thenReturn(37L);
         when(mockedSinkFlowStoreReference.getName()).thenReturn("sinK");
         when(mockedSubmitterFlowStoreReference.getName()).thenReturn("submitteR");
 
@@ -184,6 +185,7 @@ public class JobModelMapperTest {
         assertThat(jobModel.getSubmitterNumber(), is("64646"));
         assertThat(jobModel.getSubmitterName(), is("submitteR"));
         assertThat(jobModel.getFlowBinderName(), is("flowbindeR"));
+        assertThat(jobModel.getSinkId(), is(37L));
         assertThat(jobModel.getSinkName(), is("sinK"));
         assertThat(jobModel.isJobDone(), is(true));
         assertThat(jobModel.getItemCounter(), is(564L + 4L + 567L));

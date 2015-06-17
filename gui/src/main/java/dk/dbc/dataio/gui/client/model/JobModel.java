@@ -11,6 +11,7 @@ public class JobModel extends GenericBackendModel {
     private String submitterNumber;
     private String submitterName;
     private String flowBinderName;
+    private long sinkId;
     private String sinkName;
     private boolean jobDone;
     private long itemCounter;
@@ -38,13 +39,14 @@ public class JobModel extends GenericBackendModel {
      * @param submitterNumber                      The Submitter Number
      * @param submitterName                        The Submitter Name
      * @param flowBinderName                       The Flow Binder Name
+     * @param sinkId                               The Sink Id
      * @param sinkName                             The Sink Name
      * @param jobDone                              The Job Done
      * @param itemCounter                          The Item Counter
      * @param succeededCounter                     The Succeeded Counter
      * @param failedCounter                        The Failed Counter
      * @param ignoredCounter                       The Ignored Counter
-     * @param partitionedCounter                   The number of Patitioned Items
+     * @param partitionedCounter                   The number of Partitioned Items
      * @param processedCounter                     The number of Processed Items
      * @param deliveredCounter                     The number of Delivered Items
      * @param packaging                            The Packaging
@@ -61,6 +63,7 @@ public class JobModel extends GenericBackendModel {
                     String submitterNumber,
                     String submitterName,
                     String flowBinderName,
+                    long sinkId,
                     String sinkName,
                     boolean jobDone,
                     long itemCounter,
@@ -83,6 +86,7 @@ public class JobModel extends GenericBackendModel {
         this.submitterNumber = submitterNumber;
         this.submitterName = submitterName;
         this.flowBinderName = flowBinderName;
+        this.sinkId = sinkId;
         this.sinkName = sinkName;
         this.itemCounter = itemCounter;
         this.jobDone = jobDone;
@@ -105,7 +109,7 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", "", "", false, 0, 0, 0, 0, 0, 0, 0, "", "", "", "", "", "", "");
+        this("", "", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, "", "", "", "", "", "", "");
     }
 
 
@@ -215,6 +219,24 @@ public class JobModel extends GenericBackendModel {
      */
     public void setFlowBinderName(String flowBinderName) {
         this.flowBinderName = flowBinderName;
+    }
+
+    /**
+     * Gets the Sink Id
+     *
+     * @return The Sink Id
+     */
+    public long getSinkId() {
+        return sinkId;
+    }
+
+    /**
+     * Sets the Sink Id
+     *
+     * @param sinkId The Sink Id
+     */
+    public void setSinkId(long sinkId) {
+        this.sinkId = sinkId;
     }
 
     /**

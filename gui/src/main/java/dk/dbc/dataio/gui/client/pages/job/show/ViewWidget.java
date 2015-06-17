@@ -51,10 +51,10 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Default constructor
-     * @param clientFactory, the client factory
+     * @param headerText, the text for the header in the view
      */
-    public ViewWidget(ClientFactory clientFactory) {
-        super(clientFactory.getMenuTexts().menu_Jobs());
+    public ViewWidget(ClientFactory clientFactory, String headerText) {
+        super(headerText);
         texts = clientFactory.getJobsShowTexts();
         add(uiBinder.createAndBindUi(this));
         this.allJobsButton.setValue(true);

@@ -69,6 +69,7 @@ public class PresenterImplTest {
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {
             super(clientFactory);
+            view = mockedView;
         }
         @Override
         protected void fetchJobsFromJobStore(JobListCriteriaModel model) {
@@ -109,7 +110,6 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
-        verify(mockedClientFactory).getJobsShowView();
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
     }

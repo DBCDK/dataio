@@ -42,8 +42,8 @@ public class View extends ViewWidget {
      *
      * @param clientFactory, the client factory
      */
-    public View(ClientFactory clientFactory) {
-        super(clientFactory);
+    public View(ClientFactory clientFactory, String headerText) {
+        super(clientFactory, headerText);
         View.resources = clientFactory.getImageResources();
         setupColumns();
     }

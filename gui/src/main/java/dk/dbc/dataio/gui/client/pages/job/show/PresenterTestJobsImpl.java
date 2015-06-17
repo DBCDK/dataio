@@ -14,6 +14,7 @@ public class PresenterTestJobsImpl extends PresenterImpl {
      */
     public PresenterTestJobsImpl(ClientFactory clientFactory) {
         super(clientFactory);
+        view = clientFactory.getTestJobsShowView();
     }
 
     /**

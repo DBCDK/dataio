@@ -18,7 +18,7 @@ import java.util.List;
 */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
     private ClientFactory clientFactory;
-    private View view;
+    protected View view;
     protected JobStoreProxyAsync jobStoreProxy;
     private PlaceController placeController;
 
@@ -44,7 +44,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = clientFactory.getJobsShowView();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
         fetchJobs();

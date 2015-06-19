@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components.MultiList;
+package dk.dbc.dataio.gui.client.components.multilist;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -15,7 +15,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.PushButton;
-import dk.dbc.dataio.gui.client.components.SortableList.SortableList;
+import dk.dbc.dataio.gui.client.components.sortablelist.SortableList;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components.SortableList;
+package dk.dbc.dataio.gui.client.components.sortablelist;
 
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;

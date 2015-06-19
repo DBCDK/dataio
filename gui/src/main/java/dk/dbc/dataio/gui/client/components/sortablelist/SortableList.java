@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components.SortableList;
+package dk.dbc.dataio.gui.client.components.sortablelist;
 
 public class SortableList extends SortableListWidget {
 

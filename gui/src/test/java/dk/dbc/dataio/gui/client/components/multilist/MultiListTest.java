@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components.MultiList;
+package dk.dbc.dataio.gui.client.components.multilist;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;

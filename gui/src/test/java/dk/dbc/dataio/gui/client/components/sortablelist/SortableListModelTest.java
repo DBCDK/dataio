@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components.SortableList;
+package dk.dbc.dataio.gui.client.components.sortablelist;
 
 import com.google.gwt.query.client.GQuery;
 import com.google.gwt.user.client.ui.FlowPanel;

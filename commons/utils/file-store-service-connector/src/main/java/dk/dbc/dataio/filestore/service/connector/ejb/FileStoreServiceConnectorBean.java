@@ -4,7 +4,6 @@ import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -48,7 +47,7 @@ public class FileStoreServiceConnectorBean {
         // PoolingHttpClientConnectionManager but we need to bump jersey
         // version before this shift can be made.
 
-        final PoolingClientConnectionManager poolingClientConnectionManager = new PoolingClientConnectionManager();
+        final org.apache.http.impl.conn.PoolingClientConnectionManager poolingClientConnectionManager = new org.apache.http.impl.conn.PoolingClientConnectionManager();
 
         poolingClientConnectionManager.setMaxTotal(MAX_HTTP_CONNECTIONS);
         poolingClientConnectionManager.setDefaultMaxPerRoute(MAX_HTTP_CONNECTIONS);

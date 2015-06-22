@@ -16,12 +16,11 @@ import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.core.UriBuilder;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -37,28 +36,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AddJobParamTest {
-    private FlowStoreServiceConnector mockedFlowStoreServiceConnector;
-    private FileStoreServiceConnector mockedFileStoreServiceConnector;
-    private JobSpecification jobSpecification;
     private static final String ERROR_MESSAGE = "Error Message";
     private static final String DATA_FILE_ID = "42";
+
     private static final FileStoreUrn FILE_STORE_URN;
+    private static final JobSpecification jobSpecification;
+
+    private final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
 
     static {
         try {
             FILE_STORE_URN = FileStoreUrn.create(DATA_FILE_ID);
+            jobSpecification = new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).build();
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    @Before
-    public void setup() {
-        jobSpecification = new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).build();
-
-        // Setup mocks
-        mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     }
 
     @Test
@@ -100,7 +93,7 @@ public class AddJobParamTest {
         assertThat(addJobParam.diagnostics.size(), is(0));
 
         assertThat(addJobParam.flowStoreReferences, is(notNullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+        assertThat(addJobParam.flowStoreReferences, is(new FlowStoreReferences()));
     }
 
     @Test
@@ -117,7 +110,7 @@ public class AddJobParamTest {
 
         assertThat(addJobParam.dataFileId, is(nullValue()));
         assertThat(addJobParam.dataFileInputStream, is(nullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+        assertThat(addJobParam.flowStoreReferences, is(new FlowStoreReferences()));
     }
 
     @Test
@@ -161,7 +154,7 @@ public class AddJobParamTest {
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(Long.valueOf(jobSpecification.getSubmitterId()).toString()), is(true));
         assertThat(addJobParam.submitter, is(nullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+        assertThat(addJobParam.flowStoreReferences, is(new FlowStoreReferences()));
     }
 
     @Test
@@ -175,7 +168,10 @@ public class AddJobParamTest {
 
         assertThat(addJobParam.diagnostics.size(), is(0));
         assertThat(addJobParam.submitter, is(notNullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, true, false, false);
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final FlowStoreReference submitterReference = new FlowStoreReference(submitter.getId(), submitter.getVersion(), submitter.getContent().getName());
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SUBMITTER, submitterReference);
+        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
     }
 
     @Test
@@ -195,12 +191,12 @@ public class AddJobParamTest {
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(jobSpecification.toString()), is(true));
         assertThat(addJobParam.flowBinder, is(nullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, false, false, false, false);
+        assertThat(addJobParam.flowStoreReferences, is(new FlowStoreReferences()));
     }
 
     @Test
     public void lookupFlowBinder_flowBinderFound_flowBinderReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
-        FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         when(mockedFlowStoreServiceConnector.getFlowBinder(
                 eq(jobSpecification.getPackaging()),
@@ -213,7 +209,11 @@ public class AddJobParamTest {
 
         assertThat(addJobParam.diagnostics.size(), is(0));
         assertThat(addJobParam.flowBinder, is(notNullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, false);
+
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final FlowStoreReference flowBinderReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, flowBinderReference);
+        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
     }
 
     @Test
@@ -238,7 +238,11 @@ public class AddJobParamTest {
 
         assertThat(addJobParam.flowBinder, is(notNullValue()));
         assertThat(addJobParam.flow, is(nullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, false);
+
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final FlowStoreReference flowBinderReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, flowBinderReference);
+        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
     }
 
     @Test
@@ -260,7 +264,13 @@ public class AddJobParamTest {
         assertThat(addJobParam.diagnostics.size(), is(0));
         assertThat(addJobParam.flowStoreReferences, is(notNullValue()));
         assertThat(addJobParam.flow, is(notNullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, true, false);
+
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final FlowStoreReference flowBinderReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
+        final FlowStoreReference flowReference = new FlowStoreReference(flow.getId(), flow.getVersion(), flow.getContent().getName());
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, flowBinderReference);
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW, flowReference);
+        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
     }
 
     @Test
@@ -284,7 +294,10 @@ public class AddJobParamTest {
 
         assertThat(addJobParam.flowBinder, is(notNullValue()));
         assertThat(addJobParam.sink, is(nullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, false);
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final FlowStoreReference flowStoreReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, flowStoreReference);
+        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
     }
 
     @Test
@@ -306,7 +319,13 @@ public class AddJobParamTest {
 
         assertThat(addJobParam.flowBinder, is(notNullValue()));
         assertThat(addJobParam.sink, is(notNullValue()));
-        assertFlowStoreReferences(addJobParam.flowStoreReferences, true, false, false, true);
+
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final FlowStoreReference flowBinderReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
+        final FlowStoreReference sinkReference = new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName());
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, flowBinderReference);
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK, sinkReference);
+        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
     }
 
     @Test
@@ -335,7 +354,17 @@ public class AddJobParamTest {
         assertThat(addJobParam.getDataPartitioner(), is(notNullValue()));
 
         assertThat(addJobParam.getDiagnostics().size(), is(0));
-        assertFlowStoreReferences(addJobParam.getFlowStoreReferences(), true, true, true, true);
+
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final FlowStoreReference submitterReference = new FlowStoreReference(submitter.getId(), submitter.getVersion(), submitter.getContent().getName());
+        final FlowStoreReference flowBinderReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
+        final FlowStoreReference flowReference = new FlowStoreReference(flow.getId(), flow.getVersion(), flow.getContent().getName());
+        final FlowStoreReference sinkReference = new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName());
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SUBMITTER, submitterReference);
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, flowBinderReference);
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW, flowReference);
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK, sinkReference);
+        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
 
         assertThat(addJobParam.getDataFileId(), is(DATA_FILE_ID));
         assertThat(addJobParam.getSubmitter(), is(submitter));
@@ -356,8 +385,6 @@ public class AddJobParamTest {
             jobInputStream = new JobInputStream(jobSpecification, true, 2);
             addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
             addJobParam.dataFileInputStream = mock(InputStream.class);
-            UriBuilder mockedUriBuilder = mock(UriBuilder.class);
-            when(mockedUriBuilder.path(jobInputStream.getJobSpecification().getDataFile())).thenReturn(mockedUriBuilder);
         }
         else {
             JobSpecification jobSpecificationWithInvalidDataFile = new JobSpecificationBuilder().setDataFile(DATA_FILE_ID).build();
@@ -365,18 +392,5 @@ public class AddJobParamTest {
             addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
         }
         return addJobParam;
-    }
-
-    private void assertFlowStoreReferences(
-            FlowStoreReferences flowStoreReferences,
-            boolean hasFlowBinder,
-            boolean hasSubmitter,
-            boolean hasFlow,
-            boolean hasSink) {
-
-        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER) != null, is(hasFlowBinder));
-        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.SUBMITTER) != null, is(hasSubmitter));
-        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW) != null, is(hasFlow));
-        assertThat(flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK) != null, is(hasSink));
     }
 }

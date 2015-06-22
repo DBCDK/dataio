@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
@@ -21,12 +20,10 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
-import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -34,7 +31,6 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,12 +56,7 @@ public class JobStoreBeanTest {
     private static final int CHUNK_ID = 0;
     private static final short ITEM_ID = 0;
 
-    private static FlowStoreServiceConnectorException flowStoreException;
-    private static FlowStoreServiceConnectorUnexpectedStatusCodeException flowBinderNotFound;
-    private static FlowStoreServiceConnectorUnexpectedStatusCodeException flowStoreUnexpectedException;
-    private static FileStoreServiceConnectorException fileStoreException;
     private static FileStoreServiceConnectorUnexpectedStatusCodeException fileStoreUnexpectedException;
-    private static FileStoreServiceConnectorUnexpectedStatusCodeException jobDataFileNotFound;
 
     private JobStoreBean jobStoreBean;
     private FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean;
@@ -77,12 +68,7 @@ public class JobStoreBeanTest {
 
     @BeforeClass
     public static void setupExceptions() {
-        flowStoreException = new FlowStoreServiceConnectorException("internal server error");
-        flowBinderNotFound = new FlowStoreServiceConnectorUnexpectedStatusCodeException("not found", 404);
-        flowStoreUnexpectedException = new FlowStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
-        fileStoreException = new FileStoreServiceConnectorException("internal server error");
         fileStoreUnexpectedException = new FileStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
-        jobDataFileNotFound = new FileStoreServiceConnectorUnexpectedStatusCodeException("not found", 404);
     }
 
     @Before
@@ -101,103 +87,6 @@ public class JobStoreBeanTest {
             jobStoreBean.addAndScheduleJob(null);
             fail("No NullPointerException Thrown");
         } catch(NullPointerException e) {}
-    }
-
-    @Test
-    public void addAndScheduleJob_getFlowBinder_flowStoreServiceConnectorUnexpectedStatusCodeException() throws FlowStoreServiceConnectorException {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        whenGetFlowBinderThenThrow(jobInputStream.getJobSpecification(), flowStoreUnexpectedException);
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch (JobStoreException e) {
-            assertThat(e instanceof InvalidInputException, is(false));
-            assertThat(e.getCause() instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException, is(true));
-            assertThat(((FlowStoreServiceConnectorUnexpectedStatusCodeException) e.getCause()).getStatusCode(), is(flowStoreUnexpectedException.getStatusCode()));
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_getFlowBinder_flowStoreServiceConnectorException() throws FlowStoreServiceConnectorException {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        whenGetFlowBinderThenThrow(jobInputStream.getJobSpecification(), flowStoreException);
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch (JobStoreException e) {
-            assertThat(e instanceof InvalidInputException, is(false));
-            assertThat(e.getCause() instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException, is(false));
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_flowBinderNotFound_throwsJobStoreException() throws FlowStoreServiceConnectorException {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        whenGetFlowBinderThenThrow(jobInputStream.getJobSpecification(), flowBinderNotFound);
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch (JobStoreException e) {
-            JobError jobError = ((InvalidInputException) e).getJobError();
-            assertThat(jobError, is(notNullValue()));
-            assertThat(jobError.getCode(), is(JobError.Code.INVALID_FLOW_BINDER_IDENTIFIER));
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_flowNotFound_throwsJobStoreException() throws FlowStoreServiceConnectorException, JobStoreException{
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        final FlowBinder flowBinder = new FlowBinderBuilder().build();
-
-        whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
-        when(mockedFlowStoreServiceConnectorBean.getConnector().getFlow(flowBinder.getContent().getFlowId())).thenThrow(flowStoreException);
-
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {}
-    }
-
-    @Test
-    public void addAndScheduleJob_submitterNotFound_throwsJobStoreException() throws FlowStoreServiceConnectorException, JobStoreException{
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        final FlowBinder flowBinder = new FlowBinderBuilder().build();
-        whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
-        when(mockedFlowStoreServiceConnectorBean.getConnector().getSubmitterBySubmitterNumber(jobInputStream.getJobSpecification().getSubmitterId())).thenThrow(flowStoreException);
-
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {}
-    }
-
-    @Test
-    public void addAndScheduleJob_getFile_throwsURISyntaxException() throws FlowStoreServiceConnectorException {
-        final JobInputStream jobInputStream = getJobInputStream("invalid");
-        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {
-            JobError jobError = ((InvalidInputException) e).getJobError();
-            assertThat(jobError, is(notNullValue()));
-            assertThat(jobError.getCode(), is(JobError.Code.INVALID_URI_SYNTAX));
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_fileAttributesNotFound_throwsJobStoreException() throws Exception {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        setupSuccessfulMockedReturnsFromJobStore(jobInputStream.getJobSpecification());
-        final String xml = getXml();
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenReturn(byteArrayInputStream);
-        when(mockedFileStoreServiceConnectorBean.getConnector().getByteSize(anyString())).thenThrow(jobDataFileNotFound);
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {}
     }
 
     @Test
@@ -266,65 +155,6 @@ public class JobStoreBeanTest {
         }
     }
 
-    @Test
-    public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorUnexpectedStatusCodeException() throws Exception {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenThrow(fileStoreUnexpectedException);
-
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {
-            assertThat(e instanceof InvalidInputException, is(false));
-            assertThat(e.getCause() instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(true));
-            assertThat(((FileStoreServiceConnectorUnexpectedStatusCodeException) e.getCause()).getStatusCode(), is(fileStoreUnexpectedException.getStatusCode()));
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_getInputStream_inputStreamNotFound() throws Exception {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenThrow(jobDataFileNotFound);
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {
-            JobError jobError = ((InvalidInputException) e).getJobError();
-            assertThat(jobError, is(notNullValue()));
-            assertThat(jobError.getCode(), is(JobError.Code.INVALID_DATAFILE));
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_getInputStream_fileStoreServiceConnectorException() throws Exception {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-        when(mockedFileStoreServiceConnectorBean.getConnector().getFile(anyString())).thenThrow(fileStoreException);
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {
-            assertThat(e instanceof InvalidInputException, is(false));
-            assertThat(e.getCause() instanceof FileStoreServiceConnectorUnexpectedStatusCodeException, is(false));
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_sinkNotFound_throws() throws FlowStoreServiceConnectorException, JobStoreException {
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        final FlowBinder flowBinder = new FlowBinderBuilder().build();
-
-        whenGetFlowBinderThenReturnFlowBinder(jobInputStream.getJobSpecification(), flowBinder);
-        when(mockedFlowStoreServiceConnectorBean.getConnector().getSink(flowBinder.getContent().getSinkId())).thenThrow(flowStoreException);
-
-        try {
-            jobStoreBean.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {}
-    }
-
     @Test(expected = JobStoreException.class)
     public void addChunk_onFailureToUpdateJob_throwsJobStoreException() throws JobStoreException {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
@@ -345,19 +175,6 @@ public class JobStoreBeanTest {
             assertThat(jobInfoSnapshotReturned, is(notNullValue()));
         } catch(JobStoreException e) {
             fail("Exception thrown by addChunk()");
-        }
-    }
-
-    @Test
-    public void getResourceBundle_onFailureToFindJobEntity_throwsJobStoreException() throws JobStoreException {
-        JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "msg", null);
-        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
-        when(mockedJobStore.getResourceBundle(0)).thenThrow(invalidInputException);
-        try {
-            jobStoreBean.getResourceBundle(0);
-            fail("No exception thrown by getResourceBundle()");
-        } catch( JobStoreException e) {
-            assertThat(e instanceof InvalidInputException, is(true));
         }
     }
 
@@ -390,19 +207,6 @@ public class JobStoreBeanTest {
         final ItemListCriteria itemListCriteria = new ItemListCriteria();
         jobStoreBean.listItems(itemListCriteria);
         verify(mockedJobStore).listItems(itemListCriteria);
-    }
-
-    @Test
-    public void getItemData_onFailureToFindItemEntity_throwsJobStoreException() throws JobStoreException {
-        JobError jobError = new JobError(JobError.Code.INVALID_ITEM_IDENTIFIER, "msg", null);
-        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
-        when(mockedJobStore.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING)).thenThrow(invalidInputException);
-        try {
-            jobStoreBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
-            fail("No exception thrown by getChunkItem()");
-        } catch( JobStoreException e) {
-            assertThat(e instanceof InvalidInputException, is(true));
-        }
     }
 
     @Test
@@ -475,26 +279,12 @@ public class JobStoreBeanTest {
                 .build();
 
         when(mockedJobStore.addJob(
-                any(JobInputStream.class),
-                any(DataPartitionerFactory.DataPartitioner.class),
-                any(SequenceAnalyserKeyGenerator.class),
-                any(Flow.class),
-                any(Sink.class),
-                any(FlowStoreReferences.class))).thenReturn(jobInfoSnapshot);
+                any(AddJobParam.class))).thenReturn(jobInfoSnapshot);
     }
 
     private JobInputStream getJobInputStream(String datafile) {
         JobSpecification jobSpecification = new JobSpecificationBuilder().setDataFile(datafile).build();
         return new JobInputStream(jobSpecification, false, 3);
-    }
-
-    private void whenGetFlowBinderThenThrow(JobSpecification jobSpecification, Exception e) throws FlowStoreServiceConnectorException{
-        when(mockedFlowStoreServiceConnectorBean.getConnector().getFlowBinder(
-                jobSpecification.getPackaging(),
-                jobSpecification.getFormat(),
-                jobSpecification.getCharset(),
-                jobSpecification.getSubmitterId(),
-                jobSpecification.getDestination())).thenThrow(e);
     }
 
     private void whenGetFlowBinderThenReturnFlowBinder(JobSpecification jobSpecification, FlowBinder flowBinder) throws FlowStoreServiceConnectorException {

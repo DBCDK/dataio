@@ -1,22 +1,33 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -35,7 +46,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
@@ -47,6 +57,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
@@ -74,16 +85,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreTest {
-    static {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
-    }
-
+    private static final String ERROR_MESSAGE = "Error Message";
     private static final FlowCacheEntity EXPECTED_FLOW_CACHE_ENTITY = new FlowCacheEntity();
     private static final SinkCacheEntity EXPECTED_SINK_CACHE_ENTITY = new SinkCacheEntity();
     private static final int EXPECTED_NUMBER_OF_CHUNKS = 2;
     private static final int DEFAULT_JOB_ID = 1;
     private static final int DEFAULT_CHUNK_ID = 1;
     private static final short DEFAULT_ITEM_ID = 1;
+    private static final FileStoreUrn FILE_STORE_URN;
     private static final List<String> EXPECTED_DATA_ENTRIES = Arrays.asList(
             base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>first</record></records>"),
             base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>second</record></records>"),
@@ -101,6 +110,17 @@ public class PgJobStoreTest {
     private final EntityManager entityManager = mock(EntityManager.class);
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);
+    private static final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private static final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+
+    static {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+        try {
+            FILE_STORE_URN = FileStoreUrn.create("42");
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     @Before
     public void setupExpectations() {
@@ -113,80 +133,98 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void addJob_jobInputStreamArgIsNull_throws() throws JobStoreException {
+    public void addJob_addJobParamArgIsNull_throws() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         try {
-            final Params params = new Params();
-            pgJobStore.addJob(null, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+            pgJobStore.addJob(null);
             fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
+        } catch (NullPointerException e) {}
     }
 
     @Test
-    public void addJob_dataPartitionerArgIsNull_throws() throws JobStoreException {
+    public void addJob_diagnosticWithLevelFatalFound_returnsJobInformationSnapshotWithJobMarkedAsCompleted() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
-        try {
-            final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, null, params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
 
-    @Test
-    public void addJob_sequenceAnalyserKeyGeneratorArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        try {
-            final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, null, params.flow, params.sink, params.flowStoreReferences);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+        mockedAddJobParam.setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, ERROR_MESSAGE)));
 
-    @Test
-    public void addJob_flowArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        try {
-            final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, null, params.sink, params.flowStoreReferences);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
-    }
+        JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("State.Phase.PARTITIONING.beginDate", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getBeginDate(), is(nullValue()));
 
-    @Test
-    public void addJob_sinkArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        try {
-            final Params params = new Params();
-            pgJobStore.addJob(params.jobInputStream, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.flow, null, params.flowStoreReferences);
-            fail("No exception thrown");
-        } catch (NullPointerException e) {
-        }
+        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(mockedAddJobParam.getDiagnostics()));
+        assertThat("JobInfoSnapshot.FlowStoreReferences", jobInfoSnapshot.getFlowStoreReferences(), is(mockedAddJobParam.getFlowStoreReferences()));
     }
 
     @Test
     public void addJob_allArgsAreValid_returnsJobInformationSnapshot() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+        final FlowStoreReferences flowStoreReferences = buildFlowStoreReferences(
+                mockedAddJobParam.getSubmitter(),
+                mockedAddJobParam.getFlowBinder(),
+                mockedAddJobParam.getFlow(),
+                mockedAddJobParam.getSink());
+
+        mockedAddJobParam.setFlowStoreReferences(flowStoreReferences);
+
         final TestableJobEntity jobEntity = new TestableJobEntity();
+
         jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
         jobEntity.setState(new State());
-        jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
-        when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
+        jobEntity.setFlowStoreReferences(mockedAddJobParam.getFlowStoreReferences());
+        jobEntity.setSpecification(mockedAddJobParam.getJobInputStream().getJobSpecification());
+
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
-        final Params params = new Params();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(params.jobInputStream, params.dataPartitioner,
-                params.sequenceAnalyserKeyGenerator, params.flow, params.sink, params.flowStoreReferences);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
 
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(EXPECTED_NUMBER_OF_CHUNKS));
         assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("Time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
+
+        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(mockedAddJobParam.getDiagnostics()));
+        assertThat("JobInfoSnapshot.FlowStoreReferences",jobInfoSnapshot.getFlowStoreReferences(), is(mockedAddJobParam.getFlowStoreReferences()));
+    }
+
+    @Test
+    public void addJob_diagnosticWithLevelWarningFound_returnsJobInformationSnapshot() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+        mockedAddJobParam.setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.WARNING, ERROR_MESSAGE)));
+
+        final FlowStoreReferences flowStoreReferences = buildFlowStoreReferences(
+                mockedAddJobParam.getSubmitter(),
+                mockedAddJobParam.getFlowBinder(),
+                mockedAddJobParam.getFlow(),
+                mockedAddJobParam.getSink());
+
+        mockedAddJobParam.setFlowStoreReferences(flowStoreReferences);
+
+        final State state = new State();
+        state.getDiagnostics().addAll(mockedAddJobParam.getDiagnostics());
+
+        final TestableJobEntity jobEntity = new TestableJobEntity();
+        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
+        jobEntity.setState(state);
+        jobEntity.setFlowStoreReferences(mockedAddJobParam.getFlowStoreReferences());
+        jobEntity.setSpecification(new JobSpecificationBuilder().build());
+
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+
+        assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(EXPECTED_NUMBER_OF_CHUNKS));
+        assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
+        assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
+        assertThat("Time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
+
+        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(mockedAddJobParam.getDiagnostics()));
+        assertThat("JobInfoSnapshot.FlowStoreReferences",jobInfoSnapshot.getFlowStoreReferences(), is(mockedAddJobParam.getFlowStoreReferences()));
     }
 
     @Test
@@ -1017,6 +1055,7 @@ public class PgJobStoreTest {
         pgJobStore.jobSchedulerBean = jobSchedulerBean;
         pgJobStore.entityManager = entityManager;
         pgJobStore.sessionContext = sessionContext;
+        when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
         return pgJobStore;
     }
 
@@ -1149,6 +1188,19 @@ public class PgJobStoreTest {
         }
     }
 
+    private FlowStoreReferences buildFlowStoreReferences(Submitter submitter, FlowBinder flowBinder, Flow flow, Sink sink) {
+        return new FlowStoreReferencesBuilder()
+                .setFlowStoreReference(FlowStoreReferences.Elements.SUBMITTER,
+                        new FlowStoreReference(submitter.getId(), submitter.getVersion(), submitter.getContent().getName()))
+                .setFlowStoreReference(FlowStoreReferences.Elements.FLOW_BINDER,
+                        new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName()))
+                .setFlowStoreReference(FlowStoreReferences.Elements.FLOW,
+                        new FlowStoreReference(flow.getId(), flow.getVersion(), flow.getContent().getName()))
+                .setFlowStoreReference(FlowStoreReferences.Elements.SINK,
+                        new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName()))
+                .build();
+    }
+
     /* Helper class for parameter values (with defaults)
      */
     private static class Params {
@@ -1186,6 +1238,49 @@ public class PgJobStoreTest {
             sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
             maxChunkSize = 10;
             dataFileId = "datafile";
+        }
+    }
+
+    private static class MockedAddJobParam extends AddJobParam {
+        final String xml =
+                "<records>"
+                        + "<record>first</record>"
+                        + "<record>second</record>"
+                        + "<record>third</record>"
+                        + "<record>fourth</record>"
+                        + "<record>fifth</record>"
+                        + "<record>sixth</record>"
+                        + "<record>seventh</record>"
+                        + "<record>eighth</record>"
+                        + "<record>ninth</record>"
+                        + "<record>tenth</record>"
+                        + "<record>eleventh</record>"
+                        + "</records>";
+
+        public MockedAddJobParam() {
+            super(new JobInputStream(new JobSpecificationBuilder()
+                    .setDataFile(FILE_STORE_URN.toString())
+                    .build(), true, 0), mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
+            submitter = new SubmitterBuilder().build();
+            flow = new FlowBuilder().build();
+            sink = new SinkBuilder().build();
+            flowBinder = new FlowBinderBuilder().build();
+            flowStoreReferences = new FlowStoreReferencesBuilder().build();
+            diagnostics = new ArrayList<>();
+
+            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
+            dataFileInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+            dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
+                    StandardCharsets.UTF_8.name());
+        }
+
+        public void setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
+            this.flowStoreReferences = flowStoreReferences;
+        }
+
+        public void setDiagnostics(List<Diagnostic> diagnostics) {
+            this.diagnostics.clear();
+            this.diagnostics.addAll(diagnostics);
         }
     }
 

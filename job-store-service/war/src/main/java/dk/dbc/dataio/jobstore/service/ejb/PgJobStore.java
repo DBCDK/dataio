@@ -20,18 +20,19 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
+import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DataException;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
-import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -44,7 +45,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import org.slf4j.Logger;
@@ -87,56 +87,49 @@ public class PgJobStore {
 
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
-     * @param jobInputStream job input stream
-     * @param dataPartitioner data partitioner used for data extraction and partitioning
-     * @param sequenceAnalyserKeyGenerator sequence analyser key generator
-     * @param flow specific version of flow to be cached for job
-     * @param sink specific version of sink to be cached for job
+     * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.
+     *                    If the list contains any diagnostic with level FATAL, the job will be marked as finished
+     *                    before creation.
      * @return information snapshot of added job
      * @throws NullPointerException if given any null-valued argument
      * @throws JobStoreException on failure to add job
      */
-    public JobInfoSnapshot addJob(JobInputStream jobInputStream, DataPartitionerFactory.DataPartitioner dataPartitioner,
-                                  SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, Flow flow, Sink sink, FlowStoreReferences flowStoreReferences) throws JobStoreException {
+    public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
-            InvariantUtil.checkNotNullOrThrow(dataPartitioner, "dataPartitioner");
-            InvariantUtil.checkNotNullOrThrow(sequenceAnalyserKeyGenerator, "sequenceAnalyserKeyGenerator");
-            InvariantUtil.checkNotNullOrThrow(flow, "flow");
-            InvariantUtil.checkNotNullOrThrow(sink, "sink");
-            InvariantUtil.checkNotNullOrThrow(flowStoreReferences, "flowStoreReferences");
-
             LOGGER.info("Adding job");
             final PgJobStore businessObject = sessionContext.getBusinessObject(PgJobStore.class);
 
             // Creates job entity in its own transactional scope to enable external visibility
-            JobEntity jobEntity = businessObject.createJobEntity(jobInputStream, flow, sink, flowStoreReferences);
+            JobEntity jobEntity = businessObject.createJobEntity(addJobParam);
 
-            final short maxChunkSize = 10;
-            int chunkId = 0;
-            ChunkEntity chunkEntity;
-            do {
-                // Creates each chunk entity (and associated item entities) in its own
-                // transactional scope to enable external visibility of job creation progress
-                chunkEntity = businessObject.createChunkEntity(jobEntity.getId(), chunkId++, maxChunkSize,
-                        dataPartitioner, sequenceAnalyserKeyGenerator, jobInputStream.getJobSpecification().getDataFile());
+            // Continue only if timeOfCompletion is not set (all required entities could be located).
+            if(jobEntity.getTimeOfCompletion() == null) {
+                final short maxChunkSize = 10;
+                int chunkId = 0;
+                ChunkEntity chunkEntity;
+                do {
+                    // Creates each chunk entity (and associated item entities) in its own
+                    // transactional scope to enable external visibility of job creation progress
+                    chunkEntity = businessObject.createChunkEntity(jobEntity.getId(), chunkId++, maxChunkSize,
+                            addJobParam.getDataPartitioner(), addJobParam.getSequenceAnalyserKeyGenerator(), addJobParam.getJobInputStream().getJobSpecification().getDataFile());
 
-                if (chunkEntity != null) {
-                    jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), sink);
-                }
-            } while (chunkEntity != null);
+                    if (chunkEntity != null) {
+                        jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), addJobParam.getSink());
+                    }
+                } while (chunkEntity != null);
 
-            // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
+                // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
+                final StateChange jobStateChange = new StateChange()
+                        .setPhase(State.Phase.PARTITIONING)
+                        .setEndDate(new Date());
 
-            final StateChange jobStateChange = new StateChange()
-                    .setPhase(State.Phase.PARTITIONING)
-                    .setEndDate(new Date());
-
-            jobEntity = getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
-            updateJobEntityState(jobEntity, jobStateChange);
+                jobEntity = getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
+                updateJobEntityState(jobEntity, jobStateChange);
+            } else {
+                LOGGER.debug(diagnosticErrorMessageWithValuesAsString(addJobParam.getDiagnostics(), jobEntity.getId()));
+            }
             entityManager.flush();
-
             logTimerMessage(jobEntity);
 
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
@@ -275,33 +268,41 @@ public class PgJobStore {
 
     /**
      * Creates new job entity and caches associated Flow and Sink as needed.
+     * If any Diagnostic with level FATAL is located, the elements will not be cashed.
+     * Instead timeOfCompletion is set on the jobEntity, to mark the job as finished as it will be unable to complete if added.
      * <p>
      * CAVEAT: Even though this method is publicly available it is <b>NOT</b>
      * intended for use outside of this class - accessibility is only so defined
      * to allow the method to be called internally as an EJB business method.
      * </p>
-     * @param jobInputStream job input stream
-     * @param flow flow associated with job
-     * @param sink sink associated with job
+     * @param addJobParam containing parameter abstraction for the parameters needed by PgJobStore.addJob() method.
      * @return created job entity (managed)
      * @throws JobStoreException if unable to cache associated flow or sink
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public JobEntity createJobEntity(JobInputStream jobInputStream, Flow flow, Sink sink, FlowStoreReferences flowStoreReferences) throws JobStoreException {
+    public JobEntity createJobEntity(AddJobParam addJobParam) throws JobStoreException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            final State jobState = new State();
-            jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
-            final FlowCacheEntity flowCacheEntity = cacheFlow(flow);
-            final SinkCacheEntity sinkCacheEntity = cacheSink(sink);
             final JobEntity jobEntity = new JobEntity();
-            jobEntity.setEoj(jobInputStream.getIsEndOfJob());
-            jobEntity.setPartNumber(jobInputStream.getPartNumber());
-            jobEntity.setSpecification(jobInputStream.getJobSpecification());
+            final State jobState = new State();
+            jobState.getDiagnostics().clear();
+            jobState.getDiagnostics().addAll(addJobParam.getDiagnostics());
+            jobEntity.setEoj(addJobParam.getJobInputStream().getIsEndOfJob());
+            jobEntity.setPartNumber(addJobParam.getJobInputStream().getPartNumber());
+            jobEntity.setSpecification(addJobParam.getJobInputStream().getJobSpecification());
+            jobEntity.setFlowStoreReferences(addJobParam.getFlowStoreReferences());
             jobEntity.setState(jobState);
-            jobEntity.setCachedFlow(flowCacheEntity);
-            jobEntity.setCachedSink(sinkCacheEntity);
-            jobEntity.setFlowStoreReferences(flowStoreReferences);
+
+            if(!jobState.fatalDiagnosticExists()) {
+                jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
+                final FlowCacheEntity flowCacheEntity = cacheFlow(addJobParam.getFlow());
+                final SinkCacheEntity sinkCacheEntity = cacheSink(addJobParam.getSink());
+                jobEntity.setCachedFlow(flowCacheEntity);
+                jobEntity.setCachedSink(sinkCacheEntity);
+
+            } else {
+                jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            }
             entityManager.persist(jobEntity);
             entityManager.flush();
             entityManager.refresh(jobEntity);
@@ -737,14 +738,27 @@ public class PgJobStore {
             logArguments.add(jobEntity.getNumberOfChunks());
             logArguments.add(jobEntity.getSpecification().getSubmitterId());
             logArguments.add(jobEntity.getSpecification().getDestination());
-            logArguments.add(jobEntity.getTimeOfCreation().getTime());
-            String logPattern = "TIMER jobId={} numberOfItems={} numberOfChunks={} submitterNumber={} destination={} timeOfCreation={}";
+            String logPattern = "TIMER jobId={} numberOfItems={} numberOfChunks={} submitterNumber={} destination={}";
+
+            // Time of creation will never be null. This check is only added for testing purpose.
+            if (jobEntity.getTimeOfCreation() != null) {
+                logPattern += " timeOfCreation={}";
+                logArguments.add(jobEntity.getTimeOfCreation().getTime());
+            }
             if (jobEntity.getTimeOfCompletion() != null) {
                 logPattern += " timeOfCompletion={}";
                 logArguments.add(jobEntity.getTimeOfCompletion().getTime());
             }
             LOGGER.info(logPattern, logArguments.toArray());
         }
+    }
+
+    private String diagnosticErrorMessageWithValuesAsString(List<Diagnostic> diagnostics, long jobId) {
+        StringBuilder stringBuilder = new StringBuilder(String.format("Job with id: '%s' marked as finished. Diagnostics detected: ", jobId));
+        for(Diagnostic diagnostic : diagnostics) {
+            stringBuilder.append("\n").append("[level: '").append(diagnostic.getLevel()).append("', message: '").append(diagnostic.getMessage()).append("']");
+        }
+        return stringBuilder.toString();
     }
 
     /* Chunk item entities compound class

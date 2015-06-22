@@ -262,8 +262,7 @@ public class PgJobStoreIT {
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam.getJobInputStream(), mockedAddJobParam.getDataPartitioner(),
-                mockedAddJobParam.getSequenceAnalyserKeyGenerator(), mockedAddJobParam.getFlow(), mockedAddJobParam.getSink(), mockedAddJobParam.getFlowStoreReferences());
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
 
         transaction.commit();
 
@@ -518,13 +517,7 @@ public class PgJobStoreIT {
 
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
-            snapshots.add(pgJobStore.addJob(
-                    mockedAddJobParam.getJobInputStream(),
-                    mockedAddJobParam.getDataPartitioner(),
-                    mockedAddJobParam.getSequenceAnalyserKeyGenerator(),
-                    mockedAddJobParam.getFlow(),
-                    mockedAddJobParam.getSink(),
-                    mockedAddJobParam.getFlowStoreReferences()));
+            snapshots.add(pgJobStore.addJob(mockedAddJobParam));
             jobTransaction.commit();
         }
 
@@ -670,8 +663,7 @@ public class PgJobStoreIT {
             final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(false);
             final EntityTransaction transaction = entityManager.getTransaction();
             transaction.begin();
-            pgJobStore.addJob(mockedAddJobParam.getJobInputStream(), mockedAddJobParam.getDataPartitioner(),
-                    mockedAddJobParam.getSequenceAnalyserKeyGenerator(), mockedAddJobParam.getFlow(), mockedAddJobParam.getSink(), mockedAddJobParam.getFlowStoreReferences());
+            pgJobStore.addJob(mockedAddJobParam);
             transaction.commit();
         }
 
@@ -717,13 +709,7 @@ public class PgJobStoreIT {
         jobTransaction.begin();
 
         final JobInfoSnapshot jobInfoSnapshot =
-                pgJobStore.addJob(
-                        mockedAddJobParam.getJobInputStream(),
-                        mockedAddJobParam.getDataPartitioner(),
-                        mockedAddJobParam.getSequenceAnalyserKeyGenerator(),
-                        mockedAddJobParam.getFlow(),
-                        mockedAddJobParam.getSink(),
-                        mockedAddJobParam.getFlowStoreReferences());
+                pgJobStore.addJob(mockedAddJobParam);
 
         jobTransaction.commit();
         assertThat(jobInfoSnapshot, not(nullValue()));
@@ -755,8 +741,7 @@ public class PgJobStoreIT {
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam.getJobInputStream(), mockedAddJobParam.getDataPartitioner(),
-                mockedAddJobParam.getSequenceAnalyserKeyGenerator(), mockedAddJobParam.getFlow(), mockedAddJobParam.getSink(), mockedAddJobParam.getFlowStoreReferences());
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
         transaction.commit();
 
         // Then...
@@ -946,13 +931,7 @@ public class PgJobStoreIT {
         for (int i = 0; i < numberOfJobs; i++) {
             final EntityTransaction jobTransaction = entityManager.getTransaction();
             jobTransaction.begin();
-            snapshots.add(pgJobStore.addJob(
-                    mockedAddJobParam.getJobInputStream(),
-                    mockedAddJobParam.getDataPartitioner(),
-                    mockedAddJobParam.getSequenceAnalyserKeyGenerator(),
-                    mockedAddJobParam.getFlow(),
-                    mockedAddJobParam.getSink(),
-                    mockedAddJobParam.getFlowStoreReferences()));
+            snapshots.add(pgJobStore.addJob(mockedAddJobParam));
             jobTransaction.commit();
         }
         return snapshots;

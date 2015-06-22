@@ -30,11 +30,12 @@ public class State {
     }
 
     public State(State state) {
-        diagnostics = new ArrayList<>();
         states = new HashMap<>(state.states);
         for (Map.Entry<Phase, StateElement> entry : state.states.entrySet()) {
             states.put(entry.getKey(), new StateElement(entry.getValue()));
         }
+        this.diagnostics = new ArrayList<>(state.getDiagnostics().size());
+        this.diagnostics.addAll(state.getDiagnostics());
     }
 
     /**

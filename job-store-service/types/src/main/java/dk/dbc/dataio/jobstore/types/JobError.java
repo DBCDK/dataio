@@ -8,18 +8,14 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
  * Class representing a job error
  */
 public class JobError {
-    public static enum Code {
+    public enum Code {
         INVALID_DATA,
-        INVALID_DATAFILE,
-        INVALID_FLOW_BINDER_IDENTIFIER,
-        INVALID_URI_SYNTAX,
         INVALID_ITEM_IDENTIFIER,
         INVALID_JOB_IDENTIFIER,
         ILLEGAL_CHUNK,
         INVALID_JSON,
         INVALID_CHUNK_IDENTIFIER,
         INVALID_CHUNK_TYPE
-
     }
 
     private final Code code;

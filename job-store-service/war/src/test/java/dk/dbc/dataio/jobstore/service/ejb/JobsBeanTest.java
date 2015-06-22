@@ -102,25 +102,6 @@ public class JobsBeanTest {
     }
 
     @Test
-    public void addJob_invalidInput_returnsResponseWithHttpStatusBadRequest() throws Exception {
-        final JobError jobError = new JobError(JobError.Code.INVALID_DATAFILE, "datafile is invalid", "stack trace");
-        final InvalidInputException invalidInputException = new InvalidInputException("error message", jobError);
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
-        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
-        final String jobInputStreamJson = asJson(jobInputStream);
-
-        when(jobsBean.jobStoreBean.addAndScheduleJob(any(JobInputStream.class))).thenThrow(invalidInputException);
-
-        final Response response = jobsBean.addJob(mockedUriInfo, jobInputStreamJson);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
-        assertThat(jobErrorReturned.getCode(), is(jobError.getCode()));
-    }
-
-    @Test
     public void addJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
         final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
         final JobInputStream jobInputStream = new JobInputStream(jobInfoSnapshot.getSpecification(), false, PART_NUMBER);

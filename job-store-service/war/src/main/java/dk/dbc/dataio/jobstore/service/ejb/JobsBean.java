@@ -49,7 +49,7 @@ public class JobsBean {
     JSONBContext jsonbContext = new JSONBContext();
 
     @EJB
-    JobStoreBean jobStoreBean;
+    PgJobStore jobStore;
 
     /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store
@@ -61,8 +61,8 @@ public class JobsBean {
      *         a HTTP 400 BAD_REQUEST response on invalid json content,
      *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
      *
-     * @throws dk.dbc.dataio.jsonb.JSONBException on marshalling failure
-     * @throws dk.dbc.dataio.jobstore.types.JobStoreException on failure to add job
+     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to add job
      */
     @POST
     @Path(JobStoreServiceConstants.JOB_COLLECTION)
@@ -75,7 +75,7 @@ public class JobsBean {
 
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
-            jobInfoSnapshot = jobStoreBean.addAndScheduleJob(jobInputStream);
+            jobInfoSnapshot = jobStore.addAndScheduleJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
                     .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();
@@ -165,7 +165,7 @@ public class JobsBean {
         try {
             final JobListCriteria jobListCriteria =
                     jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
-            final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreBean.listJobs(jobListCriteria);
+            final List<JobInfoSnapshot> jobInfoSnapshots = jobStore.listJobs(jobListCriteria);
             return Response.ok()
                     .entity(jsonbContext.marshall(jobInfoSnapshots))
                     .build();
@@ -194,7 +194,7 @@ public class JobsBean {
         try {
             final ItemListCriteria itemListCriteria =
                     jsonbContext.unmarshall(itemListCriteriaData, ItemListCriteria.class);
-            final List<ItemInfoSnapshot> itemInfoSnapshots = jobStoreBean.listItems(itemListCriteria);
+            final List<ItemInfoSnapshot> itemInfoSnapshots = jobStore.listItems(itemListCriteria);
             return Response.ok()
                     .entity(jsonbContext.marshall(itemInfoSnapshots))
                     .build();
@@ -222,7 +222,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getResourceBundle(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         try {
-            ResourceBundle resourceBundle = jobStoreBean.getResourceBundle(jobId);
+            ResourceBundle resourceBundle = jobStore.getResourceBundle(jobId);
             return Response.ok()
                     .entity(jsonbContext.marshall(resourceBundle))
                     .build();
@@ -306,7 +306,7 @@ public class JobsBean {
      */
     Response getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
-            ItemData itemData = jobStoreBean.getItemData(jobId, chunkId, itemId, phase);
+            ItemData itemData = jobStore.getItemData(jobId, chunkId, itemId, phase);
             return  Response.ok()
                     .entity(Base64Util.base64decode(itemData.getData()))
                     .build();
@@ -342,7 +342,7 @@ public class JobsBean {
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
             if(jobError == null) {
-                JobInfoSnapshot jobInfoSnapshot = jobStoreBean.addChunk(chunk);
+                JobInfoSnapshot jobInfoSnapshot = jobStore.addChunk(chunk);
                 return Response.created(getUri(uriInfo, Long.toString(chunk.getChunkId())))
                         .entity(jsonbContext.marshall(jobInfoSnapshot))
                         .build();

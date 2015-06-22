@@ -1,11 +1,14 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -15,6 +18,9 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -57,6 +63,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -82,10 +89,12 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreTest {
     private static final String ERROR_MESSAGE = "Error Message";
+    private static final String FILE_STORE_URN_STRING = "urn:dataio-fs:67";
     private static final FlowCacheEntity EXPECTED_FLOW_CACHE_ENTITY = new FlowCacheEntity();
     private static final SinkCacheEntity EXPECTED_SINK_CACHE_ENTITY = new SinkCacheEntity();
     private static final int EXPECTED_NUMBER_OF_CHUNKS = 2;
@@ -110,8 +119,12 @@ public class PgJobStoreTest {
     private final EntityManager entityManager = mock(EntityManager.class);
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);
-    private static final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private static final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private static final FileStoreServiceConnectorUnexpectedStatusCodeException fileStoreUnexpectedException
+            = new FileStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
+    private final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
+    private final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
 
     static {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
@@ -130,6 +143,101 @@ public class PgJobStoreTest {
         final Query cacheSinkQuery = mock(Query.class);
         when(entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheSinkQuery);
         when(cacheSinkQuery.getSingleResult()).thenReturn(EXPECTED_SINK_CACHE_ENTITY);
+    }
+
+    @Test
+    public void addAndScheduleJob_nullArgument_throws() throws Exception {
+        final PgJobStore pgJobStore = newPgJobStore();
+        try {
+            pgJobStore.addAndScheduleJob(null);
+            fail("No NullPointerException Thrown");
+        } catch(NullPointerException e) {}
+    }
+
+    @Test
+    public void addAndScheduleJob_jobAdded_returnsJobInfoSnapshot() throws Exception {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final String xml = getXml();
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE)))
+                .thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(byteArrayInputStream);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) xml.getBytes().length);
+
+        try {
+            final JobInfoSnapshot jobInfoSnapshotReturned = pgJobStore.addAndScheduleJob(jobInputStream);
+            // Verify that the method getByteSize (used in compareByteSize) was invoked.
+            verify(mockedFileStoreServiceConnector).getByteSize(anyString());
+            assertThat(jobInfoSnapshotReturned, is(notNullValue()));
+        } catch(JobStoreException e) {
+            fail("Exception thrown by addAndScheduleJob()");
+        }
+    }
+
+    @Test
+    public void addAndScheduleJob_differentByteSize_throwsJobStoreException() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(getXml().getBytes(StandardCharsets.UTF_8));
+
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE)))
+                .thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(byteArrayInputStream);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(42L);
+
+        try {
+            pgJobStore.addAndScheduleJob(jobInputStream);
+            fail("No exception thrown by addAndScheduleJob()");
+        } catch(JobStoreException e) {}
+    }
+
+    @Test
+    public void addAndScheduleJob_byteSizeNotFound_throwsJobStoreException() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(getXml().getBytes(StandardCharsets.UTF_8));
+
+        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
+
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE)))
+                .thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(byteArrayInputStream);
+        try {
+            pgJobStore.addAndScheduleJob(jobInputStream);
+            fail("No exception thrown by addAndScheduleJob()");
+        } catch(JobStoreException e) {}
+    }
+
+    @Test
+    public void compareByteSize_byteSizesIdentical() throws IOException, FileStoreServiceConnectorException, JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final DataPartitionerFactory.DataPartitioner mockedDataPartitioner = mock(DataPartitionerFactory.DataPartitioner.class);
+        final String xml = getXml();
+
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) xml.getBytes().length);
+        when(mockedDataPartitioner.getBytesRead()).thenReturn((long) xml.getBytes().length);
+
+        pgJobStore.compareByteSize("42", mockedDataPartitioner);
+    }
+
+    @Test
+    public void compareByteSize_byteSizesNotIdentical_throwsJobStoreException() throws IOException, JobStoreException, FileStoreServiceConnectorException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final DataPartitionerFactory.DataPartitioner mockedDataPartitioner = mock(DataPartitionerFactory.DataPartitioner.class);
+        final String xml = getXml();
+
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) xml.getBytes().length);
+        when(mockedDataPartitioner.getBytesRead()).thenReturn((long)(xml.getBytes().length - 1));
+        try {
+            pgJobStore.compareByteSize("42", mockedDataPartitioner);
+        } catch (IOException e) {}
     }
 
     @Test
@@ -333,7 +441,7 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(null);
 
@@ -350,10 +458,10 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class)))
-                .thenReturn(getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING)));
+                .thenReturn(getChunkEntity(1, 0, chunk.size(), Collections.singletonList(State.Phase.PARTITIONING)));
         when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
 
         final PgJobStore pgJobStore = newPgJobStore();
@@ -369,10 +477,10 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class)))
-                .thenReturn(getChunkEntity(1, 0, chunk.size() + 42, Arrays.asList(State.Phase.PARTITIONING)));
+                .thenReturn(getChunkEntity(1, 0, chunk.size() + 42, Collections.singletonList(State.Phase.PARTITIONING)));
 
         final PgJobStore pgJobStore = newPgJobStore();
         try {
@@ -390,10 +498,10 @@ public class PgJobStoreTest {
             final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
             chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                     Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-            setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+            setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
-            final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
-            final JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
+            final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Collections.singletonList(State.Phase.PARTITIONING));
+            final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.singletonList(State.Phase.PARTITIONING));
 
             when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
             when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -416,10 +524,10 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
-        final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
-        final JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
+        final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Collections.singletonList(State.Phase.PARTITIONING));
+        final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.singletonList(State.Phase.PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -445,10 +553,10 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
-        final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
-        final JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
+        final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Collections.singletonList(State.Phase.PARTITIONING));
+        final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.singletonList(State.Phase.PARTITIONING));
         jobEntity.getState().getPhase(State.Phase.PARTITIONING).setSucceeded(126);
         jobEntity.getState().getPhase(State.Phase.PROCESSING).setFailed(41);
         jobEntity.getState().getPhase(State.Phase.PROCESSING).setIgnored(41);
@@ -480,9 +588,9 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
-        final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Arrays.asList(State.Phase.PARTITIONING));
+        final ChunkEntity chunkEntity = getChunkEntity(1, 0, chunk.size(), Collections.singletonList(State.Phase.PARTITIONING));
         final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.<State.Phase>emptyList());
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
@@ -573,7 +681,7 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        final List<ItemEntity> entities = setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
         final PgJobStore pgJobStore = newPgJobStore();
         final PgJobStore.ChunkItemEntities chunkItemEntities = pgJobStore.updateChunkItemEntities(chunk);
@@ -612,7 +720,7 @@ public class PgJobStoreTest {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.DELIVERED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
-        final List<ItemEntity> entities = setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
         final PgJobStore pgJobStore = newPgJobStore();
         final PgJobStore.ChunkItemEntities chunkItemEntities = pgJobStore.updateChunkItemEntities(chunk);
@@ -648,14 +756,14 @@ public class PgJobStoreTest {
 
     @Test
     public void updateChunkItemEntities_attemptToOverwriteAlreadyAddedChunk_throws() throws JobStoreException {
-        final List<String> chunkData = Arrays.asList("itemData0");
+        final List<String> chunkData = Collections.singletonList("itemData0");
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
-                Arrays.asList(ChunkItem.Status.SUCCESS));
-        final List<String> chunkDataOverwrite = Arrays.asList("itemData0-overwrite");
+                Collections.singletonList(ChunkItem.Status.SUCCESS));
+        final List<String> chunkDataOverwrite = Collections.singletonList("itemData0-overwrite");
         final ExternalChunk chunkOverwrite = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkDataOverwrite,
-                Arrays.asList(ChunkItem.Status.FAILURE));
+                Collections.singletonList(ChunkItem.Status.FAILURE));
 
-        final List<ItemEntity> entities = setItemEntityExpectations(chunk, Arrays.asList(State.Phase.PARTITIONING));
+        setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
         final PgJobStore pgJobStore = newPgJobStore();
         // add original chunk
@@ -686,7 +794,7 @@ public class PgJobStoreTest {
         FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
         SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
 
-        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID, Arrays.asList(State.Phase.PARTITIONING));
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID, Collections.singletonList(State.Phase.PARTITIONING));
         jobEntity.setCachedFlow(mockedFlowCacheEntity);
         jobEntity.setCachedSink(mockedSinkCacheEntity);
 
@@ -708,7 +816,7 @@ public class PgJobStoreTest {
         FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
         SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
 
-        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID, Arrays.asList(State.Phase.PARTITIONING));
+        JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID, Collections.singletonList(State.Phase.PARTITIONING));
         jobEntity.setCachedFlow(mockedFlowCacheEntity);
         jobEntity.setCachedSink(mockedSinkCacheEntity);
 
@@ -731,7 +839,7 @@ public class PgJobStoreTest {
         FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
         SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
 
-        JobEntity jobEntity = getJobEntity(1, Arrays.asList(State.Phase.PARTITIONING));
+        JobEntity jobEntity = getJobEntity(1, Collections.singletonList(State.Phase.PARTITIONING));
         jobEntity.setCachedFlow(mockedFlowCacheEntity);
         jobEntity.setCachedSink(mockedSinkCacheEntity);
 
@@ -950,7 +1058,7 @@ public class PgJobStoreTest {
     public void getChunk_queryReturnsItemEntityWithoutData_throws() {
         final Query query = mock(Query.class);
         when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
-        when(query.getResultList()).thenReturn(Arrays.asList(new ItemEntity()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(new ItemEntity()));
 
         final PgJobStore pgJobStore = newPgJobStore();
         try {
@@ -1055,7 +1163,11 @@ public class PgJobStoreTest {
         pgJobStore.jobSchedulerBean = jobSchedulerBean;
         pgJobStore.entityManager = entityManager;
         pgJobStore.sessionContext = sessionContext;
+        pgJobStore.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
+        pgJobStore.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
         when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
+        when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
+        when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
         return pgJobStore;
     }
 
@@ -1201,6 +1313,57 @@ public class PgJobStoreTest {
                 .build();
     }
 
+    private JobInputStream getJobInputStream(String datafile) {
+        JobSpecification jobSpecification = new JobSpecificationBuilder().setCharset("utf8").setDataFile(datafile).build();
+        return new JobInputStream(jobSpecification, true, 3);
+    }
+
+    private TestableJobEntity newTestableJobEntity(JobSpecification jobSpecification) {
+        final TestableJobEntity jobEntity = new TestableJobEntity();
+        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
+        jobEntity.setState(new State());
+        jobEntity.setSpecification(jobSpecification);
+        return jobEntity;
+    }
+
+    private String getXml() {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                + "<records>"
+                + "<record>first</record>"
+                + "<record>second</record>"
+                + "<record>third</record>"
+                + "<record>fourth</record>"
+                + "<record>fifth</record>"
+                + "<record>sixth</record>"
+                + "<record>seventh</record>"
+                + "<record>eighth</record>"
+                + "<record>ninth</record>"
+                + "<record>tenth</record>"
+                + "<record>eleventh</record>"
+                + "</records>";
+    }
+
+    private void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final Sink sink = new SinkBuilder().build();
+        final Submitter submitter = new SubmitterBuilder().build();
+
+        whenGetFlowBinderThenReturnFlowBinder(jobSpecification, flowBinder);
+        when(mockedFlowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId())).thenReturn(flow);
+        when(mockedFlowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId())).thenReturn(sink);
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
+    }
+
+    private void whenGetFlowBinderThenReturnFlowBinder(JobSpecification jobSpecification, FlowBinder flowBinder) throws FlowStoreServiceConnectorException {
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                jobSpecification.getPackaging(),
+                jobSpecification.getFormat(),
+                jobSpecification.getCharset(),
+                jobSpecification.getSubmitterId(),
+                jobSpecification.getDestination())).thenReturn(flowBinder);
+    }
+
     /* Helper class for parameter values (with defaults)
      */
     private static class Params {
@@ -1241,7 +1404,7 @@ public class PgJobStoreTest {
         }
     }
 
-    private static class MockedAddJobParam extends AddJobParam {
+    private class MockedAddJobParam extends AddJobParam {
         final String xml =
                 "<records>"
                         + "<record>first</record>"

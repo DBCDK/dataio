@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
@@ -9,6 +10,8 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ChunkListQuery;
@@ -33,6 +36,7 @@ import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -60,6 +64,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -80,10 +85,41 @@ public class PgJobStore {
     @EJB
     JobSchedulerBean jobSchedulerBean;
 
+    @EJB
+    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+
     @PersistenceContext(unitName = "jobstorePU")
     EntityManager entityManager;
 
     JSONBContext jsonbContext = new JSONBContext();
+
+    /**
+     * Adds new job in the underlying data store from given job input stream, after attempting to retrieve
+     * required referenced objects through addJobParam.
+     *
+     * @param jobInputStream, containing information needed to create job, chunk and item entities
+     * @return information snapshot of added job
+     * @throws JobStoreException on failure to add job
+     */
+    public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
+        final StopWatch stopWatch = new StopWatch();
+        try (AddJobParam param = new AddJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector(), fileStoreServiceConnectorBean.getConnector())) {
+            JobInfoSnapshot jobInfoSnapshot = addJob(param);
+            if (!jobInfoSnapshot.getState().fatalDiagnosticExists()) {
+                try {
+                    compareByteSize(param.getDataFileId(), param.getDataPartitioner());
+                } catch (IOException e) {
+                    throw new JobStoreException("Error reading data file", e);
+                }
+            }
+            return jobInfoSnapshot;
+        } finally {
+            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
 
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
@@ -695,6 +731,44 @@ public class PgJobStore {
         }
 
     }
+
+    /*
+     * package private methods
+     */
+
+    // Method is package-private for unit testing purposes
+    long getByteSizeOrThrow(String fileId) throws JobStoreException {
+        try {
+            return fileStoreServiceConnectorBean.getConnector().getByteSize(fileId);
+        } catch(FileStoreServiceConnectorException ex) {
+            LOGGER.warn("Could not retrieve byte size for file with id: {}", fileId);
+            throw new JobStoreException("Could not retrieve byte size", ex);
+        }
+    }
+
+    /**
+     * Method is package-private for unit testing purposes
+     * Method compares bytes size of a file with the byte size of the data partitioner used when adding a job to the job store
+     *
+     * @param fileId file id
+     * @param dataPartitioner containing the input steam
+     * @throws IOException if the byte size differs
+     * @throws JobStoreException if the byte size could not be retrieved, InvalidInputException if the file store service URI was invalid
+     */
+    void compareByteSize(String fileId, DataPartitionerFactory.DataPartitioner dataPartitioner) throws IOException, JobStoreException {
+        long fileByteSize = getByteSizeOrThrow(fileId);
+        long jobByteSize = dataPartitioner.getBytesRead();
+
+        if(fileByteSize != jobByteSize){
+            throw new IOException(String.format(
+                    "Error reading data file {%s}. DataPartitioner.byteSize was: %s. FileStore.byteSize was: %s",
+                    fileId, jobByteSize, fileByteSize));
+        }
+    }
+
+    /*
+     * private methods
+     */
 
     private <T> T getExclusiveAccessFor(Class<T> entityClass, Object primaryKey) {
         return entityManager.find(entityClass, primaryKey, LockModeType.PESSIMISTIC_WRITE);

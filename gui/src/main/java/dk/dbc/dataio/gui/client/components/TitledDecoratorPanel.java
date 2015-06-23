@@ -15,7 +15,7 @@ import java.util.Iterator;
 
 /**
  * This class implements the DecoratorPanel with a title on the top of it
- *
+ * <pre>
  * {@code
  *    +- Panel Title --------------------------------------+
  *    | Panel Content                                      |
@@ -28,7 +28,7 @@ import java.util.Iterator;
  *       <dio:TitledDecoratorPanel title="Panel Title">
  *          <g:Label>Panel Content</g:Label>
  *       </dio:TitledDecoratorPanel>
- * }
+ * }</pre>
  */
 public class TitledDecoratorPanel extends Composite implements HasWidgets {
     interface TitledDecoraterPanelUiBinder extends UiBinder<HTMLPanel, TitledDecoratorPanel> {

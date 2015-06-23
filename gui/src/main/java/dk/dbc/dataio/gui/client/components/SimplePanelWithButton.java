@@ -17,7 +17,7 @@ import java.util.Iterator;
 
 /**
  * The SimplePanelWithButton component implements a SimplePanel, with a button added to the right of the panel:
- *
+ * <pre>
  * {@code
  *    +----------------------------------------------------+
  *    | Panel content...                           +-----+ |
@@ -34,7 +34,7 @@ import java.util.Iterator;
  *       <dio:SimplePanelWithButton buttonImage="{img.deleteButton}">
  *          <g:Label>Panel content...</g:Label>
  *       </dio:SimplePanelWithButton>
- * }
+ * }</pre>
  */
 public class SimplePanelWithButton extends Composite implements HasWidgets {
     interface SimplePanelWithButtonUiBinder extends UiBinder<HTMLPanel, SimplePanelWithButton> {

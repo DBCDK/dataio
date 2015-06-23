@@ -148,7 +148,6 @@ public class FileStoreServiceConnector {
     }
 
     private <T> T readResponseEntity(Response response, Class<T> tClass) throws FileStoreServiceConnectorException {
-        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
         final T entity = response.readEntity(tClass);
         if (entity == null) {
             throw new FileStoreServiceConnectorException (

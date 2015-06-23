@@ -98,15 +98,15 @@ public class AddJobParamTest {
 
     @Test
     public void extractDataFileIdFromURN_invalidUrn_diagnosticLevelFatalAddedForUrnAndDataFileInputStream() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        when(mockedFileStoreServiceConnector.getFile(null)).thenThrow(new NullPointerException());
+
         final AddJobParam addJobParam = constructAddJobParam(false);
 
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
-        assertThat(diagnostics.size(), is(2));
+
+        assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(addJobParam.jobInputStream.getJobSpecification().getDataFile()), is(true));
-
-        assertThat(diagnostics.get(1).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostics.get(1).getMessage().contains(addJobParam.jobInputStream.getJobSpecification().getDataFile()), is(true));
 
         assertThat(addJobParam.dataFileId, is(nullValue()));
         assertThat(addJobParam.dataFileInputStream, is(nullValue()));

@@ -2,6 +2,7 @@ package dk.dbc.dataio.perftest;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -22,6 +23,8 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -29,7 +32,11 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
@@ -50,9 +57,11 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.client.Client;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -76,6 +85,7 @@ public class PerformanceIT {
     private static long lowContentTimingResult = 0; // to be set from low-content test
     private static long highContentTimingResult = 0; // to be set from high-content test
     private static long timestampForTestStart = 0;
+    private static FileStoreServiceConnector fileStoreServiceConnector;
     private static FlowStoreServiceConnector flowStoreServiceConnector;
     private static JobStoreServiceConnector jobStoreServiceConnector;
 
@@ -84,9 +94,19 @@ public class PerformanceIT {
 
     @BeforeClass
     public static void setupClass() throws ClassNotFoundException {
-        final Client httpClient = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
+        final PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
+        poolingHttpClientConnectionManager.setMaxTotal(100);
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(100);
 
+        final ClientConfig config = new ClientConfig();
+        config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingHttpClientConnectionManager);
+        config.connectorProvider(new ApacheConnectorProvider());
+        config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
+        config.register(new JacksonFeature());
+
+        final Client httpClient = HttpClient.newClient(config);
+
+        fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, ITUtil.FILE_STORE_BASE_URL);
         flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
         jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
     }
@@ -103,12 +123,18 @@ public class PerformanceIT {
     }
 
     @Test
-    public void lowContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void lowContentPerformanceTest() throws IOException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, FileStoreServiceConnectorException, URISyntaxException {
         final long submitterNumber = 424242;
 
         // Create test data
-        File testdata = tmpFolder.newFile();
+        final File testdata = tmpFolder.newFile();
         createTemporaryFile(testdata, RECORDS_PER_TEST, "low");
+
+        final String fileStoreId;
+        try (final FileInputStream fileInputStream = new FileInputStream(testdata)) {
+            fileStoreId = fileStoreServiceConnector.addFile(fileInputStream);
+        }
 
         // Initialize flow-store
         initializeFlowStore("lowContent", submitterNumber, getJavaScriptsForSmallPerformanceTest());
@@ -120,7 +146,7 @@ public class PerformanceIT {
                 .setCharset(ENCODING)
                 .setDestination(DESTINATION)
                 .setSubmitterId(submitterNumber)
-                .setDataFile(testdata.getAbsolutePath())
+                .setDataFile(FileStoreUrn.create(fileStoreId).toString())
                 .build();
 
         // Insert Job
@@ -133,7 +159,8 @@ public class PerformanceIT {
     }
 
     @Test
-    public void highContentPerformanceTest() throws IOException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void highContentPerformanceTest() throws IOException, JobStoreServiceConnectorException,
+            FlowStoreServiceConnectorException, FileStoreServiceConnectorException, URISyntaxException {
         final long submitterNumber = 434343;
 
         // Create test data
@@ -141,8 +168,13 @@ public class PerformanceIT {
         for (int i = 0; i < 1000; i++) {
             sb.append("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
         }
-        File testdata = tmpFolder.newFile();
+        final File testdata = tmpFolder.newFile();
         createTemporaryFile(testdata, RECORDS_PER_TEST, sb.toString());
+
+        final String fileStoreId;
+        try (final FileInputStream fileInputStream = new FileInputStream(testdata)) {
+            fileStoreId = fileStoreServiceConnector.addFile(fileInputStream);
+        }
 
         // Initialize flow-store
         initializeFlowStore("highContent", submitterNumber, getJavaScriptsForLargePerformanceTest());
@@ -154,7 +186,7 @@ public class PerformanceIT {
                 .setCharset(ENCODING)
                 .setDestination(DESTINATION)
                 .setSubmitterId(submitterNumber)
-                .setDataFile(testdata.getAbsolutePath())
+                .setDataFile(FileStoreUrn.create(fileStoreId).toString())
                 .build();
 
         // Insert Job

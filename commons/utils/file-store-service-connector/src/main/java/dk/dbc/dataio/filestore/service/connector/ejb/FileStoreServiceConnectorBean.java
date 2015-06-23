@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -33,7 +34,6 @@ public class FileStoreServiceConnectorBean {
     FileStoreServiceConnector fileStoreServiceConnector;
 
     @PostConstruct
-    @SuppressWarnings("deprecation")
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
         /* Since we need to be able to add data amounts exceeding the JVM
@@ -42,19 +42,14 @@ public class FileStoreServiceConnectorBean {
            adhere to the CHUNKED_ENCODING_SIZE property we use the Apache
            HttpClient connector instead to avoid OutOfMemory errors.
          */
+        final PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager();
+        poolingHttpClientConnectionManager.setMaxTotal(MAX_HTTP_CONNECTIONS);
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(MAX_HTTP_CONNECTIONS);
+
         final ClientConfig config = new ClientConfig();
-        // PoolingClientConnectionManager is deprecated in favour of
-        // PoolingHttpClientConnectionManager but we need to bump jersey
-        // version before this shift can be made.
-
-        final org.apache.http.impl.conn.PoolingClientConnectionManager poolingClientConnectionManager = new org.apache.http.impl.conn.PoolingClientConnectionManager();
-
-        poolingClientConnectionManager.setMaxTotal(MAX_HTTP_CONNECTIONS);
-        poolingClientConnectionManager.setDefaultMaxPerRoute(MAX_HTTP_CONNECTIONS);
-        config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingClientConnectionManager);
-
         config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
+        config.property(ApacheClientProperties.CONNECTION_MANAGER, poolingHttpClientConnectionManager);
         Client client = HttpClient.newClient(config);
 
         try {

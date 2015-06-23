@@ -127,7 +127,7 @@ public class AddJobParam implements AutoCloseable {
         }
     }
 
-    Submitter lookupSubmitter() {
+    private Submitter lookupSubmitter() {
         final long submitterNumber = jobInputStream.getJobSpecification().getSubmitterId();
         try {
             return flowStoreServiceConnector.getSubmitterBySubmitterNumber(submitterNumber);
@@ -138,7 +138,7 @@ public class AddJobParam implements AutoCloseable {
         return null;
     }
 
-    FlowBinder lookupFlowBinder() {
+    private FlowBinder lookupFlowBinder() {
         final JobSpecification jobSpec = jobInputStream.getJobSpecification();
         try {
             return flowStoreServiceConnector.getFlowBinder(
@@ -154,7 +154,7 @@ public class AddJobParam implements AutoCloseable {
         return null;
     }
 
-    Flow lookupFlow() {
+    private Flow lookupFlow() {
         if (flowBinder != null) {
             final long flowId = flowBinder.getContent().getFlowId();
             try {
@@ -167,7 +167,7 @@ public class AddJobParam implements AutoCloseable {
         return null;
     }
 
-    Sink lookupSink() {
+    private Sink lookupSink() {
         if (flowBinder != null) {
             final long sinkId = flowBinder.getContent().getSinkId();
             try {
@@ -180,7 +180,7 @@ public class AddJobParam implements AutoCloseable {
         return null;
     }
 
-    FlowStoreReferences newFlowStoreReferences() {
+    private FlowStoreReferences newFlowStoreReferences() {
         final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
         if (flowBinder != null) {
             flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER,
@@ -201,7 +201,7 @@ public class AddJobParam implements AutoCloseable {
         return flowStoreReferences;
     }
 
-    SequenceAnalyserKeyGenerator newSequenceAnalyserKeyGenerator() {
+    private SequenceAnalyserKeyGenerator newSequenceAnalyserKeyGenerator() {
          if (flowBinder != null) {
              if (flowBinder.getContent().getSequenceAnalysis()) {
                  if (sink != null) {
@@ -214,24 +214,20 @@ public class AddJobParam implements AutoCloseable {
          return null;
     }
 
-    InputStream newDataFileInputStream() {
-        try {
-            if(dataFileId == null) {
-                // The file is assumed to be local
-                return Files.newInputStream(Paths.get(jobInputStream.getJobSpecification().getDataFile()));
-            } else {
-                // The file is to be looked up in the file store
+    private InputStream newDataFileInputStream() {
+        if (dataFileId != null && !dataFileId.isEmpty()) {
+            try {
                 return fileStoreServiceConnector.getFile(dataFileId);
+            } catch (FileStoreServiceConnectorException | ProcessingException e) {
+                final String message = String.format("Could not get input stream for data file: %s",
+                        jobInputStream.getJobSpecification().getDataFile());
+                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
             }
-        } catch (FileStoreServiceConnectorException | ProcessingException | IOException e) {
-            final String message = String.format("Could not get input stream for data file: %s",
-                    jobInputStream.getJobSpecification().getDataFile());
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
         }
         return null;
     }
 
-    DataPartitionerFactory.DataPartitioner newDataPartitioner() {
+    private DataPartitionerFactory.DataPartitioner newDataPartitioner() {
         if (dataFileInputStream != null) {
             return new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
                     jobInputStream.getJobSpecification().getCharset());
@@ -239,7 +235,7 @@ public class AddJobParam implements AutoCloseable {
         return null;
     }
 
-    String extractDataFileIdFromURN() {
+    private String extractDataFileIdFromURN() {
         final String dataFileURN = jobInputStream.getJobSpecification().getDataFile();
         if(!Files.exists(Paths.get(dataFileURN))) {
             try {

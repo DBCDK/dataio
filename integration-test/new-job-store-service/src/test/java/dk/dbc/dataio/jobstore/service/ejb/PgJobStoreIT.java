@@ -4,52 +4,22 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.FileStoreUrn;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
+import dk.dbc.dataio.commons.types.*;
+import dk.dbc.dataio.commons.utils.test.model.*;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
-import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
-import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.*;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
-import dk.dbc.dataio.jobstore.types.Diagnostic;
-import dk.dbc.dataio.jobstore.types.FlowStoreReference;
-import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import dk.dbc.dataio.jobstore.types.ItemData;
-import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
-import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.*;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
-import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
-import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
-import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
-import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.dataio.jobstore.types.criteria.*;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,21 +36,10 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -146,6 +105,8 @@ public class PgJobStoreIT {
 
     @After
     public void clearJobStore() throws SQLException {
+        if( entityManager.getTransaction().isActive()) entityManager.getTransaction().rollback();
+
         try (final Connection connection = newConnection()) {
             for (String tableName : Arrays.asList(
                     JOB_TABLE_NAME, CHUNK_TABLE_NAME, ITEM_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME)) {
@@ -533,8 +494,7 @@ public class PgJobStoreIT {
      * Given: a job store where a job is added
      * When : the same external chunk is added twice
      */
-    @Ignore
-    @Test
+    @Test(expected = DuplicateChunkException.class)
     public void addChunkMultipleTimesMultipleItems() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                   // first chunk is used, hence the chunk id is 0.

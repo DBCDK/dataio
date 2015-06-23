@@ -17,17 +17,17 @@ import java.util.Iterator;
  * This class implements the DecoratorPanel with a title on the top of it
  * <pre>
  * {@code
- *    +- Panel Title --------------------------------------+
- *    | Panel Content                                      |
- *    +----------------------------------------------------+
+ * +- Panel Title --------------------------------------+
+ * | Panel Content                                      |
+ * +----------------------------------------------------+
  * }
  *
  * In UiBinder, the component is used as follows:
  *
  * {@code
- *       <dio:TitledDecoratorPanel title="Panel Title">
- *          <g:Label>Panel Content</g:Label>
- *       </dio:TitledDecoratorPanel>
+ * <dio:TitledDecoratorPanel title="Panel Title">
+ *    <g:Label>Panel Content</g:Label>
+ * </dio:TitledDecoratorPanel>
  * }</pre>
  */
 public class TitledDecoratorPanel extends Composite implements HasWidgets {

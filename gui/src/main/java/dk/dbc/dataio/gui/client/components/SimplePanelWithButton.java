@@ -19,21 +19,21 @@ import java.util.Iterator;
  * The SimplePanelWithButton component implements a SimplePanel, with a button added to the right of the panel:
  * <pre>
  * {@code
- *    +----------------------------------------------------+
- *    | Panel content...                           +-----+ |
- *    |                                            | btn | |
- *    |                                            +-----+ |
- *    +----------------------------------------------------+
+ * +----------------------------------------------------+
+ * | Panel content...                           +-----+ |
+ * |                                            | btn | |
+ * |                                            +-----+ |
+ * +----------------------------------------------------+
  * }
  *
  * In UiBinder, the component is used as follows:
  *
  * {@code
- *       <ui:with field="img" type="dk.dbc.dataio.gui.client.resources.Resources"/>
- *       ...
- *       <dio:SimplePanelWithButton buttonImage="{img.deleteButton}">
- *          <g:Label>Panel content...</g:Label>
- *       </dio:SimplePanelWithButton>
+ * <ui:with field="img" type="dk.dbc.dataio.gui.client.resources.Resources"/>
+ * ...
+ * <dio:SimplePanelWithButton buttonImage="{img.deleteButton}">
+ *    <g:Label>Panel content...</g:Label>
+ * </dio:SimplePanelWithButton>
  * }</pre>
  */
 public class SimplePanelWithButton extends Composite implements HasWidgets {

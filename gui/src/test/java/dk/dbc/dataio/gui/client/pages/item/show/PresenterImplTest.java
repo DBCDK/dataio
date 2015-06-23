@@ -63,6 +63,7 @@ public class PresenterImplTest {
     @Mock CellTable mockedAllItemsTable;
     @Mock CellTable mockedFailedItemsTable;
     @Mock CellTable mockedIgnoredItemsTable;
+    @Mock CellTable mockedJobDiagnosticTable;
     @Mock SimplePager mockedAllPager;
     @Mock SimplePager mockedFailedPager;
     @Mock SimplePager mockedIgnoredPager;
@@ -72,6 +73,7 @@ public class PresenterImplTest {
     @Mock DecoratedTabPanel mockedTabPanel;
     @Mock SingleSelectionModel<ItemModel> mockedSelectionModel;
     @Mock JobInfoTabContent mockedJobInfoTabContent;
+    @Mock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
     @Mock PromptedLabel mockedPackaging;
     @Mock PromptedLabel mockedFormat;
     @Mock PromptedLabel mockedCharset;
@@ -93,7 +95,9 @@ public class PresenterImplTest {
         mockedView.jobHeader = mockedJobHeader;
         mockedAllItemsListView.itemsTable = mockedAllItemsTable;
         mockedFailedItemsListView.itemsTable = mockedFailedItemsTable;
+        mockedView.jobDiagnosticTabContent = mockedJobDiagnosticTabContent;
         mockedIgnoredItemsListView.itemsTable = mockedIgnoredItemsTable;
+        mockedView.jobDiagnosticTabContent.jobDiagnosticTable = mockedJobDiagnosticTable;
         mockedAllItemsListView.itemsPager = mockedAllPager;
         mockedFailedItemsListView.itemsPager = mockedFailedPager;
         mockedIgnoredItemsListView.itemsPager = mockedIgnoredPager;
@@ -256,6 +260,7 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
+        verify(mockedJobDiagnosticTable).setRowCount(0);
         verify(mockedJobStoreProxy).listJobs(any(JobListCriteriaModel.class), any(PresenterImpl.JobCallback.class));
     }
 

@@ -28,6 +28,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiField ItemsListView failedItemsList;
     @UiField ItemsListView ignoredItemsList;
     @UiField JobInfoTabContent jobInfoTabContent;
+    @UiField JobDiagnosticTabContent jobDiagnosticTabContent;
 
     /**
      * Constructor with header and text

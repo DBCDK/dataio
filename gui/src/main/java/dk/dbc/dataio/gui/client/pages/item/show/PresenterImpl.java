@@ -161,6 +161,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.allItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.failedItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.ignoredItemsList.itemsTable.setRowCount(0); //clear table on startup
+        view.jobDiagnosticTabContent.jobDiagnosticTable.setRowCount(0); // clear table on startup
     }
 
     /**
@@ -180,6 +181,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         }
         setJobInfoTab(jobModel);
+        setDiagnosticModels(jobModel);
     }
 
     /**
@@ -196,6 +198,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.jobInfoTabContent.resultMailInitials.setText(jobModel.getResultmailInitials());
     }
 
+    /**
+     * Sets the Job Diagnostic tab according to the supplied Job Model
+     * @param jobModel The Job Model, where the list of Diagnostic data is taken
+     */
+    private void setDiagnosticModels(JobModel jobModel) {
+        view.jobDiagnosticTabContent.jobDiagnosticTable.setRowData(0, jobModel.getDiagnosticModels());
+    }
 
     /**
      * Sets the view according to the supplied item model list

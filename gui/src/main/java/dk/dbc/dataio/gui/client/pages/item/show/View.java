@@ -7,6 +7,7 @@ import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -29,7 +30,6 @@ public class View extends ViewWidget {
     Context failedContext = new Context(failedItemsList);
     Context ignoredContext = new Context(ignoredItemsList);
 
-
     /**
      * Default constructor
      *
@@ -40,6 +40,7 @@ public class View extends ViewWidget {
         setupColumns(allItemsList);
         setupColumns(failedItemsList);
         setupColumns(ignoredItemsList);
+        setupColumns(jobDiagnosticTabContent);
     }
 
 
@@ -103,6 +104,31 @@ public class View extends ViewWidget {
         });
         listView.itemsPager.setDisplay(listView.itemsTable);
     }
+
+    @SuppressWarnings("unchecked")
+    private void setupColumns(final JobDiagnosticTabContent jobDiagnosticTabContent) {
+        jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticLevelColumn(), texts.column_Level());
+        jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticMessageColumn(), texts.column_Message());
+    }
+
+    Column constructDiagnosticLevelColumn() {
+        return new TextColumn<DiagnosticModel>() {
+            @Override
+            public String getValue(DiagnosticModel model) {
+                return model.getLevel();
+            }
+        };
+    }
+
+    Column constructDiagnosticMessageColumn() {
+        return new TextColumn<DiagnosticModel>() {
+            @Override
+            public String getValue(DiagnosticModel model) {
+                return model.getMessage();
+            }
+        };
+    }
+
 
     /**
      * This method constructs the Item column

@@ -12,6 +12,7 @@ import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMock;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -54,8 +55,8 @@ public class ViewTest {
     @Mock HandlerRegistration mockedHandlerRegistration;
 
     // Test Data
-    private ItemModel testModel = new ItemModel("11", "ItemId1", "ChunkId1", "JobId1", ItemModel.LifeCycle.DELIVERING);
-
+    private ItemModel itemModel = new ItemModel("11", "ItemId1", "ChunkId1", "JobId1", ItemModel.LifeCycle.DELIVERING);
+    private DiagnosticModel diagnosticModel = new DiagnosticModel("FATAL", "message", "");
     /*
      * The tested view contains nested UiBinder views: ViewWidget (a UiBinder view) instantiates three ItemsListView
      * (also UiBinder views).
@@ -69,6 +70,8 @@ public class ViewTest {
      */
     @GwtMock ItemsListView mockedItemsList;
     @Mock CellTable mockedItemsTable;
+    @GwtMock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
+    @Mock CellTable mockedJobDiagnosticTable;
     @Mock SimplePager mockedItemsPager;
     @Mock DecoratedTabPanel mockedDetailedTabs;
     @Before
@@ -76,6 +79,7 @@ public class ViewTest {
         mockedItemsList.itemsTable = mockedItemsTable;
         mockedItemsList.itemsPager = mockedItemsPager;
         mockedItemsList.detailedTabs = mockedDetailedTabs;
+        mockedJobDiagnosticTabContent.jobDiagnosticTable = mockedJobDiagnosticTable;
     }
 
 
@@ -86,6 +90,8 @@ public class ViewTest {
     @Mock static Texts mockedTexts;
     final static String MOCKED_MENU_ITEMS = "Mocked Poster";
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
+    final static String MOCKED_COLUMN_LEVEL = "Mocked Diagnostic level";
+    final static String MOCKED_COLUMN_MESSAGE = "Mocked Diagnostic message";
     final static String MOCKED_COLUMN_STATUS = "Mocked Status";
     final static String MOCKED_ERROR_COULDNOTFETCHITEMS = "Mocked Det var ikke muligt at hente poster fra Job Store";
     final static String MOCKED_LABEL_BACK = "Mocked Tilbage til Joboversigten";
@@ -103,6 +109,8 @@ public class ViewTest {
         when(mockedClientFactory.getItemsShowTexts()).thenReturn(mockedTexts);
         when(mockedTexts.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
         when(mockedTexts.column_Item()).thenReturn(MOCKED_COLUMN_ITEM);
+        when(mockedTexts.column_Message()).thenReturn(MOCKED_COLUMN_MESSAGE);
+        when(mockedTexts.column_Level()).thenReturn(MOCKED_COLUMN_LEVEL);
         when(mockedTexts.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
         when(mockedTexts.error_CouldNotFetchItems()).thenReturn(MOCKED_ERROR_COULDNOTFETCHITEMS);
         when(mockedTexts.label_Back()).thenReturn(MOCKED_LABEL_BACK);
@@ -133,10 +141,14 @@ public class ViewTest {
         verify(mockedItemsTable, times(3)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_STATUS));
         verify(mockedItemsTable, times(3)).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
         verify(mockedItemsPager, times(3)).setDisplay(mockedItemsTable);
+        verify(mockedJobDiagnosticTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_LEVEL));
+        verify(mockedJobDiagnosticTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_MESSAGE));
         verifyNoMoreInteractions(mockedItemsList);
         verifyNoMoreInteractions(mockedItemsTable);
         verifyNoMoreInteractions(mockedItemsPager);
         verifyNoMoreInteractions(mockedDetailedTabs);
+        verifyNoMoreInteractions(mockedJobDiagnosticTabContent);
+        verifyNoMoreInteractions(mockedJobDiagnosticTable);
     }
 
     @Test
@@ -236,7 +248,7 @@ public class ViewTest {
         Column column = view.constructItemColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel), is(MOCKED_TEXT_ITEM + " " + testModel.getItemNumber()));
+        assertThat((String) column.getValue(itemModel), is(MOCKED_TEXT_ITEM + " " + itemModel.getItemNumber()));
     }
 
     @Test
@@ -248,7 +260,34 @@ public class ViewTest {
         Column column = view.constructStatusColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel), is(MOCKED_LIFECYCLE_DELIVERING));
+        assertThat((String) column.getValue(itemModel), is(MOCKED_LIFECYCLE_DELIVERING));
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructDiagnosticLevelColumn_call_correctlySetup() {
+        // Test setup
+        view = new View(mockedClientFactory);
+
+        // Subject Under Test
+        Column column = view.constructDiagnosticLevelColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat((String) column.getValue(diagnosticModel), is(diagnosticModel.getLevel()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructDiagnosticMessageColumn_call_correctlySetup() {
+        // Test setup
+        view = new View(mockedClientFactory);
+
+        // Subject Under Test
+        Column column = view.constructDiagnosticMessageColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat((String) column.getValue(diagnosticModel), is(diagnosticModel.getMessage()));
+    }
+
 
 }

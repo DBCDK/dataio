@@ -79,6 +79,12 @@ public interface Resources extends ClientBundle {
 
         @ClassName("sortable-widget-entry-selected")
         String sortableWidgetEntrySelected();
+
+        @ClassName("gwtQuery-draggable-dragging")
+        String gwtQueryDraggableDragging();
+
+        @ClassName("dio-MultiProgressBar")
+        String dioMultiProgressBar();
     }
 
     @Source("css/dataio.css")
@@ -112,6 +118,10 @@ public interface Resources extends ClientBundle {
     @ImageResource.ImageOptions(preventInlining=true)
     @Source("img/remove-button.gif")
     ImageResource removeButton();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/delete-button.gif")
+    ImageResource deleteButton();
 
     @ImageResource.ImageOptions(repeatStyle = ImageResource.RepeatStyle.Vertical)
     @Source("img/navigationbg.gif")

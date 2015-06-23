@@ -2,7 +2,7 @@
              xmlns:g='urn:import:com.google.gwt.user.client.ui'>
     <ui:with type="dk.dbc.dataio.gui.client.components.jobsfilter.Texts" field="txt"/>
     <ui:style>
-        @external .middleCenter;
+        @external .middleCenter, .middleCenterInner;
         .decoratorPanel {
             margin-top: 1em;
         }
@@ -17,11 +17,13 @@
             display: inline;
             font-weight: bold;
         }
-        .decoratorPanel .middleCenter {
+        .decoratorPanel .middleCenter,
+        .decoratorPanel .middleCenterInner table {
             width: 100%;
         }
         .contentPanel {
             min-height: 1em;
+            margin: 0 0.5em;
         }
     </ui:style>
     <g:HTMLPanel>

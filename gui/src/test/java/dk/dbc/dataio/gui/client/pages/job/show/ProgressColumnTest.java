@@ -7,12 +7,15 @@ import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.components.MultiProgressBar;
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+
+import java.util.ArrayList;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -52,17 +55,17 @@ public class ProgressColumnTest {
     private JobModel legalTestModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
             "FlowBinderName", 6789L, "SinkName",
-            true, 100, 10, 0, 0, 41, 23, 12,
+            true, 100, 10, 0, 0, 41, 23, 12, new ArrayList<DiagnosticModel>(),
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
     private JobModel illegalTestModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
             "FlowBinderName", 6789L, "SinkName",
-            true, 100, 10, 0, 0, 41, 23, 43,
+            true, 100, 10, 0, 0, 41, 23, 43, new ArrayList<DiagnosticModel>(),
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
     private JobModel illegalTestModel2 = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
             "FlowBinderName", 6789L, "SinkName",
-            true, 20, 10, 0, 0, 41, 23, 12,
+            true, 20, 10, 0, 0, 41, 23, 12, new ArrayList<DiagnosticModel>(),
             "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
 
     // Subject Under Test

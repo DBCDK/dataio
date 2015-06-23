@@ -14,6 +14,7 @@ import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
@@ -199,21 +200,21 @@ public class PresenterImplTest {
     private JobModel testJobModelSucceeded = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
             "FlowBinderName1", 5678L, "SinkName1",
-            true, 20, 20, 0, 0, 11, 12, 13,
+            true, 20, 20, 0, 0, 11, 12, 13, new ArrayList<DiagnosticModel>(),
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
     private JobModel testJobModelFailed = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
             "FlowBinderName1", 5678L, "SinkName1",
-            true, 20, 20, 1, 0, 14, 15, 16,
+            true, 20, 20, 1, 0, 14, 15, 16, new ArrayList<DiagnosticModel>(),
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
     private JobModel testJobModelIgnored = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName1",
             "FlowBinderName1", 5678L, "SinkName1",
-            true, 20, 20, 0, 1, 17, 18, 19,
+            true, 20, 20, 0, 1, 17, 18, 19, new ArrayList<DiagnosticModel>(),
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
     private JobModel testJobModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
             "urn:dataio-fs:46551", "424242", "SubmitterName2", "FlowBinderName2", 5679L, "SinkName2",
-            true, 10, 10, 0, 5, 20, 21, 22,
+            true, 10, 10, 0, 5, 20, 21, 22, new ArrayList<DiagnosticModel>(),
             "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
     private List<JobModel> testJobModels0 = new ArrayList<JobModel>();
     private List<JobModel> testJobModelsSucceeded = new ArrayList<JobModel>(Arrays.asList(testJobModelSucceeded));

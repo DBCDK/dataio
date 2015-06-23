@@ -9,6 +9,7 @@ import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -82,12 +83,12 @@ public class PresenterImplTest {
     private JobModel testModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014.5000_records.xml3473603508877630498.tmp", "150014", "SubmitterName",
             "FlowBinderName", 6789L, "SinkName",
-            true, 20, 20, 5, 5, 31, 32, 33,
+            true, 20, 20, 5, 5, 31, 32, 33, new ArrayList<DiagnosticModel>(),
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
 
     private JobModel testModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
             "urn:dataio-fs:46551", "424242", "SubmitterName", "FlowBinderName", 6789L, "SinkName",
-            true, 10, 10, 0, 5, 34, 35, 36,
+            true, 10, 10, 0, 5, 34, 35, 36, new ArrayList<DiagnosticModel>(),
             "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
     private List<JobModel> testModels = new ArrayList<JobModel>(Arrays.asList(testModel1, testModel2));
 

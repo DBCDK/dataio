@@ -1,7 +1,9 @@
 package dk.dbc.dataio.gui.server.modelmappers;
 
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -47,6 +49,7 @@ public class JobModelMapper {
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING)),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING)),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING)),
+                getDiagnostics(jobInfoSnapshot.getState().getDiagnostics()),
                 jobInfoSnapshot.getSpecification().getPackaging(),
                 jobInfoSnapshot.getSpecification().getFormat(),
                 jobInfoSnapshot.getSpecification().getCharset(),
@@ -170,6 +173,19 @@ public class JobModelMapper {
             ignored = state.getPhase(State.Phase.PARTITIONING).getIgnored();
         }
         return ignored;
+    }
+
+    /**
+     * This method retrieves all diagnostics.
+     * @param diagnostics containing Warning or Error information
+     * @return list of diagnostic models. Empty list if no diagnostics were found.
+     */
+    private static List<DiagnosticModel> getDiagnostics(List<Diagnostic> diagnostics) {
+        List<DiagnosticModel> diagnosticModels = new ArrayList<DiagnosticModel>(diagnostics.size());
+        for(Diagnostic diagnostic : diagnostics) {
+            diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().toString(), diagnostic.getMessage(), diagnostic.getStacktrace()));
+        }
+        return diagnosticModels;
     }
 
     /**

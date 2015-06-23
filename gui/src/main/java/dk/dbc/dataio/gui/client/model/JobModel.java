@@ -1,5 +1,8 @@
 package dk.dbc.dataio.gui.client.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * JobModel holds all GUI data related to showing the Job Model
  */
@@ -21,6 +24,7 @@ public class JobModel extends GenericBackendModel {
     private long partitionedCounter;
     private long processedCounter;
     private long deliveredCounter;
+    private List<DiagnosticModel> diagnosticModels;
     private String packaging;
     private String format;
     private String charset;
@@ -49,6 +53,7 @@ public class JobModel extends GenericBackendModel {
      * @param partitionedCounter                   The number of Partitioned Items
      * @param processedCounter                     The number of Processed Items
      * @param deliveredCounter                     The number of Delivered Items
+     * @param diagnosticModels                     The list of Diagnostics
      * @param packaging                            The Packaging
      * @param format                               The Format
      * @param charset                              The Charset
@@ -73,6 +78,7 @@ public class JobModel extends GenericBackendModel {
                     long partitionedCounter,
                     long processedCounter,
                     long deliveredCounter,
+                    List<DiagnosticModel> diagnosticModels,
                     String packaging,
                     String format,
                     String charset,
@@ -96,6 +102,7 @@ public class JobModel extends GenericBackendModel {
         this.partitionedCounter = partitionedCounter;
         this.processedCounter = processedCounter;
         this.deliveredCounter = deliveredCounter;
+        this.diagnosticModels = diagnosticModels;
         this.packaging = packaging;
         this.format = format;
         this.charset = charset;
@@ -109,7 +116,7 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, "", "", "", "", "", "", "");
+        this("", "", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), "", "", "", "", "", "", "");
     }
 
 
@@ -399,6 +406,16 @@ public class JobModel extends GenericBackendModel {
      */
     public void setDeliveredCounter(long deliveredCounter) {
         this.deliveredCounter = deliveredCounter;
+    }
+
+
+    /**
+     * Gets the list of Diagnostics
+     *
+     * @return The list of Diagnostics
+     */
+    public List<DiagnosticModel> getDiagnosticModels() {
+        return diagnosticModels;
     }
 
     /**

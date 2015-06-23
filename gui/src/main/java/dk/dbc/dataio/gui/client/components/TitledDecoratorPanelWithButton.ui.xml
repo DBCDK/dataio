@@ -1,0 +1,20 @@
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+             xmlns:g='urn:import:com.google.gwt.user.client.ui'
+             xmlns:dio='urn:import:dk.dbc.dataio.gui.client.components'>
+    <ui:with field="img" type="dk.dbc.dataio.gui.client.resources.Resources"/>
+    <ui:style>
+        .filterPanel {
+            margin: 0.5em 0.5em 0 0.5em;
+            width: 60em;
+        }
+        .simplePanel {
+        }
+    </ui:style>
+    <g:HTMLPanel>
+
+        <dio:TitledDecoratorPanel ui:field="decorator" title="" addStyleNames="{style.filterPanel}">
+            <dio:SimplePanelWithButton ui:field="panel" buttonImage="{img.deleteButton}" addStyleNames="{style.simplePanel}" />
+        </dio:TitledDecoratorPanel>
+
+    </g:HTMLPanel>
+</ui:UiBinder>

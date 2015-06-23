@@ -91,4 +91,12 @@ public class SimplePanelWithButton extends Composite implements HasWidgets {
         return this.content.remove(widget);
     }
 
+    /**
+     * Sets the button image
+     * @param buttonImage The image to be shown on the button
+     */
+    public void setButtonImage(ImageResource buttonImage) {
+        this.button.getUpFace().setImage(new Image(buttonImage));
+    }
+
 }

@@ -125,7 +125,7 @@ public class PgJobStore {
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
      * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.
      *                    If the list contains any diagnostic with level FATAL, the job will be marked as finished
-     *                    before creation.
+     *                    before partitioning is attempted.
      * @return information snapshot of added job
      * @throws NullPointerException if given any null-valued argument
      * @throws JobStoreException on failure to add job
@@ -321,7 +321,6 @@ public class PgJobStore {
         try {
             final JobEntity jobEntity = new JobEntity();
             final State jobState = new State();
-            jobState.getDiagnostics().clear();
             jobState.getDiagnostics().addAll(addJobParam.getDiagnostics());
             jobEntity.setEoj(addJobParam.getJobInputStream().getIsEndOfJob());
             jobEntity.setPartNumber(addJobParam.getJobInputStream().getPartNumber());

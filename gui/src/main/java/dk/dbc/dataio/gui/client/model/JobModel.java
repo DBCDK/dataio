@@ -10,7 +10,6 @@ public class JobModel extends GenericBackendModel {
 
     private String jobCreationTime;
     private String jobId;
-    private String fileName;
     private String submitterNumber;
     private String submitterName;
     private String flowBinderName;
@@ -39,7 +38,6 @@ public class JobModel extends GenericBackendModel {
      *
      * @param jobCreationTime                      The Job Creation Time
      * @param jobId                                The Job Id
-     * @param fileName                             The File Name
      * @param submitterNumber                      The Submitter Number
      * @param submitterName                        The Submitter Name
      * @param flowBinderName                       The Flow Binder Name
@@ -64,7 +62,6 @@ public class JobModel extends GenericBackendModel {
      */
     public JobModel(String jobCreationTime,
                     String jobId,
-                    String fileName,
                     String submitterNumber,
                     String submitterName,
                     String flowBinderName,
@@ -88,7 +85,6 @@ public class JobModel extends GenericBackendModel {
                     String resultmailInitials) {
         this.jobCreationTime = jobCreationTime;
         this.jobId = jobId;
-        this.fileName = fileName;
         this.submitterNumber = submitterNumber;
         this.submitterName = submitterName;
         this.flowBinderName = flowBinderName;
@@ -116,7 +112,7 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), "", "", "", "", "", "", "");
+        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), "", "", "", "", "", "", "");
     }
 
 
@@ -154,24 +150,6 @@ public class JobModel extends GenericBackendModel {
      */
     public void setJobId(String jobId) {
         this.jobId = jobId;
-    }
-
-    /**
-     * Gets the File Name
-     *
-     * @return The File Name
-     */
-    public String getFileName() {
-        return fileName;
-    }
-
-    /**
-     * Sets the File Name
-     *
-     * @param fileName The File Name
-     */
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
     }
 
     /**

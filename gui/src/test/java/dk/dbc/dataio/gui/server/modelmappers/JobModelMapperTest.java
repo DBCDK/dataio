@@ -181,7 +181,6 @@ public class JobModelMapperTest {
         // Test Verification
         assertThat(jobModel.getJobCreationTime(), is("2015-04-06 13:01:23"));
         assertThat(jobModel.getJobId(), is("1748"));
-        assertThat(jobModel.getFileName(), is("datafilE"));
         assertThat(jobModel.getSubmitterNumber(), is("64646"));
         assertThat(jobModel.getSubmitterName(), is("submitteR"));
         assertThat(jobModel.getFlowBinderName(), is("flowbindeR"));
@@ -321,7 +320,6 @@ public class JobModelMapperTest {
         assertThat(jobModels.size(), is(2));
         assertThat(jobModels.get(0).getJobCreationTime(), is("2015-04-06 13:01:23"));
         assertThat(jobModels.get(0).getJobId(), is("1748"));
-        assertThat(jobModels.get(0).getFileName(), is("datafilE"));
         assertThat(jobModels.get(0).getSubmitterNumber(), is("64646"));
         assertThat(jobModels.get(0).getSubmitterName(), is("submitteR"));
         assertThat(jobModels.get(0).getFlowBinderName(), is("flowbindeR"));
@@ -340,7 +338,6 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(0).getResultmailInitials(), is("mailInitialS"));
         assertThat(jobModels.get(1).getJobCreationTime(), is("2015-04-06 13:01:24"));
         assertThat(jobModels.get(1).getJobId(), is("1749"));
-        assertThat(jobModels.get(1).getFileName(), is("datafilE2"));
         assertThat(jobModels.get(1).getSubmitterNumber(), is("64647"));
         assertThat(jobModels.get(1).getSubmitterName(), is("submitteR2"));
         assertThat(jobModels.get(1).getFlowBinderName(), is("flowbindeR2"));
@@ -357,7 +354,6 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getMailForNotificationAboutVerification(), is("mail4VerificatioN2"));
         assertThat(jobModels.get(1).getMailForNotificationAboutProcessing(), is("mail4ProcessinG2"));
         assertThat(jobModels.get(1).getResultmailInitials(), is("mailInitialS2"));
-
     }
 
 

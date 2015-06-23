@@ -98,7 +98,6 @@ public class View extends ViewWidget {
 
         jobsTable.addColumn(jobCreationTimeColumn = constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
-        jobsTable.addColumn(constructFileNameColumn(), texts.columnHeader_FileName());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
         jobsTable.addColumn(constructSubmitterNameColumn(), texts.columnHeader_SubmitterName());
         jobsTable.addColumn(constructFlowBinderNameColumn(), texts.columnHeader_FlowBinderName());
@@ -156,28 +155,6 @@ public class View extends ViewWidget {
         columnSortHandler.setComparator(column, new Comparator<JobModel>() {
             public int compare(JobModel o1, JobModel o2) {
                 return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStringsAsLongs(o1.getJobId(), o2.getJobId()) : 1;
-            }
-        });
-        return column;
-    }
-
-    /**
-     * This method constructs the FileName column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed FileName column
-     */
-    Column constructFileNameColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
-            @Override
-            public String getValue(JobModel model) {
-                return model.getFileName();
-            }
-        };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStrings(o1.getFileName(), o2.getFileName()) : 1;
             }
         });
         return column;

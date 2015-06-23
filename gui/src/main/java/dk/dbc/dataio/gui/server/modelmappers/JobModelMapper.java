@@ -35,7 +35,6 @@ public class JobModelMapper {
         return new JobModel(
                 simpleDateFormat.format(jobInfoSnapshot.getTimeOfCreation()),
                 String.valueOf(jobInfoSnapshot.getJobId()),
-                jobInfoSnapshot.getSpecification().getDataFile().replaceFirst("^/tmp/", ""),
                 Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()),
                 getSubmitterName(jobInfoSnapshot.getFlowStoreReferences()) ,
                 getFlowBinderName(jobInfoSnapshot.getFlowStoreReferences()),

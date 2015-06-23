@@ -54,14 +54,13 @@ public class ViewTest {
 
 
     // Test Data
-    private JobModel testModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429",
-            "150014.5000_records.xml3473603508877630498.tmp", "150014",
+    private JobModel testModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429", "150014",
             "SubmitterNameA", "FlowBinderNameA", 3456L, "SinkNameA",
             true, 12, 9, 2, 3, 51, 52, 53, new ArrayList<DiagnosticModel>(),
             "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
 
     private JobModel testModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
-            "urn:dataio-fs:46551", "424242", "SubmitterNameB", "FlowBinderNameB", 3457L, "SinkNameB",
+            "424242", "SubmitterNameB", "FlowBinderNameB", 3457L, "SinkNameB",
             true, 5, 5, 0, 0, 54, 55, 56, new ArrayList<DiagnosticModel>(),
             "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
 
@@ -75,7 +74,6 @@ public class ViewTest {
     final static String MOCKED_LABEL_JOBS = "Mocked Label Jobs";
     final static String MOCKED_COLUMN_HEADER_JOB_CREATION_TIME = "Mocked Column Header Job Creation Time";
     final static String MOCKED_COLUMN_HEADER_JOB_ID = "Mocked Column Header Job Id";
-    final static String MOCKED_COLUMN_HEADER_FILE_NAME = "Mocked Column Header File Name";
     final static String MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER = "Mocked Column Header Submitter Number";
     final static String MOCKED_COLUMN_HEADER_SUBMITTER_NAME = "Mocked Column Header Submitter Name";
     final static String MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME = "Mocked Column Header Flow Binder Name";
@@ -95,7 +93,6 @@ public class ViewTest {
         when(mockedTexts.label_Jobs()).thenReturn(MOCKED_LABEL_JOBS);
         when(mockedTexts.columnHeader_JobCreationTime()).thenReturn(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME);
         when(mockedTexts.columnHeader_JobId()).thenReturn(MOCKED_COLUMN_HEADER_JOB_ID);
-        when(mockedTexts.columnHeader_FileName()).thenReturn(MOCKED_COLUMN_HEADER_FILE_NAME);
         when(mockedTexts.columnHeader_SubmitterNumber()).thenReturn(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER);
         when(mockedTexts.columnHeader_SubmitterName()).thenReturn(MOCKED_COLUMN_HEADER_SUBMITTER_NAME);
         when(mockedTexts.columnHeader_FlowBinderName()).thenReturn(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME);
@@ -121,7 +118,6 @@ public class ViewTest {
         verify(view.jobsTable).addColumnSortHandler(isA(ColumnSortEvent.ListHandler.class));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_ID));
-        verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FILE_NAME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NAME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME));
@@ -189,30 +185,6 @@ public class ViewTest {
 
         // Test that correct comparator has been setup
         // JobId for testModel1 is less than testModel2
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void constructFileNameColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory, "Header Text");
-
-        // Subject Under Test
-        Column column = view.constructFileNameColumn();
-
-        // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getFileName()));
-
-        // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
-
-        // Test that correct comparator has been setup
-        // Filename for testModel1 comes before testModel2
         assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
         assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
         assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));

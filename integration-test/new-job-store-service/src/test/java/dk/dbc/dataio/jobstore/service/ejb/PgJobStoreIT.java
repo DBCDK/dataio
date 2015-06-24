@@ -218,7 +218,6 @@ public class PgJobStoreIT {
         assertThat("table size", getSizeOfTable(SINK_CACHE_TABLE_NAME), is(1L));
     }
 
-    @Ignore
     @Test
     public void addAndScheduleJob_returnsJobInfoSnapShot() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
@@ -239,6 +238,7 @@ public class PgJobStoreIT {
                 thenReturn(mockedAddJobParam.getFlowBinder());
 
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mockedAddJobParam.getDatafileInputStream());
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long)mockedAddJobParam.xml.getBytes(StandardCharsets.UTF_8).length);
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
@@ -1252,6 +1252,7 @@ public class PgJobStoreIT {
         public MockedAddJobParam(boolean isEOJ) {
             super(new JobInputStream(new JobSpecificationBuilder()
                     .setDataFile(FILE_STORE_URN.toString())
+                    .setCharset(StandardCharsets.UTF_8.name())
                     .build(), isEOJ, 0), mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
             submitter = new SubmitterBuilder().build();
             flow = new FlowBuilder().build();

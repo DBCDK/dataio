@@ -84,20 +84,20 @@ public class FilesIT {
     @Test
     public void fileAddedAndRetrieved() throws Exception {
         // When...
-        final long maxAvailableHeapMemoryInBytes = Runtime.getRuntime().maxMemory();
+        final long veryLargeFileSizeInBytes = 1024 * MB; // 1 GB
         final File sourceFile = rootFolder.newFile();
-        if (sourceFile.getUsableSpace() < maxAvailableHeapMemoryInBytes * 3) {
+        if (sourceFile.getUsableSpace() < veryLargeFileSizeInBytes * 3) {
             // We need enough space for
             //  1. source file
             //  2. file when uploaded to file store
             //  3. file when read back from file store
-            fail("Not enough free space for test: " + (maxAvailableHeapMemoryInBytes * 3) / MB + " MB needed");
+            fail("Not enough free space for test: " + (veryLargeFileSizeInBytes * 3) / MB + " MB needed");
         }
 
         // This creates a sparse file matching maximum available heap size
         // https://en.wikipedia.org/wiki/Sparse_file
         try (RandomAccessFile sparseFile = new RandomAccessFile(sourceFile, "rw")) {
-            sparseFile.setLength(maxAvailableHeapMemoryInBytes);
+            sparseFile.setLength(veryLargeFileSizeInBytes);
         }
         assertThat(Files.size(sourceFile.toPath()) > 0, is(true));
 

@@ -4,22 +4,53 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.*;
-import dk.dbc.dataio.commons.utils.test.model.*;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
-import dk.dbc.dataio.jobstore.service.entity.*;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
-import dk.dbc.dataio.jobstore.types.*;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
+import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
+import dk.dbc.dataio.jobstore.types.ItemData;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
-import dk.dbc.dataio.jobstore.types.criteria.*;
+import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +67,23 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.*;
-import static org.hamcrest.CoreMatchers.*;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -218,26 +261,30 @@ public class PgJobStoreIT {
         assertThat("table size", getSizeOfTable(SINK_CACHE_TABLE_NAME), is(1L));
     }
 
+    /**
+     * Given: an empty jobstore
+     * When : calling addAndScheduleJob() with mocked returns from flow store where compareByteSize() returns the expected byte size
+     * Then : a new job entity and the required number of chunk and item entities are created
+     * And  : a flow cache entity is created
+     * And  : a sink cache entity is created
+     * And  : no diagnostics were created while adding job
+     * And  : the returned JobInfoSnapshot holds the expected values
+     */
     @Test
-    public void addAndScheduleJob_returnsJobInfoSnapShot() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void addAndScheduleJob_identicalByteSize_returnsJobInfoSnapShot() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
+        final int expectedNumberOfJobs = 1;
+        final int expectedNumberOfChunks = 2;
+        final int expectedNumberOfItems = 11;
 
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
 
         // Setup mocks
-        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(mockedAddJobParam.getFlow());
-        when(mockedFlowStoreServiceConnector.getSink(anyLong())).thenReturn(mockedAddJobParam.getSink());
-        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(mockedAddJobParam.getSubmitter());
-        when(mockedFlowStoreServiceConnector.getFlowBinder(
-                anyString(),
-                anyString(),
-                anyString(),
-                anyLong(),
-                anyString())).
-                thenReturn(mockedAddJobParam.getFlowBinder());
+        setupSuccessfulMockedReturnsFromFlowStore(mockedAddJobParam);
+        setupSuccessfulMockedReturnsFromFileStore(mockedAddJobParam);
 
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mockedAddJobParam.getDatafileInputStream());
+        // Set up mocked return for identical byte sizes
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long)mockedAddJobParam.xml.getBytes(StandardCharsets.UTF_8).length);
 
         // When...
@@ -247,7 +294,72 @@ public class PgJobStoreIT {
         jobTransaction.commit();
 
         // Then...
-        assertThat(jobInfoSnapshot, is(notNullValue()));
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
+        assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, Collections.singletonList(State.Phase.PARTITIONING));
+
+        // And...
+        assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(notNullValue()));
+
+        // And...
+        assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(notNullValue()));
+
+        // And...
+        assertThat("jobEntity.State : diagnostics", jobEntity.getState().getDiagnostics().size(), is(0));
+
+        // And ..
+        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(0));
+        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
+        assertThat("JobInfoSnapshot submitter reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER), is(notNullValue()));
+        assertThat("JobInfoSnapshot flowbinder reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW_BINDER), is(notNullValue()));
+        assertThat("JobInfoSnapshot flow reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW), is(notNullValue()));
+        assertThat("JobInfoSnapshot sink reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK), is(notNullValue()));
+    }
+
+    /**
+     * Given: an empty jobstore
+     * When : calling addAndScheduleJob() with mocked returns from flow store where compareByteSize() returns an unexpected byte size
+     * Then : a JobStoreException is thrown
+     * And  : the jobStoreException contains the expected message
+     * And  : no entities are created
+     */
+    @Test
+    public void addAndScheduleJob_differentByteSize_throws() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final int expectedNumberOfJobs = 0;
+        final int expectedNumberOfChunks = 0;
+        final int expectedNumberOfItems = 0;
+        final long fileStoreByteSize = 42;
+
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+        final long dataPartitionerByteSize = mockedAddJobParam.xml.getBytes(StandardCharsets.UTF_8).length;
+
+        // Setup mocks
+        setupSuccessfulMockedReturnsFromFlowStore(mockedAddJobParam);
+        setupSuccessfulMockedReturnsFromFileStore(mockedAddJobParam);
+
+        // Set up mocked return for different byte sizes
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(fileStoreByteSize);
+
+        try {
+            // When...
+            final EntityTransaction jobTransaction = entityManager.getTransaction();
+            jobTransaction.begin();
+            pgJobStore.addAndScheduleJob(mockedAddJobParam.getJobInputStream());
+            jobTransaction.commit();
+            fail();
+
+            // Then...
+        } catch (JobStoreException e) {
+
+            // And...
+            assertThat("DataPartitioner.byteSize was: " + dataPartitionerByteSize + ". FileStore.byteSize was: " + fileStoreByteSize, e.getMessage().contains("Error reading data file"), is(true));
+
+            // And...
+            assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
+        }
     }
 
     /**
@@ -282,7 +394,7 @@ public class PgJobStoreIT {
                 anyString())).
                 thenReturn(mockedAddJobParam.getFlowBinder());
 
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mockedAddJobParam.getDatafileInputStream());
+        setupSuccessfulMockedReturnsFromFileStore(mockedAddJobParam);
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
@@ -493,8 +605,11 @@ public class PgJobStoreIT {
     /**
      * Given: a job store where a job is added
      * When : the same external chunk is added twice
+     * Then : a DuplicateChunkException is thrown
+     * And  : the DuplicateChunkException contains a JobError with Code.ILLEGAL_CHUNK
+     * And  : job, chunk and item entities have not been updated after the second add.
      */
-    @Test(expected = DuplicateChunkException.class)
+    @Test
     public void addChunkMultipleTimesMultipleItems() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                   // first chunk is used, hence the chunk id is 0.
@@ -516,9 +631,40 @@ public class PgJobStoreIT {
         pgJobStore.addChunk(chunk);
         chunkTransaction.commit();
 
-        chunkTransaction.begin();
-        pgJobStore.addChunk(chunk);
-        chunkTransaction.commit();
+        // Retrieve the entities for comparison
+        final JobEntity jobEntityFirstAddChunk = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+
+        final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobEntityFirstAddChunk.getId());
+        final ChunkEntity chunkEntityFirstAddChunk = entityManager.find(ChunkEntity.class, chunkKey);
+
+        final List<ItemEntity> itemEntities = new ArrayList<>(numberOfItems);
+        for (int i = 0; i < numberOfItems; i++) {
+            itemEntities.add(entityManager.find(ItemEntity.class, new ItemEntity.Key(jobEntityFirstAddChunk.getId(), chunkId, (short) i)));
+        }
+
+        try {
+            chunkTransaction.begin();
+            pgJobStore.addChunk(chunk);
+            chunkTransaction.commit();
+
+        // Then...
+        } catch (DuplicateChunkException e) {
+
+            // And...
+            assertThat(e.getJobError().getCode(), is(JobError.Code.ILLEGAL_CHUNK));
+
+            // And...
+            final JobEntity jobEntitySecondAddChunk = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+            assertThat("JobEntity not updated", jobEntitySecondAddChunk.getState(), is(jobEntityFirstAddChunk.getState()));
+
+            final ChunkEntity chunkEntitySecondAddChunk = entityManager.find(ChunkEntity.class, chunkKey);
+            assertThat("ChunkEntity not updated", chunkEntitySecondAddChunk, is(chunkEntityFirstAddChunk));
+
+            for(int i = 0; i < numberOfItems; i++) {
+                    final ItemEntity itemEntitySecondAddChunk = entityManager.find(ItemEntity.class, new ItemEntity.Key(jobEntityFirstAddChunk.getId(), chunkId, (short) i));
+                    assertThat("ItemEmtity not updated", itemEntitySecondAddChunk, is(itemEntities.get(i)));
+            }
+        }
     }
 
     /**
@@ -1090,6 +1236,23 @@ public class PgJobStoreIT {
         final Connection connection = datasource.getConnection();
         connection.setAutoCommit(false);
         return connection;
+    }
+
+    private void setupSuccessfulMockedReturnsFromFlowStore(MockedAddJobParam mockedAddJobParam) throws FlowStoreServiceConnectorException {
+        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(mockedAddJobParam.getFlow());
+        when(mockedFlowStoreServiceConnector.getSink(anyLong())).thenReturn(mockedAddJobParam.getSink());
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(mockedAddJobParam.getSubmitter());
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                anyString(),
+                anyString(),
+                anyString(),
+                anyLong(),
+                anyString())).
+                thenReturn(mockedAddJobParam.getFlowBinder());
+    }
+
+    private void setupSuccessfulMockedReturnsFromFileStore(MockedAddJobParam mockedAddJobParam) throws FileStoreServiceConnectorException {
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mockedAddJobParam.getDatafileInputStream());
     }
 
     private void assertTableSizes(int expectedJobTableSize, int expectedChunkTableSize, int expectedItemTableSize) throws SQLException {

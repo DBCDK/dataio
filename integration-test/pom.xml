@@ -63,6 +63,7 @@
             <rawrepo.db.name>${rawrepo.db.name}</rawrepo.db.name>
             <svn.local.dir>${svn.local.dir}</svn.local.dir>
             <user.name>${user.name}</user.name>
+            <build.dir>${project.build.directory}</build.dir>
           </systemPropertyVariables>
         </configuration>
       </plugin>

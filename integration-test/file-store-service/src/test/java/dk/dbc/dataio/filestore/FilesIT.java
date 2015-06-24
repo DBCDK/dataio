@@ -19,11 +19,13 @@ import javax.ws.rs.core.Response;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,13 +36,14 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class FilesIT {
+    private static final int MB = 1024*1024;
     private static final int BUFFER_SIZE = 8192;
     private static final byte[] DATA = "8 bytes!".getBytes();
 
     private static Client restClient;
 
     @Rule
-    public TemporaryFolder rootFolder = new TemporaryFolder();
+    public TemporaryFolder rootFolder = new TemporaryFolder(new File(System.getProperty("build.dir")));
 
     @BeforeClass
     public static void setUpClass() {
@@ -75,27 +78,40 @@ public class FilesIT {
 
     /**
      * Given: a deployed file-store service
-     * When: adding a new file
+     * When: adding a new file of a size larger than the maximum heap size
      * Then: new file can be retrieved by id
      */
     @Test
-    public void fileAddedAndRetrieved() throws IOException, FileStoreServiceConnectorException {
+    public void fileAddedAndRetrieved() throws Exception {
         // When...
-        final Path sourceFile = rootFolder.newFile().toPath();
-        writeFile(sourceFile);
-        assertThat(Files.size(sourceFile)>0, is(true));
+        final long maxAvailableHeapMemoryInBytes = Runtime.getRuntime().maxMemory();
+        final File sourceFile = rootFolder.newFile();
+        if (sourceFile.getUsableSpace() < maxAvailableHeapMemoryInBytes * 3) {
+            // We need enough space for
+            //  1. source file
+            //  2. file when uploaded to file store
+            //  3. file when read back from file store
+            fail("Not enough free space for test: " + (maxAvailableHeapMemoryInBytes * 3) / MB + " MB needed");
+        }
+
+        // This creates a sparse file matching maximum available heap size
+        // https://en.wikipedia.org/wiki/Sparse_file
+        try (RandomAccessFile sparseFile = new RandomAccessFile(sourceFile, "rw")) {
+            sparseFile.setLength(maxAvailableHeapMemoryInBytes);
+        }
+        assertThat(Files.size(sourceFile.toPath()) > 0, is(true));
 
         final FileStoreServiceConnector fileStoreServiceConnector =
                 new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
 
-        try (final InputStream is = getInputStreamForFile(sourceFile)) {
+        try (final InputStream is = getInputStreamForFile(sourceFile.toPath())) {
             final String fileId = fileStoreServiceConnector.addFile(is);
 
             // Then...
             final InputStream fileStream = fileStoreServiceConnector.getFile(fileId);
             final Path destinationFile = rootFolder.newFile().toPath();
             writeFile(destinationFile, fileStream);
-            assertBinaryEquals(sourceFile.toFile(), destinationFile.toFile());
+            assertBinaryEquals(sourceFile, destinationFile.toFile());
         }
     }
 
@@ -118,17 +134,6 @@ public class FilesIT {
             // Then...
         final long byteSize = fileStoreServiceConnector.getByteSize(fileId);
         assertThat(byteSize, is((long)data.length));
-    }
-
-    private static void writeFile(Path path) throws IOException {
-        try (final OutputStream os = getOutputStreamForFile(path)) {
-            int iterations = (2 * BUFFER_SIZE) / DATA.length;
-            while (iterations > 0) {
-                os.write(DATA, 0, DATA.length);
-                iterations--;
-            }
-            os.flush();
-        }
     }
 
     private static void writeFile(Path path, InputStream is) throws IOException {

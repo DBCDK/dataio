@@ -82,7 +82,7 @@ public class FilesIT {
      * Then: new file can be retrieved by id
      */
     @Test
-    public void fileAddedAndRetrieved() throws Exception {
+    public void fileAddedAndRetrieved() throws IOException, FileStoreServiceConnectorException {
         // When...
         final long veryLargeFileSizeInBytes = 1024 * MB; // 1 GB
         final File sourceFile = rootFolder.newFile();

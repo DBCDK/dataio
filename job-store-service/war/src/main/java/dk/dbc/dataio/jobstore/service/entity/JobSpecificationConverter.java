@@ -16,7 +16,7 @@ public class JobSpecificationConverter implements AttributeConverter<JobSpecific
     @Override
     public PGobject convertToDatabaseColumn(JobSpecification jobSpecification) throws IllegalStateException {
         final PGobject pgObject = new PGobject();
-        pgObject.setType("json");
+        pgObject.setType("jsonb");
         try {
             pgObject.setValue(ConverterJSONBContext.getInstance().marshall(jobSpecification));
         } catch (SQLException | JSONBException e) {

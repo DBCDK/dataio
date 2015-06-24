@@ -29,7 +29,6 @@ import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DataException;
-import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -163,7 +162,7 @@ public class PgJobStore {
                 jobEntity = getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
                 updateJobEntityState(jobEntity, jobStateChange);
             } else {
-                LOGGER.debug(diagnosticErrorMessageWithValuesAsString(addJobParam.getDiagnostics(), jobEntity.getId()));
+                LOGGER.debug("Job with id '{}' marked as finished. Diagnostics: {}", jobEntity.getId(), jobEntity.getState().getDiagnostics());
             }
             entityManager.flush();
             logTimerMessage(jobEntity);
@@ -824,14 +823,6 @@ public class PgJobStore {
             }
             LOGGER.info(logPattern, logArguments.toArray());
         }
-    }
-
-    private String diagnosticErrorMessageWithValuesAsString(List<Diagnostic> diagnostics, long jobId) {
-        StringBuilder stringBuilder = new StringBuilder(String.format("Job with id: '%s' marked as finished. Diagnostics detected: ", jobId));
-        for(Diagnostic diagnostic : diagnostics) {
-            stringBuilder.append("\n").append("[level: '").append(diagnostic.getLevel()).append("', message: '").append(diagnostic.getMessage()).append("']");
-        }
-        return stringBuilder.toString();
     }
 
     /* Chunk item entities compound class

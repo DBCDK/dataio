@@ -64,6 +64,11 @@ public class Diagnostic {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return " [level: '" + level + "', message: '" + message + "']";
+    }
+
     public static String getStackTraceString(Throwable e, String indent) {
         final StringBuilder sb = new StringBuilder();
         sb.append(e.toString());

@@ -1,0 +1,11 @@
+{
+         "charset": "utf8",
+         "destination": "fbs",
+         "format": "katalog",
+         "mailForNotificationAboutProcessing": "-mailForNotificationAboutProcessing-",
+         "mailForNotificationAboutVerification": "-mailForNotificationAboutVerification-",
+         "resultmailInitials": "resultMail",
+         "packaging": "xml",
+         "submitterId": 710100
+}
+

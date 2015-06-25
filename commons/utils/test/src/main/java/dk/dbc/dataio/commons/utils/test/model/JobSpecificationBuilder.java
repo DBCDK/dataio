@@ -60,6 +60,10 @@ public class JobSpecificationBuilder {
         return this;
     }
 
+    public JobSpecificationBuilder setType(JobSpecification.Type type) {
+        this.type = type;
+        return this;
+    }
 
     public JobSpecification build() {
         return new JobSpecification(packaging, format, charset, destination, submitterId, mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials, dataFile, type);

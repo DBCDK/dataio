@@ -53,14 +53,19 @@ class StatusColumn extends Column<JobModel, ImageResource> {
     private View.JobStatus getJobStatus(JobModel model) {
         View.JobStatus jobStatus = View.JobStatus.DONE_WITHOUT_ERROR; // Default value
 
-        // Check if the job is completely done
-        if(!model.isJobDone()) {
-            jobStatus = View.JobStatus.NOT_DONE;
-        }
-
-        // If the job is done: Check if any errors has occurred.
-        else if(model.getFailedCounter() != 0) {
+        // Check if the job has failed before partitioning
+        if(model.getDiagnosticModels().size() != 0) {
             jobStatus = View.JobStatus.DONE_WITH_ERROR;
+        }
+        else {
+            // Check if the job is completely done
+            if (!model.isJobDone()) {
+                jobStatus = View.JobStatus.NOT_DONE;
+            }
+            // If the job is done: Check if any errors has occurred.
+            else if (model.getFailedCounter() != 0) {
+                jobStatus = View.JobStatus.DONE_WITH_ERROR;
+            }
         }
         return jobStatus;
     }

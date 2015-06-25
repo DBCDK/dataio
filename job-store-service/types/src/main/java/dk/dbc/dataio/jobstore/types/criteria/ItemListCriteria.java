@@ -1,14 +1,6 @@
 package dk.dbc.dataio.jobstore.types.criteria;
 
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
-public class ItemListCriteria implements ListCriteria<ItemListCriteria.Field>{
-
+public class ItemListCriteria extends ListCriteria<ItemListCriteria.Field, ItemListCriteria> {
     /**
      * Available criteria fields
      */
@@ -38,71 +30,4 @@ public class ItemListCriteria implements ListCriteria<ItemListCriteria.Field>{
          */
         STATE_IGNORED
     }
-
-    private LinkedList<ListFilterGroup<ItemListCriteria.Field>> filtering;
-    private List<ListOrderBy<ItemListCriteria.Field>> ordering;
-    private int limit;
-    private int offset;
-
-    public ItemListCriteria() {
-        filtering = new LinkedList<>();
-        ordering = new ArrayList<>();
-    }
-
-    @Override
-    public ItemListCriteria where(ListFilter<Field> filter) throws NullPointerException {
-        filtering.add(new ListFilterGroup<Field>().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND)));
-        return this;
-    }
-
-    @Override
-    public ItemListCriteria and(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
-        return this;
-    }
-
-    @Override
-    public ItemListCriteria or(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.OR));
-        return this;
-    }
-
-    @Override
-    public ItemListCriteria limit(int limit) {
-        this.limit = limit;
-        return this;
-    }
-
-    @Override
-    public ItemListCriteria offset(int offset) {
-        this.offset = offset;
-        return this;
-    }
-
-    @Override
-    public List<ListFilterGroup<Field>> getFiltering() {
-        return Collections.unmodifiableList(filtering);
-    }
-
-    @Override
-    public List<ListOrderBy<Field>> getOrdering() {
-        return Collections.unmodifiableList(ordering);
-    }
-
-    @Override
-    public ItemListCriteria orderBy(ListOrderBy<Field> orderBy) throws NullPointerException {
-        ordering.add(InvariantUtil.checkNotNullOrThrow(orderBy, "orderBy"));
-        return this;
-    }
-
-    @Override
-    public int getLimit() {
-        return limit;
-    }
-
-    @Override
-    public int getOffset() {
-        return offset;
-    }
-
 }

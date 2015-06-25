@@ -1,9 +1,14 @@
 package dk.dbc.dataio.jobstore.types.criteria;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Interface for listings criteria
+ * Abstract base class for listings criteria
  *
  * <pre>
  * <code>
@@ -35,16 +40,66 @@ import java.util.List;
  *   whereIn(T, List<Object>)
  * </pre>
  */
-public interface ListCriteria<T extends ListFilterField> {
-    ListCriteria<T> where(ListFilter<T> filter);
-    ListCriteria<T> and(ListFilter<T> filter);
-    ListCriteria<T> or(ListFilter<T> filter);
-    ListCriteria<T> limit(int limit);
-    ListCriteria<T> offset(int offset);
+public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T,U>> {
+    private LinkedList<ListFilterGroup<T>> filtering;
+    private List<ListOrderBy<T>> ordering;
+    private int limit;
+    private int offset;
 
-    List<ListFilterGroup<T>> getFiltering();
-    ListCriteria<T> orderBy(ListOrderBy<T> orderBy);
-    List<ListOrderBy<T>> getOrdering();
-    int getLimit();
-    int getOffset();
+    public ListCriteria() {
+        filtering = new LinkedList<>();
+        ordering = new ArrayList<>();
+    }
+
+    @SuppressWarnings("unchecked")
+    public U where(ListFilter<T> filter) throws NullPointerException {
+        filtering.add(new ListFilterGroup<T>().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND)));
+        return (U)this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U and(ListFilter<T> filter) throws NullPointerException {
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
+        return (U)this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U or(ListFilter<T> filter) throws NullPointerException {
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.OR));
+        return (U)this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U limit(int limit) {
+        this.limit = limit;
+        return (U)this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public U offset(int offset) {
+        this.offset = offset;
+        return (U)this;
+    }
+
+    public List<ListFilterGroup<T>> getFiltering() {
+        return Collections.unmodifiableList(filtering);
+    }
+
+    public List<ListOrderBy<T>> getOrdering() {
+        return Collections.unmodifiableList(ordering);
+    }
+
+    @SuppressWarnings("unchecked")
+    public U orderBy(ListOrderBy<T> orderBy) throws NullPointerException {
+        ordering.add(InvariantUtil.checkNotNullOrThrow(orderBy, "orderBy"));
+        return (U)this;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
 }

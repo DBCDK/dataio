@@ -51,19 +51,19 @@ public class ItemListCriteria implements ListCriteria<ItemListCriteria.Field>{
 
     @Override
     public ItemListCriteria where(ListFilter<Field> filter) throws NullPointerException {
-        filtering.add(new ListFilterGroup<Field>().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.AND)));
+        filtering.add(new ListFilterGroup<Field>().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND)));
         return this;
     }
 
     @Override
     public ItemListCriteria and(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.AND));
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
         return this;
     }
 
     @Override
     public ItemListCriteria or(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.OR));
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.OR));
         return this;
     }
 

@@ -26,7 +26,7 @@ public class ChunkListCriteriaTest {
         filters.add(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
         filters.add(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.EQUAL, 42));
 
-        final ListCriteria chunkListCriteria = new ChunkListCriteria()
+        final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
                 .where(filters.get(0))
                 .and(filters.get(1));
 
@@ -66,7 +66,7 @@ public class ChunkListCriteriaTest {
         expectedOrdering.add(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListOrderBy.Sort.DESC));
         expectedOrdering.add(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
 
-        final ListCriteria chunkListCriteria = new ChunkListCriteria()
+        final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
                 .orderBy(expectedOrdering.get(0))
                 .orderBy(expectedOrdering.get(1));
 
@@ -91,7 +91,7 @@ public class ChunkListCriteriaTest {
         filters.add(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
         filters.add(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.EQUAL, 42));
 
-        final ListCriteria chunkListCriteria = new ChunkListCriteria()
+        final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
                 .where(filters.get(0))
                 .and(filters.get(1))
                 .and(filters.get(2))

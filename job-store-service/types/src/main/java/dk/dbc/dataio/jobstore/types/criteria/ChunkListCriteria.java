@@ -37,19 +37,19 @@ public class ChunkListCriteria implements ListCriteria<ChunkListCriteria.Field> 
 
     @Override
     public ChunkListCriteria where(ListFilter<Field> filter) throws NullPointerException {
-        filtering.add(new ListFilterGroup<Field>().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.AND)));
+        filtering.add(new ListFilterGroup<Field>().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND)));
         return this;
     }
 
     @Override
     public ChunkListCriteria and(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.AND));
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
         return this;
     }
 
     @Override
     public ChunkListCriteria or(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.OR));
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.OR));
         return this;
     }
 

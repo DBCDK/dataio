@@ -35,11 +35,10 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
          * jobs failed while delivering
          */
         STATE_DELIVERING_FAILED,
-
         /**
          * sink id for sink referenced by job
          */
-        SINK_ID
+        SINK_ID,
     }
 
     private LinkedList<ListFilterGroup<JobListCriteria.Field>> filtering;
@@ -55,19 +54,19 @@ public class JobListCriteria implements ListCriteria<JobListCriteria.Field> {
 
     @Override
     public JobListCriteria where(ListFilter<Field> filter) throws NullPointerException {
-        filtering.add(new ListFilterGroup<Field>().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.AND)));
+        filtering.add(new ListFilterGroup<Field>().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND)));
         return this;
     }
 
     @Override
     public JobListCriteria and(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.AND));
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
         return this;
     }
 
     @Override
     public JobListCriteria or(ListFilter<Field> filter) throws NullPointerException {
-        filtering.getLast().addMember(new ListFilterGroup.Member(filter, ListFilterGroup.LOGICAL_OP.OR));
+        filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.OR));
         return this;
     }
 

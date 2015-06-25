@@ -28,7 +28,7 @@ public class ItemListCriteriaTest {
         filters.add(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 42));
         filters.add(new ListFilter<>(ItemListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN, 42));
 
-        final ListCriteria itemListCriteria = new ItemListCriteria()
+        final ItemListCriteria itemListCriteria = new ItemListCriteria()
                 .where(filters.get(0))
                 .and(filters.get(1))
                 .where(filters.get(2))
@@ -80,7 +80,7 @@ public class ItemListCriteriaTest {
         expectedOrdering.add(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.DESC));
         expectedOrdering.add(new ListOrderBy<>(ItemListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
 
-        final ListCriteria itemListCriteria = new ItemListCriteria()
+        final ItemListCriteria itemListCriteria = new ItemListCriteria()
                 .orderBy(expectedOrdering.get(0))
                 .orderBy(expectedOrdering.get(1));
 
@@ -106,7 +106,7 @@ public class ItemListCriteriaTest {
         filters.add(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, 42));
         filters.add(new ListFilter<>(ItemListCriteria.Field.TIME_OF_CREATION, ListFilter.Op.GREATER_THAN, 42));
 
-        final ListCriteria itemListCriteria = new ItemListCriteria()
+        final ItemListCriteria itemListCriteria = new ItemListCriteria()
                 .where(filters.get(0))
                 .and(filters.get(1))
                 .where(filters.get(2))

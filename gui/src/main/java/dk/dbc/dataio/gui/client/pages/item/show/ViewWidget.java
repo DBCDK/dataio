@@ -17,6 +17,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     static final int ALL_ITEMS_TAB_INDEX = 0;
     static final int FAILED_ITEMS_TAB_INDEX = 1;
     static final int IGNORED_ITEMS_TAB_INDEX = 2;
+    static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
 
     interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {}
 

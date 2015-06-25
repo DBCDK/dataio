@@ -311,6 +311,7 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
+        verify(mockedJobDiagnosticTable).setRowCount(0);
         verify(mockedAllPager).setPageSize(PresenterImpl.PAGE_SIZE);
         verify(mockedFailedPager).setPageSize(PresenterImpl.PAGE_SIZE);
         verify(mockedIgnoredPager).setPageSize(PresenterImpl.PAGE_SIZE);
@@ -410,6 +411,7 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
+        verify(mockedJobDiagnosticTable).setRowCount(0);
         // Called from subject under test
         verify(mockedAllItemsTable).setRowCount(4);
         verify(mockedAllItemsTable).setRowData(OFFSET, testModels);
@@ -433,6 +435,7 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
+        verify(mockedJobDiagnosticTable).setRowCount(0);
         // Called from subject under test
         verify(mockedFailedItemsTable).setRowCount(4);
         verify(mockedFailedItemsTable).setRowData(OFFSET, testModels);
@@ -456,6 +459,7 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
+        verify(mockedJobDiagnosticTable).setRowCount(0);
         // Called from subject under test
         verify(mockedIgnoredItemsTable).setRowCount(4);
         verify(mockedIgnoredItemsTable).setRowData(OFFSET, testModels);

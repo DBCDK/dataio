@@ -173,12 +173,16 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
         view.jobHeader.setText(constructJobHeaderText(jobModel));
-        if (failedItemCounter != 0) {
-            view.tabPanel.selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
-        } else if (ignoredItemCounter != 0) {
-            view.tabPanel.selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+        if(allItemCounter == 0) {
+            view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         } else {
-            view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
+            if (failedItemCounter != 0) {
+                view.tabPanel.selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
+            } else if (ignoredItemCounter != 0) {
+                view.tabPanel.selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+            } else {
+                view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
+            }
         }
         setJobInfoTab(jobModel);
         setDiagnosticModels(jobModel);

@@ -300,6 +300,23 @@ public class HarvestOperationTest {
     }
 
     @Test
+    public void getJobSpecificationTemplate_harvestOperationConfigEntryTypeIsSetToTransientAsDefault() {
+        final int agencyId = 424242;
+        final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
+        final HarvestOperation harvestOperation = getHarvestOperation(config);
+        assertThat(harvestOperation.getJobSpecificationTemplate(agencyId).getType(), is(JobSpecification.Type.TRANSIENT));
+    }
+
+    @Test
+    public void getJobSpecificationTemplate_harvestOperationConfigEntryTypeCanBeChangedFromDefault() {
+        final int agencyId = 424242;
+        final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry()
+                .setType(JobSpecification.Type.TEST);
+        final HarvestOperation harvestOperation = getHarvestOperation(config);
+        assertThat(harvestOperation.getJobSpecificationTemplate(agencyId).getType(), is(JobSpecification.Type.TEST));
+    }
+
+    @Test
     public void getRawRepoConnector_noOpenAgencyTargetIsConfigured_usesFallbackAgencySearchOrder() {
         try {
             final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();

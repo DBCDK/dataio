@@ -1,5 +1,6 @@
 package dk.dbc.dataio.harvester.types;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
@@ -173,6 +174,7 @@ public class RawRepoHarvesterConfigTest {
         final JSONBContext jsonbContext = new JSONBContext();
         final RawRepoHarvesterConfig.Entry configEntry = new RawRepoHarvesterConfigEntryBuilder().build();
         configEntry.setFormatOverride(42, "format42");
+        configEntry.setType(JobSpecification.Type.TEST);
         final RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
         config.addEntry(configEntry);
         final String marshalled = jsonbContext.marshall(config);
@@ -180,6 +182,7 @@ public class RawRepoHarvesterConfigTest {
         assertThat("entries", unmarshalled.getEntries().contains(configEntry), is(true));
         for (RawRepoHarvesterConfig.Entry entry : unmarshalled.getEntries()) {
             assertThat("openAgencyTarget", entry.getOpenAgencyTarget(), is(nullValue()));
+            assertThat("type", entry.getType(), is(JobSpecification.Type.TEST));
         }
     }
 
@@ -205,6 +208,7 @@ public class RawRepoHarvesterConfigTest {
         assertThat("entries", unmarshalled.getEntries().contains(configEntry), is(true));
         for (RawRepoHarvesterConfig.Entry entry : unmarshalled.getEntries()) {
             assertThat("openAgencyTarget", entry.getOpenAgencyTarget(), is(openAgencyTarget));
+            assertThat("type", entry.getType(), is(JobSpecification.Type.TRANSIENT));
         }
     }
 
@@ -228,6 +232,7 @@ public class RawRepoHarvesterConfigTest {
         private String consumerId = "consumerId";
         private String format = "format";
         private String destination = "destination";
+        private JobSpecification.Type type = JobSpecification.Type.TRANSIENT;
 
         public RawRepoHarvesterConfigEntryBuilder setId(String id) {
             this.id = id;
@@ -254,13 +259,19 @@ public class RawRepoHarvesterConfigTest {
             return this;
         }
 
+        public RawRepoHarvesterConfigEntryBuilder setType(JobSpecification.Type type) {
+            this.type = type;
+            return this;
+        }
+
         public RawRepoHarvesterConfig.Entry build() {
             return new RawRepoHarvesterConfig.Entry()
                     .setId(id)
                     .setResource(resource)
                     .setConsumerId(consumerId)
                     .setFormat(format)
-                    .setDestination(destination);
+                    .setDestination(destination)
+                    .setType(type);
         }
     }
 

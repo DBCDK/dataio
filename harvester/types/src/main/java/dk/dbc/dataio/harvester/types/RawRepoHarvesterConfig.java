@@ -1,6 +1,7 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.HashMap;
@@ -76,6 +77,9 @@ public class RawRepoHarvesterConfig {
         /** Destination for harvested items */
         private String destination;
 
+        /** Job type of harvested items (default is TRANSIENT */
+        private JobSpecification.Type type = JobSpecification.Type.TRANSIENT;
+
         /** Format of harvested items */
         private String format;
 
@@ -142,6 +146,15 @@ public class RawRepoHarvesterConfig {
             return this;
         }
 
+        public JobSpecification.Type getType() {
+            return type;
+        }
+
+        public Entry setType(JobSpecification.Type type) {
+            this.type = type;
+            return this;
+        }
+
         public String getFormat() {
             return format;
         }
@@ -185,6 +198,7 @@ public class RawRepoHarvesterConfig {
                     ", resource='" + resource + '\'' +
                     ", consumerId='" + consumerId + '\'' +
                     ", destination='" + destination + '\'' +
+                    ", type='" + type.name() + '\'' +
                     ", format='" + format + '\'' +
                     ", formatOverrides=" + formatOverrides +
                     ", includeRelations=" + includeRelations +
@@ -195,55 +209,42 @@ public class RawRepoHarvesterConfig {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
+            if (this == o) return true;
+            if (!(o instanceof Entry)) return false;
 
             Entry entry = (Entry) o;
 
-            if (includeRelations != entry.includeRelations) {
+            if (includeRelations != entry.includeRelations) return false;
+            if (getBatchSize() != entry.getBatchSize()) return false;
+            if (getId() != null ? !getId().equals(entry.getId()) : entry.getId() != null) return false;
+            if (getResource() != null ? !getResource().equals(entry.getResource()) : entry.getResource() != null)
                 return false;
-            }
-            if (batchSize != entry.batchSize) {
+            if (getConsumerId() != null ? !getConsumerId().equals(entry.getConsumerId()) : entry.getConsumerId() != null)
                 return false;
-            }
-            if (id != null ? !id.equals(entry.id) : entry.id != null) {
+            if (getDestination() != null ? !getDestination().equals(entry.getDestination()) : entry.getDestination() != null)
                 return false;
-            }
-            if (resource != null ? !resource.equals(entry.resource) : entry.resource != null) {
+            if (getType() != entry.getType()) return false;
+            if (getFormat() != null ? !getFormat().equals(entry.getFormat()) : entry.getFormat() != null) return false;
+            if (formatOverrides != null ? !formatOverrides.equals(entry.formatOverrides) : entry.formatOverrides != null)
                 return false;
-            }
-            if (consumerId != null ? !consumerId.equals(entry.consumerId) : entry.consumerId != null) {
-                return false;
-            }
-            if (destination != null ? !destination.equals(entry.destination) : entry.destination != null) {
-                return false;
-            }
-            if (format != null ? !format.equals(entry.format) : entry.format != null) {
-                return false;
-            }
-            if (formatOverrides != null ? !formatOverrides.equals(entry.formatOverrides) : entry.formatOverrides != null) {
-                return false;
-            }
-            return !(openAgencyTarget != null ? !openAgencyTarget.equals(entry.openAgencyTarget) : entry.openAgencyTarget != null);
+            return !(getOpenAgencyTarget() != null ? !getOpenAgencyTarget().equals(entry.getOpenAgencyTarget()) : entry.getOpenAgencyTarget() != null);
 
         }
 
         @Override
         public int hashCode() {
-            int result = id != null ? id.hashCode() : 0;
-            result = 31 * result + (resource != null ? resource.hashCode() : 0);
-            result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
-            result = 31 * result + (destination != null ? destination.hashCode() : 0);
-            result = 31 * result + (format != null ? format.hashCode() : 0);
+            int result = getId() != null ? getId().hashCode() : 0;
+            result = 31 * result + (getResource() != null ? getResource().hashCode() : 0);
+            result = 31 * result + (getConsumerId() != null ? getConsumerId().hashCode() : 0);
+            result = 31 * result + (getDestination() != null ? getDestination().hashCode() : 0);
+            result = 31 * result + (getType() != null ? getType().hashCode() : 0);
+            result = 31 * result + (getFormat() != null ? getFormat().hashCode() : 0);
             result = 31 * result + (formatOverrides != null ? formatOverrides.hashCode() : 0);
             result = 31 * result + (includeRelations ? 1 : 0);
-            result = 31 * result + batchSize;
-            result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
+            result = 31 * result + getBatchSize();
+            result = 31 * result + (getOpenAgencyTarget() != null ? getOpenAgencyTarget().hashCode() : 0);
             return result;
         }
+
     }
 }

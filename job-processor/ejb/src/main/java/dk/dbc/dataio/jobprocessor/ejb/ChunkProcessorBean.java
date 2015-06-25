@@ -1,13 +1,7 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.types.*;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
@@ -176,7 +170,6 @@ public class ChunkProcessorBean {
             String data = Base64Util.base64decode(item.getData());
             for (JSWrapperSingleScript jsWrapper : jsWrappers) {
                 data = invokeJavaScript(jsWrapper, data, supplementaryData, trackingId);
-                LOGGER.info("JavaScript processing result:\n{}", data);
                 if (data.isEmpty()) {
                     // terminate pipeline processing
                     break;

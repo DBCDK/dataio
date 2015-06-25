@@ -13,6 +13,7 @@ public class JobSpecificationBuilder {
     private String mailForNotificationAboutProcessing = "-mailForNotificationAboutProcessing-";
     private String resultmailInitials = "-resultmailInitials-";
     private String dataFile = "-dataFile-";
+    private JobSpecification.Type type = JobSpecification.Type.TEST;
 
     public JobSpecificationBuilder setPackaging(String packaging) {
         this.packaging = packaging;
@@ -61,7 +62,6 @@ public class JobSpecificationBuilder {
 
 
     public JobSpecification build() {
-        return new JobSpecification(packaging, format, charset, destination, submitterId, mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials, dataFile);
+        return new JobSpecification(packaging, format, charset, destination, submitterId, mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials, dataFile, type);
     }
-
 }

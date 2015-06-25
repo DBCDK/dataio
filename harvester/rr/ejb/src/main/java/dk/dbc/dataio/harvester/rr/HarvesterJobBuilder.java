@@ -184,6 +184,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
                 jobSpecificationTemplate.getCharset(),
                 jobSpecificationTemplate.getDestination(),
                 jobSpecificationTemplate.getSubmitterId(),
-                "", "", "", fileStoreUrn.toString());
+                "", "", "", fileStoreUrn.toString(),
+                jobSpecificationTemplate.getType());
     }
 }

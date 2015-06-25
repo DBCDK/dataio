@@ -45,7 +45,7 @@ public class HarvesterJobBuilderTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JobInfoSnapshot jobInfoSnapshot = mock(JobInfoSnapshot.class);
     private final JobSpecification jobSpecificationTemplate =
-            new JobSpecification("packaging", "format", "encoding", "destination", 42, "placeholder", "placeholder", "placeholder", "placeholder");
+            new JobSpecification("packaging", "format", "encoding", "destination", 42, "placeholder", "placeholder", "placeholder", "placeholder", JobSpecification.Type.TEST);
 
     @Before
     public void setupMocks() throws FileStoreServiceConnectorException, JobStoreServiceConnectorException {

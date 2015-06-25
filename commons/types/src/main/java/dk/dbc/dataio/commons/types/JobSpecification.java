@@ -12,6 +12,8 @@ import java.io.Serializable;
 public class JobSpecification implements Serializable {
     private static final long serialVersionUID = 731600708416455339L;
 
+    public enum Type {TRANSIENT, PERSISTENT, TEST }
+
     private final String packaging;
     private final String format;
     private final String charset;
@@ -22,6 +24,7 @@ public class JobSpecification implements Serializable {
     private final String resultmailInitials;
     // Due to GWT serialization issues we cannot use java.net.URI or java.net.URL
     private final String dataFile;
+    private final Type type;
 
     /**
      * Class constructor
@@ -35,6 +38,7 @@ public class JobSpecification implements Serializable {
      * @param mailForNotificationAboutProcessing mail address for notification about the processing step.
      * @param resultmailInitials According to transfile spec: "Initialer til identifikation af resultatmail fra DanBib".
      * @param dataFile job data file
+     * @param type job type
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String argument
@@ -49,7 +53,8 @@ public class JobSpecification implements Serializable {
                             @JsonProperty("mailForNotificationAboutVerification") String mailForNotificationAboutVerification,
                             @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
                             @JsonProperty("resultmailInitials") String resultmailInitials,
-                            @JsonProperty("dataFile") String dataFile) throws NullPointerException, IllegalArgumentException {
+                            @JsonProperty("dataFile") String dataFile,
+                            @JsonProperty("type") Type type) throws NullPointerException, IllegalArgumentException {
 
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
@@ -60,6 +65,7 @@ public class JobSpecification implements Serializable {
         this.mailForNotificationAboutProcessing = InvariantUtil.checkNotNullOrThrow(mailForNotificationAboutProcessing, "mailForNotificationAboutProcessing");
         this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");
         this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
+        this.type = type;
     }
 
     public String getCharset() {
@@ -99,59 +105,43 @@ public class JobSpecification implements Serializable {
         return resultmailInitials;
     }
 
+    public Type getType() {
+        return type;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof JobSpecification)) return false;
 
         JobSpecification that = (JobSpecification) o;
 
-        if (submitterId != that.submitterId) {
+        if (getSubmitterId() != that.getSubmitterId()) return false;
+        if (!getPackaging().equals(that.getPackaging())) return false;
+        if (!getFormat().equals(that.getFormat())) return false;
+        if (!getCharset().equals(that.getCharset())) return false;
+        if (!getDestination().equals(that.getDestination())) return false;
+        if (!getMailForNotificationAboutVerification().equals(that.getMailForNotificationAboutVerification()))
             return false;
-        }
-        if (!charset.equals(that.charset)) {
-            return false;
-        }
-        if (!dataFile.equals(that.dataFile)) {
-            return false;
-        }
-        if (!destination.equals(that.destination)) {
-            return false;
-        }
-        if (!format.equals(that.format)) {
-            return false;
-        }
-        if (!mailForNotificationAboutProcessing.equals(that.mailForNotificationAboutProcessing)) {
-            return false;
-        }
-        if (!mailForNotificationAboutVerification.equals(that.mailForNotificationAboutVerification)) {
-            return false;
-        }
-        if (!packaging.equals(that.packaging)) {
-            return false;
-        }
-        if (!resultmailInitials.equals(that.resultmailInitials)) {
-            return false;
-        }
+        if (!getMailForNotificationAboutProcessing().equals(that.getMailForNotificationAboutProcessing())) return false;
+        if (!getResultmailInitials().equals(that.getResultmailInitials())) return false;
+        if (!getDataFile().equals(that.getDataFile())) return false;
+        return type == that.type;
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = packaging.hashCode();
-        result = 31 * result + format.hashCode();
-        result = 31 * result + charset.hashCode();
-        result = 31 * result + destination.hashCode();
-        result = 31 * result + (int) (submitterId ^ (submitterId >>> 32));
-        result = 31 * result + mailForNotificationAboutVerification.hashCode();
-        result = 31 * result + mailForNotificationAboutProcessing.hashCode();
-        result = 31 * result + resultmailInitials.hashCode();
-        result = 31 * result + dataFile.hashCode();
+        int result = getPackaging().hashCode();
+        result = 31 * result + getFormat().hashCode();
+        result = 31 * result + getCharset().hashCode();
+        result = 31 * result + getDestination().hashCode();
+        result = 31 * result + (int) (getSubmitterId() ^ (getSubmitterId() >>> 32));
+        result = 31 * result + getMailForNotificationAboutVerification().hashCode();
+        result = 31 * result + getMailForNotificationAboutProcessing().hashCode();
+        result = 31 * result + getResultmailInitials().hashCode();
+        result = 31 * result + getDataFile().hashCode();
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 
@@ -167,6 +157,7 @@ public class JobSpecification implements Serializable {
                 ", mailForNotificationAboutProcessing='" + mailForNotificationAboutProcessing + '\'' +
                 ", resultmailInitials='" + resultmailInitials + '\'' +
                 ", dataFile='" + dataFile + '\'' +
+                ", type='" + type + '\'' +
                 '}';
     }
 }

@@ -96,8 +96,8 @@ public class JobSpecificationTest {
         new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, "", TYPE);
     }
 
-    @Test
-    public void constructor_typeArgIsNull_returnsNewJobSpecificationInstance() {
+    @Test(expected = NullPointerException.class)
+    public void constructor_typeArgIsNull_throws() {
         new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, null);
     }
 

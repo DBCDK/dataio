@@ -368,7 +368,8 @@ public class HarvestOperationTest {
             .setMailForNotificationAboutVerification("placeholder")
             .setMailForNotificationAboutProcessing("placeholder")
             .setResultmailInitials("placeholder")
-            .setDataFile("placeholder");
+            .setDataFile("placeholder")
+            .setType(JobSpecification.Type.TRANSIENT);
     }
 
     public static QueueJob getQueueJob(RecordId recordId) {

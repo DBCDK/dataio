@@ -1,0 +1,30 @@
+package dk.dbc.dataio.gui.client.components.jobfilter;
+
+import com.google.gwt.i18n.client.Constants;
+import dk.dbc.dataio.gui.client.i18n.MainConstants;
+
+public interface Texts extends Constants{
+
+    // Header text
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_Filter();
+
+
+    // Button texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Filter();
+
+
+    // Other texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_AddFilter();
+
+
+    // Specific Job Filter texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String sinkFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String sinkFilter_PromptText();
+
+}

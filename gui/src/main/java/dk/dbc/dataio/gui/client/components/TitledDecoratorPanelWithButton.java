@@ -48,7 +48,7 @@ public class TitledDecoratorPanelWithButton extends Composite implements HasWidg
     @UiField SimplePanelWithButton panel;
 
     /**
-     * Constructor taking the title of the panel as a parameter (mandatory in UI Binder)
+     * Constructor taking the title of the panel and the button image as parameters (mandatory in UI Binder)
      * @param title The title of the Decorated panel
      */
     @UiConstructor

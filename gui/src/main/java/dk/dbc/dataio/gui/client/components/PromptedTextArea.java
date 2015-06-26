@@ -53,7 +53,7 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
     }
 
     /**
-     * Adds a {@link ValueChangeHandler&lt;String&gt;} handler.
+     * Adds a {@link com.google.gwt.event.logical.shared.ValueChangeHandler} handler.
      *
      * @param handler the handler
      * @return the registration for the event

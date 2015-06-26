@@ -28,9 +28,9 @@ import com.google.gwt.user.client.ui.MenuBar;
  * In UI Binder, add the following:
  *
  * <pre>
- * @{code
+ * <code
  *  <jobs:JobFilter ui:field="jobFilter" />
- * }
+ * </code>
  * </pre>
  */
 public class JobFilter extends Composite {

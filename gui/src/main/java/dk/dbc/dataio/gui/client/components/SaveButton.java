@@ -58,7 +58,7 @@ public class SaveButton extends FlowPanel {
     /**
      * Sets the text, displaying the status info (busy, completed etc.)
      * 
-     * @param statusText 
+     * @param statusText the status text to set
      */
     public void setStatusText(String statusText) {
         resultLabel.setText(statusText);

@@ -16,7 +16,7 @@ public final class SubmitterModelMapper {
 
     /**
      * Maps a Submitter to a Model
-     * @param submitter
+     * @param submitter, the submitter to map to a model
      * @return model
      */
     public static SubmitterModel toModel(Submitter submitter){
@@ -30,9 +30,9 @@ public final class SubmitterModelMapper {
 
     /**
      * Maps a model to submitter content
-     * @param model
+     * @param model, the model to map to submitter content
      * @return submitterContent
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if any model values were illegal
      */
     public static SubmitterContent toSubmitterContent(SubmitterModel model) throws IllegalArgumentException {
 

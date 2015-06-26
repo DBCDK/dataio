@@ -14,6 +14,7 @@ public class PresenterEditImpl extends PresenterImpl {
     private long id;
     /**
      * Constructor
+     * @param place the edit place
      * @param clientFactory the clientFactory
      */
     public PresenterEditImpl(Place place, ClientFactory clientFactory) {

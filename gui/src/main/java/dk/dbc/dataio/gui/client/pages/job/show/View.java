@@ -41,6 +41,7 @@ public class View extends ViewWidget {
      * Default constructor
      *
      * @param clientFactory, the client factory
+     * @param headerText, the text to display in the header
      */
     public View(ClientFactory clientFactory, String headerText) {
         super(clientFactory, headerText);

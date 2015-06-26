@@ -51,6 +51,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Default constructor
+     * @param clientFactory, the client factory
      * @param headerText, the text for the header in the view
      */
     public ViewWidget(ClientFactory clientFactory, String headerText) {

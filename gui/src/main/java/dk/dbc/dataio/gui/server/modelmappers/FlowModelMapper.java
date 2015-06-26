@@ -17,8 +17,8 @@ public final class FlowModelMapper {
 
     /**
      * Maps a Flow to a Model
-     * @param flow
-     * @return model
+     * @param flow, the flow
+     * @return the flow model
      */
     public static FlowModel toModel(Flow flow){
         return new FlowModel(
@@ -33,8 +33,9 @@ public final class FlowModelMapper {
     /**
      * Maps a model to flow content
      * @param model The model
+     * @param flowComponents the list of flow components
      * @return FlowContent The content of the Flow
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if any matches were found
      */
     public static FlowContent toFlowContent(FlowModel model, List<FlowComponent> flowComponents) throws IllegalArgumentException {
         if(model.isInputFieldsEmpty()) {

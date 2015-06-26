@@ -238,8 +238,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * revision, script name and invocation method for the flow component.
      * (Default chosen is the first of each available).
      *
-     * For CREATE: The event is fired -> when the user has typed in a valid svn project.
-     * For EDIT  : The event is fired -> when populating the svn project view field with the existing
+     * For CREATE: The event is fired -&gt; when the user has typed in a valid svn project.
+     * For EDIT  : The event is fired -&gt; when populating the svn project view field with the existing
      * svn project value.
      *
      * The user should be able to see the existing values before editing.

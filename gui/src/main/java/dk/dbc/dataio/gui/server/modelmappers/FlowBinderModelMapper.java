@@ -55,7 +55,7 @@ public final class FlowBinderModelMapper {
      *
      * @param model The model
      * @return The content of the Flow Binder
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if any matches were found
      */
     public static FlowBinderContent toFlowBinderContent(FlowBinderModel model) throws IllegalArgumentException {
         if (model.isInputFieldsEmpty()) {

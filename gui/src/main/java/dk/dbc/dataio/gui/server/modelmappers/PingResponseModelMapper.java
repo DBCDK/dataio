@@ -12,7 +12,7 @@ public final class PingResponseModelMapper {
 
     /**
      * Maps a PingResponse to a Model
-     * @param pingResponse
+     * @param pingResponse, the ping response
      * @return model
      */
     public static PingResponseModel toModel(PingResponse pingResponse) {

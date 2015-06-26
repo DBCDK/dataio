@@ -14,7 +14,8 @@ public class PresenterEditImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param clientFactory
+     * @param place the edit place
+     * @param clientFactory the client factory
      */
     public PresenterEditImpl(Place place, ClientFactory clientFactory) {
         super(clientFactory);

@@ -72,6 +72,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Abstract Methods
      */
 
+    /**
+     * @param model containing the values required for the job store search.
+     */
     protected abstract void fetchJobsFromJobStore(JobListCriteriaModel model);
 
 

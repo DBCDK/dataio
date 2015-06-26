@@ -16,7 +16,7 @@ public class SinkModelMapper {
 
     /**
      * Maps a Sink to a SinkModel
-     * @param sink
+     * @param sink, the sink
      * @return model
      */
     public static SinkModel toModel(Sink sink){
@@ -30,9 +30,9 @@ public class SinkModelMapper {
 
     /**
      * Maps a model to submitter content
-     * @param model
+     * @param model, the model to map from
      * @return submitterContent
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if any model values were illegal
      */
     public static SinkContent toSinkContent(SinkModel model) throws IllegalArgumentException {
 

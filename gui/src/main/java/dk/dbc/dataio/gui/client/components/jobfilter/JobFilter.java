@@ -30,7 +30,7 @@ import com.google.gwt.user.client.ui.MenuBar;
  *
  * <pre>
  * <code>
- *  <jobs:JobFilter ui:field="jobFilter" />
+ *  &lt;jobs:JobFilter ui:field="jobFilter" /&gt;
  * </code>
  * </pre>
  */

@@ -20,6 +20,7 @@ public class SequenceAnalyserSinkKeyGenerator implements SequenceAnalyserKeyGene
     }
 
     /**
+     * @param sink the sink for which a key should be generated
      * @throws NullPointerException if given null-valued sink
      */
     public SequenceAnalyserSinkKeyGenerator(Sink sink) throws NullPointerException {

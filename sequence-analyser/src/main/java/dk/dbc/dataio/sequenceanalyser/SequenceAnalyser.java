@@ -32,6 +32,7 @@ public interface SequenceAnalyser {
     /**
      * Releases all elements having a dependency on the element specified by given
      * identifier and removes the corresponding element from the internal data structure
+     * @param identifier the indentifier
      * @return number of consumed slots held by deleted element
      */
     int deleteAndRelease(CollisionDetectionElementIdentifier identifier);
@@ -58,6 +59,8 @@ public interface SequenceAnalyser {
      * @return true if identifier represents the first (or top-most) element
      * in the SequenceAnalyser, false otherwise. Also returns false if there are no
      * elements in the SequenceAnalyser.
+     *
+     * @param identifier the identifier
      */
     boolean isHead(CollisionDetectionElementIdentifier identifier);
 }

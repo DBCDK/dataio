@@ -53,7 +53,7 @@ public class PromptedTextArea extends PromptedData implements HasValue<String> {
     }
 
     /**
-     * Adds a {@link ValueChangeHandler<String>} handler.
+     * Adds a {@link ValueChangeHandler&lt;String&gt;} handler.
      *
      * @param handler the handler
      * @return the registration for the event

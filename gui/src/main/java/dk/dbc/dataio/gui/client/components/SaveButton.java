@@ -37,10 +37,11 @@ public class SaveButton extends FlowPanel {
     private final Label resultLabel = new Label("");
     private ButtonEvent saveButtonEvent = null;
 
-    /**
+   /**
      * Constructor
-     * 
-     * @param buttonText The text to be displayed on the save button
+     *
+     * @param guiId the id of the gui element
+     * @param buttonText buttonText The text to be displayed on the save button
      * @param saveButtonEvent The callback event interface, that gets called upon press on the save button
      */
     public SaveButton(String guiId, String buttonText, ButtonEvent saveButtonEvent) {

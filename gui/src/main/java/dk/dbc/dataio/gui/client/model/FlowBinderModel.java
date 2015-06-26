@@ -282,6 +282,7 @@ public class FlowBinderModel extends GenericBackendModel {
 
     /**
      * Checks for empty String values
+     * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
         return name == null

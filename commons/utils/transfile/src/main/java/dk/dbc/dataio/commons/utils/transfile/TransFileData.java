@@ -14,8 +14,8 @@ public class TransFileData {
     /**
      * Accumulates single Trans File Fields in the class from the input string
      *
-     * @param transFileData
-     * @throws IllegalArgumentException
+     * @param transFileData the trans file data
+     * @throws IllegalArgumentException if the trans file data contained illegal input
      */
     public TransFileData(String transFileData) throws IllegalArgumentException {
         TransFileField field;
@@ -58,7 +58,7 @@ public class TransFileData {
 
     /**
      * Gets the submitter number for the TransFile data element
-     * @return submitter number
+     * @return the submitter number for the TransFile data element
      */
     public long getSubmitterNumber() {
         final String filename = data.get(TransFileField.TransFileFieldId.FILE_NAME);
@@ -67,7 +67,7 @@ public class TransFileData {
 
     /**
      * Gets the Technical Protocol for the TransFile data element
-     * @return The Technical Protocol
+     * @return The Technical Protocol for the TransFile data element
      */
     public String getTechnicalProtocol() {
         return data.get(TransFileField.TransFileFieldId.TECHNICAL_PROTOCOL);

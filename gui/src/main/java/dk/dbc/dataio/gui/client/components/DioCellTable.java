@@ -8,7 +8,7 @@ import com.google.gwt.user.cellview.client.CellTable;
  * Maintains an "updated done" style name upon call of the updateStarted() and updateDone() methods.
  Selenium can then easily determine, when an update has been done.
  *
- * @param <T>
+ * @param <T> the type of the object
  */
 public class DioCellTable<T> extends CellTable<T> {
     public final static String DIO_CELLTABLE_UPDATE_DONE = "dio-celltable-update-done";

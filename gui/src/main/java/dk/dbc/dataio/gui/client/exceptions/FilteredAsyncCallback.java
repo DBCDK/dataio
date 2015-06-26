@@ -9,7 +9,7 @@ import java.util.logging.Logger;
  * This class is a specialization of the generic AsyncCallback class
  * The only difference is, that the FilteredAsyncCallback class filters out the
  * RPC Status Code Exception failure.
- * @param <T>
+ * @param <T> the type of the object
  */
 public abstract class FilteredAsyncCallback<T> implements AsyncCallback<T> {
     private static final Logger logger = Logger.getLogger(FilteredAsyncCallback.class.getName());
@@ -18,7 +18,7 @@ public abstract class FilteredAsyncCallback<T> implements AsyncCallback<T> {
      * This method is called whenever the caller wants to signal a failure to
      * the receiver.
      * If overridden, this method handles all failures.
-     * @param caught
+     * @param caught the throwable caught
      */
     @Override
     public void onFailure(Throwable caught) {
@@ -34,7 +34,7 @@ public abstract class FilteredAsyncCallback<T> implements AsyncCallback<T> {
      * This method is called whenever the caller wants to signal a failure to
      * the receiver.
      * If overridden, this method handles all failures except RPC Status Code Exceptions.
-     * @param caught
+     * @param caught the throwable caught
      */
     public abstract void onFilteredFailure(Throwable caught);
 

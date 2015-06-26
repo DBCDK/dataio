@@ -13,14 +13,13 @@ import com.google.gwt.user.client.ui.MenuBar;
  * This class implements the generic Jobs Filter as a UI Binder component.
  * To be added in the top of the Jobs List.
  * The component contains an "Add Filter" menu and a button to be used to activate the filter:
- *
- * <pre>
+ * <p>
  * @{code
  * +---------------+    +---------+
  * | Tilføj Filter |    | Filtrér |
  * +---------------+    +---------+
  * }
- * </pre>
+ *
  *
  * When the menu "Add Filter" is clicked, a sub menu will appear, containing the names of all available filters
  * These filters are configured in the {@link JobFilterList} class

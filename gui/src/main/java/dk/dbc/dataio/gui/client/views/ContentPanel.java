@@ -40,7 +40,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
 
     /**
      * Set the presenter for the concrete view
-     * @param presenter
+     * @param presenter the presenter for the instance of the view to use
      */
     public void setPresenter(T presenter) {
         if (!initialized) {
@@ -80,7 +80,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
 
     /**
      * Generic method to signal a failure to the user
-     * @param message
+     * @param message the message to display in the view
      */
     public void setErrorText(String message) {
         Window.alert("Error: " + message);

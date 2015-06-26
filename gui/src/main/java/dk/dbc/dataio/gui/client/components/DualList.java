@@ -165,7 +165,7 @@ public class DualList extends FlowPanel {
     /**
      * Adds a collection of item to the selectedItems list
      *
-     * @param items
+     * @param items the collection of items to add
      */
     public void addSelectedItems(Collection<? extends Entry<String, String>> items) {
         populateList(right, items);
@@ -174,6 +174,7 @@ public class DualList extends FlowPanel {
 
     /**
      * Enable/disable both left and right lists.
+     * @param enable true if should be enabled, otherwise false
      */
     public void setEnabled(boolean enable) {
         left.setEnabled(enable);
@@ -225,7 +226,7 @@ public class DualList extends FlowPanel {
     /**
      * Adds a changehandler, for detecting changes in one of the selection boxes
      * 
-     * @param changeHandler 
+     * @param changeHandler detecting changes
      */
     public void addChangeHandler(ChangeHandler changeHandler) {
         callbackChangeHandler = changeHandler;

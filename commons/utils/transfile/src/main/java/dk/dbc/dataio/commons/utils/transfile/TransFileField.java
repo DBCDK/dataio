@@ -40,7 +40,7 @@ public class TransFileField {
     /**
      * Constructor: Construct the TransFileField object
      * @param field A string, containing Field Identifier and Field content in the form: fieldId=fieldContent
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if the field String contained illegal values
      */
     public TransFileField(final String field) throws IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(field, "field");
@@ -60,7 +60,7 @@ public class TransFileField {
 
     /**
      * Getter: name The name of the TransFile Field
-     * @return
+     * @return they TransFile key
      */
     public TransFileFieldId getKey() {
         return key;
@@ -68,7 +68,7 @@ public class TransFileField {
 
     /**
      * Getter: content The content of the TransFile Field
-     * @return
+     * @return the content of the TransFile field
      */
     public String getContent() {
         return content;
@@ -78,8 +78,8 @@ public class TransFileField {
 
     /**
      * Checks if the format for the Field Identifier is valid
-     * @param fieldIdentifier
-     * @throws IllegalArgumentException
+     * @param fieldIdentifier the field identifier
+     * @throws IllegalArgumentException if the field identifier was invalid
      */
     private void checkValidFieldIdentifierOrThrow(String fieldIdentifier) throws IllegalArgumentException {
         if (!idMap.containsKey(fieldIdentifier)) {

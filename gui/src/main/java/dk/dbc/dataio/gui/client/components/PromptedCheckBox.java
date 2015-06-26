@@ -54,7 +54,7 @@ public class PromptedCheckBox extends PromptedData implements HasValue<Boolean> 
     }
 
     /**
-     * Adds a {@link com.google.gwt.event.logical.shared.ValueChangeHandler<String>} handler.
+     * Adds a {@link com.google.gwt.event.logical.shared.ValueChangeHandler&lt;String&gt;} handler.
      *
      * @param handler the handler
      * @return the registration for the event

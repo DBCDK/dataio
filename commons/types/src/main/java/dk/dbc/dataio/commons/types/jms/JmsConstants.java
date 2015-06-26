@@ -12,7 +12,6 @@ public class JmsConstants {
 
     public static final String JOB_STORE_SOURCE_VALUE = "jobstore";
     public static final String PROCESSOR_SOURCE_VALUE = "processor";
-    public static final String SINK_SOURCE_VALUE = "sink";
 
     private JmsConstants() { }
 }

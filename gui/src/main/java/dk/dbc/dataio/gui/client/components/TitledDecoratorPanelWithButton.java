@@ -53,6 +53,7 @@ public class TitledDecoratorPanelWithButton extends Composite implements HasWidg
     /**
      * Constructor taking the title of the panel and the button image as parameters (mandatory in UI Binder)
      * @param title The title of the Decorated panel
+     * @param buttonImage the button image
      */
     @UiConstructor
     public TitledDecoratorPanelWithButton(String title, ImageResource buttonImage) {

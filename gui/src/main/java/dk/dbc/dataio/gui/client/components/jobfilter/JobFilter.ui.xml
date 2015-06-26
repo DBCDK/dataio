@@ -8,13 +8,10 @@
         }
         .jobFilterList {
         }
-        .selectFilterListBox {
-            margin: 0.5em;
-        }
     </ui:style>
     <g:HTMLPanel>
 
-        <g:FlowPanel ui:field="jobFilterList" addStyleNames="{style.jobFilterList}"/>
+        <g:FlowPanel ui:field="jobFilterPanel" addStyleNames="{style.jobFilterList}"/>
 
         <g:MenuBar addStyleNames="{style.menuBar}">
             <g:MenuItem>

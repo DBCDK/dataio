@@ -8,22 +8,19 @@ import java.util.List;
  * in the Jobs List
  */
 final public class JobFilterList {
-
-    private JobFilterList() {}  // The constructor is private in order to prevent instantiation - implementing this class as a static class
-
     /**
-     * The list of Job Filters
-     * Add new Job Filters here...
+     * The list of Job Filters to be used in the Jobs List
      */
-    private static List<? extends BaseJobFilter> jobFilterList = Arrays.asList(
+    private List<? extends BaseJobFilter> jobFilterList = Arrays.asList(
         new SinkJobFilter()
-    );
+        // Add new Job Filters here...
+            );
 
     /**
      * Getter for the Job Filter List
      * @return The list of Job Filters
      */
-    public static List<? extends BaseJobFilter> getJobFilterList() {
+    public List<? extends BaseJobFilter> getJobFilterList() {
         return jobFilterList;
     }
 }

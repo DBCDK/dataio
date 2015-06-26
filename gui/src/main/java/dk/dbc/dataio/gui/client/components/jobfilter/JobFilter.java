@@ -13,13 +13,14 @@ import com.google.gwt.user.client.ui.MenuBar;
  * This class implements the generic Jobs Filter as a UI Binder component.
  * To be added in the top of the Jobs List.
  * The component contains an "Add Filter" menu and a button to be used to activate the filter:
- * <p>
+ *
+ * <pre>
  * @{code
  * +---------------+    +---------+
  * | Tilføj Filter |    | Filtrér |
  * +---------------+    +---------+
  * }
- *
+ * </pre>
  *
  * When the menu "Add Filter" is clicked, a sub menu will appear, containing the names of all available filters
  * These filters are configured in the {@link JobFilterList} class
@@ -38,7 +39,7 @@ public class JobFilter extends Composite {
 
     private static JobFilterUiBinder ourUiBinder = GWT.create(JobFilterUiBinder.class);
 
-    @UiField FlowPanel jobFilterList;
+    @UiField FlowPanel jobFilterPanel;
     @UiField MenuBar filterMenu;
     @UiField Button filterButton;
 
@@ -47,8 +48,9 @@ public class JobFilter extends Composite {
      */
     public JobFilter() {
         initWidget(ourUiBinder.createAndBindUi(this));
-        for (BaseJobFilter filter: JobFilterList.getJobFilterList()) {
-            filterMenu.addItem(filter.getName(), filter.getAddCommand(jobFilterList));
+        JobFilterList availableJobFilters = new JobFilterList();
+        for (BaseJobFilter filter: availableJobFilters.getJobFilterList()) {
+            filterMenu.addItem(filter.getName(), filter.getAddCommand(jobFilterPanel));
         }
     }
 

@@ -156,7 +156,7 @@ public class BaseJobFilterTest {
         assertThat(command, is(CoreMatchers.notNullValue()));
         assertThat(addJobFilterMethodCalled, is(false));
         getAttributes(jobFilter);
-        assertThat(parentPanel, is(nullValue()));
+        assertThat(parentPanel, is(mockedPanel));
 
         // Activate Command
         command.execute();

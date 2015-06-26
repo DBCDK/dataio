@@ -27,7 +27,7 @@ public abstract class BaseJobFilter extends Composite {
      * This is the abstract method, to be used for naming the actual Job Filter
      * @return The actual name of the Job Filter
      */
-    abstract public String getName();
+    public abstract String getName();
 
 
     /**
@@ -39,10 +39,10 @@ public abstract class BaseJobFilter extends Composite {
         if (parentContainer == null) {
             return null;
         } else {
+            parentPanel = parentContainer;
             return new Scheduler.ScheduledCommand() {
                 @Override
                 public void execute() {
-                    parentPanel = parentContainer;
                     addJobFilter();
                 }
             };
@@ -51,7 +51,7 @@ public abstract class BaseJobFilter extends Composite {
 
     /**
      * Adds a Job Filter to the list of active filters. If the actual filter has already been added, nothing will happen.
-     * Apart from adding the Job Filter, a Click Handler is registrated to assure, that a click on the remove
+     * Apart from adding the Job Filter, a Click Handler is registered to assure, that a click on the remove
      * button will remove the filter.
      */
     public void addJobFilter() {
@@ -80,7 +80,6 @@ public abstract class BaseJobFilter extends Composite {
                 parentPanel.remove(decoratorPanel);
             }
         }
-
     }
 
 }

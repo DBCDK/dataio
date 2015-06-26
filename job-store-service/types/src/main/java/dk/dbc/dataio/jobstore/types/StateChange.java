@@ -147,7 +147,7 @@ public class StateChange {
      * /**
      * Sets the phase
      * @param phase (partitioning, processing, delivering)
-     * @return
+     * @return the requested phase
      */
     public StateChange setPhase(State.Phase phase) {
         this.phase = phase;

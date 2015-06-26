@@ -35,9 +35,9 @@ import java.util.List;
  *
  * Upcoming features:
  * <pre>
- *   andWhere(ListFilter&lt;T&gt filter)
- *   orWhere(ListFilter&lt;T&gt filter)
- *   whereIn(T, List&lt;Object&gt)
+ *   andWhere(ListFilter&lt;T&gt; filter)
+ *   orWhere(ListFilter&lt;T&gt; filter)
+ *   whereIn(T, List&lt;Object&gt;)
  * </pre>
  */
 public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T,U>> {

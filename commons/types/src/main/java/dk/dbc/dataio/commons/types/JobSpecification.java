@@ -33,7 +33,7 @@ public class JobSpecification implements Serializable {
      * @param format  job format (indholdsformat)
      * @param charset job character set
      * @param destination job destination
-     * @param submitterId submitter number(> 0)
+     * @param submitterId submitter number(larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param mailForNotificationAboutVerification mail address for notification about the verification step.
      * @param mailForNotificationAboutProcessing mail address for notification about the processing step.
      * @param resultmailInitials According to transfile spec: "Initialer til identifikation af resultatmail fra DanBib".

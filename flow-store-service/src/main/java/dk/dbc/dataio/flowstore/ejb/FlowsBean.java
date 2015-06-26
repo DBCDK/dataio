@@ -58,6 +58,8 @@ public class FlowsBean {
      * @return a HTTP 200 response with flow content as JSON,
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException if unable to marshall value type into its JSON representation
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW)

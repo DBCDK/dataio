@@ -43,6 +43,8 @@ public class FilesBean {
      *
      * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
+     *
+     * @throws IOException if an I/O error occurs.
      */
     @POST
     @javax.ws.rs.Path(FileStoreServiceConstants.FILES_COLLECTION)

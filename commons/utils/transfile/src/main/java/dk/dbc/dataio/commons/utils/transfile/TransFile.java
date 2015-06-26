@@ -9,9 +9,6 @@ public class TransFile {
     private static final String ENCODING = "UTF-8";
     public static class UnexpectedEndOfFileException extends RuntimeException {}
 
-//    private static final Logger log = LoggerFactory.getLogger(TransFile.class);
-
-
     /**
      * TransFile constructor
      */
@@ -20,10 +17,11 @@ public class TransFile {
     /**
      * Processes all lines in a TransFile input stream
      * 
-     * @param inputStream
-     * @return
-     * @throws UnexpectedEndOfFileException
-     * @throws IllegalArgumentException 
+     * @param inputStream the input stream
+     * @return list of trans file data
+     *
+     * @throws UnexpectedEndOfFileException if the end of file was reached unexpectedly
+     * @throws IllegalArgumentException if an illegal argument was found
      */
     public static List<TransFileData> process(InputStream inputStream) throws UnexpectedEndOfFileException, IllegalArgumentException {
         List<TransFileData> transFile = new ArrayList<>();

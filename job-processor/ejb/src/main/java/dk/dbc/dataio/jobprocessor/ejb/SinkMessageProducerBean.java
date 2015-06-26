@@ -62,7 +62,7 @@ public class SinkMessageProducerBean {
      * header properties '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SOURCE_PROPERTY_NAME}'
      * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PAYLOAD_PROPERTY_NAME}'
      * set to '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_SOURCE_VALUE}'
-     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_RESULT_PAYLOAD_TYPE}' respectively,
+     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively,
      * and header property '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#RESOURCE_PROPERTY_NAME}'
      * to the resource value contained in given Sink instance.
      *

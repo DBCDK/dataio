@@ -1,15 +1,12 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
-/**
- * Created by sma on 29/04/14.
- */
 public class FlowStoreServiceConnectorUnexpectedStatusCodeException extends FlowStoreServiceConnectorException{
 
     private int status;
 
     /**
      * Constructs a new exception with the specified detail message
-     * <p/>
+     * <p>
      * The cause is not initialized, and may subsequently be initialized by
      * a call to {@link #initCause}.
      *
@@ -23,6 +20,9 @@ public class FlowStoreServiceConnectorUnexpectedStatusCodeException extends Flow
         status = statusCode;
     }
 
+    /**
+     * @return the status code
+     */
     public int getStatusCode(){
         return status;
     }

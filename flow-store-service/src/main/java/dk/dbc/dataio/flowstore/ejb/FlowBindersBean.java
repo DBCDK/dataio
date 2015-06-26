@@ -203,6 +203,8 @@ public class FlowBindersBean {
      * @throws JsonException when given invalid (null-valued, empty-valued or
      * non-json) JSON string, or if JSON object does not comply with model
      * schema
+     *
+     * @throws ReferencedEntityNotFoundException if one or more of the referenced entities was not found
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
@@ -210,7 +212,7 @@ public class FlowBindersBean {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response updateFlowBinder(String flowBinderContent,
                                      @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id,
-                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException, ReferencedEntityNotFoundException{
+                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException, ReferencedEntityNotFoundException {
 
         log.trace("called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
@@ -267,6 +269,8 @@ public class FlowBindersBean {
      * @return a HTTP 200 response with flow binder as JSON,
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException if unable to marshall value type into its JSON representation
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER)
@@ -351,7 +355,7 @@ public class FlowBindersBean {
      * @param version the current version of the flow binder
      * @throws PersistenceException if the objects referenced by the flow binder, could not be resolved
      */
-    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JsonException, ReferencedEntityNotFoundException{
+    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JsonException, ReferencedEntityNotFoundException {
             entityManager.detach(flowBinderEntity);
             flowBinderEntity.setContent(flowBinderContentString);
             flowBinderEntity.setVersion(version);

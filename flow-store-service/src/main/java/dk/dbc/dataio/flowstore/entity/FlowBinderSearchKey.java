@@ -18,6 +18,19 @@ public final class FlowBinderSearchKey {
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if empty valued String argument
      */
+
+    /**
+     * Class constructor
+     *
+     * @param packaging packaging
+     * @param format format
+     * @param charset charset
+     * @param destination destination
+     * @param submitter submitter
+     *
+     * @throws NullPointerException if given null-valued argument
+     * @throws IllegalArgumentException if empty valued String argument
+     */
     public FlowBinderSearchKey(String packaging, String format, String charset, String destination, Long submitter) {
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");

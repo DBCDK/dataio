@@ -37,7 +37,19 @@ public class ITUtil {
     private ITUtil() { }
 
     /**
+     * @param dbname the db name
      * @return new connection to underlying h2 database
+     *
+     * @throws
+     */
+
+    /**
+     *
+     * @param dbname the db name
+     * @return new connection to underlying h2 database
+     *
+     * @throws ClassNotFoundException if the class cannot be located
+     * @throws SQLException if a database access error occurs
      */
     public static Connection newDbConnection(String dbname) throws ClassNotFoundException, SQLException {
         Class.forName("org.h2.Driver");
@@ -63,6 +75,11 @@ public class ITUtil {
        return "ro" + "ot";
     }
 
+    /**
+     * @return es connection
+     * @throws ClassNotFoundException if the class cannot be located
+     * @throws SQLException if a database access error occurs
+     */
     public static Connection getEsConnection() throws ClassNotFoundException, SQLException {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         return DriverManager.getConnection("jdbc:oracle:thin:@tora1.dbc.dk:1521/tora1.dbc.dk", "jbn", getESDBPasswordInAWayThatFindBugsAccepts());
@@ -77,6 +94,7 @@ public class ITUtil {
      *
      * @param conn open database connection
      * @param tableNames table names
+     * @throws SQLException if a database access error occurs
      */
     public static void clearDbTables(Connection conn, String... tableNames) throws SQLException {
         for (String tableName : tableNames) {
@@ -88,6 +106,7 @@ public class ITUtil {
      * Deletes all rows from all flow store database tables
      *
      * @param conn open database connection
+     * @throws SQLException if a database access error occurs
      */
     public static void clearAllDbTables(Connection conn) throws SQLException {
         clearDbTables(conn,
@@ -138,6 +157,8 @@ public class ITUtil {
     }
 
     /**
+     * @param response the response
+     * @param headerName the name of the header
      * Extracts named header from given response while asserting that it is not null
      *
      * @return list of header values
@@ -149,8 +170,10 @@ public class ITUtil {
     }
 
     /**
+     * @param response the response
      * Extracts Location header from given response while asserting that it contains a single
      * value from which a resource Id can be derived
+     * @return resource Id
      */
     public static long getResourceIdFromLocationHeaderAndAssertHasValue(Response response) {
         final List<Object> locationHeader = getHeaderAndAssertNotNull(response, "Location");

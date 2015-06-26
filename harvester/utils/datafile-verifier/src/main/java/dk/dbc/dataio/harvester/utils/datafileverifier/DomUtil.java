@@ -20,7 +20,8 @@ public class DomUtil {
 
     /**
      * Class constructor
-     * @throws ParserConfigurationException
+     * @throws ParserConfigurationException if a DocumentBuilder
+     *   cannot be created which satisfies the configuration requested.
      */
     public DomUtil() throws ParserConfigurationException {
         final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();

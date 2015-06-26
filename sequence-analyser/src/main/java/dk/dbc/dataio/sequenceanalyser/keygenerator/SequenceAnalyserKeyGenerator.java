@@ -12,7 +12,7 @@ import java.util.Set;
 public interface SequenceAnalyserKeyGenerator {
     /** DEPRECATED
      * Generates keys determining chunk ordering during sequence analysis
-     * @param chunk Chunk for which keys are generated
+     * @param element Chunk collision detection element for which keys are generated
      * @param sink Chunk destination
      * @return set of keys
      */

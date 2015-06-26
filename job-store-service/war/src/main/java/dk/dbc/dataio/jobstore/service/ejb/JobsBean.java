@@ -216,6 +216,7 @@ public class JobsBean {
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve job
      *
      * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to retrieve job
      */
     @GET
     @Path(JobStoreServiceConstants.JOB_RESOURCEBUNDLE)
@@ -243,6 +244,7 @@ public class JobsBean {
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to retrieve job
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED)
@@ -263,6 +265,7 @@ public class JobsBean {
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to retrieve job
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED)
@@ -283,6 +286,7 @@ public class JobsBean {
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to retrieve job
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_DELIVERED)
@@ -302,6 +306,7 @@ public class JobsBean {
      * @return a HTTP 200 OK response with base64 decoded data as String,
      *         a HTTP 404 NOT_FOUND response on failure to retrieve item
      *
+     * @throws JobStoreException on failure to retrieve job
      * @throws JSONBException on marshalling failure
      */
     Response getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {

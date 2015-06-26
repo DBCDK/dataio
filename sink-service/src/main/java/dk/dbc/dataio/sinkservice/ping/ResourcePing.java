@@ -21,6 +21,7 @@ public class ResourcePing {
      * @param context context for performing naming operations
      * @param resourceName name of resource
      * @param resourceClass type of resource
+     * @param <T> the type of the object
      *
      * @return ping response
      *

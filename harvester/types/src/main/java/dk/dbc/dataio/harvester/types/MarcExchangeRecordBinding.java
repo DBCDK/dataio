@@ -7,9 +7,9 @@ import org.w3c.dom.NodeList;
 
 /**
  * This class exposes specialized field value bindings from MarcXchange documents
- * <br/>
+ * <p>
  * * Extracts identifier from 001a (must be non-empty)
- * <br/>
+ * <p>
  * * Extracts library from 001b (must be non-empty numeric)
  */
 public class MarcExchangeRecordBinding {

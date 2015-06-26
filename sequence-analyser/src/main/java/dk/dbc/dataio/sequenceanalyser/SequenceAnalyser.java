@@ -20,9 +20,9 @@ public interface SequenceAnalyser {
      * <p>
      * When an element is inserted it is inactive.
      * <p>
-     * If the element depends on other elements it is a <it>dependent element<it>. If
-     * the element does not depend on other elements, then it is an <it>independent
-     * element<it>.
+     * If the element depends on other elements it is a &lt;it&gt;dependent element&lt;it&gt;. If
+     * the element does not depend on other elements, then it is an &lt;it&gt;independent
+     * element &lt;it&gt;.
      * <p>
      * @param element A CollisionDetectionElement containing element identification
      * and keys for comparison.
@@ -40,7 +40,7 @@ public interface SequenceAnalyser {
      * Returns a list of independent and inactive elements consuming no more than
      * maxSlotsSoftLimit slots combined. When the list is returned, all the returned
      * elements are flagged as active.
-     * @param maxSlotsSoftLimit maximum number of slots consumed by all released elements combined
+     * @param maxSlots maximum number of slots consumed by all released elements combined
      * @return A list of independent elements which are now flagged as active
      */
     List<CollisionDetectionElement> getInactiveIndependent(int maxSlots);

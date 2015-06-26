@@ -15,11 +15,12 @@ import com.google.gwt.user.client.ui.MenuBar;
  * The component contains an "Add Filter" menu and a button to be used to activate the filter:
  *
  * <pre>
- * @{code
+ * <code>
  * +---------------+    +---------+
  * | Tilføj Filter |    | Filtrér |
  * +---------------+    +---------+
  * }
+ * </code>
  * </pre>
  *
  * When the menu "Add Filter" is clicked, a sub menu will appear, containing the names of all available filters
@@ -28,7 +29,7 @@ import com.google.gwt.user.client.ui.MenuBar;
  * In UI Binder, add the following:
  *
  * <pre>
- * <code
+ * <code>
  *  <jobs:JobFilter ui:field="jobFilter" />
  * </code>
  * </pre>

@@ -33,6 +33,7 @@ public class ESTaskPackageUtil {
      * Chops a list up into sublists of length sublistSize
      * @param list list to be chopped up
      * @param sublistSize maximum size of sublists
+     * @param <T> the type of the object
      * @return list of sublists
      * @throws NullPointerException if given null-valued list
      * @throws IllegalArgumentException if given sublistSize less than or equal to zero
@@ -197,6 +198,8 @@ public class ESTaskPackageUtil {
      * @throws SQLException if a database error occurs.
      * @throws IllegalStateException if the number of records in the chunk and
      * the task package differ.
+     *
+     * @return target reference
      */
     public static int insertTaskPackage(Connection esConn, String dbname, EsWorkload esWorkload) throws IllegalStateException, SQLException {
         InvariantUtil.checkNotNullOrThrow(esConn, "esConn");

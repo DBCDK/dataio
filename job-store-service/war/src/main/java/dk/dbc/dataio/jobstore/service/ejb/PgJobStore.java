@@ -360,7 +360,7 @@ public class PgJobStore {
      * @param sequenceAnalyserKeyGenerator sequence analyser key generator
      * @param dataFileId id of data file from where the items of the chunk originated
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion
-     * @throws JobStoreException
+     * @throws JobStoreException on referenced entities not found
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public ChunkEntity createChunkEntity(int jobId, int chunkId, short maxChunkSize, DataPartitionerFactory.DataPartitioner dataPartitioner,
@@ -426,7 +426,7 @@ public class PgJobStore {
      * @throws InvalidInputException on failure to retrieve job
      * @throws NullPointerException on null valued input when creating new resource bundle
      */
-    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, NullPointerException { 
+    public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, NullPointerException {
         final StopWatch stopWatch = new StopWatch();
         try {
             final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);

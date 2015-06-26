@@ -215,36 +215,32 @@ public class RawRepoHarvesterConfig {
             Entry entry = (Entry) o;
 
             if (includeRelations != entry.includeRelations) return false;
-            if (getBatchSize() != entry.getBatchSize()) return false;
-            if (getId() != null ? !getId().equals(entry.getId()) : entry.getId() != null) return false;
-            if (getResource() != null ? !getResource().equals(entry.getResource()) : entry.getResource() != null)
-                return false;
-            if (getConsumerId() != null ? !getConsumerId().equals(entry.getConsumerId()) : entry.getConsumerId() != null)
-                return false;
-            if (getDestination() != null ? !getDestination().equals(entry.getDestination()) : entry.getDestination() != null)
-                return false;
-            if (getType() != entry.getType()) return false;
-            if (getFormat() != null ? !getFormat().equals(entry.getFormat()) : entry.getFormat() != null) return false;
+            if (batchSize != entry.batchSize) return false;
+            if (id != null ? !id.equals(entry.id) : entry.id != null) return false;
+            if (resource != null ? !resource.equals(entry.resource) : entry.resource != null) return false;
+            if (consumerId != null ? !consumerId.equals(entry.consumerId) : entry.consumerId != null) return false;
+            if (destination != null ? !destination.equals(entry.destination) : entry.destination != null) return false;
+            if (type != entry.type) return false;
+            if (format != null ? !format.equals(entry.format) : entry.format != null) return false;
             if (formatOverrides != null ? !formatOverrides.equals(entry.formatOverrides) : entry.formatOverrides != null)
                 return false;
-            return !(getOpenAgencyTarget() != null ? !getOpenAgencyTarget().equals(entry.getOpenAgencyTarget()) : entry.getOpenAgencyTarget() != null);
+            return !(openAgencyTarget != null ? !openAgencyTarget.equals(entry.openAgencyTarget) : entry.openAgencyTarget != null);
 
         }
 
         @Override
         public int hashCode() {
-            int result = getId() != null ? getId().hashCode() : 0;
-            result = 31 * result + (getResource() != null ? getResource().hashCode() : 0);
-            result = 31 * result + (getConsumerId() != null ? getConsumerId().hashCode() : 0);
-            result = 31 * result + (getDestination() != null ? getDestination().hashCode() : 0);
-            result = 31 * result + (getType() != null ? getType().hashCode() : 0);
-            result = 31 * result + (getFormat() != null ? getFormat().hashCode() : 0);
+            int result = id != null ? id.hashCode() : 0;
+            result = 31 * result + (resource != null ? resource.hashCode() : 0);
+            result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
+            result = 31 * result + (destination != null ? destination.hashCode() : 0);
+            result = 31 * result + (type != null ? type.hashCode() : 0);
+            result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (formatOverrides != null ? formatOverrides.hashCode() : 0);
             result = 31 * result + (includeRelations ? 1 : 0);
-            result = 31 * result + getBatchSize();
-            result = 31 * result + (getOpenAgencyTarget() != null ? getOpenAgencyTarget().hashCode() : 0);
+            result = 31 * result + batchSize;
+            result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
             return result;
         }
-
     }
 }

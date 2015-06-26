@@ -1,6 +1,9 @@
 package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.HasClickHandlers;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
@@ -34,7 +37,7 @@ import java.util.Iterator;
  * </dio:TitledDecoratorPanelWithButton>
  * }</pre>
  */
-public class TitledDecoratorPanelWithButton extends Composite implements HasWidgets {
+public class TitledDecoratorPanelWithButton extends Composite implements HasWidgets, HasClickHandlers {
     interface TitledDecoratorPanelWithButtonUiBinder extends UiBinder<HTMLPanel, TitledDecoratorPanelWithButton> {
     }
 
@@ -92,6 +95,16 @@ public class TitledDecoratorPanelWithButton extends Composite implements HasWidg
     @Override
     public boolean remove(Widget widget) {
         return this.panel.remove(widget);
+    }
+
+    /**
+     * Adds a click handler
+     * @param clickHandler The click handler to add
+     * @return The Handler Registration object
+     */
+    @Override
+    public HandlerRegistration addClickHandler(ClickHandler clickHandler) {
+        return panel.addClickHandler(clickHandler);
     }
 
     /**

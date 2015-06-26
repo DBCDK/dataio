@@ -10,9 +10,9 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.MenuBar;
 
 /**
- * This class implements the generic Jobs Filter as a UI Binder component.<br>
- * To be added in the top of the Jobs List.<br>
- * The component contains an "Add Filter" menu and a button to be used to activate the filter:<br>
+ * This class implements the generic Jobs Filter as a UI Binder component.
+ * To be added in the top of the Jobs List.
+ * The component contains an "Add Filter" menu and a button to be used to activate the filter:
  *
  * <pre>
  * @{code
@@ -22,8 +22,8 @@ import com.google.gwt.user.client.ui.MenuBar;
  * }
  * </pre>
  *
- * When the menu "Add Filter" is clicked, a sub menu will appear, containing the names of all available filters<br>
- * These filters are configured in the {@link JobFilterList} class<br>
+ * When the menu "Add Filter" is clicked, a sub menu will appear, containing the names of all available filters
+ * These filters are configured in the {@link JobFilterList} class
  *
  * In UI Binder, add the following:
  *

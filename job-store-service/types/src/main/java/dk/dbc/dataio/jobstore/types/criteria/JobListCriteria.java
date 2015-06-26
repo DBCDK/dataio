@@ -32,5 +32,9 @@ public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobList
          * sink id for sink referenced by job
          */
         SINK_ID,
+        /**
+         * job specification
+         */
+        SPECIFICATION,
     }
 }

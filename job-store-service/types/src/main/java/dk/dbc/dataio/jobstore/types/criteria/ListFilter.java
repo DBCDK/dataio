@@ -21,7 +21,8 @@ public class ListFilter<T extends ListFilterField> {
         NOT_EQUAL,
         NOOP,
         IS_NULL,
-        IS_NOT_NULL
+        IS_NOT_NULL,
+        JSON_LEFT_CONTAINS,
     }
 
     private final T field;

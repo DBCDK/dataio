@@ -94,9 +94,10 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
     private void addListFilterGroup(StringBuilder queryString, ListFilterGroup<U> filterGroup, int firstParameterIndex) {
         final Iterator<ListFilterGroup.Member<U>> iterator = filterGroup.iterator();
         int nextParameterIndex = firstParameterIndex;
+        int memberIndex = 0;
         while (iterator.hasNext()) {
             final ListFilterGroup.Member<U> member = iterator.next();
-            if (nextParameterIndex != firstParameterIndex) {
+            if (memberIndex != 0) {
                 queryString.append(" ").append(member.getLogicalOperator());
             }
             final ListFilter<U> filter = member.getFilter();
@@ -112,9 +113,12 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                     queryString.append(" ").append(columnName).append(filterOpToString(operator)).append("?").append(nextParameterIndex);
                     nextParameterIndex++;
                 }
+            } else if (fieldMapping instanceof VerbatimBooleanOpField) {
+                queryString.append(" ").append(columnName).append(filterOpToString(filter.getOperator())).append(((VerbatimBooleanOpField) fieldMapping).getValue().toString(filter.getValue()));
             } else {
                 queryString.append(" ").append(columnName);
             }
+            memberIndex++;
         }
     }
 
@@ -157,8 +161,16 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             case NOT_EQUAL:                 return "!=";
             case IS_NULL:                   return " IS NULL";
             case IS_NOT_NULL:               return " IS NOT NULL";
+            case JSON_LEFT_CONTAINS:        return "@>";
             default: throw new IllegalArgumentException("Unknown filter operator " + op);
         }
+    }
+
+    private static String escapeSQL(String str) {
+        if (str != null) {
+            return str.replace("'", "''");
+        }
+        return null;
     }
 
     /**
@@ -195,8 +207,24 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         }
     }
 
+   public static class VerbatimBooleanOpField extends FieldMapping {
+        private final JsonbValue value;
+        public VerbatimBooleanOpField(String name, JsonbValue value) {
+            super(name);
+            this.value = value;
+        }
+
+        public VerbatimValue getValue() {
+            return value;
+        }
+    }
+
     public interface ParameterValue {
         void set(Query query, int parameterIndex, Object value);
+    }
+
+    public interface VerbatimValue {
+        String toString(Object raw);
     }
 
     /**
@@ -224,6 +252,16 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                     query.setParameter(parameterIndex, value);
                 }
             }
+        }
+    }
+
+    /**
+     * VerbatimValue type where the object value is interpreted as a String to be
+     * cast to a JSONB type when executing the query
+     */
+    public static class JsonbValue implements VerbatimValue {
+        public String toString (Object raw) {
+            return "'" + escapeSQL(raw.toString()) + "'::jsonb";
         }
     }
 }

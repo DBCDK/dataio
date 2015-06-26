@@ -56,6 +56,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.SessionContext;
+import javax.json.Json;
+import javax.json.JsonObject;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -681,8 +683,14 @@ public class PgJobStoreIT {
         final List<JobInfoSnapshot> expectedSnapshots = snapshots.subList(1, snapshots.size() - 1);
 
         // When...
+        final JsonObject jsonValue = Json.createObjectBuilder()
+                .add("destination", snapshots.get(0).getSpecification().getDestination())
+                .add("type", snapshots.get(0).getSpecification().getType().name())
+                .build();
+
         final JobListCriteria jobListCriteria = new JobListCriteria()
-                .where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, snapshots.get(0).getJobId()))
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonValue.toString()))
+                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, snapshots.get(0).getJobId()))
                 .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, snapshots.get(snapshots.size() - 1).getJobId()));
 
         final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.listJobs(jobListCriteria);

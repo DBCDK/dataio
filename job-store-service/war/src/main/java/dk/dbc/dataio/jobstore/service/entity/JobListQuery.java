@@ -34,6 +34,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
         this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
         // Build list of available fields with associated field mappings
         fieldMap.put(JobListCriteria.Field.JOB_ID, new BooleanOpField("id", new ObjectValue()));
+        fieldMap.put(JobListCriteria.Field.SPECIFICATION, new VerbatimBooleanOpField("specification", new JsonbValue()));
         fieldMap.put(JobListCriteria.Field.TIME_OF_CREATION, new BooleanOpField("timeOfCreation", new TimestampValue()));
         fieldMap.put(JobListCriteria.Field.TIME_OF_LAST_MODIFICATION, new BooleanOpField("timeOfLastModification", new TimestampValue()));
         fieldMap.put(JobListCriteria.Field.STATE_PROCESSING_FAILED, new VerbatimField("(state->'states'->'PROCESSING'->>'failed' != '0')"));

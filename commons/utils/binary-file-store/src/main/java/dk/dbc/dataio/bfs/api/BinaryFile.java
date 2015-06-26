@@ -36,7 +36,7 @@ public interface BinaryFile {
     InputStream openInputStream();
 
     /**
-     * Returns path of this binary file representation
+     * @return path of this binary file representation
      */
     Path getPath();
 }

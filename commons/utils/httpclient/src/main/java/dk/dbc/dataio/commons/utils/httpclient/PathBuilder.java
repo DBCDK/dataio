@@ -26,6 +26,10 @@ public class PathBuilder {
 
     /**
      * Binds path variable to value
+     *
+     * @param variableName the path variable
+     * @param value the value
+     * @return this path builder
      */
     public PathBuilder bind(String variableName, String value) {
         variables.put(variableName, value);
@@ -34,6 +38,10 @@ public class PathBuilder {
 
     /**
      * Binds path variable to value
+     *
+     * @param variableName the path variable
+     * @param value the value
+     * @return this path builder
      */
     public PathBuilder bind(String variableName, long value) {
         variables.put(variableName, Long.toString(value));

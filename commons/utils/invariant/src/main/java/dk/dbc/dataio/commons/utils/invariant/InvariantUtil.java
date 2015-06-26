@@ -16,6 +16,9 @@ public class InvariantUtil {
      *
      * @param object object to test for {@code null}.
      * @param parameterName name of the tested parameter. This name is used in the exception message.
+     * @param <T> the type of the object being  tested for {@code null}
+     *
+     * @return the {@code null} tested object
      *
      * @throws NullPointerException if {@code obj} is {@code null}.
      */
@@ -36,6 +39,8 @@ public class InvariantUtil {
      *
      * @param stringObject string to test for {@code null} or empty.
      * @param parameterName name of the tested parameter. This name is used in the exception message.
+     *
+     * @return the {@code null} or empty tested object
      *
      * @throws NullPointerException if {@code stringObject} is {@code null}.
      * @throws IllegalArgumentException if {@code stringObject} is empty
@@ -59,6 +64,8 @@ public class InvariantUtil {
      * @param parameterName name of the tested parameter. This name is used in the exception message.
      * @param bound lower bound
      *
+     * @return the {@code bound} checked value
+     *
      * @throws IllegalArgumentException if {@code value} is less than {@code bound}
      */
     public static long checkLowerBoundOrThrow(long value, String parameterName, long bound)
@@ -77,6 +84,9 @@ public class InvariantUtil {
      * @param value value to test against lower bound
      * @param parameterName name of the tested parameter. This name is used in the exception message.
      * @param bound lower bound
+     *
+     * @return the {@code bound} checked value
+     *
      * @throws IllegalArgumentException if {@code value} is less than {@code bound}
      */
     public static int checkIntLowerBoundOrThrow(int value, String parameterName, int bound)

@@ -40,7 +40,7 @@ public class SubmitterContentTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_numberArgIsLessThanLowerBound_throws() {
-        new SubmitterContent(SubmitterContent.NUMBER_LOWER_BOUND - 1, NAME, DESCRIPTION);
+        new SubmitterContent(Constants.PERSISTENCE_ID_LOWER_BOUND - 1, NAME, DESCRIPTION);
     }
 
     @Test

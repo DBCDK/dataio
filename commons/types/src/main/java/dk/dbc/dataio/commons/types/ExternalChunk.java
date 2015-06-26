@@ -3,12 +3,13 @@ package dk.dbc.dataio.commons.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Chunk-type for using outside of the jobstore. Internally in the jobstore, a
@@ -44,7 +45,7 @@ public class ExternalChunk implements Iterable<ChunkItem> {
     /**
      * @param jobId cannot be negative.
      * @param chunkId cannot be negative.
-     * @param type
+     * @param type of job (PARTITIONED, PROCESSED, DELIVERED)
      */
     public ExternalChunk(long jobId, long chunkId, Type type) {
         if (jobId < 0 || chunkId < 0) {

@@ -19,12 +19,12 @@ public class FlowBinder implements Serializable {
     /**
      * Class constructor
      *
-     * @param id flow binder id (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
-     * @param version flow binder version (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
+     * @param id flow binder id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param version flow binder version (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
      * @param content flow binder content
      *
      * @throws NullPointerException if given null-valued content
-     * @throws IllegalArgumentException if value of id or version is less than lower bound
+     * @throws IllegalArgumentException if value of id or version is not larger than or equal to lower bound
      */
 
     @JsonCreator

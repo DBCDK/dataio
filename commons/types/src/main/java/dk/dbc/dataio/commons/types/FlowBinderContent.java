@@ -39,6 +39,7 @@ public class FlowBinderContent implements Serializable {
      * @param sequenceAnalysis boolean for telling whether sequence analysis is on or off for the flowbinder.
      * @param flowId id of flow attached to this flowbinder
      * @param submitterIds ids of submitters attached to this flowbinder
+     * @param sinkId id of sink attached to this flowbinder
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String or List argument

@@ -23,11 +23,11 @@ import java.util.List;
  *      .limit(int)
  *      .offset(int)
  *
- * for (ListFilterGroup<ListCriteriaImplField> filters : listCriteria.getFiltering()) {
+ * for (ListFilterGroup&lt;ListCriteriaImplField&gt; filters : listCriteria.getFiltering()) {
  *     ...
  * }
  *
- * for (ListOrderBy<ListCriteriaImplField> orderBy : listCriteria.getOrdering()) {
+ * for (ListOrderBy&lt;ListCriteriaImplField&gt; orderBy : listCriteria.getOrdering()) {
  *     ...
  * }
  * </code>
@@ -35,9 +35,9 @@ import java.util.List;
  *
  * Upcoming features:
  * <pre>
- *   andWhere(ListFilter<T> filter)
- *   orWhere(ListFilter<T> filter)
- *   whereIn(T, List<Object>)
+ *   andWhere(ListFilter&lt;T&gt filter)
+ *   orWhere(ListFilter&lt;T&gt filter)
+ *   whereIn(T, List&lt;Object&gt)
  * </pre>
  */
 public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T,U>> {

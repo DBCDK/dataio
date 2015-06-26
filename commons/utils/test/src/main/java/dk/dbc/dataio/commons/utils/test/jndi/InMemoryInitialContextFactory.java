@@ -9,12 +9,17 @@ import java.util.Hashtable;
 import java.util.Map;
 
 /**
- * Enables mocking af the JNDI system through an in-memory InitialContext implementation <br /><br />
+ * Enables mocking af the JNDI system through an in-memory InitialContext implementation.
+ * <p>
  * <code>
- *     // sets up the InMemoryInitialContextFactory as default factory. <br />
- *     System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName()); <br />
- *     // binds the object <br />
- *     InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, ENDPOINT); <br />
+ *     // sets up the InMemoryInitialContextFactory as default factory.
+ *     <p>
+ *     System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
+ *     <p>
+ *     // binds the object
+ *     <p>
+ *     InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, ENDPOINT);
+ *     <p>
  * </code>
  */
 public class InMemoryInitialContextFactory implements InitialContextFactory {

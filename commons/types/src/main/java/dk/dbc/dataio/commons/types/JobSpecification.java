@@ -42,7 +42,7 @@ public class JobSpecification implements Serializable {
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String argument
-     * or if value of submitterId is <= 0
+     * or if value of submitterId is less than or equals 0
      */
     @JsonCreator
     public JobSpecification(@JsonProperty("packaging") String packaging,

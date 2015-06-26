@@ -19,8 +19,8 @@ public class Submitter implements Serializable {
     /**
      * Class constructor
      *
-     * @param id submitter id (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
-     * @param version submitter version (>= {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
+     * @param id submitter id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
+     * @param version submitter version (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
      * @param content submitter content
      *
      * @throws NullPointerException if given null-valued content argument

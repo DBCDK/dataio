@@ -31,6 +31,7 @@ public class StateChange {
     /**
      * Sets the begin date
      * @param beginDate marking the start time
+     * @return the begin date of the state change
      */
     public StateChange setBeginDate(Date beginDate) {
         this.beginDate = beginDate == null ? null : new Date(beginDate.getTime());
@@ -47,6 +48,7 @@ public class StateChange {
     /**
      * Sets the end date
      * @param endDate marking the end time
+     * @return the end date of the state change
      */
     public StateChange setEndDate(Date endDate) {
         this.endDate = endDate == null ? null : new Date(endDate.getTime());
@@ -62,7 +64,8 @@ public class StateChange {
 
     /**
      * Sets succeeded count
-     * @param succeeded number (must be equal or larger than 0)
+     * @param succeeded number (must be equal to or larger than 0)
+     * @return the succeeded count
      */
     public StateChange setSucceeded(int succeeded) throws IllegalArgumentException {
         this.succeeded = InvariantUtil.checkIntLowerBoundOrThrow(succeeded, "succeeded", 0);
@@ -71,7 +74,8 @@ public class StateChange {
 
     /**
      * Increments succeeded count
-     * @param delta increment (must be equal or larger than 0)
+     * @param delta increment (must be equal to or larger than 0)
+     * @return the incremented succeeded counter
      */
     public StateChange incSucceeded(int delta) throws IllegalArgumentException {
         succeeded += InvariantUtil.checkIntLowerBoundOrThrow(delta, "delta", 0);
@@ -87,7 +91,8 @@ public class StateChange {
 
     /**
      * Sets failed count
-     * @param failed number (must be equal or larger than 0)
+     * @param failed number (must be equal to or larger than 0)
+     * @return the failed count
      */
     public StateChange setFailed(int failed) throws IllegalArgumentException {
         this.failed = InvariantUtil.checkIntLowerBoundOrThrow(failed, "failed", 0);
@@ -96,7 +101,8 @@ public class StateChange {
 
     /**
      * Increments failed count
-     * @param delta increment (must be equal or larger than 0)
+     * @param delta increment (must be equal to or larger than 0)
+     * @return the incremented failed counter
      */
     public StateChange incFailed(int delta) throws IllegalArgumentException {
         failed += InvariantUtil.checkIntLowerBoundOrThrow(delta, "delta", 0);
@@ -112,7 +118,8 @@ public class StateChange {
 
     /**
      * Sets ignored count
-     * @param ignored number (must be equal or larger than 0)
+     * @param ignored number (must be equal to or larger than 0)
+     * @return the ignored count
      */
     public StateChange setIgnored(int ignored) throws IllegalArgumentException {
         this.ignored = InvariantUtil.checkIntLowerBoundOrThrow(ignored, "ignored", 0);
@@ -121,7 +128,8 @@ public class StateChange {
 
     /**
      * Increments ignored count
-     * @param delta increment (must be equal or larger than 0)
+     * @param delta increment (must be equal to or larger than 0)
+     * @return the incremented ignored count
      */
     public StateChange incIgnored(int delta) throws IllegalArgumentException {
         ignored += InvariantUtil.checkIntLowerBoundOrThrow(delta ,"delta", 0);
@@ -139,6 +147,7 @@ public class StateChange {
      * /**
      * Sets the phase
      * @param phase (partitioning, processing, delivering)
+     * @return
      */
     public StateChange setPhase(State.Phase phase) {
         this.phase = phase;

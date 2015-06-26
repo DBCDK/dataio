@@ -21,6 +21,7 @@ public class SinkContent implements Serializable {
      *
      * @param name sink name
      * @param resource sink resource
+     * @param description sink description
      *
      * @throws NullPointerException if given null-valued name or resource argument
      * @throws IllegalArgumentException if given empty-valued name or resource argument

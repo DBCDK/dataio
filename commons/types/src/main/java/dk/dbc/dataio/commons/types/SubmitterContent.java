@@ -10,8 +10,6 @@ import java.io.Serializable;
  * SubmitterContent DTO class.
  */
 public class SubmitterContent implements Serializable {
-    static /* final */ long NUMBER_LOWER_BOUND = 1L;
-
     private static final long serialVersionUID = -2754982619041504537L;
 
     private final long number;
@@ -21,20 +19,20 @@ public class SubmitterContent implements Serializable {
     /**
      * Class constructor
      *
-     * @param number submitter number (> {@value #NUMBER_LOWER_BOUND})
+     * @param number submitter number (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param name submitter name
      * @param description submitter description
      *
      * @throws NullPointerException if given null-valued name or description argument
      * @throws IllegalArgumentException if given empty-valued name or description argument, or if
-     * value of number is not above {@value #NUMBER_LOWER_BOUND}
+     * value of number is not larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND}
      */
     @JsonCreator
     public SubmitterContent(@JsonProperty("number") long number,
                             @JsonProperty("name") String name,
                             @JsonProperty("description") String description) {
 
-        this.number = InvariantUtil.checkLowerBoundOrThrow(number, "number", NUMBER_LOWER_BOUND);
+        this.number = InvariantUtil.checkLowerBoundOrThrow(number, "number", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
     }

@@ -3,7 +3,6 @@ package dk.dbc.dataio.commons.utils.service;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,12 +106,9 @@ public abstract class AbstractMessageConsumerBean {
      * Message handler stub.
      *
      * @param consumedMessage message to be handled
-     *
-     * @throws InvalidMessageException
-     * @throws ServiceException
-     * @throws JobStoreException
+     * @throws InvalidMessageException if type not legal
      */
-    public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException;
+    public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException;
 
     public void confirmLegalChunkTypeOrThrow(ExternalChunk chunk, ExternalChunk.Type legalChunkType) throws InvalidMessageException {
         if(chunk.getType() != legalChunkType) {

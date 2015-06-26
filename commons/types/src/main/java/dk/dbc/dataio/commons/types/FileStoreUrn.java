@@ -77,8 +77,9 @@ public class FileStoreUrn {
      * @return FileStoreUrn instance
      * @throws NullPointerException if given null-valued fileId argument
      * @throws IllegalArgumentException if given empty-valued fileId argument
+     * @throws URISyntaxException if the given string does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
      * */
-    public static FileStoreUrn create(String fileId) throws URISyntaxException {
+    public static FileStoreUrn create(String fileId) throws URISyntaxException, NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         return new FileStoreUrn(String.format("%s:%s:%s", SCHEME, TYPE, fileId));
     }

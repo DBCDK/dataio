@@ -27,7 +27,9 @@ public class HttpClient {
        return ClientBuilder.newClient();
     }
 
+
     /**
+     * @param config the client config
      * @return new web resources client with given configuration
      */
     public static Client newClient(ClientConfig config) {
@@ -83,12 +85,12 @@ public class HttpClient {
     /**
      * HTTP POSTs given data entity to endpoint constructed using given queryParameters, headers, baseurl and path elements
      *
-     * @param client
-     * @param queryParameters
-     * @param headers
-     * @param data
-     * @param baseUrl
-     * @param pathElements
+     * @param client web resource client
+     * @param queryParameters the query parameters
+     * @param headers HTTP headers
+     * @param data data entity
+     * @param baseUrl base URL on the form http(s)://host:port/path
+     * @param pathElements additional path elements to be added to base URL
      *
      * @return server response
      */

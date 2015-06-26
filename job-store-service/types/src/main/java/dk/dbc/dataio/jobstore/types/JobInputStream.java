@@ -14,11 +14,11 @@ public class JobInputStream {
 
     /**
      * Class constructor
-     * @param jobSpecification
-     * @param isEndOfJob
-     * @param partNumber
+     * @param jobSpecification the jobSpecification
+     * @param isEndOfJob boolean indicating if this is last input resulting in end of job
+     * @param partNumber the partNumber
      * @throws NullPointerException if given null-valued argument
-     * @throws IllegalArgumentException if value of partNumber is < 0
+     * @throws IllegalArgumentException if value of partNumber is less than 0
      */
     @JsonCreator
     public JobInputStream (@JsonProperty ("jobSpecification") JobSpecification jobSpecification,

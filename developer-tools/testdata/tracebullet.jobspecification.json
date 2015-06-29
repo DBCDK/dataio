@@ -6,6 +6,7 @@
          "mailForNotificationAboutVerification": "-mailForNotificationAboutVerification-",
          "resultmailInitials": "resultMail",
          "packaging": "xml",
-         "submitterId": 424242
+         "submitterId": 424242,
+         "type": "TEST"
 }
 

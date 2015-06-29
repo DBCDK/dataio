@@ -72,10 +72,11 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         if (iterator.hasNext()) {
             queryString.append(" WHERE");
         }
-        int firstParameterIndex = 1;
+        boolean firstGroup = true;
+        int nextParameterIndex = 1;
         while (iterator.hasNext()) {
             final ListFilterGroup<U> filterGroup = iterator.next();
-            if (firstParameterIndex != 1) {
+            if (!firstGroup) {
                 // We have multiple ListFilterGroups in criteria, so we combine with a default AND operator
                 queryString.append(" AND");
             }
@@ -83,15 +84,15 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
                 // We have multiple ListFilterGroups in criteria, so we group each in their own set of parentheses
                 queryString.append(" (");
             }
-            addListFilterGroup(queryString, filterGroup, firstParameterIndex);
+            nextParameterIndex = addListFilterGroup(queryString, filterGroup, nextParameterIndex);
             if (filtering.size() > 1) {
                 queryString.append(" )");
             }
-            firstParameterIndex += filterGroup.size();
+            firstGroup = false;
         }
     }
 
-    private void addListFilterGroup(StringBuilder queryString, ListFilterGroup<U> filterGroup, int firstParameterIndex) {
+    private int addListFilterGroup(StringBuilder queryString, ListFilterGroup<U> filterGroup, int firstParameterIndex) {
         final Iterator<ListFilterGroup.Member<U>> iterator = filterGroup.iterator();
         int nextParameterIndex = firstParameterIndex;
         int memberIndex = 0;
@@ -120,6 +121,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             }
             memberIndex++;
         }
+        return nextParameterIndex;
     }
 
     /* Adds WHERE part to query if given non-empty list of ListFilterGroup
@@ -208,8 +210,8 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
     }
 
    public static class VerbatimBooleanOpField extends FieldMapping {
-        private final JsonbValue value;
-        public VerbatimBooleanOpField(String name, JsonbValue value) {
+        private final VerbatimValue value;
+        public VerbatimBooleanOpField(String name, VerbatimValue value) {
             super(name);
             this.value = value;
         }

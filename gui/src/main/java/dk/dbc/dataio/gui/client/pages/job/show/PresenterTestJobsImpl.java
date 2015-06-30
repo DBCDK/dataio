@@ -24,7 +24,8 @@ public class PresenterTestJobsImpl extends PresenterImpl {
      */
     @Override
     protected void fetchJobsFromJobStore(JobListCriteriaModel model) {
-        // When the test job type has been implemented in JobListCriteriaModel, do modify model here - before calling jobStoreProxy
+        model.getJobTypes().remove(JobListCriteriaModel.JobType.TRANSIENT.name());
+        model.getJobTypes().remove(JobListCriteriaModel.JobType.PERSISTENT.name());
         jobStoreProxy.listJobs(model, new FetchJobsCallback());
     }
 }

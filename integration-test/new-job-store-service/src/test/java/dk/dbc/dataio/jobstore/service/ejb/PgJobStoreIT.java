@@ -288,7 +288,7 @@ public class PgJobStoreIT {
         setupSuccessfulMockedReturnsFromFileStore(mockedAddJobParam);
 
         // Set up mocked return for identical byte sizes
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long)mockedAddJobParam.xml.getBytes(StandardCharsets.UTF_8).length);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long)MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length);
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
@@ -337,7 +337,7 @@ public class PgJobStoreIT {
         final long fileStoreByteSize = 42;
 
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
-        final long dataPartitionerByteSize = mockedAddJobParam.xml.getBytes(StandardCharsets.UTF_8).length;
+        final long dataPartitionerByteSize = MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length;
 
         // Setup mocks
         setupSuccessfulMockedReturnsFromFlowStore(mockedAddJobParam);
@@ -467,6 +467,73 @@ public class PgJobStoreIT {
         assertThat("jobEntity.State.Diagnostics contains FATAL diagnostic", jobEntity.getState().fatalDiagnosticExists(), is(true));
 
         // And...
+        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
+        assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    /**
+     * Given: an empty jobstore
+     * When : adding a job which fails immediately during partitioning
+     * Then : a new job entity with a fatal diagnostic is created
+     */
+    @Test
+    public void addJob_failFast() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final String iso8859 =
+                "<?xml encoding=\"ISO-8859-1\""
+                + "<records>"
+                     + "<record>first</record>"
+                + "</records>";
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(iso8859, true);
+
+        // When...
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        transaction.commit();
+
+        // Then...
+        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
+        assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+    }
+
+    /**
+     * Given: an empty jobstore
+     * When : adding a job which fails eventually during partitioning
+     * Then : a new job entity with a fatal diagnostic is created
+     */
+    @Test
+    public void addJob_failEventually() throws JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final String invalidXml =
+                  "<records>"
+                     + "<record>first</record>"
+                     + "<record>second</record>"
+                     + "<record>third</record>"
+                     + "<record>fourth</record>"
+                     + "<record>fifth</record>"
+                     + "<record>sixth</record>"
+                     + "<record>seventh</record>"
+                     + "<record>eighth</record>"
+                     + "<record>ninth</record>"
+                     + "<record>tenth</record>"
+                     + "<record>eleventh"
+                + "</records>";
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(invalidXml, true);
+
+        // When...
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        transaction.commit();
+
+        // Then...
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
         assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
@@ -1406,22 +1473,22 @@ public class PgJobStoreIT {
 
     private class MockedAddJobParam extends AddJobParam {
         public static final short MAX_CHUNK_SIZE = 10;
-        final String xml =
+        public static final String XML =
                 "<records>"
-                        + "<record>first</record>"
-                        + "<record>second</record>"
-                        + "<record>third</record>"
-                        + "<record>fourth</record>"
-                        + "<record>fifth</record>"
-                        + "<record>sixth</record>"
-                        + "<record>seventh</record>"
-                        + "<record>eighth</record>"
-                        + "<record>ninth</record>"
-                        + "<record>tenth</record>"
-                        + "<record>eleventh</record>"
-                        + "</records>";
+                    + "<record>first</record>"
+                    + "<record>second</record>"
+                    + "<record>third</record>"
+                    + "<record>fourth</record>"
+                    + "<record>fifth</record>"
+                    + "<record>sixth</record>"
+                    + "<record>seventh</record>"
+                    + "<record>eighth</record>"
+                    + "<record>ninth</record>"
+                    + "<record>tenth</record>"
+                    + "<record>eleventh</record>"
+                + "</records>";
 
-        public MockedAddJobParam(boolean isEOJ) {
+        public MockedAddJobParam(String utf8Data, boolean isEOJ) {
             super(new JobInputStream(new JobSpecificationBuilder()
                     .setDataFile(FILE_STORE_URN.toString())
                     .setCharset(StandardCharsets.UTF_8.name())
@@ -1432,9 +1499,13 @@ public class PgJobStoreIT {
             flowBinder = new FlowBinderBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
             sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
-            dataFileInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+            dataFileInputStream = new ByteArrayInputStream(utf8Data.getBytes(StandardCharsets.UTF_8));
             dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
                     StandardCharsets.UTF_8.name());
+        }
+
+        public MockedAddJobParam(boolean isEOJ) {
+            this(XML, isEOJ);
         }
 
         public InputStream getDatafileInputStream() {

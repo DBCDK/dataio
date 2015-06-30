@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
-import dk.dbc.dataio.jobstore.types.DataException;
+import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import org.slf4j.Logger;
@@ -85,8 +85,8 @@ import java.util.List;
  * </pre>
  * As can be seen in the above example, the DefaultXmlDataPartitionerFactory.createDataPartitioner() method returns
  * a {@link DataPartitioner}, enabling you to step through the records one at a time.
- * Also note, that if an error occurs, a {@link DataException} or sub type thereof is thrown.
- * {@link DataException} is a {@link RuntimeException} since the {@link Iterable}
+ * Also note, that if an error occurs, a {@link UnrecoverableDataException} or sub type thereof is thrown.
+ * {@link UnrecoverableDataException} is a {@link RuntimeException} since the {@link Iterable}
  * interface all DataPartitioner implementations must implement does not allow checked exceptions to be thrown.
  * When the expected data encoding set via the createDataPartitioner() method call differs from the actual encoding
  * a {@link InvalidEncodingException} is thrown.
@@ -151,7 +151,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
         }
 
         @Override
-        public Iterator<String> iterator() throws DataException {
+        public Iterator<String> iterator() throws UnrecoverableDataException {
             if (iterator == null) {
                 try {
                     xmlReader = XMLInputFactory.newFactory().createXMLEventReader(inputStream);
@@ -167,7 +167,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                      * @inheritDoc
                      */
                     @Override
-                    public boolean hasNext() throws DataException {
+                    public boolean hasNext() throws UnrecoverableDataException {
                         try {
                             return hasNextRecord();
                         } catch (XMLStreamException e) {
@@ -179,7 +179,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                      * @inheritDoc
                      */
                     @Override
-                    public String next() throws DataException {
+                    public String next() throws UnrecoverableDataException {
                         try {
                             // A note about optimization:
                             // It seems possible to move ByteArrayOutputStream,
@@ -260,7 +260,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
             rootTag = firstStartElementEvent.asStartElement().getName().toString();
         }
 
-        private XMLEvent findFirstStartElementEventFromPreRecordEvents() throws DataException {
+        private XMLEvent findFirstStartElementEventFromPreRecordEvents() throws UnrecoverableDataException {
             for (XMLEvent e : preRecordEvents) {
                 if (e.isStartElement()) {
                     return e;

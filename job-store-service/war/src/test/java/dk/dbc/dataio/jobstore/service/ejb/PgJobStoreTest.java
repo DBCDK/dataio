@@ -50,7 +50,6 @@ import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -76,7 +75,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import static dk.dbc.dataio.commons.utils.service.Base64Util.base64decode;
 import static dk.dbc.dataio.commons.utils.service.Base64Util.base64encode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -379,12 +377,7 @@ public class PgJobStoreTest {
         assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
         assertThat("First item: succeeded", chunkItemEntities.entities.get(0).getState().getPhase(State.Phase.PARTITIONING).getSucceeded(), is(1));
         assertThat("Second item: failed", chunkItemEntities.entities.get(1).getState().getPhase(State.Phase.PARTITIONING).getFailed(), is(1));
-
-        final JobError jobError = new JSONBContext().unmarshall(base64decode(
-                chunkItemEntities.entities.get(1).getPartitioningOutcome().getData()), JobError.class);
-        assertThat(jobError.getCode(), is(JobError.Code.INVALID_DATA));
-        assertThat(jobError.getDescription().isEmpty(), is(false));
-        assertThat(jobError.getStacktrace().isEmpty(), is(false));
+        assertThat("Second item: has fatal diagnostic", chunkItemEntities.entities.get(1).getState().fatalDiagnosticExists(), is(true));
     }
 
     @Test

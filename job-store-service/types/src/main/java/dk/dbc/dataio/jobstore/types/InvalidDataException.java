@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.types;
 
-public class InvalidDataException extends DataException {
+public class InvalidDataException extends UnrecoverableDataException {
     private static final long serialVersionUID = 6406566155381131155L;
 
     public InvalidDataException(String message) {

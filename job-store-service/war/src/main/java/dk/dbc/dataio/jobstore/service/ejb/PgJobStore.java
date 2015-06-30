@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
@@ -28,7 +27,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
-import dk.dbc.dataio.jobstore.types.DataException;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -41,6 +40,7 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -149,10 +149,17 @@ public class PgJobStore {
                     chunkEntity = businessObject.createChunkEntity(jobEntity.getId(), chunkId++, maxChunkSize,
                             addJobParam.getDataPartitioner(), addJobParam.getSequenceAnalyserKeyGenerator(), addJobParam.getJobInputStream().getJobSpecification().getDataFile());
 
-                    if (chunkEntity != null) {
-                        jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), addJobParam.getSink());
+                    if (chunkEntity == null) {
+                        break;
                     }
-                } while (chunkEntity != null);
+                    if (chunkEntity.getState().fatalDiagnosticExists()) {
+                        // Partitioning resulted in unrecoverable error - abort job creation
+                        jobEntity.getState().getDiagnostics().addAll(chunkEntity.getState().getDiagnostics());
+                        jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                        break;
+                    }
+                    jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), addJobParam.getSink());
+                } while (true);
 
                 // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
                 final StateChange jobStateChange = new StateChange()
@@ -373,7 +380,6 @@ public class PgJobStore {
             // create items
 
             final ChunkItemEntities chunkItemEntities = createChunkItemEntities(jobId, chunkId, maxChunkSize, dataPartitioner);
-
             if (chunkItemEntities.size() > 0) {
                 // Items were created, so now create the chunk to which they belong
 
@@ -387,9 +393,11 @@ public class PgJobStore {
                     sequenceAnalysisData = new SequenceAnalysisData(
                         sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.records));
                 }
-                chunkStateChange.setEndDate(new Date());
-
                 final State chunkState = new State();
+                for (final ItemEntity itemEntity : chunkItemEntities.entities) {
+                    chunkState.getDiagnostics().addAll(itemEntity.getState().getDiagnostics());
+                }
+                chunkStateChange.setEndDate(new Date());
                 chunkState.updateState(chunkStateChange);
 
                 chunkEntity = new ChunkEntity();
@@ -524,17 +532,11 @@ public class PgJobStore {
                     nextItemBegin = new Date();
                 }
 
-            } catch (DataException e) {
-                LOGGER.warn("Exception caught during job partitioning", e);
-                final ItemData itemData;
-                try {
-                    final JobError jobError = new JobError(
-                            JobError.Code.INVALID_DATA, e.getMessage(), ServiceUtil.stackTraceToString(e));
-                    itemData = new ItemData(
-                            Base64Util.base64encode(jsonbContext.marshall(jobError)), StandardCharsets.UTF_8);
-                } catch (JSONBException ex) {
-                    throw new JobStoreException("Exception caught during error handling", ex);
-                }
+            } catch (UnrecoverableDataException e) {
+                LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);
+                final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL,
+                        String.format("Unable to complete partitioning at chunk %d item %d: %s",
+                                chunkId, itemCounter, e.getMessage()), e);
 
                 final StateChange stateChange = new StateChange()
                     .setPhase(State.Phase.PARTITIONING)
@@ -542,9 +544,10 @@ public class PgJobStore {
                     .setBeginDate(nextItemBegin)
                     .setEndDate(new Date());
                 final State itemState = new State();
+                itemState.getDiagnostics().add(diagnostic);
                 itemState.updateState(stateChange);
 
-                chunkItemEntities.entities.add(createItem(jobId, chunkId, itemCounter, itemState, itemData));
+                chunkItemEntities.entities.add(createItem(jobId, chunkId, itemCounter, itemState, null));
                 chunkItemEntities.chunkStateChange.incFailed(1);
             }
             return chunkItemEntities;

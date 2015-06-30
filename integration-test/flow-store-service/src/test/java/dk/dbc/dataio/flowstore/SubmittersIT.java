@@ -4,21 +4,25 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.*;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +32,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.*;
 
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+
 /**
  * Integration tests for the submitters collection part of the flow store service
  */
@@ -35,6 +43,7 @@ public class SubmittersIT {
 
     private static Logger LOGGER = LoggerFactory.getLogger(SubmittersIT.class);
 
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
@@ -44,6 +53,7 @@ public class SubmittersIT {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
         dbConnection = newIntegrationTestConnection();
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
     }
 
     @AfterClass
@@ -55,6 +65,31 @@ public class SubmittersIT {
     @After
     public void tearDown() throws SQLException {
         clearAllDbTables(dbConnection);
+    }
+
+    private Submitter createSubmitterFromConnector(SubmitterContent submitterContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException  {
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
+
+        return submitter;
+    }
+
+    private Submitter updateSubmitterFromConnector(SubmitterContent submitterContent, Long submitterId, Long version) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException  {
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        Submitter submitter = flowStoreServiceConnector.updateSubmitter(submitterContent, submitterId, version);
+
+        return submitter;
+    }
+
+    private Submitter getSubmitterById(long submitterId) throws Exception {
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        return flowStoreServiceConnector.getSubmitter(submitterId);
     }
 
     /*
@@ -72,7 +107,7 @@ public class SubmittersIT {
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
-        Submitter submitter = flowStoreServiceConnector.createSubmitter(submitterContent);
+        final Submitter submitter = this.createSubmitterFromConnector(submitterContent);
 
         // And...
         assertNotNull(submitter);
@@ -85,6 +120,124 @@ public class SubmittersIT {
         assertThat(submitters.size(), is(1));
     }
 
+    @Test
+    public void deleteSubmitter_Ok() throws FlowStoreServiceConnectorException {
+
+        // Configuration
+        final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        // Preconditions
+        Submitter submitter = this.createSubmitterFromConnector(submitterContent);
+        long submitterId = submitter.getId();
+        long version = submitter.getVersion();
+
+        // Verify before delete
+        Submitter submitterBeforeDelete = flowStoreServiceConnector.getSubmitter(submitterId);
+        assertThat(submitterBeforeDelete.getId(), is(submitterId));
+
+        // Subject Under Test
+        flowStoreServiceConnector.deleteSubmitter(submitterId, version);
+
+        // Verify that the submitter is deleted
+        try {
+
+            Submitter submitterAfterDelete = flowStoreServiceConnector.getSubmitter(submitterId);
+
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+
+            // We expect this exception from getSubmitter(...) method when no submitter exists!
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    @Test
+    public void deleteSubmitter_NoSubmitterToDelete() throws ProcessingException{
+
+        // Configuration
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final long submitterIdNotExists = 9999;
+        final long versionNotExists = 9;
+
+        try {
+
+            // Subject Under Test
+            flowStoreServiceConnector.deleteSubmitter(submitterIdNotExists, versionNotExists);
+
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+
+            // We expect this exception from getSubmitter(...) method when no submitter exists!
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    @Test
+    public void deleteSubmitter_OptimisticLocking() throws FlowStoreServiceConnectorException {
+
+        // Configuration
+        final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        // Preconditions
+        Submitter submitter = this.createSubmitterFromConnector(submitterContent);
+        long submitterId = submitter.getId();
+        long versionFirst = submitter.getVersion();
+        long versionSecond = versionFirst + 1;
+
+        // Update submitter to bump version no.
+        final SubmitterContent newSubmitterContent = new SubmitterContentBuilder().setName("UpdatedSubmitterName").setNumber(43L).build();
+        final Submitter submitterUpdated = this.updateSubmitterFromConnector(newSubmitterContent, submitterId, versionFirst);
+        assertThat(submitterUpdated.getVersion(), is(versionSecond));
+
+        // Verify before delete
+        Submitter submitterBeforeDelete = flowStoreServiceConnector.getSubmitter(submitterId);
+        assertThat(submitterBeforeDelete.getId(), is(submitterId));
+        assertThat(submitterBeforeDelete.getVersion(), is(versionSecond));
+
+        try {
+
+            // Subject Under Test
+            flowStoreServiceConnector.deleteSubmitter(submitterId, versionFirst);
+
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+
+            // We expect this exception from getSubmitter(...) method when no submitter exists!
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
+        }
+    }
+
+    @Test
+    public void deleteSubmitter_FlowBinderExists() throws FlowStoreServiceConnectorException {
+
+        // Preconditions
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
+        final long submitterId = submitter.getId();
+
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .build();
+
+        FlowBinder flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+
+        // Get submitter - then the version is set correct before deletion
+        Submitter submitterBeforeDelete = flowStoreServiceConnector.getSubmitter(submitterId);
+
+        try {
+
+            // Subject Under Test
+            flowStoreServiceConnector.deleteSubmitter(submitterId, submitterBeforeDelete.getVersion());
+
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+
+            // We expect this exception from getSubmitter(...) method when no submitter exists!
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
+        }
+
+    }
 
     /*
      * Given: a deployed flow-store service

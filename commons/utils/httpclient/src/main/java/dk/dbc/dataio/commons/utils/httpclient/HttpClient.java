@@ -18,7 +18,34 @@ import java.util.Map;
  * This utility class provides convenience methods for accessing web resources via HTTP
  */
 public class HttpClient {
+
+    private final static Map<String, String> NO_HEADERS = null;
+
     private HttpClient() { }
+
+    private static void setHeadersOnRequest(Map<String, String> headers, Invocation.Builder request) {
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            request.header(entry.getKey(), entry.getValue());
+        }
+    }
+
+    private static WebTarget setPathParametersOnWebTarget(WebTarget target, String[] pathElements) {
+        for (String pathElement : pathElements) {
+            target = target.path(pathElement);
+        }
+        return target;
+    }
+
+    private static WebTarget setQueryParametersOnWebTarget(Map<String, Object> queryParameters, WebTarget target) {
+        for (Map.Entry<String, Object> queryParameter : queryParameters.entrySet()) {
+            target = target.queryParam(queryParameter.getKey(), queryParameter.getValue());
+        }
+        return target;
+    }
+
+    private static boolean headerExists(Map<String, String> headers) {
+        return headers != NO_HEADERS;
+    }
 
     /**
      * @return new web resources client
@@ -58,15 +85,16 @@ public class HttpClient {
      * @return server response
      */
     public static Response doGet(Client client, Map<String, Object> queryParameters, String baseUrl, String... pathElements)  {
+
         WebTarget target = client.target(baseUrl);
-        for (String pathElement : pathElements) {
-            target = target.path(pathElement);
-        }
-        for (Map.Entry<String, Object> queryParameter : queryParameters.entrySet()) {
-            target = target.queryParam(queryParameter.getKey(), queryParameter.getValue());
-        }
+
+        target = setPathParametersOnWebTarget(target, pathElements);
+
+        target = setQueryParametersOnWebTarget(queryParameters, target);
+
         return target.request().get();
     }
+
 
     /**
      * Issues HTTP GET request to endpoint constructed using given baseurl and path elements
@@ -95,22 +123,19 @@ public class HttpClient {
      * @return server response
      */
     public static Response doPost(Client client, Map<String, Object> queryParameters, Map<String, String> headers, Entity data, String baseUrl, String... pathElements) {
-        WebTarget target = client.target(baseUrl);
-        for (String pathElement : pathElements) {
-            target = target.path(pathElement);
-        }
 
-        for (Map.Entry<String, Object> queryParameter : queryParameters.entrySet()) {
-            target = target.queryParam(queryParameter.getKey(), queryParameter.getValue());
-        }
+        WebTarget target = client.target(baseUrl);
+
+        target = setPathParametersOnWebTarget(target, pathElements);
+
+        target = setQueryParametersOnWebTarget(queryParameters, target);
+
         Invocation.Builder request = target.request();
 
-        if (headers != null) {
-
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                request.header(entry.getKey(), entry.getValue());
-            }
+        if (headerExists(headers)) {
+            setHeadersOnRequest(headers, request);
         }
+
         return request.post(data);
     }
 
@@ -126,21 +151,22 @@ public class HttpClient {
      * @return server response
      */
     public static Response doPost(Client client, Map<String, String> headers, Entity data, String baseUrl, String... pathElements) {
+
         WebTarget target = client.target(baseUrl);
-        for (String pathElement : pathElements) {
-            target = target.path(pathElement);
-        }
+
+        target = setPathParametersOnWebTarget(target, pathElements);
+
         Invocation.Builder request = target.request();
-        if (headers != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                request.header(entry.getKey(), entry.getValue());
-            }
+
+        if (headerExists(headers)) {
+            setHeadersOnRequest(headers, request);
         }
+
         return request.post(data);
     }
 
     public static Response doPost(Client client, Entity data, String baseUrl, String... pathElements) {
-        return doPost(client, null, data, baseUrl, pathElements);
+        return doPost(client, NO_HEADERS, data, baseUrl, pathElements);
     }
 
     /**
@@ -161,10 +187,10 @@ public class HttpClient {
         return doPost(client, headers, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
     }
     public static Response doPostWithJson(Client client, String data, String baseUrl, String... pathElements) {
-        return doPost(client, null, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+        return doPost(client, NO_HEADERS, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
     }
     public static <T> Response doPostWithJson(Client client, T data, String baseUrl, String... pathElements) {
-        return doPost(client, null,  Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
+        return doPost(client, NO_HEADERS,  Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
     }
     public static <T> Response doPostWithJson(Client client, Map<String, Object> queryParameters, Map<String, String> headers, T data, String baseUrl, String... pathElements) {
         return doPost(client, queryParameters, headers, Entity.entity(data, MediaType.APPLICATION_JSON), baseUrl, pathElements);
@@ -185,7 +211,7 @@ public class HttpClient {
         return doPost(client, headers, Entity.form(formData), baseUrl, pathElements);
     }
     public static Response doPostWithFormData(Client client, MultivaluedMap<String, String> formData, String baseUrl, String... pathElements) {
-        return doPost(client, null, Entity.form(formData), baseUrl, pathElements);
+        return doPost(client, NO_HEADERS, Entity.form(formData), baseUrl, pathElements);
     }
 
     /**
@@ -198,11 +224,31 @@ public class HttpClient {
      * @return server response
      */
     public static Response doDelete(Client client, String baseUrl, String... pathElements) {
+        return doDelete(client, NO_HEADERS, baseUrl, pathElements);
+    }
+
+    /**
+     * Issues HTTP DELETE request to endpoint constructed using given baseurl and path elements
+     *
+     * @param client web resource client
+     * @param baseUrl base URL on the form http(s)://host:port/path
+     * @param pathElements additional path elements to be added to base URL
+     *
+     * @return server response
+     */
+    public static Response doDelete(Client client, Map<String, String> headers, String baseUrl, String... pathElements) {
+
         WebTarget target = client.target(baseUrl);
-        for (String pathElement : pathElements) {
-            target = target.path(pathElement);
+
+        target = setPathParametersOnWebTarget(target, pathElements);
+
+        Invocation.Builder request = target.request();
+
+        if (headerExists(headers)) {
+            setHeadersOnRequest(headers, request);
         }
-        return target.request().delete();
+
+        return request.delete();
     }
 
     public static List<Object> getHeader(Response response, String headerName) {

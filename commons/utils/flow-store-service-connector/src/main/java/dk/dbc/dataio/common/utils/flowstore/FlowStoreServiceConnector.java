@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
 
 /**
  * Created by sma on 29/04/14.
@@ -122,7 +126,8 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SINKS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<Sink>>() { });
+            return readResponseGenericTypeEntity(response, new GenericType<List<Sink>>() {
+            });
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: findAllSinks took {} milliseconds", stopWatch.getElapsedTime());
@@ -159,6 +164,45 @@ public class FlowStoreServiceConnector {
     }
 
     // ************************************************* Submitter *************************************************
+
+    /**
+     * Deletes an existing submitter from the flow-store
+     *
+     * @param submitterId the database related ID
+     * @param version the current JPA version of the submitter - Optimistic Locking
+     * @throws ProcessingException on general communication error
+     */
+    public void deleteSubmitter(long submitterId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
+
+        log.trace("FlowStoreServiceConnector: deleteSubmitter({})", submitterId);
+
+        InvariantUtil.checkNotNullOrThrow(submitterId, "submitterId");
+
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder pathBuilder = new PathBuilder(
+                FlowStoreServiceConstants.SUBMITTER_DELETE)
+                .bind(
+                    FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE,
+                    Long.toString(submitterId));
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
+
+        final int actualStatus = response.getStatus();
+
+        try {
+
+            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), Response.Status.NO_CONTENT);
+
+        } finally {
+
+            response.close();
+            log.debug("FlowStoreServiceConnector: deleteSubmitter took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
 
     /**
      * Creates new submitter defined by the submitter content
@@ -268,7 +312,7 @@ public class FlowStoreServiceConnector {
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the submitters
      */
-    public List<Submitter> findAllSubmitters()throws ProcessingException, FlowStoreServiceConnectorException{
+    public List<Submitter> findAllSubmitters() throws ProcessingException, FlowStoreServiceConnectorException{
         log.trace("FlowStoreServiceConnector: findAllSubmitters();");
         final StopWatch stopWatch = new StopWatch();
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SUBMITTERS);

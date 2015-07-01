@@ -15,6 +15,7 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,10 +74,7 @@ public class PresenterImplTest {
     }
 
     // Test Data
-    private SubmitterModel testModel1 = new SubmitterModel(12345L, 1111L, "564738", "Submitter Name 1", "Submitter Description 1");
-    private SubmitterModel testModel2 = new SubmitterModel(12346L, 2222L, "564739", "Submitter Name 2", "Submitter Description 2");
-    private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(testModel1, testModel2));
-
+    private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(new SubmitterModelBuilder().build(), new SubmitterModelBuilder().build()));
 
 
     @Test
@@ -111,7 +109,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.editSubmitter(testModel1);
+        presenterImpl.editSubmitter(testModels.get(0));
 
         // Verify Test
         verify(mockedPlaceController).goTo(any(EditPlace.class));

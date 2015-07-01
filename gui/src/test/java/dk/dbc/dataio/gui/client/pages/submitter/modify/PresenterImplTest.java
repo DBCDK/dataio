@@ -10,6 +10,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,10 +44,7 @@ public class PresenterImplTest {
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
     private static boolean initializeModelHasBeenCalled;
-    private final static String NUMBER = "123";
-    private final static String NAME = "Hello";
-    private final static String DESCRIPTION = "Note";
-    private final SubmitterModel submitterModel = new SubmitterModel(45, 2, NUMBER, NAME, DESCRIPTION);
+    private final SubmitterModel submitterModel = new SubmitterModelBuilder().build();
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {

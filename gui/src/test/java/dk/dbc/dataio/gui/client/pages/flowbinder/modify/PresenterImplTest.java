@@ -13,6 +13,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -22,6 +23,7 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +61,14 @@ public class PresenterImplTest {
     private View view;
     private PresenterImplConcrete presenterImpl;
 
-    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Arrays.asList("Script"), "description");
-    private final FlowModel flowModel1 = new FlowModel(101L, 44L, "Nmm1", "Des", Arrays.asList(flowComponentModel));
-    private final FlowModel flowModel2 = new FlowModel(102L, 44L, "Nmm1", "Des", Arrays.asList(flowComponentModel));
-    private final FlowModel flowModel3 = new FlowModel(103L, 44L, "Nmm1", "Des", Arrays.asList(flowComponentModel));
-    private final SubmitterModel submitterModel1 = new SubmitterModel(201L, 1L, "2201", "SName 1", "Description");
-    private final SubmitterModel submitterModel2 = new SubmitterModel(202L, 1L, "2202", "SName 2", "Description");
-    private final SubmitterModel submitterModel3 = new SubmitterModel(203L, 1L, "2203", "SName 3", "Description");
-    private final SubmitterModel submitterModel4 = new SubmitterModel(204L, 1L, "2204", "SName 4", "Description");
+    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Collections.singletonList("Script"), "description");
+    private final FlowModel flowModel1 = new FlowModel(101L, 44L, "Nmm1", "Des", Collections.singletonList(flowComponentModel));
+    private final FlowModel flowModel2 = new FlowModel(102L, 44L, "Nmm1", "Des", Collections.singletonList(flowComponentModel));
+    private final FlowModel flowModel3 = new FlowModel(103L, 44L, "Nmm1", "Des", Collections.singletonList(flowComponentModel));
+    private final SubmitterModel submitterModel1 = new SubmitterModelBuilder().setId(201L).setNumber("2201").setName("SName 1").build();
+    private final SubmitterModel submitterModel2 = new SubmitterModelBuilder().setId(202L).setNumber("2202").setName("SName 2").build();
+    private final SubmitterModel submitterModel3 = new SubmitterModelBuilder().setId(203L).setNumber("2203").setName("SName 3").build();
+    private final SubmitterModel submitterModel4 = new SubmitterModelBuilder().setId(204L).setNumber("2204").setName("SName 4").build();
     private final SinkModel sinkModel1 = new SinkModel(301L, 100L, "Snm1", "Rsc", "description");
     private final SinkModel sinkModel2 = new SinkModel(302L, 100L, "Snm2", "Rsc", "description");
     private final SinkModel sinkModel3 = new SinkModel(303L, 100L, "Snm3", "Rsc", "description");
@@ -76,7 +78,7 @@ public class PresenterImplTest {
             super(clientFactory);
             flowStoreProxy = mockedFlowStoreProxy;
             view = PresenterImplTest.this.view;
-            model = new FlowBinderModel(321L, 432L, "name", "desc", "pack", "form", "char", "dest", "recs", true, flowModel1, Arrays.asList(submitterModel1), sinkModel1);
+            model = new FlowBinderModel(321L, 432L, "name", "desc", "pack", "form", "char", "dest", "recs", true, flowModel1, Collections.singletonList(submitterModel1), sinkModel1);
             setAvailableSubmitters(availableSubmitterModelList);
             setAvailableFlows(Arrays.asList(flowModel1, flowModel2, flowModel3));
             setAvailableSinks(Arrays.asList(sinkModel1, sinkModel2, sinkModel3));
@@ -360,7 +362,7 @@ public class PresenterImplTest {
     public void fetchAvailableSubmittersCallback_successfullCallback_statusMessageDisplayed() {
         initializeAndStartPresenter();
 
-        presenterImpl.fetchAvailableSubmittersCallback.onSuccess(Arrays.asList(submitterModel3));
+        presenterImpl.fetchAvailableSubmittersCallback.onSuccess(Collections.singletonList(submitterModel3));
 
         assertThat(presenterImpl.availableSubmitters.size(), is(1));
         assertThat(presenterImpl.availableSubmitters.get(0).getId(), is(submitterModel3.getId()));
@@ -379,7 +381,7 @@ public class PresenterImplTest {
     public void fetchAvailableFlowsCallback_successfullCallback_statusMessageDisplayed() {
         initializeAndStartPresenter();
 
-        presenterImpl.fetchAvailableFlowsCallback.onSuccess(Arrays.asList(flowModel2));
+        presenterImpl.fetchAvailableFlowsCallback.onSuccess(Collections.singletonList(flowModel2));
 
         assertThat(presenterImpl.availableFlows.size(), is(1));
         assertThat(presenterImpl.availableFlows.get(0).getId(), is(flowModel2.getId()));
@@ -401,7 +403,7 @@ public class PresenterImplTest {
     public void fetchAvailableSinksCallback_successfullCallback_statusMessageDisplayed() {
         initializeAndStartPresenter();
 
-        presenterImpl.fetchAvailableSinksCallback.onSuccess(Arrays.asList(sinkModel2));
+        presenterImpl.fetchAvailableSinksCallback.onSuccess(Collections.singletonList(sinkModel2));
 
         assertThat(presenterImpl.availableSinks.size(), is(1));
         assertThat(presenterImpl.availableSinks.get(0).getId(), is(sinkModel2.getId()));
@@ -422,7 +424,7 @@ public class PresenterImplTest {
     @Test
     public void saveFlowBinderModelCallback_successfullCallback_statusMessageDisplayed() {
         final String SUCCESS_TEXT = "Check!";
-        FlowBinderModel flowBinderModel = new FlowBinderModel(5555L, 66L, "nx", "dx", "px", "fx", "cx", "dx", "rx", true, flowModel3, Arrays.asList(submitterModel3), sinkModel3);
+        FlowBinderModel flowBinderModel = new FlowBinderModel(5555L, 66L, "nx", "dx", "px", "fx", "cx", "dx", "rx", true, flowModel3, Collections.singletonList(submitterModel3), sinkModel3);
         when(mockedTexts.status_SaveSuccess()).thenReturn(SUCCESS_TEXT);
         initializeAndStartPresenter();
 

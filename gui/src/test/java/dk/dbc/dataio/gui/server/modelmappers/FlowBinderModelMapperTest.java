@@ -7,10 +7,11 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,20 +35,20 @@ public class FlowBinderModelMapperTest {
     private static final FlowBinderContent defaultFlowBinderContent = new FlowBinderContent(
             "flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true,
             DEFAULT_FLOW_ID,
-            Arrays.asList(DEFAULT_SUBMITTER_ID),
+            Collections.singletonList(DEFAULT_SUBMITTER_ID),
             DEFAULT_SINK_ID);
     private static final FlowBinder defaultFlowBinder = new FlowBinder(DEFAULT_FLOW_BINDER_ID, 2L, defaultFlowBinderContent);
 
     // Default Flow Binder Model
-    private static final FlowModel defaultFlowModel = new FlowModel(DEFAULT_FLOW_ID, 4L, "flow name", "flow description", Arrays.asList(new FlowComponentModel()));
-    private static final SubmitterModel defaultSubmitterModel = new SubmitterModel(DEFAULT_SUBMITTER_ID, 6L, "submitter number", "submitter name", "submitter description");
+    private static final FlowModel defaultFlowModel = new FlowModel(DEFAULT_FLOW_ID, 4L, "flow name", "flow description", Collections.singletonList(new FlowComponentModel()));
+    private static final SubmitterModel defaultSubmitterModel = new SubmitterModelBuilder().setId(DEFAULT_SUBMITTER_ID).build();
     private static final SinkModel defaultSinkModel = new SinkModel(DEFAULT_SINK_ID, 7L, "sink name", "sink resource", "sink description");
     private static final FlowBinderModel defaultFlowBinderModel = new FlowBinderModel(
             DEFAULT_FLOW_BINDER_ID,
             DEFAULT_FLOW_BINDER_VERSION,
             "flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true,
             defaultFlowModel,
-            Arrays.asList(defaultSubmitterModel),
+            Collections.singletonList(defaultSubmitterModel),
             defaultSinkModel
             );
 
@@ -56,12 +57,12 @@ public class FlowBinderModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toModel_nullFlowBinderInput_throws() {
-        FlowBinderModelMapper.toModel(null, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(null, new FlowModel(), Collections.singletonList(new SubmitterModel()), new SinkModel());
     }
 
     @Test(expected = NullPointerException.class)
     public void toModel_nullFlowInput_throws() {
-        FlowBinderModelMapper.toModel(defaultFlowBinder, null, Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(defaultFlowBinder, null, Collections.singletonList(new SubmitterModel()), new SinkModel());
     }
 
     @Test(expected = NullPointerException.class)
@@ -71,15 +72,15 @@ public class FlowBinderModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toModel_nullSinkInput_throws() {
-        FlowBinderModelMapper.toModel(defaultFlowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), null);
+        FlowBinderModelMapper.toModel(defaultFlowBinder, new FlowModel(), Collections.singletonList(new SubmitterModel()), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toModel_validInputNoFlowIdInFlowBinderContent_throws() {
-        FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 0L, Arrays.asList(4L), 5L);
+        FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 0L, Collections.singletonList(4L), 5L);
         FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
 
-        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Collections.singletonList(new SubmitterModel()), new SinkModel());
     }
 
     @Test(expected = NullPointerException.class)
@@ -87,15 +88,15 @@ public class FlowBinderModelMapperTest {
         FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 3L, null, 5L);
         FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
 
-        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Collections.singletonList(new SubmitterModel()), new SinkModel());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toModel_validInputNoSinkIdInFlowBinderContent_throws() {
-        FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 3L, Arrays.asList(4L), 0L);
+        FlowBinderContent flowBinderContent = new FlowBinderContent("flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true, 3L, Collections.singletonList(4L), 0L);
         FlowBinder flowBinder = new FlowBinder(1L, 2L, flowBinderContent);
 
-        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Arrays.asList(new SubmitterModel()), new SinkModel());
+        FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Collections.singletonList(new SubmitterModel()), new SinkModel());
     }
 
     @Test
@@ -108,7 +109,7 @@ public class FlowBinderModelMapperTest {
                 DEFAULT_FLOW_BINDER_VERSION,
                 flowBinderName, "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true,
                 defaultFlowModel,
-                Arrays.asList(defaultSubmitterModel),
+                Collections.singletonList(defaultSubmitterModel),
                 defaultSinkModel);
 
         try {
@@ -121,7 +122,7 @@ public class FlowBinderModelMapperTest {
     @Test
     public void toModel_validInput_returnsValidModel() {
 
-        FlowBinderModel flowBinderModel = FlowBinderModelMapper.toModel(defaultFlowBinder, defaultFlowModel, Arrays.asList(defaultSubmitterModel), defaultSinkModel);
+        FlowBinderModel flowBinderModel = FlowBinderModelMapper.toModel(defaultFlowBinder, defaultFlowModel, Collections.singletonList(defaultSubmitterModel), defaultSinkModel);
 
         assertThat(flowBinderModel.getId(), is(DEFAULT_FLOW_BINDER_ID));
         assertThat(flowBinderModel.getName(), is(defaultFlowBinder.getContent().getName()));

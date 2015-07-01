@@ -5,8 +5,8 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,7 +88,7 @@ public class PresenterCreateImplTest {
     public void saveModel_submitterContentOk_createSubmitterCalled() {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterCreateImpl.model = new SubmitterModel(1, 1, "34343", "name", "description");
+        presenterCreateImpl.model = new SubmitterModelBuilder().build();
         presenterCreateImpl.saveModel();
         verify(mockedFlowStoreProxy).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
     }

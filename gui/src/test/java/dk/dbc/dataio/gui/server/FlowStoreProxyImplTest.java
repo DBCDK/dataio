@@ -28,6 +28,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import org.glassfish.jersey.client.ClientConfig;
@@ -40,7 +41,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -75,7 +76,7 @@ public class FlowStoreProxyImplTest {
     private FlowBinderContent defaultFlowBinderContent = new FlowBinderContent(
             "flow binder content", "description", "packaging", "format", "charset", "destination", "record splitter", true,
             DEFAULT_FLOW_ID,
-            Arrays.asList(DEFAULT_SUBMITTER_ID),
+            Collections.singletonList(DEFAULT_SUBMITTER_ID),
             DEFAULT_SINK_ID);
 
     @Before
@@ -240,7 +241,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Sink sink = new SinkBuilder().setId(ID).build();
 
-        when(flowStoreServiceConnector.findAllSinks()).thenReturn(Arrays.asList(sink));
+        when(flowStoreServiceConnector.findAllSinks()).thenReturn(Collections.singletonList(sink));
         try {
             final List<SinkModel> allSinks = flowStoreProxy.findAllSinks();
             assertNotNull(allSinks);
@@ -343,7 +344,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Submitter submitter = new SubmitterBuilder().setId(ID).setVersion(1).build();
-        SubmitterModel model = getDefaultSubmitterModel(submitter.getId(), submitter.getVersion());
+        SubmitterModel model = new SubmitterModelBuilder().setId(submitter.getId()).setVersion(submitter.getVersion()).build();
 
         when(flowStoreServiceConnector.updateSubmitter(any(SubmitterContent.class), (eq(submitter.getId())), (eq(submitter.getVersion()))))
                 .thenReturn(submitter);
@@ -378,19 +379,15 @@ public class FlowStoreProxyImplTest {
     @Test
     public void updateSubmitter_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        SubmitterModel model = new SubmitterModel(1, 1, "42", "", "test");
+        SubmitterModel model = new SubmitterModelBuilder().setName("").build();
         updateSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
-    }
-
-    private SubmitterModel getDefaultSubmitterModel(long id, long version) {
-        return new SubmitterModel(id, version, "1", "submitterName", "submitterDescription");
     }
 
     private void updateSubmitter_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Submitter submitter = new SubmitterBuilder().setId(ID).setVersion(1).build();
-        SubmitterModel model = getDefaultSubmitterModel(submitter.getId(), submitter.getVersion());
+        SubmitterModel model = new SubmitterModelBuilder().setId(submitter.getId()).setVersion(submitter.getVersion()).build();
 
         when(flowStoreServiceConnector.updateSubmitter(any(SubmitterContent.class), (eq(submitter.getId())), (eq(submitter.getVersion()))))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
@@ -425,7 +422,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createSubmitter(any(SubmitterContent.class)))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
-            flowStoreProxy.createSubmitter(getDefaultSubmitterModel(0, 0));
+            flowStoreProxy.createSubmitter(new SubmitterModelBuilder().build());
             fail("No " + expectedErrorName + " error was thrown by createSubmitter()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -459,7 +456,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createSubmitter(any(SubmitterContent.class))).thenReturn(submitter);
 
         try {
-            final SubmitterModel createdModel = flowStoreProxy.createSubmitter(getDefaultSubmitterModel(0, 0));
+            final SubmitterModel createdModel = flowStoreProxy.createSubmitter(new SubmitterModelBuilder().build());
             assertNotNull(createdModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createSubmitter()");
@@ -479,7 +476,7 @@ public class FlowStoreProxyImplTest {
     @Test
     public void createSubmitter_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        SubmitterModel model = new SubmitterModel(1, 1, "42", "", "test");
+        SubmitterModel model = new SubmitterModelBuilder().setName("").build();
         createSubmitter_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
@@ -549,7 +546,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Submitter submitter = new SubmitterBuilder().setId(1L).build();
 
-        when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Arrays.asList(submitter));
+        when(flowStoreServiceConnector.findAllSubmitters()).thenReturn(Collections.singletonList(submitter));
         try {
             final List<SubmitterModel> allSubmitters = flowStoreProxy.findAllSubmitters();
             assertNotNull(allSubmitters);
@@ -600,8 +597,8 @@ public class FlowStoreProxyImplTest {
 
     private FlowModel getDefaultFlowModel(long id, long version) {
         FlowComponentModel flowComponentModel =
-                new FlowComponentModel(1, 1, "FlowComponentName", "svnProject", "1233", "invocationJavaScript", "invocationMethod", Arrays.asList("JavaScriptModuleName"), "description");
-        return new FlowModel(id, version, "FlowName", "description", Arrays.asList(flowComponentModel));
+                new FlowComponentModel(1, 1, "FlowComponentName", "svnProject", "1233", "invocationJavaScript", "invocationMethod", Collections.singletonList("JavaScriptModuleName"), "description");
+        return new FlowModel(id, version, "FlowName", "description", Collections.singletonList(flowComponentModel));
     }
 
     private void createFlow_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
@@ -698,7 +695,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final Flow flow = new FlowBuilder().setId(ID).build();
 
-        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Arrays.asList(flow));
+        when(flowStoreServiceConnector.findAllFlows()).thenReturn(Collections.singletonList(flow));
         try {
             final List<FlowModel> allFlows = flowStoreProxy.findAllFlows();
             assertNotNull(allFlows);
@@ -732,7 +729,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final FlowBinder flowBinder = new FlowBinderBuilder().setId(1L).build();
 
-        when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Arrays.asList(flowBinder));
+        when(flowStoreServiceConnector.findAllFlowBinders()).thenReturn(Collections.singletonList(flowBinder));
         when(flowStoreServiceConnector.getFlow(anyLong())).thenReturn(defaultFlow);
         when(flowStoreServiceConnector.getSubmitter(anyLong())).thenReturn(defaultSubmitter);
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(defaultSink);
@@ -1019,7 +1016,7 @@ public class FlowStoreProxyImplTest {
     private FlowBinderModel getDefaultFlowBinderModel(long id, long version) {
         FlowModel flowModel = getDefaultFlowModel(id, version);
         SinkModel sinkModel = getDefaultSinkModel(id, version);
-        SubmitterModel submitterModel = getDefaultSubmitterModel(id, version);
+        SubmitterModel submitterModel = new SubmitterModelBuilder().setId(id).setVersion(version).build();
 
         return new FlowBinderModel(
                 1,
@@ -1033,7 +1030,7 @@ public class FlowStoreProxyImplTest {
                 "recordSplitter",
                 true,
                 flowModel,
-                Arrays.asList(submitterModel),
+                Collections.singletonList(submitterModel),
                 sinkModel);
     }
 
@@ -1362,7 +1359,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(1L).build();
 
-        when(flowStoreServiceConnector.findAllFlowComponents()).thenReturn(Arrays.asList(flowComponent));
+        when(flowStoreServiceConnector.findAllFlowComponents()).thenReturn(Collections.singletonList(flowComponent));
         try {
             final List<FlowComponentModel> allFlowComponents = flowStoreProxy.findAllFlowComponents();
             assertNotNull(allFlowComponents);

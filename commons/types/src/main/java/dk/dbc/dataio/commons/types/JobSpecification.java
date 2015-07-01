@@ -12,7 +12,7 @@ import java.io.Serializable;
 public class JobSpecification implements Serializable {
     private static final long serialVersionUID = 731600708416455339L;
 
-    public enum Type { TRANSIENT, PERSISTENT, TEST }
+    public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
 
     private final String packaging;
     private final String format;

@@ -5,6 +5,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,8 +40,8 @@ public class ViewTest {
 
 
     // Test Data
-    private SubmitterModel testModel1 = new SubmitterModel(12345L, 1111L, "564738", "Submitter Name 1", "Submitter Description 1");
-    private SubmitterModel testModel2 = new SubmitterModel(12346L, 2222L, "564739", "Submitter Name 2", "Submitter Description 2");
+    private SubmitterModel testModel1 = new SubmitterModelBuilder().setNumber("564738").setName("Submitter Name 1").setDescription("Submitter Description 1").build();
+    private SubmitterModel testModel2 = new SubmitterModelBuilder().setNumber("564739").setName("Submitter Name 2").setDescription("Submitter Description 2").build();
     private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(testModel1, testModel2));
 
     // Subject Under Test

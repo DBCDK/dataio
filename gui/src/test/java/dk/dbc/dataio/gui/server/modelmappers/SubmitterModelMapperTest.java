@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class SubmitterModelMapperTest {
     private static final List<Submitter> defaultSubmitterList = Arrays.asList(defaultSubmitter1, defaultSubmitter2);
 
     // Default SubmitterModels
-    private static final SubmitterModel defaultSubmitterModel1 = new SubmitterModel(7777L, 8888L, "9999", "Submitter Model Name", "Submitter Model Description");
+    private static final SubmitterModel defaultSubmitterModel1 = new SubmitterModelBuilder().build();
 
 
     @Test(expected = NullPointerException.class)

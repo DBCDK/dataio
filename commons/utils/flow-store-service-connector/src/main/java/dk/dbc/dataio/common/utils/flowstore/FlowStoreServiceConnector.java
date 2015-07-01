@@ -1,16 +1,7 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.FlowComponent;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.*;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -27,10 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
 import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 
 /**
@@ -195,7 +185,7 @@ public class FlowStoreServiceConnector {
 
         try {
 
-            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), Response.Status.NO_CONTENT);
+            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
 
         } finally {
 

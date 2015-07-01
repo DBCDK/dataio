@@ -156,8 +156,7 @@ public class FileStoreServiceConnector {
         return entity;
     }
 
-    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus)
-            throws FileStoreServiceConnectorUnexpectedStatusCodeException {
+    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws FileStoreServiceConnectorUnexpectedStatusCodeException {
         if (actualStatus != expectedStatus) {
             throw new FileStoreServiceConnectorUnexpectedStatusCodeException(
                     String.format("file-store service returned with unexpected status code: %s", actualStatus),

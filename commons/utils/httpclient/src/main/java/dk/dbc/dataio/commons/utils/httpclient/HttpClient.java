@@ -231,6 +231,7 @@ public class HttpClient {
      * Issues HTTP DELETE request to endpoint constructed using given baseurl and path elements
      *
      * @param client web resource client
+     * @param headers HTTP headers
      * @param baseUrl base URL on the form http(s)://host:port/path
      * @param pathElements additional path elements to be added to base URL
      *

@@ -158,9 +158,10 @@ public class FlowStoreServiceConnector {
     /**
      * Deletes an existing submitter from the flow-store
      *
-     * @param submitterId the database related ID
-     * @param version the current JPA version of the submitter - Optimistic Locking
-     * @throws ProcessingException on general communication error
+     * @param submitterId                                               the database related ID
+     * @param version                                                   the current JPA version of the submitter - Optimistic Locking
+     * @throws ProcessingException                                      on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException   if an unexpected HTTP code is returned
      */
     public void deleteSubmitter(long submitterId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
 

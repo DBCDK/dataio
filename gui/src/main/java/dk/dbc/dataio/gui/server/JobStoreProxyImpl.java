@@ -34,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
-    private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(JobStoreProxyImpl.class);
     Client client;
     String endpoint;
     JobStoreServiceConnector jobStoreServiceConnector;

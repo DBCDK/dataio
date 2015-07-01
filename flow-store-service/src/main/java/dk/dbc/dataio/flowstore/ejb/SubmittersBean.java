@@ -13,8 +13,15 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.Path;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
+import javax.ws.rs.POST;
+import javax.ws.rs.GET;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -185,10 +192,11 @@ public class SubmittersBean {
      * @return a HTTP 200 response with submitter content as JSON,
      *         a HTTP 404 response in case of Submitter ID not found,
      *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation,
+     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
      *         a HTTP 500 response in case of general error.
      */
     @DELETE
-    @Path(FlowStoreServiceConstants.SUBMITTER_DELETE)
+    @Path(FlowStoreServiceConstants.SUBMITTER)
     public Response deleteSubmitter(
             @PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long submitterId,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {

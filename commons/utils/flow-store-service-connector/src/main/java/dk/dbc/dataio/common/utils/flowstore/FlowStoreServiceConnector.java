@@ -172,7 +172,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
 
         final PathBuilder pathBuilder = new PathBuilder(
-                FlowStoreServiceConstants.SUBMITTER_DELETE)
+                FlowStoreServiceConstants.SUBMITTER)
                 .bind(
                     FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE,
                     Long.toString(submitterId));

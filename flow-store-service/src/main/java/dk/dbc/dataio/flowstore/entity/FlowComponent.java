@@ -37,8 +37,19 @@ public class FlowComponent extends VersionedEntity {
     @Column(name = NAME_INDEX_COLUMN, nullable = false)
     private String nameIndexValue;
 
+    @Lob
+    private String next;
+
     String getNameIndexValue() {
         return nameIndexValue;
+    }
+
+    public String getNext() {
+        return next;
+    }
+
+    public void setNext(String next) {
+        this.next = next;
     }
 
     /**

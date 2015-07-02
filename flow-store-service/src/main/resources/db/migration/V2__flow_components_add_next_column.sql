@@ -1,0 +1,1 @@
+ALTER TABLE flow_components ADD COLUMN next TEXT DEFAULT NULL;

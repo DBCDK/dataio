@@ -94,8 +94,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     public void itemSelected(ItemsListView listView, ItemModel itemModel) {
         listView.detailedTabs.clear();
         listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
-        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_InputPost());
-        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_OutputPost());
+        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
+        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
+        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
         if (listView.detailedTabs.getWidgetCount() > 0) {
             listView.detailedTabs.selectTab(0);
             listView.detailedTabs.setVisible(true);

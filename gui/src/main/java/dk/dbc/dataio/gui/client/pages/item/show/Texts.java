@@ -95,10 +95,14 @@ public interface Texts extends Constants {
     String tab_JavascriptLog();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String tab_InputPost();
+    String tab_PartitioningPost();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String tab_OutputPost();
+    String tab_ProcessingPost();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_DeliveringPost();
+
 
 
     // JobInfo Prompt Labels

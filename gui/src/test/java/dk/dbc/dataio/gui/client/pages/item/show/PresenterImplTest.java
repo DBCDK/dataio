@@ -173,7 +173,7 @@ public class PresenterImplTest {
         when(mockedText.tab_IgnoredItems()).thenReturn(MOCKED_TAB_IGNOREDITEMS);
         when(mockedText.tab_JobInfo()).thenReturn(MOCKED_TAB_JOBINFO);
         when(mockedText.tab_JavascriptLog()).thenReturn(MOCKED_TAB_JAVASCRIPTLOG);
-        when(mockedText.tab_InputPost()).thenReturn(MOCKED_TAB_INPUTPOST);
+        when(mockedText.tab_PartitioningPost()).thenReturn(MOCKED_TAB_INPUTPOST);
     }
 
     // Subject Under Test

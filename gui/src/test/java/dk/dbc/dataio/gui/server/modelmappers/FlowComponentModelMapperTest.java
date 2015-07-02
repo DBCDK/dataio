@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -47,8 +48,21 @@ public class FlowComponentModelMapperTest {
     @Test
     public void toModel_validInputNoJavascripts_returnsValidModelNoJavascripts() {
         // Build a FlowComponent containing no javascripts
-        FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, new ArrayList<JavaScript>(), INVOCATION_METHOD, DESCRIPTION);
-        FlowComponent flowComponent = new FlowComponent(ID, VERSION, flowComponentContent);
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName(NAME)
+                .setDescription(DESCRIPTION)
+                .setSvnProjectForInvocationJavascript(SVN_PROJECT)
+                .setSvnRevision(SVN_REVISION_LONG)
+                .setInvocationJavascriptName(JAVASCRIPT_NAME)
+                .setInvocationMethod(INVOCATION_METHOD)
+                .setJavascripts(Collections.<JavaScript>emptyList())
+                .build();
+
+        FlowComponent flowComponent = new FlowComponentBuilder()
+                .setId(ID)
+                .setVersion(VERSION)
+                .setContent(flowComponentContent)
+                .build();
 
         FlowComponentModel model = FlowComponentModelMapper.toModel(flowComponent);
 
@@ -66,11 +80,25 @@ public class FlowComponentModelMapperTest {
     public void toModel_validInput_returnsValidModel() {
         // Build a FlowComponent containing two javascripts
         List<JavaScript> javaScriptList = new ArrayList<JavaScript>();
-        javaScriptList.add(new JavaScript(JAVASCRIPT_1, MODULE_NAME_1));
-        javaScriptList.add(new JavaScript(JAVASCRIPT_2, MODULE_NAME_2));
+        javaScriptList.add(new JavaScriptBuilder().setJavascript(JAVASCRIPT_1).setModuleName(MODULE_NAME_1).build());
+        javaScriptList.add(new JavaScriptBuilder().setJavascript(JAVASCRIPT_2).setModuleName(MODULE_NAME_2).build());
 
-        FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, javaScriptList, INVOCATION_METHOD, DESCRIPTION);
-        FlowComponent flowComponent = new FlowComponent(ID, VERSION, flowComponentContent);
+        //FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, javaScriptList, INVOCATION_METHOD, DESCRIPTION);
+        FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
+                .setName(NAME)
+                .setDescription(DESCRIPTION)
+                .setSvnProjectForInvocationJavascript(SVN_PROJECT)
+                .setSvnRevision(SVN_REVISION_LONG)
+                .setInvocationJavascriptName(JAVASCRIPT_NAME)
+                .setInvocationMethod(INVOCATION_METHOD)
+                .setJavascripts(javaScriptList)
+                .build();
+
+        FlowComponent flowComponent = new FlowComponentBuilder()
+                .setId(ID)
+                .setVersion(VERSION)
+                .setContent(flowComponentContent)
+                .build();
 
         FlowComponentModel model = FlowComponentModelMapper.toModel(flowComponent);
 

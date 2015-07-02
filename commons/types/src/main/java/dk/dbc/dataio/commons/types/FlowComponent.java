@@ -10,11 +10,14 @@ import java.io.Serializable;
  * FlowComponent DTO class.
  */
 public class FlowComponent implements Serializable {
+    public static final FlowComponentContent UNDEFINED_NEXT = null;
+
     private static final long serialVersionUID = 2743968388816680751L;
 
     private final long id;
     private final long version;
     private final FlowComponentContent content;
+    private final FlowComponentContent next;
 
     /**
      * Class constructor
@@ -22,6 +25,7 @@ public class FlowComponent implements Serializable {
      * @param id flow component id (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_ID_LOWER_BOUND})
      * @param version flow component version (larger than or equal to {@value dk.dbc.dataio.commons.types.Constants#PERSISTENCE_VERSION_LOWER_BOUND})
      * @param content flow component content
+     * @param next next flow component (can be null)
      *
      * @throws NullPointerException when given null valued argument
      * @throws IllegalArgumentException if value of id or version is not larger than or equal to lower bound
@@ -29,11 +33,12 @@ public class FlowComponent implements Serializable {
     @JsonCreator
     public FlowComponent(@JsonProperty("id") long id,
                          @JsonProperty("version") long version,
-                         @JsonProperty("content") FlowComponentContent content) {
-
+                         @JsonProperty("content") FlowComponentContent content,
+                         @JsonProperty("next") FlowComponentContent next) {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
+        this.next = next;
     }
 
     public long getId() {
@@ -48,16 +53,31 @@ public class FlowComponent implements Serializable {
         return content;
     }
 
+    public FlowComponentContent getNext() {
+        return next;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof FlowComponent)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         FlowComponent that = (FlowComponent) o;
 
-        if (id != that.id) return false;
-        if (version != that.version) return false;
-        return content.equals(that.content);
+        if (id != that.id) {
+            return false;
+        }
+        if (version != that.version) {
+            return false;
+        }
+        if (!content.equals(that.content)) {
+            return false;
+        }
+        return !(next != null ? !next.equals(that.next) : that.next != null);
 
     }
 
@@ -66,6 +86,7 @@ public class FlowComponent implements Serializable {
         int result = (int) (id ^ (id >>> 32));
         result = 31 * result + (int) (version ^ (version >>> 32));
         result = 31 * result + content.hashCode();
+        result = 31 * result + (next != null ? next.hashCode() : 0);
         return result;
     }
 }

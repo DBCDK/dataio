@@ -7,6 +7,7 @@ public class FlowComponentBuilder {
     private Long id = 42L;
     private Long version = 1L;
     private FlowComponentContent content = new FlowComponentContentBuilder().build();
+    private FlowComponentContent next = FlowComponent.UNDEFINED_NEXT;
 
     public FlowComponentBuilder setId(Long id) {
         this.id = id;
@@ -23,7 +24,12 @@ public class FlowComponentBuilder {
         return this;
     }
 
+    public FlowComponentBuilder setNext(FlowComponentContent next) {
+        this.next = next;
+        return this;
+    }
+
     public FlowComponent build() {
-        return new FlowComponent(id, version, content);
+        return new FlowComponent(id, version, content, next);
     }
 }

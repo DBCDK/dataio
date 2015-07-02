@@ -4,8 +4,10 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import org.junit.Test;
@@ -62,14 +64,25 @@ public class FlowModelMapperTest {
     public void toModel_validInput_returnsValidModel() {
 
         List<FlowComponent> components = new ArrayList<FlowComponent>();
-        components.add(new FlowComponent(
-                FLOW_COMPONENT_ID_1, FLOW_COMPONENT_VERSION_1, new FlowComponentContentBuilder().build()));
+        components.add(new FlowComponentBuilder()
+                .setId(FLOW_COMPONENT_ID_1)
+                .build());
 
-        components.add(new FlowComponent(
-                FLOW_COMPONENT_ID_2, FLOW_COMPONENT_VERSION_2, new FlowComponentContentBuilder().build()));
+        components.add(new FlowComponentBuilder()
+                .setId(FLOW_COMPONENT_ID_2)
+                .build());
 
-        FlowContent flowContent = new FlowContent(NAME, DESCRIPTION, components);
-        Flow flow = new Flow(ID, VERSION, flowContent);
+        FlowContent flowContent = new FlowContentBuilder()
+                .setName(NAME)
+                .setDescription(DESCRIPTION)
+                .setComponents(components)
+                .build();
+
+        Flow flow = new FlowBuilder()
+                .setId(ID)
+                .setVersion(VERSION)
+                .setContent(flowContent)
+                .build();
 
         // Convert flow content to model
         FlowModel model = FlowModelMapper.toModel(flow);
@@ -226,17 +239,12 @@ public class FlowModelMapperTest {
 
     @Test
     public void toListOfFlowModels_twoValidFlows_twoValidFlowModelsReturned() {
-        List<FlowComponent> components1 = new ArrayList<FlowComponent>();
-        components1.add(new FlowComponent(
-                FLOW_COMPONENT_ID_1, FLOW_COMPONENT_VERSION_1, new FlowComponentContentBuilder().build()));
-        FlowContent flowContent1 = new FlowContent(NAME, DESCRIPTION, components1);
-        Flow flow1 = new Flow(ID, VERSION, flowContent1);
-
-        List<FlowComponent> components2 = new ArrayList<FlowComponent>();
-        components2.add(new FlowComponent(
-                FLOW_COMPONENT_ID_2, FLOW_COMPONENT_VERSION_2, new FlowComponentContentBuilder().build()));
-        FlowContent flowContent2 = new FlowContent(NAME, DESCRIPTION, components1);
-        Flow flow2 = new Flow(ID, VERSION, flowContent2);
+        Flow flow1 = new FlowBuilder()
+                .setId(ID)
+                .build();
+        Flow flow2 = new FlowBuilder()
+                .setId(ID+1)
+                .build();
 
         List<Flow> flows = new ArrayList<Flow>(2);
         flows.add(flow1);

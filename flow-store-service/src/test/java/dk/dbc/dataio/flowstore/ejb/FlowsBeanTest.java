@@ -2,13 +2,13 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import org.junit.Test;
@@ -23,7 +23,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -165,15 +165,10 @@ public class FlowsBeanTest {
         mockStatic(JsonUtil.class);
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
-        FlowComponentContent flowComponentContent = new FlowComponentContent(
-                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod", "RequireCache");
-        dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(1L, 22L, flowComponentContent);
-
-        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
-        flowComponents.add(flowComponent);
-
-        FlowContent flowContent = new FlowContent(
-                "TestName", "TestDescription", flowComponents);
+        final dk.dbc.dataio.commons.types.FlowComponent flowComponent = new FlowComponentBuilder().build();
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setComponents(Collections.singletonList(flowComponent))
+                .build();
 
         when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
@@ -200,14 +195,10 @@ public class FlowsBeanTest {
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(flow)).thenReturn("test");
 
-        FlowComponentContent flowComponentContent = new FlowComponentContent(
-                "name", "svnProjectForInvocationJavascript", 23L, "invocationJavascriptName", new ArrayList<JavaScript>(),"invocationMethod", "RequireCache");
-        dk.dbc.dataio.commons.types.FlowComponent flowComponent = new dk.dbc.dataio.commons.types.FlowComponent(DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, flowComponentContent);
-
-        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
-        flowComponents.add(flowComponent);
-
-        FlowContent flowContent = new FlowContent("TestName", "TestDescription", flowComponents);
+        final dk.dbc.dataio.commons.types.FlowComponent flowComponent = new FlowComponentBuilder().build();
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setComponents(Collections.singletonList(flowComponent))
+                .build();
 
         when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(JsonUtil.fromJson(anyString(), eq(dk.dbc.dataio.commons.types.FlowComponent.class))).thenReturn(flowComponent);

@@ -29,6 +29,7 @@ public final class FlowComponentModelMapper {
                 flowComponent.getContent().getName(),
                 flowComponent.getContent().getSvnProjectForInvocationJavascript(),
                 String.valueOf(flowComponent.getContent().getSvnRevision()),
+                null, //TODO - only until the backend object have been modified
                 flowComponent.getContent().getInvocationJavascriptName(),
                 flowComponent.getContent().getInvocationMethod(),
                 getJavaScriptNames(flowComponent.getContent().getJavascripts()),
@@ -84,6 +85,7 @@ public final class FlowComponentModelMapper {
                 model.getName(),
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
+                //TODO next revision => can be null
                 model.getInvocationJavascript(),
                 requiredJavaScripts.javaScripts,
                 model.getInvocationMethod(),

@@ -61,6 +61,7 @@ public class View extends ViewWidget {
         flowComponentsTable.addColumn(constructInvocationMethodColumn(), texts.columnHeader_InvocationMethod());
         flowComponentsTable.addColumn(constructSvnProjectColumn(), texts.columnHeader_Project());
         flowComponentsTable.addColumn(constructSvnRevisionColumn(), texts.columnHeader_Revision());
+        flowComponentsTable.addColumn(constructSvnNextColumn(), texts.columnHeader_Next());
         flowComponentsTable.addColumn(constructJavaScriptModulesColumn(), texts.columnHeader_JavaScriptModules());
         flowComponentsTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
         flowComponentsTable.setSelectionModel(constructSelectionModel());
@@ -153,6 +154,21 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowComponentModel model) {
                 return model.getSvnRevision();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Next SVN Revision column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Next SVN Revision column
+     */
+    Column constructSvnNextColumn() {
+        return new TextColumn<FlowComponentModel>() {
+            @Override
+            public String getValue(FlowComponentModel model) {
+                return model.getSvnNext();
             }
         };
     }

@@ -7,6 +7,7 @@ public interface Presenter extends GenericPresenter {
     void descriptionChanged(String description);
     void projectChanged(String name);
     void revisionChanged(String selectedRevision);
+    void nextChanged(String nextSelectedRevision);
     void scriptNameChanged(String selectedScriptName);
     void invocationMethodChanged(String selectedInvocationMethod);
     void keyPressed();

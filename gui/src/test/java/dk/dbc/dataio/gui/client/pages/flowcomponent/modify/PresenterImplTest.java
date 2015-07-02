@@ -10,6 +10,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -18,10 +19,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -57,15 +57,19 @@ public class PresenterImplTest {
     private PresenterImplConcrete presenterImpl;
 
     private final static String NAME = "FlowComponentName";
-    private final static String DESCRIPTION = "description";
     private final static String PROJECT = "datawell-convert";
     private final static String REVISION = "8779";
     private final static String JAVA_SCRIPT_NAME = "javaScriptName";
     private final static String INVOCATION_METHOD = "invocationMethod";
     private final RevisionInfo.ChangedItem changedItem = new RevisionInfo.ChangedItem("path", "type");
     private final RevisionInfo revisionInfo = new RevisionInfo(1L, "author", new Date(), "message", Arrays.asList(changedItem));
-    private final List<String> javaScriptNames = new ArrayList<String>();
-    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, NAME, PROJECT, REVISION, JAVA_SCRIPT_NAME, INVOCATION_METHOD, javaScriptNames, DESCRIPTION);
+    private final FlowComponentModel flowComponentModel = new FlowComponentModelBuilder()
+            .setName(NAME)
+            .setSvnProject(PROJECT)
+            .setSvnRevision(REVISION)
+            .setInvocationJavascript(JAVA_SCRIPT_NAME)
+            .setInvocationMethod(INVOCATION_METHOD)
+            .build();
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {
@@ -195,7 +199,7 @@ public class PresenterImplTest {
     public void setAvailableScripts_callSetAvailableScripts_availableScriptsAreChangedAccordingly() {
         initializeAndStartPresenter();
         assertThat(presenterImpl.availableScripts.isEmpty(), is(true));
-        presenterImpl.setAvailableScripts(Arrays.asList(JAVA_SCRIPT_NAME));
+        presenterImpl.setAvailableScripts(Collections.singletonList(JAVA_SCRIPT_NAME));
         assertThat(presenterImpl.availableScripts.size(), is(1));
         assertThat(presenterImpl.availableScripts.get(0), is (JAVA_SCRIPT_NAME));
     }
@@ -204,7 +208,7 @@ public class PresenterImplTest {
     public void setAvailableInvocationMethods_callSetAvailableInvocationMethods_availableInvocationMethodsAreChangedAccordingly() {
         initializeAndStartPresenter();
         assertThat(presenterImpl.availableInvocationMethods.isEmpty(), is(true));
-        presenterImpl.setAvailableInvocationMethods(Arrays.asList(INVOCATION_METHOD));
+        presenterImpl.setAvailableInvocationMethods(Collections.singletonList(INVOCATION_METHOD));
         assertThat(presenterImpl.availableInvocationMethods.size(), is(1));
         assertThat(presenterImpl.availableInvocationMethods.get(0), is (INVOCATION_METHOD));
     }

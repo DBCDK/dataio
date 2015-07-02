@@ -12,6 +12,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -72,11 +73,11 @@ public class PresenterImplTest {
     }
 
     // Test Data
-    private FlowComponentModel flowComponentModel1 = new FlowComponentModel(58L, 485L, "FCnam1", "FCspr1", "FCsrv1", "FCijs1", "FCmet1", Arrays.asList("Java Script 1"), "description");
-    private FlowComponentModel flowComponentModel2 = new FlowComponentModel(59L, 486L, "FCnam2", "FCspr2", "FCsrv2", "FCijs2", "FCmet2", Arrays.asList("Java Script 2", "Java Script 3"), "description");
-    private FlowComponentModel flowComponentModel3 = new FlowComponentModel(60L, 487L, "FCnam3", "FCspr3", "FCsrv3", "FCijs3", "FCmet3", Arrays.asList("Java Script 4", "Java Script 5", "Java Script 6"), "description");
-    private List<FlowComponentModel> testModels = Arrays.asList(flowComponentModel1, flowComponentModel2, flowComponentModel3);
-
+    private List<FlowComponentModel> testModels
+            = Arrays.asList(new FlowComponentModelBuilder().build(),
+            new FlowComponentModelBuilder().build(),
+            new FlowComponentModelBuilder().build()
+    );
 
 
     @Test
@@ -111,7 +112,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.editFlowComponent(flowComponentModel1);
+        presenterImpl.editFlowComponent(testModels.get(0));
 
         // Verify Test
         verify(mockedPlaceController).goTo(any(EditPlace.class));

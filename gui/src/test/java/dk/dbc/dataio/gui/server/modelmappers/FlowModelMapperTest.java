@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -118,7 +119,7 @@ public class FlowModelMapperTest {
 
     @Test
     public void toFlowContent_invalidFlowName_throwsIllegalArgumentException() {
-        FlowComponentModel flowComponentModel = getValidFlowComponentModel();
+        FlowComponentModel flowComponentModel = new FlowComponentModelBuilder().build();
         FlowComponent flowComponent = getValidFlowComponent();
 
         final String flowName = "*%(Illegal)_&Name - €";
@@ -156,6 +157,7 @@ public class FlowModelMapperTest {
                         CONTENT_NAME_1,
                         SVN_PROJECT_1,
                         Long.toString(SVN_REVISION_1),
+                        null,
                         INVOCATION_NAME_1,
                         INVOCATION_METHOD_1,
                         Arrays.asList(MODULE_NAME_1),
@@ -167,6 +169,7 @@ public class FlowModelMapperTest {
                         CONTENT_NAME_2,
                         SVN_PROJECT_2,
                         Long.toString(SVN_REVISION_2),
+                        null,
                         INVOCATION_NAME_2,
                         INVOCATION_METHOD_2,
                         Arrays.asList(MODULE_NAME_2),
@@ -280,19 +283,6 @@ public class FlowModelMapperTest {
                 assertThat(javaScripts.get(i).getJavascript(), is(javaScript));
             }
         }
-    }
-
-    private FlowComponentModel getValidFlowComponentModel() {
-        return new FlowComponentModel(
-                FLOW_COMPONENT_ID_1,
-                FLOW_COMPONENT_VERSION_1,
-                NAME,
-                "svn projekt",
-                Long.toString(89),
-                "invocation navn",
-                "invocation method",
-                Arrays.asList("JavaScript"),
-                DESCRIPTION);
     }
 
     private FlowComponent getValidFlowComponent() {

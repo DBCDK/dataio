@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -17,7 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +99,7 @@ public class PresenterEditImplTest {
         presenterEditImpl.model = new FlowModel();
 
         presenterEditImpl.availableFlowComponentModels = new ArrayList<FlowComponentModel>();
-        presenterEditImpl.availableFlowComponentModels.add(getValidFlowComponentModel(1, 2));
+        presenterEditImpl.availableFlowComponentModels.add(new FlowComponentModelBuilder().setId(1).setVersion(2).build());
 
         Map<String, String> flowModelMap = new HashMap<String, String>();
         flowModelMap.put(Long.toString(presenterEditImpl.availableFlowComponentModels.get(0).getId()), presenterEditImpl.availableFlowComponentModels.get(0).getName());
@@ -156,12 +157,8 @@ public class PresenterEditImplTest {
         verify(mockedProxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
-    private FlowComponentModel getValidFlowComponentModel(long id, long version) {
-        return new FlowComponentModel(id, version, "name", "svnProject", "34", "invocationJavaScript", "invocationMethod", Arrays.asList("JavaScriptModuleName"), "description");
-    }
-
     private FlowModel getValidFlowModel(long id, long version) {
-        return new FlowModel(id, version, "name", "Description", Arrays.asList(getValidFlowComponentModel(id, version)));
+        return new FlowModel(id, version, "name", "Description", Collections.singletonList(new FlowComponentModelBuilder().setId(id).setVersion(version).build()));
     }
 
     private void assertFlowComponentModelsEquals(List<FlowComponentModel> flowComponentModelList1, List<FlowComponentModel> flowComponentModelList2) {

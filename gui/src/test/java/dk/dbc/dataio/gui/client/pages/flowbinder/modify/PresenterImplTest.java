@@ -9,10 +9,10 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
-import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -61,10 +61,9 @@ public class PresenterImplTest {
     private View view;
     private PresenterImplConcrete presenterImpl;
 
-    private final FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Collections.singletonList("Script"), "description");
-    private final FlowModel flowModel1 = new FlowModel(101L, 44L, "Nmm1", "Des", Collections.singletonList(flowComponentModel));
-    private final FlowModel flowModel2 = new FlowModel(102L, 44L, "Nmm1", "Des", Collections.singletonList(flowComponentModel));
-    private final FlowModel flowModel3 = new FlowModel(103L, 44L, "Nmm1", "Des", Collections.singletonList(flowComponentModel));
+    private final FlowModel flowModel1 = new FlowModel(101L, 44L, "Nmm1", "Des", Collections.singletonList(new FlowComponentModelBuilder().build()));
+    private final FlowModel flowModel2 = new FlowModel(102L, 44L, "Nmm1", "Des", Collections.singletonList(new FlowComponentModelBuilder().build()));
+    private final FlowModel flowModel3 = new FlowModel(103L, 44L, "Nmm1", "Des", Collections.singletonList(new FlowComponentModelBuilder().build()));
     private final SubmitterModel submitterModel1 = new SubmitterModelBuilder().setId(201L).setNumber("2201").setName("SName 1").build();
     private final SubmitterModel submitterModel2 = new SubmitterModelBuilder().setId(202L).setNumber("2202").setName("SName 2").build();
     private final SubmitterModel submitterModel3 = new SubmitterModelBuilder().setId(203L).setNumber("2203").setName("SName 3").build();

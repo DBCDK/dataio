@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -38,12 +39,18 @@ import static org.mockito.Mockito.when;
 */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock FlowStoreProxyAsync mockedFlowStoreProxy;
-    @Mock Texts mockedTexts;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
-    @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock
+    ClientFactory mockedClientFactory;
+    @Mock
+    FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock
+    Texts mockedTexts;
+    @Mock
+    AcceptsOneWidget mockedContainerWidget;
+    @Mock
+    EventBus mockedEventBus;
+    @Mock
+    ProxyErrorTexts mockedProxyErrorTexts;
 
     private ViewWidget viewWidget;
 
@@ -51,19 +58,15 @@ public class PresenterImplTest {
     private static boolean saveModelHasBeenCalled;
     List<FlowComponentModel> selectedFlowComponentModelList;
     List<FlowComponentModel> availableFlowComponentModelList;
+    FlowComponentModel flowComponentModel1;
+    FlowComponentModel flowComponentModel2;
+    FlowComponentModel flowComponentModel3;
+    FlowComponentModel flowComponentModel4;
 
-    private final static long   DEFAULT_ID = 0;
-    private final static long   DEFAULT_VERSION = 0;
+    private final static long DEFAULT_ID = 0;
+    private final static long DEFAULT_VERSION = 0;
     private final static String DEFAULT_NAME = "FlowName";
     private final static String DEFAULT_DESCRIPTION = "FlowDescription";
-    private final static long   FLOW_COMPONENT_ID_1 = 111L;
-    private final static String FLOW_COMPONENT_NAME_1 = "FlowComponentName1";
-    private final static long   FLOW_COMPONENT_ID_2 = 222L;
-    private final static String FLOW_COMPONENT_NAME_2 = "FlowComponentName2";
-    private final static long   FLOW_COMPONENT_ID_3 = 333L;
-    private final static String FLOW_COMPONENT_NAME_3 = "FlowComponentName3";
-    private final static long   FLOW_COMPONENT_ID_4 = 444L;
-    private final static String FLOW_COMPONENT_NAME_4 = "FlowComponentName4";
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {
@@ -76,7 +79,8 @@ public class PresenterImplTest {
         }
 
         @Override
-        void initializeModel() {}
+        void initializeModel() {
+        }
 
         @Override
         void saveModel() {
@@ -107,10 +111,10 @@ public class PresenterImplTest {
 
     @Before
     public void setupFlowComponentsLists() {
-        FlowComponentModel flowComponentModel1 = newFlowComponentModel(FLOW_COMPONENT_ID_1, FLOW_COMPONENT_NAME_1);
-        FlowComponentModel flowComponentModel2 = newFlowComponentModel(FLOW_COMPONENT_ID_2, FLOW_COMPONENT_NAME_2);
-        FlowComponentModel flowComponentModel3 = newFlowComponentModel(FLOW_COMPONENT_ID_3, FLOW_COMPONENT_NAME_3);
-        FlowComponentModel flowComponentModel4 = newFlowComponentModel(FLOW_COMPONENT_ID_4, FLOW_COMPONENT_NAME_4);
+        flowComponentModel1 = new FlowComponentModelBuilder().setId(111).setName("FlowComponentName1").build();
+        flowComponentModel2 = new FlowComponentModelBuilder().setId(222).setName("FlowComponentName2").build();
+        flowComponentModel3 = new FlowComponentModelBuilder().setId(333).setName("FlowComponentName3").build();
+        flowComponentModel4 = new FlowComponentModelBuilder().setId(444).setName("FlowComponentName4").build();
         selectedFlowComponentModelList = new ArrayList<FlowComponentModel>();  // Selected Flow Components contains elements 1 and 3
         selectedFlowComponentModelList.add(flowComponentModel1);
         selectedFlowComponentModelList.add(flowComponentModel3);
@@ -198,11 +202,11 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         HashMap<String, String> changedFlowComponentsMap = new HashMap<String, String>();
-        changedFlowComponentsMap.put(String.valueOf(FLOW_COMPONENT_ID_4), FLOW_COMPONENT_NAME_4);
+        changedFlowComponentsMap.put(String.valueOf(flowComponentModel4.getId()), flowComponentModel4.getName());
         presenterImpl.flowComponentsChanged(changedFlowComponentsMap);
 
         assertThat(presenterImpl.model.getFlowComponents().size(), is(1));
-        assertThat(presenterImpl.model.getFlowComponents().get(0).getName(), is(FLOW_COMPONENT_NAME_4));
+        assertThat(presenterImpl.model.getFlowComponents().get(0).getName(), is(flowComponentModel4.getName()));
     }
 
     @Test
@@ -270,7 +274,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
         List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>(availableFlowComponentModelList);
-        flowComponentModels.add(newFlowComponentModel(EXTRA_ID, EXTRA_NAME));
+        flowComponentModels.add(new FlowComponentModelBuilder().setId(EXTRA_ID).setName(EXTRA_NAME).build());
 
         presenterImpl.findAllFlowComponentsCallback.onSuccess(flowComponentModels);
 
@@ -291,10 +295,10 @@ public class PresenterImplTest {
 
         assertThat(texts.size(), is(2));
         assertThat(keys.size(), is(2));
-        assertThat(texts.get(0), is(FLOW_COMPONENT_NAME_1));
-        assertThat(texts.get(1), is(FLOW_COMPONENT_NAME_3));
-        assertThat(keys.get(0), is(String.valueOf(FLOW_COMPONENT_ID_1)));
-        assertThat(keys.get(1), is(String.valueOf(FLOW_COMPONENT_ID_3)));
+        assertThat(texts.get(0), is(flowComponentModel1.getName()));
+        assertThat(texts.get(1), is(flowComponentModel3.getName()));
+        assertThat(keys.get(0), is(String.valueOf(flowComponentModel1.getId())));
+        assertThat(keys.get(1), is(String.valueOf(flowComponentModel3.getId())));
     }
 
     @Test
@@ -332,14 +336,4 @@ public class PresenterImplTest {
         verify(mockedProxyException).getErrorCode();
         verify(mockedProxyErrorTexts).flowStoreProxy_conflictError();
     }
-
-
-    /*
-     * Private methods
-     */
-
-    private FlowComponentModel newFlowComponentModel(long id, String name) {
-        return new FlowComponentModel(id, 1L, name, "", "", "", "", new ArrayList<String>(), "");
-    }
-
 }

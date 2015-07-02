@@ -1,9 +1,10 @@
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -71,18 +72,7 @@ public class FlowModelTest {
     }
 
     private FlowModel getTestModel() {
-        FlowComponentModel flowComponentModel = new FlowComponentModel(
-                1,
-                2,
-                "FlowComponentModel",
-                "svnProject",
-                "svnRevision",
-                "invocationJavascript",
-                "invocationMethod",
-                new ArrayList<String>(),
-                "description");
-
-        return new FlowModel(11, 22, "Name", "Description", Arrays.asList(flowComponentModel));
+        return new FlowModel(11, 22, "Name", "Description", Collections.singletonList(new FlowComponentModelBuilder().build()));
     }
 
 }

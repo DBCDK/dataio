@@ -28,6 +28,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
@@ -596,9 +597,7 @@ public class FlowStoreProxyImplTest {
 
 
     private FlowModel getDefaultFlowModel(long id, long version) {
-        FlowComponentModel flowComponentModel =
-                new FlowComponentModel(1, 1, "FlowComponentName", "svnProject", "1233", "invocationJavaScript", "invocationMethod", Collections.singletonList("JavaScriptModuleName"), "description");
-        return new FlowModel(id, version, "FlowName", "description", Collections.singletonList(flowComponentModel));
+        return new FlowModel(id, version, "FlowName", "description", Collections.singletonList(new FlowComponentModelBuilder().build()));
     }
 
     private void createFlow_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
@@ -1262,7 +1261,7 @@ public class FlowStoreProxyImplTest {
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
         final FlowComponent flowComponent = new FlowComponentBuilder().build();
-        final FlowComponentModel model = getDefaultFlowComponentModel();
+        final FlowComponentModel model = new FlowComponentModelBuilder().build();
 
         when(flowStoreServiceConnector.createFlowComponent(any(FlowComponentContent.class))).thenReturn(flowComponent);
         when(javaScriptProjectFetcher.fetchRequiredJavaScript(
@@ -1272,7 +1271,7 @@ public class FlowStoreProxyImplTest {
                 model.getInvocationMethod()))
                 .thenReturn(getDefaultJavaScripts());
         try {
-            final FlowComponentModel createdModel = flowStoreProxy.createFlowComponent(getDefaultFlowComponentModel());
+            final FlowComponentModel createdModel = flowStoreProxy.createFlowComponent(new FlowComponentModelBuilder().build());
             assertNotNull(createdModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createFlowComponent()");
@@ -1292,7 +1291,7 @@ public class FlowStoreProxyImplTest {
     @Test
     public void createFlowComponent_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModel model = new FlowComponentModelBuilder().build();
         model.setName("");
         createFlowComponent_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
@@ -1302,7 +1301,7 @@ public class FlowStoreProxyImplTest {
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
 
-        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModel model = new FlowComponentModelBuilder().build();
         when(javaScriptProjectFetcher.fetchRequiredJavaScript(
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
@@ -1313,7 +1312,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createFlowComponent(any(FlowComponentContent.class)))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
-            flowStoreProxy.createFlowComponent(getDefaultFlowComponentModel());
+            flowStoreProxy.createFlowComponent(new FlowComponentModelBuilder().build());
             fail("No " + expectedErrorName + " error was thrown by createFlowComponent()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1381,7 +1380,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
 
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
-        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModel model = new FlowComponentModelBuilder().build();
 
         when(flowStoreServiceConnector.getFlowComponent(any(Long.class))).thenReturn(flowComponent);
         when(flowStoreServiceConnector.updateFlowComponent(any(FlowComponentContent.class), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
@@ -1418,7 +1417,7 @@ public class FlowStoreProxyImplTest {
     @Test
     public void updateFlowComponent_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModel model = new FlowComponentModelBuilder().build();
         model.setName("");
         updateFlowComponent_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
@@ -1430,7 +1429,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
 
-        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModel model = new FlowComponentModelBuilder().build();
         when(javaScriptProjectFetcher.fetchRequiredJavaScript(
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
@@ -1472,13 +1471,5 @@ public class FlowStoreProxyImplTest {
         javaScripts.add(new JavaScript("javascript1", "javaScriptName1"));
         javaScripts.add(new JavaScript("javascript2", "javaScriptName2"));
         return new JavaScriptProjectFetcher.fetchRequiredJavaScriptResult(javaScripts, null);
-    }
-
-    private FlowComponentModel getDefaultFlowComponentModel() {
-        List<String> javaScriptModules = new ArrayList<String>();
-        javaScriptModules.add("javaScriptName1");
-        javaScriptModules.add("javaScriptName2");
-
-        return new FlowComponentModel(ID, 1, "name", "project", "45", "invocationJavaScript", "invocationMethod", javaScriptModules, "description");
     }
 }

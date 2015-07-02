@@ -25,6 +25,7 @@ public class PresenterJobsImpl extends PresenterImpl {
     @Override
     protected void fetchJobsFromJobStore(JobListCriteriaModel model) {
         model.getJobTypes().remove(JobListCriteriaModel.JobType.TEST.name());
+        model.getJobTypes().remove(JobListCriteriaModel.JobType.ACCTEST.name());
         jobStoreProxy.listJobs(model, new FetchJobsCallback());
     }
 }

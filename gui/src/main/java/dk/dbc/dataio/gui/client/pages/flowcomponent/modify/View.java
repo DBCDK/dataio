@@ -29,6 +29,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextArea description;
     @UiField PromptedTextBox project;
     @UiField PromptedList revision;
+    @UiField PromptedList next;
     @UiField PromptedList script;
     @UiField PromptedList method;
     @UiField Label status;
@@ -61,8 +62,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("revision")
-    void revisionChanged(ValueChangeEvent<String> event) {
+     void revisionChanged(ValueChangeEvent<String> event) {
         presenter.revisionChanged(revision.getSelectedKey());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("next")
+    void nextChanged(ValueChangeEvent<String> event) {
+        presenter.nextChanged(next.getSelectedKey());
         presenter.keyPressed();
     }
 

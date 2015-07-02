@@ -30,6 +30,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected View view;
     protected FlowComponentModel model = new FlowComponentModel();
     protected List<String> availableRevisions = new ArrayList<String>();
+    protected List<String> availableNextRevisions = new ArrayList<String>();
     protected List<String> availableScripts = new ArrayList<String>();
     protected List<String> availableInvocationMethods = new ArrayList<String>();
 
@@ -90,6 +91,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         model.setSvnProject(projectName);
         view.busy.setVisible(true);
         view.revision.setEnabled(false);
+        view.next.setEnabled(false);
         view.script.setEnabled(false);
         view.method.setEnabled(false);
         fetchAvailableRevisions(projectName);
@@ -97,7 +99,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * A signal to the presenter, saying that the svn revision field has been changed
-     * @param selectedRevision, the new svn project name value
+     * @param selectedRevision, the new svn revision value
      */
     @Override
     public void revisionChanged(String selectedRevision) {
@@ -106,6 +108,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.script.setEnabled(false);
         view.method.setEnabled(false);
         fetchAvailableScripts(model.getSvnProject(), Long.valueOf(model.getSvnRevision()));
+    }
+
+    /**
+     * A signal to the presenter, saying that the svn next revision field has been changed
+     * @param selectedNext, the new next svn revision value
+     */
+    @Override
+    public void nextChanged(String selectedNext) {
+        model.setSvnNext(selectedNext);
     }
 
     /**
@@ -179,6 +190,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable e) {
             onFailureSendExceptionToView(e);
             view.revision.setEnabled(true);
+            view.next.setEnabled(true);
             view.script.setEnabled(true);
             setAvailableScripts(new ArrayList<String>());
             setAvailableInvocationMethods(new ArrayList<String>());
@@ -199,6 +211,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onFilteredFailure(Throwable e) {
             onFailureSendExceptionToView(e);
             view.revision.setEnabled(true);
+            view.next.setEnabled(true);
             view.script.setEnabled(true);
             view.method.setEnabled(true);
             setAvailableInvocationMethods(new ArrayList<String>());
@@ -261,7 +274,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for(RevisionInfo revisionInfo : revisionInfoList) {
             availableRevisions.add(Long.toString(revisionInfo.getRevision()));
         }
+        availableNextRevisions = new ArrayList<String>(availableRevisions);
+        availableNextRevisions.add(0, "");
         view.revision.setAvailableItems(availableRevisions);
+        view.next.setAvailableItems(availableNextRevisions);
         view.revision.setSelectedItem(model.getSvnRevision());
         view.revision.fireChangeEvent();
     }
@@ -287,6 +303,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.method.setSelectedItem(model.getInvocationMethod());
         view.method.fireChangeEvent();
         view.revision.setEnabled(true);
+        view.next.setEnabled(true);
         view.script.setEnabled(true);
         view.method.setEnabled(true);
         view.busy.setVisible(false);
@@ -336,6 +353,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.project.setEnabled(false);
         view.revision.clear();
         view.revision.setEnabled(false);
+        view.next.clear();
+        view.next.setEnabled(false);
         view.script.clear();
         view.script.setEnabled(false);
         view.method.clear();
@@ -351,6 +370,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     private void resetProjectDependentModelValues() {
         model.setSvnRevision("");
+        model.setSvnNext("");
         model.setInvocationJavascript("");
         model.setInvocationMethod("");
     }

@@ -7,11 +7,12 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JavaScriptBuilder;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Collections;
 import java.util.List;
 
@@ -126,8 +127,8 @@ public class FlowComponentModelMapperTest {
         final String JAVASCRIPT_1 = "javascript code no. 1";
         final String JAVASCRIPT_2 = "javascript code no. 2";
 
-        List<JavaScript> javaScriptList1  = Arrays.asList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_1).build());
-        List<JavaScript> javaScriptList2  = Arrays.asList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_2).build());
+        List<JavaScript> javaScriptList1  = Collections.singletonList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_1).build());
+        List<JavaScript> javaScriptList2  = Collections.singletonList(new JavaScriptBuilder().setModuleName(JAVASCRIPT_2).build());
 
         // Create flow component content
         FlowComponentContent flowComponentContent1 =
@@ -175,20 +176,19 @@ public class FlowComponentModelMapperTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void toFlowComponentContent_listOfJavaScriptsAreNull_throwsIllegalArgumentException() {
-        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModel model = new FlowComponentModelBuilder().build();
         FlowComponentModelMapper.toFlowComponentContent(model, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toFlowComponentContent_listOfJavaScriptsAreEmpty_throwsIllegalArgumentException() {
-        FlowComponentModel model = getDefaultFlowComponentModel();
+        FlowComponentModel model = new FlowComponentModelBuilder().build();
         FlowComponentModelMapper.toFlowComponentContent(model, new fetchRequiredJavaScriptResult( new ArrayList<JavaScript>(), null));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toFlowComponentContent_validInputEmptyField_throwsIllegalArgumentException() {
-        FlowComponentModel model = getDefaultFlowComponentModel();
-        model.setName("");
+        FlowComponentModel model = new FlowComponentModelBuilder().setName("").build();
         FlowComponentModelMapper.toFlowComponentContent(model, createTestFetchRequiredJavaScriptResult());
     }
 
@@ -197,8 +197,7 @@ public class FlowComponentModelMapperTest {
         final String flowComponentName = "*%(Illegal)_&Name - €";
         final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
 
-        final FlowComponentModel flowComponentModel = getDefaultFlowComponentModel();
-        flowComponentModel.setName(flowComponentName);
+        final FlowComponentModel flowComponentModel = new FlowComponentModelBuilder().setName(flowComponentName).build();
 
         try {
             FlowComponentModelMapper.toFlowComponentContent(flowComponentModel, createTestFetchRequiredJavaScriptResult());
@@ -210,7 +209,7 @@ public class FlowComponentModelMapperTest {
     @Test
     public void toFlowComponentContent_validInput_returnsValidFlowComponentContent() {
         JavaScript javaScript = new JavaScriptBuilder().build();
-        FlowComponentModel flowComponentModel = getDefaultFlowComponentModel();
+        FlowComponentModel flowComponentModel = new FlowComponentModelBuilder().build();
         FlowComponentContent content = FlowComponentModelMapper.toFlowComponentContent(flowComponentModel, createTestFetchRequiredJavaScriptResult());
 
         assertThat(content.getName(), is(flowComponentModel.getName()));
@@ -245,21 +244,7 @@ public class FlowComponentModelMapperTest {
         }
     }
 
-    private FlowComponentModel getDefaultFlowComponentModel() {
-       return new FlowComponentModel(
-               1,
-               1,
-               "name",
-               "project",
-               "3244",
-               "javaScriptName",
-               "invocationMethod",
-               Arrays.asList("javascript"),
-               "description");
-
-    }
-
     private fetchRequiredJavaScriptResult createTestFetchRequiredJavaScriptResult() {
-        return new fetchRequiredJavaScriptResult(Arrays.asList(new JavaScriptBuilder().build()), null);
+        return new fetchRequiredJavaScriptResult(Collections.singletonList(new JavaScriptBuilder().build()), null);
     }
 }

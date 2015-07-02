@@ -5,6 +5,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,12 +39,12 @@ public class ViewTest {
 
 
     // Test Data
-    private FlowComponentModel flowComponentModel1 = new FlowComponentModel(58L, 485L, "FCnam1", "FCspr1", "FCsrv1", "FCijs1", "FCmet1", Arrays.asList("Java Script 1"), "description");
-    private FlowComponentModel flowComponentModel2 = new FlowComponentModel(59L, 486L, "FCnam2", "FCspr2", "FCsrv2", "FCijs2", "FCmet2", Arrays.asList("Java Script 2", "Java Script 3"), "description");
-    private FlowComponentModel flowComponentModel3 = new FlowComponentModel(60L, 487L, "FCnam3", "FCspr3", "FCsrv3", "FCijs3", "FCmet3", Arrays.asList("Java Script 4", "Java Script 5", "Java Script 6"), "description");
-    private FlowModel flowModel1 = new FlowModel(14L, 343L, "Fnam1", "Fdsc1", Arrays.asList(flowComponentModel1));
+    private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setSvnRevision("FCsrv1").build();
+    private FlowComponentModel flowComponentModel2 = new FlowComponentModelBuilder().setName("FCnam2").setSvnRevision("FCsrv2").build();
+    private FlowComponentModel flowComponentModel3 = new FlowComponentModelBuilder().setName("FCnam3").setSvnRevision("FCsrv3").build();
+    private FlowModel flowModel1 = new FlowModel(14L, 343L, "Fnam1", "Fdsc1", Collections.singletonList(flowComponentModel1));
     private FlowModel flowModel2 = new FlowModel(15L, 344L, "Fnam2", "Fdsc2", Arrays.asList(flowComponentModel2, flowComponentModel3));
-    private FlowModel flowModel3 = new FlowModel(16L, 345L, "Fnam3", "Fdsc3", Arrays.asList(flowComponentModel3));
+    private FlowModel flowModel3 = new FlowModel(16L, 345L, "Fnam3", "Fdsc3", Collections.singletonList(flowComponentModel3));
     private List<FlowModel> flowModels = Arrays.asList(flowModel1, flowModel2);
 
     // Subject Under Test
@@ -115,7 +117,7 @@ public class ViewTest {
 
         // Subject Under Test
         view.setFlows(flowModels);
-        view.setFlows(Arrays.asList(flowModel3));  // The second call clears the existing flowModels, and puts flowModel3 only
+        view.setFlows(Collections.singletonList(flowModel3));  // The second call clears the existing flowModels, and puts flowModel3 only
 
         assertThat(models.isEmpty(), is(false));
         assertThat(models.size(), is(1));

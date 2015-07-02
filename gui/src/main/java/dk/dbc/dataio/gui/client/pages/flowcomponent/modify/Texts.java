@@ -18,6 +18,9 @@ public interface Texts extends Constants {
     String label_SvnRevision();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_SvnNext();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_ScriptName();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

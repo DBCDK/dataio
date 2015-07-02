@@ -15,6 +15,7 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
@@ -76,7 +77,7 @@ public class PresenterImplTest {
     }
 
     // Test Data
-    private FlowComponentModel flowComponentModel1 = new FlowComponentModel(58L, 485L, "FCnam1", "FCspr1", "FCsrv1", "FCijs1", "FCmet1", Collections.singletonList("Java Script 1"), "description");
+    private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().build();
     private FlowModel flowModel1 = new FlowModel(14L, 343L, "Fnam1", "Fdsc1", Collections.singletonList(flowComponentModel1));
     private SinkModel sinkModel1 = new SinkModel(543L, 352L, "SInam1", "SIres1", "SIdescription1");
     private FlowBinderModel flowBinderModel1 = new FlowBinderModel(123L, 111L, "FBnam1", "FBdsc1", "FBpac1", "FBfor1", "FBchr1", "FBdes1", "FBrec1", true, flowModel1, Collections.singletonList(new SubmitterModelBuilder().build()), sinkModel1);

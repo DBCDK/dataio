@@ -1,10 +1,11 @@
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -160,11 +161,11 @@ public class FlowBinderModelTest {
     }
 
     private FlowBinderModel getTestModel(boolean sequenceAnalysis) {
-        FlowComponentModel flowComponentModel = new FlowComponentModel(55L, 66L, "Nam", "Pro", "Rev", "Inv", "Met", Arrays.asList("Script"), "description");
-        FlowModel flowModel = new FlowModel(33L, 44L, "Nmm", "Des", Arrays.asList(flowComponentModel));
+        FlowComponentModel flowComponentModel = new FlowComponentModelBuilder().build();
+        FlowModel flowModel = new FlowModel(33L, 44L, "Nmm", "Des", Collections.singletonList(flowComponentModel));
         SubmitterModel submitterModel = new SubmitterModelBuilder().build();
         SinkModel sinkModel = new SinkModel(99L, 100L, "Snm", "Rsc", "description");
-        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Arrays.asList(submitterModel), sinkModel);
+        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Collections.singletonList(submitterModel), sinkModel);
     }
 
 }

@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -11,8 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,7 +110,7 @@ public class PresenterCreateImplTest {
         presenterCreateImpl.descriptionChanged(DESCRIPTION);
         Map<String, String> flowComponents = new HashMap<String, String>();
         flowComponents.put(String.valueOf(FLOW_COMPONENT_ID), FLOW_COMPONENT_NAME);
-        presenterCreateImpl.availableFlowComponentModels = Arrays.asList(new FlowComponentModel(FLOW_COMPONENT_ID, 1L, FLOW_COMPONENT_NAME, "", "", "", "", new ArrayList<String>(), "description"));
+        presenterCreateImpl.availableFlowComponentModels = Collections.singletonList(new FlowComponentModelBuilder().setId(FLOW_COMPONENT_ID).setName(FLOW_COMPONENT_NAME).build());
         presenterCreateImpl.flowComponentsChanged(flowComponents);
 
         presenterCreateImpl.saveModel();

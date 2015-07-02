@@ -30,6 +30,9 @@ public interface Texts extends Constants {
     String columnHeader_Revision();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Next();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_JavaScriptModules();
 
 

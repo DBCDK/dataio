@@ -5,6 +5,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,11 +39,9 @@ public class ViewTest {
 
 
     // Test Data
-    private FlowComponentModel flowComponentModel1 = new FlowComponentModel(58L, 485L, "FCnam1", "FCspr1", "FCsrv1", "FCijs1", "FCmet1", Arrays.asList("Java Script 1"), "description");
-    private FlowComponentModel flowComponentModel2 = new FlowComponentModel(59L, 486L, "FCnam2", "FCspr2", "FCsrv2", "FCijs2", "FCmet2", Arrays.asList("Java Script 2", "Java Script 3"), "description");
-    private FlowComponentModel flowComponentModel3 = new FlowComponentModel(60L, 487L, "FCnam3", "FCspr3", "FCsrv3", "FCijs3", "FCmet3", Arrays.asList("Java Script 4", "Java Script 5", "Java Script 6"), "description");
-    private List<FlowComponentModel> testModels = Arrays.asList(flowComponentModel1, flowComponentModel2, flowComponentModel3);
-
+    private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setJavascriptModules(Arrays.asList("Java Script 1")).build();
+    private FlowComponentModel flowComponentModel2 = new FlowComponentModelBuilder().setName("FCnam2").setJavascriptModules(Arrays.asList("Java Script 2", "Java Script 3")).build();
+    private FlowComponentModel flowComponentModel3 = new FlowComponentModelBuilder().setName("FCnam3").setJavascriptModules(Arrays.asList("Java Script 4", "Java Script 5", "Java Script 6")).build();
 
     // Subject Under Test
     private View view;
@@ -104,7 +103,7 @@ public class ViewTest {
         assertThat(models.isEmpty(), is(true));
 
         // Subject Under Test
-        view.setFlowComponents(testModels);
+        view.setFlowComponents(Arrays.asList(flowComponentModel1, flowComponentModel2, flowComponentModel3));
 
         assertThat(models.isEmpty(), is(false));
         assertThat(models.size(), is(3));

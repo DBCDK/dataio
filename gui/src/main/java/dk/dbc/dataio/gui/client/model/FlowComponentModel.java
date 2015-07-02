@@ -10,12 +10,13 @@ public class FlowComponentModel extends GenericBackendModel {
     private String name;
     private String svnProject;
     private String svnRevision;
+    private String svnNext;
     private String invocationJavascript;
     private String invocationMethod;
     private List<String> javascriptModules;
     private String description;
 
-    public FlowComponentModel(long id, long version, String name, String svnProject, String svnRevision, String invocationJavascript, String invocationMethod, List<String> javascriptModules, String description) {
+    public FlowComponentModel(long id, long version, String name, String svnProject, String svnRevision, String svnNext, String invocationJavascript, String invocationMethod, List<String> javascriptModules, String description) {
         super(id, version);
         this.name = name;
         this.svnProject = svnProject;
@@ -24,6 +25,7 @@ public class FlowComponentModel extends GenericBackendModel {
         this.invocationMethod = invocationMethod;
         this.javascriptModules = javascriptModules;
         this.description = description == null? "" : description;
+        this.svnNext = svnNext;
     }
 
     public FlowComponentModel() {
@@ -31,6 +33,7 @@ public class FlowComponentModel extends GenericBackendModel {
         this.name = "";
         this.svnProject = "";
         this.svnRevision = "";
+        this.svnNext = "";
         this.invocationJavascript = "";
         this.invocationMethod = "";
         this.javascriptModules = new ArrayList<String>();
@@ -80,6 +83,21 @@ public class FlowComponentModel extends GenericBackendModel {
      */
     public void setSvnRevision(String svnRevision) {
         this.svnRevision = svnRevision;
+    }
+
+    /**
+     * @return name The next SVN Revision number
+     */
+    public String getSvnNext() {
+        return svnNext;
+    }
+
+    /**
+     * Set the SVN Revision number
+     * @param svnNext The next SVN Revision number
+     */
+    public void setSvnNext(String svnNext) {
+        this.svnNext = svnNext;
     }
 
     /**

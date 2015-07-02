@@ -83,7 +83,6 @@ public class FlowComponentModelMapperTest {
         javaScriptList.add(new JavaScriptBuilder().setJavascript(JAVASCRIPT_1).setModuleName(MODULE_NAME_1).build());
         javaScriptList.add(new JavaScriptBuilder().setJavascript(JAVASCRIPT_2).setModuleName(MODULE_NAME_2).build());
 
-        //FlowComponentContent flowComponentContent = new FlowComponentContent(NAME, SVN_PROJECT, SVN_REVISION_LONG, JAVASCRIPT_NAME, javaScriptList, INVOCATION_METHOD, DESCRIPTION);
         FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
                 .setName(NAME)
                 .setDescription(DESCRIPTION)

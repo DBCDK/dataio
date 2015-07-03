@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -25,6 +26,7 @@ import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
@@ -338,7 +340,9 @@ public class PgJobStore {
                 jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
                 try {
                     final String flowJson = jsonbContext.marshall(addJobParam.getFlow());
-                    final FlowCacheEntity flowCacheEntity = cacheFlow(flowJson);
+                    final FlowCacheEntity flowCacheEntity = cacheFlow(
+                            addJobParam.getJobInputStream().getJobSpecification().getType() != JobSpecification.Type.ACCTEST ?
+                                    new FlowTrimmer(jsonbContext).trim(flowJson) : flowJson);
                     jobEntity.setCachedFlow(flowCacheEntity);
                     final String sinkJson = jsonbContext.marshall(addJobParam.getSink());
                     final SinkCacheEntity sinkCacheEntity = cacheSink(sinkJson);

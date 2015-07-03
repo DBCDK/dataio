@@ -8,11 +8,16 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
@@ -221,6 +226,65 @@ public class PgJobStoreIT {
         assertThat("table size", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
     }
 
+    @Test
+    public void createJobEntity_trimsNonAcctestFlows() throws JobStoreException, SQLException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        int nextRevision = 1;
+        for (JobSpecification.Type type : JobSpecification.Type.values()) {
+            if (type == JobSpecification.Type.ACCTEST)
+                continue;
+
+            // When adding jobs with non-ACCTEST type referencing flows which only differs on
+            // their "next" components the flows are trimmed resulting in cache hits.
+
+            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(new JobInputStream(
+                    new JobSpecificationBuilder()
+                            .setType(type)
+                            .setDataFile(FILE_STORE_URN.toString())
+                            .build(), true, 0));
+            final FlowContent flowContent = new FlowContentBuilder()
+                    .setComponents(Collections.singletonList(
+                            new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next_" + nextRevision++).build()).build()
+                    ))
+                    .build();
+            final Flow flow = new FlowBuilder()
+                    .setContent(flowContent)
+                    .build();
+            mockedAddJobParam.setFlow(flow);
+
+            final EntityTransaction transaction = entityManager.getTransaction();
+            transaction.begin();
+            pgJobStore.createJobEntity(mockedAddJobParam);
+            transaction.commit();
+
+            assertThat("flow cache table size when flow is trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
+        }
+
+        // When adding job with type ACCTEST the flow is not trimmed resulting in cache insert.
+
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(new JobInputStream(
+                new JobSpecificationBuilder()
+                        .setType(JobSpecification.Type.ACCTEST)
+                        .setDataFile(FILE_STORE_URN.toString())
+                        .build(), true, 0));
+        final FlowContent flowContent = new FlowContentBuilder()
+                .setComponents(Collections.singletonList(
+                        new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next_" + nextRevision++).build()).build()
+                ))
+                .build();
+        final Flow flow = new FlowBuilder()
+                .setContent(flowContent)
+                .build();
+        mockedAddJobParam.setFlow(flow);
+
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        pgJobStore.createJobEntity(mockedAddJobParam);
+        transaction.commit();
+
+        assertThat("flow cache table size when flow is not trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(2L));
+    }
+
     /**
      * Given: a jobstore with empty sinkcache
      * When : a sink is added
@@ -284,7 +348,7 @@ public class PgJobStoreIT {
         final int expectedNumberOfChunks = 2;
         final int expectedNumberOfItems = 11;
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
 
         // Setup mocks
         setupSuccessfulMockedReturnsFromFlowStore(mockedAddJobParam);
@@ -339,7 +403,7 @@ public class PgJobStoreIT {
         final int expectedNumberOfItems = 0;
         final long fileStoreByteSize = 42;
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         final long dataPartitionerByteSize = MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length;
 
         // Setup mocks
@@ -386,7 +450,7 @@ public class PgJobStoreIT {
         final int expectedNumberOfChunks = 0;
         final int expectedNumberOfItems = 0;
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
 
         // Setup mocks
         when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(mockedAddJobParam.getFlow());
@@ -490,7 +554,7 @@ public class PgJobStoreIT {
                 + "<records>"
                      + "<record>first</record>"
                 + "</records>";
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(iso8859, true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(iso8859);
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
@@ -528,7 +592,7 @@ public class PgJobStoreIT {
                      + "<record>tenth</record>"
                      + "<record>eleventh"
                 + "</records>";
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(invalidXml, true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(invalidXml);
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
@@ -870,7 +934,7 @@ public class PgJobStoreIT {
 
         // Create 3 jobs, each containing params with reference to different sinks.
         for(int i = 0; i < numberOfJobs; i ++) {
-            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
             FlowStoreReference flowStoreReference = new FlowStoreReference(i + 1, i + 1, "sinkName" + (i + 1));
             mockedAddJobParam.setFlowStoreReferences(new FlowStoreReferencesBuilder()
                     .setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build());
@@ -1020,7 +1084,7 @@ public class PgJobStoreIT {
         Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
         final PgJobStore pgJobStore = newPgJobStore();
         for(int i = 0; i < 4; i++) {
-            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(false);
+            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
             final EntityTransaction transaction = entityManager.getTransaction();
             transaction.begin();
             pgJobStore.addJob(mockedAddJobParam);
@@ -1063,7 +1127,7 @@ public class PgJobStoreIT {
     public void getResourceBundle() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
 
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
@@ -1097,7 +1161,7 @@ public class PgJobStoreIT {
     public void getChunk() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
@@ -1289,7 +1353,7 @@ public class PgJobStoreIT {
     }
 
     private JobInfoSnapshot addJobWithDiagnostic(PgJobStore pgJobStore, Diagnostic.Level level) throws JobStoreException {
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(true);
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         mockedAddJobParam.setDiagnostics(Collections.singletonList(new Diagnostic(level, ERROR_MESSAGE)));
         return commitJob(pgJobStore, mockedAddJobParam);
     }
@@ -1297,7 +1361,7 @@ public class PgJobStoreIT {
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
         for (int i = 0; i < numberOfJobs; i++) {
-            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new MockedAddJobParam(true));
+            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new MockedAddJobParam());
             snapshots.add(jobInfoSnapshot);
         }
         return snapshots;
@@ -1476,6 +1540,7 @@ public class PgJobStoreIT {
 
     private class MockedAddJobParam extends AddJobParam {
         public static final short MAX_CHUNK_SIZE = 10;
+        public static final String UNDEFINED_DATA = "";
         public static final String XML =
                 "<records>"
                     + "<record>first</record>"
@@ -1491,24 +1556,34 @@ public class PgJobStoreIT {
                     + "<record>eleventh</record>"
                 + "</records>";
 
-        public MockedAddJobParam(String utf8Data, boolean isEOJ) {
-            super(new JobInputStream(new JobSpecificationBuilder()
-                    .setDataFile(FILE_STORE_URN.toString())
-                    .setCharset(StandardCharsets.UTF_8.name())
-                    .build(), isEOJ, 0), mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
+        public MockedAddJobParam(JobInputStream jobInputStream, String utf8Data) {
+            super(jobInputStream, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
             submitter = new SubmitterBuilder().build();
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
             flowBinder = new FlowBinderBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
             sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
-            dataFileInputStream = new ByteArrayInputStream(utf8Data.getBytes(StandardCharsets.UTF_8));
-            dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
-                    StandardCharsets.UTF_8.name());
+            if (!utf8Data.equals(UNDEFINED_DATA)) {
+                dataFileInputStream = new ByteArrayInputStream(utf8Data.getBytes(StandardCharsets.UTF_8));
+                dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
+                        StandardCharsets.UTF_8.name());
+            }
         }
 
-        public MockedAddJobParam(boolean isEOJ) {
-            this(XML, isEOJ);
+        public MockedAddJobParam(JobInputStream jobInputStream) {
+            this(jobInputStream, UNDEFINED_DATA);
+        }
+
+        public MockedAddJobParam(String utf8Data) {
+            this(new JobInputStream(new JobSpecificationBuilder()
+                    .setDataFile(FILE_STORE_URN.toString())
+                    .setCharset(StandardCharsets.UTF_8.name())
+                    .build(), true, 0), utf8Data);
+        }
+
+        public MockedAddJobParam() {
+            this(XML);
         }
 
         public InputStream getDatafileInputStream() {
@@ -1521,6 +1596,10 @@ public class PgJobStoreIT {
 
         public void setDiagnostics(List<Diagnostic> diagnostics) {
             this.diagnostics = diagnostics;
+        }
+
+        public void setFlow(Flow flow) {
+            this.flow = flow;
         }
     }
 }

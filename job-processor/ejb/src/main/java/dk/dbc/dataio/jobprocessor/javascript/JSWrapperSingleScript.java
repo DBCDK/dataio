@@ -19,7 +19,7 @@ public class JSWrapperSingleScript {
 
     public JSWrapperSingleScript(String scriptId, String invocationMethod,
                                  List<StringSourceSchemeHandler.Script> javascripts,
-                                 String requireCacheJson ) {
+                                 String requireCacheJson ) throws Throwable {
         final ModuleHandler mh = new ModuleHandler();
         StringSourceSchemeHandler sssh = new StringSourceSchemeHandler(javascripts);
         mh.registerHandler("string", sssh);
@@ -35,16 +35,16 @@ public class JSWrapperSingleScript {
     }
 
 
-    private void loadRequireCache(String requireCacheJSON) {
+    private void loadRequireCache(String requireCacheJSON) throws Throwable {
         jsEnvironment.eval(DEFINE_REQUIRE_CACHE_FUNCTION_JAVASCRIPT);
         jsEnvironment.callMethod(INTERNAL_LOAD_REQUIRE_CACHE, new Object[]{requireCacheJSON});
     }
 
-    public Object invoke(final Object[] args) {
+    public Object invoke(final Object[] args) throws Throwable {
         return jsEnvironment.callMethod(invocationMethod, args);
     }
 
-    public Object eval(String s) {
+    public Object eval(String s) throws Throwable {
         return jsEnvironment.eval(s);
     }
 

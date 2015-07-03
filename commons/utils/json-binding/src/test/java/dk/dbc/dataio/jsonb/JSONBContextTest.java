@@ -3,6 +3,7 @@ package dk.dbc.dataio.jsonb;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -200,6 +201,40 @@ public class JSONBContextTest {
                 jsonbContext.unmarshall(json, jsonbContext.getTypeFactory().constructType(AnnotatedSimpleBeanWithoutDefaultConstructor.class));
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getValue(), is(value));
+    }
+
+    @Test
+    public void getJsonTree_jsonArgIsNull_throws() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            jsonbContext.getJsonTree(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void getJsonTree_jsonArgIsEmpty_throws() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        try {
+            jsonbContext.getJsonTree("");
+            fail("No exception thrown");
+        } catch (JSONBException e) {
+        }
+    }
+
+    @Test
+    public void getJsonTree_emptyJsonDocument_returnsRootNode() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final JsonNode jsonNode = jsonbContext.getJsonTree("{}");
+        assertThat(jsonNode, is(notNullValue()));
+    }
+
+    @Test
+    public void getJsonTree_nonEmptyJsonDocument_returnsRootNode() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final JsonNode jsonNode = jsonbContext.getJsonTree("{\"key\":\"value\"}");
+        assertThat(jsonNode, is(notNullValue()));
     }
 
     private static class SimpleBean {

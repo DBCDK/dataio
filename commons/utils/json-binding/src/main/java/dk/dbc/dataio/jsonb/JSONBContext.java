@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jsonb;
 
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -81,5 +82,19 @@ public class JSONBContext {
      */
     public TypeFactory getTypeFactory() {
         return objectMapper.getTypeFactory();
+    }
+
+    /**
+     * @param json JSON document
+     * @return root node of deserialized JSON content
+     * @throws JSONBException if unable to unmarshall JSON into tree representation
+     */
+    public JsonNode getJsonTree(String json) throws JSONBException {
+        try {
+            return objectMapper.readValue(json, JsonNode.class);
+        } catch (IOException e) {
+            throw new JSONBException(String.format(
+                    "Exception caught when trying to unmarshall JSON %s into JSON content tree", json), e);
+        }
     }
 }

@@ -334,13 +334,18 @@ public class PgJobStore {
             jobEntity.setFlowStoreReferences(addJobParam.getFlowStoreReferences());
             jobEntity.setState(jobState);
 
-            if(!jobState.fatalDiagnosticExists()) {
+            if (!jobState.fatalDiagnosticExists()) {
                 jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
-                final FlowCacheEntity flowCacheEntity = cacheFlow(addJobParam.getFlow());
-                final SinkCacheEntity sinkCacheEntity = cacheSink(addJobParam.getSink());
-                jobEntity.setCachedFlow(flowCacheEntity);
-                jobEntity.setCachedSink(sinkCacheEntity);
-
+                try {
+                    final String flowJson = jsonbContext.marshall(addJobParam.getFlow());
+                    final FlowCacheEntity flowCacheEntity = cacheFlow(flowJson);
+                    jobEntity.setCachedFlow(flowCacheEntity);
+                    final String sinkJson = jsonbContext.marshall(addJobParam.getSink());
+                    final SinkCacheEntity sinkCacheEntity = cacheSink(sinkJson);
+                    jobEntity.setCachedSink(sinkCacheEntity);
+                } catch (JSONBException e) {
+                    throw new JobStoreException("Exception caught during job-store operation", e);
+                }
             } else {
                 jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
             }
@@ -663,24 +668,21 @@ public class PgJobStore {
 
     /**
      * Adds Sink instance to job-store cache if not already cached
-     * @param sink Sink object to cache
+     * @param sinkJson Sink document to cache
      * @return id of cache line
-     * @throws NullPointerException if given null-valued sink
+     * @throws NullPointerException if given null-valued sinkJson
+     * @throws IllegalArgumentException if given empty-valued sinkJson
      * @throws IllegalStateException if unable to create checksum digest
-     * @throws JobStoreException on failure to marshall
      * entity object to JSON
      */
-    SinkCacheEntity cacheSink(Sink sink) throws NullPointerException, IllegalStateException, JobStoreException {
+    SinkCacheEntity cacheSink(String sinkJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            InvariantUtil.checkNotNullOrThrow(sink, "sink");
+            InvariantUtil.checkNotNullNotEmptyOrThrow(sinkJson, "sink");
             final Query storedProcedure = entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE);
-            final String sinkJson = jsonbContext.marshall(sink);
             storedProcedure.setParameter("checksum", Md5.asHex(sinkJson.getBytes(StandardCharsets.UTF_8)));
             storedProcedure.setParameter("sink", new SinkConverter().convertToDatabaseColumn(sinkJson));
             return (SinkCacheEntity) storedProcedure.getSingleResult();
-        } catch (JSONBException e) {
-            throw new JobStoreException("Exception caught during job-store operation", e);
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -688,24 +690,21 @@ public class PgJobStore {
 
     /**
      * Adds Flow instance to job-store cache if not already cached
-     * @param flow Flow object to cache
+     * @param flowJson Flow document to cache
      * @return id of cache line
-     * @throws NullPointerException if given null-valued flow
+     * @throws NullPointerException if given null-valued flowJson
+     * @throws IllegalArgumentException if given empty-valued flowJson
      * @throws IllegalStateException if unable to create checksum digest
-     * @throws JobStoreException on failure to marshall
      * entity object to JSON
      */
-    FlowCacheEntity cacheFlow(Flow flow) throws NullPointerException, IllegalStateException, JobStoreException {
+    FlowCacheEntity cacheFlow(String flowJson) throws NullPointerException, IllegalArgumentException, IllegalStateException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            InvariantUtil.checkNotNullOrThrow(flow, "flow");
+            InvariantUtil.checkNotNullNotEmptyOrThrow(flowJson, "flow");
             final Query storedProcedure = entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE);
-            final String flowJson = jsonbContext.marshall(flow);
             storedProcedure.setParameter("checksum", Md5.asHex(flowJson.getBytes(StandardCharsets.UTF_8)));
             storedProcedure.setParameter("flow", new FlowConverter().convertToDatabaseColumn(flowJson));
             return (FlowCacheEntity) storedProcedure.getSingleResult();
-        } catch (JSONBException e) {
-            throw new JobStoreException("Exception caught during job-store operation", e);
         } finally {
             LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }

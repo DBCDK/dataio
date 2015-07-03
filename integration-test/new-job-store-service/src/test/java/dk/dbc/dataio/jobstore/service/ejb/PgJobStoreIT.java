@@ -45,6 +45,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.After;
@@ -180,13 +181,13 @@ public class PgJobStoreIT {
      * Then : the flow is inserted into the flowcache
      */
     @Test
-    public void cacheFlow_addingNeverBeforeSeenFlow_isCached() throws JobStoreException, SQLException {
+    public void cacheFlow_addingNeverBeforeSeenFlow_isCached() throws JobStoreException, SQLException, JSONBException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
         // When...
         final Flow flow = new FlowBuilder().build();
-        final FlowCacheEntity flowCacheEntity = pgJobStore.cacheFlow(flow);
+        final FlowCacheEntity flowCacheEntity = pgJobStore.cacheFlow(pgJobStore.jsonbContext.marshall(flow));
 
         // Then...
         assertThat("entity", flowCacheEntity, is(notNullValue()));
@@ -200,17 +201,18 @@ public class PgJobStoreIT {
      * Then : no new flow is inserted into the flowcache
      */
     @Test
-    public void cacheFlow_addingAlreadyCachedFlow_leavesCacheUnchanged() throws JobStoreException, SQLException {
+    public void cacheFlow_addingAlreadyCachedFlow_leavesCacheUnchanged() throws JobStoreException, SQLException, JSONBException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final Flow flow = new FlowBuilder().build();
-        final FlowCacheEntity existingFlowCacheEntity = pgJobStore.cacheFlow(flow);
+        final String flowJson = pgJobStore.jsonbContext.marshall(flow);
+        final FlowCacheEntity existingFlowCacheEntity = pgJobStore.cacheFlow(flowJson);
 
         initialiseEntityManager();
         clearEntityManagerCache();
 
         // When...
-        final FlowCacheEntity flowCacheEntity = pgJobStore.cacheFlow(flow);
+        final FlowCacheEntity flowCacheEntity = pgJobStore.cacheFlow(flowJson);
 
         // Then...
         assertThat("entity.id", flowCacheEntity.getId(), is(existingFlowCacheEntity.getId()));
@@ -225,13 +227,13 @@ public class PgJobStoreIT {
      * Then : the sink is inserted into the sinkcache
      */
     @Test
-    public void cacheSink_addingNeverBeforeSeenSink_isCached() throws JobStoreException, SQLException {
+    public void cacheSink_addingNeverBeforeSeenSink_isCached() throws JobStoreException, SQLException, JSONBException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
         // When...
         final Sink sink = new SinkBuilder().build();
-        final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(sink);
+        final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(pgJobStore.jsonbContext.marshall(sink));
 
         // Then...
         assertThat("entity", sinkCacheEntity, is(notNullValue()));
@@ -245,17 +247,18 @@ public class PgJobStoreIT {
      * Then : no new sink is inserted into the sinkcache
      */
     @Test
-    public void cacheSink_addingAlreadyCachedSink_leavesCacheUnchanged() throws JobStoreException, SQLException {
+    public void cacheSink_addingAlreadyCachedSink_leavesCacheUnchanged() throws JobStoreException, SQLException, JSONBException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final Sink sink = new SinkBuilder().build();
-        final SinkCacheEntity existingSinkCacheEntity = pgJobStore.cacheSink(sink);
+        final String sinkJson = pgJobStore.jsonbContext.marshall(sink);
+        final SinkCacheEntity existingSinkCacheEntity = pgJobStore.cacheSink(sinkJson);
 
         initialiseEntityManager();
         clearEntityManagerCache();
 
         // When...
-        final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(sink);
+        final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(sinkJson);
 
         // Then...
         assertThat("entity.id", sinkCacheEntity.getId(), is(existingSinkCacheEntity.getId()));

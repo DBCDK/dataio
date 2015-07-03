@@ -675,8 +675,9 @@ public class PgJobStore {
         try {
             InvariantUtil.checkNotNullOrThrow(sink, "sink");
             final Query storedProcedure = entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE);
-            storedProcedure.setParameter("checksum", Md5.asHex(jsonbContext.marshall(sink).getBytes(StandardCharsets.UTF_8)));
-            storedProcedure.setParameter("sink", new SinkConverter().convertToDatabaseColumn(sink));
+            final String sinkJson = jsonbContext.marshall(sink);
+            storedProcedure.setParameter("checksum", Md5.asHex(sinkJson.getBytes(StandardCharsets.UTF_8)));
+            storedProcedure.setParameter("sink", new SinkConverter().convertToDatabaseColumn(sinkJson));
             return (SinkCacheEntity) storedProcedure.getSingleResult();
         } catch (JSONBException e) {
             throw new JobStoreException("Exception caught during job-store operation", e);
@@ -699,8 +700,9 @@ public class PgJobStore {
         try {
             InvariantUtil.checkNotNullOrThrow(flow, "flow");
             final Query storedProcedure = entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE);
-            storedProcedure.setParameter("checksum", Md5.asHex(jsonbContext.marshall(flow).getBytes(StandardCharsets.UTF_8)));
-            storedProcedure.setParameter("flow", new FlowConverter().convertToDatabaseColumn(flow));
+            final String flowJson = jsonbContext.marshall(flow);
+            storedProcedure.setParameter("checksum", Md5.asHex(flowJson.getBytes(StandardCharsets.UTF_8)));
+            storedProcedure.setParameter("flow", new FlowConverter().convertToDatabaseColumn(flowJson));
             return (FlowCacheEntity) storedProcedure.getSingleResult();
         } catch (JSONBException e) {
             throw new JobStoreException("Exception caught during job-store operation", e);

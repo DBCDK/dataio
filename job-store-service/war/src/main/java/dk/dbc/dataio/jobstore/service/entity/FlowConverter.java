@@ -15,14 +15,11 @@ import java.sql.SQLException;
 public class FlowConverter implements AttributeConverter<Flow, PGobject> {
     @Override
     public PGobject convertToDatabaseColumn(Flow flow) throws IllegalStateException {
-        final PGobject pgObject = new PGobject();
-        pgObject.setType("json");
         try {
-            pgObject.setValue(ConverterJSONBContext.getInstance().marshall(flow));
-        } catch (SQLException | JSONBException e) {
+            return convertToDatabaseColumn(ConverterJSONBContext.getInstance().marshall(flow));
+        } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
-        return pgObject;
     }
 
     @Override
@@ -32,5 +29,16 @@ public class FlowConverter implements AttributeConverter<Flow, PGobject> {
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public PGobject convertToDatabaseColumn(String flow) {
+        final PGobject pgObject = new PGobject();
+        pgObject.setType("json");
+        try {
+            pgObject.setValue(flow);
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+        return pgObject;
     }
 }

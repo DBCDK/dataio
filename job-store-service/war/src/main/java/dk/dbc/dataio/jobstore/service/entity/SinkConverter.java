@@ -15,14 +15,11 @@ import java.sql.SQLException;
 public class SinkConverter implements AttributeConverter<Sink, PGobject> {
     @Override
     public PGobject convertToDatabaseColumn(Sink sink) throws IllegalStateException {
-        final PGobject pgObject = new PGobject();
-        pgObject.setType("json");
         try {
-            pgObject.setValue(ConverterJSONBContext.getInstance().marshall(sink));
-        } catch (SQLException | JSONBException e) {
+            return convertToDatabaseColumn(ConverterJSONBContext.getInstance().marshall(sink));
+        } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
-        return pgObject;
     }
 
     @Override
@@ -32,5 +29,16 @@ public class SinkConverter implements AttributeConverter<Sink, PGobject> {
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public PGobject convertToDatabaseColumn(String sink) {
+        final PGobject pgObject = new PGobject();
+        pgObject.setType("json");
+        try {
+            pgObject.setValue(sink);
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
+        return pgObject;
     }
 }

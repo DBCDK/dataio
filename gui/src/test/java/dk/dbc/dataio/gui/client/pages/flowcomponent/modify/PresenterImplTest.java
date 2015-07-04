@@ -228,7 +228,7 @@ public class PresenterImplTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void scriptNameChanged_callScriptNameChanged_scriptNameIsChangedAccordingly() {
+    public void scriptNameChanged_callScriptNameChanged_scriptNameIsChangedAccordingly() throws Throwable {
         final String CHANGED_SCRIPT_NAME = "changedJavaScriptName";
         initializeAndStartPresenter();
         presenterImpl.scriptNameChanged(CHANGED_SCRIPT_NAME);
@@ -256,7 +256,7 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void saveButtonPressed_callSaveButtonPressedNameEmpty_errorMessageDisplayed() {
+    public void saveButtonPressed_callSaveButtonPressedNameEmpty_errorMessageDisplayed() throws Throwable {
         initializeAndStartPresenter();
         presenterImpl.model.setName("");  // We do only test an empty name, since all other empty cases are tested in the model
         assertThat(saveModelHasBeenCalled, is(false));

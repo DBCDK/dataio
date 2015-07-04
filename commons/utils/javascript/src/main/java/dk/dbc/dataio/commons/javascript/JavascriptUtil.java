@@ -48,7 +48,7 @@ public class JavascriptUtil {
      * @throws EvaluatorException if the javascript could not be evaluated
      * @throws EcmaError if an error in the evaluated javascript is found
      */
-    public static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName) throws IOException, EcmaError, EvaluatorException {
+    public static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName) throws Throwable {
         Environment jsEnvironment = new Environment();
         return getAllToplevelFunctionsInJavascript(reader, sourceName, jsEnvironment);
     }
@@ -134,14 +134,14 @@ public class JavascriptUtil {
      * @throws EvaluatorException if the javascript could not be evaluated
      * @throws EcmaError if an error in the evaluated javascript is found
      */
-    public static List<String> getAllToplevelFunctionsInJavascriptWithFakeUseFunction(Reader reader, String sourceName) throws IOException, EcmaError, EvaluatorException {
+    public static List<String> getAllToplevelFunctionsInJavascriptWithFakeUseFunction(Reader reader, String sourceName) throws Throwable {
         Environment jsEnvironment = new Environment();
         addFakeUseFunction(jsEnvironment);
         List<String> topLevelFunctionsWithUse = getAllToplevelFunctionsInJavascript(reader, sourceName, jsEnvironment);
         return filterFakeUseFunction(topLevelFunctionsWithUse);
     }
 
-    private static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName, Environment jsEnvironment) throws IOException, EcmaError, EvaluatorException {
+    private static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName, Environment jsEnvironment) throws Throwable {
         InvariantUtil.checkNotNullOrThrow(reader, "reader");
         InvariantUtil.checkNotNullOrThrow(sourceName, "sourceName");
         jsEnvironment.eval(reader, sourceName);
@@ -169,7 +169,7 @@ public class JavascriptUtil {
         return false;
     }
 
-    private static void addFakeUseFunction(Environment jsEnvironment) {
+    private static void addFakeUseFunction(Environment jsEnvironment) throws Throwable {
         jsEnvironment.eval("function use(x) {}");
     }
 
@@ -201,16 +201,21 @@ public class JavascriptUtil {
         }
 
         Environment jsEnvironment = new Environment();
-        jsEnvironment.registerUseFunction(mh);
-        jsEnvironment.evalFile(javascript.toString());
+        try {
+            jsEnvironment.registerUseFunction(mh);
+            jsEnvironment.evalFile(javascript.toString());
 
-        Object res=jsEnvironment.eval("if( hasOwnProperty('Require') ) { JSON.stringify(Require.getCache()); } else { ''; };");
-        String resAsString=(String)res;
-        String requireCache=null;
-        if( resAsString!=null && resAsString.length()>1 ) {
-            requireCache = resAsString;
+            Object res = jsEnvironment.eval("if( hasOwnProperty('Require') ) { JSON.stringify(Require.getCache()); } else { ''; };");
+
+            String resAsString=(String)res;
+            String requireCache=null;
+            if( resAsString!=null && resAsString.length()>1 ) {
+                requireCache = resAsString;
+            }
+
+            return new getAllDependentJavascriptsResult( sfsh.getJavascripts(), requireCache );
+        } catch (Throwable e) {
+            throw new IOException("Unknown Error Trying to eval load Depenedncies", e);
         }
-
-        return new getAllDependentJavascriptsResult( sfsh.getJavascripts(), requireCache );
     }
 }

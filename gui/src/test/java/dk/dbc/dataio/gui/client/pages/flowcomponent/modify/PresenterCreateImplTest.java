@@ -82,7 +82,7 @@ public class PresenterCreateImplTest {
     }
 
     @Test
-    public void saveModel_flowComponentOk_createFlowComponentCalled() {
+    public void saveModel_flowComponentOk_createFlowComponentCalled() throws Throwable {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
         presenterCreateImpl.model = new FlowComponentModel();

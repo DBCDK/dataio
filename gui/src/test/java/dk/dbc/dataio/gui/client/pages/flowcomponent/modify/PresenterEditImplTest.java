@@ -107,7 +107,7 @@ public class PresenterEditImplTest {
     }
 
     @Test
-    public void saveModel_callSaveModel_updateFlowComponentInFlowStoreCalled() {
+    public void saveModel_callSaveModel_updateFlowComponentInFlowStoreCalled() throws Throwable {
         presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         final String FLOW_COMPONENT_MODEL_NAME = "Flow Component Model Name";

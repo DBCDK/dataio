@@ -23,29 +23,29 @@ public class JavascriptUtilTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void testGetAllToplevelFunctionsInJavascript_nullReaderArgument_throws() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascript_nullReaderArgument_throws() throws Throwable {
         JavascriptUtil.getAllToplevelFunctionsInJavascript(null, "<inlinetest>");
     }
 
     @Test(expected = NullPointerException.class)
-    public void testGetAllToplevelFunctionsInJavascript_nullStringSourceArgument_throws() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascript_nullStringSourceArgument_throws() throws Throwable {
         String javascript = "function myfunc(s) { }";
         JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), null);
     }
 
     @Test(expected = NullPointerException.class)
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullReaderArgument_throws() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullReaderArgument_throws() throws Throwable {
         JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(null, "<inlinetest>");
     }
 
     @Test(expected = NullPointerException.class)
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullStringSourceArgument_throws() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_nullStringSourceArgument_throws() throws Throwable {
         String javascript = "function myfunc(s) { }";
         JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), null);
     }
 
     @Test
-    public void testGetAllToplevelFunctionsInJavascript_singleLegalFunction() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascript_singleLegalFunction() throws Throwable {
         String javascript = "function myfunc(s) { }";
         List<String> functionNames = JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>");
         assertThat(functionNames.size(), is(1));
@@ -53,7 +53,7 @@ public class JavascriptUtilTest {
     }
 
     @Test(expected = EcmaError.class) // ReferenceError
-    public void testGetAllToplevelFunctionsInJavascript_javascriptContainingUse_throws() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascript_javascriptContainingUse_throws() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
                 + "function myfunc(s) { }";
@@ -61,7 +61,7 @@ public class JavascriptUtilTest {
     }
 
     @Test
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_singleLegalFunction() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_singleLegalFunction() throws Throwable {
         String javascript = "function myfunc(s) { }";
         List<String> functionNames = JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(new StringReader(javascript), "<inlinetest>");
         assertThat(functionNames.size(), is(1));
@@ -69,7 +69,7 @@ public class JavascriptUtilTest {
     }
 
     @Test
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_singleLegalFunctionWithUse() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_singleLegalFunctionWithUse() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
                 + "function myfunc(s) { }";
@@ -79,7 +79,7 @@ public class JavascriptUtilTest {
     }
 
     @Test
-    public void testGetAllToplevelFunctionsInJavascript_multipleLegalFunctions() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascript_multipleLegalFunctions() throws Throwable {
         String javascript = ""
                 + "function myfunc(s) {};\n"
                 + "function anotherfunc(x) {}";
@@ -90,7 +90,7 @@ public class JavascriptUtilTest {
     }
 
     @Test
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_multipleLegalFunctions() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_multipleLegalFunctions() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
                 + "function myfunc(s) {};\n"
@@ -102,7 +102,7 @@ public class JavascriptUtilTest {
     }
 
     @Test
-    public void testGetAllToplevelFunctionsInJavascript_multipleIdenticalFunctions_yieldSingleFunctionNameProperty() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascript_multipleIdenticalFunctions_yieldSingleFunctionNameProperty() throws Throwable {
         String javascript = ""
                 + "function f(x) {};\n"
                 + "function f(x) {};\n"
@@ -113,14 +113,14 @@ public class JavascriptUtilTest {
     }
 
     @Test(expected = EvaluatorException.class)
-    public void testGetAllToplevelFunctionsInJavascript_illegalJavascript_throws() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascript_illegalJavascript_throws() throws Throwable {
         String javascript = ""
                 + "function myfunc(x) {";
         JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>");
     }
 
     @Test(expected = EvaluatorException.class)
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_illegalJavascript_throws() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_illegalJavascript_throws() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
                 + "function myfunc(x) {";
@@ -133,7 +133,7 @@ public class JavascriptUtilTest {
      * functions named 'use' will be filtered from the result.
      */
     @Test
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_singleLegalAdditionalUseFunction() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_singleLegalAdditionalUseFunction() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
                 + "function use(s) { }";
@@ -147,7 +147,7 @@ public class JavascriptUtilTest {
      * object which is the target of the use-function, then an exception is thrown.
      */
     @Test(expected = EcmaError.class) // ReferenceError
-    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_javascriptWithObjectReferencingUseModule() throws IOException {
+    public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_javascriptWithObjectReferencingUseModule() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
                 + "\n"

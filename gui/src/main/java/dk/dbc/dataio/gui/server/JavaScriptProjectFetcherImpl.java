@@ -335,7 +335,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
                             FileUtil.getReaderForFile(exportedFile), javaScriptFileName));
             Collections.sort(functionNames);
             return functionNames;
-        } catch (IOException e) {
+        } catch (Throwable e) {
             log.error("Caught unexpected exception trying to read javaScript file '{}'", exportedFile, e);
         }
         return Collections.emptyList();

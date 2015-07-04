@@ -245,31 +245,31 @@ public class JavaScriptProjectFetcherImplTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void fetchJavaScriptInvocationMethods_projectNameArgIsNull_throws() throws Exception {
+    public void fetchJavaScriptInvocationMethods_projectNameArgIsNull_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchJavaScriptInvocationMethods(null, revision, javaScriptFileName);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void fetchJavaScriptInvocationMethods_projectNameArgIsEmpty_throws() throws Exception {
+    public void fetchJavaScriptInvocationMethods_projectNameArgIsEmpty_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchJavaScriptInvocationMethods("", revision, javaScriptFileName);
     }
 
     @Test(expected = NullPointerException.class)
-    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsNull_throws() throws Exception {
+    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsNull_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchJavaScriptInvocationMethods(projectName, revision, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsEmpty_throws() throws Exception {
+    public void fetchJavaScriptInvocationMethods_javaScriptFileNameArgIsEmpty_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchJavaScriptInvocationMethods(projectName, revision, "");
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
-    public void fetchJavaScriptInvocationMethods_projectNameArgIsIllegal_throws() throws Exception {
+    public void fetchJavaScriptInvocationMethods_projectNameArgIsIllegal_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         try {
             instance.fetchJavaScriptInvocationMethods(illegalProjectName, revision, javaScriptFileName);
@@ -280,7 +280,7 @@ public class JavaScriptProjectFetcherImplTest {
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
-    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
+    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsUriSyntaxException_throws() throws Throwable {
         doThrow(uriSyntaxException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
 
         final JavaScriptProjectFetcherImpl instance = newInstance();
@@ -295,7 +295,7 @@ public class JavaScriptProjectFetcherImplTest {
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
-    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsSvnException_throws() throws Exception {
+    public void fetchJavaScriptInvocationMethods_svnConnectorThrowsSvnException_throws() throws Throwable {
         doThrow(svnException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
 
         final JavaScriptProjectFetcherImpl instance = newInstance();
@@ -310,7 +310,7 @@ public class JavaScriptProjectFetcherImplTest {
     }
 
     @Test
-    public void fetchJavaScriptInvocationMethods__returnsMethodNames() throws Exception {
+    public void fetchJavaScriptInvocationMethods__returnsMethodNames() throws Throwable {
         final String projectUrl = subversionScmEndpoint + JavaScriptProjectFetcherImpl.URL_DELIMITER
                 + projectName + javaScriptFileName;
         final String filename = new File(javaScriptFileName).getName();
@@ -331,43 +331,43 @@ public class JavaScriptProjectFetcherImplTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void fetchRequiredJavaScript_projectNameArgIsNull_throws() throws Exception {
+    public void fetchRequiredJavaScript_projectNameArgIsNull_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchRequiredJavaScript(null, revision, javaScriptFileName, javaScriptFunction);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void fetchRequiredJavaScript_projectNameArgIsEmpty_throws() throws Exception {
+    public void fetchRequiredJavaScript_projectNameArgIsEmpty_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchRequiredJavaScript("", revision, javaScriptFileName, javaScriptFunction);
     }
 
     @Test(expected = NullPointerException.class)
-    public void fetchRequiredJavaScript_javaScriptFileNameArgIsNull_throws() throws Exception {
+    public void fetchRequiredJavaScript_javaScriptFileNameArgIsNull_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchRequiredJavaScript(projectName, revision, null, javaScriptFunction);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void fetchRequiredJavaScript_javaScriptFileNameArgIsEmpty_throws() throws Exception {
+    public void fetchRequiredJavaScript_javaScriptFileNameArgIsEmpty_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchRequiredJavaScript(projectName, revision, "", javaScriptFunction);
     }
 
     @Test(expected = NullPointerException.class)
-    public void fetchRequiredJavaScript_javaScriptFunctionArgIsNull_throws() throws Exception {
+    public void fetchRequiredJavaScript_javaScriptFunctionArgIsNull_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void fetchRequiredJavaScript_javaScriptFunctionArgIsEmpty_throws() throws Exception {
+    public void fetchRequiredJavaScript_javaScriptFunctionArgIsEmpty_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, "");
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
-    public void fetchRequiredJavaScript_projectNameArgIsIllegal_throws() throws Exception {
+    public void fetchRequiredJavaScript_projectNameArgIsIllegal_throws() throws Throwable {
         final JavaScriptProjectFetcherImpl instance = newInstance();
         try {
             instance.fetchRequiredJavaScript(illegalProjectName, revision, javaScriptFileName, javaScriptFunction);
@@ -378,7 +378,7 @@ public class JavaScriptProjectFetcherImplTest {
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
-    public void fetchRequiredJavaScript_svnConnectorThrowsUriSyntaxException_throws() throws Exception {
+    public void fetchRequiredJavaScript_svnConnectorThrowsUriSyntaxException_throws() throws Throwable {
         doThrow(uriSyntaxException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
 
         final JavaScriptProjectFetcherImpl instance = newInstance();
@@ -393,7 +393,7 @@ public class JavaScriptProjectFetcherImplTest {
     }
 
     @Test(expected = JavaScriptProjectFetcherException.class)
-    public void fetchRequiredJavaScript_svnConnectorThrowsSvnException_throws() throws Exception {
+    public void fetchRequiredJavaScript_svnConnectorThrowsSvnException_throws() throws Throwable {
         doThrow(svnException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
 
         final JavaScriptProjectFetcherImpl instance = newInstance();
@@ -409,7 +409,7 @@ public class JavaScriptProjectFetcherImplTest {
 
     @Ignore
     @Test
-    public void fetchRequiredJavaScript__returnsJavaScripts() throws Exception {
+    public void fetchRequiredJavaScript__returnsJavaScripts() throws Throwable {
         final String projectUrl = subversionScmEndpoint + JavaScriptProjectFetcherImpl.URL_DELIMITER
                 + projectName + JavaScriptProjectFetcherImpl.URL_DELIMITER + JavaScriptProjectFetcherImpl.TRUNK_PATH;
         final String dependencyUrl = subversionScmEndpoint + JavaScriptProjectFetcherImpl.URL_DELIMITER

@@ -74,7 +74,7 @@ public class SpecializedFileSchemeHandlerTest {
 
     @Ignore
     @Test
-    public void test() throws IOException {
+    public void test() throws Throwable {
         Path rootDir1 = (new File("/home/damkjaer/dbc/tmp/jscommon")).toPath();
         Path rootDir2 = (new File("/home/damkjaer/dbc/tmp/datawell-convert")).toPath();
 

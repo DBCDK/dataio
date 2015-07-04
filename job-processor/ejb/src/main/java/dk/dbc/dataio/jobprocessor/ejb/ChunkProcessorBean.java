@@ -83,7 +83,7 @@ public class ChunkProcessorBean {
     /* Creates separate javascript environments for each component in given flow and returns
        them as wrapped scripts.
      */
-    private List<JSWrapperSingleScript> setupJavaScriptEnvironments(Flow flow) throws IllegalStateException {
+    private List<JSWrapperSingleScript> setupJavaScriptEnvironments(Flow flow) throws Throwable {
         final StopWatch stopWatch = new StopWatch();
         try {
             final String cacheKey = String.format("%d.%d", flow.getId(), flow.getVersion());
@@ -187,7 +187,7 @@ public class ChunkProcessorBean {
         return processedItem;
     }
 
-    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData, LogStoreTrackingId trackingId) {
+    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData, LogStoreTrackingId trackingId) throws Throwable {
         LOGGER.info("Starting javascript [{}] with invocation method: [{}] and logging ID [{}]", jsWrapper.getScriptId(), jsWrapper.getInvocationMethod(), trackingId.toString());
         final Object result = jsWrapper.invoke(new Object[]{data, supplementaryData});
         return (String) result;
@@ -205,7 +205,7 @@ public class ChunkProcessorBean {
         return failureMsg;
     }
 
-    private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws JSONBException {
+    private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws Throwable {
         // Something about why you need parentheses in the string around the json
         // when trying to evaluate the json in javascript (rhino):
         // http://rayfd.me/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/

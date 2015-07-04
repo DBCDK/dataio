@@ -1256,7 +1256,7 @@ public class FlowStoreProxyImplTest {
      */
 
     @Test
-    public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowComponentModelEntity() throws Exception {
+    public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowComponentModelEntity() throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
@@ -1279,24 +1279,24 @@ public class FlowStoreProxyImplTest {
     }
 
     @Test
-    public void createFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+    public void createFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Throwable {
         createFlowComponent_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
     }
 
     @Test
-    public void createFlowComponent_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+    public void createFlowComponent_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Throwable {
         createFlowComponent_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
     }
 
     @Test
-    public void createFlowComponent_throwsIllegalArgumentException() throws Exception {
+    public void createFlowComponent_throwsIllegalArgumentException() throws Throwable {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         FlowComponentModel model = new FlowComponentModelBuilder().build();
         model.setName("");
         createFlowComponent_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
-    private void createFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+    private void createFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
@@ -1319,7 +1319,7 @@ public class FlowStoreProxyImplTest {
         }
     }
 
-    private void createFlowComponent_testForProxyError(FlowComponentModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+    private void createFlowComponent_testForProxyError(FlowComponentModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
@@ -1374,7 +1374,7 @@ public class FlowStoreProxyImplTest {
      */
 
     @Test
-    public void updateFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentModelEntity() throws Exception {
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentModelEntity() throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
@@ -1400,22 +1400,22 @@ public class FlowStoreProxyImplTest {
     }
 
     @Test
-    public void updateFlowComponent_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Throwable {
         updateFlowComponent_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
     }
 
     @Test
-    public void updateFlowComponent_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusConflict_throws() throws Throwable {
         updateFlowComponent_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
     }
 
     @Test
-    public void updateFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+    public void updateFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Throwable {
         updateFlowComponent_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
     }
 
     @Test
-    public void updateFlowComponent_throwsIllegalArgumentException() throws Exception {
+    public void updateFlowComponent_throwsIllegalArgumentException() throws Throwable {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
         FlowComponentModel model = new FlowComponentModelBuilder().build();
         model.setName("");
@@ -1423,7 +1423,7 @@ public class FlowStoreProxyImplTest {
     }
 
 
-    private void updateFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+    private void updateFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
@@ -1448,7 +1448,7 @@ public class FlowStoreProxyImplTest {
         }
     }
 
-    private void updateFlowComponent_testForProxyError(FlowComponentModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+    private void updateFlowComponent_testForProxyError(FlowComponentModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
